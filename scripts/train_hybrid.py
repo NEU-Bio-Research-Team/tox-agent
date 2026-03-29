@@ -25,13 +25,13 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
 
-from src.data import load_clintox
-from src.graph_data import smiles_list_to_pyg_dataset, get_feature_dims
-from src.smiles_tokenizer import create_tokenizer_from_smiles
-from src.graph_models_hybrid import create_hybrid_model
-from src.graph_train import train_gatv2_model as train_graph_model, evaluate_model, create_balanced_sampler
-from src.utils import set_seed, save_metrics, ensure_dir
-from src.workspace_mode import assert_clintox_enabled
+from backend.data import load_clintox
+from backend.graph_data import smiles_list_to_pyg_dataset, get_feature_dims
+from backend.smiles_tokenizer import create_tokenizer_from_smiles
+from backend.graph_models_hybrid import create_hybrid_model
+from backend.graph_train import train_gatv2_model as train_graph_model, evaluate_model, create_balanced_sampler
+from backend.utils import set_seed, save_metrics, ensure_dir
+from backend.workspace_mode import assert_clintox_enabled
 
 
 def collate_fn(batch):

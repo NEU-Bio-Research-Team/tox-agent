@@ -1,0 +1,123 @@
+:root {
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  line-height: 1.45;
+  color: #17202a;
+  background: radial-gradient(circle at 20% 10%, #f4f9ff 0%, #f0f7f4 45%, #fefcf8 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffffcc;
+  backdrop-filter: blur(4px);
+  border: 1px solid #d6e3ea;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(14, 41, 57, 0.08);
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+}
+
+.hero p {
+  margin: 0 0 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn {
+  border: 1px solid #1f5f8b;
+  background: #f7fbff;
+  color: #1f5f8b;
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: #145f32;
+  color: #fff;
+  border-color: #145f32;
+}
+
+.btn.ghost {
+  border-color: #6a7f8e;
+  color: #274150;
+}
+
+.label {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 8px;
+}
+
+textarea {
+  width: 100%;
+  border: 1px solid #c8d5dc;
+  border-radius: 10px;
+  padding: 10px;
+  resize: vertical;
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+}
+
+.hint {
+  margin-top: 8px;
+  color: #4a6171;
+  font-size: 14px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0d1e2a;
+  color: #d8f1ff;
+  min-height: 110px;
+  font-size: 13px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.grid h3 {
+  margin: 0 0 8px;
+}
+
+.verdict {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px dashed #94b4c7;
+  border-radius: 10px;
+  background: #f9fcff;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

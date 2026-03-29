@@ -8,6 +8,7 @@ and evaluation functions for molecular property prediction with class imbalance 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import inspect
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from torch_geometric.data import Batch
 from typing import Dict, Optional, List, Tuple, Union
@@ -216,9 +217,19 @@ def train_gatv2_model(
     )
     
     # Learning rate scheduler
+    scheduler_kwargs = {
+        'mode': 'max' if early_stopping_metric != 'loss' else 'min',
+        'factor': 0.5,
+        'patience': 10,
+    }
+    if 'verbose' in inspect.signature(
+        torch.optim.lr_scheduler.ReduceLROnPlateau
+    ).parameters:
+        scheduler_kwargs['verbose'] = verbose
+
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='max' if early_stopping_metric != 'loss' else 'min',
-        factor=0.5, patience=10, verbose=verbose
+        optimizer,
+        **scheduler_kwargs,
     )
     
     # Training history
@@ -836,12 +847,19 @@ def train_multitask_model(
     )
 
     optimize_for_loss = early_stopping_metric == 'loss'
+    scheduler_kwargs = {
+        'mode': 'min' if optimize_for_loss else 'max',
+        'factor': 0.5,
+        'patience': 10,
+    }
+    if 'verbose' in inspect.signature(
+        torch.optim.lr_scheduler.ReduceLROnPlateau
+    ).parameters:
+        scheduler_kwargs['verbose'] = verbose
+
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
-        mode='min' if optimize_for_loss else 'max',
-        factor=0.5,
-        patience=10,
-        verbose=verbose,
+        **scheduler_kwargs,
     )
 
     history = {

@@ -27,16 +27,16 @@ warnings.filterwarnings('ignore')
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.data import get_task_names, load_tox21
-from src.graph_data import get_feature_dims, smiles_list_to_pyg_dataset
-from src.graph_models import create_gatv2_model
-from src.graph_train import (
+from backend.data import get_task_names, load_tox21
+from backend.graph_data import get_feature_dims, smiles_list_to_pyg_dataset
+from backend.graph_models import create_gatv2_model
+from backend.graph_train import (
     compute_multitask_pos_weights,
     evaluate_multitask_model,
     train_multitask_model,
 )
-from src.utils import save_metrics, set_seed
-from src.workspace_mode import assert_tox21_enabled
+from backend.utils import save_metrics, set_seed
+from backend.workspace_mode import assert_tox21_enabled
 
 
 def collate_fn(batch):

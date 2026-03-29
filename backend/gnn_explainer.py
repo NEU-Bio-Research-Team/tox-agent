@@ -27,7 +27,6 @@ import torch
 import torch.nn as nn
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
-from rdkit.Chem.Draw import rdMolDraw2D
 from torch_geometric.explain import Explainer, GNNExplainer
 
 
@@ -416,14 +415,47 @@ def visualize_explanation(
     true_label   = result["true_label"]
     smiles       = result["smiles"]
 
-    from rdkit.Chem import Draw
     from PIL import Image
     import io
+
+    try:
+        from rdkit.Chem.Draw import rdMolDraw2D
+        draw_backend_available = True
+    except Exception:
+        draw_backend_available = False
 
     def _importance_to_rgb(importance: float, cmap_name: str = "RdYlGn_r") -> Tuple[float, float, float]:
         cmap = plt.cm.get_cmap(cmap_name)
         rgba = cmap(float(importance))
         return rgba[0], rgba[1], rgba[2]
+
+    if not draw_backend_available:
+        fig, axes = plt.subplots(1, 2, figsize=figsize)
+
+        axes[0].bar(range(len(atom_imp)), atom_imp, color="tomato", alpha=0.8)
+        axes[0].set_title("Atom importance (fallback)", fontsize=11)
+        axes[0].set_xlabel("Atom index")
+        axes[0].set_ylabel("Importance")
+        axes[0].set_ylim(0.0, 1.05)
+
+        axes[1].bar(range(len(bond_imp)), bond_imp, color="steelblue", alpha=0.8)
+        axes[1].set_title("Bond importance (fallback)", fontsize=11)
+        axes[1].set_xlabel("Bond index")
+        axes[1].set_ylabel("Importance")
+        axes[1].set_ylim(0.0, 1.05)
+
+        true_str = f"True: {'Toxic' if true_label == 1 else 'Non-toxic'}" if true_label is not None else ""
+        pred_str = f"Predicted: {'Toxic' if pred_cls == 1 else 'Non-toxic'} (P={prob:.3f})"
+        fig.suptitle(f"{smiles}\n{pred_str}   {true_str}", fontsize=10, y=1.01)
+
+        plt.tight_layout()
+        if save_path:
+            plt.savefig(save_path, dpi=150, bbox_inches="tight")
+            plt.close()
+            print(f"Saved -> {save_path}")
+        else:
+            plt.show()
+        return
 
     def _draw(highlight_atoms, highlight_bonds, atom_colors, bond_colors, width=500, height=400):
         drawer = rdMolDraw2D.MolDraw2DCairo(width, height)
