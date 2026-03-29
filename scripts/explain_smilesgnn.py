@@ -43,6 +43,7 @@ from src.gnn_explainer import (
     aggregate_atom_importance,
     plot_element_importance,
 )
+from src.workspace_mode import assert_clintox_enabled
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -102,6 +103,8 @@ def load_model(model_dir: Path, device: str):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main():
+    assert_clintox_enabled("scripts/explain_smilesgnn.py")
+
     parser = argparse.ArgumentParser(
         description="GNNExplainer attribution for SMILESGNN toxicity model",
         formatter_class=argparse.RawDescriptionHelpFormatter,

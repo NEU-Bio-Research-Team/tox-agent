@@ -6,6 +6,21 @@ Implementation of **SMILESGNN**, a multimodal deep learning architecture for cli
 
 ---
 
+## Workspace Mode (Current)
+
+This workspace now runs in **tox21_only** mode (see `config/workspace_mode.yaml`).
+
+- Primary dataset: **Tox21** (12-task multi-label binary prediction)
+- ClinTox code is **kept but disabled** by guard rails in entrypoints/loaders
+- Any ClinTox script call exits with a clear `[DISABLED:CLINTOX]` message
+
+Active Tox21 entrypoints:
+
+```bash
+python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml
+python scripts/predict_tox21.py --smiles "CCO" --device cuda
+```
+
 ## Results
 
 Evaluated on the [ClinTox](https://moleculenet.org/datasets-1) dataset (1,480 molecules, scaffold-based split, 11.5:1 class imbalance).
@@ -114,7 +129,7 @@ Molecular graph ──► GATv2 Encoder (3 layers, 4 heads, JK) ─────�
 ```
 molecule/
 ├── src/                          # Core library
-│   ├── data.py                   # ClinTox loading
+│   ├── data.py                   # Dataset loading (Tox21 primary)
 │   ├── graph_models_hybrid.py    # SMILESGNN architecture ⭐
 │   ├── gnn_explainer.py          # GNNExplainer integration ⭐
 │   ├── inference.py              # Batch inference engine (used by app.py)
@@ -166,32 +181,26 @@ pip install -r requirements.txt
 
 ## Reproducing Results
 
-**SMILESGNN (main model)**
+**Tox21 multi-task training (primary workflow)**
 ```bash
-python scripts/train_hybrid.py --device cuda
+python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml
 ```
-Output saved to `models/smilesgnn_model/`.
+Output saved to `models/tox21_gatv2_model/`.
 
-**Consolidate all results and regenerate figures**
+**Tox21 batch prediction**
 ```bash
-python scripts/consolidate_results.py
-python scripts/generate_curves.py
+python scripts/predict_tox21.py --input-file test_data/smiles_only.csv --device cuda
 ```
 
 ---
 
 ## Streamlit Inference App
-After training SMILESGNN, launch the interactive toxicity predictor:
+The existing app is ClinTox-facing and is intentionally disabled in `tox21_only` mode.
+You can still start it to see the status banner:
 ```bash
 conda activate drug-tox-env
 streamlit run app.py
 ```
-
-### Tab 1 — Batch Screening
-Score an entire compound library and rank by P(toxic).
-- Upload CSV, XLSX, or TXT (e.g., `test_data/screening_library.csv`)
-- Paste SMILES one per line.
-- Outputs summary metrics, uncalibrated probability histogram, pie charts, and ranked downloadable CSV.
 
 ---
 
@@ -209,4 +218,4 @@ Score an entire compound library and rank by P(toxic).
 ---
 
 ## License
-This project is released for research use. The ClinTox dataset is part of [MoleculeNet](https://moleculenet.org/) (MIT License).
+This project is released for research use. Tox21 and ClinTox are part of [MoleculeNet](https://moleculenet.org/) (MIT License).

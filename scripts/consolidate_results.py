@@ -11,6 +11,9 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.utils import load_metrics
+from src.workspace_mode import assert_clintox_enabled
+
+assert_clintox_enabled("scripts/consolidate_results.py")
 
 models_dir = project_root / "models"
 results_dir = project_root / "results"

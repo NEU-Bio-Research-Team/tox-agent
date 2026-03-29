@@ -29,6 +29,7 @@ from src.graph_data import get_feature_dims, smiles_list_to_pyg_dataset
 from src.graph_models import create_gatv2_model
 from src.graph_train import create_balanced_sampler, evaluate_model, train_gatv2_model
 from src.utils import save_metrics, set_seed
+from src.workspace_mode import assert_clintox_enabled
 
 
 def collate_fn(batch):
@@ -95,6 +96,8 @@ def load_pretrained_backbone(
 
 
 def main():
+    assert_clintox_enabled("scripts/train_gatv2_transfer.py")
+
     parser = argparse.ArgumentParser(
         description='Train ClinTox GATv2 model with Tox21 transfer initialization'
     )

@@ -235,11 +235,17 @@ def smiles_to_pyg_data(
         else:
             label_arr = np.array([label], dtype=np.float32)
 
-        # Ensure scalar labels become shape [1] while keeping vector labels intact.
-        if np.asarray(label_arr).ndim == 0:
-            label_arr = np.array([label_arr], dtype=np.float32)
+        label_arr = np.asarray(label_arr, dtype=np.float32)
 
-        data.y = torch.tensor(np.asarray(label_arr, dtype=np.float32), dtype=torch.float32)
+        # Keep single-task labels as shape [1].
+        if label_arr.ndim == 0:
+            label_arr = label_arr.reshape(1)
+        # For multi-task labels, store as shape [1, num_tasks] so PyG batching yields
+        # [batch_size, num_tasks] instead of flattening into [batch_size * num_tasks].
+        elif label_arr.ndim == 1 and label_arr.size > 1:
+            label_arr = label_arr.reshape(1, -1)
+
+        data.y = torch.tensor(label_arr, dtype=torch.float32)
     
     # Store SMILES string as attribute (useful for debugging/visualization)
     data.smiles = smiles

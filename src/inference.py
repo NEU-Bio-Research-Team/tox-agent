@@ -26,6 +26,7 @@ from src.data import get_task_names
 from src.graph_data import get_feature_dims, smiles_to_pyg_data
 from src.graph_models import create_gatv2_model
 from src.graph_models_hybrid import create_hybrid_model
+from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -93,6 +94,7 @@ def load_model(
     model_dir:   Path,
     config_path: Path,
     device:      str = "cpu",
+    enforce_workspace_mode: bool = True,
 ):
     """
     Load a trained SMILESGNN checkpoint.
@@ -105,6 +107,9 @@ def load_model(
     -------
     (model, tokenizer, wrapped_model)  — all in eval mode on `device`.
     """
+    if enforce_workspace_mode:
+        assert_clintox_enabled("load_model (SMILESGNN/ClinTox)")
+
     model_dir   = Path(model_dir)
     config_path = Path(config_path)
 
@@ -171,6 +176,8 @@ def load_tox21_gatv2_model(
     -------
     (model, task_names) in eval mode on `device`.
     """
+    assert_tox21_enabled("load_tox21_gatv2_model")
+
     model_dir = Path(model_dir)
     config_path = Path(config_path)
 
@@ -256,6 +263,8 @@ def predict_tox21_batch(
 
     Returns a table with per-assay probabilities and a mechanistic alert summary.
     """
+    assert_tox21_enabled("predict_tox21_batch")
+
     threshold_arr = _resolve_tox21_thresholds(
         task_names=task_names,
         default_threshold=threshold,
@@ -372,6 +381,7 @@ def predict_batch(
     true_labels:   Optional[List[int]] = None,
     threshold:     float = 0.5,
     batch_size:    int   = 32,
+    enforce_workspace_mode: bool = True,
 ) -> pd.DataFrame:
     """
     Stage A — fast batch toxicity prediction.
@@ -396,6 +406,9 @@ def predict_batch(
     pd.DataFrame sorted by P(toxic) descending.
     Parse errors appear at the bottom with P(toxic) = None.
     """
+    if enforce_workspace_mode:
+        assert_clintox_enabled("predict_batch (SMILESGNN/ClinTox)")
+
     valid, invalid = [], []
 
     for i, smi in enumerate(smiles_list):
@@ -448,3 +461,141 @@ def predict_batch(
     rows.extend(invalid)
     df = pd.DataFrame(rows).sort_values("P(toxic)", ascending=False, na_position="last")
     return df.reset_index(drop=True)
+
+
+def predict_clinical_toxicity(
+    smiles: str,
+    tokenizer,
+    wrapped_model: nn.Module,
+    device: str,
+    threshold: float = 0.5,
+    name: str = "Mol-000",
+    enforce_workspace_mode: bool = True,
+) -> Dict[str, Union[str, float, bool]]:
+    """Predict binary toxicity verdict from XSmiles/SMILESGNN for one SMILES."""
+    df = predict_batch(
+        smiles_list=[smiles],
+        tokenizer=tokenizer,
+        wrapped_model=wrapped_model,
+        device=device,
+        names=[name],
+        threshold=threshold,
+        batch_size=1,
+        enforce_workspace_mode=enforce_workspace_mode,
+    )
+
+    if df.empty:
+        return {
+            "label": "PARSE_ERROR",
+            "is_toxic": False,
+            "confidence": 0.0,
+            "p_toxic": 0.0,
+            "threshold_used": float(threshold),
+        }
+
+    row = df.iloc[0]
+    predicted = str(row.get("Predicted", "Parse error"))
+    if predicted == "Parse error":
+        return {
+            "label": "PARSE_ERROR",
+            "is_toxic": False,
+            "confidence": 0.0,
+            "p_toxic": 0.0,
+            "threshold_used": float(threshold),
+        }
+
+    p_toxic = float(row.get("P(toxic)", 0.0))
+    is_toxic = bool(p_toxic >= threshold)
+    confidence = abs(p_toxic - threshold) / max(float(threshold), 1.0 - float(threshold))
+
+    return {
+        "label": "TOXIC" if is_toxic else "NON_TOXIC",
+        "is_toxic": is_toxic,
+        "confidence": float(min(confidence, 1.0)),
+        "p_toxic": float(p_toxic),
+        "threshold_used": float(threshold),
+    }
+
+
+def predict_toxicity_mechanism(
+    smiles: str,
+    model: nn.Module,
+    task_names: List[str],
+    device: str,
+    threshold: float = 0.5,
+    task_thresholds: Optional[Union[List[float], np.ndarray, Dict[str, float]]] = None,
+    batch_size: int = 64,
+) -> Dict[str, Union[float, int, str, bool, List[str], Dict[str, float]]]:
+    """Predict Tox21 mechanism-level outputs for one SMILES."""
+    threshold_arr = _resolve_tox21_thresholds(
+        task_names=task_names,
+        default_threshold=threshold,
+        task_thresholds=task_thresholds,
+    )
+    task_threshold_map = {
+        task_name: float(threshold_arr[idx])
+        for idx, task_name in enumerate(task_names)
+    }
+
+    df = predict_tox21_batch(
+        smiles_list=[smiles],
+        model=model,
+        task_names=task_names,
+        device=device,
+        names=["Mol-000"],
+        threshold=threshold,
+        task_thresholds=task_thresholds,
+        batch_size=batch_size,
+    )
+
+    if df.empty:
+        return {
+            "task_scores": {},
+            "active_tasks": [],
+            "highest_risk_task": "—",
+            "highest_risk_score": -1.0,
+            "assay_hits": 0,
+            "mechanistic_alert": False,
+            "threshold_used": float(threshold),
+            "task_thresholds": task_threshold_map,
+        }
+
+    row = df.iloc[0]
+    task_scores: Dict[str, float] = {}
+    for task in task_names:
+        val = row.get(f"P({task})", np.nan)
+        task_scores[task] = float(val) if pd.notna(val) else np.nan
+
+    active_tasks = [
+        task for task, score in task_scores.items()
+        if np.isfinite(score) and score >= task_threshold_map[task]
+    ]
+
+    highest_risk_task = "—"
+    highest_risk_score = -1.0
+    if task_scores:
+        finite_items = [(t, s) for t, s in task_scores.items() if np.isfinite(s)]
+        if finite_items:
+            highest_risk_task, highest_risk_score = max(finite_items, key=lambda x: x[1])
+
+    return {
+        "task_scores": task_scores,
+        "active_tasks": active_tasks,
+        "highest_risk_task": str(highest_risk_task),
+        "highest_risk_score": float(highest_risk_score),
+        "assay_hits": int(len(active_tasks)),
+        "mechanistic_alert": bool(len(active_tasks) > 0),
+        "threshold_used": float(threshold),
+        "task_thresholds": task_threshold_map,
+    }
+
+
+def aggregate_toxicity_verdict(clinical_is_toxic: bool, assay_hits: int) -> str:
+    """Aggregate clinical + mechanism outputs into one production verdict."""
+    if clinical_is_toxic and assay_hits > 0:
+        return "CONFIRMED_TOXIC"
+    if (not clinical_is_toxic) and assay_hits > 0:
+        return "MECHANISTIC_ALERT"
+    if clinical_is_toxic and assay_hits == 0:
+        return "CLINICAL_CONCERN"
+    return "LIKELY_SAFE"

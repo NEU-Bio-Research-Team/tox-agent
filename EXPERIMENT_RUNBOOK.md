@@ -1,20 +1,30 @@
-# Experiment Runbook (Workspace hien tai)
+# Experiment Runbook (Tox21-only mode)
 
-Tai lieu nay huong dan reproducibility cho workspace hien tai theo 3 muc tieu:
-- Reproduce model chinh SMILESGNN tren ClinTox.
-- Chay baseline GATv2 tren ClinTox de doi chieu.
-- Chay pipeline chat luong cao: Tox21 pretrain -> transfer fine-tune sang ClinTox.
+Tai lieu nay huong dan reproducibility cho workspace hien tai theo huong Tox21.
+ClinTox code KHONG bi xoa, nhung da duoc disable boi workspace mode.
 
-## 1. Yeu cau
+## 1. Workspace mode
+
+Workspace mode nam o:
+- `config/workspace_mode.yaml`
+
+Mac dinh hien tai:
+- `mode: tox21_only`
+- `clintox_enabled: false`
+- `tox21_enabled: true`
+
+Neu ban chay script ClinTox, script se dung voi thong bao `[DISABLED:CLINTOX]`.
+
+## 2. Yeu cau
 
 - OS: Linux
 - Conda env: `drug-tox-env`
-- CUDA (neu co): chay voi `--device cuda`, neu khong thi `--device cpu`
+- CUDA (neu co): dung `--device cuda`, neu khong thi `--device cpu`
 
-## 2. Setup moi truong
+## 3. Setup moi truong
 
 ```bash
-cd /home/minhquang/projects/tox-agent
+cd /home/mluser/BRT-FDA/MinhQuang/tox-agent
 conda activate drug-tox-env
 
 # Kiem tra nhanh
@@ -29,57 +39,14 @@ conda env create -f environment.yml
 conda activate drug-tox-env
 ```
 
-## 3. Quickstart (chi reproduce model chinh)
+## 4. Quickstart (Tox21)
 
 ```bash
-cd /home/minhquang/projects/tox-agent
+cd /home/mluser/BRT-FDA/MinhQuang/tox-agent
 conda activate drug-tox-env
-python scripts/train_hybrid.py --device cuda
-```
-
-Output mac dinh:
-- `models/smilesgnn_model/best_model.pt`
-- `models/smilesgnn_model/tokenizer.pkl`
-- `models/smilesgnn_model/smilesgnn_model_metrics.txt`
-- `models/smilesgnn_model/training_curves.png`
-
-## 4. Reproduce day du cac experiment
-
-### 4.1 Tao thu muc log
-
-```bash
-cd /home/minhquang/projects/tox-agent
 mkdir -p logs
-conda activate drug-tox-env
-```
 
-### 4.2 ClinTox baseline: SMILESGNN (model chinh)
-
-```bash
-python scripts/train_hybrid.py --device cuda | tee logs/01_train_hybrid.log
-```
-
-Config mac dinh: `config/smilesgnn_config.yaml`
-
-### 4.3 ClinTox baseline: GATv2
-
-```bash
-python scripts/train_gatv2.py --device cuda | tee logs/02_train_gatv2.log
-```
-
-Config mac dinh: `config/gatv2_config.yaml`
-
-Output mac dinh:
-- `models/gatv2_model/best_model.pt`
-- `models/gatv2_model/gatv2_model_metrics.txt`
-- `models/gatv2_model/training_curves.png`
-
-### 4.4 Tox21 multi-task pretrain (GATv2)
-
-```bash
-python scripts/train_tox21_gatv2.py --device cuda \
-  --config config/tox21_gatv2_config.yaml \
-  | tee logs/03_train_tox21_gatv2.log
+python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml 2>&1 | tee logs/03_train_tox21_gatv2.log
 ```
 
 Output mac dinh:
@@ -88,81 +55,74 @@ Output mac dinh:
 - `models/tox21_gatv2_model/tox21_task_metrics.csv`
 - `models/tox21_gatv2_model/training_curves.png`
 
-### 4.5 Transfer: Tox21 -> ClinTox (GATv2)
+## 5. Tox21 prediction workflow
+
+### 5.1 Single SMILES
 
 ```bash
-python scripts/train_gatv2_transfer.py --device cuda \
-  --config config/gatv2_transfer_config.yaml \
-  | tee logs/04_train_gatv2_transfer.log
+python scripts/predict_tox21.py --smiles "CCO" --device cuda
 ```
 
-Output mac dinh:
-- `models/gatv2_transfer_model/best_model.pt`
-- `models/gatv2_transfer_model/gatv2_transfer_metrics.txt`
-- `models/gatv2_transfer_model/training_curves.png`
-
-Luu y: `config/gatv2_transfer_config.yaml` dang tro den checkpoint pretrain:
-- `./models/tox21_gatv2_model/best_model.pt`
-
-Vi vay phai chay xong buoc 4.4 truoc buoc 4.5.
-
-## 5. Chay tren CPU (neu khong co CUDA)
-
-Doi `--device cuda` thanh `--device cpu` trong cac lenh tren.
-
-Vi du:
+### 5.2 Batch file prediction
 
 ```bash
-python scripts/train_hybrid.py --device cpu
+python scripts/predict_tox21.py --input-file test_data/smiles_only.csv --device cuda
 ```
 
-## 6. Thu tu khuyen nghi de bao toan reproducibility
+Mac dinh ket qua se duoc luu tai:
+- `results/tox21_predictions.csv`
 
-1. Chay baseline ClinTox truoc (SMILESGNN, GATv2).
-2. Chay Tox21 multi-task pretrain.
-3. Chay transfer Tox21 -> ClinTox.
-4. Tong hop metric sau moi run (khong doi config giua cac lan so sanh).
+## 6. CPU fallback
 
-## 7. Cac file metric can doi chieu
+Doi `--device cuda` thanh `--device cpu`:
 
-- SMILESGNN: `models/smilesgnn_model/smilesgnn_model_metrics.txt`
-- GATv2 baseline: `models/gatv2_model/gatv2_model_metrics.txt`
-- Tox21 pretrain: `models/tox21_gatv2_model/tox21_gatv2_metrics.txt`
-- Transfer ClinTox: `models/gatv2_transfer_model/gatv2_transfer_metrics.txt`
+```bash
+python scripts/train_tox21_gatv2.py --device cpu --config config/tox21_gatv2_config.yaml
+```
 
-Chi so khuyen nghi de so sanh chat luong ClinTox:
-- AUC-ROC
-- PR-AUC
-- F1
-- Recall toxic class (neu can bo sung them script evaluate chi tiet)
+## 7. Cac metric can doi chieu
+
+- `models/tox21_gatv2_model/tox21_gatv2_metrics.txt`
+- `models/tox21_gatv2_model/tox21_task_metrics.csv`
+- `results/tox21_predictions.csv`
+
+Chi so khuyen nghi:
+- Macro AUC-ROC
+- Macro PR-AUC
+- Macro F1
+- Micro AUC-ROC
+- Micro PR-AUC
 
 ## 8. Full command block (copy-run)
 
 ```bash
-cd /home/minhquang/projects/tox-agent
+cd /home/mluser/BRT-FDA/MinhQuang/tox-agent
 conda activate drug-tox-env
 mkdir -p logs
 
-python scripts/train_hybrid.py --device cuda | tee logs/01_train_hybrid.log
-python scripts/train_gatv2.py --device cuda | tee logs/02_train_gatv2.log
-python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml | tee logs/03_train_tox21_gatv2.log
-python scripts/train_gatv2_transfer.py --device cuda --config config/gatv2_transfer_config.yaml | tee logs/04_train_gatv2_transfer.log
+python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml 2>&1 | tee logs/03_train_tox21_gatv2.log
+python scripts/predict_tox21.py --input-file test_data/smiles_only.csv --device cuda --output results/tox21_predictions.csv
 ```
 
 ## 9. Troubleshooting nhanh
 
 - Loi khong tim thay torch-geometric/rdkit:
-  - Xac nhan dang dung dung env: `conda activate drug-tox-env`
+  - Xac nhan env: `conda activate drug-tox-env`
   - Kiem tra `python -V` va `which python`
-- Loi checkpoint transfer khong ton tai:
-  - Chua chay xong Tox21 pretrain (buoc 4.4)
 - CUDA khong available:
-  - Chuyen sang `--device cpu`
+  - Chuyen `--device cpu`
+- Chay script ClinTox bi dung ngay:
+  - Day la hanh vi dung theo mode tox21_only
+  - Kiem tra `config/workspace_mode.yaml`
 
-## 10. Ghi chu quan trong
+## 10. ClinTox scripts (archived, disabled)
 
-- Cac config mac dinh dang dung `seed: 42`.
-- Neu ban chay nhieu lan de bao cao khoa hoc, nen:
-  - Giu nguyen config,
-  - Luu log moi lan,
-  - Ghi ro thoi gian va git commit hash.
+Cac script duoi day duoc giu lai de tham khao, nhung khong duoc phep chay trong mode hien tai:
+
+- `scripts/train_hybrid.py`
+- `scripts/train_gatv2.py`
+- `scripts/train_gin.py`
+- `scripts/train_gatv2_transfer.py`
+- `scripts/explain_smilesgnn.py`
+- `scripts/generate_curves.py`
+- `scripts/consolidate_results.py`

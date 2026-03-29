@@ -37,6 +37,7 @@ from rdkit import Chem        # noqa: E402
 from src.inference import load_model, predict_batch          # noqa: E402
 from src.graph_data import smiles_to_pyg_data                # noqa: E402
 from src.gnn_explainer import explain_molecule, visualize_explanation  # noqa: E402
+from src.workspace_mode import get_workspace_mode, is_clintox_enabled  # noqa: E402
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -65,6 +66,21 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+workspace_mode = get_workspace_mode()
+if not is_clintox_enabled():
+    st.title("Tox21 Workspace Mode")
+    st.warning(
+        "ClinTox-facing Streamlit UI is currently disabled. "
+        "This workspace is configured for Tox21 workflows only."
+    )
+    st.markdown("**Active mode:** " + str(workspace_mode.get("mode", "unknown")))
+    st.markdown("Use Tox21 CLI commands instead:")
+    st.code(
+        "python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml\n"
+        "python scripts/predict_tox21.py --smiles \"CCO\" --device cuda"
+    )
+    st.stop()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -190,13 +190,16 @@ def explain_molecule(
     batch = torch.zeros(pyg_data.num_nodes, dtype=torch.long, device=device)
     target = torch.tensor([target_class], dtype=torch.long, device=device)
 
-    explanation = explainer(
-        x=pyg_data.x,
-        edge_index=pyg_data.edge_index,
-        edge_attr=pyg_data.edge_attr,
-        batch=batch,
-        target=target,
-    )
+    # Set2Set uses LSTM internally; on CUDA, cuDNN can fail backward in eval mode.
+    # Disabling cuDNN for this block keeps explanation stable across pooling choices.
+    with torch.backends.cudnn.flags(enabled=False):
+        explanation = explainer(
+            x=pyg_data.x,
+            edge_index=pyg_data.edge_index,
+            edge_attr=pyg_data.edge_attr,
+            batch=batch,
+            target=target,
+        )
 
     # ── Node (atom) importance ──────────────────────────────────────────────
     node_mask = explanation.node_mask          # (N, 1)
@@ -236,15 +239,153 @@ def explain_molecule(
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Visualisation
-# ─────────────────────────────────────────────────────────────────────────────
+class Tox21TaskExplainerWrapper(nn.Module):
+    """Expose one selected Tox21 task logit as scalar output for GNNExplainer."""
 
-def _importance_to_rgb(importance: float, cmap_name: str = "RdYlGn_r") -> Tuple[float, float, float]:
-    """Map a [0,1] importance score to an RGB colour tuple."""
-    cmap  = plt.cm.get_cmap(cmap_name)
-    rgba  = cmap(float(importance))
-    return rgba[0], rgba[1], rgba[2]
+    def __init__(self, model: nn.Module, task_idx: int):
+        super().__init__()
+        self.model = model
+        self.task_idx = int(task_idx)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        edge_index: torch.Tensor,
+        edge_attr: Optional[torch.Tensor] = None,
+        batch: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        if batch is None:
+            batch = torch.zeros(x.size(0), dtype=torch.long, device=x.device)
+
+        data = SimpleNamespace(
+            x=x,
+            edge_index=edge_index,
+            edge_attr=edge_attr,
+            batch=batch,
+        )
+
+        logits = self.model(data)
+        if logits.dim() == 1:
+            logits = logits.unsqueeze(-1)
+
+        if self.task_idx >= logits.size(1):
+            raise ValueError(
+                f"task_idx {self.task_idx} out of bounds for logits shape {tuple(logits.shape)}"
+            )
+
+        return logits[:, self.task_idx:self.task_idx + 1]
+
+
+def explain_tox21_task(
+    smiles: str,
+    model: nn.Module,
+    task_names: List[str],
+    target_task: str,
+    device: str = "cpu",
+    epochs: int = 200,
+    threshold: float = 0.5,
+) -> Dict:
+    """
+    Explain a single Tox21 task prediction for one molecule using GNNExplainer.
+
+    Returns a dict aligned with visualize_explanation plus task metadata.
+    """
+    from src.graph_data import smiles_to_pyg_data
+
+    if target_task not in task_names:
+        raise ValueError(
+            f"target_task '{target_task}' not found in task_names: {task_names}"
+        )
+
+    task_idx = task_names.index(target_task)
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"Invalid SMILES: {smiles}")
+
+    pyg_data = smiles_to_pyg_data(smiles, label=None)
+    if pyg_data is None:
+        raise ValueError(f"Unable to featurize SMILES: {smiles}")
+
+    target_device = torch.device(device)
+    original_device = next(model.parameters()).device
+    moved_model = original_device != target_device
+
+    try:
+        if moved_model:
+            model.to(target_device)
+
+        model.eval()
+        pyg_data = pyg_data.to(target_device)
+
+        wrapper = Tox21TaskExplainerWrapper(model, task_idx=task_idx).to(target_device)
+        wrapper.eval()
+
+        explainer = Explainer(
+            model=wrapper,
+            algorithm=GNNExplainer(epochs=epochs, lr=0.01),
+            explanation_type="phenomenon",
+            node_mask_type="object",
+            edge_mask_type="object",
+            model_config=dict(
+                mode="binary_classification",
+                task_level="graph",
+                return_type="raw",
+            ),
+        )
+
+        batch = torch.zeros(pyg_data.num_nodes, dtype=torch.long, device=target_device)
+        target = torch.tensor([1], dtype=torch.long, device=target_device)
+
+        explanation = explainer(
+            x=pyg_data.x,
+            edge_index=pyg_data.edge_index,
+            edge_attr=pyg_data.edge_attr,
+            batch=batch,
+            target=target,
+        )
+
+        node_mask = explanation.node_mask
+        atom_imp = node_mask.squeeze(-1).detach().cpu().numpy()
+        if atom_imp.max() > 0:
+            atom_imp = atom_imp / atom_imp.max()
+
+        edge_mask = explanation.edge_mask.detach().cpu().numpy()
+        num_bonds = edge_mask.shape[0] // 2
+        bond_imp = np.array([
+            (edge_mask[2 * k] + edge_mask[2 * k + 1]) / 2.0
+            for k in range(num_bonds)
+        ])
+        if bond_imp.max() > 0:
+            bond_imp = bond_imp / bond_imp.max()
+
+        with torch.no_grad():
+            logits = model(pyg_data)
+            if logits.dim() == 1:
+                logits = logits.unsqueeze(0)
+            probs = torch.sigmoid(logits).squeeze(0).detach().cpu().numpy()
+    finally:
+        if moved_model:
+            model.to(original_device)
+        model.eval()
+
+    task_scores = {
+        task_name: float(probs[i])
+        for i, task_name in enumerate(task_names)
+    }
+    target_prob = float(task_scores[target_task])
+
+    return {
+        "smiles": smiles,
+        "mol": mol,
+        "target_task": target_task,
+        "target_task_index": int(task_idx),
+        "task_scores": task_scores,
+        "atom_importance": atom_imp,
+        "bond_importance": bond_imp,
+        "prediction_prob": target_prob,
+        "predicted_class": int(target_prob >= threshold),
+        "true_label": None,
+    }
 
 
 def visualize_explanation(
@@ -278,6 +419,11 @@ def visualize_explanation(
     from rdkit.Chem import Draw
     from PIL import Image
     import io
+
+    def _importance_to_rgb(importance: float, cmap_name: str = "RdYlGn_r") -> Tuple[float, float, float]:
+        cmap = plt.cm.get_cmap(cmap_name)
+        rgba = cmap(float(importance))
+        return rgba[0], rgba[1], rgba[2]
 
     def _draw(highlight_atoms, highlight_bonds, atom_colors, bond_colors, width=500, height=400):
         drawer = rdMolDraw2D.MolDraw2DCairo(width, height)

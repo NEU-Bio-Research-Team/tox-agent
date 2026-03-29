@@ -7,40 +7,64 @@ Endpoints:
     POST /predict       -> single molecule toxicity prediction
     POST /predict/batch -> batch prediction
     POST /explain       -> GNNExplainer atom/bond attribution
+    POST /analyze       -> unified 3-output pipeline (clinical + mechanism + explainer)
 
 Deployment: Docker container -> Google Cloud Run
 """
 
 import sys
+import asyncio
 import base64
 import io
+import json
 import logging
 import os
 from pathlib import Path
 from contextlib import asynccontextmanager
+from typing import Dict, Optional, Tuple
 
 import torch 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from rdkit import Chem
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Important: Add project root to sys.path so XSmiles src/ modules are importatble
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.inference import load_model, predict_batch
+from src.inference import (
+    aggregate_toxicity_verdict,
+    load_model,
+    load_tox21_gatv2_model,
+    predict_batch,
+    predict_clinical_toxicity,
+    predict_toxicity_mechanism,
+)
 from src.graph_data import smiles_to_pyg_data
-from src.gnn_explainer import explain_molecule, visualize_explanation
+from src.gnn_explainer import explain_molecule, explain_tox21_task, visualize_explanation
 from model_server.schemas import (
+    AnalyzeRequest,
+    AnalyzeResponse,
+    ClinicalToxicityOutput,
+    MechanismToxicityOutput,
     PredictRequest, PredictResponse,
     BatchPredictRequest, BatchPredictResponse,
-    ExplainRequest, ExplainResponse, AtomImportance, BondImportance
+    ExplainRequest, ExplainResponse,
+    AtomImportance, BondImportance,
+    ToxicityExplanationOutput,
 )
 
 # Configuration
 MODEL_DIR = PROJECT_ROOT / "models" / "smilesgnn_model"
 CONFIG_PATH = PROJECT_ROOT / "config" / "smilesgnn_config.yaml"
+TOX21_MODEL_DIR = PROJECT_ROOT / "models" / "tox21_gatv2_model"
+TOX21_CONFIG_PATH = PROJECT_ROOT / "config" / "tox21_gatv2_config.yaml"
+TOX21_THRESHOLDS_CANDIDATES = [
+    TOX21_MODEL_DIR / "tox21_task_thresholds.json",
+    TOX21_MODEL_DIR / "task_thresholds.json",
+]
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 def _normalize_route(route: str, default: str) -> str:
@@ -51,6 +75,23 @@ def _normalize_route(route: str, default: str) -> str:
 AIP_HEALTH_ROUTE = _normalize_route(os.getenv("AIP_HEALTH_ROUTE", "/health"), "/health")
 AIP_PREDICT_ROUTE = _normalize_route(os.getenv("AIP_PREDICT_ROUTE", "/predict"), "/predict")
 
+
+def _load_tox21_thresholds() -> Tuple[Optional[Dict[str, float]], Optional[str]]:
+    """Load per-task Tox21 thresholds from known calibration filenames."""
+    for path in TOX21_THRESHOLDS_CANDIDATES:
+        if not path.exists():
+            continue
+
+        with open(path, "r") as f:
+            raw = json.load(f)
+
+        if isinstance(raw, dict):
+            return {k: float(v) for k, v in raw.items()}, str(path)
+
+        logger.warning("Ignoring threshold file with non-dict payload: %s", path)
+
+    return None, None
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("model_server")
 
@@ -59,13 +100,32 @@ model_state = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Loading SMILESGNN model on {DEVICE}...")
+    logger.info(f"Loading production models on {DEVICE}...")
     try:
-        model, tokenizer, wrapped_model = load_model(MODEL_DIR, CONFIG_PATH, DEVICE)
+        model, tokenizer, wrapped_model = load_model(
+            MODEL_DIR,
+            CONFIG_PATH,
+            DEVICE,
+            enforce_workspace_mode=False,
+        )
+        tox21_model, tox21_tasks = load_tox21_gatv2_model(
+            model_dir=TOX21_MODEL_DIR,
+            config_path=TOX21_CONFIG_PATH,
+            device=DEVICE,
+        )
+
+        task_thresholds, task_threshold_source = _load_tox21_thresholds()
+
         model_state["model"] = model
         model_state["tokenizer"] = tokenizer
         model_state["wrapped"] = wrapped_model
-        logger.info("Model loaded succesfully.")
+        model_state["tox21_model"] = tox21_model
+        model_state["tox21_tasks"] = tox21_tasks
+        model_state["tox21_thresholds"] = task_thresholds
+        model_state["tox21_thresholds_source"] = task_threshold_source
+        model_state["model_lock"] = asyncio.Lock()
+
+        logger.info("Production models loaded successfully.")
     except Exception as e:
         logger.info(f"Model load FAILED: {e}")
         raise
@@ -87,20 +147,76 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Return structured API errors when details provide explicit error payloads."""
+    if isinstance(exc.detail, dict) and "error" in exc.detail:
+        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+def _invalid_smiles_error(smiles: str) -> HTTPException:
+    return HTTPException(
+        status_code=400,
+        detail={
+            "error": "invalid_smiles",
+            "message": f"Cannot parse SMILES: {smiles}",
+            "smiles": smiles,
+        },
+    )
+
+
+def _model_lock() -> asyncio.Lock:
+    lock = model_state.get("model_lock")
+    if lock is None:
+        lock = asyncio.Lock()
+        model_state["model_lock"] = lock
+    return lock
+
+
+def _explainer_timeout_error(smiles: str, timeout_ms: int) -> HTTPException:
+    return HTTPException(
+        status_code=504,
+        detail={
+            "error": "explainer_timeout",
+            "message": f"Explainer exceeded timeout of {timeout_ms} ms",
+            "smiles": smiles,
+            "timeout_ms": int(timeout_ms),
+        },
+    )
+
 # Health Check
 async def health():
-    model_ready = "model" in model_state
+    xsmiles_ready = "model" in model_state
+    tox21_ready = "tox21_model" in model_state
+    model_ready = xsmiles_ready and tox21_ready
     payload = {
         "status": "healthy" if model_ready else "starting",
         "model_loaded": model_ready,
+        "xsmiles_loaded": xsmiles_ready,
+        "tox21_loaded": tox21_ready,
+        "tox21_thresholds_loaded": model_state.get("tox21_thresholds") is not None,
+        "tox21_thresholds_source": model_state.get("tox21_thresholds_source"),
+        "tox21_threshold_count": len(model_state.get("tox21_thresholds") or {}),
+        "inference_lock_initialized": "model_lock" in model_state,
         "device": DEVICE,
         "model_dir_exists": MODEL_DIR.exists(),
+        "tox21_model_dir_exists": TOX21_MODEL_DIR.exists(),
         "cuda_available": torch.cuda.is_available(),
         "gpu_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         "gpu_memory_gb": round(torch.cuda.get_device_properties(0).total_memory / 1e9, 1) if torch.cuda.is_available() else None,
     }
     status_code = 200 if model_ready else 503
     return JSONResponse(content=payload, status_code=status_code)
+
+
+def _render_explanation_heatmap(result: dict) -> str:
+    """Render explanation panel to base64 PNG."""
+    buf = io.BytesIO()
+    visualize_explanation(result, figsize=(13, 5), save_path=buf)
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode("utf-8")
 
 app.add_api_route("/health", health, methods=["GET"], tags=["system"])
 if AIP_HEALTH_ROUTE != "/health":
@@ -117,16 +233,20 @@ async def predict(req: PredictRequest):
 
     # Validate and canonicalize SMILES
     mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise _invalid_smiles_error(smiles)
     canonical = Chem.MolToSmiles(mol) if mol else None
 
     try: 
-        results_df = predict_batch(
-            smiles_list=[smiles],
-            tokenizer=model_state["tokenizer"],
-            wrapped_model=model_state["wrapped"],
-            device=DEVICE,
-            threshold=req.threshold,
-        )
+        async with _model_lock():
+            results_df = predict_batch(
+                smiles_list=[smiles],
+                tokenizer=model_state["tokenizer"],
+                wrapped_model=model_state["wrapped"],
+                device=DEVICE,
+                threshold=req.threshold,
+                enforce_workspace_mode=False,
+            )
     except Exception as e:
         raise HTTPException(500, f"Inference error: {str(e)}")
 
@@ -170,13 +290,15 @@ async def predict_batch_endpoint(req: BatchPredictRequest):
         raise HTTPException(400, "Batch size limited to 500 molecules")
     
     try:
-        results_df = predict_batch(
-            smiles_list=req.smile_list,
-            tokenizer=model_state["tokenizer"],
-            wrapped_model=model_state["wrapped"],
-            device=DEVICE,
-            threshold=req.threshold,
-        )
+        async with _model_lock():
+            results_df = predict_batch(
+                smiles_list=req.smile_list,
+                tokenizer=model_state["tokenizer"],
+                wrapped_model=model_state["wrapped"],
+                device=DEVICE,
+                threshold=req.threshold,
+                enforce_workspace_mode=False,
+            )
 
     except Exception as e:
         raise HTTPException(500, f"Batch inference error: {str(e)}")
@@ -225,15 +347,18 @@ async def explain(req: ExplainRequest):
     
     smiles = req.smiles.strip()
     mol = Chem.MolFromSmiles(smiles)
-    if mol is None: 
-        raise HTTPException(400, f"Invalid SMILES: {smiles}")
+    if mol is None:
+        raise _invalid_smiles_error(smiles)
+
     # First get real prediction for targert_class determination
-    pred_df = predict_batch(
-        smiles_list=[smiles],
-        tokenizer=model_state["tokenizer"],
-        wrapped_model=model_state["wrapped"],
-        device=DEVICE,
-    )
+    async with _model_lock():
+        pred_df = predict_batch(
+            smiles_list=[smiles],
+            tokenizer=model_state["tokenizer"],
+            wrapped_model=model_state["wrapped"],
+            device=DEVICE,
+            enforce_workspace_mode=False,
+        )
     p_toxic = float(pred_df.iloc[0]["P(toxic)"])
     label_str = str(pred_df.iloc[0]["Predicted"])
     target_class = req.target_class if req.target_class is not None else (1 if p_toxic >= 0.5 else 0)
@@ -241,23 +366,26 @@ async def explain(req: ExplainRequest):
     # Run GNNExplainer
     try:
         pyg = smiles_to_pyg_data(smiles, label=target_class)
-        result = explain_molecule(
-            smiles=smiles,
-            model=model_state["model"],
-            tokenizer=model_state["tokenizer"],
-            pyg_data=pyg,
-            device=DEVICE,
-            epochs=req.epochs,
-            target_class=target_class,
-        )
+        async with _model_lock():
+            result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    explain_molecule,
+                    smiles,
+                    model_state["model"],
+                    model_state["tokenizer"],
+                    pyg,
+                    DEVICE,
+                    req.epochs,
+                    target_class,
+                ),
+                timeout=float(req.explainer_timeout_ms) / 1000.0,
+            )
+    except asyncio.TimeoutError:
+        raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
     except Exception as e:
         raise HTTPException(500, f"GNNExplainer error: {str(e)}")
     
-    # Render heatmap to base64 PNG
-    buf = io.BytesIO()
-    visualize_explanation(result, figsize=(13, 5), save_path=buf)
-    buf.seek(0)
-    heatmap_b64 = base64.b64encode(buf.read()).decode("utf-8")
+    heatmap_b64 = _render_explanation_heatmap(result)
 
     # Build atom/bond lists
     atom_importance = result["atom_importance"]
@@ -301,4 +429,156 @@ async def explain(req: ExplainRequest):
         heatmap_base64=heatmap_b64,
         chemical_interpretation=f"Top contributing atom: {top_atoms[0].element}",
         explainer_note="GNNExplainer optimizes only the GATv2 graph pathway.",
+    )
+
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+async def analyze(req: AnalyzeRequest):
+    """
+    Unified production endpoint with three outputs for one SMILES:
+      1) Toxic / Non-toxic from XSmiles (clinical)
+      2) Type of toxicity from GATv2 (Tox21 tasks)
+      3) Toxicity explainer from GNNExplainer (task-specific)
+    """
+    required_keys = ["model", "tokenizer", "wrapped", "tox21_model", "tox21_tasks"]
+    if any(k not in model_state for k in required_keys):
+        raise HTTPException(503, "Production models not loaded")
+
+    smiles = req.smiles.strip()
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise _invalid_smiles_error(smiles)
+    canonical = Chem.MolToSmiles(mol)
+
+    try:
+        async with _model_lock():
+            clinical_raw = predict_clinical_toxicity(
+                smiles=smiles,
+                tokenizer=model_state["tokenizer"],
+                wrapped_model=model_state["wrapped"],
+                device=DEVICE,
+                threshold=req.clinical_threshold,
+                enforce_workspace_mode=False,
+            )
+
+            mechanism_raw = predict_toxicity_mechanism(
+                smiles=smiles,
+                model=model_state["tox21_model"],
+                task_names=model_state["tox21_tasks"],
+                device=DEVICE,
+                threshold=req.mechanism_threshold,
+                task_thresholds=model_state.get("tox21_thresholds"),
+                batch_size=64,
+            )
+    except Exception as e:
+        raise HTTPException(500, f"Unified inference error: {str(e)}")
+
+    final_verdict = aggregate_toxicity_verdict(
+        clinical_is_toxic=bool(clinical_raw["is_toxic"]),
+        assay_hits=int(mechanism_raw["assay_hits"]),
+    )
+
+    explanation_payload = None
+    should_explain = True
+    if req.explain_only_if_alert and int(mechanism_raw["assay_hits"]) <= 0 and req.target_task is None:
+        should_explain = False
+
+    if should_explain:
+        target_task = req.target_task or str(mechanism_raw["highest_risk_task"])
+        if target_task == "—":
+            tasks = model_state.get("tox21_tasks", [])
+            target_task = tasks[0] if tasks else ""
+
+        if target_task:
+            try:
+                async with _model_lock():
+                    explain_result = await asyncio.wait_for(
+                        asyncio.to_thread(
+                            explain_tox21_task,
+                            smiles,
+                            model_state["tox21_model"],
+                            model_state["tox21_tasks"],
+                            target_task,
+                            "cpu",
+                            req.explainer_epochs,
+                            req.mechanism_threshold,
+                        ),
+                        timeout=float(req.explainer_timeout_ms) / 1000.0,
+                    )
+                heatmap_b64 = _render_explanation_heatmap(explain_result)
+
+                atom_importance = explain_result["atom_importance"]
+                bond_importance = explain_result["bond_importance"]
+
+                top_atoms = []
+                for atom in mol.GetAtoms():
+                    idx = atom.GetIdx()
+                    imp = float(atom_importance[idx])
+                    top_atoms.append(AtomImportance(
+                        atom_idx=idx,
+                        element=atom.GetSymbol(),
+                        importance=round(imp, 4),
+                        is_in_ring=atom.IsInRing(),
+                        is_aromatic=atom.GetIsAromatic(),
+                    ))
+                top_atoms.sort(key=lambda x: x.importance, reverse=True)
+
+                top_bonds = []
+                for bond in mol.GetBonds():
+                    bond_idx = bond.GetIdx()
+                    imp = float(bond_importance[bond_idx]) if bond_idx < len(bond_importance) else 0.0
+                    a1 = mol.GetAtomWithIdx(bond.GetBeginAtomIdx()).GetSymbol()
+                    a2 = mol.GetAtomWithIdx(bond.GetEndAtomIdx()).GetSymbol()
+                    top_bonds.append(BondImportance(
+                        bond_idx=bond_idx,
+                        atom_pair=f"{a1}({bond.GetBeginAtomIdx()}) - {a2}({bond.GetEndAtomIdx()})",
+                        bond_type=str(bond.GetBondTypeAsDouble()),
+                        importance=round(imp, 4),
+                    ))
+                top_bonds.sort(key=lambda x: x.importance, reverse=True)
+
+                explanation_payload = ToxicityExplanationOutput(
+                    target_task=target_task,
+                    target_task_score=float(explain_result["prediction_prob"]),
+                    top_atoms=top_atoms[:10],
+                    top_bonds=top_bonds[:10],
+                    heatmap_base64=heatmap_b64,
+                    explainer_note="GNNExplainer is task-specific and explains one selected Tox21 head.",
+                )
+            except asyncio.TimeoutError:
+                raise _explainer_timeout_error(
+                    smiles=smiles,
+                    timeout_ms=req.explainer_timeout_ms,
+                )
+            except Exception as e:
+                raise HTTPException(500, f"Task-level explanation error: {str(e)}")
+
+    # Always return the full 12-task map to keep API outputs stable and complete.
+    mechanism_scores = dict(mechanism_raw["task_scores"])
+
+    clinical_output = ClinicalToxicityOutput(
+        label=str(clinical_raw["label"]),
+        is_toxic=bool(clinical_raw["is_toxic"]),
+        confidence=float(clinical_raw["confidence"]),
+        p_toxic=float(clinical_raw["p_toxic"]),
+        threshold_used=float(clinical_raw["threshold_used"]),
+    )
+
+    mechanism_output = MechanismToxicityOutput(
+        task_scores=mechanism_scores,
+        active_tasks=list(mechanism_raw["active_tasks"]),
+        highest_risk_task=str(mechanism_raw["highest_risk_task"]),
+        highest_risk_score=float(mechanism_raw["highest_risk_score"]),
+        assay_hits=int(mechanism_raw["assay_hits"]),
+        threshold_used=float(mechanism_raw["threshold_used"]),
+        task_thresholds=dict(mechanism_raw["task_thresholds"]),
+    )
+
+    return AnalyzeResponse(
+        smiles=smiles,
+        canonical_smiles=canonical,
+        clinical=clinical_output,
+        mechanism=mechanism_output,
+        explanation=explanation_payload,
+        final_verdict=final_verdict,
     )

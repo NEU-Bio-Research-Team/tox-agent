@@ -23,6 +23,7 @@ from src.data import load_clintox
 from src.train import evaluate_model
 from src.pipelines import load_mlp_model, load_gnn_model
 from src.utils import set_seed
+from src.workspace_mode import assert_clintox_enabled
 
 # Try to load PyG models
 try:
@@ -357,6 +358,8 @@ def load_predictions(model_name, test_df, device='cpu'):
 
 def main():
     """Generate ROC and PR curves for all models."""
+    assert_clintox_enabled("scripts/generate_curves.py")
+
     set_seed(42)
     
     # Load test set

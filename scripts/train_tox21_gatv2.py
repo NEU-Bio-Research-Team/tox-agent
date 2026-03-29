@@ -7,6 +7,7 @@ Usage:
 """
 
 import sys
+import json
 from pathlib import Path
 import argparse
 import warnings
@@ -16,6 +17,7 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
+from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
 
@@ -34,6 +36,7 @@ from src.graph_train import (
     train_multitask_model,
 )
 from src.utils import save_metrics, set_seed
+from src.workspace_mode import assert_tox21_enabled
 
 
 def collate_fn(batch):
@@ -72,7 +75,81 @@ def print_task_coverage(df: pd.DataFrame, task_columns: list, split_name: str):
         print(f"  {task:14s} valid={n_valid:4d}  pos={n_pos:4d}  neg={n_neg:4d}")
 
 
+def calibrate_task_thresholds(
+    labels: np.ndarray,
+    probabilities: np.ndarray,
+    task_names: list,
+    threshold_min: float = 0.05,
+    threshold_max: float = 0.95,
+    threshold_step: float = 0.01,
+    default_threshold: float = 0.5,
+) -> tuple[dict, pd.DataFrame]:
+    """Calibrate per-task thresholds on validation probabilities via best F1."""
+    if labels.shape != probabilities.shape:
+        raise ValueError(
+            f"labels shape {labels.shape} must match probabilities shape {probabilities.shape}"
+        )
+
+    if len(task_names) != labels.shape[1]:
+        raise ValueError(
+            f"task_names length {len(task_names)} must equal num tasks {labels.shape[1]}"
+        )
+
+    threshold_grid = np.arange(
+        float(threshold_min),
+        float(threshold_max) + 0.5 * float(threshold_step),
+        float(threshold_step),
+        dtype=np.float32,
+    )
+
+    task_thresholds: dict[str, float] = {}
+    rows = []
+
+    for i, task in enumerate(task_names):
+        y = labels[:, i]
+        p = probabilities[:, i]
+        valid_mask = np.isfinite(y)
+        y_valid = y[valid_mask].astype(int)
+        p_valid = p[valid_mask]
+
+        if y_valid.size == 0 or len(np.unique(y_valid)) < 2:
+            best_t = float(default_threshold)
+            best_f1 = np.nan
+            reason = "insufficient_label_variation"
+        else:
+            best_t = float(default_threshold)
+            best_f1 = -1.0
+            for t in threshold_grid:
+                pred = (p_valid >= t).astype(int)
+                score = f1_score(y_valid, pred, zero_division=0.0)
+
+                # Tie-break toward threshold closest to 0.5 for stability.
+                if (score > best_f1) or (
+                    score == best_f1 and abs(float(t) - 0.5) < abs(best_t - 0.5)
+                ):
+                    best_f1 = float(score)
+                    best_t = float(t)
+            reason = "optimized_f1"
+
+        task_thresholds[task] = round(float(best_t), 4)
+        rows.append(
+            {
+                "task": task,
+                "n_valid": int(y_valid.size),
+                "positive_rate": float(np.mean(y_valid == 1)) if y_valid.size else np.nan,
+                "best_threshold": round(float(best_t), 4),
+                "best_f1": float(best_f1) if np.isfinite(best_f1) else np.nan,
+                "reason": reason,
+            }
+        )
+
+    calibration_df = pd.DataFrame(rows).sort_values("task").reset_index(drop=True)
+    return task_thresholds, calibration_df
+
+
 def main():
+    assert_tox21_enabled("scripts/train_tox21_gatv2.py")
+
     parser = argparse.ArgumentParser(
         description='Train GATv2 model for Tox21 multi-task molecular property prediction'
     )
@@ -113,6 +190,13 @@ def main():
     print(f"Device: {device}")
     print(f"Configuration: {config_path}")
     print()
+
+    loss_type = str(training_config.get('loss_type', 'focal'))
+    focal_alpha = float(training_config.get('focal_alpha', 0.25))
+    focal_gamma = float(training_config.get('focal_gamma', 2.0))
+    print(f"Loss type: {loss_type}")
+    if loss_type == 'focal':
+        print(f"Focal alpha/gamma: {focal_alpha}/{focal_gamma}")
 
     print("Loading Tox21 dataset...")
     train_df, val_df, test_df = load_tox21(
@@ -216,6 +300,9 @@ def main():
         learning_rate=float(training_config['learning_rate']),
         weight_decay=float(training_config['weight_decay']),
         device=device,
+        loss_type=loss_type,
+        focal_alpha=focal_alpha,
+        focal_gamma=focal_gamma,
         pos_weight=pos_weight,
         early_stopping_patience=int(training_config['early_stopping_patience']),
         early_stopping_metric=str(training_config['early_stopping_metric']),
@@ -241,6 +328,48 @@ def main():
         return_predictions=False,
     )
 
+    calibrated_val_metrics = None
+    calibrated_test_metrics = None
+    task_thresholds = None
+    calibration_df = None
+
+    if bool(training_config.get('calibrate_thresholds', True)):
+        print("\nCalibrating per-task thresholds on validation split...")
+        val_pred_metrics = evaluate_multitask_model(
+            model=model,
+            data_loader=val_loader,
+            task_names=task_columns,
+            device=device,
+            return_predictions=True,
+        )
+
+        task_thresholds, calibration_df = calibrate_task_thresholds(
+            labels=val_pred_metrics['labels'],
+            probabilities=val_pred_metrics['probabilities'],
+            task_names=task_columns,
+            threshold_min=float(training_config.get('threshold_min', 0.05)),
+            threshold_max=float(training_config.get('threshold_max', 0.95)),
+            threshold_step=float(training_config.get('threshold_step', 0.01)),
+            default_threshold=float(training_config.get('fallback_threshold', 0.5)),
+        )
+
+        calibrated_val_metrics = evaluate_multitask_model(
+            model=model,
+            data_loader=val_loader,
+            task_names=task_columns,
+            device=device,
+            thresholds=task_thresholds,
+            return_predictions=False,
+        )
+        calibrated_test_metrics = evaluate_multitask_model(
+            model=model,
+            data_loader=test_loader,
+            task_names=task_columns,
+            device=device,
+            thresholds=task_thresholds,
+            return_predictions=False,
+        )
+
     print("Validation metrics:")
     print(f"  Loss: {val_metrics['loss']:.4f}")
     print(f"  Macro AUC-ROC: {val_metrics['macro_auc_roc']:.4f}")
@@ -256,6 +385,14 @@ def main():
     print(f"  Macro F1: {test_metrics['macro_f1']:.4f}")
     print(f"  Micro AUC-ROC: {test_metrics['micro_auc_roc']:.4f}")
     print(f"  Micro PR-AUC: {test_metrics['micro_pr_auc']:.4f}")
+
+    if calibrated_test_metrics is not None:
+        print("\nTest metrics (calibrated thresholds):")
+        print(f"  Macro AUC-ROC: {calibrated_test_metrics['macro_auc_roc']:.4f}")
+        print(f"  Macro PR-AUC: {calibrated_test_metrics['macro_pr_auc']:.4f}")
+        print(f"  Macro F1: {calibrated_test_metrics['macro_f1']:.4f}")
+        print(f"  Micro AUC-ROC: {calibrated_test_metrics['micro_auc_roc']:.4f}")
+        print(f"  Micro PR-AUC: {calibrated_test_metrics['micro_pr_auc']:.4f}")
 
     model_dir = project_root / output_config.get('model_dir', 'models/tox21_gatv2_model')
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -275,6 +412,9 @@ def main():
 
     metrics_path = model_dir / 'tox21_gatv2_metrics.txt'
     metrics_to_save = {
+        'loss_type': loss_type,
+        'focal_alpha': focal_alpha if loss_type == 'focal' else None,
+        'focal_gamma': focal_gamma if loss_type == 'focal' else None,
         'val_loss': val_metrics['loss'],
         'val_macro_auc_roc': val_metrics['macro_auc_roc'],
         'val_macro_pr_auc': val_metrics['macro_pr_auc'],
@@ -288,8 +428,35 @@ def main():
         'test_micro_auc_roc': test_metrics['micro_auc_roc'],
         'test_micro_pr_auc': test_metrics['micro_pr_auc'],
     }
+
+    if calibrated_val_metrics is not None and calibrated_test_metrics is not None:
+        metrics_to_save.update(
+            {
+                'val_macro_f1_calibrated': calibrated_val_metrics['macro_f1'],
+                'val_micro_f1_calibrated': calibrated_val_metrics['micro_f1'],
+                'test_macro_f1_calibrated': calibrated_test_metrics['macro_f1'],
+                'test_micro_f1_calibrated': calibrated_test_metrics['micro_f1'],
+            }
+        )
     save_metrics(metrics_to_save, str(metrics_path))
     print(f"Metrics saved to: {metrics_path}")
+
+    if task_thresholds is not None:
+        threshold_path = model_dir / 'tox21_task_thresholds.json'
+        with open(threshold_path, 'w') as f:
+            json.dump(task_thresholds, f, indent=2, sort_keys=True)
+        print(f"Calibrated thresholds saved to: {threshold_path}")
+
+        # Backward-compatible alias expected by some older loaders.
+        legacy_threshold_path = model_dir / 'task_thresholds.json'
+        with open(legacy_threshold_path, 'w') as f:
+            json.dump(task_thresholds, f, indent=2, sort_keys=True)
+        print(f"Calibrated thresholds alias saved to: {legacy_threshold_path}")
+
+    if calibration_df is not None:
+        calibration_path = model_dir / 'tox21_threshold_calibration.csv'
+        calibration_df.to_csv(calibration_path, index=False)
+        print(f"Threshold calibration report saved to: {calibration_path}")
 
     task_metrics_df = pd.DataFrame.from_dict(test_metrics['task_metrics'], orient='index')
     task_metrics_df.index.name = 'task'

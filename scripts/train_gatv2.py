@@ -28,6 +28,7 @@ from src.graph_data import smiles_list_to_pyg_dataset, get_feature_dims
 from src.graph_models import create_gatv2_model
 from src.graph_train import train_gatv2_model, evaluate_model, create_balanced_sampler
 from src.utils import set_seed, save_metrics
+from src.workspace_mode import assert_clintox_enabled
 
 
 def collate_fn(batch):
@@ -43,6 +44,8 @@ def load_config(config_path: str) -> dict:
 
 
 def main():
+    assert_clintox_enabled("scripts/train_gatv2.py")
+
     parser = argparse.ArgumentParser(description='Train GATv2 model for molecular property prediction')
     parser.add_argument(
         '--config',

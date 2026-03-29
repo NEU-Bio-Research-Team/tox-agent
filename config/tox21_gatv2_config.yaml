@@ -16,7 +16,15 @@ training:
   weight_decay: 0.00001
   early_stopping_patience: 25
   early_stopping_metric: "macro_auc_roc"  # macro_auc_roc, macro_pr_auc, macro_f1, loss
+  loss_type: "focal"  # focal, weighted_bce, bce
+  focal_alpha: 0.25
+  focal_gamma: 2.0
   use_task_pos_weights: true
+  calibrate_thresholds: true
+  threshold_min: 0.05
+  threshold_max: 0.95
+  threshold_step: 0.01
+  fallback_threshold: 0.5
 
 data:
   cache_dir: "./data"

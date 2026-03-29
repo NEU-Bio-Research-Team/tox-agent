@@ -9,6 +9,8 @@ from typing import Tuple, Optional, List
 import pandas as pd
 import numpy as np
 
+from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
+
 
 def load_clintox(
     cache_dir: str = "./data",
@@ -32,6 +34,8 @@ def load_clintox(
         >>> train, val, test = load_clintox()
         >>> print(f"Train size: {len(train)}")
     """
+    assert_clintox_enabled("load_clintox")
+
     import os
     from pathlib import Path
     
@@ -160,6 +164,8 @@ def load_tox21(
         >>> train, val, test = load_tox21()
         >>> print(f"Number of tasks: {len([c for c in train.columns if c != 'smiles'])}")
     """
+    assert_tox21_enabled("load_tox21")
+
     import os
     from pathlib import Path
     
@@ -252,7 +258,7 @@ def load_tox21(
             )
 
 
-def get_task_names(dataset_name: str = "clintox") -> List[str]:
+def get_task_names(dataset_name: str = "tox21") -> List[str]:
     """
     Get list of task/column names for a dataset.
     

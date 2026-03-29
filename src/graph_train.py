@@ -498,6 +498,60 @@ class MaskedBCEWithLogitsLoss(nn.Module):
         return loss
 
 
+class MaskedFocalLoss(nn.Module):
+    """
+    Focal loss variant that ignores missing labels (NaN entries).
+
+    This is the multi-task counterpart of FocalLoss, adapted for datasets
+    such as Tox21 where each task can have missing labels.
+    """
+
+    def __init__(
+        self,
+        alpha: float = 0.25,
+        gamma: float = 2.0,
+        reduction: str = 'mean'
+    ):
+        super().__init__()
+        self.alpha = float(alpha)
+        self.gamma = float(gamma)
+        self.reduction = reduction
+
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        if inputs.dim() == 1:
+            inputs = inputs.unsqueeze(-1)
+        if targets.dim() == 1:
+            targets = targets.unsqueeze(-1)
+
+        valid_mask = torch.isfinite(targets)
+        safe_targets = torch.where(valid_mask, targets, torch.zeros_like(targets))
+
+        bce_loss = F.binary_cross_entropy_with_logits(
+            inputs,
+            safe_targets,
+            reduction='none'
+        )
+
+        probs = torch.sigmoid(inputs)
+        p_t = probs * safe_targets + (1 - probs) * (1 - safe_targets)
+        alpha_t = self.alpha * safe_targets + (1 - self.alpha) * (1 - safe_targets)
+        focal_weight = alpha_t * (1 - p_t).pow(self.gamma)
+        loss = focal_weight * bce_loss
+
+        loss = loss * valid_mask.float()
+        valid_count = valid_mask.float().sum()
+
+        if self.reduction == 'sum':
+            return loss.sum()
+
+        if self.reduction == 'mean':
+            if valid_count.item() == 0:
+                return inputs.sum() * 0.0
+            return loss.sum() / valid_count
+
+        return loss
+
+
 def _nanmean_or_zero(values: List[float]) -> float:
     """Return nanmean(values), falling back to 0.0 when all values are NaN."""
     arr = np.array(values, dtype=np.float64)
@@ -571,8 +625,15 @@ def evaluate_multitask_model(
             logits = model(batch)
             if logits.dim() == 1:
                 logits = logits.unsqueeze(-1)
+            if labels.dim() == 1 and logits.dim() == 2 and labels.numel() == logits.numel():
+                labels = labels.view(logits.size(0), logits.size(1))
             if labels.dim() == 1:
                 labels = labels.unsqueeze(-1)
+            if labels.shape != logits.shape:
+                raise ValueError(
+                    f"Label shape {tuple(labels.shape)} does not match logits shape "
+                    f"{tuple(logits.shape)} in evaluate_multitask_model"
+                )
 
             loss = criterion(logits, labels)
             losses.append(loss.item())
@@ -722,6 +783,9 @@ def train_multitask_model(
     learning_rate: float = 0.001,
     weight_decay: float = 1e-5,
     device: str = "cpu",
+    loss_type: str = "bce",
+    focal_alpha: float = 0.25,
+    focal_gamma: float = 2.0,
     pos_weight: Optional[torch.Tensor] = None,
     early_stopping_patience: int = 20,
     early_stopping_metric: str = "macro_auc_roc",
@@ -739,6 +803,9 @@ def train_multitask_model(
         learning_rate: Optimizer learning rate.
         weight_decay: L2 regularization factor.
         device: Device string.
+        loss_type: One of 'bce', 'weighted_bce', or 'focal'.
+        focal_alpha: Alpha factor for focal loss.
+        focal_gamma: Gamma factor for focal loss.
         pos_weight: Optional per-task positive class weights.
         early_stopping_patience: Early stopping patience in epochs.
         early_stopping_metric: One of:
@@ -751,7 +818,17 @@ def train_multitask_model(
     """
     model = model.to(device)
 
-    criterion = MaskedBCEWithLogitsLoss(pos_weight=pos_weight, reduction='mean')
+    if loss_type == "focal":
+        criterion = MaskedFocalLoss(
+            alpha=focal_alpha,
+            gamma=focal_gamma,
+            reduction='mean'
+        )
+    elif loss_type == "weighted_bce":
+        criterion = MaskedBCEWithLogitsLoss(pos_weight=pos_weight, reduction='mean')
+    else:
+        criterion = MaskedBCEWithLogitsLoss(reduction='mean')
+
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=learning_rate,
@@ -795,8 +872,15 @@ def train_multitask_model(
             logits = model(batch)
             if logits.dim() == 1:
                 logits = logits.unsqueeze(-1)
+            if labels.dim() == 1 and logits.dim() == 2 and labels.numel() == logits.numel():
+                labels = labels.view(logits.size(0), logits.size(1))
             if labels.dim() == 1:
                 labels = labels.unsqueeze(-1)
+            if labels.shape != logits.shape:
+                raise ValueError(
+                    f"Label shape {tuple(labels.shape)} does not match logits shape "
+                    f"{tuple(logits.shape)} in train_multitask_model"
+                )
 
             loss = criterion(logits, labels)
 

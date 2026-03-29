@@ -15,19 +15,19 @@ FROM python:3.10-slim
 # Vertex AI sẽ gọi GET /health và POST /predict
 # Có thể override qua env vars khi deploy
 ENV AIP_HEALTH_ROUTE=/health
-ENV AIP_PREDICTG_ROUTE=/predict
+ENV AIP_PREDICT_ROUTE=/predict
 ENV AIP_HTTP_PORT=8080
 
 # Google Cloud project config (inject khi deploy)
 # Không hardcore ở đây - truyền qua --set-env-vars khi gcloud deploy
 ENV GOOGLE_CLOUD_PROJECT=""
-ENV GOOGLE_CLOUD_LOCATION="us-centrall"
+ENV GOOGLE_CLOUD_LOCATION="us-central1"
 
 # Python behaviour
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set workind dir
+# Set working dir
 WORKDIR /app
 
 # System dependencies for RDKit and PyTorch Geometric
@@ -58,20 +58,15 @@ RUN pip install --no-cache-dir \
     firebase-admin>=6.5.0 \
     google-auth>=2.29.0
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r /app/requirements.txt
-RUN pip install --no-cache-dir \
-    fastapi>=0.111.0 \
-    uvicorn[standard]>=0.30.0 \
-    httpx \
-    "pydantic>=2.0"
+# Install model server dependencies (lean runtime set)
+RUN pip install --no-cache-dir -r /app/model_server/requirements.txt
 
 # Export port (Cloud Run uses 8080)
 EXPOSE 8080
 
 # Health probe (Cloud Run sẽ dùng cái này)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f https://localhost:8080/health || exit 1
+    CMD curl -fsS "http://localhost:${AIP_HTTP_PORT}${AIP_HEALTH_ROUTE}" || exit 1
 
 # Start FastAPI server
 CMD ["uvicorn", "model_server.main:app", \
