@@ -11,7 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: "npm run build "
+
+      # BƯỚC QUAN TRỌNG NHẤT: Cài đặt thư viện trước khi build
+      - name: Install dependencies
+        run: npm ci
+
+      # BƯỚC 2: Chạy build để tạo ra thư mục dist
+      - name: Build project
+        run: npm run build
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
