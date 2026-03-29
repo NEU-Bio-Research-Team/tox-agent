@@ -5,7 +5,7 @@ Converts SMILES strings to torch_geometric.data.Data objects with rich
 node (atom) and edge (bond) features for molecular property prediction.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 import numpy as np
 import torch
 from torch_geometric.data import Data
@@ -159,20 +159,25 @@ def get_bond_features(bond: Chem.Bond) -> np.ndarray:
     return np.array(features, dtype=np.float32)
 
 
-def smiles_to_pyg_data(smiles: str, label: Optional[float] = None) -> Optional[Data]:
+def smiles_to_pyg_data(
+    smiles: str,
+    label: Optional[Union[float, int, List[float], np.ndarray, torch.Tensor]] = None
+) -> Optional[Data]:
     """
     Convert a SMILES string to a PyTorch Geometric Data object.
     
     Args:
         smiles: SMILES string representation of the molecule
-        label: Optional label (e.g., toxicity) for supervised learning
+        label: Optional graph-level label. Can be:
+            - scalar for single-task binary classification (e.g., ClinTox)
+            - vector/list for multi-task classification (e.g., Tox21)
     
     Returns:
         torch_geometric.data.Data object with:
         - x: Node (atom) features of shape (num_nodes, num_node_features)
         - edge_index: Edge connectivity in COO format of shape (2, num_edges)
         - edge_attr: Edge (bond) features of shape (num_edges, num_edge_features)
-        - y: Optional graph-level label (scalar)
+        - y: Optional graph-level label tensor (shape [1] or [num_tasks])
         - smiles: Original SMILES string (stored as attribute)
     
     Example:
@@ -221,7 +226,20 @@ def smiles_to_pyg_data(smiles: str, label: Optional[float] = None) -> Optional[D
     
     # Add label if provided
     if label is not None:
-        data.y = torch.tensor([label], dtype=torch.float32)
+        if isinstance(label, torch.Tensor):
+            label_arr = label.detach().cpu().numpy()
+        elif isinstance(label, np.ndarray):
+            label_arr = label
+        elif isinstance(label, (list, tuple)):
+            label_arr = np.array(label, dtype=np.float32)
+        else:
+            label_arr = np.array([label], dtype=np.float32)
+
+        # Ensure scalar labels become shape [1] while keeping vector labels intact.
+        if np.asarray(label_arr).ndim == 0:
+            label_arr = np.array([label_arr], dtype=np.float32)
+
+        data.y = torch.tensor(np.asarray(label_arr, dtype=np.float32), dtype=torch.float32)
     
     # Store SMILES string as attribute (useful for debugging/visualization)
     data.smiles = smiles
@@ -231,14 +249,15 @@ def smiles_to_pyg_data(smiles: str, label: Optional[float] = None) -> Optional[D
 
 def smiles_list_to_pyg_dataset(
     smiles_list: List[str],
-    labels: Optional[List[float]] = None
+    labels: Optional[List[Union[float, int, List[float], np.ndarray, torch.Tensor]]] = None
 ) -> List[Data]:
     """
     Convert a list of SMILES strings to a list of PyG Data objects.
     
     Args:
         smiles_list: List of SMILES strings
-        labels: Optional list of labels corresponding to each SMILES
+        labels: Optional list of labels corresponding to each SMILES.
+            Each label can be scalar (single-task) or vector (multi-task).
     
     Returns:
         List of torch_geometric.data.Data objects

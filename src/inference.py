@@ -12,8 +12,9 @@ training, otherwise the SMILES encoder is bypassed (zero vectors).
 
 import pickle
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Union
 
+import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -21,7 +22,9 @@ import yaml
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
 
+from src.data import get_task_names
 from src.graph_data import get_feature_dims, smiles_to_pyg_data
+from src.graph_models import create_gatv2_model
 from src.graph_models_hybrid import create_hybrid_model
 
 
@@ -75,6 +78,11 @@ def _collate(batch):
         b.smiles_token_ids       = torch.stack([x.smiles_token_ids      for x in batch])
         b.smiles_attention_masks = torch.stack([x.smiles_attention_mask for x in batch])
     return b
+
+
+def _collate_graph(batch):
+    """Simple collate for plain graph-only inference."""
+    return Batch.from_data_list(batch)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -149,6 +157,206 @@ def load_model(
     wrapped.eval()
 
     return model, tokenizer, wrapped
+
+
+def load_tox21_gatv2_model(
+    model_dir: Path,
+    config_path: Path,
+    device: str = "cpu",
+):
+    """
+    Load a trained Tox21 multi-task GATv2 checkpoint.
+
+    Returns
+    -------
+    (model, task_names) in eval mode on `device`.
+    """
+    model_dir = Path(model_dir)
+    config_path = Path(config_path)
+
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+    mc = config["model"]
+
+    ckpt = model_dir / "best_model.pt"
+    if not ckpt.exists():
+        raise FileNotFoundError(
+            f"Checkpoint not found: {ckpt}\n"
+            "Run 'python scripts/train_tox21_gatv2.py' first."
+        )
+
+    checkpoint = torch.load(ckpt, map_location=device)
+    if isinstance(checkpoint, dict) and checkpoint.get("task_names"):
+        task_names = list(checkpoint["task_names"])
+    else:
+        task_names = get_task_names("tox21")
+
+    num_node_features, num_edge_features = get_feature_dims()
+    model = create_gatv2_model(
+        num_node_features=num_node_features,
+        num_edge_features=num_edge_features,
+        hidden_dim=int(mc["hidden_dim"]),
+        num_layers=int(mc["num_layers"]),
+        num_heads=int(mc["num_heads"]),
+        dropout=float(mc["dropout"]),
+        use_residual=bool(mc.get("use_residual", True)),
+        use_jk=bool(mc.get("use_jk", True)),
+        jk_mode=str(mc.get("jk_mode", "cat")),
+        pooling=str(mc.get("pooling", "set2set")),
+        output_dim=len(task_names),
+    )
+
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        model.load_state_dict(checkpoint["model_state_dict"])
+    else:
+        model.load_state_dict(checkpoint)
+
+    model.to(device)
+    model.eval()
+
+    return model, task_names
+
+
+def _resolve_tox21_thresholds(
+    task_names: List[str],
+    default_threshold: float = 0.5,
+    task_thresholds: Optional[Union[List[float], np.ndarray, Dict[str, float]]] = None,
+) -> np.ndarray:
+    """Normalize task threshold settings into an array aligned with task_names."""
+    num_tasks = len(task_names)
+    if task_thresholds is None:
+        return np.full(num_tasks, float(default_threshold), dtype=np.float32)
+
+    if isinstance(task_thresholds, dict):
+        return np.array(
+            [float(task_thresholds.get(task, default_threshold)) for task in task_names],
+            dtype=np.float32,
+        )
+
+    thresholds = np.asarray(task_thresholds, dtype=np.float32).reshape(-1)
+    if thresholds.size != num_tasks:
+        raise ValueError(
+            f"Expected {num_tasks} task thresholds, got {thresholds.size}"
+        )
+    return thresholds
+
+
+def predict_tox21_batch(
+    smiles_list: List[str],
+    model: nn.Module,
+    task_names: List[str],
+    device: str,
+    names: Optional[List[str]] = None,
+    threshold: float = 0.5,
+    task_thresholds: Optional[Union[List[float], np.ndarray, Dict[str, float]]] = None,
+    batch_size: int = 64,
+) -> pd.DataFrame:
+    """
+    Predict Tox21 assay probabilities for a batch of SMILES.
+
+    Returns a table with per-assay probabilities and a mechanistic alert summary.
+    """
+    threshold_arr = _resolve_tox21_thresholds(
+        task_names=task_names,
+        default_threshold=threshold,
+        task_thresholds=task_thresholds,
+    )
+
+    valid = []
+    invalid = []
+
+    for i, smi in enumerate(smiles_list):
+        name = names[i] if names else f"Mol-{i:03d}"
+        try:
+            data = smiles_to_pyg_data(smi, label=None)
+        except Exception:
+            data = None
+
+        if data is None:
+            invalid.append((name, smi))
+        else:
+            valid.append((name, smi, data))
+
+    if not valid:
+        rows = []
+        for name, smi in invalid:
+            row = {
+                "Name": name,
+                "SMILES": smi,
+                "MechanisticAlert": "Parse error",
+                "AssayHits": -1,
+                "HitTasks": "Parse error",
+                "MaxAssay": "—",
+                "MaxAssayProb": -1.0,
+            }
+            for task in task_names:
+                row[f"P({task})"] = None
+            rows.append(row)
+        return pd.DataFrame(rows)
+
+    _, _, pyg_list = zip(*valid)
+    loader = DataLoader(
+        list(pyg_list),
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=_collate_graph,
+    )
+
+    all_probs: List[np.ndarray] = []
+    with torch.no_grad():
+        for batch in loader:
+            batch = batch.to(device)
+            logits = model(batch)
+            if logits.dim() == 1:
+                logits = logits.unsqueeze(-1)
+            probs = torch.sigmoid(logits).cpu().numpy()
+            all_probs.append(probs)
+
+    probs_matrix = np.vstack(all_probs) if all_probs else np.empty((0, len(task_names)))
+
+    rows = []
+    for (name, smi, _), prob_vec in zip(valid, probs_matrix):
+        hit_idx = np.where(prob_vec >= threshold_arr)[0]
+        hit_tasks = [task_names[idx] for idx in hit_idx]
+
+        top_idx = int(np.argmax(prob_vec))
+        row = {
+            "Name": name,
+            "SMILES": smi,
+            "MechanisticAlert": bool(len(hit_tasks) > 0),
+            "AssayHits": int(len(hit_tasks)),
+            "HitTasks": "; ".join(hit_tasks) if hit_tasks else "None",
+            "MaxAssay": task_names[top_idx],
+            "MaxAssayProb": round(float(prob_vec[top_idx]), 4),
+        }
+
+        for task_idx, task in enumerate(task_names):
+            row[f"P({task})"] = round(float(prob_vec[task_idx]), 4)
+
+        rows.append(row)
+
+    for name, smi in invalid:
+        row = {
+            "Name": name,
+            "SMILES": smi,
+            "MechanisticAlert": "Parse error",
+            "AssayHits": -1,
+            "HitTasks": "Parse error",
+            "MaxAssay": "—",
+            "MaxAssayProb": -1.0,
+        }
+        for task in task_names:
+            row[f"P({task})"] = None
+        rows.append(row)
+
+    df = pd.DataFrame(rows)
+    df = df.sort_values(
+        ["AssayHits", "MaxAssayProb"],
+        ascending=[False, False],
+        na_position="last",
+    ).reset_index(drop=True)
+
+    return df
 
 
 # ─────────────────────────────────────────────────────────────────────────────

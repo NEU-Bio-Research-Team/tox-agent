@@ -1,0 +1,35 @@
+model:
+  name: "GATv2MolecularPredictor"
+  num_layers: 4
+  hidden_dim: 128
+  num_heads: 4
+  dropout: 0.2
+  use_residual: true
+  use_jk: true
+  jk_mode: "cat"
+  pooling: "set2set"
+
+training:
+  num_epochs: 120
+  batch_size: 32
+  learning_rate: 0.0005
+  weight_decay: 0.00001
+  early_stopping_patience: 25
+  early_stopping_metric: "f1"
+  loss_type: "focal"  # focal, weighted_bce, bce
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  use_weighted_sampler: true
+
+data:
+  cache_dir: "./data"
+  split_type: "scaffold"
+  seed: 42
+
+pretrained:
+  checkpoint: "./models/tox21_gatv2_model/best_model.pt"
+  strict_backbone_shapes: true
+
+output:
+  model_dir: "./models/gatv2_transfer_model"
+  save_best: true

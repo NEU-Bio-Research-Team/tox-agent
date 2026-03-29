@@ -1,0 +1,28 @@
+model:
+  name: "GATv2MolecularPredictor"
+  num_layers: 4
+  hidden_dim: 128
+  num_heads: 4
+  dropout: 0.2
+  use_residual: true
+  use_jk: true
+  jk_mode: "cat"  # cat, max, mean, lstm
+  pooling: "set2set"  # set2set, attentive, global_mean, global_max, global_sum
+
+training:
+  num_epochs: 120
+  batch_size: 64
+  learning_rate: 0.0008
+  weight_decay: 0.00001
+  early_stopping_patience: 25
+  early_stopping_metric: "macro_auc_roc"  # macro_auc_roc, macro_pr_auc, macro_f1, loss
+  use_task_pos_weights: true
+
+data:
+  cache_dir: "./data"
+  split_type: "scaffold"
+  seed: 42
+
+output:
+  model_dir: "./models/tox21_gatv2_model"
+  save_best: true

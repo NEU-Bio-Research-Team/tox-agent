@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from torch_geometric.data import Batch
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List, Tuple, Union
 import numpy as np
 from sklearn.metrics import (
     roc_auc_score,
@@ -408,4 +408,477 @@ def evaluate_model(
         metrics['logits'] = all_logits
     
     return metrics
+
+
+def compute_multitask_pos_weights(labels: np.ndarray) -> torch.Tensor:
+    """
+    Compute per-task positive-class weights for multi-task classification.
+
+    Missing labels must be encoded as NaN and are ignored in counts.
+
+    Args:
+        labels: Label matrix of shape (num_samples, num_tasks) with values in
+            {0, 1, NaN}.
+
+    Returns:
+        Tensor of shape (num_tasks,) where each value is neg/pos for a task.
+    """
+    if labels.ndim != 2:
+        raise ValueError("labels must be a 2D array of shape (num_samples, num_tasks)")
+
+    weights: List[float] = []
+    for task_idx in range(labels.shape[1]):
+        task_labels = labels[:, task_idx]
+        valid_mask = np.isfinite(task_labels)
+        valid_labels = task_labels[valid_mask]
+
+        if valid_labels.size == 0:
+            weights.append(1.0)
+            continue
+
+        num_pos = np.sum(valid_labels == 1)
+        num_neg = np.sum(valid_labels == 0)
+
+        if num_pos == 0 or num_neg == 0:
+            weights.append(1.0)
+        else:
+            weights.append(float(num_neg / num_pos))
+
+    return torch.tensor(weights, dtype=torch.float32)
+
+
+class MaskedBCEWithLogitsLoss(nn.Module):
+    """
+    BCEWithLogits loss that ignores missing labels (NaN entries).
+
+    This is required for datasets such as Tox21 where each assay can be
+    missing for a subset of molecules.
+    """
+
+    def __init__(
+        self,
+        pos_weight: Optional[torch.Tensor] = None,
+        reduction: str = 'mean'
+    ):
+        super().__init__()
+        self.pos_weight = pos_weight
+        self.reduction = reduction
+
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        if inputs.dim() == 1:
+            inputs = inputs.unsqueeze(-1)
+        if targets.dim() == 1:
+            targets = targets.unsqueeze(-1)
+
+        valid_mask = torch.isfinite(targets)
+        safe_targets = torch.where(valid_mask, targets, torch.zeros_like(targets))
+
+        pos_weight = None
+        if self.pos_weight is not None:
+            pos_weight = self.pos_weight.to(inputs.device)
+
+        loss = F.binary_cross_entropy_with_logits(
+            inputs,
+            safe_targets,
+            pos_weight=pos_weight,
+            reduction='none'
+        )
+
+        loss = loss * valid_mask.float()
+        valid_count = valid_mask.float().sum()
+
+        if self.reduction == 'sum':
+            return loss.sum()
+
+        if self.reduction == 'mean':
+            if valid_count.item() == 0:
+                return inputs.sum() * 0.0
+            return loss.sum() / valid_count
+
+        return loss
+
+
+def _nanmean_or_zero(values: List[float]) -> float:
+    """Return nanmean(values), falling back to 0.0 when all values are NaN."""
+    arr = np.array(values, dtype=np.float64)
+    if arr.size == 0 or np.all(np.isnan(arr)):
+        return 0.0
+    return float(np.nanmean(arr))
+
+
+def _resolve_thresholds(
+    num_tasks: int,
+    task_names: List[str],
+    thresholds: Optional[Union[float, List[float], np.ndarray, Dict[str, float]]] = None
+) -> np.ndarray:
+    """Normalize threshold configuration to an array of shape (num_tasks,)."""
+    if thresholds is None:
+        return np.full(num_tasks, 0.5, dtype=np.float32)
+
+    if isinstance(thresholds, (int, float)):
+        return np.full(num_tasks, float(thresholds), dtype=np.float32)
+
+    if isinstance(thresholds, dict):
+        return np.array(
+            [float(thresholds.get(task_name, 0.5)) for task_name in task_names],
+            dtype=np.float32,
+        )
+
+    threshold_arr = np.asarray(thresholds, dtype=np.float32).reshape(-1)
+    if threshold_arr.size != num_tasks:
+        raise ValueError(
+            f"Expected {num_tasks} thresholds, got {threshold_arr.size}"
+        )
+    return threshold_arr
+
+
+def evaluate_multitask_model(
+    model: nn.Module,
+    data_loader: DataLoader,
+    task_names: Optional[List[str]] = None,
+    device: str = "cpu",
+    thresholds: Optional[Union[float, List[float], np.ndarray, Dict[str, float]]] = None,
+    return_predictions: bool = False,
+) -> Dict:
+    """
+    Evaluate a multi-task binary classification model with missing labels.
+
+    Args:
+        model: Trained model returning logits of shape (batch, num_tasks).
+        data_loader: Evaluation dataloader.
+        task_names: Optional list of task names. If omitted, uses task_0..task_n.
+        device: Evaluation device.
+        thresholds: Optional classification thresholds.
+        return_predictions: Whether to return raw logits/probabilities/labels.
+
+    Returns:
+        Metrics dictionary with per-task, macro, and micro summaries.
+    """
+    model.eval()
+
+    all_probs_chunks: List[np.ndarray] = []
+    all_labels_chunks: List[np.ndarray] = []
+    all_logits_chunks: List[np.ndarray] = []
+    losses: List[float] = []
+
+    criterion = MaskedBCEWithLogitsLoss(reduction='mean')
+
+    with torch.no_grad():
+        for batch in data_loader:
+            batch = batch.to(device)
+            labels = batch.y.float()
+
+            logits = model(batch)
+            if logits.dim() == 1:
+                logits = logits.unsqueeze(-1)
+            if labels.dim() == 1:
+                labels = labels.unsqueeze(-1)
+
+            loss = criterion(logits, labels)
+            losses.append(loss.item())
+
+            probs = torch.sigmoid(logits).cpu().numpy()
+            all_probs_chunks.append(probs)
+            all_labels_chunks.append(labels.cpu().numpy())
+            all_logits_chunks.append(logits.cpu().numpy())
+
+    if not all_probs_chunks:
+        return {
+            'loss': 0.0,
+            'macro_auc_roc': 0.0,
+            'macro_pr_auc': 0.0,
+            'macro_accuracy': 0.0,
+            'macro_f1': 0.0,
+            'micro_auc_roc': 0.0,
+            'micro_pr_auc': 0.0,
+            'micro_accuracy': 0.0,
+            'micro_f1': 0.0,
+            'task_metrics': {}
+        }
+
+    all_probs = np.vstack(all_probs_chunks)
+    all_labels = np.vstack(all_labels_chunks)
+    all_logits = np.vstack(all_logits_chunks)
+
+    if not np.all(np.isfinite(all_probs)):
+        all_probs = np.nan_to_num(all_probs, nan=0.5, posinf=1.0, neginf=0.0)
+
+    num_tasks = all_probs.shape[1]
+    if task_names is None:
+        task_names = [f"task_{i}" for i in range(num_tasks)]
+    if len(task_names) != num_tasks:
+        raise ValueError(
+            f"task_names length ({len(task_names)}) does not match num_tasks ({num_tasks})"
+        )
+
+    threshold_arr = _resolve_thresholds(num_tasks, task_names, thresholds)
+
+    task_metrics: Dict[str, Dict] = {}
+    auc_values: List[float] = []
+    pr_values: List[float] = []
+    acc_values: List[float] = []
+    f1_values: List[float] = []
+
+    for task_idx, task_name in enumerate(task_names):
+        y_true = all_labels[:, task_idx]
+        y_prob = all_probs[:, task_idx]
+        valid_mask = np.isfinite(y_true)
+
+        if np.sum(valid_mask) == 0:
+            task_metrics[task_name] = {
+                'n_valid': 0,
+                'positive_rate': np.nan,
+                'auc_roc': np.nan,
+                'pr_auc': np.nan,
+                'accuracy': np.nan,
+                'f1': np.nan,
+                'threshold': float(threshold_arr[task_idx]),
+                'confusion_matrix': [[0, 0], [0, 0]],
+            }
+            auc_values.append(np.nan)
+            pr_values.append(np.nan)
+            acc_values.append(np.nan)
+            f1_values.append(np.nan)
+            continue
+
+        y_true_valid = y_true[valid_mask].astype(int)
+        y_prob_valid = y_prob[valid_mask]
+        y_pred_valid = (y_prob_valid >= threshold_arr[task_idx]).astype(int)
+
+        if len(np.unique(y_true_valid)) > 1:
+            task_auc = roc_auc_score(y_true_valid, y_prob_valid)
+            task_pr = average_precision_score(y_true_valid, y_prob_valid)
+        else:
+            task_auc = np.nan
+            task_pr = np.nan
+
+        task_acc = accuracy_score(y_true_valid, y_pred_valid)
+        task_f1 = f1_score(y_true_valid, y_pred_valid, zero_division=0.0)
+        task_cm = confusion_matrix(y_true_valid, y_pred_valid, labels=[0, 1]).tolist()
+
+        task_metrics[task_name] = {
+            'n_valid': int(y_true_valid.shape[0]),
+            'positive_rate': float(np.mean(y_true_valid == 1)),
+            'auc_roc': float(task_auc) if np.isfinite(task_auc) else np.nan,
+            'pr_auc': float(task_pr) if np.isfinite(task_pr) else np.nan,
+            'accuracy': float(task_acc),
+            'f1': float(task_f1),
+            'threshold': float(threshold_arr[task_idx]),
+            'confusion_matrix': task_cm,
+        }
+
+        auc_values.append(task_auc)
+        pr_values.append(task_pr)
+        acc_values.append(task_acc)
+        f1_values.append(task_f1)
+
+    threshold_matrix = np.broadcast_to(threshold_arr.reshape(1, -1), all_probs.shape)
+    valid_mask_all = np.isfinite(all_labels)
+    flat_true = all_labels[valid_mask_all].astype(int)
+    flat_prob = all_probs[valid_mask_all]
+    flat_pred = (all_probs >= threshold_matrix)[valid_mask_all].astype(int)
+
+    if flat_true.size > 0 and len(np.unique(flat_true)) > 1:
+        micro_auc = float(roc_auc_score(flat_true, flat_prob))
+        micro_pr_auc = float(average_precision_score(flat_true, flat_prob))
+    else:
+        micro_auc = 0.0
+        micro_pr_auc = 0.0
+
+    if flat_true.size > 0:
+        micro_acc = float(accuracy_score(flat_true, flat_pred))
+        micro_f1 = float(f1_score(flat_true, flat_pred, zero_division=0.0))
+    else:
+        micro_acc = 0.0
+        micro_f1 = 0.0
+
+    metrics = {
+        'loss': float(np.mean(losses)) if losses else 0.0,
+        'macro_auc_roc': _nanmean_or_zero(auc_values),
+        'macro_pr_auc': _nanmean_or_zero(pr_values),
+        'macro_accuracy': _nanmean_or_zero(acc_values),
+        'macro_f1': _nanmean_or_zero(f1_values),
+        'micro_auc_roc': micro_auc,
+        'micro_pr_auc': micro_pr_auc,
+        'micro_accuracy': micro_acc,
+        'micro_f1': micro_f1,
+        'task_metrics': task_metrics,
+    }
+
+    if return_predictions:
+        metrics['probabilities'] = all_probs
+        metrics['labels'] = all_labels
+        metrics['logits'] = all_logits
+
+    return metrics
+
+
+def train_multitask_model(
+    model: nn.Module,
+    train_loader: DataLoader,
+    val_loader: Optional[DataLoader] = None,
+    task_names: Optional[List[str]] = None,
+    num_epochs: int = 100,
+    learning_rate: float = 0.001,
+    weight_decay: float = 1e-5,
+    device: str = "cpu",
+    pos_weight: Optional[torch.Tensor] = None,
+    early_stopping_patience: int = 20,
+    early_stopping_metric: str = "macro_auc_roc",
+    verbose: bool = True,
+) -> Dict[str, List[float]]:
+    """
+    Train a graph model for multi-task binary classification with missing labels.
+
+    Args:
+        model: Model producing logits of shape (batch, num_tasks).
+        train_loader: Training dataloader.
+        val_loader: Optional validation dataloader.
+        task_names: Optional list of task names.
+        num_epochs: Number of epochs.
+        learning_rate: Optimizer learning rate.
+        weight_decay: L2 regularization factor.
+        device: Device string.
+        pos_weight: Optional per-task positive class weights.
+        early_stopping_patience: Early stopping patience in epochs.
+        early_stopping_metric: One of:
+            'macro_auc_roc', 'macro_pr_auc', 'macro_f1',
+            'micro_auc_roc', 'micro_pr_auc', 'micro_f1', 'loss'.
+        verbose: Whether to log progress.
+
+    Returns:
+        History dictionary containing training and validation trajectories.
+    """
+    model = model.to(device)
+
+    criterion = MaskedBCEWithLogitsLoss(pos_weight=pos_weight, reduction='mean')
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=learning_rate,
+        weight_decay=weight_decay,
+    )
+
+    optimize_for_loss = early_stopping_metric == 'loss'
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode='min' if optimize_for_loss else 'max',
+        factor=0.5,
+        patience=10,
+        verbose=verbose,
+    )
+
+    history = {
+        'train_loss': [],
+        'val_loss': [],
+        'val_macro_auc_roc': [],
+        'val_macro_pr_auc': [],
+        'val_macro_f1': [],
+        'val_micro_auc_roc': [],
+        'val_micro_pr_auc': [],
+        'val_micro_f1': [],
+    }
+
+    best_metric = float('inf') if optimize_for_loss else float('-inf')
+    best_model_state = None
+    patience_counter = 0
+
+    for epoch in range(num_epochs):
+        model.train()
+        train_losses: List[float] = []
+
+        for batch in train_loader:
+            batch = batch.to(device)
+            labels = batch.y.float()
+
+            optimizer.zero_grad()
+
+            logits = model(batch)
+            if logits.dim() == 1:
+                logits = logits.unsqueeze(-1)
+            if labels.dim() == 1:
+                labels = labels.unsqueeze(-1)
+
+            loss = criterion(logits, labels)
+
+            if torch.isnan(loss) or torch.isinf(loss):
+                optimizer.zero_grad()
+                continue
+
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+
+            train_losses.append(loss.item())
+
+        avg_train_loss = np.mean(train_losses) if train_losses else float('nan')
+        history['train_loss'].append(avg_train_loss)
+
+        if val_loader is not None:
+            val_metrics = evaluate_multitask_model(
+                model=model,
+                data_loader=val_loader,
+                task_names=task_names,
+                device=device,
+            )
+
+            history['val_loss'].append(val_metrics['loss'])
+            history['val_macro_auc_roc'].append(val_metrics['macro_auc_roc'])
+            history['val_macro_pr_auc'].append(val_metrics['macro_pr_auc'])
+            history['val_macro_f1'].append(val_metrics['macro_f1'])
+            history['val_micro_auc_roc'].append(val_metrics['micro_auc_roc'])
+            history['val_micro_pr_auc'].append(val_metrics['micro_pr_auc'])
+            history['val_micro_f1'].append(val_metrics['micro_f1'])
+
+            current_metric = val_metrics.get(early_stopping_metric)
+            if current_metric is None:
+                raise ValueError(
+                    f"Unknown early_stopping_metric '{early_stopping_metric}'"
+                )
+
+            if np.isnan(current_metric):
+                current_metric = float('inf') if optimize_for_loss else float('-inf')
+
+            is_better = (
+                current_metric < best_metric
+                if optimize_for_loss
+                else current_metric > best_metric
+            )
+
+            if is_better:
+                best_metric = current_metric
+                best_model_state = {
+                    k: v.detach().cpu().clone()
+                    for k, v in model.state_dict().items()
+                }
+                patience_counter = 0
+            else:
+                patience_counter += 1
+
+            scheduler_metric = current_metric
+            if not np.isfinite(scheduler_metric):
+                scheduler_metric = 0.0
+            scheduler.step(scheduler_metric)
+
+            if verbose and (epoch + 1) % 10 == 0:
+                print(
+                    f"Epoch {epoch + 1}/{num_epochs} - "
+                    f"Train Loss: {avg_train_loss:.4f}, "
+                    f"Val Loss: {val_metrics['loss']:.4f}, "
+                    f"Val Macro AUC: {val_metrics['macro_auc_roc']:.4f}, "
+                    f"Val Macro PR-AUC: {val_metrics['macro_pr_auc']:.4f}, "
+                    f"Val Macro F1: {val_metrics['macro_f1']:.4f}"
+                )
+
+            if patience_counter >= early_stopping_patience:
+                if verbose:
+                    print(f"Early stopping at epoch {epoch + 1}")
+                break
+
+        elif verbose and (epoch + 1) % 10 == 0:
+            print(f"Epoch {epoch + 1}/{num_epochs} - Train Loss: {avg_train_loss:.4f}")
+
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
+
+    return history
 
