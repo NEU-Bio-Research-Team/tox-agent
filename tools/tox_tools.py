@@ -29,7 +29,22 @@ BATCH_TIMEOUT = max(MODEL_SERVER_TIMEOUT * 4.0, 120.0)
 
 
 def validate_smiles(smiles: str) -> Dict[str, Any]:
-    """Validate SMILES locally using RDKit when available."""
+    """Validate one SMILES string using RDKit and return canonical form.
+
+    Use this tool first before running model inference. It confirms whether a
+    string can be parsed as a molecule and provides canonical SMILES for stable
+    downstream calls.
+
+    Args:
+        smiles: Raw SMILES input from user/session state.
+
+    Returns:
+        A dict with keys:
+        - valid (bool): True if RDKit parses the SMILES.
+        - canonical_smiles (str | None): Canonicalized SMILES when valid.
+        - error (str | None): Parse/validation error when invalid.
+        - atom_count (int | None): Number of atoms in parsed molecule.
+    """
     if not smiles or not smiles.strip():
         return {
             "valid": False,
@@ -65,7 +80,21 @@ def validate_smiles(smiles: str) -> Dict[str, Any]:
 
 
 def analyze_molecule(smiles: str) -> Dict[str, Any]:
-    """Call model_server /analyze for a single SMILES."""
+    """Run full model-server toxicity analysis for one validated SMILES.
+
+    This tool calls ``POST {MODEL_SERVER_URL}/analyze`` and returns the unified
+    clinical/mechanistic/explainer payload. Prefer canonical SMILES returned by
+    ``validate_smiles``.
+
+    Args:
+        smiles: Valid SMILES string (ideally canonical).
+
+    Returns:
+        Dict from model server containing keys such as ``clinical``,
+        ``mechanism``, ``explanation``, ``final_verdict`` and ``error``.
+        On transport/server failure, returns ``error`` and
+        ``final_verdict=ANALYSIS_FAILED``.
+    """
     if not smiles or not smiles.strip():
         return {
             "error": "smiles_empty",
@@ -118,7 +147,22 @@ def analyze_molecule(smiles: str) -> Dict[str, Any]:
 
 
 def analyze_molecules_batch(smiles_list: List[str]) -> Dict[str, Any]:
-    """Call model_server /predict/batch for a list of SMILES."""
+    """Run batch clinical predictions for multiple SMILES strings.
+
+    This tool calls ``POST {MODEL_SERVER_URL}/predict/batch`` and is intended
+    for throughput-oriented screening. It does not return full mechanism/
+    explainer outputs like ``analyze_molecule``.
+
+    Args:
+        smiles_list: List of SMILES strings. Maximum length is 50.
+
+    Returns:
+        Dict with keys:
+        - results (list): Per-molecule prediction payloads.
+        - total (int): Number of submitted molecules.
+        - success_count (int): Count of non-failed predictions.
+        - error (str | None): Validation/request error.
+    """
     if not smiles_list:
         return {"results": [], "total": 0, "success_count": 0, "error": "empty"}
     if len(smiles_list) > 50:
@@ -166,7 +210,18 @@ def analyze_molecules_batch(smiles_list: List[str]) -> Dict[str, Any]:
 
 
 def check_model_server_health() -> Dict[str, Any]:
-    """Call model_server /health and report latency."""
+    """Check model server availability and latency.
+
+    Use this before other server-dependent tools to gate execution and provide
+    actionable error messages when backend services are unreachable.
+
+    Returns:
+        Dict with keys:
+        - healthy (bool): True if health endpoint responds successfully.
+        - status (str): Health status string from backend.
+        - latency_ms (float): End-to-end request latency.
+        - error (str | None): Connectivity/HTTP error when unhealthy.
+    """
     start = time.perf_counter()
     try:
         response = httpx.get(
