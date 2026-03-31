@@ -1,0 +1,66 @@
+from __future__ import annotations
+
+import os
+from typing import Any, Dict
+
+from tools import (
+    get_compound_info_pubchem,
+    get_pubchem_bioassay_data,
+    search_toxicity_literature,
+)
+
+from .adk_compat import LlmAgent
+
+RESEARCH_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-1.5-pro")
+
+
+def run_research(smiles_input: str, max_results: int = 5) -> Dict[str, Any]:
+    """Deterministic research flow used for local tests and orchestration."""
+    compound_info = get_compound_info_pubchem(smiles_input)
+
+    preferred_name = (
+        compound_info.get("common_name")
+        or compound_info.get("iupac_name")
+        or smiles_input
+    )
+    literature = search_toxicity_literature(preferred_name, max_results=max_results)
+
+    cid = compound_info.get("cid")
+    bioassay_summary = None
+    if cid:
+        bioassay_summary = get_pubchem_bioassay_data(cid)
+
+    research_result = {
+        "compound_info": compound_info,
+        "literature": literature,
+        "bioassay_summary": bioassay_summary,
+        "query_name_used": preferred_name,
+    }
+
+    return {
+        "research_result": research_result,
+        "research_error": None,
+    }
+
+
+researcher_agent = LlmAgent(
+    name="ResearcherAgent",
+    model=RESEARCH_MODEL,
+    description=(
+        "Gather PubChem and PubMed context for a molecule to enrich final toxicity reports."
+    ),
+    instruction=(
+        "You are a drug safety literature researcher. "
+        "1) Call get_compound_info_pubchem(smiles). "
+        "2) Call search_toxicity_literature(compound_name). "
+        "3) If CID exists, call get_pubchem_bioassay_data(cid). "
+        "4) Return structured research context with graceful fallback on errors.\n\n"
+        "SMILES input: {smiles_input}"
+    ),
+    tools=[
+        get_compound_info_pubchem,
+        search_toxicity_literature,
+        get_pubchem_bioassay_data,
+    ],
+    output_key="research_result",
+)
