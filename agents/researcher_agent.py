@@ -11,7 +11,7 @@ from tools import (
 
 from .adk_compat import LlmAgent
 
-RESEARCH_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-1.5-pro")
+RESEARCH_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
 
 
 def run_research(smiles_input: str, max_results: int = 5) -> Dict[str, Any]:
@@ -47,16 +47,28 @@ researcher_agent = LlmAgent(
     name="ResearcherAgent",
     model=RESEARCH_MODEL,
     description=(
-        "Gather PubChem and PubMed context for a molecule to enrich final toxicity reports."
+        "Gather PubChem and PubMed context for a molecule."
     ),
-    instruction=(
-        "You are a drug safety literature researcher. "
-        "1) Call get_compound_info_pubchem(smiles). "
-        "2) Call search_toxicity_literature(compound_name). "
-        "3) If CID exists, call get_pubchem_bioassay_data(cid). "
-        "4) Return structured research context with graceful fallback on errors.\n\n"
-        "SMILES input: {smiles_input}"
-    ),
+    instruction="""
+You are a drug safety literature researcher.
+
+Task:
+1. Read SMILES from {smiles_input}.
+2. Call get_compound_info_pubchem(smiles={smiles_input}).
+3. Use common_name (or iupac_name if common_name is missing) to call
+   search_toxicity_literature(compound_name=<best_name>, max_results=5).
+4. If CID exists, call get_pubchem_bioassay_data(cid=<CID>).
+5. Return JSON for key research_result with fields:
+   - compound_info
+   - literature
+   - bioassay_summary
+   - query_name_used
+
+Rules:
+- Continue gracefully if one tool fails.
+- Do not invent PMID/CID values.
+- Keep original tool errors in returned payload.
+""",
     tools=[
         get_compound_info_pubchem,
         search_toxicity_literature,

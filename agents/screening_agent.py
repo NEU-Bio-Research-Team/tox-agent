@@ -7,7 +7,7 @@ from tools import analyze_molecule, validate_smiles
 
 from .adk_compat import LlmAgent
 
-SCREENING_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.0-flash"))
+SCREENING_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
 
 def run_screening(smiles_input: str) -> Dict[str, Any]:
@@ -65,17 +65,30 @@ screening_agent = LlmAgent(
     name="ScreeningAgent",
     model=SCREENING_MODEL,
     description=(
-        "Analyze clinical and mechanistic toxicity from a SMILES string and "
-        "summarize explainability signals."
+        "Analyze clinical and mechanistic toxicity from a SMILES string."
     ),
-    instruction=(
-        "You are a molecular toxicity screening specialist. "
-        "1) Call validate_smiles(smiles). "
-        "2) If valid, call analyze_molecule(canonical_smiles). "
-        "3) Return a structured screening summary. "
-        "4) If tool errors occur, return a clear screening_error message.\n\n"
-        "SMILES input: {smiles_input}"
-    ),
+    instruction="""
+You are a molecular toxicity screening specialist.
+
+Task:
+1. Read SMILES from session state key {smiles_input}.
+2. Call validate_smiles(smiles={smiles_input}).
+3. If valid, call analyze_molecule(smiles=<canonical_smiles from validate step>).
+4. Return JSON for key screening_result with fields:
+   - summary
+   - smiles
+   - canonical_smiles
+   - clinical
+   - mechanism
+   - explanation
+   - final_verdict
+   - error
+
+Rules:
+- Never fabricate prediction values.
+- Always use tool outputs as source of truth.
+- If any tool fails, set error and keep remaining fields as null/empty.
+""",
     tools=[validate_smiles, analyze_molecule],
     output_key="screening_result",
 )

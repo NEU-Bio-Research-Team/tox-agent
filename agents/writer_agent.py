@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 from .adk_compat import LlmAgent
 
-WRITER_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-1.5-pro")
+WRITER_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
 
 
 def _to_dict(value: Any) -> Dict[str, Any]:
@@ -148,12 +148,32 @@ writer_agent = LlmAgent(
     name="WriterAgent",
     model=WRITER_MODEL,
     description="Synthesize screening and research outputs into a structured final report.",
-    instruction=(
-        "You are a toxicity report writer. "
-        "Read screening_result, research_result, and smiles_input from state. "
-        "Generate a valid JSON report with metadata, risk level, five sections, "
-        "and practical recommendations."
-    ),
+        instruction="""
+You are a toxicity report writer.
+
+Read from session state:
+- smiles_input
+- screening_result
+- research_result
+
+Output requirements:
+- Return JSON for key final_report.
+- Include:
+    report_metadata, executive_summary, risk_level, sections.
+- Sections must include:
+    clinical_toxicity, mechanism_toxicity, structural_explanation,
+    literature_context, recommendations.
+
+Risk policy:
+- CRITICAL: p_toxic > 0.8 AND assay_hits >= 3
+- HIGH: p_toxic > 0.6 OR assay_hits >= 2
+- MODERATE: p_toxic > 0.4 OR assay_hits >= 1
+- LOW: otherwise
+
+Rules:
+- Never fabricate scores or papers.
+- If research_result is partial/missing, still produce a valid report.
+""",
     tools=[],
     output_key="final_report",
 )

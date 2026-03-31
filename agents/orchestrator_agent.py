@@ -12,7 +12,10 @@ from .researcher_agent import researcher_agent, run_research
 from .screening_agent import run_screening, screening_agent
 from .writer_agent import build_final_report, writer_agent
 
-VALIDATOR_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.0-flash"))
+VALIDATOR_MODEL = os.getenv(
+    "AGENT_MODEL_FAST",
+    os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+)
 
 _SMILES_TOKEN = re.compile(r"[A-Za-z0-9@+\-\[\]\(\)=#$\\/%.]+")
 
@@ -164,19 +167,33 @@ input_validator = LlmAgent(
     name="InputValidator",
     model=VALIDATOR_MODEL,
     description="Validate model server health and SMILES input before running analysis.",
-    instruction=(
-        "Check model server health using check_model_server_health() and validate input "
-        "using validate_smiles(smiles_input). If either fails, return INVALID with reason. "
-        "If both pass, return VALID."
-    ),
+    instruction="""
+You are the pipeline gatekeeper.
+
+Task:
+1. Read SMILES from {smiles_input}.
+2. Call check_model_server_health().
+3. Call validate_smiles(smiles={smiles_input}).
+4. Return JSON for key validation_result with fields:
+   - validation_status: VALID or INVALID
+   - validation_error: null or error string
+   - canonical_smiles: canonical string when valid
+   - health
+   - smiles_validation
+
+Rules:
+- If health is unhealthy, mark validation_status as INVALID.
+- If SMILES is invalid, mark validation_status as INVALID.
+- Never skip tool calls.
+""",
     tools=[check_model_server_health, validate_smiles],
-    output_key="validation_status",
+    output_key="validation_result",
 )
 
 parallel_analysis = ParallelAgent(
     name="ParallelAnalysis",
     sub_agents=[screening_agent, researcher_agent],
-    description="Run ScreeningAgent and ResearcherAgent in parallel.",
+    description="Run ScreeningAgent and ResearcherAgent in parallel after validation.",
 )
 
 orchestrator = SequentialAgent(
