@@ -19,9 +19,10 @@ import io
 import json
 import logging
 import os
+import uuid
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch 
 from fastapi import FastAPI, HTTPException, Request
@@ -33,6 +34,20 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 # Important: Add project root to sys.path so project modules are importable
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+from agents import ADK_AVAILABLE, root_agent
+
+ADK_RUNTIME_IMPORT_ERROR: Optional[str] = None
+try:
+    from google.adk.runners import Runner
+    from google.adk.sessions import InMemorySessionService
+    from google.genai.types import Content, Part
+except Exception as exc:
+    Runner = None
+    InMemorySessionService = None
+    Content = None
+    Part = None
+    ADK_RUNTIME_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
 
 from backend.inference import (
     aggregate_toxicity_verdict,
@@ -48,6 +63,9 @@ from backend.workspace_mode import get_workspace_mode
 from model_server.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
+    AgentAnalyzeRequest,
+    AgentAnalyzeResponse,
+    AgentEventRecord,
     ClinicalToxicityOutput,
     MechanismToxicityOutput,
     PredictRequest, PredictResponse,
@@ -80,6 +98,10 @@ def _normalize_route(route: str, default: str) -> str:
 
 AIP_HEALTH_ROUTE = _normalize_route(os.getenv("AIP_HEALTH_ROUTE", "/health"), "/health")
 AIP_PREDICT_ROUTE = _normalize_route(os.getenv("AIP_PREDICT_ROUTE", "/predict"), "/predict")
+ADK_APP_NAME = os.getenv("AGENT_APP_NAME", "tox-agent")
+
+adk_session_service = None
+adk_runner = None
 
 
 def _load_tox21_thresholds() -> Tuple[Optional[Dict[str, float]], Optional[str]]:
@@ -103,6 +125,206 @@ logger = logging.getLogger("model_server")
 
 # Lifespan: load model once at startup
 model_state = {}
+
+
+def _safe_model_dump(value: Any) -> Dict[str, Any]:
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return value
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        try:
+            dumped = model_dump()
+            if isinstance(dumped, dict):
+                return dumped
+        except Exception:
+            pass
+    as_dict = getattr(value, "dict", None)
+    if callable(as_dict):
+        try:
+            dumped = as_dict()
+            if isinstance(dumped, dict):
+                return dumped
+        except Exception:
+            pass
+    return {"value": str(value)}
+
+
+def _strip_markdown_code_fence(text: str) -> str:
+    stripped = text.strip()
+    if not stripped.startswith("```"):
+        return stripped
+
+    lines = stripped.splitlines()
+    if lines and lines[0].startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip().startswith("```"):
+        lines = lines[:-1]
+    return "\n".join(lines).strip()
+
+
+def _coerce_json_dict(value: Any, nested_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    parsed: Optional[Dict[str, Any]] = None
+
+    if isinstance(value, dict):
+        parsed = value
+    elif isinstance(value, str):
+        candidate = _strip_markdown_code_fence(value)
+        try:
+            loaded = json.loads(candidate)
+        except Exception:
+            loaded = None
+        if isinstance(loaded, dict):
+            parsed = loaded
+
+    if parsed is None:
+        return None
+
+    if nested_key and isinstance(parsed.get(nested_key), dict):
+        return parsed[nested_key]
+
+    return parsed
+
+
+def _initialize_adk_runtime() -> None:
+    global adk_session_service, adk_runner
+
+    adk_session_service = None
+    adk_runner = None
+
+    if not ADK_AVAILABLE:
+        logger.info("ADK runtime disabled (ADK_AVAILABLE=False)")
+        return
+
+    if Runner is None or InMemorySessionService is None:
+        logger.warning("ADK runtime import unavailable: %s", ADK_RUNTIME_IMPORT_ERROR)
+        return
+
+    try:
+        adk_session_service = InMemorySessionService()
+        adk_runner = Runner(
+            agent=root_agent,
+            session_service=adk_session_service,
+            app_name=ADK_APP_NAME,
+        )
+        logger.info("ADK runtime initialized (app_name=%s)", ADK_APP_NAME)
+    except Exception as exc:
+        adk_session_service = None
+        adk_runner = None
+        err = f"{type(exc).__name__}: {exc}"
+        startup_errors = model_state.setdefault("startup_errors", {})
+        startup_errors["adk_runtime"] = err
+        logger.warning("ADK runtime initialization FAILED: %s", err)
+
+
+def _extract_event_function_calls(event: Any) -> List[Dict[str, Any]]:
+    getter = getattr(event, "get_function_calls", None)
+    if not callable(getter):
+        return []
+
+    try:
+        calls = getter() or []
+    except Exception:
+        return []
+
+    payload: List[Dict[str, Any]] = []
+    for call in calls:
+        name = getattr(call, "name", None)
+        if name is None and isinstance(call, dict):
+            name = call.get("name")
+
+        args = getattr(call, "args", None)
+        if args is None and isinstance(call, dict):
+            args = call.get("args")
+
+        payload.append(
+            {
+                "name": name,
+                "args": args if isinstance(args, dict) else _safe_model_dump(args),
+            }
+        )
+
+    return payload
+
+
+def _extract_event_function_responses(event: Any) -> List[Dict[str, Any]]:
+    getter = getattr(event, "get_function_responses", None)
+    if not callable(getter):
+        return []
+
+    try:
+        responses = getter() or []
+    except Exception:
+        return []
+
+    payload: List[Dict[str, Any]] = []
+    for response in responses:
+        name = getattr(response, "name", None)
+        if name is None and isinstance(response, dict):
+            name = response.get("name")
+        payload.append(
+            {
+                "name": name,
+                "response": _safe_model_dump(response),
+            }
+        )
+
+    return payload
+
+
+def _extract_event_text_preview(event: Any) -> Optional[str]:
+    content = getattr(event, "content", None)
+    if content is None:
+        return None
+    parts = getattr(content, "parts", None)
+    if not isinstance(parts, list):
+        return None
+
+    chunks: List[str] = []
+    for part in parts:
+        text = getattr(part, "text", None)
+        if text:
+            chunks.append(str(text))
+
+    if not chunks:
+        return None
+    return " ".join(chunks)[:500]
+
+
+def _is_final_event_response(event: Any) -> bool:
+    checker = getattr(event, "is_final_response", None)
+    if callable(checker):
+        try:
+            return bool(checker())
+        except Exception:
+            pass
+
+    event_type = getattr(event, "type", None)
+    return isinstance(event_type, str) and "final" in event_type.lower()
+
+
+def _agent_runtime_unavailable_detail() -> Dict[str, str]:
+    startup_error = _startup_errors().get("adk_runtime")
+    if startup_error:
+        return {
+            "error": "adk_runtime_unavailable",
+            "message": startup_error,
+        }
+    if not ADK_AVAILABLE:
+        return {
+            "error": "adk_unavailable",
+            "message": "ADK compatibility layer is active (google-adk import failed in agents).",
+        }
+    if ADK_RUNTIME_IMPORT_ERROR:
+        return {
+            "error": "adk_import_error",
+            "message": ADK_RUNTIME_IMPORT_ERROR,
+        }
+    return {
+        "error": "adk_runner_not_initialized",
+        "message": "ADK runner was not initialized.",
+    }
 
 
 def _startup_errors() -> Dict[str, str]:
@@ -245,6 +467,8 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("Skipping Tox21 model load because tox21_enabled=false")
 
+    _initialize_adk_runtime()
+
     if _required_models_ready():
         logger.info("Production models loaded successfully.")
     else:
@@ -332,6 +556,9 @@ async def health():
         "tox21_enabled": TOX21_ENABLED,
         "workspace_mode": WORKSPACE_MODE_NAME,
         "startup_errors": startup_errors,
+        "adk_available": ADK_AVAILABLE,
+        "adk_runtime_ready": adk_runner is not None and adk_session_service is not None,
+        "adk_runtime_import_error": ADK_RUNTIME_IMPORT_ERROR,
         "tox21_thresholds_loaded": model_state.get("tox21_thresholds") is not None,
         "tox21_thresholds_source": model_state.get("tox21_thresholds_source"),
         "tox21_threshold_count": len(model_state.get("tox21_thresholds") or {}),
@@ -719,4 +946,145 @@ async def analyze(req: AnalyzeRequest):
         mechanism=mechanism_output,
         explanation=explanation_payload,
         final_verdict=final_verdict,
+    )
+
+
+@app.post("/agent/analyze", response_model=AgentAnalyzeResponse)
+async def agent_analyze(req: AgentAnalyzeRequest):
+    """Execute the ADK agent runtime and return final report + tool-calling traces."""
+    if adk_runner is None or adk_session_service is None or Content is None or Part is None:
+        raise HTTPException(status_code=503, detail=_agent_runtime_unavailable_detail())
+
+    smiles = req.smiles.strip()
+    if not smiles:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "smiles_empty",
+                "message": "SMILES is required for agent analysis.",
+            },
+        )
+
+    session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
+    user_id = req.user_id.strip() or "default_user"
+    initial_state = {
+        "smiles_input": smiles,
+        "max_literature_results": int(req.max_literature_results),
+    }
+
+    try:
+        await adk_session_service.create_session(
+            app_name=ADK_APP_NAME,
+            user_id=user_id,
+            session_id=session_id,
+            state=initial_state,
+        )
+    except Exception:
+        # If session already exists, update its state and continue.
+        try:
+            existing = await adk_session_service.get_session(
+                app_name=ADK_APP_NAME,
+                user_id=user_id,
+                session_id=session_id,
+            )
+            if existing is None:
+                raise RuntimeError("session_not_found")
+            state = getattr(existing, "state", None)
+            if not isinstance(state, dict):
+                state = {}
+                setattr(existing, "state", state)
+            state.update(initial_state)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "agent_session_init_failed",
+                    "message": str(exc),
+                },
+            ) from exc
+
+    message = Content(
+        role="user",
+        parts=[Part(text=f"Analyze toxicity for SMILES: {smiles}")],
+    )
+
+    events: List[AgentEventRecord] = []
+    final_text: Optional[str] = None
+
+    try:
+        async for event in adk_runner.run_async(
+            user_id=user_id,
+            session_id=session_id,
+            new_message=message,
+        ):
+            function_calls = _extract_event_function_calls(event)
+            function_responses = _extract_event_function_responses(event)
+            is_final = _is_final_event_response(event)
+            text_preview = _extract_event_text_preview(event)
+
+            if req.include_agent_events:
+                events.append(
+                    AgentEventRecord(
+                        type=getattr(event, "type", None),
+                        author=getattr(event, "author", None),
+                        function_calls=function_calls,
+                        function_responses=function_responses,
+                        is_final=is_final,
+                        text_preview=text_preview,
+                    )
+                )
+
+            if is_final and final_text is None and text_preview:
+                final_text = text_preview
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "agent_runtime_error",
+                "message": str(exc),
+            },
+        ) from exc
+
+    try:
+        session = await adk_session_service.get_session(
+            app_name=ADK_APP_NAME,
+            user_id=user_id,
+            session_id=session_id,
+        )
+        state = getattr(session, "state", {}) if session is not None else {}
+        if not isinstance(state, dict):
+            state = {}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "agent_session_read_failed",
+                "message": str(exc),
+            },
+        ) from exc
+
+    final_report = _coerce_json_dict(state.get("final_report"), nested_key="final_report") or {}
+
+    validation_status = state.get("validation_status")
+    if validation_status is None:
+        validation_payload = _coerce_json_dict(
+            state.get("validation_result"),
+            nested_key="validation_result",
+        )
+        if isinstance(validation_payload, dict):
+            validation_status = validation_payload.get("validation_status")
+
+    if final_text is None and isinstance(final_report, dict):
+        summary = final_report.get("executive_summary")
+        if isinstance(summary, str) and summary:
+            final_text = summary
+
+    return AgentAnalyzeResponse(
+        session_id=session_id,
+        adk_available=ADK_AVAILABLE,
+        validation_status=validation_status,
+        final_report=final_report,
+        final_text=final_text,
+        agent_events=events if req.include_agent_events else [],
+        state_keys=sorted(state.keys()),
     )
