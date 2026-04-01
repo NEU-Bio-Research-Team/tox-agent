@@ -44,6 +44,7 @@ export interface ClinicalSection {
 	verdict?: string | null;
 	probability?: number | null;
 	confidence?: number | null;
+	threshold_used?: number | null;
 	interpretation?: string | null;
 }
 
@@ -73,6 +74,51 @@ export interface StructuralSection {
 	top_atoms?: StructuralAtom[];
 	top_bonds?: StructuralBond[];
 	heatmap_base64?: string | null;
+	molecule_png_base64?: string | null;
+	target_task?: string | null;
+	target_task_score?: number | null;
+	explainer_note?: string | null;
+}
+
+export interface OodAssessmentSection {
+	ood_risk?: string;
+	flag?: boolean;
+	reason?: string;
+	rare_elements?: string[];
+	high_risk_elements?: string[];
+	recommendation?: string | null;
+}
+
+export interface FailureRegistryEntry {
+	id?: string;
+	canonical_smiles?: string;
+	common_name?: string;
+	true_label?: number;
+	p_toxic_at_default_threshold?: number;
+	default_threshold?: number;
+	ood_flag?: boolean;
+	ood_reason?: string;
+	threshold_at_which_correctly_classified?: number | null;
+	recommended_action?: string;
+	source?: string;
+}
+
+export interface FailureRegistrySection {
+	matched?: boolean;
+	entry?: FailureRegistryEntry | null;
+	registry_size?: number;
+}
+
+export interface InferenceContextSection {
+	workspace_mode?: string;
+	threshold_policy?: string;
+	clinical_threshold_applied?: number;
+	clinical_model_loaded?: boolean;
+	tox21_model_loaded?: boolean;
+	explainer_used?: boolean;
+	explanation_available?: boolean;
+	tox21_threshold_source?: string | null;
+	clinical_reference_metrics?: Record<string, number>;
 }
 
 export interface LiteraturePaper {
@@ -107,6 +153,7 @@ export interface LiteratureSection {
 		tox21_active_count?: number;
 		error?: string | null;
 	} | null;
+	bioassay_explanation?: string;
 }
 
 export interface FinalReport {
@@ -114,6 +161,7 @@ export interface FinalReport {
 		smiles: string;
 		canonical_smiles?: string | null;
 		compound_name?: string | null;
+		language?: string | null;
 		analysis_timestamp: string;
 		report_version: string;
 	};
@@ -124,6 +172,12 @@ export interface FinalReport {
 		mechanism_toxicity: MechanismSection;
 		structural_explanation: StructuralSection;
 		literature_context: LiteratureSection;
+		ood_assessment?: OodAssessmentSection;
+		inference_context?: InferenceContextSection;
+		reliability_warning?: string | null;
+		recommendation_source?: 'llm' | 'deterministic' | string;
+		recommendation_source_detail?: string;
+		failure_registry?: FailureRegistrySection;
 		recommendations: string[];
 	};
 }
@@ -131,6 +185,8 @@ export interface FinalReport {
 export interface AgentAnalyzeResponse {
 	session_id: string;
 	adk_available: boolean;
+	runtime_mode?: 'adk' | 'deterministic_fallback' | string;
+	runtime_note?: string | null;
 	validation_status: string | null;
 	final_report: FinalReport;
 	final_text: string | null;
@@ -163,11 +219,30 @@ function toErrorMessage(status: number, bodyText: string): string {
 	return `API error ${status}: ${bodyText}`;
 }
 
-export async function agentAnalyze(smiles: string): Promise<AgentAnalyzeResponse> {
+export interface AgentAnalyzeOptions {
+	language?: 'vi' | 'en';
+	clinicalThreshold?: number;
+	mechanismThreshold?: number;
+	maxLiteratureResults?: number;
+}
+
+export async function agentAnalyze(
+	smiles: string,
+	options: AgentAnalyzeOptions = {},
+): Promise<AgentAnalyzeResponse> {
+	const payload = {
+		smiles,
+		include_agent_events: true,
+		language: options.language ?? 'vi',
+		clinical_threshold: options.clinicalThreshold ?? 0.35,
+		mechanism_threshold: options.mechanismThreshold ?? 0.5,
+		max_literature_results: options.maxLiteratureResults ?? 5,
+	};
+
 	const res = await fetch(`${BASE_URL}/agent/analyze`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ smiles, include_agent_events: true }),
+		body: JSON.stringify(payload),
 	});
 
 	if (!res.ok) {

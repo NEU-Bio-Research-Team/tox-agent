@@ -2,6 +2,7 @@ import type { ClinicalSection } from '../../../lib/api';
 
 interface ClinicalToxicitySectionProps {
   data: ClinicalSection;
+  language: 'vi' | 'en';
 }
 
 function getClinicalColor(probability: number) {
@@ -10,18 +11,23 @@ function getClinicalColor(probability: number) {
   return 'var(--accent-green)';
 }
 
-export function ClinicalToxicitySection({ data }: ClinicalToxicitySectionProps) {
+export function ClinicalToxicitySection({ data, language }: ClinicalToxicitySectionProps) {
   const pToxic = Number(data?.probability ?? 0);
   const confidence = Number(data?.confidence ?? 0);
+  const threshold = Number(data?.threshold_used ?? 0.35);
   const verdict = data?.verdict || 'UNKNOWN';
-  const interpretation = data?.interpretation || 'Khong co dien giai chi tiet tu backend.';
+  const interpretation = data?.interpretation || (
+    language === 'vi'
+      ? 'Không có diễn giải chi tiết từ backend.'
+      : 'No detailed interpretation from backend.'
+  );
 
   const accentColor = getClinicalColor(pToxic);
 
   return (
     <section id="clinical">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        §1 Clinical Toxicity
+        {language === 'vi' ? '§1 Độc tính lâm sàng' : '§1 Clinical Toxicity'}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
@@ -67,15 +73,21 @@ export function ClinicalToxicitySection({ data }: ClinicalToxicitySectionProps) 
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--accent-green)' }} />
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Non-toxic (0-0.3)</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {language === 'vi' ? 'Ít độc (0-0.3)' : 'Non-toxic (0-0.3)'}
+                </span>
               </div>
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--accent-yellow)' }} />
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Warning (0.3-0.7)</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {language === 'vi' ? 'Cảnh báo (0.3-0.7)' : 'Warning (0.3-0.7)'}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--accent-red)' }} />
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Toxic (0.7-1.0)</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {language === 'vi' ? 'Độc cao (0.7-1.0)' : 'Toxic (0.7-1.0)'}
+                </span>
               </div>
             </div>
           </div>
@@ -86,12 +98,16 @@ export function ClinicalToxicitySection({ data }: ClinicalToxicitySectionProps) 
             <div className="text-xl font-bold mb-1 uppercase" style={{ color: accentColor }}>
               {verdict}
             </div>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Toxicity Label</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              {language === 'vi' ? 'Nhãn độc tính' : 'Toxicity Label'}
+            </p>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Confidence</span>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                {language === 'vi' ? 'Độ tin cậy' : 'Confidence'}
+              </span>
               <span className="font-semibold" style={{ color: 'var(--text)' }}>{(confidence * 100).toFixed(0)}%</span>
             </div>
             <div className="w-full h-2 rounded-full" style={{ backgroundColor: 'var(--border)' }}>
@@ -107,9 +123,14 @@ export function ClinicalToxicitySection({ data }: ClinicalToxicitySectionProps) 
           </div>
 
           <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--surface-alt)' }}>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Model probability</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              {language === 'vi' ? 'Xác suất mô hình' : 'Model probability'}
+            </p>
             <p className="font-mono text-lg font-semibold" style={{ color: 'var(--text)' }}>
               {pToxic.toFixed(4)}
+            </p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+              {language === 'vi' ? 'Ngưỡng sử dụng' : 'Threshold used'}: {threshold.toFixed(2)}
             </p>
           </div>
 

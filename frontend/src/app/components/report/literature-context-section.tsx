@@ -2,6 +2,7 @@ import type { LiteraturePaper, LiteratureSection } from '../../../lib/api';
 
 interface LiteratureContextSectionProps {
   data: LiteratureSection;
+  language: 'vi' | 'en';
 }
 
 function formatAuthors(authors?: string | string[]) {
@@ -18,7 +19,7 @@ function getPaperSnippet(paper: LiteraturePaper) {
   return paper.snippet || paper.abstract_snippet || '';
 }
 
-export function LiteratureContextSection({ data }: LiteratureContextSectionProps) {
+export function LiteratureContextSection({ data, language }: LiteratureContextSectionProps) {
   const cid = data?.compound_id?.cid;
   const pubchemUrl = data?.compound_id?.pubchem_url;
   const papers = data?.relevant_papers ?? [];
@@ -28,7 +29,7 @@ export function LiteratureContextSection({ data }: LiteratureContextSectionProps
   return (
     <section id="literature">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        §4 Literature Context
+        {language === 'vi' ? '§4 Bối cảnh tài liệu' : '§4 Literature Context'}
       </h2>
 
       <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
@@ -43,7 +44,9 @@ export function LiteratureContextSection({ data }: LiteratureContextSectionProps
             <span>{data?.query_name_used || 'N/A'}</span>
           </p>
           <p style={{ color: 'var(--text)' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Tong ket qua tim thay:</span>{' '}
+            <span style={{ color: 'var(--text-muted)' }}>
+              {language === 'vi' ? 'Tổng kết quả tìm thấy' : 'Total search results'}:
+            </span>{' '}
             <span>{data?.total_found ?? 0}</span>
           </p>
           {pubchemUrl && (
@@ -54,7 +57,7 @@ export function LiteratureContextSection({ data }: LiteratureContextSectionProps
               className="inline-flex items-center gap-1 mt-2 text-sm"
               style={{ color: 'var(--accent-blue)' }}
             >
-              Xem tren PubChem
+              {language === 'vi' ? 'Xem trên PubChem' : 'View on PubChem'}
               <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M10 2L2 10M10 2H4M10 2V8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -65,12 +68,16 @@ export function LiteratureContextSection({ data }: LiteratureContextSectionProps
 
       <div className="mb-6">
         <h3 className="font-semibold mb-4" style={{ color: 'var(--text)' }}>
-          Nghien cuu lien quan ({papers.length} bai bao)
+          {language === 'vi'
+            ? `Nghiên cứu liên quan (${papers.length} bài báo)`
+            : `Related studies (${papers.length} papers)`}
         </h3>
         <div className="space-y-3">
           {papers.length === 0 && (
             <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-              <p style={{ color: 'var(--text-muted)' }}>Khong tim thay bai bao phu hop.</p>
+              <p style={{ color: 'var(--text-muted)' }}>
+                {language === 'vi' ? 'Không tìm thấy bài báo phù hợp.' : 'No relevant papers found.'}
+              </p>
             </div>
           )}
 
@@ -112,7 +119,7 @@ export function LiteratureContextSection({ data }: LiteratureContextSectionProps
                       className="text-xs flex items-center gap-1"
                       style={{ color: 'var(--accent-blue)' }}
                     >
-                      Doc bai bao
+                      {language === 'vi' ? 'Đọc bài báo' : 'Open paper'}
                       <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M10 2L2 10M10 2H4M10 2V8" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -128,23 +135,33 @@ export function LiteratureContextSection({ data }: LiteratureContextSectionProps
       <div>
         <h3 className="font-semibold mb-2" style={{ color: 'var(--text)' }}>Bioassay Data</h3>
         <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-          Total tested: {bioassay?.total_assays_tested ?? 0} · Active: {activeAssays.length}
+          {language === 'vi' ? 'Tổng assay đã test' : 'Total tested'}: {bioassay?.total_assays_tested ?? 0} · {language === 'vi' ? 'Active' : 'Active'}: {activeAssays.length}
         </p>
+
+        {data?.bioassay_explanation && (
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+            {data.bioassay_explanation}
+          </p>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--surface-alt)' }}>
                 <th className="text-left p-3 rounded-tl-lg" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>AID</th>
-                <th className="text-left p-3" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Ten assay</th>
-                <th className="text-left p-3 rounded-tr-lg" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Ket qua</th>
+                <th className="text-left p-3" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {language === 'vi' ? 'Tên assay' : 'Assay name'}
+                </th>
+                <th className="text-left p-3 rounded-tr-lg" style={{ color: 'var(--text-muted)', fontWeight: 600 }}>
+                  {language === 'vi' ? 'Kết quả' : 'Outcome'}
+                </th>
               </tr>
             </thead>
             <tbody>
               {activeAssays.length === 0 && (
                 <tr>
                   <td colSpan={3} className="p-3" style={{ color: 'var(--text-muted)' }}>
-                    Khong co bioassay active.
+                    {language === 'vi' ? 'Không có bioassay active.' : 'No active bioassay records.'}
                   </td>
                 </tr>
               )}

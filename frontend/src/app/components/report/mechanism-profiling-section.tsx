@@ -2,9 +2,10 @@ import type { MechanismSection } from '../../../lib/api';
 
 interface MechanismProfilingSectionProps {
   data: MechanismSection;
+  language: 'vi' | 'en';
 }
 
-export function MechanismProfilingSection({ data }: MechanismProfilingSectionProps) {
+export function MechanismProfilingSection({ data, language }: MechanismProfilingSectionProps) {
   const taskScores = data?.task_scores ?? {};
   const tasks = Object.entries(taskScores)
     .map(([name, score]) => ({ name, score: Number(score ?? 0) }))
@@ -18,30 +19,30 @@ export function MechanismProfilingSection({ data }: MechanismProfilingSectionPro
   return (
     <section id="mechanism">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        §2 Mechanism Profiling
+        {language === 'vi' ? '§2 Hồ sơ cơ chế độc tính' : '§2 Mechanism Profiling'}
       </h2>
 
       <div className="mb-4 flex items-center gap-6">
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Highest Risk:{' '}
+          {language === 'vi' ? 'Rủi ro cao nhất' : 'Highest Risk'}:{' '}
           <span className="font-semibold" style={{ color: 'var(--accent-red)' }}>
             {highestRiskName}
           </span>{' '}
           ({highestRiskScore.toFixed(2)})
         </p>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Active:{' '}
+          {language === 'vi' ? 'Đang active' : 'Active'}:{' '}
           <span className="font-semibold" style={{ color: 'var(--text)' }}>
             {activeTasks.length}/{tasks.length || 0}
           </span>{' '}
-          tasks
+          {language === 'vi' ? 'task' : 'tasks'}
         </p>
       </div>
 
       <div className="rounded-xl p-6 space-y-2" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
         {tasks.length === 0 && (
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Khong co du lieu task_scores.
+            {language === 'vi' ? 'Không có dữ liệu task_scores.' : 'No task_scores data available.'}
           </p>
         )}
 
@@ -77,7 +78,7 @@ export function MechanismProfilingSection({ data }: MechanismProfilingSectionPro
               <div className="w-32 text-xs">
                 {isHighest && (
                   <span className="font-bold uppercase" style={{ color: 'var(--accent-red)' }}>
-                    ★ HIGHEST RISK
+                    {language === 'vi' ? '★ RỦI RO CAO NHẤT' : '★ HIGHEST RISK'}
                   </span>
                 )}
                 {isActive && !isHighest && (
@@ -93,7 +94,9 @@ export function MechanismProfilingSection({ data }: MechanismProfilingSectionPro
 
       <div className="mt-4">
         <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
-          Active tasks (score &gt; 0.5): {activeTasks.length}/{tasks.length || 0}
+          {language === 'vi'
+            ? `Task active (score > 0.5): ${activeTasks.length}/${tasks.length || 0}`
+            : `Active tasks (score > 0.5): ${activeTasks.length}/${tasks.length || 0}`}
         </p>
         <div className="flex flex-wrap gap-2">
           {activeTasks.map((task) => (

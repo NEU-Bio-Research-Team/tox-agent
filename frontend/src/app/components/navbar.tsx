@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import logoImage from '../../assets/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
 
+const REPO_URL = 'https://github.com/NEU-Bio-Research-Team/tox-agent';
+
 export function Navbar() {
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
@@ -40,7 +42,7 @@ export function Navbar() {
             About
           </Link>
           <a 
-            href="https://github.com" 
+            href={REPO_URL}
             target="_blank" 
             rel="noopener noreferrer"
             className="text-sm font-medium flex items-center gap-1 transition-colors hover:underline"

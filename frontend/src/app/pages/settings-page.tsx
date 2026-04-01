@@ -1,13 +1,33 @@
 import { useState } from 'react';
 import { Navbar } from '../components/navbar';
 import { Button } from '../components/ui/button';
-import { Bell, Database, Shield, Palette, Zap, Globe } from 'lucide-react';
+import { Bell, Database, Shield, Zap } from 'lucide-react';
+import { useReport } from '../../lib/ReportContext';
 
 export function SettingsPage() {
+  const { preferences, setPreferences, resetPreferences } = useReport();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
-  const [defaultThreshold, setDefaultThreshold] = useState(0.5);
-  const [language, setLanguage] = useState('vi');
+  const [defaultThreshold, setDefaultThreshold] = useState(preferences.clinicalThreshold);
+  const [mechanismThreshold, setMechanismThreshold] = useState(preferences.mechanismThreshold);
+  const [language, setLanguage] = useState<'vi' | 'en'>(preferences.language);
+
+  const isEnglish = language === 'en';
+
+  const handleSave = () => {
+    setPreferences({
+      language,
+      clinicalThreshold: defaultThreshold,
+      mechanismThreshold,
+    });
+  };
+
+  const handleReset = () => {
+    resetPreferences();
+    setLanguage('vi');
+    setDefaultThreshold(0.35);
+    setMechanismThreshold(0.5);
+  };
 
   return (
     <div style={{ 
@@ -20,10 +40,10 @@ export function SettingsPage() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text)' }}>
-            Settings
+            {isEnglish ? 'Settings' : 'Cài đặt'}
           </h1>
           <p className="text-base" style={{ color: 'var(--text-muted)' }}>
-            Customize your ToxAgent experience
+            {isEnglish ? 'Customize your ToxAgent experience' : 'Tùy chỉnh trải nghiệm ToxAgent'}
           </p>
         </div>
 
@@ -33,7 +53,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Zap className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                General
+                {isEnglish ? 'General' : 'Tổng quan'}
               </h2>
             </div>
 
@@ -41,11 +61,13 @@ export function SettingsPage() {
               <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--border)' }}>
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Language</h3>
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Choose your preferred language</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {isEnglish ? 'Choose your preferred language for agent outputs' : 'Chọn ngôn ngữ đầu ra cho các agent'}
+                  </p>
                 </div>
                 <select 
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  onChange={(e) => setLanguage((e.target.value === 'en' ? 'en' : 'vi'))}
                   className="px-4 py-2 rounded-lg border"
                   style={{ 
                     backgroundColor: 'var(--surface-alt)', 
@@ -61,7 +83,9 @@ export function SettingsPage() {
               <div className="flex items-center justify-between py-3">
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Auto-save results</h3>
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Automatically save analysis results</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {isEnglish ? 'Automatically save analysis results' : 'Tự động lưu kết quả phân tích'}
+                  </p>
                 </div>
                 <button
                   onClick={() => setAutoSave(!autoSave)}
@@ -82,14 +106,16 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Database className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                Analysis
+                {isEnglish ? 'Analysis' : 'Phân tích'}
               </h2>
             </div>
 
             <div className="space-y-4">
               <div className="py-3">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-medium" style={{ color: 'var(--text)' }}>Default Toxicity Threshold</h3>
+                  <h3 className="font-medium" style={{ color: 'var(--text)' }}>
+                    {isEnglish ? 'Clinical Toxicity Threshold' : 'Ngưỡng độc tính lâm sàng'}
+                  </h3>
                   <span className="font-mono font-semibold" style={{ color: 'var(--accent-blue)' }}>
                     {defaultThreshold.toFixed(2)}
                   </span>
@@ -107,16 +133,41 @@ export function SettingsPage() {
                   }}
                 />
                 <div className="flex justify-between text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-                  <span>Non-toxic</span>
-                  <span>Warning</span>
-                  <span>Toxic</span>
+                  <span>{isEnglish ? 'Non-toxic' : 'Ít độc'}</span>
+                  <span>{isEnglish ? 'Warning' : 'Cảnh báo'}</span>
+                  <span>{isEnglish ? 'Toxic' : 'Độc'}</span>
                 </div>
+              </div>
+
+              <div className="py-3 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium" style={{ color: 'var(--text)' }}>
+                    {isEnglish ? 'Mechanism Alert Threshold' : 'Ngưỡng cảnh báo cơ chế'}
+                  </h3>
+                  <span className="font-mono font-semibold" style={{ color: 'var(--accent-blue)' }}>
+                    {mechanismThreshold.toFixed(2)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={mechanismThreshold}
+                  onChange={(e) => setMechanismThreshold(parseFloat(e.target.value))}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, var(--accent-green) 0%, var(--accent-yellow) 50%, var(--accent-red) 100%)`
+                  }}
+                />
               </div>
 
               <div className="flex items-center justify-between py-3 border-t" style={{ borderColor: 'var(--border)' }}>
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Default Analysis Mode</h3>
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Choose between Full or Quick analysis</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {isEnglish ? 'Choose between Full or Quick analysis' : 'Chọn chế độ phân tích Full hoặc Quick'}
+                  </p>
                 </div>
                 <select 
                   className="px-4 py-2 rounded-lg border"
@@ -138,7 +189,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Bell className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                Notifications
+                {isEnglish ? 'Notifications' : 'Thông báo'}
               </h2>
             </div>
 
@@ -146,7 +197,9 @@ export function SettingsPage() {
               <div className="flex items-center justify-between py-3">
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Enable notifications</h3>
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Receive alerts when analysis completes</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {isEnglish ? 'Receive alerts when analysis completes' : 'Nhận cảnh báo khi phân tích hoàn tất'}
+                  </p>
                 </div>
                 <button
                   onClick={() => setNotificationsEnabled(!notificationsEnabled)}
@@ -167,7 +220,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Shield className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                Privacy & Security
+                {isEnglish ? 'Privacy & Security' : 'Bảo mật và riêng tư'}
               </h2>
             </div>
 
@@ -175,14 +228,16 @@ export function SettingsPage() {
               <div className="py-3">
                 <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Data Storage</h3>
                 <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-                  All analysis data is stored locally in your browser. No data is sent to external servers.
+                  {isEnglish
+                    ? 'All analysis data is stored locally in your browser. No data is sent to external servers.'
+                    : 'Dữ liệu phân tích được lưu cục bộ trên trình duyệt. Không gửi sang máy chủ ngoài.'}
                 </p>
                 <Button 
                   variant="outline" 
                   className="text-sm"
                   style={{ borderColor: 'var(--accent-red)', color: 'var(--accent-red)' }}
                 >
-                  Clear All Data
+                  {isEnglish ? 'Clear All Data' : 'Xóa toàn bộ dữ liệu'}
                 </Button>
               </div>
             </div>
@@ -193,14 +248,16 @@ export function SettingsPage() {
             <Button
               variant="outline"
               className="px-6"
+              onClick={handleReset}
             >
-              Reset to Defaults
+              {isEnglish ? 'Reset to Defaults' : 'Đặt lại mặc định'}
             </Button>
             <Button
               className="px-6"
               style={{ backgroundColor: 'var(--accent-blue)', color: '#ffffff' }}
+              onClick={handleSave}
             >
-              Save Changes
+              {isEnglish ? 'Save Changes' : 'Lưu thay đổi'}
             </Button>
           </div>
         </div>

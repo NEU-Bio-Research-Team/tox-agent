@@ -133,7 +133,7 @@ export function QuickVerdictCard({ finalReport, onViewReport }: QuickVerdictCard
             </span>
           </div>
           <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-            Highest mechanism signal tu task_scores
+            Highest mechanism signal từ task_scores.
           </p>
         </div>
       </div>

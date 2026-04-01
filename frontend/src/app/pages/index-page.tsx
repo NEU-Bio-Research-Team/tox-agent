@@ -11,12 +11,20 @@ export function IndexPage() {
   const navigate = useNavigate();
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [smilesInput, setSmilesInput] = useState('CC(=O)Oc1ccccc1C(=O)O');
-  const { report, setReport, isLoading, setIsLoading, error, setError } = useReport();
+  const {
+    report,
+    setReport,
+    isLoading,
+    setIsLoading,
+    error,
+    setError,
+    preferences,
+  } = useReport();
 
   const handleAnalyze = async () => {
     const smiles = smilesInput.trim();
     if (!smiles) {
-      setError('Vui long nhap SMILES truoc khi phan tich.');
+      setError(preferences.language === 'en' ? 'Please enter a SMILES string before analysis.' : 'Vui lòng nhập SMILES trước khi phân tích.');
       return;
     }
 
@@ -26,7 +34,11 @@ export function IndexPage() {
     setAnalysisComplete(false);
 
     try {
-      const result = await agentAnalyze(smiles);
+      const result = await agentAnalyze(smiles, {
+        language: preferences.language,
+        clinicalThreshold: preferences.clinicalThreshold,
+        mechanismThreshold: preferences.mechanismThreshold,
+      });
       if (result.validation_status && result.validation_status !== 'VALID') {
         throw new Error(`Validation failed: ${result.validation_status}`);
       }

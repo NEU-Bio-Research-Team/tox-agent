@@ -1,22 +1,42 @@
 import { Copy, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/button';
-import type { RiskLevel } from '../../../lib/api';
+import type { FailureRegistrySection, OodAssessmentSection, RiskLevel } from '../../../lib/api';
 
 interface AIRecommendationsSectionProps {
   summary: string;
   recommendations: string[];
   riskLevel: RiskLevel;
+  language: 'vi' | 'en';
+  reliabilityWarning?: string | null;
+  oodAssessment?: OodAssessmentSection;
+  recommendationSource?: string;
+  recommendationSourceDetail?: string;
+  failureRegistry?: FailureRegistrySection;
+  runtimeMode?: string;
+  runtimeNote?: string | null;
 }
 
-function getRiskLabel(riskLevel: RiskLevel) {
-  if (riskLevel === 'CRITICAL') return 'Canh bao khan cap';
-  if (riskLevel === 'HIGH') return 'Rui ro cao';
-  if (riskLevel === 'MODERATE') return 'Rui ro trung binh';
-  if (riskLevel === 'LOW') return 'Rui ro thap';
-  return 'Khong xac dinh';
+function getRiskLabel(riskLevel: RiskLevel, language: 'vi' | 'en') {
+  if (riskLevel === 'CRITICAL') return language === 'vi' ? 'Cảnh báo khẩn cấp' : 'Critical alert';
+  if (riskLevel === 'HIGH') return language === 'vi' ? 'Rủi ro cao' : 'High risk';
+  if (riskLevel === 'MODERATE') return language === 'vi' ? 'Rủi ro trung bình' : 'Moderate risk';
+  if (riskLevel === 'LOW') return language === 'vi' ? 'Rủi ro thấp' : 'Low risk';
+  return language === 'vi' ? 'Không xác định' : 'Unknown';
 }
 
-export function AIRecommendationsSection({ summary, recommendations, riskLevel }: AIRecommendationsSectionProps) {
+export function AIRecommendationsSection({
+  summary,
+  recommendations,
+  riskLevel,
+  language,
+  reliabilityWarning,
+  oodAssessment,
+  recommendationSource,
+  recommendationSourceDetail,
+  failureRegistry,
+  runtimeMode,
+  runtimeNote,
+}: AIRecommendationsSectionProps) {
   const handleCopy = async () => {
     const content = [summary, '', ...recommendations.map((item, index) => `${index + 1}. ${item}`)].join('\n');
     try {
@@ -29,8 +49,76 @@ export function AIRecommendationsSection({ summary, recommendations, riskLevel }
   return (
     <section id="recommendations">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        §5 AI Recommendations
+        {language === 'vi' ? '§5 Khuyến nghị AI' : '§5 AI Recommendations'}
       </h2>
+
+      {failureRegistry?.matched && (
+        <div
+          className="rounded-xl p-4 mb-4"
+          style={{
+            backgroundColor: 'rgba(245,158,11,0.08)',
+            border: '1px solid rgba(245,158,11,0.35)',
+            color: 'var(--accent-yellow)',
+          }}
+        >
+          <p className="font-semibold mb-1">
+            {language === 'vi' ? 'Khớp Failure Registry' : 'Failure Registry Match'}
+            {failureRegistry.entry?.id ? `: ${failureRegistry.entry.id}` : ''}
+          </p>
+          {failureRegistry.entry?.recommended_action && (
+            <p className="text-sm">{failureRegistry.entry.recommended_action}</p>
+          )}
+        </div>
+      )}
+
+      {oodAssessment?.flag && (
+        <div
+          className="rounded-xl p-4 mb-4"
+          style={{
+            backgroundColor: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.35)',
+            color: 'var(--accent-red)',
+          }}
+        >
+          <p className="font-semibold mb-1">{language === 'vi' ? 'Cảnh báo OOD' : 'OOD Warning'}: {oodAssessment.ood_risk}</p>
+          <p className="text-sm">{oodAssessment.reason}</p>
+          {oodAssessment.recommendation && <p className="text-sm mt-1">{oodAssessment.recommendation}</p>}
+        </div>
+      )}
+
+      {reliabilityWarning && !oodAssessment?.flag && (
+        <div
+          className="rounded-xl p-4 mb-4"
+          style={{
+            backgroundColor: 'rgba(245,158,11,0.08)',
+            border: '1px solid rgba(245,158,11,0.35)',
+            color: 'var(--accent-yellow)',
+          }}
+        >
+          <p className="text-sm">{reliabilityWarning}</p>
+        </div>
+      )}
+
+      {runtimeMode === 'deterministic_fallback' && (
+        <div
+          className="rounded-xl p-4 mb-4"
+          style={{
+            backgroundColor: 'rgba(59,130,246,0.08)',
+            border: '1px solid rgba(59,130,246,0.35)',
+            color: 'var(--accent-blue)',
+          }}
+        >
+          <p className="font-semibold mb-1">
+            {language === 'vi' ? 'Agent Runtime: Deterministic Fallback' : 'Agent Runtime: Deterministic fallback'}
+          </p>
+          <p className="text-sm">
+            {language === 'vi'
+              ? 'ADK runtime không khả dụng ở request này, hệ thống dùng pipeline deterministic để bảo toàn kết quả phân tích.'
+              : 'ADK runtime was not available for this request; deterministic pipeline was used to preserve analysis output.'}
+          </p>
+          {runtimeNote && <p className="text-sm mt-1">{runtimeNote}</p>}
+        </div>
+      )}
 
       <div
         className="rounded-r-xl p-8"
@@ -45,37 +133,45 @@ export function AIRecommendationsSection({ summary, recommendations, riskLevel }
             <path d="M9 9h.01M15 9h.01M9 15h6" />
           </svg>
           <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-faint)' }}>
-            AI · WriterAgent · Tong hop bao cao
+            {language === 'vi' ? 'AI · WriterAgent · Tổng hợp báo cáo' : 'AI · WriterAgent · Report synthesis'}
           </span>
+          <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}>
+            {language === 'vi' ? 'Nguồn' : 'Source'}: {recommendationSource || 'unknown'}
+          </span>
+          {recommendationSourceDetail && (
+            <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}>
+              {recommendationSourceDetail}
+            </span>
+          )}
         </div>
 
         <div className="space-y-6">
           <div>
             <h3 className="text-xs font-bold uppercase mb-2" style={{ color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-              TOM TAT DIEU HANH
+              {language === 'vi' ? 'TÓM TẮT ĐIỀU HÀNH' : 'EXECUTIVE SUMMARY'}
             </h3>
             <p className="text-base leading-relaxed" style={{ color: 'var(--text)', lineHeight: '1.7' }}>
-              {summary || 'Khong co executive_summary tu backend.'}
+              {summary || (language === 'vi' ? 'Không có executive_summary từ backend.' : 'No executive summary from backend.')}
             </p>
           </div>
 
           <div>
             <h3 className="text-xs font-bold uppercase mb-2" style={{ color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-              MUC RUI RO
+              {language === 'vi' ? 'MỨC RỦI RO' : 'RISK LEVEL'}
             </h3>
             <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
-              {riskLevel} · {getRiskLabel(riskLevel)}
+              {riskLevel} · {getRiskLabel(riskLevel, language)}
             </p>
           </div>
 
           <div>
             <h3 className="text-xs font-bold uppercase mb-3" style={{ color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-              KHUYEN NGHI
+              {language === 'vi' ? 'KHUYẾN NGHỊ' : 'RECOMMENDATIONS'}
             </h3>
             <div className="space-y-2">
               {recommendations.length === 0 && (
                 <p className="text-base" style={{ color: 'var(--text-muted)' }}>
-                  Khong co khuyen nghi bo sung.
+                  {language === 'vi' ? 'Không có khuyến nghị bổ sung.' : 'No additional recommendations.'}
                 </p>
               )}
               {recommendations.map((item, index) => (
@@ -93,7 +189,7 @@ export function AIRecommendationsSection({ summary, recommendations, riskLevel }
         <div className="flex items-center gap-3 mt-8 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
           <Button variant="ghost" size="sm" className="text-sm" style={{ color: 'var(--text-muted)' }} disabled>
             <RefreshCw className="w-4 h-4 mr-2" />
-            Tao lai bao cao
+            {language === 'vi' ? 'Tạo lại báo cáo' : 'Regenerate report'}
           </Button>
           <Button
             variant="ghost"
@@ -103,7 +199,7 @@ export function AIRecommendationsSection({ summary, recommendations, riskLevel }
             style={{ color: 'var(--text-muted)' }}
           >
             <Copy className="w-4 h-4 mr-2" />
-            Sao chep van ban
+            {language === 'vi' ? 'Sao chép văn bản' : 'Copy text'}
           </Button>
         </div>
       </div>

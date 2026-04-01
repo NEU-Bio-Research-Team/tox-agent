@@ -32,7 +32,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
     }
 
     setValidationState('valid');
-    setValidationMessage('San sang goi API. Validation chi tiet se duoc xu ly boi backend.');
+    setValidationMessage('Sẵn sàng gọi API. Validation chi tiết sẽ được xử lý bởi backend.');
   }, [value]);
 
   const getButtonState = () => {

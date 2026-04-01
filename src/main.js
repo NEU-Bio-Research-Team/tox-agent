@@ -114,7 +114,7 @@ async function onPredict() {
   try {
     const payload = await callApi("/predict", {
       smiles,
-      threshold: 0.5,
+      threshold: 0.35,
     });
     setStatus("POST /predict OK", payload);
     clinicalBox.textContent = pretty(payload);
@@ -134,7 +134,7 @@ async function onAnalyze() {
   try {
     const payload = await callApi("/analyze", {
       smiles,
-      clinical_threshold: 0.5,
+      clinical_threshold: 0.35,
       mechanism_threshold: 0.5,
       return_all_scores: true,
       explain_only_if_alert: true,

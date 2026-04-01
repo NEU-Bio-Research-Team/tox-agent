@@ -4,6 +4,7 @@ import type { FinalReport } from '../../lib/api';
 
 interface ReportHeaderProps {
   finalReport: FinalReport;
+  language: 'vi' | 'en';
   onNewAnalysis: () => void;
 }
 
@@ -26,14 +27,14 @@ function getRiskStyle(riskLevel: string) {
   };
 }
 
-function formatTimestamp(value?: string) {
+function formatTimestamp(value: string | undefined, language: 'vi' | 'en') {
   if (!value) return 'N/A';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString('vi-VN', { hour12: false });
+  return parsed.toLocaleString(language === 'vi' ? 'vi-VN' : 'en-GB', { hour12: false });
 }
 
-export function ReportHeader({ finalReport, onNewAnalysis }: ReportHeaderProps) {
+export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHeaderProps) {
   const metadata = finalReport.report_metadata;
   const clinical = finalReport.sections.clinical_toxicity;
 
@@ -56,7 +57,7 @@ export function ReportHeader({ finalReport, onNewAnalysis }: ReportHeaderProps) 
             style={{ color: 'var(--text-muted)' }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Phân tích mới
+            {language === 'vi' ? 'Phân tích mới' : 'New analysis'}
           </Button>
           <Button
             variant="outline"
@@ -65,7 +66,7 @@ export function ReportHeader({ finalReport, onNewAnalysis }: ReportHeaderProps) 
             style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}
           >
             <Download className="w-4 h-4 mr-2" />
-            Tải PDF
+            {language === 'vi' ? 'Tải PDF' : 'Download PDF'}
           </Button>
         </div>
 
@@ -76,13 +77,13 @@ export function ReportHeader({ finalReport, onNewAnalysis }: ReportHeaderProps) 
               {compoundName}
             </h1>
             <p className="text-base italic mb-3" style={{ color: 'var(--text-muted)' }}>
-              {metadata.compound_name || 'No common name available'}
+              {metadata.compound_name || (language === 'vi' ? 'Không có tên thường dùng' : 'No common name available')}
             </p>
             <p className="font-mono text-sm mb-2" style={{ color: 'var(--text-faint)', wordBreak: 'break-all' }}>
               {shownSmiles}
             </p>
             <p className="text-xs mt-3" style={{ color: 'var(--text-faint)' }}>
-              {formatTimestamp(metadata.analysis_timestamp)}
+              {formatTimestamp(metadata.analysis_timestamp, language)}
             </p>
           </div>
 
@@ -99,7 +100,7 @@ export function ReportHeader({ finalReport, onNewAnalysis }: ReportHeaderProps) 
               </span>
             </div>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Confidence: {(confidence * 100).toFixed(0)}%
+              {language === 'vi' ? 'Độ tin cậy' : 'Confidence'}: {(confidence * 100).toFixed(0)}%
             </p>
           </div>
         </div>
