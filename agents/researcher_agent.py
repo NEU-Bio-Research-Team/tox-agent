@@ -14,7 +14,7 @@ from .adk_compat import LlmAgent
 RESEARCH_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
 
 
-def run_research(smiles_input: str, max_results: int = 5) -> Dict[str, Any]:
+def run_research(smiles_input: str, max_results: int = 5, language: str = "vi") -> Dict[str, Any]:
     """Deterministic research flow used for local tests and orchestration."""
     compound_info = get_compound_info_pubchem(smiles_input)
 
@@ -35,6 +35,7 @@ def run_research(smiles_input: str, max_results: int = 5) -> Dict[str, Any]:
         "literature": literature,
         "bioassay_summary": bioassay_summary,
         "query_name_used": preferred_name,
+        "language": language,
     }
 
     return {
@@ -54,6 +55,7 @@ You are a drug safety literature researcher.
 
 Task:
 1. Read SMILES from {smiles_input}.
+2. Read language from {language} and use it for user-facing text fields.
 2. Call get_compound_info_pubchem(smiles={smiles_input}).
 3. Use common_name (or iupac_name if common_name is missing) to call
    search_toxicity_literature(compound_name=<best_name>, max_results=5).

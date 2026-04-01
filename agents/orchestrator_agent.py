@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 from tools import check_model_server_health, validate_smiles
 
 from .adk_compat import LlmAgent, ParallelAgent, SequentialAgent
+from .language import choose_text, normalize_language
 from .researcher_agent import researcher_agent, run_research
 from .screening_agent import run_screening, screening_agent
 from .writer_agent import build_final_report, writer_agent
@@ -64,7 +65,13 @@ def run_input_validation(smiles_input: str) -> Dict[str, Any]:
     health = check_model_server_health()
     validation = validate_smiles(smiles_input)
 
-    if not health.get("healthy"):
+    health_error = str(health.get("error") or "")
+    transient_health_timeout = (
+        not health.get("healthy")
+        and ("timed out" in health_error.lower() or "timeout" in health_error.lower())
+    )
+
+    if not health.get("healthy") and not transient_health_timeout:
         return {
             "validation_status": "INVALID",
             "validation_error": "model_server_unhealthy",
@@ -82,7 +89,7 @@ def run_input_validation(smiles_input: str) -> Dict[str, Any]:
             "canonical_smiles": None,
         }
 
-    return {
+    result = {
         "validation_status": "VALID",
         "validation_error": None,
         "health": health,
@@ -90,11 +97,26 @@ def run_input_validation(smiles_input: str) -> Dict[str, Any]:
         "canonical_smiles": validation.get("canonical_smiles") or smiles_input,
     }
 
+    if transient_health_timeout:
+        result["validation_warning"] = "health_timeout_but_smiles_valid"
 
-def run_orchestrator_flow(smiles_input: str, max_literature_results: int = 5) -> Dict[str, Any]:
+    return result
+
+
+def run_orchestrator_flow(
+    smiles_input: str,
+    max_literature_results: int = 5,
+    language: str = "vi",
+    clinical_threshold: float = 0.35,
+    mechanism_threshold: float = 0.5,
+) -> Dict[str, Any]:
     """Deterministic orchestration flow for local and CI smoke tests."""
+    normalized_language = normalize_language(language)
     state: Dict[str, Any] = {
         "smiles_input": smiles_input,
+        "language": normalized_language,
+        "clinical_threshold": float(clinical_threshold),
+        "mechanism_threshold": float(mechanism_threshold),
         "validation_status": "INVALID",
         "screening_result": None,
         "screening_error": None,
@@ -110,9 +132,17 @@ def run_orchestrator_flow(smiles_input: str, max_literature_results: int = 5) ->
 
     if validation["validation_status"] != "VALID":
         state["final_report"] = {
-            "report_metadata": {"smiles": smiles_input, "report_version": "1.0"},
+            "report_metadata": {
+                "smiles": smiles_input,
+                "report_version": "1.0",
+                "language": normalized_language,
+            },
             "error": validation.get("validation_error"),
-            "executive_summary": "Validation failed before running parallel agents.",
+            "executive_summary": choose_text(
+                normalized_language,
+                "SMILES không hợp lệ hoặc model server chưa sẵn sàng, nên pipeline dừng ở bước validation.",
+                "Validation failed before running parallel agents.",
+            ),
             "risk_level": "UNKNOWN",
             "sections": {},
         }
@@ -121,8 +151,19 @@ def run_orchestrator_flow(smiles_input: str, max_literature_results: int = 5) ->
     canonical_smiles = validation["canonical_smiles"]
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        screening_future = executor.submit(run_screening, canonical_smiles)
-        research_future = executor.submit(run_research, canonical_smiles, max_literature_results)
+        screening_future = executor.submit(
+            run_screening,
+            canonical_smiles,
+            normalized_language,
+            float(clinical_threshold),
+            float(mechanism_threshold),
+        )
+        research_future = executor.submit(
+            run_research,
+            canonical_smiles,
+            max_literature_results,
+            normalized_language,
+        )
 
         screening_payload = screening_future.result()
         research_payload = research_future.result()
@@ -136,31 +177,54 @@ def run_orchestrator_flow(smiles_input: str, max_literature_results: int = 5) ->
         smiles_input=smiles_input,
         screening_result=state["screening_result"],
         research_result=state["research_result"],
+        language=normalized_language,
     )
 
     return state
 
 
-def run_orchestrator_from_text(user_text: str, max_literature_results: int = 5) -> Dict[str, Any]:
+def run_orchestrator_from_text(
+    user_text: str,
+    max_literature_results: int = 5,
+    language: str = "vi",
+    clinical_threshold: float = 0.35,
+    mechanism_threshold: float = 0.5,
+) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
+    normalized_language = normalize_language(language)
     smiles = extract_smiles_from_text(user_text)
     if not smiles:
         return {
             "smiles_input": None,
+            "language": normalized_language,
             "validation_status": "INVALID",
             "validation_error": "smiles_not_found",
             "screening_result": None,
             "research_result": None,
             "final_report": {
-                "report_metadata": {"smiles": None, "report_version": "1.0"},
+                "report_metadata": {
+                    "smiles": None,
+                    "report_version": "1.0",
+                    "language": normalized_language,
+                },
                 "error": "smiles_not_found",
-                "executive_summary": "No valid SMILES could be extracted from input text.",
+                "executive_summary": choose_text(
+                    normalized_language,
+                    "Không trích xuất được SMILES hợp lệ từ nội dung đầu vào.",
+                    "No valid SMILES could be extracted from input text.",
+                ),
                 "risk_level": "UNKNOWN",
                 "sections": {},
             },
         }
 
-    return run_orchestrator_flow(smiles, max_literature_results=max_literature_results)
+    return run_orchestrator_flow(
+        smiles,
+        max_literature_results=max_literature_results,
+        language=normalized_language,
+        clinical_threshold=clinical_threshold,
+        mechanism_threshold=mechanism_threshold,
+    )
 
 
 input_validator = LlmAgent(
@@ -172,9 +236,10 @@ You are the pipeline gatekeeper.
 
 Task:
 1. Read SMILES from {smiles_input}.
-2. Call check_model_server_health().
-3. Call validate_smiles(smiles={smiles_input}).
-4. Return JSON for key validation_result with fields:
+2. Read language from {language} (vi or en) and use it for all user-facing text.
+3. Call check_model_server_health().
+4. Call validate_smiles(smiles={smiles_input}).
+5. Return JSON for key validation_result with fields:
    - validation_status: VALID or INVALID
    - validation_error: null or error string
    - canonical_smiles: canonical string when valid

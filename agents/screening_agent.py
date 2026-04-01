@@ -6,11 +6,17 @@ from typing import Any, Dict
 from tools import analyze_molecule, validate_smiles
 
 from .adk_compat import LlmAgent
+from .language import choose_text
 
 SCREENING_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
 
-def run_screening(smiles_input: str) -> Dict[str, Any]:
+def run_screening(
+    smiles_input: str,
+    language: str = "vi",
+    clinical_threshold: float = 0.35,
+    mechanism_threshold: float = 0.5,
+) -> Dict[str, Any]:
     """Deterministic screening flow used for local tests and orchestration."""
     validation = validate_smiles(smiles_input)
     if not validation.get("valid"):
@@ -21,7 +27,11 @@ def run_screening(smiles_input: str) -> Dict[str, Any]:
         }
 
     canonical_smiles = validation.get("canonical_smiles") or smiles_input.strip()
-    analysis = analyze_molecule(canonical_smiles)
+    analysis = analyze_molecule(
+        canonical_smiles,
+        clinical_threshold=clinical_threshold,
+        mechanism_threshold=mechanism_threshold,
+    )
 
     if analysis.get("error"):
         return {
@@ -35,12 +45,24 @@ def run_screening(smiles_input: str) -> Dict[str, Any]:
     mechanism = analysis.get("mechanism", {})
     explanation = analysis.get("explanation", {})
     final_verdict = analysis.get("final_verdict", "UNKNOWN")
+    ood_assessment = analysis.get("ood_assessment", {})
+    threshold_used = clinical.get("threshold_used")
+    ood_risk = ood_assessment.get("ood_risk", "LOW")
 
-    summary = (
-        f"Clinical={clinical.get('label', 'N/A')} "
-        f"(p_toxic={clinical.get('p_toxic', 'N/A')}), "
-        f"assay_hits={mechanism.get('assay_hits', 0)}, "
-        f"verdict={final_verdict}."
+    summary = choose_text(
+        language,
+        (
+            f"Lâm sàng={clinical.get('label', 'N/A')} "
+            f"(p_toxic={clinical.get('p_toxic', 'N/A')}, ngưỡng={threshold_used}), "
+            f"assay_hits={mechanism.get('assay_hits', 0)}, kết luận={final_verdict}, "
+            f"OOD={ood_risk}."
+        ),
+        (
+            f"Clinical={clinical.get('label', 'N/A')} "
+            f"(p_toxic={clinical.get('p_toxic', 'N/A')}, threshold={threshold_used}), "
+            f"assay_hits={mechanism.get('assay_hits', 0)}, verdict={final_verdict}, "
+            f"OOD={ood_risk}."
+        ),
     )
 
     screening_result = {
@@ -50,6 +72,9 @@ def run_screening(smiles_input: str) -> Dict[str, Any]:
         "clinical": clinical,
         "mechanism": mechanism,
         "explanation": explanation,
+        "ood_assessment": ood_assessment,
+        "reliability_warning": analysis.get("reliability_warning"),
+        "inference_context": analysis.get("inference_context"),
         "final_verdict": final_verdict,
         "error": None,
     }
@@ -72,9 +97,15 @@ You are a molecular toxicity screening specialist.
 
 Task:
 1. Read SMILES from session state key {smiles_input}.
-2. Call validate_smiles(smiles={smiles_input}).
-3. If valid, call analyze_molecule(smiles=<canonical_smiles from validate step>).
-4. Return JSON for key screening_result with fields:
+2. Read language from {language} and write user-facing text in that language.
+3. Read thresholds from {clinical_threshold} and {mechanism_threshold}.
+4. Call validate_smiles(smiles={smiles_input}).
+4. If valid, call analyze_molecule(
+    smiles=<canonical_smiles from validate step>,
+    clinical_threshold={clinical_threshold},
+    mechanism_threshold={mechanism_threshold}
+).
+5. Return JSON for key screening_result with fields:
    - summary
    - smiles
    - canonical_smiles
