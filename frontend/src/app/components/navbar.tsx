@@ -2,7 +2,7 @@ import { Moon, Sun, Github } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import logoImage from 'figma:asset/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
+import logoImage from '../../assets/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
 
 export function Navbar() {
   const [theme, setTheme] = useState<'dark' | 'light'>('light');

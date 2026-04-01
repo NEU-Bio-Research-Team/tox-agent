@@ -27,27 +27,17 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
   useEffect(() => {
     if (!value.trim()) {
       setValidationState('idle');
+      setValidationMessage('');
       return;
     }
 
-    setValidationState('checking');
-    const timer = setTimeout(() => {
-      // Mock validation
-      if (value.length > 5 && !value.includes('X')) {
-        setValidationState('valid');
-        setValidationMessage('SMILES hợp lệ — Aspirin · MW: 180.16 · C9H8O4');
-      } else {
-        setValidationState('invalid');
-        setValidationMessage('SMILES không hợp lệ — Kiểm tra lại cấu trúc');
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
+    setValidationState('valid');
+    setValidationMessage('San sang goi API. Validation chi tiet se duoc xu ly boi backend.');
   }, [value]);
 
   const getButtonState = () => {
     if (isAnalyzing) return { text: 'Đang phân tích...', icon: Loader2, disabled: true, className: 'animate-spin' };
-    if (!value.trim() || validationState === 'invalid') return { text: 'Phân tích', icon: Zap, disabled: true, className: '' };
+    if (!value.trim()) return { text: 'Phân tích', icon: Zap, disabled: true, className: '' };
     return { text: 'Phân tích', icon: Zap, disabled: false, className: '' };
   };
 

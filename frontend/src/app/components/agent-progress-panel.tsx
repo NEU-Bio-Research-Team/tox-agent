@@ -1,9 +1,10 @@
 import { motion } from 'motion/react';
 import { CheckCircle, Loader2, Circle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import type { AgentEventRecord } from '../../lib/api';
 
 interface AgentProgressPanelProps {
   isAnalyzing: boolean;
+  events: AgentEventRecord[];
 }
 
 interface AgentStatus {
@@ -11,95 +12,168 @@ interface AgentStatus {
   status: 'pending' | 'running' | 'done' | 'error';
   progress: number;
   message: string;
-  time?: string;
-  result?: {
-    label: string;
-    value: string;
+}
+
+interface LogLine {
+  time: string;
+  agent: string;
+  message: string;
+}
+
+const AGENT_ORDER = ['InputValidator', 'ScreeningAgent', 'ResearcherAgent', 'WriterAgent'];
+
+function getCurrentTimeLabel() {
+  return new Date().toLocaleTimeString('en-GB', { hour12: false });
+}
+
+function getCallName(call: Record<string, unknown>): string {
+  const directName = call.name;
+  if (typeof directName === 'string' && directName) {
+    return directName;
+  }
+
+  const nestedName = (call.functionCall as { name?: unknown } | undefined)?.name;
+  if (typeof nestedName === 'string' && nestedName) {
+    return nestedName;
+  }
+
+  return 'tool_call';
+}
+
+function buildFallbackState(isAnalyzing: boolean): { agents: AgentStatus[]; logs: LogLine[] } {
+  if (isAnalyzing) {
+    return {
+      agents: [
+        {
+          name: 'InputValidator',
+          status: 'running',
+          progress: 40,
+          message: 'Dang kiem tra SMILES va health endpoint...',
+        },
+        {
+          name: 'ScreeningAgent',
+          status: 'running',
+          progress: 55,
+          message: 'Dang chay model phan tich doc tinh...',
+        },
+        {
+          name: 'ResearcherAgent',
+          status: 'running',
+          progress: 50,
+          message: 'Dang truy van PubChem/PubMed...',
+        },
+        {
+          name: 'WriterAgent',
+          status: 'pending',
+          progress: 0,
+          message: 'Cho tong hop bao cao...',
+        },
+      ],
+      logs: [
+        {
+          time: getCurrentTimeLabel(),
+          agent: 'System',
+          message: 'Dang cho su kien chi tiet tu backend...',
+        },
+      ],
+    };
+  }
+
+  return {
+    agents: AGENT_ORDER.map((name) => ({
+      name,
+      status: 'done',
+      progress: 100,
+      message: 'Hoan tat',
+    })),
+    logs: [
+      {
+        time: getCurrentTimeLabel(),
+        agent: 'System',
+        message: 'Khong co agent_events, da dung che do fallback.',
+      },
+    ],
   };
 }
 
-export function AgentProgressPanel({ isAnalyzing }: AgentProgressPanelProps) {
-  const [agents, setAgents] = useState<AgentStatus[]>([
-    { name: 'InputValidator', status: 'pending', progress: 0, message: '' },
-    { name: 'ScreeningAgent', status: 'pending', progress: 0, message: '' },
-    { name: 'ResearcherAgent', status: 'pending', progress: 0, message: '' },
-    { name: 'WriterAgent', status: 'pending', progress: 0, message: '' },
-  ]);
+function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean): { agents: AgentStatus[]; logs: LogLine[] } {
+  const agentMap = new Map<string, AgentStatus>(
+    AGENT_ORDER.map((name) => [
+      name,
+      { name, status: 'pending', progress: 0, message: 'Dang cho...' },
+    ]),
+  );
 
-  const [logs, setLogs] = useState<Array<{ time: string; agent: string; message: string }>>([]);
+  const logs: LogLine[] = [];
 
-  useEffect(() => {
-    if (!isAnalyzing) return;
+  events.forEach((event, index) => {
+    const author = event.author || 'System';
+    const time = getCurrentTimeLabel();
 
-    const addLog = (agent: string, message: string) => {
-      const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
-      setLogs(prev => [...prev, { time, agent, message }]);
-    };
+    if (agentMap.has(author)) {
+      const current = agentMap.get(author)!;
+      const callName = event.function_calls?.[0] ? getCallName(event.function_calls[0]) : null;
 
-    // Simulate agent execution
-    const sequence = async () => {
-      // InputValidator
-      setAgents(prev => prev.map((a, i) => i === 0 ? { ...a, status: 'running', message: 'Validating SMILES...' } : a));
-      addLog('InputValidator', 'Starting SMILES validation');
-      await new Promise(r => setTimeout(r, 500));
-      setAgents(prev => prev.map((a, i) => i === 0 ? { ...a, status: 'done', progress: 100, time: '0.3s' } : a));
-      addLog('InputValidator', '✓ SMILES validated');
+      current.status = event.is_final ? 'done' : 'running';
+      current.progress = event.is_final ? 100 : Math.max(current.progress, 65);
+      current.message =
+        (callName && `Calling ${callName}...`) ||
+        event.text_preview ||
+        (event.is_final ? 'Hoan tat' : 'Dang xu ly...');
 
-      // Parallel: ScreeningAgent + ResearcherAgent
-      setAgents(prev => prev.map((a, i) => 
-        i === 1 ? { ...a, status: 'running', message: 'GNN forward pass...' } : 
-        i === 2 ? { ...a, status: 'running', message: 'Querying PubChem...' } : a
-      ));
-      addLog('ScreeningAgent', '⟳ Loading GNN model...');
-      addLog('ResearcherAgent', '⟳ Querying PubChem CID...');
+      logs.push({
+        time,
+        agent: author,
+        message: event.is_final ? 'Done' : current.message,
+      });
+    }
 
-      // Progress simulation
-      for (let i = 0; i < 100; i += 20) {
-        await new Promise(r => setTimeout(r, 400));
-        setAgents(prev => prev.map((a, idx) => 
-          idx === 1 || idx === 2 ? { ...a, progress: Math.min(i + 20, 100) } : a
-        ));
+    if (event.function_calls?.length) {
+      event.function_calls.forEach((call) => {
+        logs.push({
+          time,
+          agent: author,
+          message: `Tool call: ${getCallName(call)}`,
+        });
+      });
+    }
+
+    if (event.text_preview && !event.function_calls?.length) {
+      logs.push({
+        time,
+        agent: author,
+        message: event.text_preview,
+      });
+    }
+
+    if (index === events.length - 1 && event.is_final && agentMap.has('WriterAgent')) {
+      const writer = agentMap.get('WriterAgent')!;
+      writer.status = 'done';
+      writer.progress = 100;
+      writer.message = writer.message || 'Hoan tat bao cao';
+    }
+  });
+
+  if (!isAnalyzing) {
+    agentMap.forEach((agent) => {
+      if (agent.status === 'running') {
+        agent.status = 'done';
+        agent.progress = 100;
       }
+    });
+  }
 
-      await new Promise(r => setTimeout(r, 500));
-      setAgents(prev => prev.map((a, i) => 
-        i === 1 ? { 
-          ...a, 
-          status: 'done', 
-          progress: 100, 
-          time: '3.2s',
-          result: { label: 'p_toxic:', value: '0.23' }
-        } : 
-        i === 2 ? { 
-          ...a, 
-          status: 'done', 
-          progress: 100, 
-          time: '5.1s',
-          result: { label: '5 papers found', value: 'CID: 2244' }
-        } : a
-      ));
-      addLog('ScreeningAgent', '✓ GNN forward pass done');
-      addLog('ResearcherAgent', '✓ Fetching papers complete');
+  return {
+    agents: AGENT_ORDER.map((name) => agentMap.get(name)!),
+    logs: logs.slice(-24),
+  };
+}
 
-      // WriterAgent
-      await new Promise(r => setTimeout(r, 300));
-      setAgents(prev => prev.map((a, i) => i === 3 ? { ...a, status: 'running', message: 'Generating report...' } : a));
-      addLog('WriterAgent', '⟳ Generating comprehensive report...');
-      
-      for (let i = 0; i < 100; i += 25) {
-        await new Promise(r => setTimeout(r, 300));
-        setAgents(prev => prev.map((a, idx) => 
-          idx === 3 ? { ...a, progress: Math.min(i + 25, 100) } : a
-        ));
-      }
-
-      await new Promise(r => setTimeout(r, 300));
-      setAgents(prev => prev.map((a, i) => i === 3 ? { ...a, status: 'done', progress: 100, time: '2.1s' } : a));
-      addLog('WriterAgent', '✓ Report generation complete');
-    };
-
-    sequence();
-  }, [isAnalyzing]);
+export function AgentProgressPanel({ isAnalyzing, events }: AgentProgressPanelProps) {
+  const hasEvents = events.length > 0;
+  const state = hasEvents
+    ? buildEventDrivenState(events, isAnalyzing)
+    : buildFallbackState(isAnalyzing);
 
   return (
     <motion.div
@@ -111,48 +185,43 @@ export function AgentProgressPanel({ isAnalyzing }: AgentProgressPanelProps) {
     >
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
-          Pipeline Phân Tích
+          Pipeline Phan Tich
         </h3>
       </div>
 
-      {/* Pipeline Visualization */}
       <div className="space-y-4 mb-6">
-        {/* InputValidator */}
-        <AgentNode agent={agents[0]} />
+        <AgentNode agent={state.agents[0]} />
 
-        {/* Parallel indicator */}
         <div className="flex items-center justify-center">
-          <div className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-faint)', letterSpacing: '0.1em' }}>
+          <div
+            className="text-xs uppercase tracking-widest"
+            style={{ color: 'var(--text-faint)', letterSpacing: '0.1em' }}
+          >
             PARALLEL
           </div>
         </div>
 
-        {/* Parallel agents */}
         <div className="grid grid-cols-2 gap-4">
-          <AgentNode agent={agents[1]} />
-          <AgentNode agent={agents[2]} />
+          <AgentNode agent={state.agents[1]} />
+          <AgentNode agent={state.agents[2]} />
         </div>
 
-        {/* WriterAgent */}
-        <AgentNode agent={agents[3]} />
+        <AgentNode agent={state.agents[3]} />
       </div>
 
-      {/* Streaming Log */}
-      <div 
+      <div
         className="rounded-lg p-4 font-mono text-xs max-h-32 overflow-y-auto"
         style={{ backgroundColor: 'var(--bg)', color: 'var(--text-muted)' }}
       >
-        {logs.map((log, idx) => (
+        {state.logs.map((log, idx) => (
           <motion.div
-            key={idx}
+            key={`${log.time}-${log.agent}-${idx}`}
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-1"
           >
-            <span style={{ color: 'var(--text-faint)' }}>{log.time}</span>
-            {' '}
-            <span style={{ color: 'var(--accent-blue)' }}>{log.agent}</span>
-            {' '}
+            <span style={{ color: 'var(--text-faint)' }}>{log.time}</span>{' '}
+            <span style={{ color: 'var(--accent-blue)' }}>{log.agent}</span>{' '}
             <span>{log.message}</span>
           </motion.div>
         ))}
@@ -169,7 +238,7 @@ function AgentNode({ agent }: { agent: AgentStatus }) {
       case 'running':
         return <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--accent-blue)' }} />;
       case 'error':
-        return <span style={{ color: 'var(--accent-red)' }}>✕</span>;
+        return <span style={{ color: 'var(--accent-red)' }}>x</span>;
       default:
         return <Circle className="w-5 h-5" style={{ color: 'var(--border)' }} />;
     }
@@ -179,8 +248,13 @@ function AgentNode({ agent }: { agent: AgentStatus }) {
     <div
       className="rounded-lg p-4 transition-all"
       style={{
-        backgroundColor: agent.status === 'running' ? 'var(--accent-blue-muted)' : agent.status === 'error' ? 'rgba(239,68,68,0.08)' : 'transparent',
-        border: '1px solid var(--border)'
+        backgroundColor:
+          agent.status === 'running'
+            ? 'var(--accent-blue-muted)'
+            : agent.status === 'error'
+              ? 'rgba(239,68,68,0.08)'
+              : 'transparent',
+        border: '1px solid var(--border)',
       }}
     >
       <div className="flex items-center justify-between mb-2">
@@ -190,14 +264,9 @@ function AgentNode({ agent }: { agent: AgentStatus }) {
             {agent.name}
           </span>
         </div>
-        {agent.time && (
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            {agent.time}
-          </span>
-        )}
       </div>
 
-      {agent.status === 'running' && (
+      {(agent.status === 'running' || agent.status === 'done') && (
         <>
           <div className="w-full h-1 rounded-full mb-2" style={{ backgroundColor: 'var(--border)' }}>
             <motion.div
@@ -212,15 +281,6 @@ function AgentNode({ agent }: { agent: AgentStatus }) {
             {agent.message}
           </p>
         </>
-      )}
-
-      {agent.result && agent.status === 'done' && (
-        <div className="mt-2 px-3 py-2 rounded-md text-xs" style={{ backgroundColor: 'var(--surface-alt)' }}>
-          <span style={{ color: 'var(--text-muted)' }}>{agent.result.label}</span>{' '}
-          <span className="font-mono font-semibold" style={{ color: 'var(--text)' }}>
-            {agent.result.value}
-          </span>
-        </div>
       )}
     </div>
   );

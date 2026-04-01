@@ -1,6 +1,11 @@
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
+import { ReportProvider } from '../lib/ReportContext';
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ReportProvider>
+      <RouterProvider router={router} />
+    </ReportProvider>
+  );
 }
