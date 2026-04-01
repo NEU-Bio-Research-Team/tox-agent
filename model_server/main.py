@@ -46,6 +46,7 @@ if load_dotenv is not None:
     load_dotenv(PROJECT_ROOT / ".env.local")
 
 from agents import ADK_AVAILABLE, root_agent, run_orchestrator_flow
+from agents.language import normalize_language
 
 ADK_RUNTIME_IMPORT_ERROR: Optional[str] = None
 try:
@@ -67,6 +68,7 @@ from backend.inference import (
     predict_clinical_toxicity,
     predict_toxicity_mechanism,
 )
+from backend.ood_guard import check_ood_risk
 from backend.graph_data import smiles_to_pyg_data
 from backend.gnn_explainer import explain_molecule, explain_tox21_task, visualize_explanation
 from backend.workspace_mode import get_workspace_mode
@@ -77,7 +79,9 @@ from model_server.schemas import (
     AgentAnalyzeResponse,
     AgentEventRecord,
     ClinicalToxicityOutput,
+    InferenceContextOutput,
     MechanismToxicityOutput,
+    OodAssessmentOutput,
     PredictRequest, PredictResponse,
     BatchPredictRequest, BatchPredictResponse,
     ExplainRequest, ExplainResponse,
@@ -90,6 +94,8 @@ MODEL_DIR = PROJECT_ROOT / "models" / "smilesgnn_model"
 CONFIG_PATH = PROJECT_ROOT / "config" / "smilesgnn_config.yaml"
 TOX21_MODEL_DIR = PROJECT_ROOT / "models" / "tox21_gatv2_model"
 TOX21_CONFIG_PATH = PROJECT_ROOT / "config" / "tox21_gatv2_config.yaml"
+CLINICAL_METRICS_PATH = MODEL_DIR / "smilesgnn_model_metrics.txt"
+CLINICAL_THRESHOLD_METRICS_PATH = MODEL_DIR / "clinical_threshold_metrics.json"
 TOX21_THRESHOLDS_CANDIDATES = [
     TOX21_MODEL_DIR / "tox21_task_thresholds.json",
     TOX21_MODEL_DIR / "task_thresholds.json",
@@ -129,6 +135,53 @@ def _load_tox21_thresholds() -> Tuple[Optional[Dict[str, float]], Optional[str]]
         logger.warning("Ignoring threshold file with non-dict payload: %s", path)
 
     return None, None
+
+
+def _load_clinical_reference_metrics(path: Path) -> Dict[str, float]:
+    """Parse key:value metric lines from stored benchmark artifact."""
+    if not path.exists():
+        return {}
+
+    parsed: Dict[str, float] = {}
+    try:
+        with open(path, "r") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or ":" not in line:
+                    continue
+                key, value = line.split(":", 1)
+                key = key.strip()
+                value = value.strip()
+                try:
+                    parsed[key] = float(value)
+                except ValueError:
+                    continue
+    except Exception:
+        return {}
+
+    return parsed
+
+
+def _load_optional_json_metrics(path: Path) -> Dict[str, float]:
+    if not path.exists():
+        return {}
+
+    try:
+        with open(path, "r") as f:
+            payload = json.load(f)
+    except Exception:
+        return {}
+
+    if not isinstance(payload, dict):
+        return {}
+
+    parsed: Dict[str, float] = {}
+    for key, value in payload.items():
+        try:
+            parsed[str(key)] = float(value)
+        except (TypeError, ValueError):
+            continue
+    return parsed
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("model_server")
@@ -412,14 +465,19 @@ def _fallback_mechanism_result(threshold: float) -> Dict[str, object]:
     }
 
 
-def _fallback_explanation(target_task: Optional[str] = None) -> ToxicityExplanationOutput:
+def _fallback_explanation(
+    target_task: Optional[str] = None,
+    mol: Optional[Chem.Mol] = None,
+) -> ToxicityExplanationOutput:
     task = target_task or "UNAVAILABLE_NO_TOX21_MODEL"
+    molecule_png_base64 = _render_molecule_png(mol) if mol is not None else None
     return ToxicityExplanationOutput(
         target_task=task,
         target_task_score=0.0,
         top_atoms=[],
         top_bonds=[],
         heatmap_base64=None,
+        molecule_png_base64=molecule_png_base64,
         explainer_note=(
             "Tox21 model unavailable. Returning placeholder explanation payload for API contract testing."
         ),
@@ -449,6 +507,11 @@ async def lifespan(app: FastAPI):
             model_state["model"] = model
             model_state["tokenizer"] = tokenizer
             model_state["wrapped"] = wrapped_model
+            clinical_reference_metrics = _load_clinical_reference_metrics(CLINICAL_METRICS_PATH)
+            clinical_reference_metrics.update(
+                _load_optional_json_metrics(CLINICAL_THRESHOLD_METRICS_PATH)
+            )
+            model_state["clinical_reference_metrics"] = clinical_reference_metrics
         except Exception as e:
             msg = f"{type(e).__name__}: {e}"
             model_state["startup_errors"]["xsmiles"] = msg
@@ -587,9 +650,28 @@ async def health():
 def _render_explanation_heatmap(result: dict) -> str:
     """Render explanation panel to base64 PNG."""
     buf = io.BytesIO()
-    visualize_explanation(result, figsize=(13, 5), save_path=buf)
+    # Match scripts/explain_smilesgnn.py default rendering.
+    visualize_explanation(result, save_path=buf)
     buf.seek(0)
     return base64.b64encode(buf.read()).decode("utf-8")
+
+
+def _render_molecule_png(
+    mol: Chem.Mol,
+    size: Tuple[int, int] = (800, 420),
+) -> Optional[str]:
+    """Render plain molecule structure as base64 PNG for UI fallback."""
+    try:
+        # Import lazily so missing optional shared libs do not break server startup.
+        from rdkit.Chem import Draw
+
+        image = Draw.MolToImage(mol, size=size)
+        buf = io.BytesIO()
+        image.save(buf, format="PNG")
+        buf.seek(0)
+        return base64.b64encode(buf.read()).decode("utf-8")
+    except Exception:
+        return None
 
 app.add_api_route("/health", health, methods=["GET"], tags=["system"])
 if AIP_HEALTH_ROUTE != "/health":
@@ -756,6 +838,7 @@ async def explain(req: ExplainRequest):
         raise HTTPException(500, f"GNNExplainer error: {str(e)}")
     
     heatmap_b64 = _render_explanation_heatmap(result)
+    molecule_b64 = _render_molecule_png(mol)
 
     # Build atom/bond lists
     atom_importance = result["atom_importance"]
@@ -797,6 +880,7 @@ async def explain(req: ExplainRequest):
         top_atoms=top_atoms[:10],
         top_bonds=top_bonds,
         heatmap_base64=heatmap_b64,
+        molecule_png_base64=molecule_b64,
         chemical_interpretation=f"Top contributing atom: {top_atoms[0].element}",
         explainer_note="GNNExplainer optimizes only the GATv2 graph pathway.",
     )
@@ -818,6 +902,7 @@ async def analyze(req: AnalyzeRequest):
     if mol is None:
         raise _invalid_smiles_error(smiles)
     canonical = Chem.MolToSmiles(mol)
+    ood_assessment_raw = check_ood_risk(canonical)
 
     try:
         async with _model_lock():
@@ -856,77 +941,159 @@ async def analyze(req: AnalyzeRequest):
         should_explain = False
 
     if should_explain:
-        target_task = req.target_task or str(mechanism_raw["highest_risk_task"])
-        if target_task == "—":
-            tasks = model_state.get("tox21_tasks", [])
-            target_task = tasks[0] if tasks else ""
+        # Priority 1: clinical heatmap from the SMILESGNN branch (matches script-style plot).
+        try:
+            clinical_target_class = 1 if bool(clinical_raw["is_toxic"]) else 0
+            clinical_pyg_data = smiles_to_pyg_data(smiles, label=clinical_target_class)
+            if clinical_pyg_data is None:
+                raise ValueError(f"Unable to featurize SMILES for explanation: {smiles}")
 
-        if target_task:
-            if not tox21_available:
-                explanation_payload = _fallback_explanation(target_task=target_task)
-            else:
-                try:
-                    async with _model_lock():
-                        explain_result = await asyncio.wait_for(
-                            asyncio.to_thread(
-                                explain_tox21_task,
-                                smiles,
-                                model_state["tox21_model"],
-                                model_state["tox21_tasks"],
-                                target_task,
-                                "cpu",
-                                req.explainer_epochs,
-                                req.mechanism_threshold,
+            async with _model_lock():
+                explain_result = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        explain_molecule,
+                        smiles,
+                        model_state["model"],
+                        model_state["tokenizer"],
+                        clinical_pyg_data,
+                        "cpu",
+                        req.explainer_epochs,
+                        clinical_target_class,
+                    ),
+                    timeout=float(req.explainer_timeout_ms) / 1000.0,
+                )
+
+            heatmap_b64 = _render_explanation_heatmap(explain_result)
+            atom_importance = explain_result["atom_importance"]
+            bond_importance = explain_result["bond_importance"]
+
+            top_atoms = []
+            for atom in mol.GetAtoms():
+                idx = atom.GetIdx()
+                imp = float(atom_importance[idx])
+                top_atoms.append(AtomImportance(
+                    atom_idx=idx,
+                    element=atom.GetSymbol(),
+                    importance=round(imp, 4),
+                    is_in_ring=atom.IsInRing(),
+                    is_aromatic=atom.GetIsAromatic(),
+                ))
+            top_atoms.sort(key=lambda x: x.importance, reverse=True)
+
+            top_bonds = []
+            for bond in mol.GetBonds():
+                bond_idx = bond.GetIdx()
+                imp = float(bond_importance[bond_idx]) if bond_idx < len(bond_importance) else 0.0
+                a1 = mol.GetAtomWithIdx(bond.GetBeginAtomIdx()).GetSymbol()
+                a2 = mol.GetAtomWithIdx(bond.GetEndAtomIdx()).GetSymbol()
+                top_bonds.append(BondImportance(
+                    bond_idx=bond_idx,
+                    atom_pair=f"{a1}({bond.GetBeginAtomIdx()}) - {a2}({bond.GetEndAtomIdx()})",
+                    bond_type=str(bond.GetBondTypeAsDouble()),
+                    importance=round(imp, 4),
+                ))
+            top_bonds.sort(key=lambda x: x.importance, reverse=True)
+
+            explanation_payload = ToxicityExplanationOutput(
+                target_task="CLINICAL_TOXICITY",
+                target_task_score=float(clinical_raw["p_toxic"]),
+                top_atoms=top_atoms[:10],
+                top_bonds=top_bonds[:10],
+                heatmap_base64=heatmap_b64,
+                molecule_png_base64=_render_molecule_png(mol),
+                explainer_note=(
+                    "Clinical GNNExplainer heatmap for SMILESGNN graph pathway; "
+                    "red regions contribute more to the predicted clinical toxicity probability."
+                ),
+            )
+        except asyncio.TimeoutError:
+            raise _explainer_timeout_error(
+                smiles=smiles,
+                timeout_ms=req.explainer_timeout_ms,
+            )
+        except Exception as clinical_exc:
+            logger.warning(
+                "Clinical explanation failed; falling back to tox21 task explainer: %s",
+                clinical_exc,
+            )
+
+        # Priority 2 fallback: tox21 task-specific explanation if clinical path fails.
+        if explanation_payload is None:
+            target_task = req.target_task or str(mechanism_raw["highest_risk_task"])
+            if target_task == "—":
+                tasks = model_state.get("tox21_tasks", [])
+                target_task = tasks[0] if tasks else ""
+
+            if target_task:
+                if not tox21_available:
+                    explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
+                else:
+                    try:
+                        async with _model_lock():
+                            explain_result = await asyncio.wait_for(
+                                asyncio.to_thread(
+                                    explain_tox21_task,
+                                    smiles,
+                                    model_state["tox21_model"],
+                                    model_state["tox21_tasks"],
+                                    target_task,
+                                    "cpu",
+                                    req.explainer_epochs,
+                                    req.mechanism_threshold,
+                                ),
+                                timeout=float(req.explainer_timeout_ms) / 1000.0,
+                            )
+                        heatmap_b64 = _render_explanation_heatmap(explain_result)
+
+                        atom_importance = explain_result["atom_importance"]
+                        bond_importance = explain_result["bond_importance"]
+
+                        top_atoms = []
+                        for atom in mol.GetAtoms():
+                            idx = atom.GetIdx()
+                            imp = float(atom_importance[idx])
+                            top_atoms.append(AtomImportance(
+                                atom_idx=idx,
+                                element=atom.GetSymbol(),
+                                importance=round(imp, 4),
+                                is_in_ring=atom.IsInRing(),
+                                is_aromatic=atom.GetIsAromatic(),
+                            ))
+                        top_atoms.sort(key=lambda x: x.importance, reverse=True)
+
+                        top_bonds = []
+                        for bond in mol.GetBonds():
+                            bond_idx = bond.GetIdx()
+                            imp = float(bond_importance[bond_idx]) if bond_idx < len(bond_importance) else 0.0
+                            a1 = mol.GetAtomWithIdx(bond.GetBeginAtomIdx()).GetSymbol()
+                            a2 = mol.GetAtomWithIdx(bond.GetEndAtomIdx()).GetSymbol()
+                            top_bonds.append(BondImportance(
+                                bond_idx=bond_idx,
+                                atom_pair=f"{a1}({bond.GetBeginAtomIdx()}) - {a2}({bond.GetEndAtomIdx()})",
+                                bond_type=str(bond.GetBondTypeAsDouble()),
+                                importance=round(imp, 4),
+                            ))
+                        top_bonds.sort(key=lambda x: x.importance, reverse=True)
+
+                        explanation_payload = ToxicityExplanationOutput(
+                            target_task=target_task,
+                            target_task_score=float(explain_result["prediction_prob"]),
+                            top_atoms=top_atoms[:10],
+                            top_bonds=top_bonds[:10],
+                            heatmap_base64=heatmap_b64,
+                            molecule_png_base64=_render_molecule_png(mol),
+                            explainer_note=(
+                                "Fallback Tox21 task-specific GNNExplainer because "
+                                "clinical explanation was unavailable for this request."
                             ),
-                            timeout=float(req.explainer_timeout_ms) / 1000.0,
                         )
-                    heatmap_b64 = _render_explanation_heatmap(explain_result)
-
-                    atom_importance = explain_result["atom_importance"]
-                    bond_importance = explain_result["bond_importance"]
-
-                    top_atoms = []
-                    for atom in mol.GetAtoms():
-                        idx = atom.GetIdx()
-                        imp = float(atom_importance[idx])
-                        top_atoms.append(AtomImportance(
-                            atom_idx=idx,
-                            element=atom.GetSymbol(),
-                            importance=round(imp, 4),
-                            is_in_ring=atom.IsInRing(),
-                            is_aromatic=atom.GetIsAromatic(),
-                        ))
-                    top_atoms.sort(key=lambda x: x.importance, reverse=True)
-
-                    top_bonds = []
-                    for bond in mol.GetBonds():
-                        bond_idx = bond.GetIdx()
-                        imp = float(bond_importance[bond_idx]) if bond_idx < len(bond_importance) else 0.0
-                        a1 = mol.GetAtomWithIdx(bond.GetBeginAtomIdx()).GetSymbol()
-                        a2 = mol.GetAtomWithIdx(bond.GetEndAtomIdx()).GetSymbol()
-                        top_bonds.append(BondImportance(
-                            bond_idx=bond_idx,
-                            atom_pair=f"{a1}({bond.GetBeginAtomIdx()}) - {a2}({bond.GetEndAtomIdx()})",
-                            bond_type=str(bond.GetBondTypeAsDouble()),
-                            importance=round(imp, 4),
-                        ))
-                    top_bonds.sort(key=lambda x: x.importance, reverse=True)
-
-                    explanation_payload = ToxicityExplanationOutput(
-                        target_task=target_task,
-                        target_task_score=float(explain_result["prediction_prob"]),
-                        top_atoms=top_atoms[:10],
-                        top_bonds=top_bonds[:10],
-                        heatmap_base64=heatmap_b64,
-                        explainer_note="GNNExplainer is task-specific and explains one selected Tox21 head.",
-                    )
-                except asyncio.TimeoutError:
-                    raise _explainer_timeout_error(
-                        smiles=smiles,
-                        timeout_ms=req.explainer_timeout_ms,
-                    )
-                except Exception as e:
-                    raise HTTPException(500, f"Task-level explanation error: {str(e)}")
+                    except asyncio.TimeoutError:
+                        raise _explainer_timeout_error(
+                            smiles=smiles,
+                            timeout_ms=req.explainer_timeout_ms,
+                        )
+                    except Exception as e:
+                        raise HTTPException(500, f"Task-level explanation error: {str(e)}")
 
     # Always return the full 12-task map to keep API outputs stable and complete.
     mechanism_scores = dict(mechanism_raw["task_scores"])
@@ -949,12 +1116,42 @@ async def analyze(req: AnalyzeRequest):
         task_thresholds=dict(mechanism_raw["task_thresholds"]),
     )
 
+    ood_assessment = OodAssessmentOutput(
+        ood_risk=str(ood_assessment_raw.get("ood_risk", "LOW")),
+        flag=bool(ood_assessment_raw.get("flag", False)),
+        reason=str(ood_assessment_raw.get("reason", "")),
+        rare_elements=list(ood_assessment_raw.get("rare_elements") or []),
+        high_risk_elements=list(ood_assessment_raw.get("high_risk_elements") or []),
+        recommendation=ood_assessment_raw.get("recommendation"),
+    )
+
+    reliability_warning: Optional[str] = None
+    if ood_assessment.flag:
+        reliability_warning = ood_assessment.reason
+    elif not tox21_available:
+        reliability_warning = "Mechanism model is unavailable; only clinical signal is used."
+
+    inference_context = InferenceContextOutput(
+        workspace_mode=WORKSPACE_MODE_NAME,
+        threshold_policy=str(WORKSPACE_MODE.get("threshold_policy", "balanced")),
+        clinical_threshold_applied=float(req.clinical_threshold),
+        clinical_model_loaded=_xsmiles_ready(),
+        tox21_model_loaded=tox21_available,
+        explainer_used=bool(should_explain),
+        explanation_available=explanation_payload is not None,
+        tox21_threshold_source=model_state.get("tox21_thresholds_source"),
+        clinical_reference_metrics=dict(model_state.get("clinical_reference_metrics") or {}),
+    )
+
     return AnalyzeResponse(
         smiles=smiles,
         canonical_smiles=canonical,
         clinical=clinical_output,
         mechanism=mechanism_output,
         explanation=explanation_payload,
+        ood_assessment=ood_assessment,
+        reliability_warning=reliability_warning,
+        inference_context=inference_context,
         final_verdict=final_verdict,
     )
 
@@ -963,6 +1160,7 @@ async def analyze(req: AnalyzeRequest):
 async def agent_analyze(req: AgentAnalyzeRequest):
     """Execute the ADK agent runtime and return final report + tool-calling traces."""
     smiles = req.smiles.strip()
+    language = normalize_language(req.language)
     if not smiles:
         raise HTTPException(
             status_code=400,
@@ -980,6 +1178,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             run_orchestrator_flow,
             smiles,
             int(req.max_literature_results),
+            language,
+            float(req.clinical_threshold),
+            float(req.mechanism_threshold),
         )
 
         final_report_payload = _coerce_json_dict(
@@ -991,6 +1192,11 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
         fallback_events: List[AgentEventRecord] = []
         if req.include_agent_events:
+            fallback_preview = (
+                f"Kich hoat fallback ADK: {cause}"
+                if language == "vi"
+                else f"ADK fallback activated: {cause}"
+            )
             fallback_events.append(
                 AgentEventRecord(
                     type="fallback",
@@ -998,13 +1204,15 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                     function_calls=[],
                     function_responses=[],
                     is_final=True,
-                    text_preview=f"ADK fallback activated: {cause}",
+                    text_preview=fallback_preview,
                 )
             )
 
         return AgentAnalyzeResponse(
             session_id=session_id,
-            adk_available=False,
+            adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
+            runtime_mode="deterministic_fallback",
+            runtime_note=cause,
             validation_status=validation_status_payload,
             final_report=final_report_payload,
             final_text=summary if isinstance(summary, str) else None,
@@ -1019,6 +1227,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     initial_state = {
         "smiles_input": smiles,
         "max_literature_results": int(req.max_literature_results),
+        "language": language,
+        "clinical_threshold": float(req.clinical_threshold),
+        "mechanism_threshold": float(req.mechanism_threshold),
     }
 
     try:
@@ -1054,7 +1265,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
     message = Content(
         role="user",
-        parts=[Part(text=f"Analyze toxicity for SMILES: {smiles}")],
+        parts=[Part(text=f"Analyze toxicity for SMILES: {smiles}. Respond in language={language}.")],
     )
 
     events: List[AgentEventRecord] = []
@@ -1086,8 +1297,16 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             if is_final and final_text is None and text_preview:
                 final_text = text_preview
     except Exception as exc:
-        logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
-        return await _build_fallback_response(f"agent_runtime_error: {exc}")
+        # ADK occasionally raises a stream-close race after finishing events.
+        # In that case we continue and read session state instead of forcing fallback.
+        if "aclose(): asynchronous generator is already running" in str(exc):
+            logger.warning(
+                "ADK stream close race detected; proceeding with session state read: %s",
+                exc,
+            )
+        else:
+            logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
+            return await _build_fallback_response(f"agent_runtime_error: {exc}")
 
     try:
         session = await adk_session_service.get_session(
@@ -1123,9 +1342,24 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         if isinstance(summary, str) and summary:
             final_text = summary
 
+    report_has_sections = isinstance(final_report.get("sections"), dict) if isinstance(final_report, dict) else False
+    validation_is_valid = str(validation_status).upper() == "VALID" if validation_status is not None else False
+    if not report_has_sections or not validation_is_valid:
+        logger.warning(
+            "ADK session state incomplete, switching to deterministic fallback "
+            "(validation_status=%s, has_sections=%s)",
+            validation_status,
+            report_has_sections,
+        )
+        return await _build_fallback_response(
+            f"adk_state_incomplete: validation_status={validation_status}, has_sections={report_has_sections}"
+        )
+
     return AgentAnalyzeResponse(
         session_id=session_id,
         adk_available=ADK_AVAILABLE,
+        runtime_mode="adk",
+        runtime_note=None,
         validation_status=validation_status,
         final_report=final_report,
         final_text=final_text,

@@ -22,13 +22,17 @@ def _get_env_float(name: str, default: float) -> float:
         return default
 
 
-DEFAULT_MODEL_SERVER_PORT = (os.getenv("AIP_HTTP_PORT") or "8000").strip()
+DEFAULT_MODEL_SERVER_PORT = (
+    os.getenv("AIP_HTTP_PORT")
+    or os.getenv("PORT")
+    or "8000"
+).strip()
 MODEL_SERVER_URL = os.getenv(
     "MODEL_SERVER_URL",
     f"http://127.0.0.1:{DEFAULT_MODEL_SERVER_PORT}",
 ).rstrip("/")
 MODEL_SERVER_TIMEOUT = _get_env_float("MODEL_SERVER_TIMEOUT", 30.0)
-MODEL_SERVER_HEALTH_TIMEOUT = _get_env_float("MODEL_SERVER_HEALTH_TIMEOUT", 5.0)
+MODEL_SERVER_HEALTH_TIMEOUT = _get_env_float("MODEL_SERVER_HEALTH_TIMEOUT", 12.0)
 BATCH_TIMEOUT = max(MODEL_SERVER_TIMEOUT * 4.0, 120.0)
 
 
@@ -83,7 +87,11 @@ def validate_smiles(smiles: str) -> Dict[str, Any]:
     }
 
 
-def analyze_molecule(smiles: str) -> Dict[str, Any]:
+def analyze_molecule(
+    smiles: str,
+    clinical_threshold: float = 0.35,
+    mechanism_threshold: float = 0.5,
+) -> Dict[str, Any]:
     """Run full model-server toxicity analysis for one validated SMILES.
 
     This tool calls ``POST {MODEL_SERVER_URL}/analyze`` and returns the unified
@@ -92,6 +100,9 @@ def analyze_molecule(smiles: str) -> Dict[str, Any]:
 
     Args:
         smiles: Valid SMILES string (ideally canonical).
+        clinical_threshold: Toxicity threshold for clinical binary decision.
+        mechanism_threshold: Default mechanism threshold when task-specific
+            thresholds are unavailable.
 
     Returns:
         Dict from model server containing keys such as ``clinical``,
@@ -109,7 +120,12 @@ def analyze_molecule(smiles: str) -> Dict[str, Any]:
     try:
         response = httpx.post(
             f"{MODEL_SERVER_URL}/analyze",
-            json={"smiles": smiles},
+            json={
+                "smiles": smiles,
+                "clinical_threshold": float(clinical_threshold),
+                "mechanism_threshold": float(mechanism_threshold),
+                "explain_only_if_alert": False,
+            },
             timeout=MODEL_SERVER_TIMEOUT,
         )
         response.raise_for_status()
@@ -244,26 +260,39 @@ def check_model_server_health() -> Dict[str, Any]:
         - error (str | None): Connectivity/HTTP error when unhealthy.
     """
     start = time.perf_counter()
-    try:
-        response = httpx.get(
-            f"{MODEL_SERVER_URL}/health",
-            timeout=MODEL_SERVER_HEALTH_TIMEOUT,
-        )
-        response.raise_for_status()
-        data = response.json()
-        latency_ms = (time.perf_counter() - start) * 1000.0
-        status = data.get("status") if isinstance(data, dict) else None
-        return {
-            "healthy": True,
-            "status": status or "ok",
-            "latency_ms": latency_ms,
-            "error": None,
-        }
-    except Exception as exc:
-        latency_ms = (time.perf_counter() - start) * 1000.0
-        return {
-            "healthy": False,
-            "status": "unreachable",
-            "latency_ms": latency_ms,
-            "error": str(exc),
-        }
+    last_error: Exception | None = None
+
+    # Internal self-calls on Cloud Run can be bursty under load.
+    # Retry once with a larger timeout before declaring the server unhealthy.
+    timeouts = [MODEL_SERVER_HEALTH_TIMEOUT, max(MODEL_SERVER_HEALTH_TIMEOUT * 2.0, 20.0)]
+    for idx, timeout in enumerate(timeouts):
+        try:
+            response = httpx.get(
+                f"{MODEL_SERVER_URL}/health",
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+            latency_ms = (time.perf_counter() - start) * 1000.0
+            status = data.get("status") if isinstance(data, dict) else None
+            payload = {
+                "healthy": True,
+                "status": status or "ok",
+                "latency_ms": latency_ms,
+                "error": None,
+            }
+            if idx > 0:
+                payload["retry_count"] = idx
+            return payload
+        except Exception as exc:
+            last_error = exc
+            if idx < len(timeouts) - 1:
+                time.sleep(0.2)
+
+    latency_ms = (time.perf_counter() - start) * 1000.0
+    return {
+        "healthy": False,
+        "status": "unreachable",
+        "latency_ms": latency_ms,
+        "error": str(last_error) if last_error is not None else "unknown_error",
+    }
