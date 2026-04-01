@@ -35,7 +35,17 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from agents import ADK_AVAILABLE, root_agent
+try:
+    from dotenv import load_dotenv
+except Exception:
+    load_dotenv = None
+
+if load_dotenv is not None:
+    # Local runs can configure API keys and model options in repo-level env files.
+    load_dotenv(PROJECT_ROOT / ".env")
+    load_dotenv(PROJECT_ROOT / ".env.local")
+
+from agents import ADK_AVAILABLE, root_agent, run_orchestrator_flow
 
 ADK_RUNTIME_IMPORT_ERROR: Optional[str] = None
 try:
@@ -647,13 +657,13 @@ async def predict_batch_endpoint(req: BatchPredictRequest):
     """Predict clinical toxicity for a list of SMILES molecules."""
     _ensure_xsmiles_available()
     
-    if len(req.smile_list) > 500:
+    if len(req.smiles_list) > 500:
         raise HTTPException(400, "Batch size limited to 500 molecules")
     
     try:
         async with _model_lock():
             results_df = predict_batch(
-                smiles_list=req.smile_list,
+                smiles_list=req.smiles_list,
                 tokenizer=model_state["tokenizer"],
                 wrapped_model=model_state["wrapped"],
                 device=DEVICE,
@@ -952,9 +962,6 @@ async def analyze(req: AnalyzeRequest):
 @app.post("/agent/analyze", response_model=AgentAnalyzeResponse)
 async def agent_analyze(req: AgentAnalyzeRequest):
     """Execute the ADK agent runtime and return final report + tool-calling traces."""
-    if adk_runner is None or adk_session_service is None or Content is None or Part is None:
-        raise HTTPException(status_code=503, detail=_agent_runtime_unavailable_detail())
-
     smiles = req.smiles.strip()
     if not smiles:
         raise HTTPException(
@@ -966,6 +973,48 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         )
 
     session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
+
+    async def _build_fallback_response(cause: str) -> AgentAnalyzeResponse:
+        """Fallback to deterministic orchestrator flow when ADK runtime is unavailable."""
+        fallback_state = await asyncio.to_thread(
+            run_orchestrator_flow,
+            smiles,
+            int(req.max_literature_results),
+        )
+
+        final_report_payload = _coerce_json_dict(
+            fallback_state.get("final_report"),
+            nested_key="final_report",
+        ) or {}
+        validation_status_payload = fallback_state.get("validation_status")
+        summary = final_report_payload.get("executive_summary") if isinstance(final_report_payload, dict) else None
+
+        fallback_events: List[AgentEventRecord] = []
+        if req.include_agent_events:
+            fallback_events.append(
+                AgentEventRecord(
+                    type="fallback",
+                    author="System",
+                    function_calls=[],
+                    function_responses=[],
+                    is_final=True,
+                    text_preview=f"ADK fallback activated: {cause}",
+                )
+            )
+
+        return AgentAnalyzeResponse(
+            session_id=session_id,
+            adk_available=False,
+            validation_status=validation_status_payload,
+            final_report=final_report_payload,
+            final_text=summary if isinstance(summary, str) else None,
+            agent_events=fallback_events,
+            state_keys=sorted(fallback_state.keys()),
+        )
+
+    if adk_runner is None or adk_session_service is None or Content is None or Part is None:
+        return await _build_fallback_response("adk_runtime_unavailable")
+
     user_id = req.user_id.strip() or "default_user"
     initial_state = {
         "smiles_input": smiles,
@@ -1037,13 +1086,8 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             if is_final and final_text is None and text_preview:
                 final_text = text_preview
     except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "agent_runtime_error",
-                "message": str(exc),
-            },
-        ) from exc
+        logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
+        return await _build_fallback_response(f"agent_runtime_error: {exc}")
 
     try:
         session = await adk_session_service.get_session(

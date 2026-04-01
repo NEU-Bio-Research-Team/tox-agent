@@ -137,16 +137,17 @@ def search_toxicity_literature(compound_name: str, max_results: int = 5) -> Dict
         articles = []
         for pmid in pmids:
             art = summary_data.get(pmid, {})
-            authors = [a.get("name", "") for a in art.get("authors", [])[:3]]
+            authors = [a.get("name", "").strip() for a in art.get("authors", [])[:3]]
+            authors = [name for name in authors if name]
             title = art.get("title", "N/A")
             articles.append(
                 {
                     "pmid": pmid,
                     "title": title,
-                    "authors": authors,
+                    "authors": ", ".join(authors) if authors else "N/A",
                     "year": str(art.get("pubdate", ""))[:4],
                     "journal": art.get("source", "N/A"),
-                    "abstract_snippet": title[:150],
+                    "snippet": title[:150],
                     "pubmed_url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
                 }
             )

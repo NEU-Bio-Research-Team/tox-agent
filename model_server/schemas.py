@@ -15,7 +15,7 @@ class PredictResponse(BaseModel):
     threshold_used: float
 
 class BatchPredictRequest(BaseModel):
-    smile_list: List[str]
+    smiles_list: List[str]
     threshold: float = 0.5
 
 class BatchPredictResponse(BaseModel):

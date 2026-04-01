@@ -22,7 +22,11 @@ def _get_env_float(name: str, default: float) -> float:
         return default
 
 
-MODEL_SERVER_URL = os.getenv("MODEL_SERVER_URL", "http://localhost:8000").rstrip("/")
+DEFAULT_MODEL_SERVER_PORT = (os.getenv("AIP_HTTP_PORT") or "8000").strip()
+MODEL_SERVER_URL = os.getenv(
+    "MODEL_SERVER_URL",
+    f"http://127.0.0.1:{DEFAULT_MODEL_SERVER_PORT}",
+).rstrip("/")
 MODEL_SERVER_TIMEOUT = _get_env_float("MODEL_SERVER_TIMEOUT", 30.0)
 MODEL_SERVER_HEALTH_TIMEOUT = _get_env_float("MODEL_SERVER_HEALTH_TIMEOUT", 5.0)
 BATCH_TIMEOUT = max(MODEL_SERVER_TIMEOUT * 4.0, 120.0)
@@ -180,7 +184,23 @@ def analyze_molecules_batch(smiles_list: List[str]) -> Dict[str, Any]:
             timeout=BATCH_TIMEOUT,
         )
         response.raise_for_status()
-        results = response.json()
+        payload = response.json()
+
+        # Support both legacy list payloads and current BatchPredictResponse dict.
+        if isinstance(payload, dict):
+            results = payload.get("results", [])
+            total = int(payload.get("total", len(smiles_list)) or len(smiles_list))
+        elif isinstance(payload, list):
+            results = payload
+            total = len(results)
+        else:
+            return {
+                "error": "invalid_response",
+                "results": [],
+                "total": len(smiles_list),
+                "success_count": 0,
+            }
+
         if not isinstance(results, list):
             return {
                 "error": "invalid_response",
@@ -188,15 +208,16 @@ def analyze_molecules_batch(smiles_list: List[str]) -> Dict[str, Any]:
                 "total": len(smiles_list),
                 "success_count": 0,
             }
+
         success_count = sum(
             1
             for item in results
             if isinstance(item, dict)
-            and item.get("final_verdict") not in {"ANALYSIS_FAILED", "PHAN_TICH_THAT_BAI"}
+            and item.get("label") not in {"PARSE_ERROR", "UNKNOWN"}
         )
         return {
             "results": results,
-            "total": len(smiles_list),
+            "total": total,
             "success_count": success_count,
             "error": None,
         }

@@ -30,7 +30,11 @@ def _to_dict(value: Any) -> Dict[str, Any]:
 
 
 def _to_list(value: Any) -> List[Any]:
-    return value if isinstance(value, list) else []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        return [part.strip() for part in value.split(",") if part.strip()]
+    return []
 
 
 def _clean_text(value: Any) -> str:
