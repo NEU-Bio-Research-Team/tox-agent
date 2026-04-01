@@ -11,6 +11,7 @@ training, otherwise the SMILES encoder is bypassed (zero vectors).
 """
 
 import pickle
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -27,6 +28,19 @@ from src.graph_data import get_feature_dims, smiles_to_pyg_data
 from src.graph_models import create_gatv2_model
 from src.graph_models_hybrid import create_hybrid_model
 from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw is None:
+        return float(default)
+    try:
+        return float(raw)
+    except ValueError:
+        return float(default)
+
+
+DEFAULT_CLINICAL_THRESHOLD = _env_float("CLINICAL_THRESHOLD", 0.35)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -379,7 +393,7 @@ def predict_batch(
     device:        str,
     names:         Optional[List[str]] = None,
     true_labels:   Optional[List[int]] = None,
-    threshold:     float = 0.5,
+    threshold:     float = DEFAULT_CLINICAL_THRESHOLD,
     batch_size:    int   = 32,
     enforce_workspace_mode: bool = True,
 ) -> pd.DataFrame:
@@ -398,7 +412,7 @@ def predict_batch(
     device        : 'cpu' or 'cuda'
     names         : optional compound names (auto-generated if None)
     true_labels   : optional ground-truth labels (0/1)
-    threshold     : decision boundary (default 0.5)
+    threshold     : decision boundary (default 0.35)
     batch_size    : GPU mini-batch size
 
     Returns
@@ -468,7 +482,7 @@ def predict_clinical_toxicity(
     tokenizer,
     wrapped_model: nn.Module,
     device: str,
-    threshold: float = 0.5,
+    threshold: float = DEFAULT_CLINICAL_THRESHOLD,
     name: str = "Mol-000",
     enforce_workspace_mode: bool = True,
 ) -> Dict[str, Union[str, float, bool]]:
