@@ -254,7 +254,7 @@ def _build_llm_prompt(
     )
 
 
-def _build_genai_client() -> Tuple[Optional[Any], str]:
+def _build_genai_client(location_override: Optional[str] = None) -> Tuple[Optional[Any], str]:
     """Create a genai client using API key if present, otherwise Vertex AI ADC."""
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if api_key:
@@ -271,18 +271,60 @@ def _build_genai_client() -> Tuple[Optional[Any], str]:
     if not project:
         return None, "missing_project_for_vertexai"
 
-    location = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("GOOGLE_CLOUD_REGION") or "us-central1"
+    configured_location = (
+        location_override
+        or os.getenv("GEMINI_LOCATION")
+        or os.getenv("GOOGLE_CLOUD_LOCATION")
+        or os.getenv("GOOGLE_CLOUD_REGION")
+        or "global"
+    )
     try:
         return (
             genai.Client(
                 vertexai=True,
                 project=project,
-                location=location,
+                location=configured_location,
             ),
-            "vertex_adc",
+            f"vertex_adc:{configured_location}",
         )
     except Exception as exc:
         return None, f"vertex_client_error:{type(exc).__name__}"
+
+
+def _generate_llm_recommendations_with_client(
+    *,
+    client: Any,
+    language: str,
+    risk_level: str,
+    clinical: Dict[str, Any],
+    mechanism: Dict[str, Any],
+    ood_assessment: Dict[str, Any],
+    research: Dict[str, Any],
+) -> Tuple[List[str], str]:
+    response = client.models.generate_content(
+        model=WRITER_MODEL,
+        contents=_build_llm_prompt(
+            language=language,
+            risk_level=risk_level,
+            clinical=clinical,
+            mechanism=mechanism,
+            ood_assessment=ood_assessment,
+            research=research,
+        ),
+        config={
+            "temperature": 0.3,
+            "response_mime_type": "application/json",
+        },
+    )
+    text = str(getattr(response, "text", "") or "").strip()
+    if not text:
+        return [], "llm_empty_response"
+
+    parsed = _parse_llm_recommendations(text)
+    if not parsed:
+        return [], "llm_parse_failed"
+
+    return parsed, "llm_success"
 
 
 def _maybe_llm_recommendations(
@@ -304,32 +346,44 @@ def _maybe_llm_recommendations(
         return [], auth_mode
 
     try:
-        response = client.models.generate_content(
-            model=WRITER_MODEL,
-            contents=_build_llm_prompt(
-                language=language,
-                risk_level=risk_level,
-                clinical=clinical,
-                mechanism=mechanism,
-                ood_assessment=ood_assessment,
-                research=research,
-            ),
-            config={
-                "temperature": 0.3,
-                "response_mime_type": "application/json",
-            },
+        parsed, status = _generate_llm_recommendations_with_client(
+            client=client,
+            language=language,
+            risk_level=risk_level,
+            clinical=clinical,
+            mechanism=mechanism,
+            ood_assessment=ood_assessment,
+            research=research,
         )
-        text = str(getattr(response, "text", "") or "").strip()
-        if not text:
-            return [], "llm_empty_response"
-
-        parsed = _parse_llm_recommendations(text)
-        if not parsed:
-            return [], "llm_parse_failed"
-
-        return parsed, f"llm_success:{auth_mode}"
+        if parsed:
+            return parsed, f"{status}:{auth_mode}"
+        return [], status
     except Exception as exc:
-        return [], f"llm_error:{type(exc).__name__}:{auth_mode}"
+        first_error = f"llm_error:{type(exc).__name__}:{auth_mode}:{str(exc)[:180]}"
+
+        if auth_mode.startswith("vertex_adc:"):
+            for fallback_location in ("global", "us-central1"):
+                if auth_mode.endswith(fallback_location):
+                    continue
+                retry_client, retry_auth = _build_genai_client(location_override=fallback_location)
+                if retry_client is None:
+                    continue
+                try:
+                    parsed, status = _generate_llm_recommendations_with_client(
+                        client=retry_client,
+                        language=language,
+                        risk_level=risk_level,
+                        clinical=clinical,
+                        mechanism=mechanism,
+                        ood_assessment=ood_assessment,
+                        research=research,
+                    )
+                    if parsed:
+                        return parsed, f"{status}:{retry_auth}"
+                except Exception:
+                    continue
+
+        return [], first_error
 
 
 def _build_recommendations(
@@ -410,6 +464,7 @@ def build_final_report(
                 "smiles": smiles_input,
                 "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
                 "report_version": "1.0",
+                "language": normalized_language,
             },
             "error": "screening_result_missing",
             "executive_summary": choose_text(
@@ -418,7 +473,25 @@ def build_final_report(
                 "Unable to generate report because screening stage failed.",
             ),
             "risk_level": "UNKNOWN",
-            "sections": {},
+            "sections": {
+                "clinical_toxicity": {
+                    "verdict": None,
+                    "probability": None,
+                    "confidence": None,
+                    "threshold_used": None,
+                    "interpretation": choose_text(
+                        normalized_language,
+                        "Thiếu dữ liệu screening.",
+                        "Screening data is missing.",
+                    ),
+                },
+                "mechanism_toxicity": {
+                    "active_tox21_tasks": [],
+                    "highest_risk": None,
+                    "assay_hits": 0,
+                    "task_scores": {},
+                },
+            },
         }
 
     clinical = _to_dict(screening.get("clinical"))
@@ -551,10 +624,12 @@ Read from session state:
 - language
 
 Output requirements:
+- Return STRICT RAW JSON only (no markdown code fences, no prose).
 - Return JSON for key final_report.
 - Include:
     report_metadata, executive_summary, risk_level, sections.
-- Sections must include:
+- sections MUST be a non-empty object.
+- Sections must include at minimum:
     clinical_toxicity, mechanism_toxicity, structural_explanation,
     literature_context, recommendations.
 
@@ -568,6 +643,8 @@ Rules:
 - Never fabricate scores or papers.
 - Respect requested language from {language} for all user-facing text.
 - If research_result is partial/missing, still produce a valid report.
+- If screening_result is missing/partial, still return final_report with non-empty
+    sections and a clear error in final_report.error.
 """,
     tools=[],
     output_key="final_report",

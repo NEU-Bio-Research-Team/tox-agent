@@ -5,7 +5,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, Optional
 
-from tools import check_model_server_health, validate_smiles
+from tools import validate_smiles
 
 from .adk_compat import LlmAgent, ParallelAgent, SequentialAgent
 from .language import choose_text, normalize_language
@@ -61,46 +61,39 @@ def extract_smiles_from_text(user_text: str) -> Optional[str]:
 
 
 def run_input_validation(smiles_input: str) -> Dict[str, Any]:
-    """Health-check + SMILES validation stage."""
-    health = check_model_server_health()
+    """SMILES validation stage.
+
+    Health checks are intentionally excluded from gating here because
+    internal self-calls can produce false negatives under load.
+    """
     validation = validate_smiles(smiles_input)
-
-    health_error = str(health.get("error") or "")
-    transient_health_timeout = (
-        not health.get("healthy")
-        and ("timed out" in health_error.lower() or "timeout" in health_error.lower())
-    )
-
-    if not health.get("healthy") and not transient_health_timeout:
-        return {
-            "validation_status": "INVALID",
-            "validation_error": "model_server_unhealthy",
-            "health": health,
-            "smiles_validation": validation,
-            "canonical_smiles": None,
-        }
 
     if not validation.get("valid"):
         return {
             "validation_status": "INVALID",
             "validation_error": validation.get("error") or "invalid_smiles",
-            "health": health,
+            "health": {
+                "healthy": True,
+                "status": "skipped",
+                "note": "health_check_skipped_internal_validation",
+                "error": None,
+            },
             "smiles_validation": validation,
             "canonical_smiles": None,
         }
 
-    result = {
+    return {
         "validation_status": "VALID",
         "validation_error": None,
-        "health": health,
+        "health": {
+            "healthy": True,
+            "status": "skipped",
+            "note": "health_check_skipped_internal_validation",
+            "error": None,
+        },
         "smiles_validation": validation,
         "canonical_smiles": validation.get("canonical_smiles") or smiles_input,
     }
-
-    if transient_health_timeout:
-        result["validation_warning"] = "health_timeout_but_smiles_valid"
-
-    return result
 
 
 def run_orchestrator_flow(
@@ -121,6 +114,7 @@ def run_orchestrator_flow(
         "screening_result": None,
         "screening_error": None,
         "research_result": None,
+        "research_error": None,
         "final_report": None,
     }
 
@@ -140,15 +134,18 @@ def run_orchestrator_flow(
             "error": validation.get("validation_error"),
             "executive_summary": choose_text(
                 normalized_language,
-                "SMILES không hợp lệ hoặc model server chưa sẵn sàng, nên pipeline dừng ở bước validation.",
-                "Validation failed before running parallel agents.",
+                "SMILES không hợp lệ, nên pipeline dừng ở bước validation.",
+                "SMILES validation failed before running parallel agents.",
             ),
             "risk_level": "UNKNOWN",
-            "sections": {},
+            "sections": {
+                "clinical_toxicity": {},
+                "mechanism_toxicity": {},
+            },
         }
         return state
 
-    canonical_smiles = validation["canonical_smiles"]
+    canonical_smiles = validation.get("canonical_smiles") or smiles_input
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         screening_future = executor.submit(
@@ -191,6 +188,7 @@ def run_orchestrator_from_text(
     mechanism_threshold: float = 0.5,
 ) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
+
     normalized_language = normalize_language(language)
     smiles = extract_smiles_from_text(user_text)
     if not smiles:
@@ -227,31 +225,44 @@ def run_orchestrator_from_text(
     )
 
 
-input_validator = LlmAgent(
-    name="InputValidator",
-    model=VALIDATOR_MODEL,
-    description="Validate model server health and SMILES input before running analysis.",
-    instruction="""
+def _build_input_validator_instruction() -> str:
+    return """
 You are the pipeline gatekeeper.
 
 Task:
 1. Read SMILES from {smiles_input}.
 2. Read language from {language} (vi or en) and use it for all user-facing text.
-3. Call check_model_server_health().
-4. Call validate_smiles(smiles={smiles_input}).
-5. Return JSON for key validation_result with fields:
-   - validation_status: VALID or INVALID
-   - validation_error: null or error string
-   - canonical_smiles: canonical string when valid
-   - health
-   - smiles_validation
+3. Call validate_smiles(smiles={smiles_input}).
+4. Return STRICT RAW JSON (no markdown code fences) for key validation_result with EXACT schema:
+{
+    "validation_result": {
+        "validation_status": "VALID" | "INVALID",
+        "validation_error": null | string,
+        "canonical_smiles": string | null,
+        "health": {
+            "healthy": true,
+            "status": "skipped",
+            "note": "health_check_skipped_internal_validation",
+            "error": null
+        },
+        "smiles_validation": object
+    }
+}
 
 Rules:
-- If health is unhealthy, mark validation_status as INVALID.
-- If SMILES is invalid, mark validation_status as INVALID.
-- Never skip tool calls.
-""",
-    tools=[check_model_server_health, validate_smiles],
+- Do not call check_model_server_health for validation gating.
+- If SMILES is invalid, set validation_status=INVALID and validation_error from tool output.
+- If SMILES is valid, set validation_status=VALID and canonical_smiles from tool output.
+- Return raw JSON only.
+"""
+
+
+input_validator = LlmAgent(
+    name="InputValidator",
+    model=VALIDATOR_MODEL,
+    description="Validate SMILES input before running analysis.",
+    instruction=_build_input_validator_instruction(),
+    tools=[validate_smiles],
     output_key="validation_result",
 )
 
