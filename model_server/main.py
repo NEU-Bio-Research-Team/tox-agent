@@ -19,9 +19,10 @@ import io
 import json
 import logging
 import os
+import re
 import uuid
 from pathlib import Path
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch 
@@ -45,7 +46,16 @@ if load_dotenv is not None:
     load_dotenv(PROJECT_ROOT / ".env")
     load_dotenv(PROJECT_ROOT / ".env.local")
 
-from agents import ADK_AVAILABLE, root_agent, run_orchestrator_flow
+from agents import (
+    ADK_AVAILABLE,
+    build_final_report,
+    researcher_agent,
+    root_agent,
+    run_orchestrator_flow,
+    run_screening,
+    screening_agent,
+    writer_agent,
+)
 from agents.language import normalize_language
 
 ADK_RUNTIME_IMPORT_ERROR: Optional[str] = None
@@ -238,6 +248,12 @@ def _coerce_json_dict(value: Any, nested_key: Optional[str] = None) -> Optional[
             loaded = json.loads(candidate)
         except Exception:
             loaded = None
+            match = re.search(r"\{[\s\S]*\}", candidate)
+            if match:
+                try:
+                    loaded = json.loads(match.group(0))
+                except Exception:
+                    loaded = None
         if isinstance(loaded, dict):
             parsed = loaded
 
@@ -248,6 +264,356 @@ def _coerce_json_dict(value: Any, nested_key: Optional[str] = None) -> Optional[
         return parsed[nested_key]
 
     return parsed
+
+
+def _extract_state_payload(state: Dict[str, Any], key: str) -> Dict[str, Any]:
+    """Read state payloads that may be stored as nested JSON strings by ADK."""
+    payload = _coerce_json_dict(state.get(key), nested_key=key)
+    return payload if isinstance(payload, dict) else {}
+
+
+def _recover_screening_payload_from_state(state: Dict[str, Any]) -> Dict[str, Any]:
+    for _, raw_value in state.items():
+        candidate = _coerce_json_dict(raw_value)
+        if not isinstance(candidate, dict):
+            continue
+
+        nested = candidate.get("screening_result")
+        if isinstance(nested, dict):
+            return nested
+
+        if isinstance(candidate.get("clinical"), dict) and isinstance(candidate.get("mechanism"), dict):
+            return candidate
+
+    return {}
+
+
+def _recover_research_payload_from_state(state: Dict[str, Any]) -> Dict[str, Any]:
+    for _, raw_value in state.items():
+        candidate = _coerce_json_dict(raw_value)
+        if not isinstance(candidate, dict):
+            continue
+
+        nested = candidate.get("research_result")
+        if isinstance(nested, dict):
+            return nested
+
+        if isinstance(candidate.get("compound_info"), dict) or isinstance(candidate.get("literature"), dict):
+            return candidate
+
+    return {}
+
+
+def _recover_final_report_from_state(state: Dict[str, Any]) -> Dict[str, Any]:
+    for _, raw_value in state.items():
+        candidate = _coerce_json_dict(raw_value)
+        if not isinstance(candidate, dict):
+            continue
+
+        nested = candidate.get("final_report")
+        if isinstance(nested, dict):
+            return nested
+
+        if isinstance(candidate.get("report_metadata"), dict) and isinstance(candidate.get("sections"), dict):
+            return candidate
+
+    return {}
+
+
+def _is_final_report_schema_complete(final_report: Dict[str, Any]) -> bool:
+    if not isinstance(final_report, dict) or not final_report:
+        return False
+
+    sections = final_report.get("sections")
+    if not isinstance(sections, dict) or not sections:
+        return False
+
+    clinical = sections.get("clinical_toxicity")
+    mechanism = sections.get("mechanism_toxicity")
+    structural = sections.get("structural_explanation")
+    recommendations = sections.get("recommendations")
+
+    if not isinstance(clinical, dict) or not isinstance(mechanism, dict) or not isinstance(structural, dict):
+        return False
+
+    # Frontend and report consumers depend on these canonical keys.
+    if "probability" not in clinical and "p_toxic" not in clinical:
+        return False
+    if "task_scores" not in mechanism:
+        return False
+
+    structural_payload: Dict[str, Any]
+    if isinstance(structural.get("data"), dict):
+        structural_payload = structural.get("data")
+    else:
+        structural_payload = structural
+
+    if not any(
+        key in structural_payload
+        for key in ("molecule_png_base64", "heatmap_base64", "top_atoms", "top_bonds")
+    ):
+        return False
+
+    if not isinstance(recommendations, list):
+        return False
+
+    return True
+
+
+def _screening_payload_has_structural_data(screening_payload: Dict[str, Any]) -> bool:
+    if not isinstance(screening_payload, dict):
+        return False
+
+    explanation = screening_payload.get("explanation")
+    if not isinstance(explanation, dict):
+        return False
+
+    return bool(
+        explanation.get("molecule_png_base64")
+        or explanation.get("heatmap_base64")
+        or explanation.get("top_atoms")
+        or explanation.get("top_bonds")
+    )
+
+
+def _final_report_missing_structural_images(final_report: Dict[str, Any]) -> bool:
+    if not isinstance(final_report, dict) or not final_report:
+        return True
+
+    sections = final_report.get("sections")
+    if not isinstance(sections, dict):
+        return True
+
+    structural = sections.get("structural_explanation")
+    if not isinstance(structural, dict):
+        return True
+
+    payload = structural.get("data") if isinstance(structural.get("data"), dict) else structural
+    return not bool(payload.get("molecule_png_base64") or payload.get("heatmap_base64"))
+
+
+def _is_vertex_model_not_found_error(exc: Exception) -> bool:
+    message = str(exc or "")
+    lowered = message.lower()
+    return (
+        "404" in lowered
+        and "not_found" in lowered
+        and "publishers/google/models" in lowered
+    )
+
+
+def _is_vertex_resource_exhausted_error(exc: Exception) -> bool:
+    message = str(exc or "")
+    lowered = message.lower()
+    return (
+        "429" in lowered
+        or "resource_exhausted" in lowered
+        or "rate exceeded" in lowered
+        or "quota" in lowered
+    )
+
+
+def _resolve_fast_fallback_model() -> str:
+    return (
+        os.getenv("AGENT_MODEL_FAST")
+        or os.getenv("GEMINI_MODEL")
+        or "gemini-2.5-flash"
+    ).strip()
+
+
+def _resolve_pro_fallback_model() -> str:
+    return (
+        os.getenv("AGENT_MODEL_PRO")
+        or "gemini-2.5-pro"
+    ).strip()
+
+
+def _resolve_quota_retry_model(current_model: Any) -> str:
+    current = str(current_model or "").strip().lower()
+    fast_model = _resolve_fast_fallback_model()
+    pro_model = _resolve_pro_fallback_model()
+
+    # Prefer cross-tier retry to escape per-model quota pressure.
+    if "flash" in current:
+        return pro_model
+    if "pro" in current:
+        return fast_model
+
+    if current and current == fast_model.lower():
+        return pro_model
+    if current and current == pro_model.lower():
+        return fast_model
+
+    return fast_model
+
+
+@contextmanager
+def _temporary_agent_model(agent: Any, model_name: str):
+    previous_model = getattr(agent, "model", None)
+    changed = False
+
+    requested = str(model_name or "").strip()
+    current = str(previous_model or "").strip()
+
+    if requested and requested.lower() != current.lower():
+        try:
+            setattr(agent, "model", requested)
+            changed = True
+        except Exception:
+            changed = False
+
+    try:
+        yield changed, previous_model
+    finally:
+        if changed:
+            try:
+                setattr(agent, "model", previous_model)
+            except Exception:
+                pass
+
+
+async def _read_adk_session_state_with_retry(
+    *,
+    app_name: str,
+    user_id: str,
+    session_id: str,
+    retries: int = 20,
+    delay_seconds: float = 0.25,
+) -> Dict[str, Any]:
+    last_state: Dict[str, Any] = {}
+
+    for attempt in range(retries):
+        try:
+            session = await adk_session_service.get_session(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=session_id,
+            )
+            state = getattr(session, "state", {}) if session is not None else {}
+            if not isinstance(state, dict):
+                state = {}
+        except Exception:
+            state = {}
+
+        last_state = state
+        final_report = _extract_state_payload(state, "final_report")
+        screening_payload = _extract_state_payload(state, "screening_result")
+        research_payload = _extract_state_payload(state, "research_result")
+
+        # Wait for either final report or enough intermediate payloads to rebuild.
+        if final_report or (screening_payload and research_payload) or attempt == retries - 1:
+            return state
+
+        await asyncio.sleep(delay_seconds)
+
+    return last_state
+
+
+async def _run_adk_agent_step(
+    *,
+    agent: Any,
+    user_id: str,
+    session_id: str,
+    message: Any,
+) -> None:
+    if Runner is None or adk_session_service is None:
+        return
+
+    step_runner = Runner(
+        agent=agent,
+        session_service=adk_session_service,
+        app_name=ADK_APP_NAME,
+    )
+
+    async def _run_with_runner(runner: Any) -> None:
+        async for _ in runner.run_async(
+            user_id=user_id,
+            session_id=session_id,
+            new_message=message,
+        ):
+            pass
+
+    try:
+        await _run_with_runner(step_runner)
+        return
+    except Exception as exc:
+        if "aclose(): asynchronous generator is already running" in str(exc):
+            logger.warning("ADK step stream-close race for %s: %s", getattr(agent, "name", "agent"), exc)
+            return
+
+        if _is_vertex_model_not_found_error(exc):
+            current_location = (
+                os.getenv("GEMINI_LOCATION")
+                or os.getenv("GOOGLE_CLOUD_LOCATION")
+                or ""
+            ).strip().lower()
+
+            if current_location != "global":
+                logger.warning(
+                    "ADK step model unavailable in location=%s for %s; retrying with global",
+                    current_location or "unset",
+                    getattr(agent, "name", "agent"),
+                )
+                os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
+                os.environ["GEMINI_LOCATION"] = "global"
+
+                retry_runner = Runner(
+                    agent=agent,
+                    session_service=adk_session_service,
+                    app_name=ADK_APP_NAME,
+                )
+                try:
+                    await _run_with_runner(retry_runner)
+                    return
+                except Exception as retry_exc:
+                    if "aclose(): asynchronous generator is already running" in str(retry_exc):
+                        logger.warning(
+                            "ADK step stream-close race for %s after global retry: %s",
+                            getattr(agent, "name", "agent"),
+                            retry_exc,
+                        )
+                    else:
+                        logger.warning(
+                            "ADK step failed for %s after global retry: %s",
+                            getattr(agent, "name", "agent"),
+                            retry_exc,
+                        )
+                    return
+
+        if _is_vertex_resource_exhausted_error(exc):
+            fallback_model = _resolve_quota_retry_model(getattr(agent, "model", None))
+            with _temporary_agent_model(agent, fallback_model) as (changed, previous_model):
+                if changed:
+                    logger.warning(
+                        "ADK step quota exhausted for %s with model=%s; retrying with model=%s",
+                        getattr(agent, "name", "agent"),
+                        previous_model,
+                        fallback_model,
+                    )
+                    retry_runner = Runner(
+                        agent=agent,
+                        session_service=adk_session_service,
+                        app_name=ADK_APP_NAME,
+                    )
+                    try:
+                        await _run_with_runner(retry_runner)
+                        return
+                    except Exception as retry_exc:
+                        if "aclose(): asynchronous generator is already running" in str(retry_exc):
+                            logger.warning(
+                                "ADK step stream-close race for %s after model retry: %s",
+                                getattr(agent, "name", "agent"),
+                                retry_exc,
+                            )
+                        else:
+                            logger.warning(
+                                "ADK step failed for %s after model retry: %s",
+                                getattr(agent, "name", "agent"),
+                                retry_exc,
+                            )
+                        return
+
+        logger.warning("ADK step failed for %s: %s", getattr(agent, "name", "agent"), exc)
 
 
 def _initialize_adk_runtime() -> None:
@@ -470,7 +836,7 @@ def _fallback_explanation(
     mol: Optional[Chem.Mol] = None,
 ) -> ToxicityExplanationOutput:
     task = target_task or "UNAVAILABLE_NO_TOX21_MODEL"
-    molecule_png_base64 = _render_molecule_png(mol) if mol is not None else None
+    molecule_png_base64 = _render_molecule_png(mol)
     return ToxicityExplanationOutput(
         target_task=task,
         target_task_score=0.0,
@@ -964,6 +1330,7 @@ async def analyze(req: AnalyzeRequest):
                 )
 
             heatmap_b64 = _render_explanation_heatmap(explain_result)
+            molecule_b64 = _render_molecule_png(mol) or heatmap_b64
             atom_importance = explain_result["atom_importance"]
             bond_importance = explain_result["bond_importance"]
 
@@ -1000,7 +1367,7 @@ async def analyze(req: AnalyzeRequest):
                 top_atoms=top_atoms[:10],
                 top_bonds=top_bonds[:10],
                 heatmap_base64=heatmap_b64,
-                molecule_png_base64=_render_molecule_png(mol),
+                molecule_png_base64=molecule_b64,
                 explainer_note=(
                     "Clinical GNNExplainer heatmap for SMILESGNN graph pathway; "
                     "red regions contribute more to the predicted clinical toxicity probability."
@@ -1081,7 +1448,7 @@ async def analyze(req: AnalyzeRequest):
                             top_atoms=top_atoms[:10],
                             top_bonds=top_bonds[:10],
                             heatmap_base64=heatmap_b64,
-                            molecule_png_base64=_render_molecule_png(mol),
+                            molecule_png_base64=_render_molecule_png(mol) or heatmap_b64,
                             explainer_note=(
                                 "Fallback Tox21 task-specific GNNExplainer because "
                                 "clinical explanation was unavailable for this request."
@@ -1270,9 +1637,12 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
     events: List[AgentEventRecord] = []
     final_text: Optional[str] = None
+    stream_close_race = False
+    force_adk_continuation = False
 
-    try:
-        async for event in adk_runner.run_async(
+    async def _consume_adk_events(runner: Any) -> None:
+        nonlocal final_text
+        async for event in runner.run_async(
             user_id=user_id,
             session_id=session_id,
             new_message=message,
@@ -1296,6 +1666,48 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
             if is_final and final_text is None and text_preview:
                 final_text = text_preview
+
+    async def _retry_root_with_fallback_model(reason: str) -> bool:
+        nonlocal final_text, stream_close_race
+
+        fallback_model = _resolve_quota_retry_model(getattr(root_agent, "model", None))
+        with _temporary_agent_model(root_agent, fallback_model) as (changed, previous_model):
+            if not changed:
+                return False
+
+            logger.warning(
+                "ADK root %s with model=%s; retrying with model=%s",
+                reason,
+                previous_model,
+                fallback_model,
+            )
+
+            retry_root_runner = Runner(
+                agent=root_agent,
+                session_service=adk_session_service,
+                app_name=ADK_APP_NAME,
+            )
+
+            events.clear()
+            final_text = None
+
+            try:
+                await _consume_adk_events(retry_root_runner)
+                return True
+            except Exception as retry_exc:
+                if "aclose(): asynchronous generator is already running" in str(retry_exc):
+                    logger.warning(
+                        "ADK root stream close race detected after model retry; proceeding: %s",
+                        retry_exc,
+                    )
+                    stream_close_race = True
+                    return True
+
+                logger.warning("ADK root failed after model retry: %s", retry_exc)
+                return False
+
+    try:
+        await _consume_adk_events(adk_runner)
     except Exception as exc:
         # ADK occasionally raises a stream-close race after finishing events.
         # In that case we continue and read session state instead of forcing fallback.
@@ -1304,19 +1716,79 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 "ADK stream close race detected; proceeding with session state read: %s",
                 exc,
             )
+            stream_close_race = True
+        elif _is_vertex_model_not_found_error(exc):
+            current_location = (
+                os.getenv("GEMINI_LOCATION")
+                or os.getenv("GOOGLE_CLOUD_LOCATION")
+                or ""
+            ).strip().lower()
+
+            if current_location != "global":
+                logger.warning(
+                    "ADK root model unavailable in location=%s; retrying root runner with global",
+                    current_location or "unset",
+                )
+                os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
+                os.environ["GEMINI_LOCATION"] = "global"
+
+                retry_root_runner = Runner(
+                    agent=root_agent,
+                    session_service=adk_session_service,
+                    app_name=ADK_APP_NAME,
+                )
+
+                events.clear()
+                final_text = None
+
+                try:
+                    await _consume_adk_events(retry_root_runner)
+                except Exception as retry_exc:
+                    if "aclose(): asynchronous generator is already running" in str(retry_exc):
+                        logger.warning(
+                            "ADK root stream close race detected after global retry; proceeding: %s",
+                            retry_exc,
+                        )
+                        stream_close_race = True
+                    else:
+                        if _is_vertex_resource_exhausted_error(retry_exc):
+                            model_retry_ok = await _retry_root_with_fallback_model(
+                                "quota exhausted after global retry"
+                            )
+                            if not model_retry_ok:
+                                logger.warning(
+                                    "ADK runtime failed after global+model retries, using deterministic fallback: %s",
+                                    retry_exc,
+                                )
+                                return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
+                        else:
+                            logger.warning("ADK runtime failed after global retry, using deterministic fallback: %s", retry_exc)
+                            return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
+            else:
+                logger.warning("ADK runtime failed with model unavailable in global location, using deterministic fallback: %s", exc)
+                return await _build_fallback_response(f"agent_runtime_error: {exc}")
+        elif _is_vertex_resource_exhausted_error(exc):
+            model_retry_ok = await _retry_root_with_fallback_model("quota exhausted")
+            if not model_retry_ok:
+                logger.warning(
+                    "ADK root quota-exhausted and model retry unavailable; forcing ADK step continuation path: %s",
+                    exc,
+                )
+                force_adk_continuation = True
         else:
             logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
             return await _build_fallback_response(f"agent_runtime_error: {exc}")
 
+    if stream_close_race:
+        # Give ADK session state time to flush after async stream-close race.
+        await asyncio.sleep(4.0)
+
     try:
-        session = await adk_session_service.get_session(
+        state = await _read_adk_session_state_with_retry(
             app_name=ADK_APP_NAME,
             user_id=user_id,
             session_id=session_id,
         )
-        state = getattr(session, "state", {}) if session is not None else {}
-        if not isinstance(state, dict):
-            state = {}
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -1326,33 +1798,168 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             },
         ) from exc
 
-    final_report = _coerce_json_dict(state.get("final_report"), nested_key="final_report") or {}
+    final_report = _extract_state_payload(state, "final_report")
 
     validation_status = state.get("validation_status")
     if validation_status is None:
-        validation_payload = _coerce_json_dict(
-            state.get("validation_result"),
-            nested_key="validation_result",
-        )
+        validation_payload = _extract_state_payload(state, "validation_result")
         if isinstance(validation_payload, dict):
             validation_status = validation_payload.get("validation_status")
+
+    if not final_report:
+        # Some model outputs place final report under a raw parsed object without nested key.
+        parsed_report = _coerce_json_dict(state.get("final_report"))
+        if isinstance(parsed_report, dict):
+            final_report = parsed_report
+
+    if not final_report:
+        final_report = _recover_final_report_from_state(state)
+
+    screening_payload = _extract_state_payload(state, "screening_result")
+    research_payload = _extract_state_payload(state, "research_result")
+
+    if not screening_payload:
+        screening_payload = _recover_screening_payload_from_state(state)
+    if not research_payload:
+        research_payload = _recover_research_payload_from_state(state)
+
+    if not screening_payload:
+        logger.warning("ADK screening payload missing from session state; hydrating via deterministic screening")
+        try:
+            hydrated = await asyncio.to_thread(
+                run_screening,
+                smiles,
+                language,
+                float(req.clinical_threshold),
+                float(req.mechanism_threshold),
+            )
+        except Exception as exc:
+            logger.warning("Deterministic screening hydration failed (missing payload): %s", exc)
+            hydrated = None
+
+        if isinstance(hydrated, dict):
+            hydrated_payload = _coerce_json_dict(
+                hydrated.get("screening_result"),
+                nested_key="screening_result",
+            ) or {}
+            if isinstance(hydrated_payload, dict) and hydrated_payload:
+                screening_payload = hydrated_payload
+
+    if screening_payload and not _screening_payload_has_structural_data(screening_payload):
+        logger.warning("ADK screening payload missing structural explanation; hydrating via deterministic screening")
+        try:
+            hydrated = await asyncio.to_thread(
+                run_screening,
+                smiles,
+                language,
+                float(req.clinical_threshold),
+                float(req.mechanism_threshold),
+            )
+        except Exception as exc:
+            logger.warning("Deterministic screening hydration failed: %s", exc)
+            hydrated = None
+
+        if isinstance(hydrated, dict):
+            hydrated_payload = _coerce_json_dict(
+                hydrated.get("screening_result"),
+                nested_key="screening_result",
+            ) or {}
+            if isinstance(hydrated_payload, dict) and hydrated_payload:
+                screening_payload = hydrated_payload
+
+    # ADK root orchestrator occasionally stops after validator with incomplete state.
+    # Continue remaining steps explicitly with ADK sub-agents to preserve LLM flow.
+    needs_adk_continuation = (
+        (str(validation_status or "").upper() == "VALID" or force_adk_continuation)
+        and (not screening_payload or not research_payload or not final_report)
+        and Runner is not None
+        and adk_session_service is not None
+    )
+    if needs_adk_continuation:
+        logger.warning("ADK continuation triggered due incomplete state after root orchestrator")
+        await _run_adk_agent_step(
+            agent=screening_agent,
+            user_id=user_id,
+            session_id=session_id,
+            message=message,
+        )
+        await _run_adk_agent_step(
+            agent=researcher_agent,
+            user_id=user_id,
+            session_id=session_id,
+            message=message,
+        )
+        await _run_adk_agent_step(
+            agent=writer_agent,
+            user_id=user_id,
+            session_id=session_id,
+            message=message,
+        )
+
+        state = await _read_adk_session_state_with_retry(
+            app_name=ADK_APP_NAME,
+            user_id=user_id,
+            session_id=session_id,
+        )
+
+        final_report = _extract_state_payload(state, "final_report")
+        if not final_report:
+            final_report = _recover_final_report_from_state(state)
+
+        screening_payload = _extract_state_payload(state, "screening_result")
+        research_payload = _extract_state_payload(state, "research_result")
+        if not screening_payload:
+            screening_payload = _recover_screening_payload_from_state(state)
+        if not research_payload:
+            research_payload = _recover_research_payload_from_state(state)
+
+    report_schema_complete = _is_final_report_schema_complete(final_report)
+    if (not final_report or not report_schema_complete) and screening_payload:
+        if not final_report:
+            logger.warning("ADK writer output missing/invalid; rebuilding final report from session state")
+        else:
+            logger.warning("ADK writer report schema mismatch; rebuilding final report from session state")
+
+        final_report = build_final_report(
+            smiles_input=smiles,
+            screening_result=screening_payload,
+            research_result=research_payload,
+            language=language,
+        )
+        if final_text is None:
+            rebuilt_summary = final_report.get("executive_summary")
+            if isinstance(rebuilt_summary, str) and rebuilt_summary:
+                final_text = rebuilt_summary
+
+    if final_report and screening_payload and _final_report_missing_structural_images(final_report):
+        logger.warning("ADK final report missing structural images; rebuilding from hydrated screening payload")
+        final_report = build_final_report(
+            smiles_input=smiles,
+            screening_result=screening_payload,
+            research_result=research_payload,
+            language=language,
+        )
+        if final_text is None:
+            rebuilt_summary = final_report.get("executive_summary")
+            if isinstance(rebuilt_summary, str) and rebuilt_summary:
+                final_text = rebuilt_summary
 
     if final_text is None and isinstance(final_report, dict):
         summary = final_report.get("executive_summary")
         if isinstance(summary, str) and summary:
             final_text = summary
 
-    report_has_sections = isinstance(final_report.get("sections"), dict) if isinstance(final_report, dict) else False
-    validation_is_valid = str(validation_status).upper() == "VALID" if validation_status is not None else False
-    if not report_has_sections or not validation_is_valid:
+    report_has_payload = isinstance(final_report, dict) and bool(final_report)
+    if not report_has_payload:
         logger.warning(
-            "ADK session state incomplete, switching to deterministic fallback "
-            "(validation_status=%s, has_sections=%s)",
+            "ADK session state incomplete; switching to deterministic full-pipeline fallback "
+            "(validation_status=%s, has_payload=%s, state_keys=%s)",
             validation_status,
-            report_has_sections,
+            report_has_payload,
+            sorted(state.keys()),
         )
         return await _build_fallback_response(
-            f"adk_state_incomplete: validation_status={validation_status}, has_sections={report_has_sections}"
+            f"adk_state_incomplete: validation_status={validation_status}, has_payload={report_has_payload}"
         )
 
     return AgentAnalyzeResponse(

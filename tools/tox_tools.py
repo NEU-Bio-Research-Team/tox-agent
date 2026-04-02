@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import os
 import time
+import inspect
+from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlparse
 from typing import Any, Dict, List
 
 import httpx
@@ -34,6 +37,25 @@ MODEL_SERVER_URL = os.getenv(
 MODEL_SERVER_TIMEOUT = _get_env_float("MODEL_SERVER_TIMEOUT", 30.0)
 MODEL_SERVER_HEALTH_TIMEOUT = _get_env_float("MODEL_SERVER_HEALTH_TIMEOUT", 12.0)
 BATCH_TIMEOUT = max(MODEL_SERVER_TIMEOUT * 4.0, 120.0)
+
+
+def _is_local_model_server_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False
+
+    hostname = (parsed.hostname or "").lower()
+    return hostname in {"127.0.0.1", "localhost", "::1"}
+
+
+def _should_use_direct_model_server_call() -> bool:
+    override = os.getenv("TOX_AGENT_DIRECT_ANALYZE")
+    if override is not None:
+        return override.strip().lower() not in {"0", "false", "no", "off"}
+    # Prefer the in-process route by default to avoid self-call loops when the
+    # app's own public URL is stored in MODEL_SERVER_URL.
+    return True
 
 
 def validate_smiles(smiles: str) -> Dict[str, Any]:
@@ -116,6 +138,42 @@ def analyze_molecule(
             "smiles": smiles,
             "final_verdict": "ANALYSIS_FAILED",
         }
+
+    if _should_use_direct_model_server_call():
+        try:
+            from model_server.main import analyze as analyze_route
+            from model_server.schemas import AnalyzeRequest
+            import asyncio
+
+            request = AnalyzeRequest(
+                smiles=smiles,
+                clinical_threshold=float(clinical_threshold),
+                mechanism_threshold=float(mechanism_threshold),
+                explain_only_if_alert=False,
+            )
+
+            if inspect.iscoroutinefunction(analyze_route):
+                def _run_async_route() -> Any:
+                    return asyncio.run(analyze_route(request))
+
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    response = executor.submit(_run_async_route).result(timeout=MODEL_SERVER_TIMEOUT)
+            else:
+                response = analyze_route(request)
+
+            if hasattr(response, "model_dump"):
+                data = response.model_dump()
+            elif isinstance(response, dict):
+                data = response
+            else:
+                data = None
+
+            if isinstance(data, dict):
+                data.setdefault("error", None)
+                return data
+        except Exception:
+            # Fall back to HTTP below if the in-process path is unavailable.
+            pass
 
     try:
         response = httpx.post(
