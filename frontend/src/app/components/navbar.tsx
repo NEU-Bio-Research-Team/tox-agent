@@ -5,6 +5,14 @@ import { Link } from 'react-router';
 import logoImage from '../../assets/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
 
 const REPO_URL = 'https://github.com/NEU-Bio-Research-Team/tox-agent';
+const BUILD_LABEL = `${__APP_VERSION__} • ${new Date(__APP_BUILD_TIME__).toLocaleString('en-GB', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+})} UTC`;
 
 export function Navbar() {
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
@@ -26,9 +34,22 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 border-b backdrop-blur-xl bg-[var(--bg)]/80" style={{ borderColor: 'var(--border)' }}>
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo and App Name */}
-        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <img src={logoImage} alt="ToxAgent Logo" className="h-8" />
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img src={logoImage} alt="ToxAgent Logo" className="h-8" />
+          </Link>
+          <div
+            className="hidden sm:inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide uppercase"
+            style={{
+              borderColor: 'var(--border)',
+              color: 'var(--text-muted)',
+              backgroundColor: 'color-mix(in srgb, var(--surface) 82%, transparent)',
+            }}
+            title={BUILD_LABEL}
+          >
+            {BUILD_LABEL}
+          </div>
+        </div>
 
         {/* Nav Links */}
         <div className="flex items-center gap-6">
