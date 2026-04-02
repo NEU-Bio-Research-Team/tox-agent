@@ -254,6 +254,37 @@ def _build_llm_prompt(
     )
 
 
+def _build_genai_client() -> Tuple[Optional[Any], str]:
+    """Create a genai client using API key if present, otherwise Vertex AI ADC."""
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if api_key:
+        try:
+            return genai.Client(api_key=api_key), "api_key"
+        except Exception as exc:
+            return None, f"api_key_client_error:{type(exc).__name__}"
+
+    project = (
+        os.getenv("GOOGLE_CLOUD_PROJECT")
+        or os.getenv("GCLOUD_PROJECT")
+        or os.getenv("GCP_PROJECT")
+    )
+    if not project:
+        return None, "missing_project_for_vertexai"
+
+    location = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("GOOGLE_CLOUD_REGION") or "us-central1"
+    try:
+        return (
+            genai.Client(
+                vertexai=True,
+                project=project,
+                location=location,
+            ),
+            "vertex_adc",
+        )
+    except Exception as exc:
+        return None, f"vertex_client_error:{type(exc).__name__}"
+
+
 def _maybe_llm_recommendations(
     language: str,
     risk_level: str,
@@ -268,12 +299,11 @@ def _maybe_llm_recommendations(
     if genai is None:
         return [], "google_genai_not_available"
 
-    try:
-        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            return [], "missing_gemini_api_key"
+    client, auth_mode = _build_genai_client()
+    if client is None:
+        return [], auth_mode
 
-        client = genai.Client(api_key=api_key)
+    try:
         response = client.models.generate_content(
             model=WRITER_MODEL,
             contents=_build_llm_prompt(
@@ -297,9 +327,9 @@ def _maybe_llm_recommendations(
         if not parsed:
             return [], "llm_parse_failed"
 
-        return parsed, "llm_success"
+        return parsed, f"llm_success:{auth_mode}"
     except Exception as exc:
-        return [], f"llm_error:{type(exc).__name__}"
+        return [], f"llm_error:{type(exc).__name__}:{auth_mode}"
 
 
 def _build_recommendations(

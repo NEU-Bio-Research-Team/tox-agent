@@ -3,7 +3,8 @@
 #
 # These variables are applied to Cloud Run service tox-agent-cpu by default.
 
-GOOGLE_API_KEY: "AIza..."
+# Optional. Leave empty to use Vertex AI ADC via Cloud Run service account.
+GOOGLE_API_KEY: ""
 PUBMED_API_KEY: ""
 
 # Optional model overrides. Keep defaults unless you need different models.
@@ -11,7 +12,8 @@ AGENT_MODEL_FAST: "gemini-2.5-flash"
 AGENT_MODEL_PRO: "gemini-2.5-pro"
 GEMINI_MODEL: "gemini-2.5-flash"
 
-# Use Vertex AI billing path (project/service-account auth) instead of AI Studio key flow.
+# Default path: Vertex AI billing via service-account auth (ADC).
+# Ensure the Cloud Run service account has roles/aiplatform.user.
 GOOGLE_GENAI_USE_VERTEXAI: "true"
 GOOGLE_CLOUD_PROJECT: "tox-agent"
 GOOGLE_CLOUD_LOCATION: "asia-southeast1"
