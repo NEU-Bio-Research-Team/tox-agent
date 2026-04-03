@@ -430,6 +430,69 @@ def visualize_explanation(
         return rgba[0], rgba[1], rgba[2]
 
     if not draw_backend_available:
+        try:
+            from rdkit.Chem import Draw
+
+            atom_colors_A = {
+                i: _importance_to_rgb(imp)
+                for i, imp in enumerate(atom_imp)
+            }
+            img_A = Draw.MolToImage(
+                mol,
+                size=(500, 400),
+                highlightAtoms=list(atom_colors_A.keys()),
+                highlightAtomColors=atom_colors_A,
+            )
+
+            bond_colors_B = {
+                k: _importance_to_rgb(imp)
+                for k, imp in enumerate(bond_imp)
+            }
+            atom_colors_B = {}
+            for atom in mol.GetAtoms():
+                i = atom.GetIdx()
+                adj_bond_imps = [bond_imp[b.GetIdx()] for b in atom.GetBonds()]
+                max_imp = max(adj_bond_imps) if adj_bond_imps else 0.0
+                atom_colors_B[i] = _importance_to_rgb(max_imp)
+
+            img_B = Draw.MolToImage(
+                mol,
+                size=(500, 400),
+                highlightAtoms=list(atom_colors_B.keys()),
+                highlightAtomColors=atom_colors_B,
+                highlightBonds=list(bond_colors_B.keys()),
+                highlightBondColors=bond_colors_B,
+            )
+
+            fig, axes = plt.subplots(1, 2, figsize=figsize)
+            axes[0].imshow(img_A)
+            axes[0].axis("off")
+            axes[0].set_title("Atom importance\n(red = drives prediction)", fontsize=11)
+
+            axes[1].imshow(img_B)
+            axes[1].axis("off")
+            axes[1].set_title("Bond importance\n(red = drives prediction)", fontsize=11)
+
+            true_str = f"True: {'Toxic' if true_label == 1 else 'Non-toxic'}" if true_label is not None else ""
+            pred_str = f"Predicted: {'Toxic' if pred_cls == 1 else 'Non-toxic'} (P={prob:.3f})"
+            fig.suptitle(f"{smiles}\n{pred_str}   {true_str}", fontsize=10, y=1.01)
+
+            sm = plt.cm.ScalarMappable(cmap="RdYlGn_r", norm=mcolors.Normalize(0, 1))
+            cbar = fig.colorbar(sm, ax=axes, fraction=0.03, pad=0.04)
+            cbar.set_label("Importance", fontsize=9)
+
+            plt.tight_layout()
+            if save_path:
+                plt.savefig(save_path, dpi=150, bbox_inches="tight")
+                plt.close()
+                print(f"Saved -> {save_path}")
+            else:
+                plt.show()
+            return
+        except Exception:
+            # Keep a deterministic fallback even when molecule rendering backends are unavailable.
+            pass
+
         fig, axes = plt.subplots(1, 2, figsize=figsize)
 
         axes[0].bar(range(len(atom_imp)), atom_imp, color="tomato", alpha=0.8)

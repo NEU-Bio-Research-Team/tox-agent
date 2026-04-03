@@ -4,7 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "dist",
+    "public": "frontend/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -41,6 +41,13 @@
       },
       {
         "source": "/analyze",
+        "run": {
+          "serviceId": "tox-agent-cpu",
+          "region": "asia-southeast1"
+        }
+      },
+      {
+        "source": "/agent/**",
         "run": {
           "serviceId": "tox-agent-cpu",
           "region": "asia-southeast1"
