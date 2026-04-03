@@ -33,7 +33,7 @@ WORKDIR /app
 # System dependencies for RDKit and PyTorch Geometric
 # Thêm curl để health probe từ bên ngoài container
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ libxrender1 libxext6 curl \
+    gcc g++ libxrender1 libxext6 libcairo2 libfontconfig1 libfreetype6 curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy XSmiles source (entire project, since model_server import src/)

@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import os
 import time
-import inspect
-from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 from typing import Any, Dict, List
 
@@ -141,32 +139,14 @@ def analyze_molecule(
 
     if _should_use_direct_model_server_call():
         try:
-            from model_server.main import analyze as analyze_route
-            from model_server.schemas import AnalyzeRequest
-            import asyncio
+            from model_server.main import analyze_molecule_sync
 
-            request = AnalyzeRequest(
+            data = analyze_molecule_sync(
                 smiles=smiles,
                 clinical_threshold=float(clinical_threshold),
                 mechanism_threshold=float(mechanism_threshold),
                 explain_only_if_alert=False,
             )
-
-            if inspect.iscoroutinefunction(analyze_route):
-                def _run_async_route() -> Any:
-                    return asyncio.run(analyze_route(request))
-
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    response = executor.submit(_run_async_route).result(timeout=MODEL_SERVER_TIMEOUT)
-            else:
-                response = analyze_route(request)
-
-            if hasattr(response, "model_dump"):
-                data = response.model_dump()
-            elif isinstance(response, dict):
-                data = response
-            else:
-                data = None
 
             if isinstance(data, dict):
                 data.setdefault("error", None)

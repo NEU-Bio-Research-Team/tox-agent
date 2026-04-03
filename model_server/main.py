@@ -20,7 +20,9 @@ import json
 import logging
 import os
 import re
+import threading
 import uuid
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any, Dict, List, Optional, Tuple
@@ -52,7 +54,6 @@ from agents import (
     researcher_agent,
     root_agent,
     run_orchestrator_flow,
-    run_screening,
     screening_agent,
     writer_agent,
 )
@@ -196,8 +197,135 @@ def _load_optional_json_metrics(path: Path) -> Dict[str, float]:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("model_server")
 
-# Lifespan: load model once at startup
-model_state = {}
+# Runtime state (models are loaded lazily on first real request/health probe).
+model_state: Dict[str, Any] = {}
+_model_init_lock = asyncio.Lock()
+_model_init_lock_sync = threading.Lock()
+
+
+def _clear_loaded_models() -> None:
+    for key in (
+        "model",
+        "tokenizer",
+        "wrapped",
+        "tox21_model",
+        "tox21_tasks",
+        "tox21_thresholds",
+        "tox21_thresholds_source",
+        "clinical_reference_metrics",
+    ):
+        model_state.pop(key, None)
+
+
+def _initialize_runtime_state() -> None:
+    if "model_lock" not in model_state:
+        model_state["model_lock"] = asyncio.Lock()
+    if "model_lock_sync" not in model_state:
+        model_state["model_lock_sync"] = threading.Lock()
+
+    model_state.setdefault("startup_errors", {})
+    model_state.setdefault("clinical_reference_metrics", {})
+    model_state.setdefault("models_loaded", False)
+
+
+def _load_all_models_sync() -> None:
+    """Load all required models synchronously; guarded by outer init locks."""
+    _initialize_runtime_state()
+    _clear_loaded_models()
+
+    startup_errors = model_state.setdefault("startup_errors", {})
+    startup_errors.clear()
+
+    logger.info(
+        "Lazy-loading production models on %s (workspace_mode=%s, clintox_enabled=%s, tox21_enabled=%s)...",
+        DEVICE,
+        WORKSPACE_MODE_NAME,
+        CLINTOX_ENABLED,
+        TOX21_ENABLED,
+    )
+
+    if XSMILES_LOAD_REQUESTED:
+        try:
+            model, tokenizer, wrapped_model = load_model(
+                MODEL_DIR,
+                CONFIG_PATH,
+                DEVICE,
+                enforce_workspace_mode=False,
+            )
+            model_state["model"] = model
+            model_state["tokenizer"] = tokenizer
+            model_state["wrapped"] = wrapped_model
+
+            clinical_reference_metrics = _load_clinical_reference_metrics(CLINICAL_METRICS_PATH)
+            clinical_reference_metrics.update(
+                _load_optional_json_metrics(CLINICAL_THRESHOLD_METRICS_PATH)
+            )
+            model_state["clinical_reference_metrics"] = clinical_reference_metrics
+        except Exception as exc:
+            msg = f"{type(exc).__name__}: {exc}"
+            startup_errors["xsmiles"] = msg
+            logger.warning("XSmiles model load FAILED: %s", msg)
+    else:
+        logger.info(
+            "Skipping XSmiles model load because clintox_enabled=false and model dir is absent"
+        )
+
+    if TOX21_ENABLED:
+        try:
+            tox21_model, tox21_tasks = load_tox21_gatv2_model(
+                model_dir=TOX21_MODEL_DIR,
+                config_path=TOX21_CONFIG_PATH,
+                device=DEVICE,
+            )
+            task_thresholds, task_threshold_source = _load_tox21_thresholds()
+            model_state["tox21_model"] = tox21_model
+            model_state["tox21_tasks"] = tox21_tasks
+            model_state["tox21_thresholds"] = task_thresholds
+            model_state["tox21_thresholds_source"] = task_threshold_source
+        except Exception as exc:
+            msg = f"{type(exc).__name__}: {exc}"
+            startup_errors["tox21"] = msg
+            logger.warning("Tox21 model load FAILED: %s", msg)
+    else:
+        logger.info("Skipping Tox21 model load because tox21_enabled=false")
+
+    model_state["models_loaded"] = _required_models_ready()
+    if model_state["models_loaded"]:
+        logger.info("Production models loaded successfully.")
+    else:
+        logger.warning(
+            "Model server running in degraded mode after lazy load. startup_errors=%s",
+            _startup_errors(),
+        )
+
+
+def _ensure_models_loaded_sync() -> None:
+    _initialize_runtime_state()
+    if model_state.get("models_loaded"):
+        return
+
+    with _model_init_lock_sync:
+        if model_state.get("models_loaded"):
+            return
+
+        try:
+            _load_all_models_sync()
+        except Exception as exc:
+            msg = f"{type(exc).__name__}: {exc}"
+            model_state.setdefault("startup_errors", {})["model_bootstrap"] = msg
+            model_state["models_loaded"] = False
+            logger.exception("Unexpected model bootstrap failure: %s", msg)
+
+
+async def _ensure_models_loaded() -> None:
+    _initialize_runtime_state()
+    if model_state.get("models_loaded"):
+        return
+
+    async with _model_init_lock:
+        if model_state.get("models_loaded"):
+            return
+        await asyncio.to_thread(_ensure_models_loaded_sync)
 
 
 def _safe_model_dump(value: Any) -> Dict[str, Any]:
@@ -368,12 +496,36 @@ def _screening_payload_has_structural_data(screening_payload: Dict[str, Any]) ->
     if not isinstance(explanation, dict):
         return False
 
-    return bool(
-        explanation.get("molecule_png_base64")
-        or explanation.get("heatmap_base64")
-        or explanation.get("top_atoms")
-        or explanation.get("top_bonds")
-    )
+    # Structural section is considered complete only when image payload exists.
+    return bool(explanation.get("molecule_png_base64") or explanation.get("heatmap_base64"))
+
+
+def _extract_explanation_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+
+    explanation = payload.get("explanation")
+    if isinstance(explanation, dict):
+        return explanation
+
+    if payload.get("heatmap_base64") or payload.get("molecule_png_base64"):
+        return payload
+
+    return {}
+
+
+def _merge_explanation_into_screening(
+    screening_payload: Dict[str, Any],
+    explanation_payload: Dict[str, Any],
+) -> Dict[str, Any]:
+    if not isinstance(screening_payload, dict):
+        return screening_payload
+    if not isinstance(explanation_payload, dict) or not explanation_payload:
+        return screening_payload
+
+    merged = dict(screening_payload)
+    merged["explanation"] = explanation_payload
+    return merged
 
 
 def _final_report_missing_structural_images(final_report: Dict[str, Any]) -> bool:
@@ -852,69 +1004,16 @@ def _fallback_explanation(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(
-        "Loading production models on %s (workspace_mode=%s, clintox_enabled=%s, tox21_enabled=%s)...",
+        "Initializing model server runtime on %s (workspace_mode=%s, clintox_enabled=%s, tox21_enabled=%s). Lazy model loading is enabled.",
         DEVICE,
         WORKSPACE_MODE_NAME,
         CLINTOX_ENABLED,
         TOX21_ENABLED,
     )
 
-    model_state["model_lock"] = asyncio.Lock()
-    model_state["startup_errors"] = {}
-
-    if XSMILES_LOAD_REQUESTED:
-        try:
-            model, tokenizer, wrapped_model = load_model(
-                MODEL_DIR,
-                CONFIG_PATH,
-                DEVICE,
-                enforce_workspace_mode=False,
-            )
-            model_state["model"] = model
-            model_state["tokenizer"] = tokenizer
-            model_state["wrapped"] = wrapped_model
-            clinical_reference_metrics = _load_clinical_reference_metrics(CLINICAL_METRICS_PATH)
-            clinical_reference_metrics.update(
-                _load_optional_json_metrics(CLINICAL_THRESHOLD_METRICS_PATH)
-            )
-            model_state["clinical_reference_metrics"] = clinical_reference_metrics
-        except Exception as e:
-            msg = f"{type(e).__name__}: {e}"
-            model_state["startup_errors"]["xsmiles"] = msg
-            logger.warning("XSmiles model load FAILED: %s", msg)
-    else:
-        logger.info(
-            "Skipping XSmiles model load because clintox_enabled=false and model dir is absent"
-        )
-
-    if TOX21_ENABLED:
-        try:
-            tox21_model, tox21_tasks = load_tox21_gatv2_model(
-                model_dir=TOX21_MODEL_DIR,
-                config_path=TOX21_CONFIG_PATH,
-                device=DEVICE,
-            )
-            task_thresholds, task_threshold_source = _load_tox21_thresholds()
-            model_state["tox21_model"] = tox21_model
-            model_state["tox21_tasks"] = tox21_tasks
-            model_state["tox21_thresholds"] = task_thresholds
-            model_state["tox21_thresholds_source"] = task_threshold_source
-        except Exception as e:
-            msg = f"{type(e).__name__}: {e}"
-            model_state["startup_errors"]["tox21"] = msg
-            logger.warning("Tox21 model load FAILED: %s", msg)
-    else:
-        logger.info("Skipping Tox21 model load because tox21_enabled=false")
-
+    _initialize_runtime_state()
     _initialize_adk_runtime()
 
-    if _required_models_ready():
-        logger.info("Production models loaded successfully.")
-    else:
-        logger.warning(
-            "Model server started in degraded mode. startup_errors=%s",
-            _startup_errors(),
-        )
     yield
     model_state.clear()
 
@@ -961,6 +1060,14 @@ def _model_lock() -> asyncio.Lock:
     return lock
 
 
+def _model_lock_sync() -> threading.Lock:
+    lock = model_state.get("model_lock_sync")
+    if lock is None:
+        lock = threading.Lock()
+        model_state["model_lock_sync"] = lock
+    return lock
+
+
 def _explainer_timeout_error(smiles: str, timeout_ms: int) -> HTTPException:
     return HTTPException(
         status_code=504,
@@ -972,8 +1079,25 @@ def _explainer_timeout_error(smiles: str, timeout_ms: int) -> HTTPException:
         },
     )
 
+
+def _run_with_timeout_sync(fn: Any, timeout_ms: int, *args: Any, **kwargs: Any) -> Any:
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(fn, *args, **kwargs)
+        try:
+            return future.result(timeout=float(timeout_ms) / 1000.0)
+        except FuturesTimeoutError as exc:
+            future.cancel()
+            raise TimeoutError("explainer_timeout") from exc
+
 # Health Check
 async def health():
+    try:
+        await _ensure_models_loaded()
+    except Exception as exc:
+        msg = f"{type(exc).__name__}: {exc}"
+        model_state.setdefault("startup_errors", {})["model_bootstrap"] = msg
+        logger.warning("Lazy model loading failed in /health: %s", msg)
+
     xsmiles_ready = _xsmiles_ready()
     tox21_ready = _tox21_ready()
     model_ready = _required_models_ready()
@@ -1026,7 +1150,11 @@ def _render_molecule_png(
     mol: Chem.Mol,
     size: Tuple[int, int] = (800, 420),
 ) -> Optional[str]:
-    """Render plain molecule structure as base64 PNG for UI fallback."""
+    """Render plain molecule structure as base64 PNG.
+
+    This should remain independent from attribution heatmap rendering so UI can
+    always distinguish plain structure vs explainer visualization.
+    """
     try:
         # Import lazily so missing optional shared libs do not break server startup.
         from rdkit.Chem import Draw
@@ -1036,6 +1164,18 @@ def _render_molecule_png(
         image.save(buf, format="PNG")
         buf.seek(0)
         return base64.b64encode(buf.read()).decode("utf-8")
+    except Exception:
+        pass
+
+    # Fallback path that does not rely on PIL-backed MolToImage.
+    try:
+        from rdkit.Chem.Draw import rdMolDraw2D
+
+        width, height = int(size[0]), int(size[1])
+        drawer = rdMolDraw2D.MolDraw2DCairo(width, height)
+        rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol)
+        drawer.FinishDrawing()
+        return base64.b64encode(drawer.GetDrawingText()).decode("utf-8")
     except Exception:
         return None
 
@@ -1047,6 +1187,7 @@ if AIP_HEALTH_ROUTE != "/health":
 @app.post("/predict", response_model=PredictResponse)
 async def predict(req: PredictRequest):
     """Predict clinical toxicity for a single SMILES molecule"""
+    await _ensure_models_loaded()
     _ensure_xsmiles_available()
     
     smiles = req.smiles.strip()
@@ -1103,6 +1244,7 @@ if AIP_PREDICT_ROUTE != "/predict":
 @app.post("/predict/batch", response_model=BatchPredictResponse)
 async def predict_batch_endpoint(req: BatchPredictRequest):
     """Predict clinical toxicity for a list of SMILES molecules."""
+    await _ensure_models_loaded()
     _ensure_xsmiles_available()
     
     if len(req.smiles_list) > 500:
@@ -1161,6 +1303,7 @@ async def explain(req: ExplainRequest):
     This is a known limitation documented in XSmiles README. 
     Use /predict for final label; use /explain only for structural attribution.
     """
+    await _ensure_models_loaded()
     _ensure_xsmiles_available()
     
     smiles = req.smiles.strip()
@@ -1252,14 +1395,9 @@ async def explain(req: ExplainRequest):
     )
 
 
-@app.post("/analyze", response_model=AnalyzeResponse)
-async def analyze(req: AnalyzeRequest):
-    """
-    Unified production endpoint with three outputs for one SMILES:
-      1) Toxic / Non-toxic from XSmiles (clinical)
-      2) Type of toxicity from GATv2 (Tox21 tasks)
-      3) Toxicity explainer from GNNExplainer (task-specific)
-    """
+def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
+    """Synchronous core analyze implementation used by both API and in-process tools."""
+    _ensure_models_loaded_sync()
     _ensure_xsmiles_available()
     tox21_available = TOX21_ENABLED and _tox21_ready()
 
@@ -1271,7 +1409,7 @@ async def analyze(req: AnalyzeRequest):
     ood_assessment_raw = check_ood_risk(canonical)
 
     try:
-        async with _model_lock():
+        with _model_lock_sync():
             clinical_raw = predict_clinical_toxicity(
                 smiles=smiles,
                 tokenizer=model_state["tokenizer"],
@@ -1293,8 +1431,8 @@ async def analyze(req: AnalyzeRequest):
                 )
             else:
                 mechanism_raw = _fallback_mechanism_result(req.mechanism_threshold)
-    except Exception as e:
-        raise HTTPException(500, f"Unified inference error: {str(e)}")
+    except Exception as exc:
+        raise HTTPException(500, f"Unified inference error: {str(exc)}")
 
     final_verdict = aggregate_toxicity_verdict(
         clinical_is_toxic=bool(clinical_raw["is_toxic"]),
@@ -1307,30 +1445,27 @@ async def analyze(req: AnalyzeRequest):
         should_explain = False
 
     if should_explain:
-        # Priority 1: clinical heatmap from the SMILESGNN branch (matches script-style plot).
         try:
             clinical_target_class = 1 if bool(clinical_raw["is_toxic"]) else 0
             clinical_pyg_data = smiles_to_pyg_data(smiles, label=clinical_target_class)
             if clinical_pyg_data is None:
                 raise ValueError(f"Unable to featurize SMILES for explanation: {smiles}")
 
-            async with _model_lock():
-                explain_result = await asyncio.wait_for(
-                    asyncio.to_thread(
-                        explain_molecule,
-                        smiles,
-                        model_state["model"],
-                        model_state["tokenizer"],
-                        clinical_pyg_data,
-                        "cpu",
-                        req.explainer_epochs,
-                        clinical_target_class,
-                    ),
-                    timeout=float(req.explainer_timeout_ms) / 1000.0,
+            with _model_lock_sync():
+                explain_result = _run_with_timeout_sync(
+                    explain_molecule,
+                    req.explainer_timeout_ms,
+                    smiles,
+                    model_state["model"],
+                    model_state["tokenizer"],
+                    clinical_pyg_data,
+                    "cpu",
+                    req.explainer_epochs,
+                    clinical_target_class,
                 )
 
             heatmap_b64 = _render_explanation_heatmap(explain_result)
-            molecule_b64 = _render_molecule_png(mol) or heatmap_b64
+            molecule_b64 = _render_molecule_png(mol)
             atom_importance = explain_result["atom_importance"]
             bond_importance = explain_result["bond_importance"]
 
@@ -1373,18 +1508,14 @@ async def analyze(req: AnalyzeRequest):
                     "red regions contribute more to the predicted clinical toxicity probability."
                 ),
             )
-        except asyncio.TimeoutError:
-            raise _explainer_timeout_error(
-                smiles=smiles,
-                timeout_ms=req.explainer_timeout_ms,
-            )
+        except TimeoutError:
+            raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
         except Exception as clinical_exc:
             logger.warning(
                 "Clinical explanation failed; falling back to tox21 task explainer: %s",
                 clinical_exc,
             )
 
-        # Priority 2 fallback: tox21 task-specific explanation if clinical path fails.
         if explanation_payload is None:
             target_task = req.target_task or str(mechanism_raw["highest_risk_task"])
             if target_task == "—":
@@ -1396,19 +1527,17 @@ async def analyze(req: AnalyzeRequest):
                     explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
                 else:
                     try:
-                        async with _model_lock():
-                            explain_result = await asyncio.wait_for(
-                                asyncio.to_thread(
-                                    explain_tox21_task,
-                                    smiles,
-                                    model_state["tox21_model"],
-                                    model_state["tox21_tasks"],
-                                    target_task,
-                                    "cpu",
-                                    req.explainer_epochs,
-                                    req.mechanism_threshold,
-                                ),
-                                timeout=float(req.explainer_timeout_ms) / 1000.0,
+                        with _model_lock_sync():
+                            explain_result = _run_with_timeout_sync(
+                                explain_tox21_task,
+                                req.explainer_timeout_ms,
+                                smiles,
+                                model_state["tox21_model"],
+                                model_state["tox21_tasks"],
+                                target_task,
+                                "cpu",
+                                req.explainer_epochs,
+                                req.mechanism_threshold,
                             )
                         heatmap_b64 = _render_explanation_heatmap(explain_result)
 
@@ -1448,21 +1577,17 @@ async def analyze(req: AnalyzeRequest):
                             top_atoms=top_atoms[:10],
                             top_bonds=top_bonds[:10],
                             heatmap_base64=heatmap_b64,
-                            molecule_png_base64=_render_molecule_png(mol) or heatmap_b64,
+                            molecule_png_base64=_render_molecule_png(mol),
                             explainer_note=(
                                 "Fallback Tox21 task-specific GNNExplainer because "
                                 "clinical explanation was unavailable for this request."
                             ),
                         )
-                    except asyncio.TimeoutError:
-                        raise _explainer_timeout_error(
-                            smiles=smiles,
-                            timeout_ms=req.explainer_timeout_ms,
-                        )
-                    except Exception as e:
-                        raise HTTPException(500, f"Task-level explanation error: {str(e)}")
+                    except TimeoutError:
+                        raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
+                    except Exception as exc:
+                        raise HTTPException(500, f"Task-level explanation error: {str(exc)}")
 
-    # Always return the full 12-task map to keep API outputs stable and complete.
     mechanism_scores = dict(mechanism_raw["task_scores"])
 
     clinical_output = ClinicalToxicityOutput(
@@ -1521,6 +1646,90 @@ async def analyze(req: AnalyzeRequest):
         inference_context=inference_context,
         final_verdict=final_verdict,
     )
+
+
+def analyze_molecule_sync(
+    smiles: str,
+    clinical_threshold: float = 0.35,
+    mechanism_threshold: float = 0.5,
+    explain_only_if_alert: bool = False,
+    explainer_epochs: int = 200,
+    explainer_timeout_ms: int = 30000,
+    target_task: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Sync in-process entrypoint used by tool calls to avoid asyncio event-loop crossovers."""
+    try:
+        req = AnalyzeRequest(
+            smiles=smiles,
+            clinical_threshold=float(clinical_threshold),
+            mechanism_threshold=float(mechanism_threshold),
+            explain_only_if_alert=bool(explain_only_if_alert),
+            explainer_epochs=int(explainer_epochs),
+            explainer_timeout_ms=int(explainer_timeout_ms),
+            target_task=target_task,
+            return_all_scores=True,
+        )
+        response = _analyze_request_sync(req)
+        return response.model_dump()
+    except HTTPException as exc:
+        detail = exc.detail
+        if isinstance(detail, dict):
+            err = detail.get("error") or detail.get("message") or str(detail)
+        else:
+            err = str(detail)
+        return {
+            "error": str(err),
+            "smiles": smiles,
+            "final_verdict": "ANALYSIS_FAILED",
+        }
+    except Exception as exc:
+        return {
+            "error": f"{type(exc).__name__}: {exc}",
+            "smiles": smiles,
+            "final_verdict": "ANALYSIS_FAILED",
+        }
+
+
+def _deterministic_screening_payload(
+    smiles: str,
+    clinical_threshold: float,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    """Build screening payload directly from local sync analyze call."""
+    analysis = analyze_molecule_sync(
+        smiles=smiles,
+        clinical_threshold=float(clinical_threshold),
+        mechanism_threshold=float(mechanism_threshold),
+        explain_only_if_alert=False,
+    )
+    if not isinstance(analysis, dict) or analysis.get("error"):
+        return {}
+
+    return {
+        "summary": None,
+        "smiles": analysis.get("smiles", smiles),
+        "canonical_smiles": analysis.get("canonical_smiles", smiles),
+        "clinical": analysis.get("clinical") or {},
+        "mechanism": analysis.get("mechanism") or {},
+        "explanation": analysis.get("explanation") or {},
+        "ood_assessment": analysis.get("ood_assessment") or {},
+        "reliability_warning": analysis.get("reliability_warning"),
+        "inference_context": analysis.get("inference_context") or {},
+        "final_verdict": analysis.get("final_verdict", "UNKNOWN"),
+        "error": None,
+    }
+
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+async def analyze(req: AnalyzeRequest):
+    """
+    Unified production endpoint with three outputs for one SMILES:
+      1) Toxic / Non-toxic from XSmiles (clinical)
+      2) Type of toxicity from GATv2 (Tox21 tasks)
+      3) Toxicity explainer from GNNExplainer (task-specific)
+    """
+    await _ensure_models_loaded()
+    return await asyncio.to_thread(_analyze_request_sync, req)
 
 
 @app.post("/agent/analyze", response_model=AgentAnalyzeResponse)
@@ -1823,13 +2032,18 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     if not research_payload:
         research_payload = _recover_research_payload_from_state(state)
 
+    explanation_raw_payload = _extract_state_payload(state, "explanation_raw")
+    if not explanation_raw_payload:
+        explanation_raw_payload = _extract_explanation_payload(screening_payload)
+    if screening_payload and explanation_raw_payload:
+        screening_payload = _merge_explanation_into_screening(screening_payload, explanation_raw_payload)
+
     if not screening_payload:
         logger.warning("ADK screening payload missing from session state; hydrating via deterministic screening")
         try:
             hydrated = await asyncio.to_thread(
-                run_screening,
+                _deterministic_screening_payload,
                 smiles,
-                language,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
             )
@@ -1837,21 +2051,16 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             logger.warning("Deterministic screening hydration failed (missing payload): %s", exc)
             hydrated = None
 
-        if isinstance(hydrated, dict):
-            hydrated_payload = _coerce_json_dict(
-                hydrated.get("screening_result"),
-                nested_key="screening_result",
-            ) or {}
-            if isinstance(hydrated_payload, dict) and hydrated_payload:
-                screening_payload = hydrated_payload
+        if isinstance(hydrated, dict) and hydrated:
+            screening_payload = hydrated
+            explanation_raw_payload = _extract_explanation_payload(hydrated)
 
     if screening_payload and not _screening_payload_has_structural_data(screening_payload):
         logger.warning("ADK screening payload missing structural explanation; hydrating via deterministic screening")
         try:
             hydrated = await asyncio.to_thread(
-                run_screening,
+                _deterministic_screening_payload,
                 smiles,
-                language,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
             )
@@ -1859,13 +2068,12 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             logger.warning("Deterministic screening hydration failed: %s", exc)
             hydrated = None
 
-        if isinstance(hydrated, dict):
-            hydrated_payload = _coerce_json_dict(
-                hydrated.get("screening_result"),
-                nested_key="screening_result",
-            ) or {}
-            if isinstance(hydrated_payload, dict) and hydrated_payload:
-                screening_payload = hydrated_payload
+        if isinstance(hydrated, dict) and hydrated:
+            screening_payload = hydrated
+            explanation_raw_payload = _extract_explanation_payload(hydrated)
+
+    if screening_payload and explanation_raw_payload:
+        screening_payload = _merge_explanation_into_screening(screening_payload, explanation_raw_payload)
 
     # ADK root orchestrator occasionally stops after validator with incomplete state.
     # Continue remaining steps explicitly with ADK sub-agents to preserve LLM flow.
@@ -1913,7 +2121,37 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         if not research_payload:
             research_payload = _recover_research_payload_from_state(state)
 
+        if not explanation_raw_payload:
+            explanation_raw_payload = _extract_state_payload(state, "explanation_raw")
+        if not explanation_raw_payload:
+            explanation_raw_payload = _extract_explanation_payload(screening_payload)
+        if screening_payload and explanation_raw_payload:
+            screening_payload = _merge_explanation_into_screening(screening_payload, explanation_raw_payload)
+
     report_schema_complete = _is_final_report_schema_complete(final_report)
+    if (not final_report or not report_schema_complete) and not screening_payload:
+        logger.warning(
+            "Final report is incomplete and screening payload is missing; hydrating deterministic screening before rebuild"
+        )
+        try:
+            hydrated = await asyncio.to_thread(
+                _deterministic_screening_payload,
+                smiles,
+                float(req.clinical_threshold),
+                float(req.mechanism_threshold),
+            )
+        except Exception as exc:
+            logger.warning("Deterministic screening hydration failed during final report recovery: %s", exc)
+            hydrated = None
+
+        if isinstance(hydrated, dict) and hydrated:
+            screening_payload = hydrated
+            explanation_raw_payload = _extract_explanation_payload(hydrated)
+            screening_payload = _merge_explanation_into_screening(
+                screening_payload,
+                explanation_raw_payload,
+            )
+
     if (not final_report or not report_schema_complete) and screening_payload:
         if not final_report:
             logger.warning("ADK writer output missing/invalid; rebuilding final report from session state")
@@ -1924,6 +2162,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             smiles_input=smiles,
             screening_result=screening_payload,
             research_result=research_payload,
+            explanation_raw=explanation_raw_payload,
             language=language,
         )
         if final_text is None:
@@ -1937,6 +2176,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             smiles_input=smiles,
             screening_result=screening_payload,
             research_result=research_payload,
+            explanation_raw=explanation_raw_payload,
             language=language,
         )
         if final_text is None:
