@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict
 
-from tools import analyze_molecule, validate_smiles
+from tools import analyze_molecule
 
 from .adk_compat import LlmAgent
 from .language import choose_text
@@ -103,16 +103,17 @@ screening_agent = LlmAgent(
 You are a molecular toxicity screening specialist.
 
 Task:
-1. Read SMILES from session state key {smiles_input}.
+1. Read canonical SMILES from session state key {canonical_smiles}.
+2. If {canonical_smiles} is missing/empty, fall back to {smiles_input}.
 2. Read language from {language} and write user-facing text in that language.
 3. Read thresholds from {clinical_threshold} and {mechanism_threshold}.
-4. Call validate_smiles(smiles={smiles_input}).
-4. If valid, call analyze_molecule(
-    smiles=<canonical_smiles from validate step>,
+4. Do NOT call validate_smiles. Input is already validated by InputValidator.
+5. Call analyze_molecule(
+    smiles=<canonical_smiles from session state>,
     clinical_threshold={clinical_threshold},
     mechanism_threshold={mechanism_threshold}
 ).
-5. Return JSON for key screening_result with fields:
+6. Return JSON for key screening_result with fields:
    - summary
    - smiles
    - canonical_smiles
@@ -127,6 +128,6 @@ Rules:
 - Always use tool outputs as source of truth.
 - If any tool fails, set error and keep remaining fields as null/empty.
 """,
-    tools=[validate_smiles, analyze_molecule],
+    tools=[analyze_molecule],
     output_key="screening_result",
 )

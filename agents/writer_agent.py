@@ -451,6 +451,7 @@ def build_final_report(
     smiles_input: str,
     screening_result: Dict[str, Any] | None,
     research_result: Dict[str, Any] | None,
+    explanation_raw: Dict[str, Any] | None = None,
     language: str = "vi",
 ) -> Dict[str, Any]:
     """Build the final structured report from screening and research outputs."""
@@ -496,7 +497,10 @@ def build_final_report(
 
     clinical = _to_dict(screening.get("clinical"))
     mechanism = _to_dict(screening.get("mechanism"))
-    explanation = _to_dict(screening.get("explanation"))
+    raw_explanation = _to_dict(explanation_raw)
+    if isinstance(raw_explanation.get("explanation"), dict):
+        raw_explanation = _to_dict(raw_explanation.get("explanation"))
+    explanation = raw_explanation or _to_dict(screening.get("explanation"))
     ood_assessment = _to_dict(screening.get("ood_assessment"))
     inference_context = _to_dict(screening.get("inference_context"))
     reliability_warning = screening.get("reliability_warning")

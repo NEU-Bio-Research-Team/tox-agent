@@ -112,6 +112,7 @@ def run_orchestrator_flow(
         "mechanism_threshold": float(mechanism_threshold),
         "validation_status": "INVALID",
         "screening_result": None,
+        "explanation_raw": None,
         "screening_error": None,
         "research_result": None,
         "research_error": None,
@@ -166,6 +167,8 @@ def run_orchestrator_flow(
         research_payload = research_future.result()
 
     state["screening_result"] = screening_payload.get("screening_result")
+    if isinstance(state.get("screening_result"), dict):
+        state["explanation_raw"] = state["screening_result"].get("explanation")
     state["screening_error"] = screening_payload.get("screening_error")
     state["research_result"] = research_payload.get("research_result")
     state["research_error"] = research_payload.get("research_error")
@@ -174,6 +177,7 @@ def run_orchestrator_flow(
         smiles_input=smiles_input,
         screening_result=state["screening_result"],
         research_result=state["research_result"],
+        explanation_raw=state.get("explanation_raw"),
         language=normalized_language,
     )
 
