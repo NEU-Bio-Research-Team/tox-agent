@@ -208,6 +208,7 @@ gcloud run deploy "$SERVICE" \
   --concurrency=1 \
   --timeout=600 \
   --min-instances=1 \
+  --startup-probe=httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=5,periodSeconds=10,failureThreshold=30 \
   --allow-unauthenticated \
   --project="$PROJECT_ID"
 ```
