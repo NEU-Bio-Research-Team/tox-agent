@@ -7,6 +7,7 @@ import { MechanismProfilingSection } from '../components/report/mechanism-profil
 import { StructuralExplanationSection } from '../components/report/structural-explanation-section';
 import { LiteratureContextSection } from '../components/report/literature-context-section';
 import { AIRecommendationsSection } from '../components/report/ai-recommendations-section';
+import { AIChatbot } from '../components/ai-chatbot';
 
 export function ReportPage() {
   const location = useLocation();
@@ -32,6 +33,9 @@ export function ReportPage() {
           <AIRecommendationsSection />
         </main>
       </div>
+      
+      {/* AI Chatbot - only on report page */}
+      <AIChatbot />
     </div>
   );
 }
