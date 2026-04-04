@@ -263,6 +263,20 @@ def _add_coverage_metrics(metrics: Dict[str, float], meta: pd.DataFrame) -> Dict
     return out
 
 
+def _threshold_calibration_data(
+    y_train: np.ndarray,
+    train_probs: np.ndarray,
+    y_val: np.ndarray,
+    val_probs: np.ndarray,
+    fit_split: str,
+) -> Tuple[np.ndarray, np.ndarray]:
+    if str(fit_split) == "train_val":
+        y_all = np.concatenate([y_train.reshape(-1), y_val.reshape(-1)], axis=0)
+        p_all = np.concatenate([train_probs.reshape(-1), val_probs.reshape(-1)], axis=0)
+        return y_all.astype(np.float32), p_all.astype(np.float32)
+    return y_val.astype(np.float32), val_probs.astype(np.float32)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Train lightweight clinical head on frozen Tox21 outputs"
@@ -277,10 +291,10 @@ def main() -> None:
     parser.add_argument("--head-batch-size", type=int, default=128)
     parser.add_argument("--num-epochs", type=int, default=200)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
-    parser.add_argument("--weight-decay", type=float, default=1e-4)
-    parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--weight-decay", type=float, default=1e-3)
+    parser.add_argument("--dropout", type=float, default=0.4)
     parser.add_argument("--hidden-dim", type=int, default=32)
-    parser.add_argument("--early-stopping-patience", type=int, default=25)
+    parser.add_argument("--early-stopping-patience", type=int, default=40)
     parser.add_argument("--clinical-threshold", type=float, default=None)
     parser.add_argument("--no-calibrate-threshold", action="store_true")
     parser.add_argument(
@@ -289,11 +303,17 @@ def main() -> None:
         default="cv",
         help="Threshold calibration strategy when threshold is not provided.",
     )
-    parser.add_argument("--threshold-cv-folds", type=int, default=5)
+    parser.add_argument("--threshold-cv-folds", type=int, default=3)
+    parser.add_argument(
+        "--threshold-fit-split",
+        choices=["val", "train_val"],
+        default="train_val",
+        help="Data used to fit threshold when calibration is enabled.",
+    )
     parser.add_argument("--tox21-missing-impute", type=float, default=0.5)
     parser.add_argument("--use-ecfp4-features", action="store_true")
     parser.add_argument("--ecfp-radius", type=int, default=2)
-    parser.add_argument("--ecfp-bits", type=int, default=1024)
+    parser.add_argument("--ecfp-bits", type=int, default=256)
     parser.add_argument("--feature-signal-top-k", type=int, default=20)
     parser.add_argument("--enforce-workspace-mode", action="store_true")
     parser.add_argument("--output-dir", type=str, default="models/clinical_head_model")
@@ -515,6 +535,14 @@ def main() -> None:
     val_probs = _predict_head_probs(model, x_val, device=device, batch_size=int(args.head_batch_size))
     test_probs = _predict_head_probs(model, x_test, device=device, batch_size=int(args.head_batch_size))
 
+    threshold_y_true, threshold_y_prob = _threshold_calibration_data(
+        y_train=y_train,
+        train_probs=train_probs,
+        y_val=y_val,
+        val_probs=val_probs,
+        fit_split=str(args.threshold_fit_split),
+    )
+
     if args.clinical_threshold is not None:
         threshold_info = {
             "threshold": float(args.clinical_threshold),
@@ -522,6 +550,7 @@ def main() -> None:
             "sensitivity": float("nan"),
             "specificity": float("nan"),
             "reason": "provided_by_user",
+            "fit_split": "user_provided",
         }
     elif args.no_calibrate_threshold:
         threshold_info = {
@@ -530,21 +559,24 @@ def main() -> None:
             "sensitivity": float("nan"),
             "specificity": float("nan"),
             "reason": "default_0_35",
+            "fit_split": "disabled",
         }
     elif str(args.threshold_calibration) == "cv":
         threshold_info = calibrate_threshold_youden_cv(
-            y_true=y_val,
-            y_prob=val_probs,
+            y_true=threshold_y_true,
+            y_prob=threshold_y_prob,
             n_splits=int(args.threshold_cv_folds),
             seed=int(args.seed),
             default_threshold=0.35,
         )
+        threshold_info["fit_split"] = str(args.threshold_fit_split)
     else:
         threshold_info = calibrate_threshold_youden(
-            y_true=y_val,
-            y_prob=val_probs,
+            y_true=threshold_y_true,
+            y_prob=threshold_y_prob,
             default_threshold=0.35,
         )
+        threshold_info["fit_split"] = str(args.threshold_fit_split)
 
     threshold = float(threshold_info["threshold"])
 
@@ -633,6 +665,7 @@ def main() -> None:
             "weight_decay": float(args.weight_decay),
             "threshold_calibration": str(args.threshold_calibration),
             "threshold_cv_folds": int(args.threshold_cv_folds),
+            "threshold_fit_split": str(args.threshold_fit_split),
             "feature_source": feature_source,
             "feature_spec": feature_spec,
         },
