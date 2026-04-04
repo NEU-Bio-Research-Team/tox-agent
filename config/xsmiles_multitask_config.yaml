@@ -1,0 +1,70 @@
+model:
+  name: "SMILESGraphHybridPredictor"
+  num_graph_layers: 3
+  hidden_dim: 96
+  graph_model: "gatv2"
+  num_heads: 4
+  dropout: 0.4
+  use_residual: true
+  use_jk: true
+  jk_mode: "cat"
+  graph_pooling: "meanmax"
+
+  smiles_vocab_size: 100
+  smiles_max_length: 128
+  smiles_d_model: 96
+  smiles_num_layers: 2
+
+  fusion_method: "attention"
+  clinical_output_dim: 1
+  tox21_output_dim: 12
+
+training:
+  phase1:
+    enabled: true
+    num_epochs: 80
+    batch_size: 64
+    learning_rate: 0.0008
+    weight_decay: 0.0001
+    early_stopping_patience: 20
+    early_stopping_metric: "macro_auc_roc"
+    loss_type: "focal"  # focal, weighted_bce, bce
+    focal_alpha: 0.25
+    focal_gamma: 2.0
+    use_task_pos_weights: true
+
+  phase2:
+    num_epochs: 80
+    batch_size_tox21: 64
+    batch_size_clintox: 32
+    backbone_learning_rate: 0.0002
+    head_learning_rate: 0.0006
+    weight_decay: 0.0001
+    alpha_tox21: 1.0
+    beta_clintox: 5.0
+    beta_mode: "auto_ratio"  # fixed, auto_ratio
+    clintox_loss_type: "focal"  # focal, weighted_bce, bce
+    clintox_focal_alpha: 0.25
+    clintox_focal_gamma: 2.0
+    clintox_use_pos_weight: true
+    grad_clip_norm: 1.0
+    early_stopping_patience: 20
+    selection_metric: "joint_auc"  # joint_auc, clintox_auc, tox21_macro_auc
+
+threshold_calibration:
+  enabled: true
+  method: "cv"  # cv, val
+  fit_split: "train_val"  # train_val, val
+  cv_folds: 3
+  min: 0.05
+  max: 0.95
+  step: 0.01
+  default_threshold: 0.35
+
+data:
+  cache_dir: "data"
+  split_type: "scaffold"
+  seed: 42
+
+output:
+  model_dir: "models/smilesgnn_multitask_model"

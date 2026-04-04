@@ -160,7 +160,9 @@ class SMILESGraphHybridPredictor(nn.Module):
     1. SMILES Encoder: Transformer-based encoder for SMILES sequences
     2. Graph Encoder: GNN (GATv2 or GIN) for graph structures
     3. Fusion Module: Combines both representations (concatenation or attention)
-    4. Predictor: MLP head for final prediction
+     4. Prediction Heads:
+         - Clinical binary head (default)
+         - Optional Tox21 multi-task head
     """
     
     def __init__(
@@ -180,7 +182,8 @@ class SMILESGraphHybridPredictor(nn.Module):
         smiles_d_model: int = 128,
         smiles_num_layers: int = 3,
         fusion_method: Literal["concat", "attention", "weighted"] = "attention",
-        output_dim: int = 1
+        output_dim: int = 1,
+        tox21_output_dim: int = 0,
     ):
         """
         Initialize SMILESGraphHybridPredictor.
@@ -201,7 +204,8 @@ class SMILESGraphHybridPredictor(nn.Module):
             smiles_d_model: SMILES encoder dimension
             smiles_num_layers: Number of transformer layers in SMILES encoder
             fusion_method: How to fuse SMILES and graph representations
-            output_dim: Output dimension (1 for binary classification)
+            output_dim: Clinical output dimension (1 for binary classification)
+            tox21_output_dim: Optional Tox21 output dimension (12 for multi-task)
         """
         super().__init__()
         
@@ -210,6 +214,8 @@ class SMILESGraphHybridPredictor(nn.Module):
         self.hidden_dim = hidden_dim
         self.smiles_d_model = smiles_d_model
         self.fusion_method = fusion_method
+        self.clinical_output_dim = int(output_dim)
+        self.tox21_output_dim = int(tox21_output_dim)
         
         # SMILES Encoder
         self.smiles_encoder = SimpleSMILESEncoder(
@@ -314,28 +320,51 @@ class SMILESGraphHybridPredictor(nn.Module):
         else:
             raise ValueError(f"Unknown fusion method: {fusion_method}")
         
-        # Predictor head
-        self.predictor = nn.Sequential(
-            nn.Linear(fused_dim, hidden_dim * 2),
+        # Keep predictor name for backward compatibility with existing checkpoints.
+        self.predictor = self._build_predictor_head(
+            input_dim=fused_dim,
+            hidden_dim=hidden_dim,
+            dropout=dropout,
+            output_dim=self.clinical_output_dim,
+        )
+
+        self.tox21_head = None
+        if self.tox21_output_dim > 0:
+            self.tox21_head = self._build_predictor_head(
+                input_dim=fused_dim,
+                hidden_dim=hidden_dim,
+                dropout=dropout,
+                output_dim=self.tox21_output_dim,
+            )
+        
+        self.use_residual = use_residual
+        self.dropout_param = dropout
+
+    @staticmethod
+    def _build_predictor_head(
+        input_dim: int,
+        hidden_dim: int,
+        dropout: float,
+        output_dim: int,
+    ) -> nn.Sequential:
+        return nn.Sequential(
+            nn.Linear(input_dim, hidden_dim * 2),
             nn.BatchNorm1d(hidden_dim * 2),
             nn.ReLU(),
             nn.Dropout(dropout),
-            
+
             nn.Linear(hidden_dim * 2, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout),
-            
+
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.BatchNorm1d(hidden_dim // 2),
             nn.ReLU(),
             nn.Dropout(dropout),
-            
-            nn.Linear(hidden_dim // 2, output_dim)
+
+            nn.Linear(hidden_dim // 2, output_dim),
         )
-        
-        self.use_residual = use_residual
-        self.dropout_param = dropout
     
     def encode_graph(self, data) -> torch.Tensor:
         """Encode graph representation."""
@@ -400,14 +429,14 @@ class SMILESGraphHybridPredictor(nn.Module):
         
         return graph_repr
     
-    def forward(
+    def _encode_fused(
         self,
         data,
         smiles_token_ids: Optional[torch.Tensor] = None,
         smiles_attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        Forward pass.
+        Build fused graph+SMILES representation.
         
         Args:
             data: torch_geometric.data.Data or Batch object with graph information
@@ -415,7 +444,7 @@ class SMILESGraphHybridPredictor(nn.Module):
             smiles_attention_mask: Attention mask for SMILES of shape (batch_size, seq_len)
         
         Returns:
-            Logits of shape (batch_size, output_dim)
+            Fused representation of shape (batch_size, fused_dim)
         """
         # Encode graph
         graph_repr = self.encode_graph(data)
@@ -453,13 +482,65 @@ class SMILESGraphHybridPredictor(nn.Module):
             weights = F.softmax(self.fusion_weight, dim=0)
             fused_repr = weights[0] * smiles_proj + weights[1] * graph_proj
         
-        # Predictor
+        return fused_repr
+
+    def forward(
+        self,
+        data,
+        smiles_token_ids: Optional[torch.Tensor] = None,
+        smiles_attention_mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """Default forward returns clinical logits for backward compatibility."""
+        fused_repr = self._encode_fused(
+            data=data,
+            smiles_token_ids=smiles_token_ids,
+            smiles_attention_mask=smiles_attention_mask,
+        )
         logits = self.predictor(fused_repr)
-        
-        # Clamp logits to prevent NaN from extreme values (CPU stability)
-        logits = torch.clamp(logits, min=-20.0, max=20.0)
-        
-        return logits
+        return torch.clamp(logits, min=-20.0, max=20.0)
+
+    def forward_tox21(
+        self,
+        data,
+        smiles_token_ids: Optional[torch.Tensor] = None,
+        smiles_attention_mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """Forward pass through the optional Tox21 multi-task head."""
+        if self.tox21_head is None:
+            raise RuntimeError(
+                "Tox21 head is not configured. Set tox21_output_dim > 0 when creating model."
+            )
+
+        fused_repr = self._encode_fused(
+            data=data,
+            smiles_token_ids=smiles_token_ids,
+            smiles_attention_mask=smiles_attention_mask,
+        )
+        logits = self.tox21_head(fused_repr)
+        return torch.clamp(logits, min=-20.0, max=20.0)
+
+    def forward_heads(
+        self,
+        data,
+        smiles_token_ids: Optional[torch.Tensor] = None,
+        smiles_attention_mask: Optional[torch.Tensor] = None
+    ) -> dict:
+        """Return logits for all configured heads in one fused forward pass."""
+        fused_repr = self._encode_fused(
+            data=data,
+            smiles_token_ids=smiles_token_ids,
+            smiles_attention_mask=smiles_attention_mask,
+        )
+
+        clinical_logits = torch.clamp(self.predictor(fused_repr), min=-20.0, max=20.0)
+        tox21_logits = None
+        if self.tox21_head is not None:
+            tox21_logits = torch.clamp(self.tox21_head(fused_repr), min=-20.0, max=20.0)
+
+        return {
+            "clinical_logits": clinical_logits,
+            "tox21_logits": tox21_logits,
+        }
 
 
 def create_hybrid_model(
@@ -478,6 +559,7 @@ def create_hybrid_model(
     smiles_d_model: int = 128,
     smiles_num_layers: int = 3,
     fusion_method: str = "attention",
+    tox21_output_dim: int = 0,
     **kwargs
 ) -> SMILESGraphHybridPredictor:
     """
@@ -499,6 +581,7 @@ def create_hybrid_model(
         smiles_d_model: SMILES encoder dimension
         smiles_num_layers: Number of transformer layers
         fusion_method: Fusion method ("concat", "attention", "weighted")
+        tox21_output_dim: Optional Tox21 head output dimension
         **kwargs: Additional arguments
     
     Returns:
@@ -520,6 +603,7 @@ def create_hybrid_model(
         smiles_d_model=smiles_d_model,
         smiles_num_layers=smiles_num_layers,
         fusion_method=fusion_method,
+        tox21_output_dim=tox21_output_dim,
         **kwargs
     )
 

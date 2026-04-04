@@ -4,6 +4,7 @@ Inference utilities for SMILESGNN toxicity predictor.
 Provides:
   - load_model()     — load trained checkpoint + tokenizer
   - predict_batch()  — fast Stage A batch scoring
+    - predict_xsmiles_toxicity_profile() — per-task toxicity profiling from XSmiles Tox21 head
 
 HybridModelWrapper routes SMILES token IDs from the PyG batch
 object to model.forward(). This must match the wrapper used during
@@ -296,6 +297,8 @@ def load_model(
         smiles_d_model    = int(mc["smiles_d_model"]),
         smiles_num_layers = int(mc["smiles_num_layers"]),
         fusion_method     = mc.get("fusion_method", "attention"),
+        output_dim        = int(mc.get("clinical_output_dim", 1)),
+        tox21_output_dim  = int(mc.get("tox21_output_dim", 0)),
     )
 
     ckpt = model_dir / "best_model.pt"
@@ -822,6 +825,93 @@ def predict_clinical_toxicity(
         "confidence": float(min(confidence, 1.0)),
         "p_toxic": float(p_toxic),
         "threshold_used": float(threshold),
+    }
+
+
+def predict_xsmiles_toxicity_profile(
+    smiles: str,
+    tokenizer,
+    model: nn.Module,
+    device: str,
+    task_names: Optional[List[str]] = None,
+    threshold: float = 0.5,
+    task_thresholds: Optional[Union[List[float], np.ndarray, Dict[str, float]]] = None,
+) -> Dict[str, Union[float, int, str, bool, List[str], Dict[str, float]]]:
+    """
+    Predict Tox21-like mechanism profile directly from XSmiles multi-task head.
+
+    This requires a checkpoint created with tox21_output_dim > 0.
+    """
+    if task_names is None:
+        task_names = get_task_names("tox21")
+
+    if not hasattr(model, "forward_tox21") or getattr(model, "tox21_head", None) is None:
+        raise RuntimeError(
+            "Loaded XSmiles checkpoint does not include Tox21 head. "
+            "Train with tox21_output_dim > 0 to use toxicity profiling mode."
+        )
+
+    graph = smiles_to_pyg_data(smiles, label=None)
+    if graph is None:
+        return {
+            "task_scores": {},
+            "active_tasks": [],
+            "highest_risk_task": "Parse error",
+            "highest_risk_score": -1.0,
+            "assay_hits": -1,
+            "mechanistic_alert": False,
+            "threshold_used": float(threshold),
+            "task_thresholds": {},
+            "source": "xsmiles_multitask_head",
+        }
+
+    dataset = _HybridDataset([graph], [str(smiles)], tokenizer)
+    loader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=_collate)
+
+    with torch.no_grad():
+        batch = next(iter(loader))
+        batch = batch.to(device)
+        logits = model.forward_tox21(
+            batch,
+            smiles_token_ids=batch.smiles_token_ids if hasattr(batch, "smiles_token_ids") else None,
+            smiles_attention_mask=batch.smiles_attention_masks if hasattr(batch, "smiles_attention_masks") else None,
+        )
+        prob_vec = torch.sigmoid(logits).detach().cpu().numpy().reshape(-1)
+
+    if len(task_names) != prob_vec.shape[0]:
+        task_names = [f"task_{i}" for i in range(prob_vec.shape[0])]
+
+    threshold_arr = _resolve_tox21_thresholds(
+        task_names=task_names,
+        default_threshold=threshold,
+        task_thresholds=task_thresholds,
+    )
+    task_threshold_map = {
+        task_name: float(threshold_arr[idx])
+        for idx, task_name in enumerate(task_names)
+    }
+
+    task_scores = {
+        task_name: float(prob_vec[idx])
+        for idx, task_name in enumerate(task_names)
+    }
+    active_tasks = [
+        task_name
+        for idx, task_name in enumerate(task_names)
+        if float(prob_vec[idx]) >= float(threshold_arr[idx])
+    ]
+
+    top_idx = int(np.argmax(prob_vec))
+    return {
+        "task_scores": task_scores,
+        "active_tasks": active_tasks,
+        "highest_risk_task": str(task_names[top_idx]),
+        "highest_risk_score": float(prob_vec[top_idx]),
+        "assay_hits": int(len(active_tasks)),
+        "mechanistic_alert": bool(len(active_tasks) > 0),
+        "threshold_used": float(threshold),
+        "task_thresholds": task_threshold_map,
+        "source": "xsmiles_multitask_head",
     }
 
 
