@@ -3,6 +3,8 @@ import { IndexPage } from "./pages/index-page";
 import { ReportPage } from "./pages/report-page";
 import { SettingsPage } from "./pages/settings-page";
 import { AboutPage } from "./pages/about-page";
+import { LoginPage } from "./pages/login-page";
+import { RegisterPage } from "./pages/register-page";
 
 export const router = createBrowserRouter([
   {
@@ -20,5 +22,13 @@ export const router = createBrowserRouter([
   {
     path: "/about",
     Component: AboutPage,
+  },
+  {
+    path: "/login",
+    Component: LoginPage,
+  },
+  {
+    path: "/register",
+    Component: RegisterPage,
   },
 ]);

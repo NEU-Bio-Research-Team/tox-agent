@@ -4,6 +4,7 @@ import { Navbar } from '../components/navbar';
 import { HeroSection } from '../components/hero-section';
 import { AgentProgressPanel } from '../components/agent-progress-panel';
 import { QuickVerdictCard } from '../components/quick-verdict-card';
+import { SmilesHistory, addToHistory } from '../components/smiles-history';
 
 export function IndexPage() {
   const navigate = useNavigate();
@@ -20,10 +21,20 @@ export function IndexPage() {
     
     setIsAnalyzing(false);
     setAnalysisComplete(true);
+    
+    // Add to history (mock verdict and score)
+    const mockScore = 0.65;
+    const mockVerdict = mockScore > 0.7 ? 'toxic' : mockScore > 0.4 ? 'warning' : 'non-toxic';
+    addToHistory(smilesInput, mockVerdict, mockScore);
   };
 
   const handleViewReport = () => {
     navigate('/report', { state: { smiles: smilesInput } });
+  };
+
+  const handleSelectFromHistory = (smiles: string) => {
+    setSmilesInput(smiles);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -51,6 +62,13 @@ export function IndexPage() {
         {/* Quick Verdict Card */}
         {analysisComplete && (
           <QuickVerdictCard onViewReport={handleViewReport} />
+        )}
+
+        {/* SMILES History */}
+        {!isAnalyzing && !analysisComplete && (
+          <div className="py-12">
+            <SmilesHistory onSelectSmiles={handleSelectFromHistory} />
+          </div>
         )}
       </main>
     </div>

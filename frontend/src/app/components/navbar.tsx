@@ -1,11 +1,15 @@
-import { Moon, Sun, Github } from 'lucide-react';
+import { Moon, Sun, Github, User, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
-import logoImage from 'figma:asset/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
+import { Link, useNavigate } from 'react-router';
+import { useAuth } from './contexts/auth-context';
+import logoImage from '../../../assets/logo-tox.png';
 
 export function Navbar() {
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Apply theme class to document
@@ -18,6 +22,12 @@ export function Navbar() {
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleLogout = () => {
+    logout();
+    setShowUserMenu(false);
+    navigate('/login');
   };
 
   return (
@@ -80,6 +90,55 @@ export function Navbar() {
               <Moon className="w-4 h-4 transition-transform rotate-0 hover:-rotate-90" />
             )}
           </Button>
+
+          {/* User Menu */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--surface-alt)] transition-colors"
+                style={{ color: 'var(--text)' }}
+              >
+                <User className="w-4 h-4" />
+                <span className="text-sm font-medium">{user?.name}</span>
+              </button>
+              
+              {showUserMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowUserMenu(false)}
+                  />
+                  <div 
+                    className="absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border z-50"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  >
+                    <div className="p-3 border-b" style={{ borderColor: 'var(--border)' }}>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{user?.name}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--surface-alt)] transition-colors"
+                      style={{ color: 'var(--accent-red)' }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <Link to="/login">
+              <Button
+                size="sm"
+                style={{ backgroundColor: 'var(--accent-blue)', color: '#ffffff' }}
+              >
+                Sign in
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

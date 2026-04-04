@@ -1,7 +1,7 @@
 import { Navbar } from '../components/navbar';
 import { Users, Target, Zap, Shield, Github, Mail } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import logoImage from 'figma:asset/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
+import logoImage from '../../assets/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
 
 export function AboutPage() {
   return (
