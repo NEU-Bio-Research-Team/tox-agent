@@ -10,6 +10,7 @@ object to model.forward(). This must match the wrapper used during
 training, otherwise the SMILES encoder is bypassed (zero vectors).
 """
 
+import json
 import pickle
 import os
 from pathlib import Path
@@ -28,6 +29,7 @@ from src.graph_data import get_feature_dims, smiles_to_pyg_data
 from src.graph_models import create_gatv2_model
 from src.graph_models_hybrid import create_hybrid_model
 from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
+from backend.clinical_head import create_clinical_head, scores_dict_to_feature_vector
 
 
 def _env_float(name: str, default: float) -> float:
@@ -41,6 +43,115 @@ def _env_float(name: str, default: float) -> float:
 
 
 DEFAULT_CLINICAL_THRESHOLD = _env_float("CLINICAL_THRESHOLD", 0.35)
+
+# Clinical proxy derived from mechanistic Tox21 tasks.
+# Weights are normalized at runtime to support easy overrides.
+DEFAULT_CLINICAL_PROXY_TASK_WEIGHTS: Dict[str, float] = {
+    "SR-p53": 0.30,
+    "SR-MMP": 0.25,
+    "SR-ARE": 0.20,
+    "NR-AhR": 0.15,
+    "SR-HSE": 0.10,
+}
+
+
+def _normalize_proxy_weights(
+    task_weights: Optional[Dict[str, float]],
+) -> Dict[str, float]:
+    """Normalize and sanitize clinical proxy weights."""
+    raw = task_weights or DEFAULT_CLINICAL_PROXY_TASK_WEIGHTS
+
+    cleaned: Dict[str, float] = {}
+    total = 0.0
+    for task, weight in raw.items():
+        try:
+            w = float(weight)
+        except (TypeError, ValueError):
+            continue
+        if (not np.isfinite(w)) or w <= 0:
+            continue
+        cleaned[str(task)] = w
+        total += w
+
+    if total <= 0.0:
+        return dict(DEFAULT_CLINICAL_PROXY_TASK_WEIGHTS)
+
+    if abs(total - 1.0) < 1e-8:
+        return cleaned
+
+    return {task: (weight / total) for task, weight in cleaned.items()}
+
+
+def clinical_score_from_tox21(
+    task_scores: Dict[str, float],
+    task_weights: Optional[Dict[str, float]] = None,
+) -> Dict[str, Union[float, List[str]]]:
+    """Aggregate selected Tox21 task probabilities into a clinical proxy score."""
+    weights = _normalize_proxy_weights(task_weights)
+
+    weighted_sum = 0.0
+    used_weight_sum = 0.0
+    tasks_used: List[str] = []
+    tasks_missing: List[str] = []
+
+    for task, weight in weights.items():
+        raw_score = task_scores.get(task, np.nan)
+        try:
+            score = float(raw_score)
+        except (TypeError, ValueError):
+            score = np.nan
+
+        if not np.isfinite(score):
+            tasks_missing.append(task)
+            continue
+
+        clipped_score = float(np.clip(float(score), 0.0, 1.0))
+        weighted_sum += weight * clipped_score
+        used_weight_sum += weight
+        tasks_used.append(task)
+
+    if used_weight_sum <= 0.0:
+        return {
+            "score": 0.0,
+            "coverage": 0.0,
+            "tasks_used": [],
+            "tasks_missing": list(weights.keys()),
+        }
+
+    return {
+        "score": float(weighted_sum / used_weight_sum),
+        "coverage": float(used_weight_sum),
+        "tasks_used": tasks_used,
+        "tasks_missing": tasks_missing,
+    }
+
+
+def predict_clinical_proxy_from_tox21(
+    mechanism_result: Dict[str, Union[float, int, str, bool, List[str], Dict[str, float]]],
+    threshold: float = DEFAULT_CLINICAL_THRESHOLD,
+    task_weights: Optional[Dict[str, float]] = None,
+) -> Dict[str, Union[str, float, bool, List[str]]]:
+    """Return a clinical-style toxicity output derived from Tox21 mechanism scores."""
+    proxy = clinical_score_from_tox21(
+        task_scores=dict(mechanism_result.get("task_scores") or {}),
+        task_weights=task_weights,
+    )
+
+    p_toxic = float(proxy.get("score", 0.0))
+    is_toxic = bool(p_toxic >= threshold)
+    confidence = abs(p_toxic - threshold) / max(float(threshold), 1.0 - float(threshold))
+
+    return {
+        "label": "TOXIC" if is_toxic else "NON_TOXIC",
+        "is_toxic": is_toxic,
+        "confidence": float(min(confidence, 1.0)),
+        "p_toxic": p_toxic,
+        "threshold_used": float(threshold),
+        "source": "tox21_proxy",
+        "proxy_tasks_used": list(proxy.get("tasks_used") or []),
+        "proxy_tasks_missing": list(proxy.get("tasks_missing") or []),
+        "proxy_coverage": float(proxy.get("coverage", 0.0)),
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -236,6 +347,93 @@ def load_tox21_gatv2_model(
     model.eval()
 
     return model, task_names
+
+
+def load_clinical_head_model(
+    model_dir: Path,
+    device: str = "cpu",
+) -> tuple[nn.Module, Dict[str, Union[float, int, List[str], str]]]:
+    """Load a lightweight clinical head trained on Tox21 task features."""
+    model_dir = Path(model_dir)
+
+    ckpt_path = model_dir / "best_model.pt"
+    if not ckpt_path.exists():
+        raise FileNotFoundError(
+            f"Clinical head checkpoint not found: {ckpt_path}\n"
+            "Run 'python scripts/train_clinical_head.py' first."
+        )
+
+    config_path = model_dir / "clinical_head_config.json"
+    config_payload: Dict[str, Union[float, int, List[str], str]] = {}
+    if config_path.exists():
+        with open(config_path, "r") as f:
+            raw_cfg = json.load(f)
+        if isinstance(raw_cfg, dict):
+            config_payload = raw_cfg
+
+    checkpoint = torch.load(ckpt_path, map_location=device)
+
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+        input_dim = int(checkpoint.get("input_dim", config_payload.get("input_dim", 12)))
+        hidden_dim = int(checkpoint.get("hidden_dim", config_payload.get("hidden_dim", 32)))
+        dropout = float(checkpoint.get("dropout", config_payload.get("dropout", 0.1)))
+        threshold = float(checkpoint.get("threshold", config_payload.get("threshold", DEFAULT_CLINICAL_THRESHOLD)))
+        task_names = checkpoint.get("task_names") or config_payload.get("task_names") or get_task_names("tox21")
+    else:
+        state_dict = checkpoint
+        input_dim = int(config_payload.get("input_dim", 12))
+        hidden_dim = int(config_payload.get("hidden_dim", 32))
+        dropout = float(config_payload.get("dropout", 0.1))
+        threshold = float(config_payload.get("threshold", DEFAULT_CLINICAL_THRESHOLD))
+        task_names = config_payload.get("task_names") or get_task_names("tox21")
+
+    model = create_clinical_head(
+        input_dim=input_dim,
+        hidden_dim=hidden_dim,
+        dropout=dropout,
+    )
+    model.load_state_dict(state_dict)
+    model.to(device)
+    model.eval()
+
+    metadata: Dict[str, Union[float, int, List[str], str]] = {
+        "input_dim": input_dim,
+        "hidden_dim": hidden_dim,
+        "dropout": dropout,
+        "threshold": threshold,
+        "task_names": list(task_names),
+        "model_dir": str(model_dir),
+    }
+    return model, metadata
+
+
+def predict_clinical_head_from_tox21_task_scores(
+    task_scores: Dict[str, float],
+    task_names: List[str],
+    clinical_head_model: nn.Module,
+    threshold: float = DEFAULT_CLINICAL_THRESHOLD,
+    device: str = "cpu",
+) -> Dict[str, Union[str, float, bool]]:
+    """Predict clinical toxicity from Tox21 task score vector using trained head."""
+    features = scores_dict_to_feature_vector(task_scores=task_scores, task_names=task_names)
+    x = torch.tensor(features, dtype=torch.float32, device=device)
+
+    with torch.no_grad():
+        logit = clinical_head_model(x)
+        prob = torch.sigmoid(logit).detach().cpu().item()
+
+    is_toxic = bool(prob >= threshold)
+    confidence = abs(prob - threshold) / max(float(threshold), 1.0 - float(threshold))
+
+    return {
+        "label": "TOXIC" if is_toxic else "NON_TOXIC",
+        "is_toxic": is_toxic,
+        "confidence": float(min(confidence, 1.0)),
+        "p_toxic": float(prob),
+        "threshold_used": float(threshold),
+        "source": "clinical_head",
+    }
 
 
 def _resolve_tox21_thresholds(

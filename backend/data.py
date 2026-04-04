@@ -15,7 +15,8 @@ from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 def load_clintox(
     cache_dir: str = "./data",
     split_type: str = "scaffold",
-    seed: int = 42
+    seed: int = 42,
+    enforce_workspace_mode: bool = True,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load ClinTox dataset with train/val/test splits.
@@ -24,6 +25,7 @@ def load_clintox(
         cache_dir: Directory to cache downloaded datasets
         split_type: Type of split ('scaffold', 'random', 'stratified')
         seed: Random seed for reproducibility
+        enforce_workspace_mode: Whether to enforce workspace mode guards.
     
     Returns:
         Tuple of (train_df, val_df, test_df) DataFrames with columns:
@@ -34,7 +36,8 @@ def load_clintox(
         >>> train, val, test = load_clintox()
         >>> print(f"Train size: {len(train)}")
     """
-    assert_clintox_enabled("load_clintox")
+    if enforce_workspace_mode:
+        assert_clintox_enabled("load_clintox")
 
     import os
     from pathlib import Path
@@ -144,7 +147,8 @@ def load_clintox(
 def load_tox21(
     cache_dir: str = "./data",
     split_type: str = "scaffold",
-    seed: int = 42
+    seed: int = 42,
+    enforce_workspace_mode: bool = True,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load Tox21 multi-task toxicity dataset.
@@ -153,6 +157,7 @@ def load_tox21(
         cache_dir: Directory to cache downloaded datasets
         split_type: Type of split ('scaffold', 'random', 'stratified')
         seed: Random seed for reproducibility
+        enforce_workspace_mode: Whether to enforce workspace mode guards.
     
     Returns:
         Tuple of (train_df, val_df, test_df) DataFrames with columns:
@@ -164,7 +169,8 @@ def load_tox21(
         >>> train, val, test = load_tox21()
         >>> print(f"Number of tasks: {len([c for c in train.columns if c != 'smiles'])}")
     """
-    assert_tox21_enabled("load_tox21")
+    if enforce_workspace_mode:
+        assert_tox21_enabled("load_tox21")
 
     import os
     from pathlib import Path
