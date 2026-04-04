@@ -24,7 +24,7 @@ export function ReportHeader({ smiles, onNewAnalysis }: ReportHeaderProps) {
             style={{ color: 'var(--text-muted)' }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Phân tích mới
+            New Analysis
           </Button>
           <Button
             variant="outline"
@@ -32,7 +32,7 @@ export function ReportHeader({ smiles, onNewAnalysis }: ReportHeaderProps) {
             style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}
           >
             <Download className="w-4 h-4 mr-2" />
-            Tải PDF
+            Download PDF
           </Button>
         </div>
 

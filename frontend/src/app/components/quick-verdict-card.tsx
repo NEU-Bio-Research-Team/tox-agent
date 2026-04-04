@@ -28,7 +28,7 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
       }}
     >
       <h3 className="text-lg font-semibold mb-6" style={{ color: 'var(--text)' }}>
-        KẾT QUẢ PHÂN TÍCH NHANH
+        PREDICTION SUMMARIZE
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
@@ -45,7 +45,7 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
             </span>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Độ tin cậy: {(confidence * 100).toFixed(0)}%
+            Confidence: {(confidence * 100).toFixed(0)}%
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
         {/* Top Risk */}
         <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--surface-alt)', border: '1px solid var(--border)' }}>
           <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
-            Rủi ro cao nhất
+            Top Risk Factor
           </p>
           <div className="font-semibold text-base mb-2" style={{ color: 'var(--text)' }}>
             {topRisk.name}
@@ -117,7 +117,7 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
           color: '#ffffff'
         }}
       >
-        Xem Báo Cáo Đầy Đủ
+        View Full Report
         <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
       </Button>
     </motion.div>

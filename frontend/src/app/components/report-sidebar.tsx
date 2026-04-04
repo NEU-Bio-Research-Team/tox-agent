@@ -15,7 +15,7 @@ export function ReportSidebar() {
     <aside className="sticky top-16 h-[calc(100vh-4rem)] p-6 border-r overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
       <div className="mb-6">
         <h3 className="text-sm font-semibold uppercase mb-4" style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-          Nội dung báo cáo
+          Sections
         </h3>
         <nav className="space-y-2">
           {sections.map((section) => (
@@ -36,7 +36,7 @@ export function ReportSidebar() {
 
       <div className="border-t pt-6" style={{ borderColor: 'var(--border)' }}>
         <h3 className="text-xs font-semibold uppercase mb-3" style={{ color: 'var(--text-faint)', letterSpacing: '0.05em' }}>
-          Thông tin nhanh
+          Quick Stats
         </h3>
         <div className="space-y-3">
           <div>
