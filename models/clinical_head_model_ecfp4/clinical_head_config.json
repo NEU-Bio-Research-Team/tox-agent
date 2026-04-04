@@ -1,8 +1,8 @@
 {
-  "input_dim": 12,
+  "input_dim": 1036,
   "hidden_dim": 32,
   "dropout": 0.1,
-  "threshold": 0.44999992847442627,
+  "threshold": 0.5299999117851257,
   "task_names": [
     "NR-AR",
     "NR-AR-LBD",
@@ -17,13 +17,13 @@
     "SR-MMP",
     "SR-p53"
   ],
-  "checkpoint": "/home/minhquang/tox-agent/models/clinical_head_model/best_model.pt",
-  "feature_source": "tox21_task_probabilities",
+  "checkpoint": "/home/minhquang/tox-agent/models/clinical_head_model_ecfp4/best_model.pt",
+  "feature_source": "tox21_task_probabilities_plus_ecfp4",
   "feature_spec": {
     "use_tox21_probabilities": true,
-    "include_ecfp4": false,
+    "include_ecfp4": true,
     "ecfp_radius": 2,
-    "ecfp_bits": 0,
+    "ecfp_bits": 1024,
     "tox21_impute_value": 0.5
   },
   "dataset": "clintox"

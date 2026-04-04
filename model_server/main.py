@@ -1334,6 +1334,8 @@ async def predict(req: PredictRequest):
                     clinical_head_model=model_state["clinical_head_model"],
                     threshold=float(req.threshold),
                     device=DEVICE,
+                    smiles=smiles,
+                    feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
                 )
                 p_toxic = float(clinical_raw["p_toxic"])
                 label = str(clinical_raw["label"])
@@ -1463,6 +1465,8 @@ async def predict_batch_endpoint(req: BatchPredictRequest):
                             clinical_head_model=model_state["clinical_head_model"],
                             threshold=float(req.threshold),
                             device=DEVICE,
+                            smiles=smiles,
+                            feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
                         )
                     else:
                         clinical_raw = predict_clinical_proxy_from_tox21(
@@ -1704,6 +1708,8 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                     clinical_head_model=model_state["clinical_head_model"],
                     threshold=float(req.clinical_threshold),
                     device=DEVICE,
+                    smiles=smiles,
+                    feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
                 )
             elif clinical_source == "tox21_proxy":
                 clinical_raw = predict_clinical_proxy_from_tox21(

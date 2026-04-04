@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import torch
@@ -14,6 +14,7 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score,
 )
+from sklearn.model_selection import StratifiedKFold
 
 
 class ClinicalHead(nn.Module):
@@ -42,7 +43,11 @@ def create_clinical_head(input_dim: int = 12, hidden_dim: int = 32, dropout: flo
     return ClinicalHead(input_dim=input_dim, hidden_dim=hidden_dim, dropout=dropout)
 
 
-def scores_dict_to_feature_vector(task_scores: Dict[str, float], task_names: List[str]) -> np.ndarray:
+def scores_dict_to_feature_vector(
+    task_scores: Dict[str, float],
+    task_names: List[str],
+    missing_value: float = 0.0,
+) -> np.ndarray:
     """Convert task score dict to a feature vector aligned with task_names."""
     vec = []
     for task in task_names:
@@ -53,7 +58,7 @@ def scores_dict_to_feature_vector(task_scores: Dict[str, float], task_names: Lis
             val = np.nan
 
         if not np.isfinite(val):
-            val = 0.0
+            val = float(missing_value)
         vec.append(float(np.clip(val, 0.0, 1.0)))
 
     return np.asarray(vec, dtype=np.float32)
@@ -128,6 +133,118 @@ def calibrate_threshold_youden(
         "sensitivity": float(best_sens),
         "specificity": float(best_spec),
         "reason": "optimized_youden_j",
+    }
+
+
+def calibrate_threshold_youden_cv(
+    y_true: np.ndarray,
+    y_prob: np.ndarray,
+    n_splits: int = 5,
+    seed: int = 42,
+    threshold_min: float = 0.05,
+    threshold_max: float = 0.95,
+    threshold_step: float = 0.01,
+    default_threshold: float = 0.35,
+) -> Dict[str, Union[float, int, str, List[float]]]:
+    """Calibrate threshold with stratified CV over probabilities for stability."""
+    y_true = np.asarray(y_true).reshape(-1).astype(int)
+    y_prob = np.asarray(y_prob).reshape(-1).astype(float)
+
+    finite_mask = np.isfinite(y_true) & np.isfinite(y_prob)
+    y_true = y_true[finite_mask]
+    y_prob = y_prob[finite_mask]
+
+    if y_true.size == 0 or y_prob.size == 0 or y_true.size != y_prob.size:
+        return {
+            "threshold": float(default_threshold),
+            "youden_j": float("nan"),
+            "sensitivity": float("nan"),
+            "specificity": float("nan"),
+            "reason": "invalid_input",
+        }
+
+    labels, counts = np.unique(y_true, return_counts=True)
+    if labels.size < 2:
+        return {
+            "threshold": float(default_threshold),
+            "youden_j": float("nan"),
+            "sensitivity": float("nan"),
+            "specificity": float("nan"),
+            "reason": "insufficient_label_variation",
+        }
+
+    max_splits = int(np.min(counts))
+    effective_splits = max(2, min(int(n_splits), max_splits))
+    if max_splits < 2:
+        fallback = calibrate_threshold_youden(
+            y_true=y_true,
+            y_prob=y_prob,
+            threshold_min=threshold_min,
+            threshold_max=threshold_max,
+            threshold_step=threshold_step,
+            default_threshold=default_threshold,
+        )
+        fallback["reason"] = "fallback_single_split"
+        return fallback
+
+    splitter = StratifiedKFold(
+        n_splits=effective_splits,
+        shuffle=True,
+        random_state=int(seed),
+    )
+
+    fold_thresholds: List[float] = []
+    fold_holdout_j: List[float] = []
+
+    for fit_idx, hold_idx in splitter.split(np.zeros_like(y_true), y_true):
+        fit_info = calibrate_threshold_youden(
+            y_true=y_true[fit_idx],
+            y_prob=y_prob[fit_idx],
+            threshold_min=threshold_min,
+            threshold_max=threshold_max,
+            threshold_step=threshold_step,
+            default_threshold=default_threshold,
+        )
+        threshold = float(fit_info["threshold"])
+
+        y_hold = y_true[hold_idx]
+        p_hold = y_prob[hold_idx]
+        pred_hold = (p_hold >= threshold).astype(int)
+
+        tp = int(np.sum((y_hold == 1) & (pred_hold == 1)))
+        tn = int(np.sum((y_hold == 0) & (pred_hold == 0)))
+        fp = int(np.sum((y_hold == 0) & (pred_hold == 1)))
+        fn = int(np.sum((y_hold == 1) & (pred_hold == 0)))
+
+        sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+        fold_j = float(sensitivity + specificity - 1.0)
+
+        fold_thresholds.append(threshold)
+        fold_holdout_j.append(fold_j)
+
+    selected_threshold = float(np.median(fold_thresholds))
+    y_pred = (y_prob >= selected_threshold).astype(int)
+
+    tp = int(np.sum((y_true == 1) & (y_pred == 1)))
+    tn = int(np.sum((y_true == 0) & (y_pred == 0)))
+    fp = int(np.sum((y_true == 0) & (y_pred == 1)))
+    fn = int(np.sum((y_true == 1) & (y_pred == 0)))
+
+    sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+    youden_j = float(sensitivity + specificity - 1.0)
+
+    return {
+        "threshold": selected_threshold,
+        "youden_j": float(youden_j),
+        "sensitivity": float(sensitivity),
+        "specificity": float(specificity),
+        "reason": "optimized_youden_j_cv",
+        "cv_n_splits": int(effective_splits),
+        "cv_thresholds": [float(t) for t in fold_thresholds],
+        "cv_holdout_youden_j_mean": float(np.mean(fold_holdout_j)) if fold_holdout_j else float("nan"),
+        "cv_holdout_youden_j_std": float(np.std(fold_holdout_j)) if fold_holdout_j else float("nan"),
     }
 
 

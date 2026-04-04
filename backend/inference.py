@@ -30,6 +30,7 @@ from src.graph_models import create_gatv2_model
 from src.graph_models_hybrid import create_hybrid_model
 from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 from backend.clinical_head import create_clinical_head, scores_dict_to_feature_vector
+from backend.featurization import featurize_fingerprint
 
 
 def _env_float(name: str, default: float) -> float:
@@ -85,14 +86,23 @@ def _normalize_proxy_weights(
 def clinical_score_from_tox21(
     task_scores: Dict[str, float],
     task_weights: Optional[Dict[str, float]] = None,
+    renormalize_missing: bool = False,
+    missing_task_value: float = 0.5,
 ) -> Dict[str, Union[float, List[str]]]:
     """Aggregate selected Tox21 task probabilities into a clinical proxy score."""
     weights = _normalize_proxy_weights(task_weights)
+    total_weight = float(np.sum(list(weights.values())))
 
     weighted_sum = 0.0
     used_weight_sum = 0.0
     tasks_used: List[str] = []
     tasks_missing: List[str] = []
+
+    try:
+        fallback_value = float(missing_task_value)
+    except (TypeError, ValueError):
+        fallback_value = 0.5
+    fallback_value = float(np.clip(fallback_value, 0.0, 1.0))
 
     for task, weight in weights.items():
         raw_score = task_scores.get(task, np.nan)
@@ -103,6 +113,8 @@ def clinical_score_from_tox21(
 
         if not np.isfinite(score):
             tasks_missing.append(task)
+            if not renormalize_missing:
+                weighted_sum += weight * fallback_value
             continue
 
         clipped_score = float(np.clip(float(score), 0.0, 1.0))
@@ -110,7 +122,7 @@ def clinical_score_from_tox21(
         used_weight_sum += weight
         tasks_used.append(task)
 
-    if used_weight_sum <= 0.0:
+    if total_weight <= 0.0:
         return {
             "score": 0.0,
             "coverage": 0.0,
@@ -118,8 +130,18 @@ def clinical_score_from_tox21(
             "tasks_missing": list(weights.keys()),
         }
 
+    if renormalize_missing and used_weight_sum <= 0.0:
+        return {
+            "score": 0.0,
+            "coverage": 0.0,
+            "tasks_used": [],
+            "tasks_missing": list(weights.keys()),
+        }
+
+    denom = used_weight_sum if renormalize_missing else total_weight
+
     return {
-        "score": float(weighted_sum / used_weight_sum),
+        "score": float(weighted_sum / denom),
         "coverage": float(used_weight_sum),
         "tasks_used": tasks_used,
         "tasks_missing": tasks_missing,
@@ -130,11 +152,15 @@ def predict_clinical_proxy_from_tox21(
     mechanism_result: Dict[str, Union[float, int, str, bool, List[str], Dict[str, float]]],
     threshold: float = DEFAULT_CLINICAL_THRESHOLD,
     task_weights: Optional[Dict[str, float]] = None,
+    renormalize_missing: bool = False,
+    missing_task_value: float = 0.5,
 ) -> Dict[str, Union[str, float, bool, List[str]]]:
     """Return a clinical-style toxicity output derived from Tox21 mechanism scores."""
     proxy = clinical_score_from_tox21(
         task_scores=dict(mechanism_result.get("task_scores") or {}),
         task_weights=task_weights,
+        renormalize_missing=renormalize_missing,
+        missing_task_value=missing_task_value,
     )
 
     p_toxic = float(proxy.get("score", 0.0))
@@ -352,7 +378,10 @@ def load_tox21_gatv2_model(
 def load_clinical_head_model(
     model_dir: Path,
     device: str = "cpu",
-) -> tuple[nn.Module, Dict[str, Union[float, int, List[str], str]]]:
+) -> tuple[
+    nn.Module,
+    Dict[str, Union[float, int, bool, List[str], str, Dict[str, Union[float, int, bool, str]]]],
+]:
     """Load a lightweight clinical head trained on Tox21 task features."""
     model_dir = Path(model_dir)
 
@@ -364,7 +393,7 @@ def load_clinical_head_model(
         )
 
     config_path = model_dir / "clinical_head_config.json"
-    config_payload: Dict[str, Union[float, int, List[str], str]] = {}
+    config_payload: Dict[str, Union[float, int, bool, List[str], str, Dict[str, Union[float, int, bool, str]]]] = {}
     if config_path.exists():
         with open(config_path, "r") as f:
             raw_cfg = json.load(f)
@@ -380,6 +409,8 @@ def load_clinical_head_model(
         dropout = float(checkpoint.get("dropout", config_payload.get("dropout", 0.1)))
         threshold = float(checkpoint.get("threshold", config_payload.get("threshold", DEFAULT_CLINICAL_THRESHOLD)))
         task_names = checkpoint.get("task_names") or config_payload.get("task_names") or get_task_names("tox21")
+        feature_source = str(checkpoint.get("feature_source", config_payload.get("feature_source", "tox21_task_probabilities")))
+        feature_spec = checkpoint.get("feature_spec", config_payload.get("feature_spec", {}))
     else:
         state_dict = checkpoint
         input_dim = int(config_payload.get("input_dim", 12))
@@ -387,6 +418,19 @@ def load_clinical_head_model(
         dropout = float(config_payload.get("dropout", 0.1))
         threshold = float(config_payload.get("threshold", DEFAULT_CLINICAL_THRESHOLD))
         task_names = config_payload.get("task_names") or get_task_names("tox21")
+        feature_source = str(config_payload.get("feature_source", "tox21_task_probabilities"))
+        feature_spec = config_payload.get("feature_spec", {})
+
+    if not isinstance(feature_spec, dict):
+        feature_spec = {}
+
+    feature_spec = {
+        "use_tox21_probabilities": bool(feature_spec.get("use_tox21_probabilities", True)),
+        "include_ecfp4": bool(feature_spec.get("include_ecfp4", False)),
+        "ecfp_radius": int(feature_spec.get("ecfp_radius", 2)),
+        "ecfp_bits": int(feature_spec.get("ecfp_bits", 1024)),
+        "tox21_impute_value": float(feature_spec.get("tox21_impute_value", 0.5)),
+    }
 
     model = create_clinical_head(
         input_dim=input_dim,
@@ -397,15 +441,60 @@ def load_clinical_head_model(
     model.to(device)
     model.eval()
 
-    metadata: Dict[str, Union[float, int, List[str], str]] = {
+    metadata: Dict[str, Union[float, int, bool, List[str], str, Dict[str, Union[float, int, bool, str]]]] = {
         "input_dim": input_dim,
         "hidden_dim": hidden_dim,
         "dropout": dropout,
         "threshold": threshold,
         "task_names": list(task_names),
+        "feature_source": feature_source,
+        "feature_spec": feature_spec,
         "model_dir": str(model_dir),
     }
     return model, metadata
+
+
+def _build_clinical_head_feature_vector(
+    task_scores: Dict[str, float],
+    task_names: List[str],
+    smiles: Optional[str],
+    feature_spec: Optional[Dict[str, Union[float, int, bool, str]]] = None,
+) -> np.ndarray:
+    spec = feature_spec or {}
+
+    use_tox21_probabilities = bool(spec.get("use_tox21_probabilities", True))
+    include_ecfp4 = bool(spec.get("include_ecfp4", False))
+    ecfp_radius = int(spec.get("ecfp_radius", 2))
+    ecfp_bits = int(spec.get("ecfp_bits", 1024))
+    tox21_impute_value = float(spec.get("tox21_impute_value", 0.5))
+
+    parts: List[np.ndarray] = []
+
+    if use_tox21_probabilities:
+        tox21_features = scores_dict_to_feature_vector(
+            task_scores=task_scores,
+            task_names=task_names,
+            missing_value=tox21_impute_value,
+        )
+        parts.append(tox21_features)
+
+    if include_ecfp4:
+        if smiles:
+            ecfp_features = featurize_fingerprint(
+                smiles=str(smiles),
+                radius=int(ecfp_radius),
+                n_bits=int(ecfp_bits),
+            )
+        else:
+            ecfp_features = np.zeros(int(ecfp_bits), dtype=np.float32)
+        parts.append(ecfp_features.astype(np.float32))
+
+    if not parts:
+        return np.zeros(len(task_names), dtype=np.float32)
+
+    if len(parts) == 1:
+        return parts[0].astype(np.float32)
+    return np.concatenate(parts, axis=0).astype(np.float32)
 
 
 def predict_clinical_head_from_tox21_task_scores(
@@ -414,9 +503,16 @@ def predict_clinical_head_from_tox21_task_scores(
     clinical_head_model: nn.Module,
     threshold: float = DEFAULT_CLINICAL_THRESHOLD,
     device: str = "cpu",
+    smiles: Optional[str] = None,
+    feature_spec: Optional[Dict[str, Union[float, int, bool, str]]] = None,
 ) -> Dict[str, Union[str, float, bool]]:
     """Predict clinical toxicity from Tox21 task score vector using trained head."""
-    features = scores_dict_to_feature_vector(task_scores=task_scores, task_names=task_names)
+    features = _build_clinical_head_feature_vector(
+        task_scores=task_scores,
+        task_names=task_names,
+        smiles=smiles,
+        feature_spec=feature_spec,
+    )
     x = torch.tensor(features, dtype=torch.float32, device=device)
 
     with torch.no_grad():
