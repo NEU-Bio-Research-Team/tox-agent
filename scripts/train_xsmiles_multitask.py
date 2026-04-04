@@ -186,29 +186,37 @@ def _resolve_beta(
 def _build_phase2_optimizer(model: nn.Module, cfg: dict) -> torch.optim.Optimizer:
     backbone_lr = float(cfg["backbone_learning_rate"])
     head_lr = float(cfg["head_learning_rate"])
+    clintox_head_lr_multiplier = float(cfg.get("clintox_head_lr_multiplier", 1.5))
     weight_decay = float(cfg["weight_decay"])
 
     backbone_params = []
-    head_params = []
+    tox21_head_params = []
+    clintox_head_params = []
 
     for name, param in model.named_parameters():
         if not param.requires_grad:
             continue
 
-        if name.startswith("predictor.") or name.startswith("tox21_head."):
-            head_params.append(param)
+        if name.startswith("predictor."):
+            clintox_head_params.append(param)
+        elif name.startswith("tox21_head."):
+            tox21_head_params.append(param)
         else:
             backbone_params.append(param)
 
     if not backbone_params:
         raise RuntimeError("No backbone parameters found for phase-2 optimizer")
-    if not head_params:
-        raise RuntimeError("No head parameters found for phase-2 optimizer")
+    if not tox21_head_params:
+        raise RuntimeError("No tox21_head parameters found for phase-2 optimizer")
+    if not clintox_head_params:
+        raise RuntimeError("No predictor parameters found for phase-2 optimizer")
 
+    clintox_head_lr = head_lr * clintox_head_lr_multiplier
     return torch.optim.Adam(
         [
             {"params": backbone_params, "lr": backbone_lr},
-            {"params": head_params, "lr": head_lr},
+            {"params": tox21_head_params, "lr": head_lr},
+            {"params": clintox_head_params, "lr": clintox_head_lr},
         ],
         weight_decay=weight_decay,
     )
@@ -549,6 +557,136 @@ def _collect_clintox_predictions(model: nn.Module, loader: DataLoader, device: s
     )
 
 
+def _collect_tox21_predictions(
+    model: nn.Module,
+    loader: DataLoader,
+    task_names: List[str],
+    device: str,
+) -> Dict:
+    tox21_wrapper = HybridTox21Wrapper(model)
+    return evaluate_multitask_model(
+        model=tox21_wrapper,
+        data_loader=loader,
+        task_names=task_names,
+        device=device,
+        return_predictions=True,
+    )
+
+
+def _calibrate_tox21_task_thresholds(
+    val_preds: Dict,
+    task_names: List[str],
+    calibration_cfg: dict,
+) -> Tuple[Dict[str, float], Dict[str, object]]:
+    default_threshold = float(calibration_cfg.get("default_threshold", 0.5))
+    enabled = bool(calibration_cfg.get("enabled", True))
+    method = str(calibration_cfg.get("method", "val")).strip().lower()
+
+    threshold_min = float(calibration_cfg.get("min", 0.05))
+    threshold_max = float(calibration_cfg.get("max", 0.95))
+    threshold_step = float(calibration_cfg.get("step", 0.01))
+    cv_folds = int(calibration_cfg.get("cv_folds", 3))
+
+    threshold_map = {task_name: float(default_threshold) for task_name in task_names}
+    details: Dict[str, object] = {}
+
+    if not enabled:
+        for task_name in task_names:
+            details[task_name] = {
+                "threshold": float(default_threshold),
+                "reason": "disabled",
+                "n_valid": 0,
+            }
+        return threshold_map, {
+            "enabled": False,
+            "method": method,
+            "default_threshold": float(default_threshold),
+            "task_thresholds": threshold_map,
+            "task_details": details,
+        }
+
+    labels = np.asarray(val_preds.get("labels", []), dtype=np.float32)
+    probs = np.asarray(val_preds.get("probabilities", []), dtype=np.float32)
+    if labels.ndim != 2 or probs.ndim != 2 or labels.shape != probs.shape:
+        for task_name in task_names:
+            details[task_name] = {
+                "threshold": float(default_threshold),
+                "reason": "invalid_predictions_shape",
+                "n_valid": 0,
+            }
+        return threshold_map, {
+            "enabled": True,
+            "method": method,
+            "default_threshold": float(default_threshold),
+            "task_thresholds": threshold_map,
+            "task_details": details,
+        }
+
+    for idx, task_name in enumerate(task_names):
+        y_true = labels[:, idx]
+        y_prob = probs[:, idx]
+        valid_mask = np.isfinite(y_true) & np.isfinite(y_prob)
+
+        y_true_valid = y_true[valid_mask].astype(np.int32)
+        y_prob_valid = y_prob[valid_mask].astype(np.float32)
+        n_valid = int(y_true_valid.shape[0])
+
+        if n_valid == 0:
+            details[task_name] = {
+                "threshold": float(default_threshold),
+                "reason": "no_valid_labels",
+                "n_valid": n_valid,
+            }
+            continue
+
+        if len(np.unique(y_true_valid)) < 2:
+            details[task_name] = {
+                "threshold": float(default_threshold),
+                "reason": "insufficient_label_variation",
+                "n_valid": n_valid,
+            }
+            continue
+
+        if method == "cv":
+            info = calibrate_threshold_youden_cv(
+                y_true=y_true_valid,
+                y_prob=y_prob_valid,
+                n_splits=cv_folds,
+                threshold_min=threshold_min,
+                threshold_max=threshold_max,
+                threshold_step=threshold_step,
+                default_threshold=default_threshold,
+            )
+        else:
+            info = calibrate_threshold_youden(
+                y_true=y_true_valid,
+                y_prob=y_prob_valid,
+                threshold_min=threshold_min,
+                threshold_max=threshold_max,
+                threshold_step=threshold_step,
+                default_threshold=default_threshold,
+            )
+
+        threshold_map[task_name] = float(info.get("threshold", default_threshold))
+        details[task_name] = {
+            **info,
+            "n_valid": n_valid,
+            "positive_rate": float(np.mean(y_true_valid == 1)),
+        }
+
+    return threshold_map, {
+        "enabled": True,
+        "method": method,
+        "default_threshold": float(default_threshold),
+        "min": float(threshold_min),
+        "max": float(threshold_max),
+        "step": float(threshold_step),
+        "cv_folds": int(cv_folds),
+        "task_thresholds": threshold_map,
+        "task_details": details,
+    }
+
+
 def _calibrate_clintox_threshold(
     train_preds: Dict,
     val_preds: Dict,
@@ -664,6 +802,7 @@ def main() -> None:
     phase1_cfg = training_cfg.get("phase1", {})
     phase2_cfg = training_cfg.get("phase2", {})
     calibration_cfg = config.get("threshold_calibration", {})
+    tox21_calibration_cfg = config.get("tox21_threshold_calibration", {})
     data_cfg = config["data"]
     output_cfg = config.get("output", {})
 
@@ -927,6 +1066,7 @@ def main() -> None:
         data_loader=tox21_val_loader,
         task_names=task_columns,
         device=device,
+        thresholds=0.5,
         return_predictions=False,
     )
     tox21_test_metrics = evaluate_multitask_model(
@@ -934,6 +1074,36 @@ def main() -> None:
         data_loader=tox21_test_loader,
         task_names=task_columns,
         device=device,
+        thresholds=0.5,
+        return_predictions=False,
+    )
+
+    tox21_val_preds = _collect_tox21_predictions(
+        model=model,
+        loader=tox21_val_loader,
+        task_names=task_columns,
+        device=device,
+    )
+    tox21_threshold_map, tox21_threshold_info = _calibrate_tox21_task_thresholds(
+        val_preds=tox21_val_preds,
+        task_names=task_columns,
+        calibration_cfg=tox21_calibration_cfg,
+    )
+
+    tox21_val_metrics_calibrated = evaluate_multitask_model(
+        model=tox21_wrapper,
+        data_loader=tox21_val_loader,
+        task_names=task_columns,
+        device=device,
+        thresholds=tox21_threshold_map,
+        return_predictions=False,
+    )
+    tox21_test_metrics_calibrated = evaluate_multitask_model(
+        model=tox21_wrapper,
+        data_loader=tox21_test_loader,
+        task_names=task_columns,
+        device=device,
+        thresholds=tox21_threshold_map,
         return_predictions=False,
     )
 
@@ -965,6 +1135,11 @@ def main() -> None:
         f"macro PR-AUC={_safe_metric(tox21_test_metrics, 'macro_pr_auc'):.4f} "
         f"macro F1={_safe_metric(tox21_test_metrics, 'macro_f1'):.4f}"
     )
+    print(
+        f"Tox21 test (calibrated): macro AUC={_safe_metric(tox21_test_metrics_calibrated, 'macro_auc_roc'):.4f} "
+        f"macro PR-AUC={_safe_metric(tox21_test_metrics_calibrated, 'macro_pr_auc'):.4f} "
+        f"macro F1={_safe_metric(tox21_test_metrics_calibrated, 'macro_f1'):.4f}"
+    )
 
     model_path = model_dir / "best_model.pt"
     torch.save(model.state_dict(), model_path)
@@ -986,6 +1161,10 @@ def main() -> None:
     with open(threshold_metrics_path, "w") as f:
         json.dump(threshold_info, f, indent=2)
 
+    tox21_thresholds_path = model_dir / "tox21_task_thresholds.json"
+    with open(tox21_thresholds_path, "w") as f:
+        json.dump(_to_jsonable(tox21_threshold_info), f, indent=2)
+
     training_summary = {
         **summary,
         "phase2": {
@@ -996,8 +1175,15 @@ def main() -> None:
         "threshold": threshold_info,
         "metrics": {
             "tox21": {
-                "val": tox21_val_metrics,
-                "test": tox21_test_metrics,
+                "threshold_default_0p5": {
+                    "val": tox21_val_metrics,
+                    "test": tox21_test_metrics,
+                },
+                "threshold_calibrated": {
+                    "val": tox21_val_metrics_calibrated,
+                    "test": tox21_test_metrics_calibrated,
+                },
+                "threshold_calibration": tox21_threshold_info,
             },
             "clintox": {
                 "train": clin_train_metrics,
@@ -1022,6 +1208,7 @@ def main() -> None:
     print(f"- Tokenizer: {tokenizer_path}")
     print(f"- Clinical metrics: {model_dir / 'smilesgnn_model_metrics.txt'}")
     print(f"- Threshold info: {threshold_metrics_path}")
+    print(f"- Tox21 task thresholds: {tox21_thresholds_path}")
     print(f"- Full summary: {summary_path}")
 
 

@@ -10,6 +10,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Dict, Optional
 
 import torch
 
@@ -22,6 +23,30 @@ from backend.inference import (
     predict_xsmiles_toxicity_profile,
 )
 from backend.workspace_mode import assert_clintox_enabled
+
+
+def _load_task_thresholds(path: Path) -> Optional[Dict[str, float]]:
+    if not path.exists():
+        return None
+
+    with open(path, "r") as f:
+        payload = json.load(f)
+
+    if isinstance(payload, dict) and isinstance(payload.get("task_thresholds"), dict):
+        threshold_map = payload.get("task_thresholds", {})
+    elif isinstance(payload, dict):
+        threshold_map = payload
+    else:
+        return None
+
+    out: Dict[str, float] = {}
+    for key, value in threshold_map.items():
+        try:
+            out[str(key)] = float(value)
+        except (TypeError, ValueError):
+            continue
+
+    return out or None
 
 
 def main() -> None:
@@ -45,6 +70,12 @@ def main() -> None:
     parser.add_argument("--device", type=str, default="cpu", help="cpu or cuda")
     parser.add_argument("--clinical-threshold", type=float, default=0.35)
     parser.add_argument("--task-threshold", type=float, default=0.5)
+    parser.add_argument(
+        "--task-thresholds-path",
+        type=str,
+        default=None,
+        help="Optional JSON path for per-task thresholds (defaults to model_dir/tox21_task_thresholds.json)",
+    )
     parser.add_argument("--mode", choices=["clinical", "profile", "both"], default="both")
     args = parser.parse_args()
 
@@ -55,6 +86,12 @@ def main() -> None:
 
     model_dir = project_root / args.model_dir
     config_path = project_root / args.config
+    threshold_file = (
+        project_root / args.task_thresholds_path
+        if args.task_thresholds_path
+        else model_dir / "tox21_task_thresholds.json"
+    )
+    task_thresholds = _load_task_thresholds(threshold_file)
 
     model, tokenizer, wrapped_model = load_model(
         model_dir=model_dir,
@@ -82,6 +119,10 @@ def main() -> None:
             model=model,
             device=device,
             threshold=float(args.task_threshold),
+            task_thresholds=task_thresholds,
+        )
+        result["toxicity_profile"]["task_thresholds_source"] = (
+            str(threshold_file) if task_thresholds is not None else "default_scalar_threshold"
         )
 
     print(json.dumps(result, indent=2))

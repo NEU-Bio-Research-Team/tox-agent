@@ -39,10 +39,12 @@ training:
     batch_size_clintox: 32
     backbone_learning_rate: 0.0002
     head_learning_rate: 0.0006
+    clintox_head_lr_multiplier: 1.5
     weight_decay: 0.0001
     alpha_tox21: 1.0
-    beta_clintox: 5.0
-    beta_mode: "auto_ratio"  # fixed, auto_ratio
+    beta_clintox: 1.5
+    beta_mode: "fixed"  # fixed, auto_ratio
+    loss_type: "weighted_bce"  # focal, weighted_bce, bce
     clintox_loss_type: "focal"  # focal, weighted_bce, bce
     clintox_focal_alpha: 0.25
     clintox_focal_gamma: 2.0
@@ -60,6 +62,15 @@ threshold_calibration:
   max: 0.95
   step: 0.01
   default_threshold: 0.35
+
+tox21_threshold_calibration:
+  enabled: true
+  method: "val"  # cv, val
+  cv_folds: 3
+  min: 0.05
+  max: 0.95
+  step: 0.01
+  default_threshold: 0.5
 
 data:
   cache_dir: "data"
