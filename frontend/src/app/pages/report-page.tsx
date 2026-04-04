@@ -8,6 +8,7 @@ import { StructuralExplanationSection } from '../components/report/structural-ex
 import { LiteratureContextSection } from '../components/report/literature-context-section';
 import { AIRecommendationsSection } from '../components/report/ai-recommendations-section';
 import { AIChatbot } from '../components/ai-chatbot';
+import { Footer } from '../components/footer';
 
 export function ReportPage() {
   const location = useLocation();
@@ -36,6 +37,9 @@ export function ReportPage() {
       
       {/* AI Chatbot - only on report page */}
       <AIChatbot />
+
+
+      <Footer />
     </div>
   );
 }

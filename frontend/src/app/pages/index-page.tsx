@@ -5,6 +5,7 @@ import { HeroSection } from '../components/hero-section';
 import { AgentProgressPanel } from '../components/agent-progress-panel';
 import { QuickVerdictCard } from '../components/quick-verdict-card';
 import { SmilesHistory, addToHistory } from '../components/smiles-history';
+import { Footer } from '../components/footer';
 
 export function IndexPage() {
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ export function IndexPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

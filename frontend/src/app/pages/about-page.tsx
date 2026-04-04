@@ -2,6 +2,7 @@ import { Navbar } from '../components/navbar';
 import { Users, Target, Zap, Shield, Github, Mail } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import logoImage from '../../assets/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
+import { Footer } from '../components/footer';
 
 export function AboutPage() {
   return (
@@ -181,13 +182,14 @@ export function AboutPage() {
         {/* Footer */}
         <div className="text-center pt-8 border-t" style={{ borderColor: 'var(--border)', color: 'var(--text-faint)' }}>
           <p className="text-sm">
-            © 2026 ToxAgent. Built with ❤️ for the GDGoC Vietnam Hackathon.
+            © 2026 ToxAgent. Built for the GDGoC Vietnam Hackathon.
           </p>
           <p className="text-xs mt-2">
             Powered by Gemini 2.0 Flash • Google ADK • FastAPI • React
           </p>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
