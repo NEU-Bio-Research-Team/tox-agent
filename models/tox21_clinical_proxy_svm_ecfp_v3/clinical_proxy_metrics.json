@@ -1,0 +1,140 @@
+{
+  "direction": "direction_1_tox21_clinical_proxy",
+  "threshold": {
+    "threshold": 0.22617527842521667,
+    "youden_j": 0.8963653754184602,
+    "sensitivity": 0.9215686274509803,
+    "specificity": 0.9747967479674797,
+    "reason": "optimized_youden_j_cv",
+    "cv_n_splits": 3,
+    "cv_thresholds": [
+      0.4199999272823334,
+      0.12999998033046722,
+      0.11999998986721039
+    ],
+    "cv_holdout_youden_j_mean": 0.8931611669057866,
+    "cv_holdout_youden_j_std": 0.019392384482173217,
+    "fit_split": "train_val"
+  },
+  "proxy": {
+    "proxy_mode": "learned_svm_rbf",
+    "learned_impute_value": 0.5,
+    "use_ecfp4_features": true,
+    "ecfp_radius": 2,
+    "ecfp_bits": 256,
+    "lr_cv_folds": 5,
+    "learned_val_auc": 0.7882472137791285,
+    "learned_min_val_auc": 0.55,
+    "learned_model": {
+      "fit_reason": "svm_rbf",
+      "model_type": "svm_rbf",
+      "svm_c": 1.0,
+      "svm_gamma": "scale"
+    }
+  },
+  "config": {
+    "model_dir": "/home/minhquang/tox-agent/models/tox21_gatv2_model",
+    "config_path": "/home/minhquang/tox-agent/config/tox21_gatv2_config.yaml",
+    "split_type": "scaffold",
+    "seed": 42,
+    "device": "cpu",
+    "batch_size": 64,
+    "threshold_calibration": "cv",
+    "threshold_cv_folds": 3,
+    "threshold_fit_split": "train_val"
+  },
+  "metrics": {
+    "train": {
+      "n_samples": 1184,
+      "positive_rate": 0.08023648648648649,
+      "auc_roc": 0.9887632303900247,
+      "pr_auc": 0.802796152674517,
+      "accuracy": 0.972972972972973,
+      "f1": 0.8545454545454545,
+      "sensitivity": 0.9894736842105263,
+      "specificity": 0.9715335169880625,
+      "tn": 1058,
+      "fp": 31,
+      "fn": 1,
+      "tp": 94,
+      "threshold": 0.22617527842521667,
+      "n_parse_error": 0,
+      "n_invalid_prob": 0,
+      "mean_proxy_coverage": 1.0
+    },
+    "val": {
+      "n_samples": 148,
+      "positive_rate": 0.0472972972972973,
+      "auc_roc": 0.7882472137791285,
+      "pr_auc": 0.24626953479072825,
+      "accuracy": 0.9527027027027027,
+      "f1": 0.0,
+      "sensitivity": 0.0,
+      "specificity": 1.0,
+      "tn": 141,
+      "fp": 0,
+      "fn": 7,
+      "tp": 0,
+      "threshold": 0.22617527842521667,
+      "n_parse_error": 0,
+      "n_invalid_prob": 0,
+      "mean_proxy_coverage": 1.0
+    },
+    "test": {
+      "n_samples": 148,
+      "positive_rate": 0.06756756756756757,
+      "auc_roc": 0.6833333333333335,
+      "pr_auc": 0.3083856001406779,
+      "accuracy": 0.9256756756756757,
+      "f1": 0.15384615384615385,
+      "sensitivity": 0.1,
+      "specificity": 0.9855072463768116,
+      "tn": 136,
+      "fp": 2,
+      "fn": 9,
+      "tp": 1,
+      "threshold": 0.22617527842521667,
+      "n_parse_error": 0,
+      "n_invalid_prob": 0,
+      "mean_proxy_coverage": 1.0
+    }
+  },
+  "coverage": {
+    "train": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "p25": 1.0,
+      "p50": 1.0,
+      "p75": 1.0,
+      "max": 1.0,
+      "p_low_coverage_lt_0_8": 0.0,
+      "p_low_coverage_lt_0_5": 0.0,
+      "p_zero_coverage": 0.0
+    },
+    "val": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "p25": 1.0,
+      "p50": 1.0,
+      "p75": 1.0,
+      "max": 1.0,
+      "p_low_coverage_lt_0_8": 0.0,
+      "p_low_coverage_lt_0_5": 0.0,
+      "p_zero_coverage": 0.0
+    },
+    "test": {
+      "mean": 1.0,
+      "std": 0.0,
+      "min": 1.0,
+      "p25": 1.0,
+      "p50": 1.0,
+      "p75": 1.0,
+      "max": 1.0,
+      "p_low_coverage_lt_0_8": 0.0,
+      "p_low_coverage_lt_0_5": 0.0,
+      "p_zero_coverage": 0.0
+    }
+  }
+}

@@ -27,6 +27,7 @@ from backend.clinical_head import (
     compute_binary_metrics,
 )
 from backend.data import load_clintox
+from backend.featurization import featurize_batch
 from backend.graph_data import smiles_to_pyg_data
 from backend.inference import (
     DEFAULT_CLINICAL_PROXY_TASK_WEIGHTS,
@@ -128,6 +129,27 @@ def _coverage_from_prob_matrix(prob_matrix: np.ndarray) -> np.ndarray:
     return np.mean(np.isfinite(prob_matrix), axis=1).astype(np.float32)
 
 
+def _build_learned_feature_matrix(
+    prob_matrix: np.ndarray,
+    smiles: np.ndarray,
+    impute_value: float,
+    use_ecfp4_features: bool,
+    ecfp_radius: int,
+    ecfp_bits: int,
+) -> np.ndarray:
+    tox21_features = _impute_prob_matrix(prob_matrix, fill_value=float(impute_value))
+    if not use_ecfp4_features:
+        return tox21_features
+
+    fp_matrix = featurize_batch(
+        smiles_list=[str(s) for s in smiles.tolist()],
+        mode="fingerprint",
+        radius=int(ecfp_radius),
+        n_bits=int(ecfp_bits),
+    ).astype(np.float32)
+    return np.concatenate([tox21_features, fp_matrix], axis=1).astype(np.float32)
+
+
 def _parse_c_grid(raw: str) -> list[float]:
     values = []
     for token in str(raw).split(","):
@@ -185,17 +207,16 @@ def _weighted_proxy_probabilities(
 
 
 def _fit_learned_proxy_lr(
-    train_prob_matrix: np.ndarray,
+    train_feature_matrix: np.ndarray,
     train_labels: np.ndarray,
     task_names,
-    impute_value: float,
     cv_folds: int,
     seed: int,
     lr_max_iter: int,
     lr_regularization: str,
     lr_c_grid: list[float],
 ):
-    x_train = _impute_prob_matrix(train_prob_matrix, fill_value=float(impute_value))
+    x_train = np.asarray(train_feature_matrix, dtype=np.float32)
     y_train = np.asarray(train_labels).reshape(-1).astype(int)
 
     if x_train.shape[0] != y_train.shape[0]:
@@ -257,14 +278,13 @@ def _fit_learned_proxy_lr(
 
 
 def _fit_learned_proxy_svm_rbf(
-    train_prob_matrix: np.ndarray,
+    train_feature_matrix: np.ndarray,
     train_labels: np.ndarray,
-    impute_value: float,
     seed: int,
     svm_c: float,
     svm_gamma: str,
 ):
-    x_train = _impute_prob_matrix(train_prob_matrix, fill_value=float(impute_value))
+    x_train = np.asarray(train_feature_matrix, dtype=np.float32)
     y_train = np.asarray(train_labels).reshape(-1).astype(int)
 
     if x_train.shape[0] != y_train.shape[0]:
@@ -298,11 +318,11 @@ def _fit_learned_proxy_svm_rbf(
 
 
 def _learned_proxy_probabilities(
+    feature_matrix: np.ndarray,
     prob_matrix: np.ndarray,
     model,
-    impute_value: float,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    x = _impute_prob_matrix(prob_matrix, fill_value=float(impute_value))
+    x = np.asarray(feature_matrix, dtype=np.float32)
     p_proxy = model.predict_proba(x)[:, 1].astype(np.float32)
     coverage = _coverage_from_prob_matrix(prob_matrix)
     return p_proxy, coverage
@@ -405,6 +425,9 @@ def main() -> None:
     parser.add_argument("--renormalize-missing", action="store_true")
     parser.add_argument("--missing-task-value", type=float, default=0.5)
     parser.add_argument("--learned-impute-value", type=float, default=0.5)
+    parser.add_argument("--use-ecfp4-features", action="store_true")
+    parser.add_argument("--ecfp-radius", type=int, default=2)
+    parser.add_argument("--ecfp-bits", type=int, default=256)
     parser.add_argument("--lr-cv-folds", type=int, default=5)
     parser.add_argument("--lr-max-iter", type=int, default=500)
     parser.add_argument("--lr-regularization", choices=["l1", "l2"], default="l2")
@@ -488,6 +511,31 @@ def main() -> None:
         batch_size=int(args.batch_size),
     )
 
+    train_feature_matrix = _build_learned_feature_matrix(
+        prob_matrix=train_prob_matrix,
+        smiles=train_smiles,
+        impute_value=float(args.learned_impute_value),
+        use_ecfp4_features=bool(args.use_ecfp4_features),
+        ecfp_radius=int(args.ecfp_radius),
+        ecfp_bits=int(args.ecfp_bits),
+    )
+    val_feature_matrix = _build_learned_feature_matrix(
+        prob_matrix=val_prob_matrix,
+        smiles=val_smiles,
+        impute_value=float(args.learned_impute_value),
+        use_ecfp4_features=bool(args.use_ecfp4_features),
+        ecfp_radius=int(args.ecfp_radius),
+        ecfp_bits=int(args.ecfp_bits),
+    )
+    test_feature_matrix = _build_learned_feature_matrix(
+        prob_matrix=test_prob_matrix,
+        smiles=test_smiles,
+        impute_value=float(args.learned_impute_value),
+        use_ecfp4_features=bool(args.use_ecfp4_features),
+        ecfp_radius=int(args.ecfp_radius),
+        ecfp_bits=int(args.ecfp_bits),
+    )
+
     task_weights = _load_task_weights(args.task_weights)
     if task_weights is None:
         task_weights = dict(DEFAULT_CLINICAL_PROXY_TASK_WEIGHTS)
@@ -525,19 +573,17 @@ def main() -> None:
     else:
         if str(args.proxy_mode) == "learned_svm_rbf":
             learned_model, learned_info = _fit_learned_proxy_svm_rbf(
-                train_prob_matrix=train_prob_matrix,
+                train_feature_matrix=train_feature_matrix,
                 train_labels=train_labels,
-                impute_value=float(args.learned_impute_value),
                 seed=int(args.seed),
                 svm_c=float(args.svm_c),
                 svm_gamma=str(args.svm_gamma),
             )
         else:
             learned_model, learned_info = _fit_learned_proxy_lr(
-                train_prob_matrix=train_prob_matrix,
+                train_feature_matrix=train_feature_matrix,
                 train_labels=train_labels,
                 task_names=task_names,
-                impute_value=float(args.learned_impute_value),
                 cv_folds=int(args.lr_cv_folds),
                 seed=int(args.seed),
                 lr_max_iter=int(args.lr_max_iter),
@@ -546,19 +592,19 @@ def main() -> None:
             )
 
         train_probs, train_cov = _learned_proxy_probabilities(
-            train_prob_matrix,
+            feature_matrix=train_feature_matrix,
+            prob_matrix=train_prob_matrix,
             model=learned_model,
-            impute_value=float(args.learned_impute_value),
         )
         val_probs, val_cov = _learned_proxy_probabilities(
-            val_prob_matrix,
+            feature_matrix=val_feature_matrix,
+            prob_matrix=val_prob_matrix,
             model=learned_model,
-            impute_value=float(args.learned_impute_value),
         )
         test_probs, test_cov = _learned_proxy_probabilities(
-            test_prob_matrix,
+            feature_matrix=test_feature_matrix,
+            prob_matrix=test_prob_matrix,
             model=learned_model,
-            impute_value=float(args.learned_impute_value),
         )
 
         learned_val_auc = _safe_auc(val_labels, val_probs)
@@ -609,6 +655,9 @@ def main() -> None:
             proxy_config = {
                 "proxy_mode": str(args.proxy_mode),
                 "learned_impute_value": float(args.learned_impute_value),
+                "use_ecfp4_features": bool(args.use_ecfp4_features),
+                "ecfp_radius": int(args.ecfp_radius) if bool(args.use_ecfp4_features) else 0,
+                "ecfp_bits": int(args.ecfp_bits) if bool(args.use_ecfp4_features) else 0,
                 "lr_cv_folds": int(args.lr_cv_folds),
                 "learned_val_auc": float(learned_val_auc),
                 "learned_min_val_auc": float(min_val_auc),

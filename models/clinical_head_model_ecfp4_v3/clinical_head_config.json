@@ -1,0 +1,30 @@
+{
+  "input_dim": 268,
+  "hidden_dim": 64,
+  "dropout": 0.4,
+  "threshold": 0.5366618037223816,
+  "task_names": [
+    "NR-AR",
+    "NR-AR-LBD",
+    "NR-AhR",
+    "NR-Aromatase",
+    "NR-ER",
+    "NR-ER-LBD",
+    "NR-PPAR-gamma",
+    "SR-ARE",
+    "SR-ATAD5",
+    "SR-HSE",
+    "SR-MMP",
+    "SR-p53"
+  ],
+  "checkpoint": "/home/minhquang/tox-agent/models/clinical_head_model_ecfp4_v3/best_model.pt",
+  "feature_source": "tox21_task_probabilities_plus_ecfp4",
+  "feature_spec": {
+    "use_tox21_probabilities": true,
+    "include_ecfp4": true,
+    "ecfp_radius": 2,
+    "ecfp_bits": 256,
+    "tox21_impute_value": 0.5
+  },
+  "dataset": "clintox"
+}

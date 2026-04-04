@@ -223,7 +223,16 @@ def calibrate_threshold_youden_cv(
         fold_thresholds.append(threshold)
         fold_holdout_j.append(fold_j)
 
-    selected_threshold = float(np.median(fold_thresholds))
+    holdout_weights = np.clip(np.asarray(fold_holdout_j, dtype=np.float32), 0.0, None)
+    if holdout_weights.size > 0 and float(np.sum(holdout_weights)) > 0.0:
+        selected_threshold = float(
+            np.average(np.asarray(fold_thresholds, dtype=np.float32), weights=holdout_weights)
+        )
+    elif fold_holdout_j:
+        best_fold_idx = int(np.argmax(np.asarray(fold_holdout_j, dtype=np.float32)))
+        selected_threshold = float(fold_thresholds[best_fold_idx])
+    else:
+        selected_threshold = float(np.median(fold_thresholds))
     y_pred = (y_prob >= selected_threshold).astype(int)
 
     tp = int(np.sum((y_true == 1) & (y_pred == 1)))
