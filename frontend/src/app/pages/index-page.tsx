@@ -6,6 +6,8 @@ import { AgentProgressPanel } from '../components/agent-progress-panel';
 import { QuickVerdictCard } from '../components/quick-verdict-card';
 import { agentAnalyze } from '../../lib/api';
 import { useReport } from '../../lib/ReportContext';
+import { Footer } from '../components/footer';
+import { SmilesHistory } from '../components/smiles-history';
 
 export function IndexPage() {
   const navigate = useNavigate();
@@ -67,6 +69,11 @@ export function IndexPage() {
     }
   };
 
+  const handleSelectFromHistory = (smiles: string) => {
+    setSmilesInput(smiles);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -112,7 +119,15 @@ export function IndexPage() {
             onViewReport={handleViewReport}
           />
         )}
+
+        {/* SMILES History */}
+        {!isLoading && !analysisComplete && (
+          <div className="py-12">
+            <SmilesHistory onSelectSmiles={handleSelectFromHistory} />
+          </div>
+        )}
       </main>
+      <Footer />
     </div>
   );
 }

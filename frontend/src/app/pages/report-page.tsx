@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router';
 import { Navbar } from '../components/navbar';
+import { AIChatbot } from '../components/ai-chatbot';
+import { Footer } from '../components/footer';
 import { ReportHeader } from '../components/report-header';
 import { ReportSidebar } from '../components/report-sidebar';
 import { ClinicalToxicitySection } from '../components/report/clinical-toxicity-section';
@@ -24,14 +26,14 @@ export function ReportPage() {
             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
           >
             <h1 className="text-2xl font-bold mb-3" style={{ color: 'var(--text)' }}>
-              Chưa có dữ liệu báo cáo
+              There's no report to display
             </h1>
             <p className="mb-6" style={{ color: 'var(--text-muted)' }}>
-              Hãy quay lại trang chính và chạy phân tích trước khi mở trang report
+              Please return to the analysis page and submit a compound to generate a toxicity report.
             </p>
             {error && (
               <p className="mb-6" style={{ color: 'var(--accent-red)' }}>
-                Loi gan day: {error}
+                Error: {error}
               </p>
             )}
             <button
@@ -39,7 +41,7 @@ export function ReportPage() {
               className="px-4 py-2 rounded-lg"
               style={{ backgroundColor: 'var(--accent-blue)', color: '#fff' }}
             >
-              Về trang phân tích
+              Return to Analysis Page
             </button>
           </div>
         </main>
@@ -89,6 +91,12 @@ export function ReportPage() {
           />
         </main>
       </div>
+      
+      {/* AI Chatbot - only on report page */}
+      <AIChatbot />
+
+
+      <Footer />
     </div>
   );
 }
