@@ -48,32 +48,32 @@ function buildFallbackState(isAnalyzing: boolean): { agents: AgentStatus[]; logs
           name: 'InputValidator',
           status: 'running',
           progress: 40,
-          message: 'Đang kiểm tra SMILES và health endpoint...',
+          message: 'Checking SMILES and Health Endpoints...',
         },
         {
           name: 'ScreeningAgent',
           status: 'running',
           progress: 55,
-          message: 'Đang chạy model phân tích độc tính...',
+          message: 'Running toxicity analysis model...',
         },
         {
           name: 'ResearcherAgent',
           status: 'running',
           progress: 50,
-          message: 'Đang truy vấn PubChem/PubMed...',
+          message: 'Querying PubChem/PubMed...',
         },
         {
           name: 'WriterAgent',
           status: 'pending',
           progress: 0,
-          message: 'Chờ tổng hợp báo cáo',
+          message: 'Waiting for report generation...',
         },
       ],
       logs: [
         {
           time: getCurrentTimeLabel(),
           agent: 'System',
-          message: 'Đang chờ sự kiện chi tiết...',
+          message: 'Waiting for detailed events...',
         },
       ],
     };
@@ -84,13 +84,13 @@ function buildFallbackState(isAnalyzing: boolean): { agents: AgentStatus[]; logs
       name,
       status: 'done',
       progress: 100,
-      message: 'Hoàn tất',
+      message: 'Completed (fallback)',
     })),
     logs: [
       {
         time: getCurrentTimeLabel(),
         agent: 'System',
-        message: 'Không có agent_events, đã sử dụng chế độ fallback',
+        message: 'No agent_events available, using fallback mode',
       },
     ],
   };
@@ -100,7 +100,7 @@ function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean)
   const agentMap = new Map<string, AgentStatus>(
     AGENT_ORDER.map((name) => [
       name,
-      { name, status: 'pending', progress: 0, message: 'Đang chờ...' },
+      { name, status: 'pending', progress: 0, message: 'Waiting...' },
     ]),
   );
 
@@ -150,7 +150,7 @@ function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean)
       const writer = agentMap.get('WriterAgent')!;
       writer.status = 'done';
       writer.progress = 100;
-      writer.message = writer.message || 'Hoàn tất báo cáo';
+      writer.message = writer.message || 'Completed report generation';
     }
   });
 

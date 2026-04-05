@@ -32,13 +32,13 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
     }
 
     setValidationState('valid');
-    setValidationMessage('Sẵn sàng gọi API. Validation chi tiết sẽ được xử lý bởi backend.');
+    setValidationMessage('Ready to call API. Detailed validation will be handled by the backend.');
   }, [value]);
 
   const getButtonState = () => {
-    if (isAnalyzing) return { text: 'Đang phân tích...', icon: Loader2, disabled: true, className: 'animate-spin' };
-    if (!value.trim()) return { text: 'Phân tích', icon: Zap, disabled: true, className: '' };
-    return { text: 'Phân tích', icon: Zap, disabled: false, className: '' };
+    if (isAnalyzing) return { text: 'Analyzing...', icon: Loader2, disabled: true, className: 'animate-spin' };
+    if (!value.trim()) return { text: 'Analyze', icon: Zap, disabled: true, className: '' };
+    return { text: 'Analyze', icon: Zap, disabled: false, className: '' };
   };
 
   const buttonState = getButtonState();
@@ -58,10 +58,10 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
           Drug Toxicity Analysis
         </h1>
         <p className="text-base mb-1" style={{ color: 'var(--text-muted)' }}>
-          Phân tích độc tính thuốc bằng hệ thống AI đa tác nhân
+          Drug Toxicity Analysis using Multi-Agent AI System
         </p>
         <p className="text-sm" style={{ color: 'var(--text-faint)' }}>
-          Nhập chuỗi SMILES hoặc tên phân tử để bắt đầu phân tích
+          Enter a SMILES string or molecule name to start the analysis
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
               {validationState === 'checking' && <RefreshCw className="w-4 h-4 animate-spin" />}
               {validationState === 'valid' && <CheckCircle className="w-4 h-4" />}
               {validationState === 'invalid' && <XCircle className="w-4 h-4" />}
-              <span>{validationState === 'checking' ? 'Đang xác minh SMILES...' : validationMessage}</span>
+              <span>{validationState === 'checking' ? 'Validating SMILES...' : validationMessage}</span>
             </div>
           </div>
         )}
@@ -140,7 +140,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
         {/* Example Molecules */}
         <div className="mb-4">
           <p className="text-xs uppercase mb-2" style={{ color: 'var(--text-faint)', letterSpacing: '0.05em' }}>
-            Ví dụ nhanh:
+            Quick Examples:
           </p>
           <div className="flex flex-wrap gap-2">
             {exampleMolecules.map((mol, idx) => (
@@ -174,12 +174,12 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <CollapsibleTrigger className="text-sm flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
             <span>{isAdvancedOpen ? '▼' : '▶'}</span>
-            Tùy chọn nâng cao
+            Advanced options
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-4 space-y-4">
             <div>
               <label className="text-sm mb-2 block" style={{ color: 'var(--text-muted)' }}>
-                Ngưỡng độc tính (Toxicity Threshold)
+                Toxicity Threshold
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -201,7 +201,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
             </div>
             <div>
               <label className="text-sm mb-2 block" style={{ color: 'var(--text-muted)' }}>
-                Chế độ phân tích:
+                Analysis Mode:
               </label>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--text)' }}>
