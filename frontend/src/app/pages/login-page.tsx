@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../components/contexts/auth-context';
 import { Button } from '../components/ui/button';
 import { AlertCircle } from 'lucide-react';
-import logoImage from '../../../assets/logo-tox.png';
+import logoImage from '../../assets/logo-tox.png';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');

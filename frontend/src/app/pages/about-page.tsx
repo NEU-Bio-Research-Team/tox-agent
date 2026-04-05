@@ -1,8 +1,10 @@
 import { Navbar } from '../components/navbar';
 import { Users, Target, Zap, Shield, Github, Mail } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import logoImage from '../../assets/a654c40bdf5d3906916ebeed588d27aa413d5bd4.png';
 import { Footer } from '../components/footer';
+import logoImage from '../../assets/logo-tox.png';
+
+const REPO_URL = 'https://github.com/NEU-Bio-Research-Team/tox-agent';
 
 export function AboutPage() {
   return (
@@ -164,9 +166,12 @@ export function AboutPage() {
               <Button
                 variant="outline"
                 className="flex items-center gap-2"
+                asChild
               >
-                <Github className="w-4 h-4" />
-                View on GitHub
+                <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+                  <Github className="w-4 h-4" />
+                  View on GitHub
+                </a>
               </Button>
               <Button
                 className="flex items-center gap-2"

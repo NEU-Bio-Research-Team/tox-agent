@@ -1,34 +1,46 @@
-import { createBrowserRouter } from "react-router";
-import { IndexPage } from "./pages/index-page";
-import { ReportPage } from "./pages/report-page";
-import { SettingsPage } from "./pages/settings-page";
-import { AboutPage } from "./pages/about-page";
-import { LoginPage } from "./pages/login-page";
-import { RegisterPage } from "./pages/register-page";
+import { createBrowserRouter } from 'react-router';
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    Component: IndexPage,
+    path: '/',
+    lazy: async () => {
+      const module = await import('./pages/index-page');
+      return { Component: module.IndexPage };
+    },
   },
   {
-    path: "/report",
-    Component: ReportPage,
+    path: '/report',
+    lazy: async () => {
+      const module = await import('./pages/report-page');
+      return { Component: module.ReportPage };
+    },
   },
   {
-    path: "/settings",
-    Component: SettingsPage,
+    path: '/settings',
+    lazy: async () => {
+      const module = await import('./pages/settings-page');
+      return { Component: module.SettingsPage };
+    },
   },
   {
-    path: "/about",
-    Component: AboutPage,
+    path: '/about',
+    lazy: async () => {
+      const module = await import('./pages/about-page');
+      return { Component: module.AboutPage };
+    },
   },
   {
-    path: "/login",
-    Component: LoginPage,
+    path: '/login',
+    lazy: async () => {
+      const module = await import('./pages/login-page');
+      return { Component: module.LoginPage };
+    },
   },
   {
-    path: "/register",
-    Component: RegisterPage,
+    path: '/register',
+    lazy: async () => {
+      const module = await import('./pages/register-page');
+      return { Component: module.RegisterPage };
+    },
   },
 ]);

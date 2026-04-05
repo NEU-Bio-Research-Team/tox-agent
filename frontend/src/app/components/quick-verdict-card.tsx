@@ -1,19 +1,46 @@
 import { motion } from 'motion/react';
 import { ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
+import type { FinalReport } from '../../lib/api';
 
 interface QuickVerdictCardProps {
+  finalReport: FinalReport;
   onViewReport: () => void;
 }
 
-export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
-  const pToxic = 0.23;
-  const verdict = pToxic >= 0.7 ? 'TOXIC' : pToxic < 0.3 ? 'NON-TOXIC' : 'UNCERTAIN';
-  const confidence = 0.89;
-  const topRisk = { name: 'SR-HSE', score: 0.32, description: 'Stress Response - Heat Shock Element' };
+function getRiskPalette(riskLevel: string) {
+  if (riskLevel === 'CRITICAL' || riskLevel === 'HIGH') {
+    return {
+      color: 'var(--accent-red)',
+      bg: 'rgba(239,68,68,0.12)',
+    };
+  }
+  if (riskLevel === 'MODERATE') {
+    return {
+      color: 'var(--accent-yellow)',
+      bg: 'rgba(245,158,11,0.12)',
+    };
+  }
+  return {
+    color: 'var(--accent-green)',
+    bg: 'rgba(34,197,94,0.12)',
+  };
+}
 
-  const verdictColor = verdict === 'TOXIC' ? 'var(--accent-red)' : verdict === 'NON-TOXIC' ? 'var(--accent-green)' : 'var(--accent-yellow)';
-  const verdictBg = verdict === 'TOXIC' ? 'rgba(239,68,68,0.12)' : verdict === 'NON-TOXIC' ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)';
+export function QuickVerdictCard({ finalReport, onViewReport }: QuickVerdictCardProps) {
+  const pToxic = Number(finalReport.sections.clinical_toxicity?.probability ?? 0);
+  const confidence = Number(finalReport.sections.clinical_toxicity?.confidence ?? 0);
+  const clinicalVerdict = finalReport.sections.clinical_toxicity?.verdict ?? 'UNKNOWN';
+  const riskLevel = finalReport.risk_level ?? 'UNKNOWN';
+
+  const taskScores = finalReport.sections.mechanism_toxicity?.task_scores ?? {};
+  const sortedTasks = Object.entries(taskScores).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
+  const highestRiskName =
+    finalReport.sections.mechanism_toxicity?.highest_risk || sortedTasks[0]?.[0] || 'N/A';
+  const highestRiskScore =
+    taskScores[highestRiskName] ?? sortedTasks[0]?.[1] ?? 0;
+
+  const palette = getRiskPalette(riskLevel);
 
   return (
     <motion.div
@@ -23,8 +50,8 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
       className="mb-8 rounded-2xl p-7 shadow-2xl"
       style={{
         backgroundColor: 'var(--surface)',
-        border: `1.5px solid ${verdictColor}`,
-        boxShadow: `0 0 20px ${verdict === 'TOXIC' ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.25)'}`
+        border: `1.5px solid ${palette.color}`,
+        boxShadow: `0 0 20px ${palette.color}33`
       }}
     >
       <h3 className="text-lg font-semibold mb-6" style={{ color: 'var(--text)' }}>
@@ -33,19 +60,22 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
         {/* Verdict Badge */}
-        <div className="rounded-xl p-5" style={{ backgroundColor: verdictBg, border: `1px solid ${verdictColor}` }}>
+        <div className="rounded-xl p-5" style={{ backgroundColor: palette.bg, border: `1px solid ${palette.color}` }}>
           <div className="flex items-center gap-2 mb-2">
-            {verdict === 'NON-TOXIC' ? (
-              <CheckCircle className="w-6 h-6" style={{ color: verdictColor }} />
+            {riskLevel === 'LOW' ? (
+              <CheckCircle className="w-6 h-6" style={{ color: palette.color }} />
             ) : (
-              <AlertTriangle className="w-6 h-6" style={{ color: verdictColor }} />
+              <AlertTriangle className="w-6 h-6" style={{ color: palette.color }} />
             )}
-            <span className="text-xl font-bold uppercase" style={{ color: verdictColor }}>
-              {verdict}
+            <span className="text-xl font-bold uppercase" style={{ color: palette.color }}>
+              {riskLevel}
             </span>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Confidence: {(confidence * 100).toFixed(0)}%
+          </p>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+            Clinical verdict: {clinicalVerdict}
           </p>
         </div>
 
@@ -65,7 +95,7 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
               <path
                 d="M 10 50 A 50 50 0 0 1 110 50"
                 fill="none"
-                stroke={verdictColor}
+                stroke={palette.color}
                 strokeWidth="8"
                 strokeLinecap="round"
                 strokeDasharray={`${pToxic * 157} 157`}
@@ -73,7 +103,7 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
               />
             </svg>
             <div className="text-center -mt-2">
-              <div className="font-mono text-2xl font-bold" style={{ color: verdictColor }}>
+              <div className="font-mono text-2xl font-bold" style={{ color: palette.color }}>
                 {pToxic.toFixed(2)}
               </div>
               <div className="text-xs uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
@@ -89,21 +119,21 @@ export function QuickVerdictCard({ onViewReport }: QuickVerdictCardProps) {
             Top Risk Factor
           </p>
           <div className="font-semibold text-base mb-2" style={{ color: 'var(--text)' }}>
-            {topRisk.name}
+            {highestRiskName}
           </div>
           <div className="w-full h-2 rounded-full mb-1" style={{ backgroundColor: 'var(--border)' }}>
             <div
               className="h-full rounded-full"
-              style={{ width: `${topRisk.score * 100}%`, backgroundColor: verdictColor }}
+              style={{ width: `${Number(highestRiskScore) * 100}%`, backgroundColor: palette.color }}
             />
           </div>
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
-              {topRisk.score.toFixed(2)}
+              {Number(highestRiskScore).toFixed(2)}
             </span>
           </div>
           <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-            {topRisk.description}
+            Highest mechanism signal từ task_scores.
           </p>
         </div>
       </div>

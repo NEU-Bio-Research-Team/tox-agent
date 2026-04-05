@@ -1,5 +1,6 @@
 """Workspace mode helpers for enabling/disabling dataset workflows."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict
@@ -15,8 +16,25 @@ _DEFAULT_MODE = {
     "primary_dataset": "tox21",
     "clintox_enabled": False,
     "tox21_enabled": True,
+    "threshold_policy": "balanced",
+    "clinical_threshold": None,
     "message": "ClinTox workflows are disabled in this workspace mode.",
 }
+
+_THRESHOLD_POLICY_DEFAULTS = {
+    "conservative": 0.5,
+    "balanced": 0.35,
+    "safety_first": 0.3,
+}
+
+
+def _safe_float(value: object) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 @lru_cache(maxsize=1)
@@ -39,9 +57,35 @@ def get_workspace_mode() -> Dict[str, object]:
         mode["tox21_enabled"] = bool(
             raw_workspace.get("tox21_enabled", mode["tox21_enabled"])
         )
+        mode["threshold_policy"] = str(
+            raw_workspace.get("threshold_policy", mode["threshold_policy"])
+        ).strip().lower()
+        mode["clinical_threshold"] = _safe_float(
+            raw_workspace.get("clinical_threshold", mode["clinical_threshold"])
+        )
         mode["message"] = raw_workspace.get("message", mode["message"])
 
     return mode
+
+
+def resolve_default_clinical_threshold() -> float:
+    """Resolve clinical threshold with env override then workspace policy."""
+    env_threshold = _safe_float(os.getenv("CLINICAL_THRESHOLD"))
+    if env_threshold is not None:
+        return env_threshold
+
+    mode = get_workspace_mode()
+    explicit_threshold = _safe_float(mode.get("clinical_threshold"))
+    if explicit_threshold is not None:
+        return explicit_threshold
+
+    policy = str(mode.get("threshold_policy", "balanced")).strip().lower()
+    return float(_THRESHOLD_POLICY_DEFAULTS.get(policy, _THRESHOLD_POLICY_DEFAULTS["balanced"]))
+
+
+def get_threshold_policy() -> str:
+    mode = get_workspace_mode()
+    return str(mode.get("threshold_policy", "balanced")).strip().lower()
 
 
 def is_clintox_enabled() -> bool:

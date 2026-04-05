@@ -1,4 +1,5 @@
 import { Github } from 'lucide-react';
+import logoImage from '../../assets/logo-tox.png';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -18,9 +19,7 @@ export function Footer() {
           {/* Column 1: Brand & Mission */}
           <div className="md:col-span-2 flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/20">
-                T
-              </div>
+              <img src={logoImage} alt="ToxAgent Logo" className="h-8 w-8 object-contain" />
               <span className="font-bold text-xl tracking-tight" style={{ color: 'var(--text)' }}>
                 ToxAgent
               </span>
@@ -86,7 +85,7 @@ export function Footer() {
                 v1.0.0-stable
               </span>
               <span className="text-[11px] font-medium" style={{ color: 'var(--text-faint)' }}>
-                Powered by <span className="text-blue-500">NEU Bio Research Team</span>
+                Developed by <span className="text-blue-500">NEU Bio Research Team</span>
               </span>
             </div>
           </div>

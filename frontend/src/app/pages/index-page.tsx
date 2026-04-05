@@ -4,33 +4,69 @@ import { Navbar } from '../components/navbar';
 import { HeroSection } from '../components/hero-section';
 import { AgentProgressPanel } from '../components/agent-progress-panel';
 import { QuickVerdictCard } from '../components/quick-verdict-card';
-import { SmilesHistory, addToHistory } from '../components/smiles-history';
+import { agentAnalyze } from '../../lib/api';
+import { useReport } from '../../lib/ReportContext';
 import { Footer } from '../components/footer';
+import { SmilesHistory } from '../components/smiles-history';
 
 export function IndexPage() {
   const navigate = useNavigate();
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [smilesInput, setSmilesInput] = useState('CC(=O)Oc1ccccc1C(=O)O');
+  const {
+    report,
+    setReport,
+    isLoading,
+    setIsLoading,
+    error,
+    setError,
+    preferences,
+  } = useReport();
 
   const handleAnalyze = async () => {
-    setIsAnalyzing(true);
+    const smiles = smilesInput.trim();
+    if (!smiles) {
+      setError(preferences.language === 'en' ? 'Please enter a SMILES string before analysis.' : 'Vui lòng nhập SMILES trước khi phân tích.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setReport(null);
     setAnalysisComplete(false);
-    
-    // Simulate analysis
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    
-    setIsAnalyzing(false);
-    setAnalysisComplete(true);
-    
-    // Add to history (mock verdict and score)
-    const mockScore = 0.65;
-    const mockVerdict = mockScore > 0.7 ? 'toxic' : mockScore > 0.4 ? 'warning' : 'non-toxic';
-    addToHistory(smilesInput, mockVerdict, mockScore);
+
+    try {
+      const result = await agentAnalyze(smiles, {
+        language: preferences.language,
+        clinicalThreshold: preferences.clinicalThreshold,
+        mechanismThreshold: preferences.mechanismThreshold,
+      });
+      if (result.validation_status && result.validation_status !== 'VALID') {
+        throw new Error(`Validation failed: ${result.validation_status}`);
+      }
+      if (!result.final_report) {
+        throw new Error('API response missing final_report');
+      }
+
+      setReport(result);
+      setAnalysisComplete(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unexpected error during analysis';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleViewReport = () => {
-    navigate('/report', { state: { smiles: smilesInput } });
+    navigate('/report');
+  };
+
+  const handleSmilesChange = (value: string) => {
+    setSmilesInput(value);
+    if (analysisComplete) {
+      setAnalysisComplete(false);
+    }
   };
 
   const handleSelectFromHistory = (smiles: string) => {
@@ -50,23 +86,42 @@ export function IndexPage() {
         {/* Hero / Input Section */}
         <HeroSection 
           value={smilesInput}
-          onChange={setSmilesInput}
+          onChange={handleSmilesChange}
           onAnalyze={handleAnalyze}
-          isAnalyzing={isAnalyzing}
+          isAnalyzing={isLoading}
         />
 
+        {error && (
+          <div
+            className="mb-6 rounded-lg px-4 py-3"
+            style={{
+              backgroundColor: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.35)',
+              color: 'var(--accent-red)',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         {/* Agent Progress Panel */}
-        {(isAnalyzing || analysisComplete) && (
-          <AgentProgressPanel isAnalyzing={isAnalyzing} />
+        {(isLoading || analysisComplete) && (
+          <AgentProgressPanel
+            isAnalyzing={isLoading}
+            events={report?.agent_events ?? []}
+          />
         )}
 
         {/* Quick Verdict Card */}
-        {analysisComplete && (
-          <QuickVerdictCard onViewReport={handleViewReport} />
+        {analysisComplete && report?.final_report && (
+          <QuickVerdictCard
+            finalReport={report.final_report}
+            onViewReport={handleViewReport}
+          />
         )}
 
         {/* SMILES History */}
-        {!isAnalyzing && !analysisComplete && (
+        {!isLoading && !analysisComplete && (
           <div className="py-12">
             <SmilesHistory onSelectSmiles={handleSelectFromHistory} />
           </div>

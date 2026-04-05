@@ -12,7 +12,19 @@ PUBMED_API_KEY = os.getenv("PUBMED_API_KEY", "").strip()
 
 
 def get_compound_info_pubchem(smiles: str) -> Dict[str, Any]:
-    """Lookup compound metadata from PubChem using a SMILES string."""
+    """Resolve compound metadata from PubChem by SMILES.
+
+    Call this first in the research stage to obtain CID and preferred naming
+    fields used by downstream literature and bioassay lookups.
+
+    Args:
+        smiles: Valid SMILES string.
+
+    Returns:
+        Dict including ``cid``, ``iupac_name``, ``common_name``,
+        ``molecular_formula``, ``molecular_weight``, ``synonyms``,
+        ``pubchem_url``, and ``error``.
+    """
     encoded = urllib.parse.quote(smiles, safe="")
     try:
         cid_resp = httpx.get(
@@ -79,7 +91,16 @@ def get_compound_info_pubchem(smiles: str) -> Dict[str, Any]:
 
 
 def search_toxicity_literature(compound_name: str, max_results: int = 5) -> Dict[str, Any]:
-    """Search PubMed for toxicity-related literature."""
+    """Search PubMed for toxicity/mechanism literature by compound name.
+
+    Args:
+        compound_name: Name to query (prefer common name from PubChem).
+        max_results: Maximum number of returned article summaries (capped at 10).
+
+    Returns:
+        Dict containing ``articles`` (list), ``total_found``, ``query_used`` and
+        ``error``. Each article has PMID, title, authors, year, journal and URL.
+    """
     max_results = min(max_results, 10)
     query = f"{compound_name} toxicity mechanism"
     encoded_query = urllib.parse.quote(query)
@@ -116,16 +137,17 @@ def search_toxicity_literature(compound_name: str, max_results: int = 5) -> Dict
         articles = []
         for pmid in pmids:
             art = summary_data.get(pmid, {})
-            authors = [a.get("name", "") for a in art.get("authors", [])[:3]]
+            authors = [a.get("name", "").strip() for a in art.get("authors", [])[:3]]
+            authors = [name for name in authors if name]
             title = art.get("title", "N/A")
             articles.append(
                 {
                     "pmid": pmid,
                     "title": title,
-                    "authors": authors,
+                    "authors": ", ".join(authors) if authors else "N/A",
                     "year": str(art.get("pubdate", ""))[:4],
                     "journal": art.get("source", "N/A"),
-                    "abstract_snippet": title[:150],
+                    "snippet": title[:150],
                     "pubmed_url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
                 }
             )
@@ -146,7 +168,15 @@ def search_toxicity_literature(compound_name: str, max_results: int = 5) -> Dict
 
 
 def get_pubchem_bioassay_data(cid: int) -> Dict[str, Any]:
-    """Fetch bioassay summary from PubChem for a given CID."""
+    """Fetch PubChem bioassay activity summary for a compound CID.
+
+    Args:
+        cid: PubChem compound id obtained from ``get_compound_info_pubchem``.
+
+    Returns:
+        Dict containing ``active_assays``, ``total_assays_tested``,
+        ``tox21_active_count`` and ``error``.
+    """
     if not cid:
         return {
             "cid": cid,

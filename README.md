@@ -1,210 +1,236 @@
-# SMILESGNN: Clinical Toxicity Prediction via Multimodal Molecular Fusion
+# ToxAgent (v0.0.4 Beta)
 
-Implementation of **SMILESGNN**, a multimodal deep learning architecture for clinical drug toxicity prediction, combining SMILES sequence encoding (Transformer) with molecular graph encoding (GATv2) through an attention-based fusion mechanism.
+A multi-agent AI platform for molecular toxicity analysis from SMILES, combining:
+- Screening mechanisms from graph/SMILES models
+- Structural explanation (atom/bond attribution)
+- Research context enrichment from external sources
+- Structured report synthesis for direct R&D workflow integration
 
-> Nguyen et al., *"Advancing Clinical Toxicity Prediction Through Multimodal Fusion of SMILES Sequences and Molecular Graph Representation"*, CITA 2026.
+Production web app: https://tox-agent.web.app
 
 ---
 
-## Workspace Mode (Current)
+## 1) Current Version and Updates
 
-This workspace now runs in **tox21_only** mode (see `config/workspace_mode.yaml`).
+### Current Version
+- Frontend: **0.0.4 (Beta)**
+- Default workspace mode: **tox21_only**
+- Workspace priority: **safety_first**
 
-- Primary dataset: **Tox21** (12-task multi-label binary prediction)
-- ClinTox code is **kept but disabled** by guard rails in entrypoints/loaders
-- Any ClinTox script call exits with a clear `[DISABLED:CLINTOX]` message
+### What's New in 0.0.4
+- Fixed structural explanation rendering:
+  - `heatmap_base64` and `molecule_png_base64` are now delivered as separate payloads.
+  - Molecule image is rendered independently from heatmap attribution.
+- Improved runtime stability for Cloud Run rendering:
+  - Added runtime libs for RDKit drawing (Cairo/font) to avoid null molecule images.
+- UX upgrades:
+  - Added **Beta** label to version.
+  - Auto-popup release notes on first visit to new version.
+  - Click version badge to reopen changelog anytime.
 
-Active Tox21 entrypoints:
+### Upgrade Note
+- If you have an old tab open, please hard refresh your browser to get the latest bundle.
 
+---
+
+## 2) ToxAgent Overview
+
+ToxAgent is a multi-agent system with 3 main layers:
+
+1. Presentation layer (Frontend)
+   - React + Vite
+   - Displays quick verdict, full report, heatmap, and molecule image
+
+2. Agent orchestration layer
+   - InputValidator Agent: input normalization/validation
+   - Screening Agent: calls model pipeline for prediction + attribution
+   - Researcher Agent: fetches research context (PubChem/PubMed)
+   - Writer Agent: synthesizes results into a final structured report
+   - Orchestrator Agent: coordinates, fallbacks, and state repair as needed
+
+3. Model/API layer
+   - FastAPI model server with endpoints `/health`, `/predict`, `/analyze`, `/agent/analyze`
+   - Graph models + explainability
+   - OOD guard and confidence information
+
+ToxAgent aims to:
+- Not just provide toxicity scores
+- But also explain why the model made its assessment
+- And provide literature context to support research decisions
+
+---
+
+## 3) ToxAgent Workflow (ASCII)
+
+```text
++-------------------+
+| User enters SMILES|
++---------+---------+
+          |
+          v
++-------------------+
+| Frontend (React)  |
+| POST /agent/analyze
++---------+---------+
+          |
+          v
++-----------------------------+
+| Orchestrator Agent          |
++-----+-----------------+-----+
+      |                 |
+      v                 v
++-------------+   +----------------+
+| Input       |   | Researcher     |
+| Validator   |   | Agent          |
++------+------+   +-------+--------+
+       |                  |
+       v                  v
++----------------+   +----------------------+
+| Screening Agent|   | PubChem / PubMed     |
++-------+--------+   +----------------------+
+        |
+        | tool call: analyze_molecule
+        v
++----------------------------------------------+
+| Model Server (/analyze)                      |
+| - Canonicalize + validation                  |
+| - Toxicity scoring                           |
+| - Tox21 mechanism scores                     |
+| - Structural explanation (heatmap + molecule)|
+| - OOD assessment                             |
++----------------------+-----------------------+
+                       |
+                       v
+              +----------------+
+              | Writer Agent   |
+              | final_report   |
+              +--------+-------+
+                       |
+                       v
++-----------------------------------------------+
+| Frontend Report                               |
+| - Executive summary                           |
+| - Clinical/mechanism sections                 |
+| - Structural explanation images + top atoms   |
+| - Literature context + recommendations        |
++-----------------------------------------------+
+```
+
+---
+
+## 4) How to Use ToxAgent
+
+### Easiest Way (Production)
+1. Open https://tox-agent.web.app
+2. Enter SMILES
+3. Adjust threshold in Settings if needed
+4. Click Analyze
+5. View quick verdict and full report
+6. Click version badge to view release notes anytime
+
+### Run Local Backend (FastAPI)
+```bash
+conda env create -f environment.yml
+conda activate drug-tox-env
+pip install -r model_server/requirements.txt
+uvicorn model_server.main:app --host 0.0.0.0 --port 8080 --workers 1
+```
+
+Quick check:
+```bash
+curl -sS http://127.0.0.1:8080/health
+
+curl -sS -X POST http://127.0.0.1:8080/analyze \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "smiles":"CC(=O)Oc1ccccc1C(=O)O",
+    "clinical_threshold":0.6,
+    "mechanism_threshold":0.6,
+    "return_all_scores":true,
+    "explain_only_if_alert":false,
+    "explainer_epochs":80,
+    "explainer_timeout_ms":30000
+  }'
+```
+
+### Run Local Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+If backend is running on a different port, set env variable before running frontend:
+```bash
+export VITE_API_BASE_URL=http://127.0.0.1:8080
+npm run dev
+```
+
+### Run Tox21 Script (current workspace mode)
 ```bash
 python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml
 python scripts/predict_tox21.py --smiles "CCO" --device cuda
 ```
 
-## Results
+---
 
-Evaluated on the [ClinTox](https://moleculenet.org/datasets-1) dataset (1,480 molecules, scaffold-based split, 11.5:1 class imbalance).
+## 5) Other Important Details
 
-| Model | AUC-ROC | Accuracy | F1 | AUPRC |
-|---|---|---|---|---|
-| Baseline MLP (Morgan FP) | 0.717 | 0.939 | 0.471 | 0.450 |
-| GRIN | 0.823 | 0.946 | 0.429 | 0.379 |
-| GIN | 0.864 | 0.953 | 0.588 | 0.503 |
-| GATv2 | 0.885 | 0.892 | 0.385 | 0.466 |
-| DMPNN | 0.886 | 0.867 | 0.333 | 0.596 |
-| BFGNN | 0.919 | 0.939 | 0.182 | 0.616 |
-| SMILESTransformer | 0.980 | 0.966 | 0.783 | 0.665 |
-| **SMILESGNN** | **0.997** | **0.980** | **0.870** | **0.967** |
+### 5.1 API Quick Reference
+- `GET /health`: model/runtime status
+- `POST /predict`: quick prediction for a SMILES
+- `POST /analyze`: returns clinical + mechanism + explanation
+- `POST /agent/analyze`: full multi-agent workflow + final report
+
+### 5.2 Workspace Mode and Guard Rails
+Current workspace config:
+- `mode: tox21_only`
+- `primary_dataset: tox21`
+- `clintox_enabled: false`
+- `tox21_enabled: true`
+
+Meaning:
+- Pipeline and scripts prioritize Tox21
+- ClinTox training/eval paths are restricted by guard rails
+
+### 5.3 Reliability and Explanation
+- GNNExplainer is an attribution tool, not an absolute certificate
+- OOD flag should be prioritized in decision making
+- Model results should be combined with expert review and experimental data
+
+### 5.4 Quick Troubleshooting
+- Symptom: heatmap present but no molecule image
+  - Check drawing runtime libs in container (Cairo/font)
+- Symptom: slow first request
+  - Check warm instance/startup probe on Cloud Run
+- Symptom: frontend calls localhost in production
+  - Check `VITE_API_BASE_URL` and Firebase Hosting rewrite
+
+### 5.5 Next Directions
+- Add benchmark/telemetry for latency and quality report per session
+- Enhance explainability with stronger chemical constraints
+- Strengthen failure registry and feedback loop process
 
 ---
 
-## Model Explainability & Demo Workflow ⭐
+## Project Structure (summary)
 
-SMILESGNN goes beyond prediction by offering deep-dive interpretation using **GNNExplainer**. We aim to explain **why** the model flags a single compound, providing atom- and bond-level importance scores.
-
-### Demo Workflow: Input -> Predict -> Explain
-The typical evaluation workflow consists of 3 stages:
-1. **Input**: Provide a raw SMILES string (e.g., Thalidomide `O=C1CCC(=O)N1c1ccc2c(c1)C(=O)N(C2=O)`).
-2. **Prediction**: The model calculates the clinical toxicity probability ($P(toxic)$).
-3. **Interpretation (GNNExplainer)**: The GNNExplainer algorithm runs on the graph pathway to generate a heatmap showcasing the Top-10 atoms/bonds that contributed to this prediction.
-
-### Current Limitations of GNNExplainer
-The current explainability module is under active research and has several limitations that should be noted during interpretation:
-1. **Prediction Inconsistency (Optimisation Noise)**: GNNExplainer optimizes binary masks over node features and edges. This optimization can introduce noise that temporarily affects the final prediction result (e.g., outputting $P(toxic) \approx 0.05$ for Thalidomide during the explanation phase, despite being correctly classified by the original model). High `epochs` (e.g., $\ge 500$) are required for stable masks.
-2. **Graph-only Explanation (Frozen SMILES)**: GNNExplainer only attributes importance to the GATv2 graph pathway. The SMILES Transformer embedding is frozen per molecule. If the SMILES encoder predominantly drives the model's decision, the atom/bond scores on the graph might be misleading.
-3. **No Chemical Constraints**: The algorithm optimizes purely for mathematical attribution, which can sometimes highlight chemically implausible subgraphs.
-
-### Deep Dive (Streamlit UI)
-To launch the interactive toxicity predictor with the Deep Dive explanation tab:
-```bash
-conda activate drug-tox-env
-streamlit run app.py
-```
-Go to **Tab 2 — Deep Dive (Explain)**:
-1. Click a quick-fill button (Thalidomide, 5-FU, Aspirin, Caffeine) **or** type any SMILES
-2. Click **Predict + Explain**
-3. Stage A — instant toxicity prediction (P(toxic), red/green banner)
-4. Stage B — GNNExplainer runs on the graph pathway and produces:
-   - Two-panel atom/bond heatmap (red = high importance, green = low)
-   - Full atom importance table (element, hybridization, ring membership, aromaticity)
-   - Top-10 bond importance table
-
-### GNNExplainer — CLI
-For scripted or batch explanation without the UI:
-```bash
-# Single molecule
-python scripts/explain_smilesgnn.py \
-    --smiles "O=C1CCC(=O)N1c1ccc2c(c1)C(=O)N(C2=O)" \
-    --device cuda
-
-# Batch: all toxic molecules in the test split
-python scripts/explain_smilesgnn.py \
-    --split test --label-filter 1 \
-    --element-chart --save-dir output/explanations
-```
-
-### GNNExplainer — Notebook
-Step-by-step walkthrough: load the trained model -> explain Thalidomide -> batch-explain all toxic test molecules -> aggregate element-level importance scores to identify shared structural alerts.
-```bash
-jupyter notebook notebooks/07_gnnexplainer.ipynb
-```
-
----
-
-## Architecture
-
-SMILESGNN processes each molecule through two parallel encoders whose outputs are fused via cross-attention:
-
-```
-SMILES string ──► Transformer Encoder (2 layers, d=96, 4 heads) ──► h_SMILES ∈ ℝ⁹⁶
-                                                                           │
-                                                                    Cross-Attention
-                                                                    (SMILES=query,
-Molecular graph ──► GATv2 Encoder (3 layers, 4 heads, JK) ──────►  graph=key/value) ──► h_fused ∈ ℝ¹⁹² ──► MLP ──► P(toxic)
-                    Mean-Max pool → h_graph ∈ ℝ⁵⁷⁶
-```
-
-**Key hyperparameters** (see `config/smilesgnn_config.yaml`):
-
-| Component | Setting |
-|---|---|
-| SMILES vocab / max length | 100 / 128 tokens |
-| Transformer layers / heads / d_ff | 2 / 4 / 192 |
-| GATv2 layers / heads / hidden | 3 / 4 / 96 |
-| Node features / Edge features | 25 / 17 |
-| Jumping Knowledge mode | concatenation |
-| Graph pooling | mean + max |
-| Fusion | cross-attention (4 heads) |
-| Loss | Focal Loss (α=0.25, γ=2.0) |
-| Optimizer | AdamW (lr=5e-4, wd=1e-4) |
-| Regularization | Dropout=0.4, BatchNorm, weighted sampler |
-| Early stopping | patience=15, monitor=val-F1 |
-
-![SMILES-Graph Pairs](assets/gnnexplainer_ui.png)
-
----
-
-## Project Structure
-
-```
-molecule/
-├── src/                          # Core library
-│   ├── data.py                   # Dataset loading (Tox21 primary)
-│   ├── graph_models_hybrid.py    # SMILESGNN architecture ⭐
-│   ├── gnn_explainer.py          # GNNExplainer integration ⭐
-│   ├── inference.py              # Batch inference engine (used by app.py)
-│   └── ...
-│
-├── scripts/                      # Training & evaluation scripts
-│   ├── train_hybrid.py           # Train SMILESGNN ⭐
-│   ├── explain_smilesgnn.py      # GNNExplainer CLI ⭐
-│   └── ...
-│
-├── notebooks/                    # Interactive workflows
-│   ├── 07_gnnexplainer.ipynb               # GNNExplainer attribution ⭐
-│   ├── 08_inference.ipynb                  # Programmatic inference walkthrough ⭐
-│   └── ...
-│
-├── config/                       # Model hyperparameter configs (YAML)
-│   └── smilesgnn_config.yaml     # SMILESGNN ⭐
-│
-├── test_data/                    # Demo files for the Streamlit app
-│   ├── screening_library.csv     # 30 compounds (balanced) — main demo ⭐
-│   └── ...
-│
-├── assets/                       # Figures for this README
-├── app.py                        # Streamlit inference app ⭐
-├── environment.yml               # Conda environment (recommended)
-└── requirements.txt              # Pip requirements
-```
-
----
-
-## Setup
-
-### Option A — Conda (recommended)
-```bash
-conda env create -f environment.yml
-conda activate drug-tox-env
-python -m ipykernel install --user --name drug-tox-env --display-name "Python (drug-tox-env)"
-```
-
-### Option B — Pip (Linux/CUDA)
-```bash
-pip install torch==2.4.0 --index-url https://download.pytorch.org/whl/cu121
-pip install torch-scatter torch-geometric -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
-conda install rdkit -c conda-forge
-pip install -r requirements.txt
-```
-
----
-
-## Reproducing Results
-
-**Tox21 multi-task training (primary workflow)**
-```bash
-python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml
-```
-Output saved to `models/tox21_gatv2_model/`.
-
-**Tox21 batch prediction**
-```bash
-python scripts/predict_tox21.py --input-file test_data/smiles_only.csv --device cuda
-```
-
----
-
-## Streamlit Inference App
-The existing app is ClinTox-facing and is intentionally disabled in `tox21_only` mode.
-You can still start it to see the status banner:
-```bash
-conda activate drug-tox-env
-streamlit run app.py
+```text
+tox-agent/
+|- agents/              # Multi-agent orchestration
+|- backend/             # Data/model/explainer core
+|- model_server/        # FastAPI serving layer
+|- frontend/            # React web app
+|- scripts/             # Train/predict/evaluate utilities
+|- config/              # Workspace + model config
+|- models/              # Saved model artifacts
+`- deploy/              # Cloud Run/Firebase deployment assets
 ```
 
 ---
 
 ## Citation
+
 ```bibtex
 @inproceedings{nguyen2026smilesgnn,
   title     = {Advancing Clinical Toxicity Prediction Through Multimodal Fusion
@@ -218,4 +244,5 @@ streamlit run app.py
 ---
 
 ## License
-This project is released for research use. Tox21 and ClinTox are part of [MoleculeNet](https://moleculenet.org/) (MIT License).
+
+This project is for research purposes. Tox21 and ClinTox are from MoleculeNet (MIT License).

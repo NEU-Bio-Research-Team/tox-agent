@@ -1,10 +1,33 @@
 # model_server/schemas.py
+import os
 from pydantic import BaseModel, Field
-from typing import Dict, Optional, List
+from typing import Any, Dict, Optional, List
+
+from backend.workspace_mode import resolve_default_clinical_threshold
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw is None:
+        return float(default)
+    try:
+        return float(raw)
+    except ValueError:
+        return float(default)
+
+
+DEFAULT_CLINICAL_THRESHOLD = _env_float("CLINICAL_THRESHOLD", 0.35)
+DEFAULT_MECHANISM_THRESHOLD = _env_float("MECHANISM_THRESHOLD", 0.5)
+
+try:
+    DEFAULT_CLINICAL_THRESHOLD = float(resolve_default_clinical_threshold())
+except Exception:
+    # Keep env fallback if workspace config cannot be loaded.
+    DEFAULT_CLINICAL_THRESHOLD = _env_float("CLINICAL_THRESHOLD", 0.35)
 
 class PredictRequest(BaseModel):
     smiles: str = Field(..., description="SMILES string")
-    threshold: float = Field(0.5, ge=0.0, le=1.0)
+    threshold: float = Field(DEFAULT_CLINICAL_THRESHOLD, ge=0.0, le=1.0)
 
 class PredictResponse(BaseModel):
     smiles: str
@@ -15,8 +38,8 @@ class PredictResponse(BaseModel):
     threshold_used: float
 
 class BatchPredictRequest(BaseModel):
-    smile_list: List[str]
-    threshold: float = 0.5
+    smiles_list: List[str]
+    threshold: float = DEFAULT_CLINICAL_THRESHOLD
 
 class BatchPredictResponse(BaseModel):
     results: List[PredictResponse]
@@ -51,6 +74,7 @@ class ExplainResponse(BaseModel):
     top_atoms: List[AtomImportance]
     top_bonds: List[BondImportance]
     heatmap_base64: str     # PNG image encoded as base64
+    molecule_png_base64: Optional[str] = None
     chemical_interpretation: str
     explainer_note: str     # Document known limitations
 
@@ -79,18 +103,40 @@ class ToxicityExplanationOutput(BaseModel):
     top_atoms: List[AtomImportance]
     top_bonds: List[BondImportance]
     heatmap_base64: Optional[str] = None
+    molecule_png_base64: Optional[str] = None
     explainer_note: str
 
 
 class AnalyzeRequest(BaseModel):
     smiles: str = Field(..., description="SMILES string")
-    clinical_threshold: float = Field(0.5, ge=0.0, le=1.0)
-    mechanism_threshold: float = Field(0.5, ge=0.0, le=1.0)
+    clinical_threshold: float = Field(DEFAULT_CLINICAL_THRESHOLD, ge=0.0, le=1.0)
+    mechanism_threshold: float = Field(DEFAULT_MECHANISM_THRESHOLD, ge=0.0, le=1.0)
     return_all_scores: bool = True
     explain_only_if_alert: bool = True
     explainer_epochs: int = Field(200, ge=50, le=500)
     explainer_timeout_ms: int = Field(30000, ge=1000, le=300000)
     target_task: Optional[str] = None
+
+
+class OodAssessmentOutput(BaseModel):
+    ood_risk: str
+    flag: bool
+    reason: str
+    rare_elements: List[str] = Field(default_factory=list)
+    high_risk_elements: List[str] = Field(default_factory=list)
+    recommendation: Optional[str] = None
+
+
+class InferenceContextOutput(BaseModel):
+    workspace_mode: str
+    threshold_policy: Optional[str] = None
+    clinical_threshold_applied: Optional[float] = None
+    clinical_model_loaded: bool
+    tox21_model_loaded: bool
+    explainer_used: bool
+    explanation_available: bool
+    tox21_threshold_source: Optional[str] = None
+    clinical_reference_metrics: Dict[str, float] = Field(default_factory=dict)
 
 
 class AnalyzeResponse(BaseModel):
@@ -99,5 +145,55 @@ class AnalyzeResponse(BaseModel):
     clinical: ClinicalToxicityOutput
     mechanism: MechanismToxicityOutput
     explanation: Optional[ToxicityExplanationOutput]
+    ood_assessment: OodAssessmentOutput
+    reliability_warning: Optional[str] = None
+    inference_context: InferenceContextOutput
     final_verdict: str
+
+
+class AgentAnalyzeRequest(BaseModel):
+    smiles: str = Field(..., description="SMILES string")
+    session_id: Optional[str] = Field(
+        default=None,
+        description="Optional session id. If omitted, a new one is generated.",
+    )
+    user_id: str = Field(default="default_user", description="Logical user id")
+    max_literature_results: int = Field(default=5, ge=1, le=20)
+    clinical_threshold: float = Field(DEFAULT_CLINICAL_THRESHOLD, ge=0.0, le=1.0)
+    mechanism_threshold: float = Field(DEFAULT_MECHANISM_THRESHOLD, ge=0.0, le=1.0)
+    include_agent_events: bool = Field(
+        default=True,
+        description="Include agent/tool calling event trace for debugging",
+    )
+    language: str = Field(
+        default="vi",
+        description="Report language: vi or en",
+    )
+
+
+class AgentEventRecord(BaseModel):
+    type: Optional[str] = None
+    author: Optional[str] = None
+    function_calls: List[Dict[str, Any]] = Field(default_factory=list)
+    function_responses: List[Dict[str, Any]] = Field(default_factory=list)
+    is_final: bool = False
+    text_preview: Optional[str] = None
+
+
+class AgentAnalyzeResponse(BaseModel):
+    session_id: str
+    adk_available: bool
+    runtime_mode: str = Field(
+        default="adk",
+        description="Runtime path used by /agent/analyze: adk or deterministic_fallback",
+    )
+    runtime_note: Optional[str] = Field(
+        default=None,
+        description="Optional note describing fallback cause when runtime_mode is deterministic_fallback",
+    )
+    validation_status: Optional[str] = None
+    final_report: Dict[str, Any] = Field(default_factory=dict)
+    final_text: Optional[str] = None
+    agent_events: List[AgentEventRecord] = Field(default_factory=list)
+    state_keys: List[str] = Field(default_factory=list)
 
