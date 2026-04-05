@@ -4,6 +4,7 @@ import { router } from './routes';
 import { ReportProvider } from '../lib/ReportContext';
 import { ReleaseNotesModal } from './components/release-notes-modal';
 import { RELEASE_NOTES_EVENT, RELEASE_NOTES_STORAGE_KEY } from './release-notes';
+import { AuthProvider } from './components/contexts/auth-context';
 
 export default function App() {
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
@@ -33,9 +34,11 @@ export default function App() {
   }, []);
 
   return (
-    <ReportProvider>
-      <RouterProvider router={router} />
-      <ReleaseNotesModal open={releaseNotesOpen} onOpenChange={setReleaseNotesOpen} />
-    </ReportProvider>
+    <AuthProvider>
+      <ReportProvider>
+        <RouterProvider router={router} />
+        <ReleaseNotesModal open={releaseNotesOpen} onOpenChange={setReleaseNotesOpen} />
+      </ReportProvider>
+    </AuthProvider>
   );
 }

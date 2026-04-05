@@ -160,6 +160,16 @@ npm install
 npm run dev
 ```
 
+### Build UI and Deploy Hosting (from repo root)
+```bash
+npm run build
+npm run deploy:hosting
+```
+
+Notes:
+- `npm run build` now builds `frontend/` directly.
+- `npm run deploy:hosting` will build first, then deploy only Firebase Hosting.
+
 If backend is running on a different port, set env variable before running frontend:
 ```bash
 export VITE_API_BASE_URL=http://127.0.0.1:8080
