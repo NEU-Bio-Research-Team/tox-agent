@@ -800,6 +800,7 @@ def train_multitask_model(
     pos_weight: Optional[torch.Tensor] = None,
     early_stopping_patience: int = 20,
     early_stopping_metric: str = "macro_auc_roc",
+    log_every_n_epochs: int = 10,
     verbose: bool = True,
 ) -> Dict[str, List[float]]:
     """
@@ -822,6 +823,7 @@ def train_multitask_model(
         early_stopping_metric: One of:
             'macro_auc_roc', 'macro_pr_auc', 'macro_f1',
             'micro_auc_roc', 'micro_pr_auc', 'micro_f1', 'loss'.
+        log_every_n_epochs: Print frequency for training logs.
         verbose: Whether to log progress.
 
     Returns:
@@ -876,6 +878,7 @@ def train_multitask_model(
     best_metric = float('inf') if optimize_for_loss else float('-inf')
     best_model_state = None
     patience_counter = 0
+    log_every = max(1, int(log_every_n_epochs))
 
     for epoch in range(num_epochs):
         model.train()
@@ -961,7 +964,7 @@ def train_multitask_model(
                 scheduler_metric = 0.0
             scheduler.step(scheduler_metric)
 
-            if verbose and (epoch + 1) % 10 == 0:
+            if verbose and (epoch + 1) % log_every == 0:
                 print(
                     f"Epoch {epoch + 1}/{num_epochs} - "
                     f"Train Loss: {avg_train_loss:.4f}, "
@@ -976,7 +979,7 @@ def train_multitask_model(
                     print(f"Early stopping at epoch {epoch + 1}")
                 break
 
-        elif verbose and (epoch + 1) % 10 == 0:
+        elif verbose and (epoch + 1) % log_every == 0:
             print(f"Epoch {epoch + 1}/{num_epochs} - Train Loss: {avg_train_loss:.4f}")
 
     if best_model_state is not None:

@@ -128,6 +128,55 @@ def load_config(config_path: Path) -> dict:
         return yaml.safe_load(f)
 
 
+def _resolve_config_path(config_arg: str) -> Path:
+    config_path = project_root / str(config_arg)
+    if config_path.exists():
+        return config_path
+
+    raw_arg = str(config_arg)
+    candidates: List[str] = []
+
+    # Common typo: ".../yaml" instead of "... .yaml"
+    if "/yaml" in raw_arg:
+        candidates.append(raw_arg.replace("/yaml", ".yaml"))
+
+    if raw_arg.endswith(".yml"):
+        candidates.append(raw_arg[:-4] + ".yaml")
+    if raw_arg.endswith(".yaml"):
+        candidates.append(raw_arg[:-5] + ".yml")
+
+    if Path(raw_arg).suffix == "":
+        candidates.append(raw_arg + ".yaml")
+        candidates.append(raw_arg + ".yml")
+
+    seen = set()
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+
+        candidate_path = project_root / candidate
+        if candidate_path.exists():
+            print(
+                "[Config] Requested path not found; using fallback: "
+                f"{candidate_path}"
+            )
+            return candidate_path
+
+    config_dir = project_root / "config"
+    available = []
+    if config_dir.exists():
+        available = sorted(
+            p.name for p in config_dir.iterdir() if p.is_file() and p.suffix in {".yaml", ".yml"}
+        )
+
+    hint = ""
+    if available:
+        hint = "\nAvailable config files under ./config:\n- " + "\n- ".join(available)
+
+    raise FileNotFoundError(f"Config not found: {config_path}{hint}")
+
+
 def load_herg_karim(
     cache_dir: str = "./data",
     split_type: str = "scaffold",
@@ -232,20 +281,20 @@ def _build_phase2_optimizer(model: nn.Module, cfg: dict) -> torch.optim.Optimize
         else:
             backbone_params.append(param)
 
-    if not backbone_params:
-        raise RuntimeError("No backbone parameters found for phase-2 optimizer")
     if not tox21_head_params:
         raise RuntimeError("No tox21_head parameters found for phase-2 optimizer")
     if not clintox_head_params:
         raise RuntimeError("No predictor parameters found for phase-2 optimizer")
 
     clintox_head_lr = head_lr * clintox_head_lr_multiplier
+    param_groups = []
+    if backbone_params:
+        param_groups.append({"params": backbone_params, "lr": backbone_lr})
+    param_groups.append({"params": tox21_head_params, "lr": head_lr})
+    param_groups.append({"params": clintox_head_params, "lr": clintox_head_lr})
+
     return torch.optim.Adam(
-        [
-            {"params": backbone_params, "lr": backbone_lr},
-            {"params": tox21_head_params, "lr": head_lr},
-            {"params": clintox_head_params, "lr": clintox_head_lr},
-        ],
+        param_groups,
         weight_decay=weight_decay,
     )
 
@@ -305,6 +354,165 @@ def _safe_metric(metrics: Dict[str, float], key: str, default: float = 0.0) -> f
     return _to_float(metrics.get(key), default=default)
 
 
+def _summarize_tox21_imbalance(
+    labels: np.ndarray,
+    task_names: List[str],
+    pos_weight: Optional[torch.Tensor],
+) -> Dict[str, object]:
+    if labels.ndim != 2:
+        return {
+            "macro_positive_rate": float("nan"),
+            "tasks": {},
+            "pos_weight_stats": {},
+        }
+
+    pos_weight_arr = None
+    if pos_weight is not None:
+        pos_weight_arr = np.asarray(pos_weight.detach().cpu().numpy(), dtype=np.float32)
+
+    task_stats: Dict[str, object] = {}
+    positive_rates: List[float] = []
+    weight_values: List[float] = []
+
+    for idx, task_name in enumerate(task_names):
+        y = labels[:, idx]
+        valid_mask = np.isfinite(y)
+        valid_y = y[valid_mask]
+        n_valid = int(valid_y.shape[0])
+
+        if n_valid == 0:
+            positive_rate = float("nan")
+            num_pos = 0
+            num_neg = 0
+        else:
+            num_pos = int(np.sum(valid_y == 1))
+            num_neg = int(np.sum(valid_y == 0))
+            positive_rate = float(np.mean(valid_y == 1))
+
+        task_weight = None
+        if pos_weight_arr is not None and idx < pos_weight_arr.shape[0] and np.isfinite(pos_weight_arr[idx]):
+            task_weight = float(pos_weight_arr[idx])
+            weight_values.append(task_weight)
+
+        if np.isfinite(positive_rate):
+            positive_rates.append(positive_rate)
+
+        task_stats[task_name] = {
+            "n_valid": n_valid,
+            "n_pos": num_pos,
+            "n_neg": num_neg,
+            "positive_rate": positive_rate,
+            "pos_weight": task_weight,
+        }
+
+    return {
+        "macro_positive_rate": float(np.mean(positive_rates)) if positive_rates else float("nan"),
+        "tasks": task_stats,
+        "pos_weight_stats": {
+            "min": float(np.min(weight_values)) if weight_values else float("nan"),
+            "max": float(np.max(weight_values)) if weight_values else float("nan"),
+            "mean": float(np.mean(weight_values)) if weight_values else float("nan"),
+            "median": float(np.median(weight_values)) if weight_values else float("nan"),
+        },
+    }
+
+
+def _summarize_binary_imbalance(labels: np.ndarray, pos_weight_value: Optional[float]) -> Dict[str, object]:
+    y = np.asarray(labels, dtype=np.float32).reshape(-1)
+    valid_y = y[np.isfinite(y)]
+
+    if valid_y.size == 0:
+        return {
+            "n_valid": 0,
+            "n_pos": 0,
+            "n_neg": 0,
+            "positive_rate": float("nan"),
+            "pos_weight": None,
+        }
+
+    num_pos = int(np.sum(valid_y == 1))
+    num_neg = int(np.sum(valid_y == 0))
+    return {
+        "n_valid": int(valid_y.shape[0]),
+        "n_pos": num_pos,
+        "n_neg": num_neg,
+        "positive_rate": float(np.mean(valid_y == 1)),
+        "pos_weight": None if pos_weight_value is None else float(pos_weight_value),
+    }
+
+
+def _set_requires_grad(module: nn.Module, requires_grad: bool) -> None:
+    for param in module.parameters():
+        param.requires_grad = requires_grad
+
+
+def _parse_freeze_layers(raw_value) -> List[int]:
+    if raw_value is None:
+        return []
+
+    if isinstance(raw_value, str):
+        items = [tok.strip() for tok in raw_value.split(",") if tok.strip()]
+    elif isinstance(raw_value, (list, tuple)):
+        items = list(raw_value)
+    elif isinstance(raw_value, (int, float)):
+        items = [raw_value]
+    else:
+        return []
+
+    layers: List[int] = []
+    for item in items:
+        try:
+            layers.append(int(item))
+        except (TypeError, ValueError):
+            continue
+    return sorted(set(layers))
+
+
+def _apply_phase2_freeze(model: nn.Module, phase2_cfg: dict) -> Dict[str, object]:
+    report: Dict[str, object] = {
+        "freeze_graph_layers_requested": [],
+        "freeze_graph_layers_applied": [],
+        "freeze_graph_layers_skipped": [],
+        "freeze_node_embedding": False,
+        "freeze_smiles_encoder": False,
+    }
+
+    trainable_before = int(sum(p.numel() for p in model.parameters() if p.requires_grad))
+
+    freeze_layers = _parse_freeze_layers(
+        phase2_cfg.get("freeze_graph_layers", phase2_cfg.get("freeze_layers", []))
+    )
+    report["freeze_graph_layers_requested"] = freeze_layers
+
+    convs = getattr(model, "convs", None)
+    norms = getattr(model, "norms", None)
+    max_idx = len(convs) - 1 if convs is not None else -1
+
+    for layer_idx in freeze_layers:
+        if convs is None or layer_idx < 0 or layer_idx > max_idx:
+            report["freeze_graph_layers_skipped"].append(int(layer_idx))
+            continue
+
+        _set_requires_grad(convs[layer_idx], False)
+        if norms is not None and layer_idx < len(norms):
+            _set_requires_grad(norms[layer_idx], False)
+        report["freeze_graph_layers_applied"].append(int(layer_idx))
+
+    if bool(phase2_cfg.get("freeze_node_embedding", False)) and hasattr(model, "node_embedding"):
+        _set_requires_grad(model.node_embedding, False)
+        report["freeze_node_embedding"] = True
+
+    if bool(phase2_cfg.get("freeze_smiles_encoder", False)) and hasattr(model, "smiles_encoder"):
+        _set_requires_grad(model.smiles_encoder, False)
+        report["freeze_smiles_encoder"] = True
+
+    trainable_after = int(sum(p.numel() for p in model.parameters() if p.requires_grad))
+    report["trainable_params_before"] = trainable_before
+    report["trainable_params_after"] = trainable_after
+    report["num_frozen_params"] = max(0, trainable_before - trainable_after)
+    return report
+
+
 def _to_jsonable(value):
     if isinstance(value, dict):
         return {str(k): _to_jsonable(v) for k, v in value.items()}
@@ -347,16 +555,34 @@ def _joint_selection_metric(
     selection_metric: str,
     tox_metrics: Dict,
     clintox_metrics: Dict,
+    beta_herg_effective: float,
 ) -> float:
     mode = str(selection_metric).strip().lower()
     tox_auc = _safe_metric(tox_metrics, "macro_auc_roc")
     clintox_auc = _safe_metric(clintox_metrics, "auc_roc")
+    beta = max(0.0, _to_float(beta_herg_effective, default=1.0))
 
     if mode == "tox21_macro_auc":
         return tox_auc
     if mode in {"clintox_auc", "herg_auc"}:
         return clintox_auc
-    return 0.5 * tox_auc + 0.5 * clintox_auc
+    if mode in {"unweighted_joint_auc", "joint_auc_unweighted", "mean_joint_auc"}:
+        return 0.5 * tox_auc + 0.5 * clintox_auc
+
+    # Default joint score uses hERG emphasis consistent with beta_herg_effective.
+    return (tox_auc + beta * clintox_auc) / (1.0 + beta)
+
+
+def _selection_formula_text(selection_metric: str, beta_herg_effective: float) -> str:
+    mode = str(selection_metric).strip().lower()
+    if mode == "tox21_macro_auc":
+        return "tox21_auc"
+    if mode in {"clintox_auc", "herg_auc"}:
+        return "herg_auc"
+    if mode in {"unweighted_joint_auc", "joint_auc_unweighted", "mean_joint_auc"}:
+        return "(tox21_auc + herg_auc) / 2"
+    beta = max(0.0, _to_float(beta_herg_effective, default=1.0))
+    return f"(tox21_auc + {beta:.6f} * herg_auc) / (1 + {beta:.6f})"
 
 
 def _run_phase1_pretrain(
@@ -369,6 +595,16 @@ def _run_phase1_pretrain(
     tox21_pos_weight: Optional[torch.Tensor],
 ) -> Dict:
     wrapper = HybridTox21Wrapper(model)
+    phase1_loss_type = str(phase1_cfg.get("loss_type", "weighted_bce")).strip().lower()
+
+    if phase1_loss_type == "weighted_bce" and tox21_pos_weight is None:
+        raise ValueError(
+            "phase1.loss_type='weighted_bce' requires valid pos_weight. "
+            "Enable phase1.use_task_pos_weights or provide manual weights."
+        )
+
+    if phase1_loss_type == "focal" and tox21_pos_weight is not None:
+        print("[Phase1] Warning: loss_type='focal' does not use pos_weight. Consider weighted_bce to reduce all-negative collapse.")
 
     history = train_multitask_model(
         model=wrapper,
@@ -379,12 +615,13 @@ def _run_phase1_pretrain(
         learning_rate=float(phase1_cfg.get("learning_rate", 8e-4)),
         weight_decay=float(phase1_cfg.get("weight_decay", 1e-4)),
         device=device,
-        loss_type=str(phase1_cfg.get("loss_type", "focal")),
+        loss_type=phase1_loss_type,
         focal_alpha=float(phase1_cfg.get("focal_alpha", 0.25)),
         focal_gamma=float(phase1_cfg.get("focal_gamma", 2.0)),
         pos_weight=tox21_pos_weight,
         early_stopping_patience=int(phase1_cfg.get("early_stopping_patience", 20)),
         early_stopping_metric=str(phase1_cfg.get("early_stopping_metric", "macro_auc_roc")),
+        log_every_n_epochs=int(phase1_cfg.get("log_every_n_epochs", 1)),
         verbose=True,
     )
 
@@ -416,15 +653,6 @@ def _run_phase2_joint_finetune(
     tox21_train_size: int,
     clintox_train_size: int,
 ) -> Dict:
-    optimizer = _build_phase2_optimizer(model, phase2_cfg)
-
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode="max",
-        factor=0.5,
-        patience=8,
-    )
-
     tox21_criterion = _create_tox21_criterion(phase2_cfg, tox21_pos_weight)
     clintox_criterion = _create_clintox_criterion(phase2_cfg, clintox_pos_weight_value)
 
@@ -434,6 +662,16 @@ def _run_phase2_joint_finetune(
         beta_clintox=float(phase2_cfg.get("beta_herg", phase2_cfg.get("beta_clintox", 3.0))),
         tox21_train_size=tox21_train_size,
         clintox_train_size=clintox_train_size,
+    )
+
+    freeze_report = _apply_phase2_freeze(model, phase2_cfg)
+    optimizer = _build_phase2_optimizer(model, phase2_cfg)
+
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="max",
+        factor=0.5,
+        patience=8,
     )
 
     grad_clip = float(phase2_cfg.get("grad_clip_norm", 1.0))
@@ -446,6 +684,8 @@ def _run_phase2_joint_finetune(
         "train_tox21_loss": [],
         "train_herg_loss": [],
         "val_joint_score": [],
+        "val_joint_score_weighted": [],
+        "val_joint_score_unweighted": [],
         "val_tox21_macro_auc": [],
         "val_herg_auc": [],
         "val_herg_f1": [],
@@ -530,12 +770,27 @@ def _run_phase2_joint_finetune(
             selection_metric=selection_metric,
             tox_metrics=val_tox21_metrics,
             clintox_metrics=val_clintox_metrics,
+            beta_herg_effective=beta_clintox,
+        )
+        weighted_joint_score = _joint_selection_metric(
+            selection_metric="joint_auc",
+            tox_metrics=val_tox21_metrics,
+            clintox_metrics=val_clintox_metrics,
+            beta_herg_effective=beta_clintox,
+        )
+        unweighted_joint_score = _joint_selection_metric(
+            selection_metric="unweighted_joint_auc",
+            tox_metrics=val_tox21_metrics,
+            clintox_metrics=val_clintox_metrics,
+            beta_herg_effective=beta_clintox,
         )
 
         if not np.isfinite(score):
             score = float("-inf")
 
         history["val_joint_score"].append(float(score))
+        history["val_joint_score_weighted"].append(float(weighted_joint_score))
+        history["val_joint_score_unweighted"].append(float(unweighted_joint_score))
         history["val_tox21_macro_auc"].append(_safe_metric(val_tox21_metrics, "macro_auc_roc"))
         history["val_herg_auc"].append(_safe_metric(val_clintox_metrics, "auc_roc"))
         history["val_herg_f1"].append(_safe_metric(val_clintox_metrics, "f1"))
@@ -558,7 +813,9 @@ def _run_phase2_joint_finetune(
             f"val_tox21_auc={_safe_metric(val_tox21_metrics, 'macro_auc_roc'):.4f} "
             f"val_herg_auc={_safe_metric(val_clintox_metrics, 'auc_roc'):.4f} "
             f"val_herg_f1={_safe_metric(val_clintox_metrics, 'f1'):.4f} "
-            f"joint_score={score:.4f}"
+            f"joint_score_selected={score:.4f} "
+            f"joint_score_weighted={weighted_joint_score:.4f} "
+            f"joint_score_unweighted={unweighted_joint_score:.4f}"
         )
 
         if patience_counter >= patience_limit:
@@ -573,6 +830,9 @@ def _run_phase2_joint_finetune(
         "best_score": float(best_score),
         "beta_herg_effective": float(beta_clintox),
         "beta_clintox_effective": float(beta_clintox),
+        "selection_metric": selection_metric,
+        "selection_formula": _selection_formula_text(selection_metric, beta_clintox),
+        "freeze_report": freeze_report,
     }
 
 
@@ -786,6 +1046,15 @@ def _evaluate_clintox_with_threshold(preds: Dict, threshold: float) -> Dict:
 def main() -> None:
     assert_tox21_enabled("scripts/train_smilesgnn_herg_exp.py")
 
+    # Keep progress logs visible when piping output through tee.
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(line_buffering=True)
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(line_buffering=True)
+    except Exception:
+        pass
+
     parser = argparse.ArgumentParser(description="Train XSmiles with dual-head setup (Tox21 + hERG_Karim)")
     parser.add_argument(
         "--config",
@@ -820,9 +1089,7 @@ def main() -> None:
     if args.skip_phase1 and args.phase1_only:
         raise ValueError("--skip-phase1 and --phase1-only cannot be used together")
 
-    config_path = project_root / args.config
-    if not config_path.exists():
-        raise FileNotFoundError(f"Config not found: {config_path}")
+    config_path = _resolve_config_path(args.config)
 
     config = load_config(config_path)
     model_cfg = config["model"]
@@ -854,16 +1121,19 @@ def main() -> None:
     print(f"Output: {model_dir}")
 
     print("\nLoading datasets...")
+    print("[Data] Loading hERG_Karim split from TDC...")
     train_herg_df, val_herg_df, test_herg_df = load_herg_karim(
         cache_dir=str(project_root / data_cfg["cache_dir"]),
         split_type=str(data_cfg.get("split_type", "scaffold")),
         seed=seed,
     )
+    print("[Data] hERG loaded. Loading Tox21 split...")
     train_tox_df, val_tox_df, test_tox_df = load_tox21(
         cache_dir=str(project_root / data_cfg["cache_dir"]),
         split_type=str(data_cfg.get("split_type", "scaffold")),
         seed=seed,
     )
+    print("[Data] Tox21 loaded.")
 
     task_columns = select_tox21_task_columns(train_tox_df)
     print(
@@ -1023,6 +1293,11 @@ def main() -> None:
     if bool(phase1_cfg.get("use_task_pos_weights", True)):
         tox21_pos_weight = compute_multitask_pos_weights(train_tox_labels)
 
+    phase1_loss_type = str(phase1_cfg.get("loss_type", "weighted_bce")).strip().lower()
+    if phase1_loss_type == "weighted_bce" and tox21_pos_weight is None:
+        print("[Phase1] use_task_pos_weights=False but loss_type='weighted_bce'. Recomputing pos_weight from Tox21 train labels.")
+        tox21_pos_weight = compute_multitask_pos_weights(train_tox_labels)
+
     clintox_pos_weight_value = None
     if bool(phase2_cfg.get("herg_use_pos_weight", phase2_cfg.get("clintox_use_pos_weight", True))):
         y = train_herg_df["label"].astype(int).values
@@ -1031,11 +1306,40 @@ def main() -> None:
         if num_pos > 0:
             clintox_pos_weight_value = float(num_neg / num_pos)
 
+    tox21_imbalance = _summarize_tox21_imbalance(
+        labels=train_tox_labels,
+        task_names=task_columns,
+        pos_weight=tox21_pos_weight,
+    )
+    herg_imbalance = _summarize_binary_imbalance(
+        labels=train_herg_df["label"].astype(float).values,
+        pos_weight_value=clintox_pos_weight_value,
+    )
+
+    tox21_pw_stats = tox21_imbalance.get("pos_weight_stats", {})
+    print(
+        "[ClassBalance] Tox21 train macro positive rate="
+        f"{_to_float(tox21_imbalance.get('macro_positive_rate'), default=float('nan')):.4f}, "
+        "pos_weight(min/median/max)="
+        f"{_to_float(tox21_pw_stats.get('min'), default=float('nan')):.2f}/"
+        f"{_to_float(tox21_pw_stats.get('median'), default=float('nan')):.2f}/"
+        f"{_to_float(tox21_pw_stats.get('max'), default=float('nan')):.2f}"
+    )
+    print(
+        "[ClassBalance] hERG train positive rate="
+        f"{_to_float(herg_imbalance.get('positive_rate'), default=float('nan')):.4f}, "
+        f"pos_weight={_to_float(herg_imbalance.get('pos_weight'), default=float('nan')):.2f}"
+    )
+
     summary: Dict[str, object] = {
         "config_path": str(config_path),
         "device": device,
         "seed": seed,
         "tox21_tasks": task_columns,
+        "data_balance": {
+            "tox21_train": tox21_imbalance,
+            "herg_train": herg_imbalance,
+        },
     }
 
     if not args.skip_phase1 and bool(phase1_cfg.get("enabled", True)):
@@ -1083,6 +1387,17 @@ def main() -> None:
     print(
         f"\nPhase-2 done. effective_beta_herg={phase2_result['beta_herg_effective']:.4f}, "
         f"best_selection_score={phase2_result['best_score']:.4f}"
+    )
+    print(
+        "[Phase2] selection_metric="
+        f"{phase2_result['selection_metric']}, "
+        f"formula={phase2_result['selection_formula']}"
+    )
+    freeze_report = phase2_result.get("freeze_report", {})
+    print(
+        "[Phase2] freeze_graph_layers_applied="
+        f"{freeze_report.get('freeze_graph_layers_applied', [])}, "
+        f"num_frozen_params={freeze_report.get('num_frozen_params', 0)}"
     )
 
     print("\nRunning final evaluation...")
@@ -1146,6 +1461,10 @@ def main() -> None:
     )
     calibrated_threshold = float(threshold_info.get("threshold", 0.35))
 
+    herg_train_metrics_default = _evaluate_clintox_with_threshold(herg_train_preds, 0.5)
+    herg_val_metrics_default = _evaluate_clintox_with_threshold(herg_val_preds, 0.5)
+    herg_test_metrics_default = _evaluate_clintox_with_threshold(herg_test_preds, 0.5)
+
     herg_train_metrics = _evaluate_clintox_with_threshold(herg_train_preds, calibrated_threshold)
     herg_val_metrics = _evaluate_clintox_with_threshold(herg_val_preds, calibrated_threshold)
     herg_test_metrics = _evaluate_clintox_with_threshold(herg_test_preds, calibrated_threshold)
@@ -1153,10 +1472,14 @@ def main() -> None:
     print("\nFinal Metrics")
     print("-" * 88)
     print(
-        f"hERG test: AUC={herg_test_metrics['auc_roc']:.4f} "
+        f"hERG test @0.5: AUC={herg_test_metrics_default['auc_roc']:.4f} "
+        f"PR-AUC={herg_test_metrics_default['pr_auc']:.4f} "
+        f"F1={herg_test_metrics_default['f1']:.4f}"
+    )
+    print(
+        f"hERG test @calibrated={calibrated_threshold:.4f}: AUC={herg_test_metrics['auc_roc']:.4f} "
         f"PR-AUC={herg_test_metrics['pr_auc']:.4f} "
-        f"F1={herg_test_metrics['f1']:.4f} "
-        f"Threshold={calibrated_threshold:.4f}"
+        f"F1={herg_test_metrics['f1']:.4f}"
     )
     print(
         f"Tox21 test: macro AUC={_safe_metric(tox21_test_metrics, 'macro_auc_roc'):.4f} "
@@ -1198,6 +1521,9 @@ def main() -> None:
         "phase2": {
             "best_score": phase2_result["best_score"],
             "beta_herg_effective": phase2_result["beta_herg_effective"],
+            "selection_metric": phase2_result["selection_metric"],
+            "selection_formula": phase2_result["selection_formula"],
+            "freeze_report": phase2_result["freeze_report"],
             "history": phase2_result["history"],
         },
         "threshold": threshold_info,
@@ -1214,6 +1540,17 @@ def main() -> None:
                 "threshold_calibration": tox21_threshold_info,
             },
             "herg": {
+                "threshold_default_0p5": {
+                    "train": herg_train_metrics_default,
+                    "val": herg_val_metrics_default,
+                    "test": herg_test_metrics_default,
+                },
+                "threshold_calibrated": {
+                    "threshold": float(calibrated_threshold),
+                    "train": herg_train_metrics,
+                    "val": herg_val_metrics,
+                    "test": herg_test_metrics,
+                },
                 "train": herg_train_metrics,
                 "val": herg_val_metrics,
                 "test": herg_test_metrics,
