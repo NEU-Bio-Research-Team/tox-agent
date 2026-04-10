@@ -76,11 +76,13 @@ from backend.inference import (
     aggregate_toxicity_verdict,
     load_clinical_head_model,
     load_model,
+    load_pretrained_dual_head_bundle,
     load_tox21_gatv2_model,
     predict_batch,
     predict_clinical_head_from_tox21_task_scores,
     predict_clinical_toxicity,
     predict_clinical_proxy_from_tox21,
+    predict_pretrained_dual_head_outputs,
     predict_toxicity_mechanism,
 )
 from backend.ood_guard import check_ood_risk
@@ -121,6 +123,30 @@ TOX21_THRESHOLDS_CANDIDATES = [
     TOX21_MODEL_DIR / "tox21_task_thresholds.json",
     TOX21_MODEL_DIR / "task_thresholds.json",
 ]
+PRETRAINED_DUAL_HEAD_BACKENDS: Dict[str, Dict[str, Any]] = {
+    "chemberta": {
+        "display_name": "ChemBERTa",
+        "model_dir": PROJECT_ROOT / "models" / "pretrained_2head_herg_chemberta_model",
+    },
+    "pubchem": {
+        "display_name": "PubChem",
+        "model_dir": PROJECT_ROOT / "models" / "pretrained_2head_herg_pubchem_model",
+    },
+    "molformer": {
+        "display_name": "MolFormer",
+        "model_dir": PROJECT_ROOT / "models" / "pretrained_2head_herg_molformer_model",
+    },
+}
+INFERENCE_BACKEND_ALIASES = {
+    "xsmiles": "xsmiles",
+    "default": "xsmiles",
+    "auto": "xsmiles",
+    "chembert": "chemberta",
+    "chemberta": "chemberta",
+    "pubchem": "pubchem",
+    "molformer": "molformer",
+}
+DEFAULT_INFERENCE_BACKEND = os.getenv("DEFAULT_INFERENCE_BACKEND", "xsmiles").strip().lower()
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 WORKSPACE_MODE = get_workspace_mode()
 WORKSPACE_MODE_NAME = str(WORKSPACE_MODE.get("mode", "unknown"))
@@ -228,6 +254,7 @@ def _clear_loaded_models() -> None:
         "clinical_head_model",
         "clinical_head_meta",
         "clinical_reference_metrics",
+        "pretrained_dual_head_bundles",
     ):
         model_state.pop(key, None)
 
@@ -240,6 +267,7 @@ def _initialize_runtime_state() -> None:
 
     model_state.setdefault("startup_errors", {})
     model_state.setdefault("clinical_reference_metrics", {})
+    model_state.setdefault("pretrained_dual_head_bundles", {})
     model_state.setdefault("models_loaded", False)
 
 
@@ -700,6 +728,8 @@ async def _run_adk_agent_step(
     user_id: str,
     session_id: str,
     message: Any,
+    include_events: bool = False,
+    event_sink: Optional[List[AgentEventRecord]] = None,
 ) -> None:
     if Runner is None or adk_session_service is None:
         return
@@ -711,12 +741,22 @@ async def _run_adk_agent_step(
     )
 
     async def _run_with_runner(runner: Any) -> None:
-        async for _ in runner.run_async(
+        async for event in runner.run_async(
             user_id=user_id,
             session_id=session_id,
             new_message=message,
         ):
-            pass
+            if include_events and event_sink is not None:
+                event_sink.append(
+                    AgentEventRecord(
+                        type=getattr(event, "type", None),
+                        author=getattr(event, "author", None),
+                        function_calls=_extract_event_function_calls(event),
+                        function_responses=_extract_event_function_responses(event),
+                        is_final=_is_final_event_response(event),
+                        text_preview=_extract_event_text_preview(event),
+                    )
+                )
 
     try:
         await _run_with_runner(step_runner)
@@ -1079,6 +1119,87 @@ def _resolve_clinical_signal_source(
         return "tox21_proxy"
     return "unavailable"
 
+
+def _resolve_inference_backend(raw_backend: Optional[str]) -> str:
+    candidate = str(raw_backend or DEFAULT_INFERENCE_BACKEND or "xsmiles").strip().lower()
+    resolved = INFERENCE_BACKEND_ALIASES.get(candidate)
+    if resolved:
+        return resolved
+
+    supported = sorted(set(["xsmiles", *PRETRAINED_DUAL_HEAD_BACKENDS.keys()]))
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "error": "invalid_inference_backend",
+            "message": f"Unsupported inference_backend='{raw_backend}'.",
+            "supported_backends": supported,
+        },
+    )
+
+
+def _is_pretrained_backend(inference_backend: str) -> bool:
+    return inference_backend in PRETRAINED_DUAL_HEAD_BACKENDS
+
+
+def _pretrained_backend_source_name(inference_backend: str) -> str:
+    return f"pretrained_dual_head:{inference_backend}"
+
+
+def _load_pretrained_bundle_sync(inference_backend: str) -> Dict[str, Any]:
+    backend_cfg = PRETRAINED_DUAL_HEAD_BACKENDS.get(inference_backend)
+    if backend_cfg is None:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_inference_backend",
+                "message": f"Unsupported pretrained backend: {inference_backend}",
+            },
+        )
+
+    bundles = model_state.setdefault("pretrained_dual_head_bundles", {})
+    if inference_backend in bundles:
+        return bundles[inference_backend]
+
+    model_dir = Path(backend_cfg.get("model_dir", ""))
+    startup_key = f"pretrained_{inference_backend}"
+
+    if not model_dir.exists():
+        detail = f"Model directory not found: {model_dir}"
+        model_state.setdefault("startup_errors", {})[startup_key] = detail
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "model_not_ready",
+                "feature": startup_key,
+                "workspace_mode": WORKSPACE_MODE_NAME,
+                "message": detail,
+            },
+        )
+
+    try:
+        bundle = load_pretrained_dual_head_bundle(model_dir=model_dir, device=DEVICE)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        msg = f"{type(exc).__name__}: {exc}"
+        model_state.setdefault("startup_errors", {})[startup_key] = msg
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "model_not_ready",
+                "feature": startup_key,
+                "workspace_mode": WORKSPACE_MODE_NAME,
+                "message": f"Failed loading pretrained backend '{inference_backend}'.",
+                "startup_error": msg,
+            },
+        )
+
+    bundle["display_name"] = backend_cfg.get("display_name", inference_backend)
+    bundle["inference_backend"] = inference_backend
+    bundles[inference_backend] = bundle
+    model_state.get("startup_errors", {}).pop(startup_key, None)
+    return bundle
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(
@@ -1211,6 +1332,14 @@ async def health():
         "model_dir_exists": MODEL_DIR.exists(),
         "tox21_model_dir_exists": TOX21_MODEL_DIR.exists(),
         "clinical_head_model_dir_exists": CLINICAL_HEAD_MODEL_DIR.exists(),
+        "pretrained_backends": {
+            name: {
+                "display_name": cfg.get("display_name", name),
+                "model_dir_exists": Path(cfg.get("model_dir", "")).exists(),
+                "loaded": name in (model_state.get("pretrained_dual_head_bundles") or {}),
+            }
+            for name, cfg in PRETRAINED_DUAL_HEAD_BACKENDS.items()
+        },
         "cuda_available": torch.cuda.is_available(),
         "gpu_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         "gpu_memory_gb": round(torch.cuda.get_device_properties(0).total_memory / 1e9, 1) if torch.cuda.is_available() else None,
@@ -1270,21 +1399,7 @@ if AIP_HEALTH_ROUTE != "/health":
 async def predict(req: PredictRequest):
     """Predict clinical toxicity for a single SMILES molecule"""
     await _ensure_models_loaded()
-    tox21_available = TOX21_ENABLED and _tox21_ready()
-    clinical_model_available = CLINTOX_ENABLED and _xsmiles_ready()
-    clinical_head_available = _clinical_head_ready()
-
-    clinical_source = _resolve_clinical_signal_source(
-        clinical_model_available=clinical_model_available,
-        clinical_head_available=clinical_head_available,
-        tox21_available=tox21_available,
-    )
-    if clinical_source == "unavailable":
-        if CLINICAL_SIGNAL_STRATEGY == "clinical_head" and tox21_available and not clinical_head_available:
-            raise _feature_not_ready_error("clinical_head")
-        if TOX21_ENABLED and not tox21_available:
-            raise _feature_not_ready_error("tox21")
-        raise _feature_not_ready_error("xsmiles")
+    inference_backend = _resolve_inference_backend(req.inference_backend)
     
     smiles = req.smiles.strip()
 
@@ -1296,67 +1411,104 @@ async def predict(req: PredictRequest):
 
     try:
         async with _model_lock():
-            if clinical_source == "xsmiles":
-                results_df = predict_batch(
+            if _is_pretrained_backend(inference_backend):
+                bundle = _load_pretrained_bundle_sync(inference_backend)
+                outputs = predict_pretrained_dual_head_outputs(
                     smiles_list=[smiles],
-                    tokenizer=model_state["tokenizer"],
-                    wrapped_model=model_state["wrapped"],
+                    model=bundle["model"],
+                    tokenizer=bundle["tokenizer"],
+                    task_names=list(bundle.get("task_names") or []),
                     device=DEVICE,
-                    threshold=req.threshold,
-                    enforce_workspace_mode=False,
+                    clinical_threshold=float(req.threshold),
+                    mechanism_threshold=float(req.threshold),
+                    task_thresholds=bundle.get("tox21_thresholds"),
+                    max_length=int(bundle.get("max_length", 128)),
+                    source_name=_pretrained_backend_source_name(inference_backend),
                 )
-
-                row = results_df.iloc[0]
-                p_toxic = float(row["P(toxic)"]) if row["P(toxic)"] is not None else 0.0
-                predicted = str(row["Predicted"])
-
-                # Map predicted label to uppercase for consistency
-                label_map = {"Toxic": "TOXIC", "Non-toxic": "NON_TOXIC", "Parse error": "PARSE_ERROR"}
-                label = label_map.get(predicted, "UNKNOWN")
-
-                # Confidence: distance from threshold
-                confidence = abs(p_toxic - req.threshold) / max(req.threshold, 1 - req.threshold)
-            elif clinical_source == "clinical_head":
-                mechanism_raw = predict_toxicity_mechanism(
-                    smiles=smiles,
-                    model=model_state["tox21_model"],
-                    task_names=model_state["tox21_tasks"],
-                    device=DEVICE,
-                    threshold=float(req.threshold),
-                    task_thresholds=model_state.get("tox21_thresholds"),
-                    batch_size=64,
-                )
-                clinical_head_meta = dict(model_state.get("clinical_head_meta") or {})
-                clinical_task_names = list(clinical_head_meta.get("task_names") or model_state["tox21_tasks"])
-                clinical_raw = predict_clinical_head_from_tox21_task_scores(
-                    task_scores=dict(mechanism_raw.get("task_scores") or {}),
-                    task_names=clinical_task_names,
-                    clinical_head_model=model_state["clinical_head_model"],
-                    threshold=float(req.threshold),
-                    device=DEVICE,
-                    smiles=smiles,
-                    feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
-                )
-                p_toxic = float(clinical_raw["p_toxic"])
-                label = str(clinical_raw["label"])
-                confidence = float(clinical_raw["confidence"])
+                clinical_raw = dict(outputs[0].get("clinical") or {})
+                p_toxic = float(clinical_raw.get("p_toxic", 0.0))
+                label = str(clinical_raw.get("label", "UNKNOWN"))
+                confidence = float(clinical_raw.get("confidence", 0.0))
             else:
-                mechanism_raw = predict_toxicity_mechanism(
-                    smiles=smiles,
-                    model=model_state["tox21_model"],
-                    task_names=model_state["tox21_tasks"],
-                    device=DEVICE,
-                    threshold=float(req.threshold),
-                    task_thresholds=model_state.get("tox21_thresholds"),
-                    batch_size=64,
+                tox21_available = TOX21_ENABLED and _tox21_ready()
+                clinical_model_available = CLINTOX_ENABLED and _xsmiles_ready()
+                clinical_head_available = _clinical_head_ready()
+
+                clinical_source = _resolve_clinical_signal_source(
+                    clinical_model_available=clinical_model_available,
+                    clinical_head_available=clinical_head_available,
+                    tox21_available=tox21_available,
                 )
-                clinical_raw = predict_clinical_proxy_from_tox21(
-                    mechanism_result=mechanism_raw,
-                    threshold=float(req.threshold),
-                )
-                p_toxic = float(clinical_raw["p_toxic"])
-                label = str(clinical_raw["label"])
-                confidence = float(clinical_raw["confidence"])
+                if clinical_source == "unavailable":
+                    if CLINICAL_SIGNAL_STRATEGY == "clinical_head" and tox21_available and not clinical_head_available:
+                        raise _feature_not_ready_error("clinical_head")
+                    if TOX21_ENABLED and not tox21_available:
+                        raise _feature_not_ready_error("tox21")
+                    raise _feature_not_ready_error("xsmiles")
+
+                if clinical_source == "xsmiles":
+                    results_df = predict_batch(
+                        smiles_list=[smiles],
+                        tokenizer=model_state["tokenizer"],
+                        wrapped_model=model_state["wrapped"],
+                        device=DEVICE,
+                        threshold=req.threshold,
+                        enforce_workspace_mode=False,
+                    )
+
+                    row = results_df.iloc[0]
+                    p_toxic = float(row["P(toxic)"]) if row["P(toxic)"] is not None else 0.0
+                    predicted = str(row["Predicted"])
+
+                    # Map predicted label to uppercase for consistency
+                    label_map = {"Toxic": "TOXIC", "Non-toxic": "NON_TOXIC", "Parse error": "PARSE_ERROR"}
+                    label = label_map.get(predicted, "UNKNOWN")
+
+                    # Confidence: distance from threshold
+                    confidence = abs(p_toxic - req.threshold) / max(req.threshold, 1 - req.threshold)
+                elif clinical_source == "clinical_head":
+                    mechanism_raw = predict_toxicity_mechanism(
+                        smiles=smiles,
+                        model=model_state["tox21_model"],
+                        task_names=model_state["tox21_tasks"],
+                        device=DEVICE,
+                        threshold=float(req.threshold),
+                        task_thresholds=model_state.get("tox21_thresholds"),
+                        batch_size=64,
+                    )
+                    clinical_head_meta = dict(model_state.get("clinical_head_meta") or {})
+                    clinical_task_names = list(clinical_head_meta.get("task_names") or model_state["tox21_tasks"])
+                    clinical_raw = predict_clinical_head_from_tox21_task_scores(
+                        task_scores=dict(mechanism_raw.get("task_scores") or {}),
+                        task_names=clinical_task_names,
+                        clinical_head_model=model_state["clinical_head_model"],
+                        threshold=float(req.threshold),
+                        device=DEVICE,
+                        smiles=smiles,
+                        feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
+                    )
+                    p_toxic = float(clinical_raw["p_toxic"])
+                    label = str(clinical_raw["label"])
+                    confidence = float(clinical_raw["confidence"])
+                else:
+                    mechanism_raw = predict_toxicity_mechanism(
+                        smiles=smiles,
+                        model=model_state["tox21_model"],
+                        task_names=model_state["tox21_tasks"],
+                        device=DEVICE,
+                        threshold=float(req.threshold),
+                        task_thresholds=model_state.get("tox21_thresholds"),
+                        batch_size=64,
+                    )
+                    clinical_raw = predict_clinical_proxy_from_tox21(
+                        mechanism_result=mechanism_raw,
+                        threshold=float(req.threshold),
+                    )
+                    p_toxic = float(clinical_raw["p_toxic"])
+                    label = str(clinical_raw["label"])
+                    confidence = float(clinical_raw["confidence"])
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, f"Inference error: {str(e)}")
 
@@ -1383,21 +1535,7 @@ if AIP_PREDICT_ROUTE != "/predict":
 async def predict_batch_endpoint(req: BatchPredictRequest):
     """Predict clinical toxicity for a list of SMILES molecules."""
     await _ensure_models_loaded()
-    tox21_available = TOX21_ENABLED and _tox21_ready()
-    clinical_model_available = CLINTOX_ENABLED and _xsmiles_ready()
-    clinical_head_available = _clinical_head_ready()
-
-    clinical_source = _resolve_clinical_signal_source(
-        clinical_model_available=clinical_model_available,
-        clinical_head_available=clinical_head_available,
-        tox21_available=tox21_available,
-    )
-    if clinical_source == "unavailable":
-        if CLINICAL_SIGNAL_STRATEGY == "clinical_head" and tox21_available and not clinical_head_available:
-            raise _feature_not_ready_error("clinical_head")
-        if TOX21_ENABLED and not tox21_available:
-            raise _feature_not_ready_error("tox21")
-        raise _feature_not_ready_error("xsmiles")
+    inference_backend = _resolve_inference_backend(req.inference_backend)
     
     if len(req.smiles_list) > 500:
         raise HTTPException(400, "Batch size limited to 500 molecules")
@@ -1405,86 +1543,133 @@ async def predict_batch_endpoint(req: BatchPredictRequest):
     results = []
     try:
         async with _model_lock():
-            if clinical_source == "xsmiles":
-                results_df = predict_batch(
-                    smiles_list=req.smiles_list,
-                    tokenizer=model_state["tokenizer"],
-                    wrapped_model=model_state["wrapped"],
+            if _is_pretrained_backend(inference_backend):
+                bundle = _load_pretrained_bundle_sync(inference_backend)
+                outputs = predict_pretrained_dual_head_outputs(
+                    smiles_list=list(req.smiles_list),
+                    model=bundle["model"],
+                    tokenizer=bundle["tokenizer"],
+                    task_names=list(bundle.get("task_names") or []),
                     device=DEVICE,
-                    threshold=req.threshold,
-                    enforce_workspace_mode=False,
+                    clinical_threshold=float(req.threshold),
+                    mechanism_threshold=float(req.threshold),
+                    task_thresholds=bundle.get("tox21_thresholds"),
+                    max_length=int(bundle.get("max_length", 128)),
+                    batch_size=64,
+                    source_name=_pretrained_backend_source_name(inference_backend),
                 )
 
-                for _, row in results_df.iterrows():
-                    p = float(row["P(toxic)"]) if row["P(toxic)"] is not None else 0.0
-                    predicted = str(row["Predicted"])
-                    label_map = {"Toxic": "TOXIC", "Non-toxic": "NON_TOXIC", "Parse error": "PARSE_ERROR"}
-                    label = label_map.get(predicted, "UNKNOWN")
-                    confidence = abs(p - req.threshold) / max(req.threshold, 1 - req.threshold)
-                    results.append(PredictResponse(
-                        smiles=row.get("SMILES", ""),
-                        canonical_smiles=None,
-                        p_toxic=p,
-                        label=label,
-                        confidence=min(confidence, 1.0),
-                        threshold_used=req.threshold,
-                    ))
-            elif clinical_source in {"clinical_head", "tox21_proxy"}:
-                for raw_smiles in req.smiles_list:
-                    smiles = str(raw_smiles).strip()
-                    mol = Chem.MolFromSmiles(smiles)
-                    if mol is None:
-                        results.append(
-                            PredictResponse(
-                                smiles=smiles,
-                                canonical_smiles=None,
-                                p_toxic=0.0,
-                                label="PARSE_ERROR",
-                                confidence=0.0,
-                                threshold_used=req.threshold,
-                            )
-                        )
-                        continue
-
-                    mechanism_raw = predict_toxicity_mechanism(
-                        smiles=smiles,
-                        model=model_state["tox21_model"],
-                        task_names=model_state["tox21_tasks"],
-                        device=DEVICE,
-                        threshold=float(req.threshold),
-                        task_thresholds=model_state.get("tox21_thresholds"),
-                        batch_size=64,
-                    )
-
-                    if clinical_source == "clinical_head":
-                        clinical_head_meta = dict(model_state.get("clinical_head_meta") or {})
-                        clinical_task_names = list(clinical_head_meta.get("task_names") or model_state["tox21_tasks"])
-                        clinical_raw = predict_clinical_head_from_tox21_task_scores(
-                            task_scores=dict(mechanism_raw.get("task_scores") or {}),
-                            task_names=clinical_task_names,
-                            clinical_head_model=model_state["clinical_head_model"],
-                            threshold=float(req.threshold),
-                            device=DEVICE,
-                            smiles=smiles,
-                            feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
-                        )
-                    else:
-                        clinical_raw = predict_clinical_proxy_from_tox21(
-                            mechanism_result=mechanism_raw,
-                            threshold=float(req.threshold),
-                        )
-
+                for item in outputs:
+                    clinical_raw = dict(item.get("clinical") or {})
                     results.append(
                         PredictResponse(
-                            smiles=smiles,
-                            canonical_smiles=Chem.MolToSmiles(mol),
-                            p_toxic=float(clinical_raw["p_toxic"]),
-                            label=str(clinical_raw["label"]),
-                            confidence=float(clinical_raw["confidence"]),
+                            smiles=str(item.get("smiles", "")),
+                            canonical_smiles=item.get("canonical_smiles"),
+                            p_toxic=float(clinical_raw.get("p_toxic", 0.0)),
+                            label=str(clinical_raw.get("label", "UNKNOWN")),
+                            confidence=float(clinical_raw.get("confidence", 0.0)),
                             threshold_used=req.threshold,
                         )
                     )
+            else:
+                tox21_available = TOX21_ENABLED and _tox21_ready()
+                clinical_model_available = CLINTOX_ENABLED and _xsmiles_ready()
+                clinical_head_available = _clinical_head_ready()
 
+                clinical_source = _resolve_clinical_signal_source(
+                    clinical_model_available=clinical_model_available,
+                    clinical_head_available=clinical_head_available,
+                    tox21_available=tox21_available,
+                )
+                if clinical_source == "unavailable":
+                    if CLINICAL_SIGNAL_STRATEGY == "clinical_head" and tox21_available and not clinical_head_available:
+                        raise _feature_not_ready_error("clinical_head")
+                    if TOX21_ENABLED and not tox21_available:
+                        raise _feature_not_ready_error("tox21")
+                    raise _feature_not_ready_error("xsmiles")
+
+                if clinical_source == "xsmiles":
+                    results_df = predict_batch(
+                        smiles_list=req.smiles_list,
+                        tokenizer=model_state["tokenizer"],
+                        wrapped_model=model_state["wrapped"],
+                        device=DEVICE,
+                        threshold=req.threshold,
+                        enforce_workspace_mode=False,
+                    )
+
+                    for _, row in results_df.iterrows():
+                        p = float(row["P(toxic)"]) if row["P(toxic)"] is not None else 0.0
+                        predicted = str(row["Predicted"])
+                        label_map = {"Toxic": "TOXIC", "Non-toxic": "NON_TOXIC", "Parse error": "PARSE_ERROR"}
+                        label = label_map.get(predicted, "UNKNOWN")
+                        confidence = abs(p - req.threshold) / max(req.threshold, 1 - req.threshold)
+                        results.append(PredictResponse(
+                            smiles=row.get("SMILES", ""),
+                            canonical_smiles=None,
+                            p_toxic=p,
+                            label=label,
+                            confidence=min(confidence, 1.0),
+                            threshold_used=req.threshold,
+                        ))
+                elif clinical_source in {"clinical_head", "tox21_proxy"}:
+                    for raw_smiles in req.smiles_list:
+                        smiles = str(raw_smiles).strip()
+                        mol = Chem.MolFromSmiles(smiles)
+                        if mol is None:
+                            results.append(
+                                PredictResponse(
+                                    smiles=smiles,
+                                    canonical_smiles=None,
+                                    p_toxic=0.0,
+                                    label="PARSE_ERROR",
+                                    confidence=0.0,
+                                    threshold_used=req.threshold,
+                                )
+                            )
+                            continue
+
+                        mechanism_raw = predict_toxicity_mechanism(
+                            smiles=smiles,
+                            model=model_state["tox21_model"],
+                            task_names=model_state["tox21_tasks"],
+                            device=DEVICE,
+                            threshold=float(req.threshold),
+                            task_thresholds=model_state.get("tox21_thresholds"),
+                            batch_size=64,
+                        )
+
+                        if clinical_source == "clinical_head":
+                            clinical_head_meta = dict(model_state.get("clinical_head_meta") or {})
+                            clinical_task_names = list(clinical_head_meta.get("task_names") or model_state["tox21_tasks"])
+                            clinical_raw = predict_clinical_head_from_tox21_task_scores(
+                                task_scores=dict(mechanism_raw.get("task_scores") or {}),
+                                task_names=clinical_task_names,
+                                clinical_head_model=model_state["clinical_head_model"],
+                                threshold=float(req.threshold),
+                                device=DEVICE,
+                                smiles=smiles,
+                                feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
+                            )
+                        else:
+                            clinical_raw = predict_clinical_proxy_from_tox21(
+                                mechanism_result=mechanism_raw,
+                                threshold=float(req.threshold),
+                            )
+
+                        results.append(
+                            PredictResponse(
+                                smiles=smiles,
+                                canonical_smiles=Chem.MolToSmiles(mol),
+                                p_toxic=float(clinical_raw["p_toxic"]),
+                                label=str(clinical_raw["label"]),
+                                confidence=float(clinical_raw["confidence"]),
+                                threshold_used=req.threshold,
+                            )
+                        )
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, f"Batch inference error: {str(e)}")
 
@@ -1606,30 +1791,37 @@ async def explain(req: ExplainRequest):
 def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
     """Synchronous core analyze implementation used by both API and in-process tools."""
     _ensure_models_loaded_sync()
+    inference_backend = _resolve_inference_backend(req.inference_backend)
+    use_pretrained_backend = _is_pretrained_backend(inference_backend)
+
     tox21_available = TOX21_ENABLED and _tox21_ready()
     clinical_model_available = CLINTOX_ENABLED and _xsmiles_ready()
     clinical_head_available = _clinical_head_ready()
+    pretrained_backend_loaded = False
 
-    clinical_source = _resolve_clinical_signal_source(
-        clinical_model_available=clinical_model_available,
-        clinical_head_available=clinical_head_available,
-        tox21_available=tox21_available,
-    )
-    if clinical_source == "unavailable":
-        if CLINICAL_SIGNAL_STRATEGY == "clinical_head" and tox21_available and not clinical_head_available:
-            raise _feature_not_ready_error("clinical_head")
-        if TOX21_ENABLED and not tox21_available:
-            raise _feature_not_ready_error("tox21")
-        if CLINTOX_ENABLED and not clinical_model_available:
-            raise _feature_not_ready_error("xsmiles")
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "error": "model_not_ready",
-                "workspace_mode": WORKSPACE_MODE_NAME,
-                "message": "No enabled toxicity engine is available for analysis.",
-            },
+    if not use_pretrained_backend:
+        clinical_source = _resolve_clinical_signal_source(
+            clinical_model_available=clinical_model_available,
+            clinical_head_available=clinical_head_available,
+            tox21_available=tox21_available,
         )
+        if clinical_source == "unavailable":
+            if CLINICAL_SIGNAL_STRATEGY == "clinical_head" and tox21_available and not clinical_head_available:
+                raise _feature_not_ready_error("clinical_head")
+            if TOX21_ENABLED and not tox21_available:
+                raise _feature_not_ready_error("tox21")
+            if CLINTOX_ENABLED and not clinical_model_available:
+                raise _feature_not_ready_error("xsmiles")
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "model_not_ready",
+                    "workspace_mode": WORKSPACE_MODE_NAME,
+                    "message": "No enabled toxicity engine is available for analysis.",
+                },
+            )
+    else:
+        clinical_source = _pretrained_backend_source_name(inference_backend)
 
     smiles = req.smiles.strip()
     mol = Chem.MolFromSmiles(smiles)
@@ -1676,55 +1868,76 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
 
     try:
         with _model_lock_sync():
-            if tox21_available:
-                mechanism_raw = predict_toxicity_mechanism(
-                    smiles=smiles,
-                    model=model_state["tox21_model"],
-                    task_names=model_state["tox21_tasks"],
+            if use_pretrained_backend:
+                bundle = _load_pretrained_bundle_sync(inference_backend)
+                pretrained_backend_loaded = True
+                pretrained_outputs = predict_pretrained_dual_head_outputs(
+                    smiles_list=[smiles],
+                    model=bundle["model"],
+                    tokenizer=bundle["tokenizer"],
+                    task_names=list(bundle.get("task_names") or []),
                     device=DEVICE,
-                    threshold=req.mechanism_threshold,
-                    task_thresholds=model_state.get("tox21_thresholds"),
-                    batch_size=64,
+                    clinical_threshold=float(req.clinical_threshold),
+                    mechanism_threshold=float(req.mechanism_threshold),
+                    task_thresholds=bundle.get("tox21_thresholds"),
+                    max_length=int(bundle.get("max_length", 128)),
+                    source_name=_pretrained_backend_source_name(inference_backend),
                 )
+                clinical_raw = dict(pretrained_outputs[0].get("clinical") or {})
+                mechanism_raw = dict(pretrained_outputs[0].get("mechanism") or {})
+                clinical_raw["source"] = _pretrained_backend_source_name(inference_backend)
             else:
-                mechanism_raw = _fallback_mechanism_result(req.mechanism_threshold)
+                if tox21_available:
+                    mechanism_raw = predict_toxicity_mechanism(
+                        smiles=smiles,
+                        model=model_state["tox21_model"],
+                        task_names=model_state["tox21_tasks"],
+                        device=DEVICE,
+                        threshold=req.mechanism_threshold,
+                        task_thresholds=model_state.get("tox21_thresholds"),
+                        batch_size=64,
+                    )
+                else:
+                    mechanism_raw = _fallback_mechanism_result(req.mechanism_threshold)
 
-            if clinical_source == "xsmiles":
-                clinical_raw = predict_clinical_toxicity(
-                    smiles=smiles,
-                    tokenizer=model_state["tokenizer"],
-                    wrapped_model=model_state["wrapped"],
-                    device=DEVICE,
-                    threshold=req.clinical_threshold,
-                    enforce_workspace_mode=False,
-                )
-                clinical_raw["source"] = "xsmiles"
-            elif clinical_source == "clinical_head":
-                clinical_head_meta = dict(model_state.get("clinical_head_meta") or {})
-                clinical_task_names = list(clinical_head_meta.get("task_names") or model_state["tox21_tasks"])
-                clinical_raw = predict_clinical_head_from_tox21_task_scores(
-                    task_scores=dict(mechanism_raw.get("task_scores") or {}),
-                    task_names=clinical_task_names,
-                    clinical_head_model=model_state["clinical_head_model"],
-                    threshold=float(req.clinical_threshold),
-                    device=DEVICE,
-                    smiles=smiles,
-                    feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
-                )
-            elif clinical_source == "tox21_proxy":
-                clinical_raw = predict_clinical_proxy_from_tox21(
-                    mechanism_result=mechanism_raw,
-                    threshold=req.clinical_threshold,
-                )
-            else:
-                clinical_raw = {
-                    "label": "UNKNOWN",
-                    "is_toxic": False,
-                    "confidence": 0.0,
-                    "p_toxic": 0.0,
-                    "threshold_used": float(req.clinical_threshold),
-                    "source": "unavailable",
-                }
+                if clinical_source == "xsmiles":
+                    clinical_raw = predict_clinical_toxicity(
+                        smiles=smiles,
+                        tokenizer=model_state["tokenizer"],
+                        wrapped_model=model_state["wrapped"],
+                        device=DEVICE,
+                        threshold=req.clinical_threshold,
+                        enforce_workspace_mode=False,
+                    )
+                    clinical_raw["source"] = "xsmiles"
+                elif clinical_source == "clinical_head":
+                    clinical_head_meta = dict(model_state.get("clinical_head_meta") or {})
+                    clinical_task_names = list(clinical_head_meta.get("task_names") or model_state["tox21_tasks"])
+                    clinical_raw = predict_clinical_head_from_tox21_task_scores(
+                        task_scores=dict(mechanism_raw.get("task_scores") or {}),
+                        task_names=clinical_task_names,
+                        clinical_head_model=model_state["clinical_head_model"],
+                        threshold=float(req.clinical_threshold),
+                        device=DEVICE,
+                        smiles=smiles,
+                        feature_spec=dict(clinical_head_meta.get("feature_spec") or {}),
+                    )
+                elif clinical_source == "tox21_proxy":
+                    clinical_raw = predict_clinical_proxy_from_tox21(
+                        mechanism_result=mechanism_raw,
+                        threshold=req.clinical_threshold,
+                    )
+                else:
+                    clinical_raw = {
+                        "label": "UNKNOWN",
+                        "is_toxic": False,
+                        "confidence": 0.0,
+                        "p_toxic": 0.0,
+                        "threshold_used": float(req.clinical_threshold),
+                        "source": "unavailable",
+                    }
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(500, f"Unified inference error: {str(exc)}")
 
@@ -1894,6 +2107,11 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
     reliability_warning: Optional[str] = None
     if ood_assessment.flag:
         reliability_warning = ood_assessment.reason
+    elif clinical_signal_source.startswith("pretrained_dual_head:"):
+        reliability_warning = (
+            "Clinical and mechanism outputs are generated by shared pretrained dual-head model; "
+            "structural explanation remains from graph-based explainer path."
+        )
     elif clinical_signal_source == "clinical_head":
         reliability_warning = (
             "Clinical verdict is generated by lightweight transfer head "
@@ -1907,17 +2125,25 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
     elif not tox21_available:
         reliability_warning = "Mechanism model is unavailable; only clinical signal is used."
 
-    clinical_reference_metrics = dict(model_state.get("clinical_reference_metrics") or {})
+    clinical_reference_metrics = {}
+    if not use_pretrained_backend:
+        clinical_reference_metrics = dict(model_state.get("clinical_reference_metrics") or {})
+
     if clinical_signal_source == "tox21_proxy":
         clinical_reference_metrics["clinical_proxy_coverage"] = float(
             clinical_raw.get("proxy_coverage", 0.0)
         )
 
+    inference_backend_loaded = bool(pretrained_backend_loaded) if use_pretrained_backend else bool(clinical_signal_source != "unavailable")
+    clinical_loaded_for_context = bool(pretrained_backend_loaded) if use_pretrained_backend else bool(clinical_model_available)
+
     inference_context = InferenceContextOutput(
         workspace_mode=WORKSPACE_MODE_NAME,
+        inference_backend=inference_backend,
+        inference_backend_loaded=inference_backend_loaded,
         threshold_policy=str(WORKSPACE_MODE.get("threshold_policy", "balanced")),
         clinical_threshold_applied=float(req.clinical_threshold),
-        clinical_model_loaded=clinical_model_available,
+        clinical_model_loaded=clinical_loaded_for_context,
         tox21_model_loaded=tox21_available,
         explainer_used=bool(should_explain),
         explanation_available=explanation_payload is not None,
@@ -1942,6 +2168,7 @@ def analyze_molecule_sync(
     smiles: str,
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
+    inference_backend: str = "xsmiles",
     explain_only_if_alert: bool = False,
     explainer_epochs: int = 200,
     explainer_timeout_ms: int = 30000,
@@ -1953,6 +2180,7 @@ def analyze_molecule_sync(
             smiles=smiles,
             clinical_threshold=float(clinical_threshold),
             mechanism_threshold=float(mechanism_threshold),
+            inference_backend=str(inference_backend),
             explain_only_if_alert=bool(explain_only_if_alert),
             explainer_epochs=int(explainer_epochs),
             explainer_timeout_ms=int(explainer_timeout_ms),
@@ -1984,12 +2212,14 @@ def _deterministic_screening_payload(
     smiles: str,
     clinical_threshold: float,
     mechanism_threshold: float,
+    inference_backend: str,
 ) -> Dict[str, Any]:
     """Build screening payload directly from local sync analyze call."""
     analysis = analyze_molecule_sync(
         smiles=smiles,
         clinical_threshold=float(clinical_threshold),
         mechanism_threshold=float(mechanism_threshold),
+        inference_backend=str(inference_backend),
         explain_only_if_alert=False,
     )
     if not isinstance(analysis, dict) or analysis.get("error"):
@@ -2047,6 +2277,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             language,
             float(req.clinical_threshold),
             float(req.mechanism_threshold),
+            str(req.inference_backend),
         )
 
         final_report_payload = _coerce_json_dict(
@@ -2096,6 +2327,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         "language": language,
         "clinical_threshold": float(req.clinical_threshold),
         "mechanism_threshold": float(req.mechanism_threshold),
+        "inference_backend": str(req.inference_backend),
     }
 
     try:
@@ -2336,6 +2568,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 smiles,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
+                str(req.inference_backend),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed (missing payload): %s", exc)
@@ -2353,6 +2586,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 smiles,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
+                str(req.inference_backend),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed: %s", exc)
@@ -2380,18 +2614,24 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             user_id=user_id,
             session_id=session_id,
             message=message,
+            include_events=req.include_agent_events,
+            event_sink=events if req.include_agent_events else None,
         )
         await _run_adk_agent_step(
             agent=researcher_agent,
             user_id=user_id,
             session_id=session_id,
             message=message,
+            include_events=req.include_agent_events,
+            event_sink=events if req.include_agent_events else None,
         )
         await _run_adk_agent_step(
             agent=writer_agent,
             user_id=user_id,
             session_id=session_id,
             message=message,
+            include_events=req.include_agent_events,
+            event_sink=events if req.include_agent_events else None,
         )
 
         state = await _read_adk_session_state_with_retry(
@@ -2429,6 +2669,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 smiles,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
+                str(req.inference_backend),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed during final report recovery: %s", exc)
@@ -2474,9 +2715,10 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             if isinstance(rebuilt_summary, str) and rebuilt_summary:
                 final_text = rebuilt_summary
 
-    if final_text is None and isinstance(final_report, dict):
+    if isinstance(final_report, dict):
         summary = final_report.get("executive_summary")
         if isinstance(summary, str) and summary:
+            # Always prioritize the final executive summary over early validator text.
             final_text = summary
 
     report_has_payload = isinstance(final_report, dict) and bool(final_report)
@@ -2496,7 +2738,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         session_id=session_id,
         adk_available=ADK_AVAILABLE,
         runtime_mode="adk",
-        runtime_note=None,
+        runtime_note="adk_runtime_ok",
         validation_status=validation_status,
         final_report=final_report,
         final_text=final_text,

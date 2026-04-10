@@ -28,6 +28,10 @@ except Exception:
 class PredictRequest(BaseModel):
     smiles: str = Field(..., description="SMILES string")
     threshold: float = Field(DEFAULT_CLINICAL_THRESHOLD, ge=0.0, le=1.0)
+    inference_backend: str = Field(
+        default="xsmiles",
+        description="Inference backend: xsmiles, chemberta, pubchem, or molformer",
+    )
 
 class PredictResponse(BaseModel):
     smiles: str
@@ -40,6 +44,10 @@ class PredictResponse(BaseModel):
 class BatchPredictRequest(BaseModel):
     smiles_list: List[str]
     threshold: float = DEFAULT_CLINICAL_THRESHOLD
+    inference_backend: str = Field(
+        default="xsmiles",
+        description="Inference backend: xsmiles, chemberta, pubchem, or molformer",
+    )
 
 class BatchPredictResponse(BaseModel):
     results: List[PredictResponse]
@@ -111,6 +119,10 @@ class AnalyzeRequest(BaseModel):
     smiles: str = Field(..., description="SMILES string")
     clinical_threshold: float = Field(DEFAULT_CLINICAL_THRESHOLD, ge=0.0, le=1.0)
     mechanism_threshold: float = Field(DEFAULT_MECHANISM_THRESHOLD, ge=0.0, le=1.0)
+    inference_backend: str = Field(
+        default="xsmiles",
+        description="Inference backend: xsmiles, chemberta, pubchem, or molformer",
+    )
     return_all_scores: bool = True
     explain_only_if_alert: bool = True
     explainer_epochs: int = Field(200, ge=50, le=500)
@@ -129,6 +141,8 @@ class OodAssessmentOutput(BaseModel):
 
 class InferenceContextOutput(BaseModel):
     workspace_mode: str
+    inference_backend: str = Field(default="xsmiles")
+    inference_backend_loaded: bool = False
     threshold_policy: Optional[str] = None
     clinical_threshold_applied: Optional[float] = None
     clinical_model_loaded: bool
@@ -161,6 +175,10 @@ class AgentAnalyzeRequest(BaseModel):
     max_literature_results: int = Field(default=5, ge=1, le=20)
     clinical_threshold: float = Field(DEFAULT_CLINICAL_THRESHOLD, ge=0.0, le=1.0)
     mechanism_threshold: float = Field(DEFAULT_MECHANISM_THRESHOLD, ge=0.0, le=1.0)
+    inference_backend: str = Field(
+        default="xsmiles",
+        description="Inference backend for screening: xsmiles, chemberta, pubchem, or molformer",
+    )
     include_agent_events: bool = Field(
         default=True,
         description="Include agent/tool calling event trace for debugging",
