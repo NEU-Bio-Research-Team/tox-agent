@@ -40,6 +40,7 @@ export function IndexPage() {
         language: preferences.language,
         clinicalThreshold: preferences.clinicalThreshold,
         mechanismThreshold: preferences.mechanismThreshold,
+        inferenceBackend: preferences.inferenceBackend,
       });
       if (result.validation_status && result.validation_status !== 'VALID') {
         throw new Error(`Validation failed: ${result.validation_status}`);
