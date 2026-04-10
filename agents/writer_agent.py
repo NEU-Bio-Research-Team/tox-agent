@@ -554,6 +554,61 @@ def build_final_report(
         "Bioassay data are public biological assay outcomes (PubChem) for this compound, used to cross-check model mechanism signals against prior experimental evidence.",
     )
 
+    clinical_interpretation = screening.get("summary")
+    if not isinstance(clinical_interpretation, str) or not clinical_interpretation.strip():
+        label = str(clinical.get("label") or "UNKNOWN")
+        p_toxic = float(clinical.get("p_toxic", 0.0) or 0.0)
+        threshold_used = float(clinical.get("threshold_used", 0.35) or 0.35)
+        clinical_interpretation = choose_text(
+            normalized_language,
+            f"Dien giai lam sang: {label} (p_toxic={p_toxic:.3f}, nguong={threshold_used:.2f}).",
+            f"Clinical interpretation: {label} (p_toxic={p_toxic:.3f}, threshold={threshold_used:.2f}).",
+        )
+
+    ood_assessment_output = dict(ood_assessment)
+    if not isinstance(ood_assessment_output.get("recommendation"), str) or not str(
+        ood_assessment_output.get("recommendation")
+    ).strip():
+        if bool(ood_assessment_output.get("flag", False)):
+            ood_assessment_output["recommendation"] = choose_text(
+                normalized_language,
+                "Co canh bao OOD, nen uu tien xac minh bo sung truoc khi dua ra quyet dinh progression.",
+                "OOD is flagged; prioritize additional validation before progression decisions.",
+            )
+        else:
+            ood_assessment_output["recommendation"] = choose_text(
+                normalized_language,
+                "Khong can hanh dong bo sung cho OOD o lan danh gia nay.",
+                "No additional OOD action is required for this evaluation.",
+            )
+
+    bioassay_evidence_output = _to_dict(bioassay_summary)
+    if not bioassay_evidence_output:
+        bioassay_evidence_output = {
+            "cid": compound_info.get("cid"),
+            "total_assays_tested": 0,
+            "active_assays": [],
+            "tox21_active_count": 0,
+            "error": "not_available",
+        }
+    else:
+        bioassay_evidence_output.setdefault("cid", compound_info.get("cid"))
+        bioassay_evidence_output.setdefault("total_assays_tested", 0)
+        bioassay_evidence_output.setdefault("active_assays", [])
+        bioassay_evidence_output.setdefault("tox21_active_count", 0)
+        err_value = bioassay_evidence_output.get("error")
+        if err_value is None or (isinstance(err_value, str) and not err_value.strip()):
+            bioassay_evidence_output["error"] = "none"
+
+    failure_registry_entry = (
+        failure_match
+        if failure_match is not None
+        else {
+            "status": "not_matched",
+            "reason": "no_registry_match",
+        }
+    )
+
     return {
         "report_metadata": {
             "smiles": smiles_input,
@@ -571,7 +626,7 @@ def build_final_report(
                 "probability": clinical.get("p_toxic"),
                 "confidence": clinical.get("confidence"),
                 "threshold_used": clinical.get("threshold_used"),
-                "interpretation": screening.get("summary"),
+                "interpretation": clinical_interpretation,
             },
             "mechanism_toxicity": {
                 "active_tox21_tasks": mechanism.get("active_tasks", []),
@@ -596,17 +651,17 @@ def build_final_report(
                 "query_name_used": research.get("query_name_used"),
                 "total_found": literature.get("total_found"),
                 "relevant_papers": literature.get("articles", []),
-                "bioassay_evidence": bioassay_summary,
+                "bioassay_evidence": bioassay_evidence_output,
                 "bioassay_explanation": bioassay_explanation,
             },
-            "ood_assessment": ood_assessment,
+            "ood_assessment": ood_assessment_output,
             "inference_context": inference_context,
             "reliability_warning": reliability_warning,
             "recommendation_source": recommendation_source,
             "recommendation_source_detail": recommendation_source_detail,
             "failure_registry": {
                 "matched": failure_match is not None,
-                "entry": failure_match,
+                "entry": failure_registry_entry,
                 "registry_size": registry_size,
             },
             "recommendations": recommendations,
