@@ -15,15 +15,17 @@ import json
 import pickle
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import yaml
+from rdkit import Chem
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
+from transformers import AutoTokenizer
 
 from src.data import get_task_names
 from src.graph_data import get_feature_dims, smiles_to_pyg_data
@@ -32,6 +34,7 @@ from src.graph_models_hybrid import create_hybrid_model
 from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 from backend.clinical_head import create_clinical_head, scores_dict_to_feature_vector
 from backend.featurization import featurize_fingerprint
+from backend.pretrained_mol_model import create_pretrained_dual_head_model, get_checkpoint_defaults
 
 
 def _env_float(name: str, default: float) -> float:
@@ -455,6 +458,264 @@ def load_clinical_head_model(
         "model_dir": str(model_dir),
     }
     return model, metadata
+
+
+def _load_json_if_exists(path: Path) -> Dict[str, Any]:
+    if not path.exists():
+        return {}
+
+    try:
+        with open(path, "r") as f:
+            payload = json.load(f)
+    except Exception:
+        return {}
+
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+def _extract_tox21_threshold_map(payload: Dict[str, Any]) -> Dict[str, float]:
+    raw = payload
+    nested = payload.get("task_thresholds") if isinstance(payload, dict) else None
+    if isinstance(nested, dict):
+        raw = nested
+
+    out: Dict[str, float] = {}
+    for key, value in raw.items() if isinstance(raw, dict) else []:
+        try:
+            out[str(key)] = float(value)
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def load_pretrained_dual_head_bundle(
+    model_dir: Path,
+    device: str = "cpu",
+) -> Dict[str, Any]:
+    """Load serving artifacts for pretrained dual-head model (hERG + Tox21)."""
+    model_dir = Path(model_dir)
+
+    config_path = model_dir / "config.yaml"
+    ckpt_path = model_dir / "best_model.pt"
+    tokenizer_dir = model_dir / "tokenizer"
+
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config not found: {config_path}")
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Checkpoint not found: {ckpt_path}")
+    if not tokenizer_dir.exists():
+        raise FileNotFoundError(f"Tokenizer directory not found: {tokenizer_dir}")
+
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f) or {}
+
+    model_cfg = dict(config.get("model") or {})
+    training_cfg = dict(config.get("training") or {})
+
+    pretrained_model = str(model_cfg.get("pretrained_model") or "").strip()
+    if not pretrained_model:
+        raise ValueError(f"Missing model.pretrained_model in {config_path}")
+
+    num_tox21_tasks = int(model_cfg.get("num_tox21_tasks", 12))
+    dropout = float(model_cfg.get("dropout", 0.1))
+    use_herg_mlp = bool(model_cfg.get("use_herg_mlp", True))
+    herg_hidden_dim_raw = model_cfg.get("herg_hidden_dim")
+    herg_hidden_dim = None if herg_hidden_dim_raw is None else int(herg_hidden_dim_raw)
+
+    defaults = get_checkpoint_defaults(pretrained_model)
+    max_length = int(training_cfg.get("max_length", defaults.get("max_length", 128)))
+
+    model = create_pretrained_dual_head_model(
+        pretrained_model=pretrained_model,
+        num_tox21_tasks=num_tox21_tasks,
+        dropout=dropout,
+        herg_hidden_dim=herg_hidden_dim,
+        use_herg_mlp=use_herg_mlp,
+    )
+
+    checkpoint = torch.load(ckpt_path, map_location=device)
+    state_dict = checkpoint["model_state_dict"] if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint else checkpoint
+    model.load_state_dict(state_dict)
+    model.to(device)
+    model.eval()
+
+    tokenizer = AutoTokenizer.from_pretrained(str(tokenizer_dir))
+
+    tox21_threshold_payload = _load_json_if_exists(model_dir / "tox21_task_thresholds.json")
+    if not tox21_threshold_payload:
+        tox21_threshold_payload = _load_json_if_exists(model_dir / "task_thresholds.json")
+    tox21_thresholds = _extract_tox21_threshold_map(tox21_threshold_payload)
+
+    herg_threshold_payload = _load_json_if_exists(model_dir / "herg_threshold.json")
+    herg_threshold = 0.5
+    if isinstance(herg_threshold_payload, dict):
+        try:
+            herg_threshold = float(herg_threshold_payload.get("threshold", 0.5))
+        except (TypeError, ValueError):
+            herg_threshold = 0.5
+
+    task_names = list(get_task_names("tox21"))
+
+    return {
+        "model": model,
+        "tokenizer": tokenizer,
+        "task_names": task_names,
+        "max_length": int(max_length),
+        "herg_threshold": float(herg_threshold),
+        "tox21_thresholds": tox21_thresholds,
+        "model_dir": str(model_dir),
+        "pretrained_model": pretrained_model,
+    }
+
+
+def predict_pretrained_dual_head_outputs(
+    smiles_list: List[str],
+    model: nn.Module,
+    tokenizer,
+    task_names: List[str],
+    device: str,
+    clinical_threshold: float = DEFAULT_CLINICAL_THRESHOLD,
+    mechanism_threshold: float = 0.5,
+    task_thresholds: Optional[Union[List[float], np.ndarray, Dict[str, float]]] = None,
+    max_length: int = 128,
+    batch_size: int = 32,
+    source_name: str = "pretrained_dual_head",
+) -> List[Dict[str, Any]]:
+    """Run batched dual-head inference and return clinical + mechanism outputs per SMILES."""
+    threshold_arr = _resolve_tox21_thresholds(
+        task_names=task_names,
+        default_threshold=float(mechanism_threshold),
+        task_thresholds=task_thresholds,
+    )
+    task_threshold_map = {
+        task_name: float(threshold_arr[idx])
+        for idx, task_name in enumerate(task_names)
+    }
+
+    clinical_threshold = float(clinical_threshold)
+    max_length = int(max_length)
+    batch_size = int(max(1, batch_size))
+
+    outputs: List[Dict[str, Any]] = [
+        {
+            "smiles": str(smi),
+            "canonical_smiles": None,
+            "clinical": {
+                "label": "PARSE_ERROR",
+                "is_toxic": False,
+                "confidence": 0.0,
+                "p_toxic": 0.0,
+                "threshold_used": clinical_threshold,
+                "source": source_name,
+            },
+            "mechanism": {
+                "task_scores": {},
+                "active_tasks": [],
+                "highest_risk_task": "Parse error",
+                "highest_risk_score": -1.0,
+                "assay_hits": -1,
+                "mechanistic_alert": False,
+                "threshold_used": float(mechanism_threshold),
+                "task_thresholds": task_threshold_map,
+                "source": source_name,
+            },
+            "error": "parse_error",
+        }
+        for smi in smiles_list
+    ]
+
+    valid_records: List[Tuple[int, str]] = []
+    for idx, raw_smiles in enumerate(smiles_list):
+        smi = str(raw_smiles).strip()
+        mol = Chem.MolFromSmiles(smi)
+        if mol is None:
+            continue
+        canonical = Chem.MolToSmiles(mol)
+        outputs[idx]["canonical_smiles"] = canonical
+        valid_records.append((idx, canonical))
+
+    if not valid_records:
+        return outputs
+
+    with torch.no_grad():
+        for start in range(0, len(valid_records), batch_size):
+            chunk = valid_records[start : start + batch_size]
+            chunk_indices = [item[0] for item in chunk]
+            chunk_smiles = [item[1] for item in chunk]
+
+            enc = tokenizer(
+                chunk_smiles,
+                padding=True,
+                truncation=True,
+                max_length=max_length,
+                return_tensors="pt",
+            )
+
+            input_ids = enc["input_ids"].to(device)
+            attention_mask = enc["attention_mask"].to(device)
+            head_outputs = model.forward_heads(input_ids=input_ids, attention_mask=attention_mask)
+
+            herg_probs = torch.sigmoid(head_outputs["herg_logits"]).detach().cpu().numpy().reshape(-1)
+            tox21_probs = torch.sigmoid(head_outputs["tox21_logits"]).detach().cpu().numpy()
+
+            for local_idx, global_idx in enumerate(chunk_indices):
+                p_toxic = float(herg_probs[local_idx])
+                is_toxic = bool(p_toxic >= clinical_threshold)
+                confidence = abs(p_toxic - clinical_threshold) / max(clinical_threshold, 1.0 - clinical_threshold)
+
+                prob_vec = np.asarray(tox21_probs[local_idx], dtype=np.float32).reshape(-1)
+                if len(task_names) != prob_vec.shape[0]:
+                    aligned_task_names = [f"task_{i}" for i in range(prob_vec.shape[0])]
+                    aligned_thresholds = np.full(prob_vec.shape[0], float(mechanism_threshold), dtype=np.float32)
+                    aligned_threshold_map = {
+                        task_name: float(aligned_thresholds[idx])
+                        for idx, task_name in enumerate(aligned_task_names)
+                    }
+                else:
+                    aligned_task_names = task_names
+                    aligned_thresholds = threshold_arr
+                    aligned_threshold_map = task_threshold_map
+
+                task_scores = {
+                    task_name: float(prob_vec[idx])
+                    for idx, task_name in enumerate(aligned_task_names)
+                }
+                active_tasks = [
+                    task_name
+                    for idx, task_name in enumerate(aligned_task_names)
+                    if float(prob_vec[idx]) >= float(aligned_thresholds[idx])
+                ]
+
+                top_idx = int(np.argmax(prob_vec))
+
+                outputs[global_idx] = {
+                    "smiles": str(smiles_list[global_idx]),
+                    "canonical_smiles": outputs[global_idx]["canonical_smiles"],
+                    "clinical": {
+                        "label": "TOXIC" if is_toxic else "NON_TOXIC",
+                        "is_toxic": is_toxic,
+                        "confidence": float(min(confidence, 1.0)),
+                        "p_toxic": p_toxic,
+                        "threshold_used": float(clinical_threshold),
+                        "source": source_name,
+                    },
+                    "mechanism": {
+                        "task_scores": task_scores,
+                        "active_tasks": active_tasks,
+                        "highest_risk_task": str(aligned_task_names[top_idx]),
+                        "highest_risk_score": float(prob_vec[top_idx]),
+                        "assay_hits": int(len(active_tasks)),
+                        "mechanistic_alert": bool(len(active_tasks) > 0),
+                        "threshold_used": float(mechanism_threshold),
+                        "task_thresholds": aligned_threshold_map,
+                        "source": source_name,
+                    },
+                    "error": None,
+                }
+
+    return outputs
 
 
 def _build_clinical_head_feature_vector(
