@@ -30,6 +30,7 @@ function resolveBaseUrl(baseUrl: string): string {
 export const BASE_URL = resolveBaseUrl(configuredBaseUrl);
 
 export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | 'UNKNOWN';
+export type InferenceBackend = 'xsmiles' | 'chemberta' | 'pubchem' | 'molformer';
 
 export interface AgentEventRecord {
 	type?: string | null;
@@ -224,6 +225,7 @@ export interface AgentAnalyzeOptions {
 	clinicalThreshold?: number;
 	mechanismThreshold?: number;
 	maxLiteratureResults?: number;
+	inferenceBackend?: InferenceBackend;
 }
 
 export async function agentAnalyze(
@@ -237,6 +239,7 @@ export async function agentAnalyze(
 		clinical_threshold: options.clinicalThreshold ?? 0.35,
 		mechanism_threshold: options.mechanismThreshold ?? 0.5,
 		max_literature_results: options.maxLiteratureResults ?? 5,
+		inference_backend: options.inferenceBackend ?? 'xsmiles',
 	};
 
 	const res = await fetch(`${BASE_URL}/agent/analyze`, {
