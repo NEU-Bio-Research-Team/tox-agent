@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Initialize demo account
     initializeDemoAccount();
-    
+
     // Check for existing session
     const savedUser = localStorage.getItem('toxagent_user');
     if (savedUser) {
@@ -36,12 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Get existing users
       const usersJson = localStorage.getItem('toxagent_users') || '[]';
       const users = JSON.parse(usersJson);
-      
+
       // Check if user already exists
       if (users.find((u: any) => u.email === email)) {
         return false;
       }
-      
+
       // Create new user
       const newUser = {
         id: crypto.randomUUID(),
@@ -49,15 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password, // In production, this would be hashed
         name,
       };
-      
+
       users.push(newUser);
       localStorage.setItem('toxagent_users', JSON.stringify(users));
-      
+
       // Auto-login after registration
       const userSession = { id: newUser.id, email: newUser.email, name: newUser.name };
       setUser(userSession);
       localStorage.setItem('toxagent_user', JSON.stringify(userSession));
-      
+
       return true;
     } catch (error) {
       console.error('Registration error:', error);
@@ -69,16 +69,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const usersJson = localStorage.getItem('toxagent_users') || '[]';
       const users = JSON.parse(usersJson);
-      
+
       const foundUser = users.find((u: any) => u.email === email && u.password === password);
-      
+
       if (foundUser) {
         const userSession = { id: foundUser.id, email: foundUser.email, name: foundUser.name };
         setUser(userSession);
         localStorage.setItem('toxagent_user', JSON.stringify(userSession));
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Login error:', error);

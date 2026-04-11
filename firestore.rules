@@ -2,18 +2,33 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Quy tắc cho bộ sưu tập kết quả dự đoán (ví dụ tên là 'predictions')
-    match /predictions/{document=**} {
-      // Cho phép mọi người xem kết quả dự đoán
+
+    // 1. Cho phép đọc thông tin phân tử (Molecules)
+    // Ai cũng có thể tra cứu thông tin hóa học cơ bản
+    match /molecules/{moleculeId} {
       allow read: if true;
-      
-      // Chỉ cho phép ghi dữ liệu nếu người dùng đã đăng nhập (Authentication)
-      // Hoặc nếu bạn chưa làm login, có thể tạm thời để 'true' nhưng phải đổi sớm
-      allow write: if request.auth != null;
+      allow write: if request.auth != null; // Chỉ user mới được thêm chất mới
     }
 
-    // Chặn tất cả các truy cập khác mặc định để bảo mật
+    // 2. Quy tắc cho kết quả dự đoán (Predictions)
+    match /predictions/{predictionId} {
+      // Cho phép đọc nếu là kết quả công khai hoặc của chính người đó
+      allow read: if true; 
+      
+      // CHỈ cho phép ghi nếu user đăng nhập và ID người dùng trong data khớp với Auth UID
+      allow create: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+      
+      // Chỉ chủ sở hữu mới được xóa hoặc cập nhật kết quả của mình
+      allow update, delete: if request.auth != null && resource.data.user_id == request.auth.uid;
+    }
+
+    // 3. Quy tắc cho thông tin cá nhân (Users)
+    match /users/{userId} {
+      // Chỉ chủ sở hữu mới được xem và sửa thông tin cá nhân của mình
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 4. Chặn tất cả các truy cập không xác định khác
     match /{document=**} {
       allow read, write: if false;
     }
