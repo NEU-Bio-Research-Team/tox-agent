@@ -226,6 +226,8 @@ export interface AgentAnalyzeOptions {
 	mechanismThreshold?: number;
 	maxLiteratureResults?: number;
 	inferenceBackend?: InferenceBackend;
+	binaryToxModel?: string;
+	toxTypeModel?: string;
 }
 
 export async function agentAnalyze(
@@ -240,6 +242,8 @@ export async function agentAnalyze(
 		mechanism_threshold: options.mechanismThreshold ?? 0.5,
 		max_literature_results: options.maxLiteratureResults ?? 5,
 		inference_backend: options.inferenceBackend ?? 'xsmiles',
+		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
+		tox_type_model: options.toxTypeModel ?? 'tox21_gatv2_model'
 	};
 
 	const res = await fetch(`${BASE_URL}/agent/analyze`, {

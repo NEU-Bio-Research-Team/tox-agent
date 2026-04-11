@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collap
 interface HeroSectionProps {
   value: string;
   onChange: (value: string) => void;
-  onAnalyze: () => void;
+  onAnalyze: (opts: { binaryModel: string; toxTypeModel: string}) => void; //allow changes will be applied
   isAnalyzing: boolean;
 }
 
@@ -23,6 +23,10 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
   const [validationMessage, setValidationMessage] = useState('');
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [threshold, setThreshold] = useState(0.5);
+
+  // Add options for users to choose which model will use for 2 predict tasks
+  const [binaryModel, setBinaryModel] = useState<string>('pretrained_2head_herg_chemberta_model');
+  const [toxTypeModel, setToxTypeModel] = useState<string>('tox21_gatv2_model');
 
   useEffect(() => {
     if (!value.trim()) {
@@ -104,7 +108,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
           </div>
           
           <Button
-            onClick={onAnalyze}
+            onClick={() => onAnalyze({ binaryModel, toxTypeModel})}
             disabled={buttonState.disabled}
             className="md:w-auto w-full h-[56px] px-7 text-base font-semibold rounded-lg"
             style={{
@@ -213,6 +217,59 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                   Quick (ScreeningAgent only)
                 </label>
               </div>
+            </div>
+
+            {/* GNN Binary Toxicity Model */}
+            <div>
+              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                Binary Toxicity Model (GNN):
+              </label>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-faint' }}>
+                Chọn GNN backbone để predict xác suất độc tính nhị phân
+              </p>
+              <select
+                value={binaryModel}
+                onChange={(e) => setBinaryModel(e.target.value)}
+                disabled={isAnalyzing}
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                style={{
+                  backgroundColor: "var(--surface-alt)",
+                  border: '1px solid var(--border)',
+                  color: 'var(--text)',
+                }}
+              >
+                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Full · Recommended</option>
+                <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Quick</option>
+                <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Full</option>
+                <option value="pretrained_2head_herg_molformer_quick">MolFormer Dual-Head · Quick</option>
+              </select>
+            </div>
+
+            {/* GNN Toxicity Type Model */}
+            <div>
+              <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                Toxicity Type Model (GNN):
+              </label>
+              <p className='text-xs mb-2' style={{ color: 'ver(--text-faint)' }}>
+                Chọn model để profile 12 Tox21 assay tasks
+              </p>
+              <select 
+              value={toxTypeModel}
+              onChange={(e) => setToxTypeModel(e.target.value)}
+              disabled={isAnalyzing}
+              className='w-full px-3 py-2 rounded-lg text-sm'
+              style={{
+                backgroundColor: 'var(--surface-alt)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)', 
+              }}
+              >
+                <option value="tox21_gatv2_model">GATv2 Tox21 · 12 assays · Recommended</option>
+                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Tox21 head (Full)</option>
+                <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Tox21 head (Quick)</option>
+                <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Tox21 head (Full)</option>
+                <option value="pretrained_2head_herg_molformer_quick">MolFormer Dual-Head · Tox21 head (Quick)</option>
+              </select>
             </div>
           </CollapsibleContent>
         </Collapsible>

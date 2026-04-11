@@ -23,7 +23,7 @@ export function IndexPage() {
     preferences,
   } = useReport();
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (opts: { binaryModel: string; toxTypeModel: string }) => {
     const smiles = smilesInput.trim();
     if (!smiles) {
       setError(preferences.language === 'en' ? 'Please enter a SMILES string before analysis.' : 'Vui lòng nhập SMILES trước khi phân tích.');
@@ -41,6 +41,8 @@ export function IndexPage() {
         clinicalThreshold: preferences.clinicalThreshold,
         mechanismThreshold: preferences.mechanismThreshold,
         inferenceBackend: preferences.inferenceBackend,
+        binaryToxModel: opts.binaryModel,     
+        toxTypeModel: opts.toxTypeModel,
       });
       if (result.validation_status && result.validation_status !== 'VALID') {
         throw new Error(`Validation failed: ${result.validation_status}`);
