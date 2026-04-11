@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict
 
-from tools import analyze_molecule
+from tools import analyze_molecule, validate_smiles
 
 from .adk_compat import LlmAgent
 from .language import choose_text
@@ -16,6 +16,7 @@ def run_screening(
     language: str = "vi",
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
+    inference_backend: str = "xsmiles",
 ) -> Dict[str, Any]:
     """Deterministic screening flow used for local tests and orchestration."""
     try:
@@ -32,6 +33,7 @@ def run_screening(
             canonical_smiles,
             clinical_threshold=clinical_threshold,
             mechanism_threshold=mechanism_threshold,
+            inference_backend=inference_backend,
         )
 
         if analysis.get("error"):
@@ -107,11 +109,13 @@ Task:
 2. If {canonical_smiles} is missing/empty, fall back to {smiles_input}.
 2. Read language from {language} and write user-facing text in that language.
 3. Read thresholds from {clinical_threshold} and {mechanism_threshold}.
-4. Do NOT call validate_smiles. Input is already validated by InputValidator.
-5. Call analyze_molecule(
+4. Read inference backend from {inference_backend}.
+5. Do NOT call validate_smiles. Input is already validated by InputValidator.
+6. Call analyze_molecule(
     smiles=<canonical_smiles from session state>,
     clinical_threshold={clinical_threshold},
-    mechanism_threshold={mechanism_threshold}
+    mechanism_threshold={mechanism_threshold},
+    inference_backend={inference_backend}
 ).
 6. Return JSON for key screening_result with fields:
    - summary

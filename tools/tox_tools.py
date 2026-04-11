@@ -111,6 +111,7 @@ def analyze_molecule(
     smiles: str,
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
+    inference_backend: str = "xsmiles",
 ) -> Dict[str, Any]:
     """Run full model-server toxicity analysis for one validated SMILES.
 
@@ -123,6 +124,7 @@ def analyze_molecule(
         clinical_threshold: Toxicity threshold for clinical binary decision.
         mechanism_threshold: Default mechanism threshold when task-specific
             thresholds are unavailable.
+        inference_backend: Backend selector for model inference.
 
     Returns:
         Dict from model server containing keys such as ``clinical``,
@@ -145,6 +147,7 @@ def analyze_molecule(
                 smiles=smiles,
                 clinical_threshold=float(clinical_threshold),
                 mechanism_threshold=float(mechanism_threshold),
+                inference_backend=str(inference_backend),
                 explain_only_if_alert=False,
             )
 
@@ -162,6 +165,7 @@ def analyze_molecule(
                 "smiles": smiles,
                 "clinical_threshold": float(clinical_threshold),
                 "mechanism_threshold": float(mechanism_threshold),
+                "inference_backend": str(inference_backend),
                 "explain_only_if_alert": False,
             },
             timeout=MODEL_SERVER_TIMEOUT,

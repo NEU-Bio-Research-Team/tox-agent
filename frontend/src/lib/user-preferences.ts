@@ -1,9 +1,11 @@
 export type AppLanguage = 'vi' | 'en';
+export type InferenceBackend = 'xsmiles' | 'chemberta' | 'pubchem' | 'molformer';
 
 export interface UserPreferences {
   language: AppLanguage;
   clinicalThreshold: number;
   mechanismThreshold: number;
+  inferenceBackend: InferenceBackend;
 }
 
 const STORAGE_KEY = 'toxagent:user-preferences:v1';
@@ -12,7 +14,17 @@ const DEFAULTS: UserPreferences = {
   language: 'vi',
   clinicalThreshold: 0.35,
   mechanismThreshold: 0.5,
+  inferenceBackend: 'xsmiles',
 };
+
+function normalizeInferenceBackend(value: unknown): InferenceBackend {
+  const candidate = String(value ?? '').trim().toLowerCase();
+  if (candidate === 'chembert') return 'chemberta';
+  if (candidate === 'chemberta' || candidate === 'pubchem' || candidate === 'molformer') {
+    return candidate;
+  }
+  return 'xsmiles';
+}
 
 function clampThreshold(value: number, fallback: number): number {
   if (!Number.isFinite(value)) return fallback;
@@ -38,6 +50,7 @@ export function loadUserPreferences(): UserPreferences {
       language,
       clinicalThreshold: clampThreshold(Number(parsed.clinicalThreshold), DEFAULTS.clinicalThreshold),
       mechanismThreshold: clampThreshold(Number(parsed.mechanismThreshold), DEFAULTS.mechanismThreshold),
+      inferenceBackend: normalizeInferenceBackend(parsed.inferenceBackend),
     };
   } catch {
     return getDefaultPreferences();
@@ -49,6 +62,7 @@ export function saveUserPreferences(prefs: UserPreferences): UserPreferences {
     language: prefs.language === 'en' ? 'en' : 'vi',
     clinicalThreshold: clampThreshold(prefs.clinicalThreshold, DEFAULTS.clinicalThreshold),
     mechanismThreshold: clampThreshold(prefs.mechanismThreshold, DEFAULTS.mechanismThreshold),
+    inferenceBackend: normalizeInferenceBackend(prefs.inferenceBackend),
   };
 
   if (typeof window !== 'undefined') {

@@ -10,6 +10,7 @@ export function SettingsPage() {
   const [autoSave, setAutoSave] = useState(true);
   const [defaultThreshold, setDefaultThreshold] = useState(preferences.clinicalThreshold);
   const [mechanismThreshold, setMechanismThreshold] = useState(preferences.mechanismThreshold);
+  const [inferenceBackend, setInferenceBackend] = useState<'xsmiles' | 'chemberta' | 'pubchem' | 'molformer'>(preferences.inferenceBackend);
   const [language, setLanguage] = useState<'vi' | 'en'>(preferences.language);
 
   const isEnglish = language === 'en';
@@ -19,6 +20,7 @@ export function SettingsPage() {
       language,
       clinicalThreshold: defaultThreshold,
       mechanismThreshold,
+      inferenceBackend,
     });
   };
 
@@ -27,6 +29,7 @@ export function SettingsPage() {
     setLanguage('vi');
     setDefaultThreshold(0.35);
     setMechanismThreshold(0.5);
+    setInferenceBackend('xsmiles');
   };
 
   return (
@@ -164,12 +167,23 @@ export function SettingsPage() {
 
               <div className="flex items-center justify-between py-3 border-t" style={{ borderColor: 'var(--border)' }}>
                 <div>
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Default Analysis Mode</h3>
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>
+                    {isEnglish ? 'Inference Backend' : 'Backend suy luận'}
+                  </h3>
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {isEnglish ? 'Choose between Full or Quick analysis' : 'Chọn chế độ phân tích Full hoặc Quick'}
+                    {isEnglish ? 'Select model backend for clinical + mechanism scoring' : 'Chọn model backend cho nhánh lâm sàng và cơ chế'}
                   </p>
                 </div>
                 <select 
+                  value={inferenceBackend}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (next === 'chemberta' || next === 'pubchem' || next === 'molformer') {
+                      setInferenceBackend(next);
+                      return;
+                    }
+                    setInferenceBackend('xsmiles');
+                  }}
                   className="px-4 py-2 rounded-lg border"
                   style={{ 
                     backgroundColor: 'var(--surface-alt)', 
@@ -177,8 +191,10 @@ export function SettingsPage() {
                     color: 'var(--text)'
                   }}
                 >
-                  <option value="full">Full Analysis</option>
-                  <option value="quick">Quick Analysis</option>
+                  <option value="xsmiles">XSmiles (legacy)</option>
+                  <option value="chemberta">ChemBERTa (dual-head)</option>
+                  <option value="pubchem">PubChem10M (dual-head)</option>
+                  <option value="molformer">MolFormer (dual-head)</option>
                 </select>
               </div>
             </div>

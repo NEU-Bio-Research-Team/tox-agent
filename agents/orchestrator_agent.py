@@ -102,6 +102,7 @@ def run_orchestrator_flow(
     language: str = "vi",
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
+    inference_backend: str = "xsmiles",
 ) -> Dict[str, Any]:
     """Deterministic orchestration flow for local and CI smoke tests."""
     normalized_language = normalize_language(language)
@@ -110,6 +111,7 @@ def run_orchestrator_flow(
         "language": normalized_language,
         "clinical_threshold": float(clinical_threshold),
         "mechanism_threshold": float(mechanism_threshold),
+        "inference_backend": str(inference_backend),
         "validation_status": "INVALID",
         "screening_result": None,
         "explanation_raw": None,
@@ -155,6 +157,7 @@ def run_orchestrator_flow(
             normalized_language,
             float(clinical_threshold),
             float(mechanism_threshold),
+            str(inference_backend),
         )
         research_future = executor.submit(
             run_research,
@@ -190,6 +193,7 @@ def run_orchestrator_from_text(
     language: str = "vi",
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
+    inference_backend: str = "xsmiles",
 ) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
 
@@ -226,6 +230,7 @@ def run_orchestrator_from_text(
         language=normalized_language,
         clinical_threshold=clinical_threshold,
         mechanism_threshold=mechanism_threshold,
+        inference_backend=inference_backend,
     )
 
 

@@ -1,0 +1,38 @@
+{
+  "name": "tox-agent",
+  "version": "1.0.0",
+  "description": "Implementation of SMILESGNN, a multimodal deep learning architecture for clinical drug toxicity prediction.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview -- --host",
+    "build:frontend": "npm --prefix frontend run build",
+    "deploy:hosting": "npm run build && npx firebase-tools deploy --only hosting",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NEU-Bio-Research-Team/tox-agent.git"
+  },
+  "keywords": [
+    "smilesgnn",
+    "drug-toxicity",
+    "deep-learning",
+    "firebase",
+    "vite"
+  ],
+  "author": "NEU Bio Research Team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NEU-Bio-Research-Team/tox-agent/issues"
+  },
+  "homepage": "https://github.com/NEU-Bio-Research-Team/tox-agent#readme",
+  "dependencies": {
+    "firebase": "^11.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

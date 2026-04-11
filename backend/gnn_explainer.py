@@ -17,9 +17,12 @@ Key design choices:
 """
 
 import pickle
+import random
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Tuple
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
@@ -28,6 +31,15 @@ import torch.nn as nn
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from torch_geometric.explain import Explainer, GNNExplainer
+
+
+def _set_explainer_seed(seed: int = 42) -> None:
+    """Set deterministic seeds for reproducible attributions."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -171,6 +183,8 @@ def explain_molecule(
             predicted_class – int
             true_label      – int or None
     """
+    _set_explainer_seed(42)
+
     model.eval()
     model.to(device)
     pyg_data = pyg_data.to(device)
@@ -310,6 +324,8 @@ def explain_tox21_task(
     moved_model = original_device != target_device
 
     try:
+        _set_explainer_seed(42)
+
         if moved_model:
             model.to(target_device)
 
@@ -384,6 +400,116 @@ def explain_tox21_task(
         "prediction_prob": target_prob,
         "predicted_class": int(target_prob >= threshold),
         "true_label": None,
+    }
+
+
+def explain_tox21_task_gradient(
+    smiles: str,
+    model: nn.Module,
+    task_names: List[str],
+    target_task: str,
+    device: str = "cpu",
+    threshold: float = 0.5,
+) -> Dict:
+    """Fast deterministic gradient saliency for one Tox21 task."""
+    from src.graph_data import smiles_to_pyg_data
+
+    if target_task not in task_names:
+        raise ValueError(
+            f"target_task '{target_task}' not found in task_names: {task_names}"
+        )
+
+    task_idx = task_names.index(target_task)
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"Invalid SMILES: {smiles}")
+
+    pyg_data = smiles_to_pyg_data(smiles, label=None)
+    if pyg_data is None:
+        raise ValueError(f"Unable to featurize SMILES: {smiles}")
+
+    target_device = torch.device(device)
+    original_device = next(model.parameters()).device
+    moved_model = original_device != target_device
+
+    try:
+        _set_explainer_seed(42)
+
+        if moved_model:
+            model.to(target_device)
+
+        model.eval()
+
+        x = pyg_data.x.to(target_device).detach().clone().requires_grad_(True)
+        edge_index = pyg_data.edge_index.to(target_device)
+        edge_attr = pyg_data.edge_attr.to(target_device)
+        batch = torch.zeros(x.size(0), dtype=torch.long, device=target_device)
+
+        data = SimpleNamespace(
+            x=x,
+            edge_index=edge_index,
+            edge_attr=edge_attr,
+            batch=batch,
+        )
+
+        logits = model(data)
+        if logits.dim() == 1:
+            logits = logits.unsqueeze(0)
+
+        if task_idx >= logits.size(1):
+            raise ValueError(
+                f"task_idx {task_idx} out of bounds for logits shape {tuple(logits.shape)}"
+            )
+
+        model.zero_grad(set_to_none=True)
+        target_logit = logits[0, task_idx]
+        target_logit.backward()
+
+        if x.grad is None:
+            raise RuntimeError("Gradient saliency failed to produce node gradients")
+
+        atom_imp = x.grad.abs().sum(dim=1).detach().cpu().numpy()
+        if atom_imp.max() > 0:
+            atom_imp = atom_imp / atom_imp.max()
+
+        bond_imp_arr = np.array(
+            [
+                0.5
+                * (
+                    float(atom_imp[bond.GetBeginAtomIdx()])
+                    + float(atom_imp[bond.GetEndAtomIdx()])
+                )
+                for bond in mol.GetBonds()
+            ],
+            dtype=np.float32,
+        )
+        if bond_imp_arr.size > 0 and bond_imp_arr.max() > 0:
+            bond_imp_arr = bond_imp_arr / bond_imp_arr.max()
+
+        probs = torch.sigmoid(logits).squeeze(0).detach().cpu().numpy()
+    finally:
+        if moved_model:
+            model.to(original_device)
+        model.eval()
+
+    task_scores = {
+        task_name: float(probs[i])
+        for i, task_name in enumerate(task_names)
+    }
+    target_prob = float(task_scores[target_task])
+
+    return {
+        "smiles": smiles,
+        "mol": mol,
+        "target_task": target_task,
+        "target_task_index": int(task_idx),
+        "task_scores": task_scores,
+        "atom_importance": atom_imp,
+        "bond_importance": bond_imp_arr,
+        "prediction_prob": target_prob,
+        "predicted_class": int(target_prob >= threshold),
+        "true_label": None,
+        "explainer_method": "gradient_saliency",
     }
 
 

@@ -6,16 +6,113 @@ train/validation/test splits using scaffold-based splitting.
 """
 
 from typing import Tuple, Optional, List
+from pathlib import Path
+import json
 import pandas as pd
 import numpy as np
 
 from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 
 
+def _splitter_name(split_type: str) -> str:
+    mode = str(split_type).strip().lower()
+    if mode == "scaffold":
+        return "ScaffoldSplitter"
+    if mode == "stratified":
+        return "RandomStratifiedSplitter"
+    return "RandomSplitter"
+
+
+def _load_dc_cached_split(split_dir: Path, task_names: List[str]) -> Optional[pd.DataFrame]:
+    shard_id_files = sorted(split_dir.glob("shard-*-ids.npy"))
+    if not shard_id_files:
+        return None
+
+    smiles_chunks: List[np.ndarray] = []
+    label_chunks: List[np.ndarray] = []
+
+    for ids_path in shard_id_files:
+        stem_parts = ids_path.stem.split("-")
+        if len(stem_parts) < 2:
+            continue
+
+        shard_idx = stem_parts[1]
+        y_path = split_dir / f"shard-{shard_idx}-y.npy"
+        if not y_path.exists():
+            continue
+
+        ids_arr = np.load(ids_path, allow_pickle=True)
+        y_arr = np.load(y_path, allow_pickle=True)
+
+        if y_arr.ndim == 1:
+            y_arr = y_arr.reshape(-1, 1)
+
+        if y_arr.shape[1] != len(task_names):
+            continue
+
+        smiles_chunks.append(np.asarray(ids_arr))
+        label_chunks.append(np.asarray(y_arr, dtype=np.float32))
+
+    if not smiles_chunks or not label_chunks:
+        return None
+
+    smiles = np.concatenate(smiles_chunks, axis=0)
+    labels = np.concatenate(label_chunks, axis=0)
+
+    data = {"smiles": [str(x) for x in smiles.tolist()]}
+    for idx, task_name in enumerate(task_names):
+        data[task_name] = labels[:, idx]
+
+    return pd.DataFrame(data).replace(-1, np.nan)
+
+
+def _load_tox21_from_cached_rawfeaturizer(
+    cache_dir: str,
+    split_type: str,
+) -> Optional[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]:
+    cache_path = Path(cache_dir)
+    root = (
+        cache_path
+        / "tox21-featurized"
+        / "RawFeaturizer"
+        / _splitter_name(split_type)
+        / "BalancingTransformer"
+    )
+
+    train_dir = root / "train_dir"
+    valid_dir = root / "valid_dir"
+    test_dir = root / "test_dir"
+    if not (train_dir.exists() and valid_dir.exists() and test_dir.exists()):
+        return None
+
+    tasks_path = train_dir / "tasks.json"
+    if not tasks_path.exists():
+        return None
+
+    try:
+        with open(tasks_path, "r") as f:
+            task_names = json.load(f)
+    except Exception:
+        return None
+
+    if not isinstance(task_names, list) or not task_names:
+        return None
+
+    train_df = _load_dc_cached_split(train_dir, task_names)
+    val_df = _load_dc_cached_split(valid_dir, task_names)
+    test_df = _load_dc_cached_split(test_dir, task_names)
+
+    if train_df is None or val_df is None or test_df is None:
+        return None
+
+    return train_df, val_df, test_df
+
+
 def load_clintox(
     cache_dir: str = "./data",
     split_type: str = "scaffold",
-    seed: int = 42
+    seed: int = 42,
+    enforce_workspace_mode: bool = True,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load ClinTox dataset with train/val/test splits.
@@ -24,6 +121,7 @@ def load_clintox(
         cache_dir: Directory to cache downloaded datasets
         split_type: Type of split ('scaffold', 'random', 'stratified')
         seed: Random seed for reproducibility
+        enforce_workspace_mode: Whether to enforce workspace mode guards.
     
     Returns:
         Tuple of (train_df, val_df, test_df) DataFrames with columns:
@@ -34,7 +132,8 @@ def load_clintox(
         >>> train, val, test = load_clintox()
         >>> print(f"Train size: {len(train)}")
     """
-    assert_clintox_enabled("load_clintox")
+    if enforce_workspace_mode:
+        assert_clintox_enabled("load_clintox")
 
     import os
     from pathlib import Path
@@ -144,7 +243,8 @@ def load_clintox(
 def load_tox21(
     cache_dir: str = "./data",
     split_type: str = "scaffold",
-    seed: int = 42
+    seed: int = 42,
+    enforce_workspace_mode: bool = True,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load Tox21 multi-task toxicity dataset.
@@ -153,6 +253,7 @@ def load_tox21(
         cache_dir: Directory to cache downloaded datasets
         split_type: Type of split ('scaffold', 'random', 'stratified')
         seed: Random seed for reproducibility
+        enforce_workspace_mode: Whether to enforce workspace mode guards.
     
     Returns:
         Tuple of (train_df, val_df, test_df) DataFrames with columns:
@@ -164,19 +265,29 @@ def load_tox21(
         >>> train, val, test = load_tox21()
         >>> print(f"Number of tasks: {len([c for c in train.columns if c != 'smiles'])}")
     """
-    assert_tox21_enabled("load_tox21")
+    if enforce_workspace_mode:
+        assert_tox21_enabled("load_tox21")
 
-    import os
-    from pathlib import Path
+    cache_path = Path(cache_dir)
+    cache_path.mkdir(parents=True, exist_ok=True)
+
+    cached = _load_tox21_from_cached_rawfeaturizer(
+        cache_dir=str(cache_path),
+        split_type=split_type,
+    )
+    if cached is not None:
+        print(
+            "[load_tox21] Using cached RawFeaturizer split from "
+            f"{cache_path / 'tox21-featurized'}"
+        )
+        return cached
     
     # Try DeepChem first
     try:
         import deepchem as dc
         from deepchem.molnet import load_tox21 as dc_load_tox21
-        
-        # Create cache directory
-        cache_path = Path(cache_dir)
-        cache_path.mkdir(parents=True, exist_ok=True)
+
+        print("[load_tox21] Cache miss for precomputed split. Falling back to DeepChem loader...")
         
         # Load dataset using DeepChem
         # Map split_type to DeepChem splitter
@@ -224,7 +335,6 @@ def load_tox21(
         # Fallback to PyTDC
         try:
             from tdc.single_pred import Tox
-            from pathlib import Path
             
             # Create cache directory
             cache_path = Path(cache_dir)

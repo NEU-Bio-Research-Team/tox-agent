@@ -17,7 +17,6 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
 
@@ -84,7 +83,7 @@ def calibrate_task_thresholds(
     threshold_step: float = 0.01,
     default_threshold: float = 0.5,
 ) -> tuple[dict, pd.DataFrame]:
-    """Calibrate per-task thresholds on validation probabilities via best F1."""
+    """Calibrate per-task thresholds on validation probabilities via Youden's J."""
     if labels.shape != probabilities.shape:
         raise ValueError(
             f"labels shape {labels.shape} must match probabilities shape {probabilities.shape}"
@@ -105,6 +104,19 @@ def calibrate_task_thresholds(
     task_thresholds: dict[str, float] = {}
     rows = []
 
+    def _youden_j(y_true: np.ndarray, y_pred: np.ndarray) -> tuple[float, float, float]:
+        y_true = y_true.astype(int)
+        y_pred = y_pred.astype(int)
+
+        tp = int(np.sum((y_true == 1) & (y_pred == 1)))
+        tn = int(np.sum((y_true == 0) & (y_pred == 0)))
+        fp = int(np.sum((y_true == 0) & (y_pred == 1)))
+        fn = int(np.sum((y_true == 1) & (y_pred == 0)))
+
+        sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+        return float(sensitivity + specificity - 1.0), float(sensitivity), float(specificity)
+
     for i, task in enumerate(task_names):
         y = labels[:, i]
         p = probabilities[:, i]
@@ -114,22 +126,28 @@ def calibrate_task_thresholds(
 
         if y_valid.size == 0 or len(np.unique(y_valid)) < 2:
             best_t = float(default_threshold)
-            best_f1 = np.nan
+            best_j = np.nan
+            best_sensitivity = np.nan
+            best_specificity = np.nan
             reason = "insufficient_label_variation"
         else:
             best_t = float(default_threshold)
-            best_f1 = -1.0
+            best_j = -2.0
+            best_sensitivity = 0.0
+            best_specificity = 0.0
             for t in threshold_grid:
                 pred = (p_valid >= t).astype(int)
-                score = f1_score(y_valid, pred, zero_division=0.0)
+                score, sensitivity, specificity = _youden_j(y_valid, pred)
 
                 # Tie-break toward threshold closest to 0.5 for stability.
-                if (score > best_f1) or (
-                    score == best_f1 and abs(float(t) - 0.5) < abs(best_t - 0.5)
+                if (score > best_j) or (
+                    score == best_j and abs(float(t) - 0.5) < abs(best_t - 0.5)
                 ):
-                    best_f1 = float(score)
+                    best_j = float(score)
+                    best_sensitivity = float(sensitivity)
+                    best_specificity = float(specificity)
                     best_t = float(t)
-            reason = "optimized_f1"
+            reason = "optimized_youden_j"
 
         task_thresholds[task] = round(float(best_t), 4)
         rows.append(
@@ -138,7 +156,9 @@ def calibrate_task_thresholds(
                 "n_valid": int(y_valid.size),
                 "positive_rate": float(np.mean(y_valid == 1)) if y_valid.size else np.nan,
                 "best_threshold": round(float(best_t), 4),
-                "best_f1": float(best_f1) if np.isfinite(best_f1) else np.nan,
+                "best_youden_j": float(best_j) if np.isfinite(best_j) else np.nan,
+                "sensitivity": float(best_sensitivity) if np.isfinite(best_sensitivity) else np.nan,
+                "specificity": float(best_specificity) if np.isfinite(best_specificity) else np.nan,
                 "reason": reason,
             }
         )
@@ -397,6 +417,13 @@ def main():
     model_dir = project_root / output_config.get('model_dir', 'models/tox21_gatv2_model')
     model_dir.mkdir(parents=True, exist_ok=True)
 
+    if history['val_macro_auc_roc']:
+        best_epoch = int(np.nanargmax(np.asarray(history['val_macro_auc_roc'], dtype=np.float64))) + 1
+        best_val_auc = float(np.nanmax(np.asarray(history['val_macro_auc_roc'], dtype=np.float64)))
+    else:
+        best_epoch = int(len(history['train_loss']))
+        best_val_auc = float(val_metrics.get('macro_auc_roc', 0.0))
+
     model_path = model_dir / 'best_model.pt'
     torch.save(
         {
@@ -405,6 +432,12 @@ def main():
             'num_node_features': num_node_features,
             'num_edge_features': num_edge_features,
             'task_names': task_columns,
+            'epoch': int(len(history['train_loss'])),
+            'best_epoch': int(best_epoch),
+            'val_auc': float(best_val_auc),
+            'split_type': str(data_config.get('split_type', 'scaffold')),
+            'dataset': 'tox21',
+            'node_feature_version': str(data_config.get('node_feature_version', 'v1_25d')),
         },
         model_path,
     )
@@ -415,6 +448,7 @@ def main():
         'loss_type': loss_type,
         'focal_alpha': focal_alpha if loss_type == 'focal' else None,
         'focal_gamma': focal_gamma if loss_type == 'focal' else None,
+        'threshold_calibration': 'youden_j' if bool(training_config.get('calibrate_thresholds', True)) else 'disabled',
         'val_loss': val_metrics['loss'],
         'val_macro_auc_roc': val_metrics['macro_auc_roc'],
         'val_macro_pr_auc': val_metrics['macro_pr_auc'],

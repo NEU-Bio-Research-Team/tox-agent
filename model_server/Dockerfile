@@ -43,13 +43,14 @@ COPY . /app/
 # TORCH_VARIANT được truyền từ build arg
 ARG TORCH_VARIANT=cpu
 RUN pip install --no-cache-dir \
-    torch==2.4.0+${TORCH_VARIANT} \
-    --index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
+    torch==2.6.0+${TORCH_VARIANT} \
+    --index-url https://download.pytorch.org/whl/${TORCH_VARIANT} \
+    --extra-index-url https://pypi.org/simple
 
 # PyG: torch-scatter, torch-geometric
 RUN pip install --no-cache-dir \
     torch-scatter torch-sparse torch-geometric \
-    -f https://data.pyg.org/whl/torch-2.4.0+${TORCH_VARIANT}.html
+    -f https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html
 
 # Google Cloud SDK (Vertex AI, Gemini, Firebase)
 RUN pip install --no-cache-dir \
