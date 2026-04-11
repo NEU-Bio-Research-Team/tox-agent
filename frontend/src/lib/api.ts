@@ -29,7 +29,12 @@ function resolveBaseUrl(baseUrl: string): string {
 
 export const BASE_URL = resolveBaseUrl(configuredBaseUrl);
 
-export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | 'UNKNOWN';
+export type RiskLevelCode = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | 'UNKNOWN';
+export interface RiskLevelDetail {
+	level?: RiskLevelCode | string | null;
+	description?: string | null;
+}
+export type RiskLevel = RiskLevelCode | RiskLevelDetail;
 export type InferenceBackend = 'xsmiles' | 'chemberta' | 'pubchem' | 'molformer';
 
 export interface AgentEventRecord {
@@ -157,14 +162,23 @@ export interface LiteratureSection {
 	bioassay_explanation?: string;
 }
 
+export interface RecommendationSection {
+	title?: string | null;
+	content?: string | null;
+}
+
 export interface FinalReport {
 	report_metadata: {
 		smiles: string;
 		canonical_smiles?: string | null;
 		compound_name?: string | null;
+		common_name?: string | null;
+		iupac_name?: string | null;
 		language?: string | null;
-		analysis_timestamp: string;
-		report_version: string;
+		analysis_timestamp?: string | null;
+		timestamp?: string | null;
+		report_version?: string | null;
+		report_id?: string | null;
 	};
 	executive_summary: string;
 	risk_level: RiskLevel;
@@ -179,7 +193,7 @@ export interface FinalReport {
 		recommendation_source?: 'llm' | 'deterministic' | string;
 		recommendation_source_detail?: string;
 		failure_registry?: FailureRegistrySection;
-		recommendations: string[];
+		recommendations?: string[] | RecommendationSection;
 	};
 }
 

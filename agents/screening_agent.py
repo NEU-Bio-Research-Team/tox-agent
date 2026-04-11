@@ -17,6 +17,8 @@ def run_screening(
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
+    binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
+    tox_type_model: str = "tox21_gatv2_model",
 ) -> Dict[str, Any]:
     """Deterministic screening flow used for local tests and orchestration."""
     try:
@@ -34,6 +36,8 @@ def run_screening(
             clinical_threshold=clinical_threshold,
             mechanism_threshold=mechanism_threshold,
             inference_backend=inference_backend,
+            binary_tox_model=binary_tox_model,
+            tox_type_model=tox_type_model,
         )
 
         if analysis.get("error"):
@@ -110,12 +114,16 @@ Task:
 2. Read language from {language} and write user-facing text in that language.
 3. Read thresholds from {clinical_threshold} and {mechanism_threshold}.
 4. Read inference backend from {inference_backend}.
+5. Read binary model key from {binary_tox_model}.
+6. Read tox-type model key from {tox_type_model}.
 5. Do NOT call validate_smiles. Input is already validated by InputValidator.
 6. Call analyze_molecule(
     smiles=<canonical_smiles from session state>,
     clinical_threshold={clinical_threshold},
     mechanism_threshold={mechanism_threshold},
-    inference_backend={inference_backend}
+    inference_backend={inference_backend},
+    binary_tox_model={binary_tox_model},
+    tox_type_model={tox_type_model}
 ).
 6. Return JSON for key screening_result with fields:
    - summary

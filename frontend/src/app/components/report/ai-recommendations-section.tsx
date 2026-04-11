@@ -1,10 +1,17 @@
 import { Copy, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/button';
-import type { FailureRegistrySection, OodAssessmentSection, RiskLevel } from '../../../lib/api';
+import { normalizeRiskLevel } from '../../risk-level';
+import type {
+  FailureRegistrySection,
+  OodAssessmentSection,
+  RecommendationSection,
+  RiskLevel,
+  RiskLevelCode,
+} from '../../../lib/api';
 
 interface AIRecommendationsSectionProps {
   summary: string;
-  recommendations: string[];
+  recommendations?: string[] | RecommendationSection | null;
   riskLevel: RiskLevel;
   language: 'vi' | 'en';
   reliabilityWarning?: string | null;
@@ -16,12 +23,31 @@ interface AIRecommendationsSectionProps {
   runtimeNote?: string | null;
 }
 
-function getRiskLabel(riskLevel: RiskLevel, language: 'vi' | 'en') {
+function getRiskLabel(riskLevel: RiskLevelCode, language: 'vi' | 'en') {
   if (riskLevel === 'CRITICAL') return language === 'vi' ? 'Cảnh báo khẩn cấp' : 'Critical alert';
   if (riskLevel === 'HIGH') return language === 'vi' ? 'Rủi ro cao' : 'High risk';
   if (riskLevel === 'MODERATE') return language === 'vi' ? 'Rủi ro trung bình' : 'Moderate risk';
   if (riskLevel === 'LOW') return language === 'vi' ? 'Rủi ro thấp' : 'Low risk';
   return language === 'vi' ? 'Không xác định' : 'Unknown';
+}
+
+function normalizeRecommendations(
+  recommendations: AIRecommendationsSectionProps['recommendations'],
+): string[] {
+  if (Array.isArray(recommendations)) {
+    return recommendations
+      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      .map((item) => item.trim());
+  }
+
+  if (recommendations && typeof recommendations === 'object') {
+    const content = recommendations.content;
+    if (typeof content === 'string' && content.trim().length > 0) {
+      return [content.trim()];
+    }
+  }
+
+  return [];
 }
 
 export function AIRecommendationsSection({
@@ -37,8 +63,11 @@ export function AIRecommendationsSection({
   runtimeMode,
   runtimeNote,
 }: AIRecommendationsSectionProps) {
+  const normalizedRisk = normalizeRiskLevel(riskLevel);
+  const recommendationItems = normalizeRecommendations(recommendations);
+
   const handleCopy = async () => {
-    const content = [summary, '', ...recommendations.map((item, index) => `${index + 1}. ${item}`)].join('\n');
+    const content = [summary, '', ...recommendationItems.map((item, index) => `${index + 1}. ${item}`)].join('\n');
     try {
       await navigator.clipboard.writeText(content);
     } catch {
@@ -160,8 +189,13 @@ export function AIRecommendationsSection({
               {language === 'vi' ? 'MỨC RỦI RO' : 'RISK LEVEL'}
             </h3>
             <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
-              {riskLevel} · {getRiskLabel(riskLevel, language)}
+              {normalizedRisk.code} · {getRiskLabel(normalizedRisk.code, language)}
             </p>
+            {normalizedRisk.description && (
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                {normalizedRisk.description}
+              </p>
+            )}
           </div>
 
           <div>
@@ -169,12 +203,12 @@ export function AIRecommendationsSection({
               {language === 'vi' ? 'KHUYẾN NGHỊ' : 'RECOMMENDATIONS'}
             </h3>
             <div className="space-y-2">
-              {recommendations.length === 0 && (
+              {recommendationItems.length === 0 && (
                 <p className="text-base" style={{ color: 'var(--text-muted)' }}>
                   {language === 'vi' ? 'Không có khuyến nghị bổ sung.' : 'No additional recommendations.'}
                 </p>
               )}
-              {recommendations.map((item, index) => (
+              {recommendationItems.map((item, index) => (
                 <div key={`${index}-${item.slice(0, 20)}`} className="flex items-start gap-3">
                   <span style={{ color: 'var(--accent-green)', fontSize: '18px' }}>•</span>
                   <p className="text-base flex-1" style={{ color: 'var(--text)' }}>

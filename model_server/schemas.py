@@ -128,6 +128,14 @@ class AnalyzeRequest(BaseModel):
     explainer_epochs: int = Field(200, ge=50, le=500)
     explainer_timeout_ms: int = Field(30000, ge=1000, le=300000)
     target_task: Optional[str] = None
+    binary_tox_model: str = Field(
+        default="pretrained_2head_herg_chemberta_model",
+        description="Model key for binary toxicity prediction",
+    )
+    tox_type_model: str = Field(
+        default="tox21_gatv2_model",
+        description="Model key for toxicity-type (mechanism) prediction",
+    )
 
 
 class OodAssessmentOutput(BaseModel):
@@ -178,6 +186,14 @@ class AgentAnalyzeRequest(BaseModel):
     inference_backend: str = Field(
         default="xsmiles",
         description="Inference backend for screening: xsmiles, chemberta, pubchem, or molformer",
+    )
+    binary_tox_model: str = Field(
+        default="pretrained_2head_herg_chemberta_model",
+        description="Model key for binary toxicity prediction",
+    )
+    tox_type_model: str = Field(
+        default="tox21_gatv2_model",
+        description="Model key for toxicity-type (mechanism) prediction",
     )
     include_agent_events: bool = Field(
         default=True,

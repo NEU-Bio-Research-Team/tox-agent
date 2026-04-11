@@ -103,6 +103,8 @@ def run_orchestrator_flow(
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
+    binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
+    tox_type_model: str = "tox21_gatv2_model",
 ) -> Dict[str, Any]:
     """Deterministic orchestration flow for local and CI smoke tests."""
     normalized_language = normalize_language(language)
@@ -112,6 +114,8 @@ def run_orchestrator_flow(
         "clinical_threshold": float(clinical_threshold),
         "mechanism_threshold": float(mechanism_threshold),
         "inference_backend": str(inference_backend),
+        "binary_tox_model": str(binary_tox_model),
+        "tox_type_model": str(tox_type_model),
         "validation_status": "INVALID",
         "screening_result": None,
         "explanation_raw": None,
@@ -158,6 +162,8 @@ def run_orchestrator_flow(
             float(clinical_threshold),
             float(mechanism_threshold),
             str(inference_backend),
+            str(binary_tox_model),
+            str(tox_type_model),
         )
         research_future = executor.submit(
             run_research,
@@ -194,6 +200,8 @@ def run_orchestrator_from_text(
     clinical_threshold: float = 0.35,
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
+    binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
+    tox_type_model: str = "tox21_gatv2_model",
 ) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
 
@@ -231,6 +239,8 @@ def run_orchestrator_from_text(
         clinical_threshold=clinical_threshold,
         mechanism_threshold=mechanism_threshold,
         inference_backend=inference_backend,
+        binary_tox_model=binary_tox_model,
+        tox_type_model=tox_type_model,
     )
 
 

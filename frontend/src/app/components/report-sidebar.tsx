@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FinalReport } from '../../lib/api';
+import { normalizeRiskLevel } from '../risk-level';
 
 const sections = [
   { id: 'metrics', label: 'Metrics' },
@@ -25,11 +26,17 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
   const [activeSection, setActiveSection] = useState('clinical');
   const pToxic = Number(finalReport.sections.clinical_toxicity?.probability ?? 0);
   const threshold = Number(finalReport.sections.clinical_toxicity?.threshold_used ?? 0.35);
-  const riskLevel = finalReport.risk_level;
+  const normalizedRisk = normalizeRiskLevel(finalReport.risk_level);
+  const riskLevel = normalizedRisk.code;
   const cid = finalReport.sections.literature_context?.compound_id?.cid;
   const assayHits = Number(finalReport.sections.mechanism_toxicity?.assay_hits ?? 0);
   const oodRisk = finalReport.sections.ood_assessment?.ood_risk || 'LOW';
-  const compoundName = finalReport.report_metadata.compound_name || finalReport.sections.literature_context?.query_name_used || 'N/A';
+  const compoundName =
+    finalReport.report_metadata.compound_name ||
+    finalReport.report_metadata.common_name ||
+    finalReport.report_metadata.iupac_name ||
+    finalReport.sections.literature_context?.query_name_used ||
+    'N/A';
   const currentRiskColor = riskColor(riskLevel);
 
   const sectionLabels: Record<string, string> = {
@@ -87,6 +94,9 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
           <div>
             <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Label</p>
             <p className="text-sm font-semibold" style={{ color: currentRiskColor }}>{riskLevel}</p>
+            {normalizedRisk.description && (
+              <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>{normalizedRisk.description}</p>
+            )}
           </div>
           <div>
             <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>

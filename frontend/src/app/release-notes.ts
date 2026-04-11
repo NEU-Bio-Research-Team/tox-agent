@@ -1,9 +1,11 @@
+import { APP_VERSION } from './build-info';
+
 export const RELEASE_NOTES_EVENT = 'toxagent:open-release-notes';
-export const RELEASE_NOTES_STORAGE_KEY = `toxagent.release-notes.seen.${__APP_VERSION__}`;
+export const RELEASE_NOTES_STORAGE_KEY = `toxagent.release-notes.seen.${APP_VERSION}`;
 
 export const RELEASE_NOTES_ITEMS = [
-  'Fixed structural rendering so molecule image and attribution heatmap no longer collapse into the same fallback output.',
-  'Added a clickable build/version badge in the navbar to reopen release notes anytime.',
-  'Introduced an automatic first-visit popup for this version to highlight important production changes.',
-  'Kept screening + reporting pipeline stable after warm-start and deterministic rebuild hardening.',
+  'Added support for new model-predict payload fields so the UI stays compatible with both binary_tox_model and tox_type_model routing updates.',
+  'Fixed report rendering when risk_level is returned as an object (level + description), preventing production crashes.',
+  'Kept release notes popup and version badge behavior so build updates are visible immediately after deployment.',
+  'Preserved screening + reporting pipeline stability after warm-start and deterministic fallback hardening.',
 ];

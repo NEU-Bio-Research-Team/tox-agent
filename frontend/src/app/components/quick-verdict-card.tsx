@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
 import type { FinalReport } from '../../lib/api';
+import { normalizeRiskLevel } from '../risk-level';
 
 interface QuickVerdictCardProps {
   finalReport: FinalReport;
@@ -31,7 +32,8 @@ export function QuickVerdictCard({ finalReport, onViewReport }: QuickVerdictCard
   const pToxic = Number(finalReport.sections.clinical_toxicity?.probability ?? 0);
   const confidence = Number(finalReport.sections.clinical_toxicity?.confidence ?? 0);
   const clinicalVerdict = finalReport.sections.clinical_toxicity?.verdict ?? 'UNKNOWN';
-  const riskLevel = finalReport.risk_level ?? 'UNKNOWN';
+  const normalizedRisk = normalizeRiskLevel(finalReport.risk_level);
+  const riskLevel = normalizedRisk.code;
 
   const taskScores = finalReport.sections.mechanism_toxicity?.task_scores ?? {};
   const sortedTasks = Object.entries(taskScores).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
@@ -74,6 +76,11 @@ export function QuickVerdictCard({ finalReport, onViewReport }: QuickVerdictCard
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Confidence: {(confidence * 100).toFixed(0)}%
           </p>
+          {normalizedRisk.description && (
+            <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+              {normalizedRisk.description}
+            </p>
+          )}
           <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
             Clinical verdict: {clinicalVerdict}
           </p>

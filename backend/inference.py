@@ -541,7 +541,10 @@ def load_pretrained_dual_head_bundle(
     model.to(device)
     model.eval()
 
-    tokenizer = AutoTokenizer.from_pretrained(str(tokenizer_dir))
+    tokenizer = AutoTokenizer.from_pretrained(
+        str(tokenizer_dir),
+        trust_remote_code=bool(defaults.get("trust_remote_code", False)),
+    )
 
     tox21_threshold_payload = _load_json_if_exists(model_dir / "tox21_task_thresholds.json")
     if not tox21_threshold_payload:

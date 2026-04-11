@@ -1,6 +1,7 @@
 import { ArrowLeft, Download, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import type { FinalReport } from '../../lib/api';
+import { normalizeRiskLevel } from '../risk-level';
 
 interface ReportHeaderProps {
   finalReport: FinalReport;
@@ -38,12 +39,15 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
   const metadata = finalReport.report_metadata;
   const clinical = finalReport.sections.clinical_toxicity;
 
-  const verdict = finalReport.risk_level || 'UNKNOWN';
+  const normalizedRisk = normalizeRiskLevel(finalReport.risk_level);
+  const verdict = normalizedRisk.code;
   const confidence = Number(clinical?.confidence ?? 0);
   const verdictStyle = getRiskStyle(verdict);
 
-  const compoundName = metadata.compound_name || 'Unknown compound';
+  const compoundName = metadata.compound_name || metadata.common_name || metadata.iupac_name || 'Unknown compound';
   const shownSmiles = metadata.canonical_smiles || metadata.smiles || 'N/A';
+  const subtitleName = metadata.common_name || metadata.iupac_name;
+  const analysisTimestamp = metadata.analysis_timestamp || metadata.timestamp || undefined;
 
   return (
     <div className="border-b" style={{ borderColor: 'var(--border)' }}>
@@ -77,13 +81,13 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
               {compoundName}
             </h1>
             <p className="text-base italic mb-3" style={{ color: 'var(--text-muted)' }}>
-              {metadata.compound_name || (language === 'vi' ? 'Không có tên thường dùng' : 'No common name available')}
+              {subtitleName || (language === 'vi' ? 'Không có tên thường dùng' : 'No common name available')}
             </p>
             <p className="font-mono text-sm mb-2" style={{ color: 'var(--text-faint)', wordBreak: 'break-all' }}>
               {shownSmiles}
             </p>
             <p className="text-xs mt-3" style={{ color: 'var(--text-faint)' }}>
-              {formatTimestamp(metadata.analysis_timestamp, language)}
+              {formatTimestamp(analysisTimestamp, language)}
             </p>
           </div>
 
@@ -102,6 +106,11 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
               {language === 'vi' ? 'Độ tin cậy' : 'Confidence'}: {(confidence * 100).toFixed(0)}%
             </p>
+            {normalizedRisk.description && (
+              <p className="text-xs mt-1 max-w-[240px]" style={{ color: 'var(--text-muted)' }}>
+                {normalizedRisk.description}
+              </p>
+            )}
           </div>
         </div>
       </div>
