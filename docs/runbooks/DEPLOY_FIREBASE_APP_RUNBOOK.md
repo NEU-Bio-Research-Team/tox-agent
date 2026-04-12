@@ -331,3 +331,107 @@ npx -y firebase-tools@latest deploy --only hosting --project "$PROJECT_ID"
 
 For backend-only changes (no model changes):
 - Rebuild image and deploy Cloud Run; Firebase Hosting usually does not need redeploy.
+
+## 15) Branch Test Deploy (agent_test Workspace)
+
+Use this flow to deploy branch code for testing without touching production service traffic.
+
+### 15.1 Set test variables
+
+```bash
+export PROJECT_ID=tox-agent
+export REGION=asia-southeast1
+export REPO=tox-agent-repo
+export SERVICE_TEST=tox-agent-cpu-agent-test
+export FIREBASE_PROJECT_ID=tox-agent
+```
+
+### 15.2 Build backend image from current workspace (agent_test)
+
+```bash
+TAG="agent-test-$(date +%Y%m%d-%H%M%S)"
+IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/tox-agent:${TAG}"
+
+gcloud builds submit \
+  --project="${PROJECT_ID}" \
+  --config=cloudbuild.tox-agent.yaml \
+  --substitutions="_IMAGE=${IMAGE}" \
+  .
+
+echo "IMAGE=${IMAGE}"
+```
+
+### 15.3 Deploy branch backend to dedicated Cloud Run service
+
+```bash
+gcloud run deploy "${SERVICE_TEST}" \
+  --image="${IMAGE}" \
+  --region="${REGION}" \
+  --platform=managed \
+  --cpu=4 \
+  --memory=8Gi \
+  --concurrency=1 \
+  --timeout=600 \
+  --min-instances=0 \
+  --max-instances=3 \
+  --startup-probe=httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=5,periodSeconds=10,failureThreshold=30 \
+  --allow-unauthenticated \
+  --project="${PROJECT_ID}"
+
+RUN_URL_TEST=$(gcloud run services describe "${SERVICE_TEST}" \
+  --region="${REGION}" \
+  --project="${PROJECT_ID}" \
+  --format='value(status.url)')
+
+echo "RUN_URL_TEST=${RUN_URL_TEST}"
+curl -sS "${RUN_URL_TEST}/health" | head -c 1200; echo
+```
+
+### 15.4 Deploy branch frontend to Firebase preview channel with rewrite to test backend
+
+```bash
+npm ci
+npm run build
+
+TMP_FIREBASE_CONFIG=.firebase.agent_test.tmp.json
+sed 's/"serviceId": "tox-agent-cpu"/"serviceId": "tox-agent-cpu-agent-test"/g' firebase.json > "${TMP_FIREBASE_CONFIG}"
+
+npx -y firebase-tools@latest hosting:channel:deploy agent-test \
+  --project "${FIREBASE_PROJECT_ID}" \
+  --config "${TMP_FIREBASE_CONFIG}" \
+  --expires 7d
+
+# Optional cleanup after deploy
+rm -f "${TMP_FIREBASE_CONFIG}"
+```
+
+The command prints a preview URL that is isolated from live production hosting.
+
+### 15.5 Verify preview channel quickly
+
+If your edge cache still serves an old 404 page for `/` or `/health`, add a cache-busting query parameter while validating:
+
+```bash
+PREVIEW_URL="https://tox-agent--agent-test-<channel-hash>.web.app"
+
+curl -sS "${PREVIEW_URL}/?r=$(date +%s)" | head -c 500; echo
+curl -sS "${PREVIEW_URL}/health?r=$(date +%s)" | head -c 1200; echo
+curl -sS -X POST "${PREVIEW_URL}/analyze?r=$(date +%s)" \
+  -H 'Content-Type: application/json' \
+  -d '{"smiles":"CCO","language":"en"}' | head -c 1500; echo
+```
+
+### 15.6 Optional: deploy Firestore rules/indexes for branch test
+
+Only run this if your branch includes Firestore rules/index changes and you accept impact on the selected Firebase project.
+
+```bash
+npx -y firebase-tools@latest deploy \
+  --only firestore:rules,firestore:indexes \
+  --project "${FIREBASE_PROJECT_ID}"
+```
+
+## 16) CI/CD Planning Document
+
+Detailed automation plan is tracked at:
+- `docs/runbooks/CICD_AUTO_DEPLOY_MASTER_PLAN.md`
