@@ -113,7 +113,7 @@ def analyze_molecule(
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
-    tox_type_model: str = "tox21_gatv2_model",
+    tox_type_model: str = "tox21_ensemble_3_best",
 ) -> Dict[str, Any]:
     """Run full model-server toxicity analysis for one validated SMILES.
 

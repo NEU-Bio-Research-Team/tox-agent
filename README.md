@@ -1,4 +1,4 @@
-# ToxAgent (v0.0.4 Beta)
+# ToxAgent (v0.0.6 Beta)
 
 A multi-agent AI platform for molecular toxicity analysis from SMILES, combining:
 - Screening mechanisms from graph/SMILES models
@@ -13,20 +13,17 @@ Production web app: https://tox-agent.web.app
 ## 1) Current Version and Updates
 
 ### Current Version
-- Frontend: **0.0.4 (Beta)**
+- Frontend: **0.0.6 (Beta)**
 - Default workspace mode: **tox21_only**
 - Workspace priority: **safety_first**
 
-### What's New in 0.0.4
-- Fixed structural explanation rendering:
-  - `heatmap_base64` and `molecule_png_base64` are now delivered as separate payloads.
-  - Molecule image is rendered independently from heatmap attribution.
-- Improved runtime stability for Cloud Run rendering:
-  - Added runtime libs for RDKit drawing (Cairo/font) to avoid null molecule images.
-- UX upgrades:
-  - Added **Beta** label to version.
-  - Auto-popup release notes on first visit to new version.
-  - Click version badge to reopen changelog anytime.
+### What's New in 0.0.6
+- Added new tox-type mechanism model options:
+  - `tox21_ensemble_3_best` (ChemBERTa + MolFormer + Pretrained-GIN).
+  - `tox21_pretrained_gin_model`.
+- Updated analyze routing so explainer engine follows selected `tox_type_model`.
+- For ensemble mode, explainer now routes to the designated best-member engine.
+- Extended backend serving with pretrained-GIN Tox21 inference support.
 
 ### Upgrade Note
 - If you have an old tab open, please hard refresh your browser to get the latest bundle.

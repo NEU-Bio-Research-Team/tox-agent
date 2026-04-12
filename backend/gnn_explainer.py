@@ -33,6 +33,36 @@ from rdkit.Chem import rdMolDescriptors
 from torch_geometric.explain import Explainer, GNNExplainer
 
 
+def _forward_task_logits(
+    model: nn.Module,
+    x: torch.Tensor,
+    edge_index: torch.Tensor,
+    edge_attr: Optional[torch.Tensor],
+    batch: torch.Tensor,
+) -> torch.Tensor:
+    """Call tox21 model forward for both data-object and tensor-signature models."""
+    data = SimpleNamespace(
+        x=x,
+        edge_index=edge_index,
+        edge_attr=edge_attr,
+        batch=batch,
+    )
+    try:
+        return model(data)
+    except TypeError as exc:
+        # Pretrained GIN heads use forward(x, edge_index, edge_attr, batch).
+        msg = str(exc)
+        if "required positional argument" not in msg and "required positional arguments" not in msg:
+            raise
+        x_in = x
+        edge_attr_in = edge_attr
+        if x_in.dtype not in (torch.int32, torch.int64, torch.long):
+            x_in = torch.round(x_in).to(torch.long)
+        if edge_attr_in is not None and edge_attr_in.dtype not in (torch.int32, torch.int64, torch.long):
+            edge_attr_in = torch.round(edge_attr_in).to(torch.long)
+        return model(x_in, edge_index, edge_attr_in, batch)
+
+
 def _set_explainer_seed(seed: int = 42) -> None:
     """Set deterministic seeds for reproducible attributions."""
     random.seed(seed)
@@ -270,14 +300,13 @@ class Tox21TaskExplainerWrapper(nn.Module):
         if batch is None:
             batch = torch.zeros(x.size(0), dtype=torch.long, device=x.device)
 
-        data = SimpleNamespace(
+        logits = _forward_task_logits(
+            model=self.model,
             x=x,
             edge_index=edge_index,
             edge_attr=edge_attr,
             batch=batch,
         )
-
-        logits = self.model(data)
         if logits.dim() == 1:
             logits = logits.unsqueeze(-1)
 
@@ -374,7 +403,13 @@ def explain_tox21_task(
             bond_imp = bond_imp / bond_imp.max()
 
         with torch.no_grad():
-            logits = model(pyg_data)
+            logits = _forward_task_logits(
+                model=model,
+                x=pyg_data.x,
+                edge_index=pyg_data.edge_index,
+                edge_attr=pyg_data.edge_attr,
+                batch=batch,
+            )
             if logits.dim() == 1:
                 logits = logits.unsqueeze(0)
             probs = torch.sigmoid(logits).squeeze(0).detach().cpu().numpy()
@@ -400,6 +435,142 @@ def explain_tox21_task(
         "prediction_prob": target_prob,
         "predicted_class": int(target_prob >= threshold),
         "true_label": None,
+    }
+
+
+def explain_tox21_task_pretrained_gin(
+    smiles: str,
+    model: nn.Module,
+    task_names: List[str],
+    target_task: str,
+    device: str = "cpu",
+    epochs: int = 200,
+    threshold: float = 0.5,
+) -> Dict:
+    """Explain one Tox21 task for Hu et al. pretrained-GIN with GNNExplainer."""
+    from backend.pretrained_gnn import mol_to_graph_hu2020
+
+    if target_task not in task_names:
+        raise ValueError(
+            f"target_task '{target_task}' not found in task_names: {task_names}"
+        )
+
+    task_idx = task_names.index(target_task)
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"Invalid SMILES: {smiles}")
+
+    pyg_data = mol_to_graph_hu2020(smiles, label=None)
+    if pyg_data is None:
+        raise ValueError(f"Unable to featurize SMILES: {smiles}")
+
+    target_device = torch.device(device)
+    original_device = next(model.parameters()).device
+    moved_model = original_device != target_device
+
+    try:
+        _set_explainer_seed(42)
+
+        if moved_model:
+            model.to(target_device)
+
+        model.eval()
+        pyg_data = pyg_data.to(target_device)
+
+        wrapper = Tox21TaskExplainerWrapper(model, task_idx=task_idx).to(target_device)
+        wrapper.eval()
+
+        explainer = Explainer(
+            model=wrapper,
+            algorithm=GNNExplainer(epochs=epochs, lr=0.01),
+            explanation_type="phenomenon",
+            # Hu-pretrained GIN consumes categorical atom indices via embedding
+            # layers; node masking turns x into float and breaks the forward pass.
+            # Use edge masks and back-project to atom importance.
+            node_mask_type=None,
+            edge_mask_type="object",
+            model_config=dict(
+                mode="binary_classification",
+                task_level="graph",
+                return_type="raw",
+            ),
+        )
+
+        batch = torch.zeros(pyg_data.num_nodes, dtype=torch.long, device=target_device)
+        target = torch.tensor([1], dtype=torch.long, device=target_device)
+
+        explanation = explainer(
+            x=pyg_data.x,
+            edge_index=pyg_data.edge_index,
+            edge_attr=pyg_data.edge_attr,
+            batch=batch,
+            target=target,
+        )
+
+        edge_mask_tensor = getattr(explanation, "edge_mask", None)
+        if edge_mask_tensor is None:
+            edge_mask = np.zeros((0,), dtype=np.float32)
+        else:
+            edge_mask = edge_mask_tensor.detach().cpu().numpy()
+
+        num_bonds = min(int(mol.GetNumBonds()), edge_mask.shape[0] // 2)
+        bond_imp = np.array([
+            (edge_mask[2 * k] + edge_mask[2 * k + 1]) / 2.0
+            for k in range(num_bonds)
+        ], dtype=np.float32)
+        if bond_imp.size > 0 and float(bond_imp.max()) > 0.0:
+            bond_imp = bond_imp / bond_imp.max()
+
+        node_mask = getattr(explanation, "node_mask", None)
+        if node_mask is not None:
+            atom_imp = node_mask.squeeze(-1).detach().cpu().numpy()
+            if atom_imp.size > 0 and float(atom_imp.max()) > 0.0:
+                atom_imp = atom_imp / atom_imp.max()
+        else:
+            atom_imp = np.zeros((mol.GetNumAtoms(),), dtype=np.float32)
+            for bond_idx, bond in enumerate(mol.GetBonds()):
+                if bond_idx >= bond_imp.size:
+                    break
+                s = float(bond_imp[bond_idx])
+                atom_imp[bond.GetBeginAtomIdx()] += s
+                atom_imp[bond.GetEndAtomIdx()] += s
+            if atom_imp.size > 0 and float(atom_imp.max()) > 0.0:
+                atom_imp = atom_imp / atom_imp.max()
+
+        with torch.no_grad():
+            logits = _forward_task_logits(
+                model=model,
+                x=pyg_data.x,
+                edge_index=pyg_data.edge_index,
+                edge_attr=pyg_data.edge_attr,
+                batch=batch,
+            )
+            if logits.dim() == 1:
+                logits = logits.unsqueeze(0)
+            probs = torch.sigmoid(logits).squeeze(0).detach().cpu().numpy()
+    finally:
+        if moved_model:
+            model.to(original_device)
+        model.eval()
+
+    task_scores = {
+        task_name: float(probs[i])
+        for i, task_name in enumerate(task_names)
+    }
+    target_prob = float(task_scores[target_task])
+
+    return {
+        "smiles": smiles,
+        "mol": mol,
+        "target_task": target_task,
+        "target_task_index": int(task_idx),
+        "task_scores": task_scores,
+        "atom_importance": atom_imp,
+        "bond_importance": bond_imp,
+        "prediction_prob": target_prob,
+        "predicted_class": int(target_prob >= threshold),
+        "true_label": None,
+        "explainer_method": "gnnexplainer",
     }
 
 

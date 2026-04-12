@@ -104,7 +104,7 @@ def run_orchestrator_flow(
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
-    tox_type_model: str = "tox21_gatv2_model",
+    tox_type_model: str = "tox21_ensemble_3_best",
 ) -> Dict[str, Any]:
     """Deterministic orchestration flow for local and CI smoke tests."""
     normalized_language = normalize_language(language)
@@ -201,7 +201,7 @@ def run_orchestrator_from_text(
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
-    tox_type_model: str = "tox21_gatv2_model",
+    tox_type_model: str = "tox21_ensemble_3_best",
 ) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
 

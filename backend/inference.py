@@ -34,6 +34,7 @@ from src.graph_models_hybrid import create_hybrid_model
 from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 from backend.clinical_head import create_clinical_head, scores_dict_to_feature_vector
 from backend.featurization import featurize_fingerprint
+from backend.pretrained_gnn import create_pretrained_gin_model, mol_to_graph_hu2020
 from backend.pretrained_mol_model import create_pretrained_dual_head_model, get_checkpoint_defaults
 
 
@@ -571,6 +572,189 @@ def load_pretrained_dual_head_bundle(
         "model_dir": str(model_dir),
         "pretrained_model": pretrained_model,
     }
+
+
+def load_pretrained_gin_tox21_bundle(
+    model_dir: Path,
+    device: str = "cpu",
+) -> Dict[str, Any]:
+    """Load serving artifacts for Hu et al. pretrained-GIN Tox21 model."""
+    model_dir = Path(model_dir)
+
+    config_path = model_dir / "config.yaml"
+    ckpt_path = model_dir / "best_model.pt"
+
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Checkpoint not found: {ckpt_path}")
+
+    config: Dict[str, Any] = {}
+    if config_path.exists():
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f) or {}
+
+    model_cfg = dict(config.get("model") or {})
+    data_cfg = dict(config.get("data") or {})
+    task_names = list(get_task_names("tox21"))
+
+    model = create_pretrained_gin_model(
+        num_tasks=len(task_names),
+        strategy=str(model_cfg.get("strategy", "masking")),
+        cache_dir=str(data_cfg.get("pretrained_cache", "data/pretrained_gnns")),
+        emb_dim=int(model_cfg.get("emb_dim", 300)),
+        num_layers=int(model_cfg.get("num_layers", 5)),
+        drop_ratio=float(model_cfg.get("drop_ratio", 0.0)),
+        jk=str(model_cfg.get("jk", "last")),
+        head_dropout=float(model_cfg.get("head_dropout", 0.0)),
+    )
+
+    checkpoint = torch.load(ckpt_path, map_location=device)
+    state_dict = checkpoint["model_state_dict"] if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint else checkpoint
+    model.load_state_dict(state_dict)
+    model.to(device)
+    model.eval()
+
+    tox21_threshold_payload = _load_json_if_exists(model_dir / "tox21_task_thresholds.json")
+    if not tox21_threshold_payload:
+        tox21_threshold_payload = _load_json_if_exists(model_dir / "task_thresholds.json")
+    tox21_thresholds = _extract_tox21_threshold_map(tox21_threshold_payload)
+
+    return {
+        "model": model,
+        "task_names": task_names,
+        "tox21_thresholds": tox21_thresholds,
+        "model_dir": str(model_dir),
+        "model_key": "tox21_pretrained_gin_model",
+    }
+
+
+def predict_pretrained_gin_tox21_outputs(
+    smiles_list: List[str],
+    model: nn.Module,
+    task_names: List[str],
+    device: str,
+    mechanism_threshold: float = 0.5,
+    task_thresholds: Optional[Union[List[float], np.ndarray, Dict[str, float]]] = None,
+    batch_size: int = 64,
+    source_name: str = "tox21_pretrained_gin_model",
+) -> List[Dict[str, Any]]:
+    """Run batched Tox21 inference for pretrained-GIN model."""
+    threshold_arr = _resolve_tox21_thresholds(
+        task_names=task_names,
+        default_threshold=float(mechanism_threshold),
+        task_thresholds=task_thresholds,
+    )
+    task_threshold_map = {
+        task_name: float(threshold_arr[idx])
+        for idx, task_name in enumerate(task_names)
+    }
+
+    outputs: List[Dict[str, Any]] = [
+        {
+            "smiles": str(smi),
+            "canonical_smiles": None,
+            "mechanism": {
+                "task_scores": {},
+                "active_tasks": [],
+                "highest_risk_task": "Parse error",
+                "highest_risk_score": -1.0,
+                "assay_hits": -1,
+                "mechanistic_alert": False,
+                "threshold_used": float(mechanism_threshold),
+                "task_thresholds": task_threshold_map,
+                "source": source_name,
+            },
+            "error": "parse_error",
+        }
+        for smi in smiles_list
+    ]
+
+    valid_indices: List[int] = []
+    valid_graphs = []
+    for idx, raw_smiles in enumerate(smiles_list):
+        smi = str(raw_smiles).strip()
+        mol = Chem.MolFromSmiles(smi)
+        if mol is None:
+            continue
+
+        canonical = Chem.MolToSmiles(mol)
+        outputs[idx]["canonical_smiles"] = canonical
+
+        graph = mol_to_graph_hu2020(canonical, label=None)
+        if graph is None:
+            continue
+
+        valid_indices.append(idx)
+        valid_graphs.append(graph)
+
+    if not valid_graphs:
+        return outputs
+
+    loader = DataLoader(
+        valid_graphs,
+        batch_size=int(max(1, batch_size)),
+        shuffle=False,
+        collate_fn=_collate_graph,
+    )
+
+    offset = 0
+    with torch.no_grad():
+        for batch in loader:
+            batch = batch.to(device)
+            logits = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+            if logits.dim() == 1:
+                logits = logits.unsqueeze(-1)
+
+            probs = torch.sigmoid(logits).detach().cpu().numpy()
+            bs = int(probs.shape[0])
+
+            for local_idx in range(bs):
+                global_idx = valid_indices[offset + local_idx]
+                prob_vec = np.asarray(probs[local_idx], dtype=np.float32).reshape(-1)
+
+                if len(task_names) != prob_vec.shape[0]:
+                    aligned_task_names = [f"task_{i}" for i in range(prob_vec.shape[0])]
+                    aligned_thresholds = np.full(prob_vec.shape[0], float(mechanism_threshold), dtype=np.float32)
+                    aligned_threshold_map = {
+                        task_name: float(aligned_thresholds[idx])
+                        for idx, task_name in enumerate(aligned_task_names)
+                    }
+                else:
+                    aligned_task_names = task_names
+                    aligned_thresholds = threshold_arr
+                    aligned_threshold_map = task_threshold_map
+
+                task_scores = {
+                    task_name: float(prob_vec[idx])
+                    for idx, task_name in enumerate(aligned_task_names)
+                }
+                active_tasks = [
+                    task_name
+                    for idx, task_name in enumerate(aligned_task_names)
+                    if float(prob_vec[idx]) >= float(aligned_thresholds[idx])
+                ]
+
+                top_idx = int(np.argmax(prob_vec))
+
+                outputs[global_idx] = {
+                    "smiles": str(smiles_list[global_idx]),
+                    "canonical_smiles": outputs[global_idx]["canonical_smiles"],
+                    "mechanism": {
+                        "task_scores": task_scores,
+                        "active_tasks": active_tasks,
+                        "highest_risk_task": str(aligned_task_names[top_idx]),
+                        "highest_risk_score": float(prob_vec[top_idx]),
+                        "assay_hits": int(len(active_tasks)),
+                        "mechanistic_alert": bool(len(active_tasks) > 0),
+                        "threshold_used": float(mechanism_threshold),
+                        "task_thresholds": aligned_threshold_map,
+                        "source": source_name,
+                    },
+                    "error": None,
+                }
+
+            offset += bs
+
+    return outputs
 
 
 def predict_pretrained_dual_head_outputs(

@@ -38,17 +38,28 @@ def _load_dc_cached_split(split_dir: Path, task_names: List[str]) -> Optional[pd
 
         shard_idx = stem_parts[1]
         y_path = split_dir / f"shard-{shard_idx}-y.npy"
+        w_path = split_dir / f"shard-{shard_idx}-w.npy"
         if not y_path.exists():
             continue
 
         ids_arr = np.load(ids_path, allow_pickle=True)
         y_arr = np.load(y_path, allow_pickle=True)
+        w_arr = np.load(w_path, allow_pickle=True) if w_path.exists() else None
 
         if y_arr.ndim == 1:
             y_arr = y_arr.reshape(-1, 1)
 
         if y_arr.shape[1] != len(task_names):
             continue
+
+        # DeepChem stores missing labels via task weights (w == 0).
+        # Align with teacher pipeline: convert these entries to NaN.
+        if w_arr is not None:
+            if w_arr.ndim == 1:
+                w_arr = w_arr.reshape(-1, 1)
+            if w_arr.shape == y_arr.shape:
+                y_arr = y_arr.astype(np.float32, copy=False)
+                y_arr[w_arr == 0] = np.nan
 
         smiles_chunks.append(np.asarray(ids_arr))
         label_chunks.append(np.asarray(y_arr, dtype=np.float32))
@@ -310,15 +321,32 @@ def load_tox21(
         
         train_dataset, val_dataset, test_dataset = datasets
         
-        # Convert to DataFrame with all tasks
+        # Convert to DataFrame with all tasks.
+        # Prefer DeepChem weight masks (w == 0) for missing labels,
+        # then retain -1 -> NaN fallback for compatibility.
         train_data = {'smiles': train_dataset.ids}
         val_data = {'smiles': val_dataset.ids}
         test_data = {'smiles': test_dataset.ids}
-        
+
         for i, task in enumerate(tasks):
-            train_data[task] = train_dataset.y[:, i]
-            val_data[task] = val_dataset.y[:, i]
-            test_data[task] = test_dataset.y[:, i]
+            train_col = np.asarray(train_dataset.y[:, i], dtype=np.float32).copy()
+            val_col = np.asarray(val_dataset.y[:, i], dtype=np.float32).copy()
+            test_col = np.asarray(test_dataset.y[:, i], dtype=np.float32).copy()
+
+            train_w = getattr(train_dataset, "w", None)
+            val_w = getattr(val_dataset, "w", None)
+            test_w = getattr(test_dataset, "w", None)
+
+            if train_w is not None and np.asarray(train_w).ndim == 2 and train_w.shape[1] > i:
+                train_col[np.asarray(train_w[:, i]) == 0] = np.nan
+            if val_w is not None and np.asarray(val_w).ndim == 2 and val_w.shape[1] > i:
+                val_col[np.asarray(val_w[:, i]) == 0] = np.nan
+            if test_w is not None and np.asarray(test_w).ndim == 2 and test_w.shape[1] > i:
+                test_col[np.asarray(test_w[:, i]) == 0] = np.nan
+
+            train_data[task] = train_col
+            val_data[task] = val_col
+            test_data[task] = test_col
         
         train_df = pd.DataFrame(train_data)
         val_df = pd.DataFrame(val_data)

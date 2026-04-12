@@ -77,12 +77,14 @@ from backend.inference import (
     load_clinical_head_model,
     load_model,
     load_pretrained_dual_head_bundle,
+    load_pretrained_gin_tox21_bundle,
     load_tox21_gatv2_model,
     predict_batch,
     predict_clinical_head_from_tox21_task_scores,
     predict_clinical_toxicity,
     predict_clinical_proxy_from_tox21,
     predict_pretrained_dual_head_outputs,
+    predict_pretrained_gin_tox21_outputs,
     predict_toxicity_mechanism,
 )
 from backend.ood_guard import check_ood_risk
@@ -91,6 +93,7 @@ from backend.gnn_explainer import (
     explain_molecule,
     explain_tox21_task,
     explain_tox21_task_gradient,
+    explain_tox21_task_pretrained_gin,
     visualize_explanation,
 )
 from backend.workspace_mode import get_workspace_mode
@@ -117,6 +120,7 @@ MODEL_DIR = MODELS_ROOT / "smilesgnn_model"
 CONFIG_PATH = PROJECT_ROOT / "config" / "smilesgnn_config.yaml"
 TOX21_MODEL_DIR = MODELS_ROOT / "tox21_gatv2_model"
 TOX21_CONFIG_PATH = PROJECT_ROOT / "config" / "tox21_gatv2_config.yaml"
+TOX21_PRETRAINED_GIN_MODEL_DIR = MODELS_ROOT / "tox21_pretrained_gin_model"
 CLINICAL_HEAD_MODEL_DIR = MODELS_ROOT / "clinical_head_model"
 CLINICAL_METRICS_PATH = MODEL_DIR / "smilesgnn_model_metrics.txt"
 CLINICAL_THRESHOLD_METRICS_PATH = MODEL_DIR / "clinical_threshold_metrics.json"
@@ -140,7 +144,21 @@ PRETRAINED_DUAL_HEAD_BACKENDS: Dict[str, Dict[str, Any]] = {
 }
 
 DEFAULT_BINARY_TOX_MODEL_KEY = "pretrained_2head_herg_chemberta_model"
-DEFAULT_TOX_TYPE_MODEL_KEY = "tox21_gatv2_model"
+DEFAULT_TOX_TYPE_MODEL_KEY = "tox21_ensemble_3_best"
+
+TOX21_PRETRAINED_GIN_MODEL_KEY = "tox21_pretrained_gin_model"
+TOX21_ENSEMBLE_3_BEST_MODEL_KEY = "tox21_ensemble_3_best"
+TOX21_ENSEMBLE_3_BEST_MEMBERS: List[str] = [
+    "pretrained_2head_herg_chemberta_model",
+    "pretrained_2head_herg_molformer_model",
+    TOX21_PRETRAINED_GIN_MODEL_KEY,
+]
+TOX21_ENSEMBLE_3_BEST_EXPLAINER_KEY = TOX21_PRETRAINED_GIN_MODEL_KEY
+BINARY_ENSEMBLE_TOX_MODEL_KEY = TOX21_ENSEMBLE_3_BEST_MODEL_KEY
+BINARY_ENSEMBLE_3_BEST_MEMBERS: List[str] = [
+    "pretrained_2head_herg_chemberta_model",
+    "pretrained_2head_herg_molformer_model",
+]
 
 DUAL_HEAD_MODEL_DIRS: Dict[str, Path] = {
     "pretrained_2head_herg_chemberta_model": MODELS_ROOT / "pretrained_2head_herg_chemberta_model",
@@ -151,6 +169,8 @@ DUAL_HEAD_MODEL_DIRS: Dict[str, Path] = {
 
 TOX_TYPE_MODEL_DIRS: Dict[str, Path] = {
     "tox21_gatv2_model": TOX21_MODEL_DIR,
+    TOX21_PRETRAINED_GIN_MODEL_KEY: TOX21_PRETRAINED_GIN_MODEL_DIR,
+    TOX21_ENSEMBLE_3_BEST_MODEL_KEY: TOX21_PRETRAINED_GIN_MODEL_DIR,
     "pretrained_2head_herg_chemberta_model": MODELS_ROOT / "pretrained_2head_herg_chemberta_model",
     "pretrained_2head_herg_chemberta_quick": MODELS_ROOT / "pretrained_2head_herg_chemberta_quick",
     "pretrained_2head_herg_molformer_model": MODELS_ROOT / "pretrained_2head_herg_molformer_model",
@@ -1224,9 +1244,38 @@ def _pretrained_model_source_name(model_key: str) -> str:
     return f"pretrained_dual_head_model:{model_key}"
 
 
+def _pretrained_gin_model_source_name(model_key: str) -> str:
+    return f"pretrained_gin_model:{model_key}"
+
+
+def _is_dual_head_model_key(model_key: str) -> bool:
+    return model_key in DUAL_HEAD_MODEL_DIRS
+
+
+def _is_pretrained_gin_model_key(model_key: str) -> bool:
+    return model_key == TOX21_PRETRAINED_GIN_MODEL_KEY
+
+
+def _is_ensemble_tox_type_model_key(model_key: str) -> bool:
+    return model_key == TOX21_ENSEMBLE_3_BEST_MODEL_KEY
+
+
+def _is_ensemble_binary_model_key(model_key: str) -> bool:
+    return model_key == BINARY_ENSEMBLE_TOX_MODEL_KEY
+
+
+def _resolve_explainer_engine_model_key(tox_type_model_key: str) -> str:
+    """Pick explainer engine model based on selected tox-type model key."""
+    if _is_ensemble_tox_type_model_key(tox_type_model_key):
+        return TOX21_ENSEMBLE_3_BEST_EXPLAINER_KEY
+    if tox_type_model_key in {"tox21_gatv2_model", TOX21_PRETRAINED_GIN_MODEL_KEY}:
+        return tox_type_model_key
+    return "tox21_gatv2_model"
+
+
 def _resolve_binary_tox_model_key(raw_model: Optional[str]) -> str:
     candidate = str(raw_model or "").strip()
-    if candidate in DUAL_HEAD_MODEL_DIRS:
+    if candidate in DUAL_HEAD_MODEL_DIRS or _is_ensemble_binary_model_key(candidate):
         return candidate
     return DEFAULT_BINARY_TOX_MODEL_KEY
 
@@ -1239,7 +1288,9 @@ def _resolve_tox_type_model_key(raw_model: Optional[str]) -> str:
 
 
 def _load_dual_head_bundle_sync(model_key: str) -> Dict[str, Any]:
-    resolved_key = _resolve_binary_tox_model_key(model_key)
+    resolved_key = str(model_key or "").strip()
+    if resolved_key not in DUAL_HEAD_MODEL_DIRS:
+        resolved_key = DEFAULT_BINARY_TOX_MODEL_KEY
     model_dir = DUAL_HEAD_MODEL_DIRS[resolved_key]
 
     bundles = model_state.setdefault("pretrained_dual_head_bundles", {})
@@ -1288,6 +1339,224 @@ def _load_dual_head_bundle_sync(model_key: str) -> Dict[str, Any]:
     model_state.get("startup_errors", {}).pop(startup_key, None)
     return bundle
 
+
+def _load_pretrained_gin_bundle_sync(model_key: str = TOX21_PRETRAINED_GIN_MODEL_KEY) -> Dict[str, Any]:
+    resolved_key = TOX21_PRETRAINED_GIN_MODEL_KEY
+    model_dir = TOX21_PRETRAINED_GIN_MODEL_DIR
+
+    bundles = model_state.setdefault("pretrained_dual_head_bundles", {})
+    cache_key = f"pretrained_gin::{resolved_key}"
+    if cache_key in bundles:
+        return bundles[cache_key]
+
+    startup_key = f"pretrained_gin_{resolved_key}"
+
+    if not model_dir.exists():
+        detail = f"Model directory not found: {model_dir}"
+        model_state.setdefault("startup_errors", {})[startup_key] = detail
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "model_not_ready",
+                "feature": startup_key,
+                "workspace_mode": WORKSPACE_MODE_NAME,
+                "message": detail,
+            },
+        )
+
+    try:
+        bundle = load_pretrained_gin_tox21_bundle(model_dir=model_dir, device=DEVICE)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        msg = f"{type(exc).__name__}: {exc}"
+        model_state.setdefault("startup_errors", {})[startup_key] = msg
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "model_not_ready",
+                "feature": startup_key,
+                "workspace_mode": WORKSPACE_MODE_NAME,
+                "message": f"Failed loading pretrained-gin model '{resolved_key}'.",
+                "startup_error": msg,
+            },
+        )
+
+    bundle["display_name"] = resolved_key
+    bundle["inference_backend"] = _pretrained_gin_model_source_name(resolved_key)
+    bundle["model_key"] = resolved_key
+    bundle["model_dir"] = str(model_dir)
+    bundles[cache_key] = bundle
+    model_state.get("startup_errors", {}).pop(startup_key, None)
+    return bundle
+
+
+def _predict_ensemble_3_best_mechanism_sync(
+    smiles: str,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    """Average tox21 task probabilities from ChemBERTa + MolFormer + Pretrained-GIN."""
+    task_names = list(model_state.get("tox21_tasks") or [])
+    if not task_names:
+        task_names = [
+            "NR-AR",
+            "NR-AR-LBD",
+            "NR-AhR",
+            "NR-Aromatase",
+            "NR-ER",
+            "NR-ER-LBD",
+            "NR-PPAR-gamma",
+            "SR-ARE",
+            "SR-ATAD5",
+            "SR-HSE",
+            "SR-MMP",
+            "SR-p53",
+        ]
+
+    member_scores: List[np.ndarray] = []
+    member_sources: List[str] = []
+
+    for member_key in TOX21_ENSEMBLE_3_BEST_MEMBERS:
+        if _is_pretrained_gin_model_key(member_key):
+            gin_bundle = _load_pretrained_gin_bundle_sync(member_key)
+            outputs = predict_pretrained_gin_tox21_outputs(
+                smiles_list=[smiles],
+                model=gin_bundle["model"],
+                task_names=list(gin_bundle.get("task_names") or task_names),
+                device=DEVICE,
+                mechanism_threshold=float(mechanism_threshold),
+                task_thresholds=gin_bundle.get("tox21_thresholds"),
+                batch_size=32,
+                source_name=_pretrained_gin_model_source_name(member_key),
+            )
+            mechanism = dict(outputs[0].get("mechanism") or {})
+        else:
+            member_bundle = _load_dual_head_bundle_sync(member_key)
+            outputs = predict_pretrained_dual_head_outputs(
+                smiles_list=[smiles],
+                model=member_bundle["model"],
+                tokenizer=member_bundle["tokenizer"],
+                task_names=list(member_bundle.get("task_names") or task_names),
+                device=DEVICE,
+                clinical_threshold=0.5,
+                mechanism_threshold=float(mechanism_threshold),
+                task_thresholds=member_bundle.get("tox21_thresholds"),
+                max_length=int(member_bundle.get("max_length", 128)),
+                batch_size=32,
+                source_name=_pretrained_model_source_name(member_key),
+            )
+            mechanism = dict(outputs[0].get("mechanism") or {})
+
+        scores = dict(mechanism.get("task_scores") or {})
+        score_vec = np.array(
+            [float(scores.get(task, np.nan)) for task in task_names],
+            dtype=np.float32,
+        )
+        member_scores.append(score_vec)
+        member_sources.append(str(mechanism.get("source") or member_key))
+
+    if not member_scores:
+        return _fallback_mechanism_result(threshold=float(mechanism_threshold))
+
+    stacked = np.stack(member_scores, axis=0)
+    valid_counts = np.sum(np.isfinite(stacked), axis=0)
+    sums = np.nansum(stacked, axis=0)
+    mean_scores = (sums / np.maximum(valid_counts, 1)).astype(np.float32)
+    mean_scores = np.where(valid_counts > 0, mean_scores, 0.5)
+
+    threshold_map = {
+        task_name: float(mechanism_threshold)
+        for task_name in task_names
+    }
+    active_tasks = [
+        task_name
+        for idx, task_name in enumerate(task_names)
+        if float(mean_scores[idx]) >= threshold_map[task_name]
+    ]
+    top_idx = int(np.argmax(mean_scores))
+
+    return {
+        "task_scores": {
+            task_name: float(mean_scores[idx])
+            for idx, task_name in enumerate(task_names)
+        },
+        "active_tasks": active_tasks,
+        "highest_risk_task": str(task_names[top_idx]),
+        "highest_risk_score": float(mean_scores[top_idx]),
+        "assay_hits": int(len(active_tasks)),
+        "mechanistic_alert": bool(len(active_tasks) > 0),
+        "threshold_used": float(mechanism_threshold),
+        "task_thresholds": threshold_map,
+        "source": TOX21_ENSEMBLE_3_BEST_MODEL_KEY,
+        "ensemble_members": list(TOX21_ENSEMBLE_3_BEST_MEMBERS),
+        "ensemble_member_sources": member_sources,
+    }
+
+
+def _predict_ensemble_3_best_clinical_sync(
+    smiles: str,
+    clinical_threshold: float,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    """Average hERG probabilities from ChemBERTa + MolFormer full dual-head members."""
+    member_probs: List[float] = []
+    member_sources: List[str] = []
+    member_prob_map: Dict[str, float] = {}
+
+    for member_key in BINARY_ENSEMBLE_3_BEST_MEMBERS:
+        member_bundle = _load_dual_head_bundle_sync(member_key)
+        outputs = predict_pretrained_dual_head_outputs(
+            smiles_list=[smiles],
+            model=member_bundle["model"],
+            tokenizer=member_bundle["tokenizer"],
+            task_names=list(member_bundle.get("task_names") or []),
+            device=DEVICE,
+            clinical_threshold=float(clinical_threshold),
+            mechanism_threshold=float(mechanism_threshold),
+            task_thresholds=member_bundle.get("tox21_thresholds"),
+            max_length=int(member_bundle.get("max_length", 128)),
+            batch_size=32,
+            source_name=_pretrained_model_source_name(member_key),
+        )
+        clinical = dict(outputs[0].get("clinical") or {})
+        p_toxic = float(clinical.get("p_toxic", np.nan))
+        if np.isfinite(p_toxic):
+            member_probs.append(p_toxic)
+            member_sources.append(str(clinical.get("source") or member_key))
+            member_prob_map[member_key] = p_toxic
+
+    if not member_probs:
+        return {
+            "label": "NON_TOXIC",
+            "is_toxic": False,
+            "confidence": 0.0,
+            "p_toxic": 0.0,
+            "threshold_used": float(clinical_threshold),
+            "source": BINARY_ENSEMBLE_TOX_MODEL_KEY,
+            "ensemble_members": list(BINARY_ENSEMBLE_3_BEST_MEMBERS),
+            "ensemble_member_sources": member_sources,
+            "ensemble_member_probs": member_prob_map,
+        }
+
+    mean_p_toxic = float(np.mean(np.asarray(member_probs, dtype=np.float32)))
+    is_toxic = bool(mean_p_toxic >= float(clinical_threshold))
+    confidence = abs(mean_p_toxic - float(clinical_threshold)) / max(
+        float(clinical_threshold),
+        1.0 - float(clinical_threshold),
+    )
+
+    return {
+        "label": "TOXIC" if is_toxic else "NON_TOXIC",
+        "is_toxic": is_toxic,
+        "confidence": float(min(confidence, 1.0)),
+        "p_toxic": mean_p_toxic,
+        "threshold_used": float(clinical_threshold),
+        "source": BINARY_ENSEMBLE_TOX_MODEL_KEY,
+        "ensemble_members": list(BINARY_ENSEMBLE_3_BEST_MEMBERS),
+        "ensemble_member_sources": member_sources,
+        "ensemble_member_probs": member_prob_map,
+    }
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(
@@ -1308,7 +1577,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="ToxAgent Model Server",
     description="SMILESGNN toxicity prediction API for ToxAgent agentic system",
-    version="1.0.0",
+    version="0.0.6",
     lifespan=lifespan,
 )
 
@@ -1419,6 +1688,7 @@ async def health():
         "device": DEVICE,
         "model_dir_exists": MODEL_DIR.exists(),
         "tox21_model_dir_exists": TOX21_MODEL_DIR.exists(),
+        "tox21_pretrained_gin_model_dir_exists": TOX21_PRETRAINED_GIN_MODEL_DIR.exists(),
         "clinical_head_model_dir_exists": CLINICAL_HEAD_MODEL_DIR.exists(),
         "pretrained_backends": {
             name: {
@@ -1427,6 +1697,13 @@ async def health():
                 "loaded": name in (model_state.get("pretrained_dual_head_bundles") or {}),
             }
             for name, cfg in PRETRAINED_DUAL_HEAD_BACKENDS.items()
+        },
+        "tox_type_models": {
+            key: {
+                "model_dir_exists": model_dir.exists(),
+                "is_ensemble": _is_ensemble_tox_type_model_key(key),
+            }
+            for key, model_dir in TOX_TYPE_MODEL_DIRS.items()
         },
         "cuda_available": torch.cuda.is_available(),
         "gpu_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
@@ -1888,6 +2165,8 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
     clinical_head_available = _clinical_head_ready()
     pretrained_backend_loaded = False
     clinical_source = _pretrained_model_source_name(binary_tox_model_key)
+    tox_type_model_loaded_for_context = False
+    selected_explainer_model_key = _resolve_explainer_engine_model_key(tox_type_model_key)
 
     smiles = req.smiles.strip()
     mol = Chem.MolFromSmiles(smiles)
@@ -1934,26 +2213,36 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
 
     try:
         with _model_lock_sync():
-            clinical_bundle = _load_dual_head_bundle_sync(binary_tox_model_key)
-            pretrained_backend_loaded = True
+            clinical_bundle: Optional[Dict[str, Any]] = None
+            if _is_ensemble_binary_model_key(binary_tox_model_key):
+                clinical_raw = _predict_ensemble_3_best_clinical_sync(
+                    smiles=smiles,
+                    clinical_threshold=float(req.clinical_threshold),
+                    mechanism_threshold=float(req.mechanism_threshold),
+                )
+                pretrained_backend_loaded = True
+            else:
+                clinical_bundle = _load_dual_head_bundle_sync(binary_tox_model_key)
+                pretrained_backend_loaded = True
 
-            clinical_outputs = predict_pretrained_dual_head_outputs(
-                smiles_list=[smiles],
-                model=clinical_bundle["model"],
-                tokenizer=clinical_bundle["tokenizer"],
-                task_names=list(clinical_bundle.get("task_names") or []),
-                device=DEVICE,
-                clinical_threshold=float(req.clinical_threshold),
-                mechanism_threshold=float(req.mechanism_threshold),
-                task_thresholds=clinical_bundle.get("tox21_thresholds"),
-                max_length=int(clinical_bundle.get("max_length", 128)),
-                source_name=_pretrained_model_source_name(binary_tox_model_key),
-            )
-            clinical_raw = dict(clinical_outputs[0].get("clinical") or {})
-            clinical_raw["source"] = _pretrained_model_source_name(binary_tox_model_key)
+                clinical_outputs = predict_pretrained_dual_head_outputs(
+                    smiles_list=[smiles],
+                    model=clinical_bundle["model"],
+                    tokenizer=clinical_bundle["tokenizer"],
+                    task_names=list(clinical_bundle.get("task_names") or []),
+                    device=DEVICE,
+                    clinical_threshold=float(req.clinical_threshold),
+                    mechanism_threshold=float(req.mechanism_threshold),
+                    task_thresholds=clinical_bundle.get("tox21_thresholds"),
+                    max_length=int(clinical_bundle.get("max_length", 128)),
+                    source_name=_pretrained_model_source_name(binary_tox_model_key),
+                )
+                clinical_raw = dict(clinical_outputs[0].get("clinical") or {})
+                clinical_raw["source"] = _pretrained_model_source_name(binary_tox_model_key)
 
             if tox_type_model_key == "tox21_gatv2_model":
                 if tox21_available:
+                    tox_type_model_loaded_for_context = True
                     mechanism_raw = predict_toxicity_mechanism(
                         smiles=smiles,
                         model=model_state["tox21_model"],
@@ -1965,12 +2254,33 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                     )
                 else:
                     mechanism_raw = _fallback_mechanism_result(req.mechanism_threshold)
+            elif _is_pretrained_gin_model_key(tox_type_model_key):
+                gin_bundle = _load_pretrained_gin_bundle_sync(tox_type_model_key)
+                tox_type_model_loaded_for_context = True
+                mechanism_outputs = predict_pretrained_gin_tox21_outputs(
+                    smiles_list=[smiles],
+                    model=gin_bundle["model"],
+                    task_names=list(gin_bundle.get("task_names") or []),
+                    device=DEVICE,
+                    mechanism_threshold=float(req.mechanism_threshold),
+                    task_thresholds=gin_bundle.get("tox21_thresholds"),
+                    batch_size=32,
+                    source_name=_pretrained_gin_model_source_name(tox_type_model_key),
+                )
+                mechanism_raw = dict(mechanism_outputs[0].get("mechanism") or {})
+            elif _is_ensemble_tox_type_model_key(tox_type_model_key):
+                mechanism_raw = _predict_ensemble_3_best_mechanism_sync(
+                    smiles=smiles,
+                    mechanism_threshold=float(req.mechanism_threshold),
+                )
+                tox_type_model_loaded_for_context = True
             else:
                 mechanism_bundle = (
                     clinical_bundle
                     if tox_type_model_key == binary_tox_model_key
                     else _load_dual_head_bundle_sync(tox_type_model_key)
                 )
+                tox_type_model_loaded_for_context = True
                 mechanism_outputs = predict_pretrained_dual_head_outputs(
                     smiles_list=[smiles],
                     model=mechanism_bundle["model"],
@@ -1991,6 +2301,14 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                 mechanism_raw.setdefault("assay_hits", int(len(mechanism_raw.get("active_tasks") or [])))
                 mechanism_raw.setdefault("threshold_used", float(req.mechanism_threshold))
                 mechanism_raw.setdefault("task_thresholds", {})
+
+            mechanism_raw.setdefault("task_scores", {})
+            mechanism_raw.setdefault("active_tasks", [])
+            mechanism_raw.setdefault("highest_risk_task", "—")
+            mechanism_raw.setdefault("highest_risk_score", 0.0)
+            mechanism_raw.setdefault("assay_hits", int(len(mechanism_raw.get("active_tasks") or [])))
+            mechanism_raw.setdefault("threshold_used", float(req.mechanism_threshold))
+            mechanism_raw.setdefault("task_thresholds", {})
     except HTTPException:
         raise
     except Exception as exc:
@@ -2058,19 +2376,38 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                 )
 
         if explanation_payload is None:
+            if selected_explainer_model_key == TOX21_PRETRAINED_GIN_MODEL_KEY:
+                engine_tasks = [
+                    "NR-AR",
+                    "NR-AR-LBD",
+                    "NR-AhR",
+                    "NR-Aromatase",
+                    "NR-ER",
+                    "NR-ER-LBD",
+                    "NR-PPAR-gamma",
+                    "SR-ARE",
+                    "SR-ATAD5",
+                    "SR-HSE",
+                    "SR-MMP",
+                    "SR-p53",
+                ]
+            else:
+                engine_tasks = list(model_state.get("tox21_tasks") or [])
+
             target_task = req.target_task or str(mechanism_raw["highest_risk_task"])
-            if target_task == "—":
-                tasks = model_state.get("tox21_tasks", [])
-                target_task = tasks[0] if tasks else ""
+            if target_task not in engine_tasks:
+                target_task = engine_tasks[0] if engine_tasks else ""
 
             if target_task:
-                if not tox21_available:
-                    explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
-                else:
-                    try:
-                        use_fast_explainer = int(req.explainer_epochs) <= FAST_EXPLAINER_EPOCH_CUTOFF
-                        with _model_lock_sync():
-                            if use_fast_explainer:
+                try:
+                    explain_result = None
+                    use_fast_explainer = int(req.explainer_epochs) <= FAST_EXPLAINER_EPOCH_CUTOFF
+
+                    with _model_lock_sync():
+                        if selected_explainer_model_key == "tox21_gatv2_model":
+                            if not tox21_available:
+                                explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
+                            elif use_fast_explainer:
                                 explain_result = _run_with_timeout_sync(
                                     explain_tox21_task_gradient,
                                     req.explainer_timeout_ms,
@@ -2093,6 +2430,23 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                                     req.explainer_epochs,
                                     req.mechanism_threshold,
                                 )
+                        elif selected_explainer_model_key == TOX21_PRETRAINED_GIN_MODEL_KEY:
+                            gin_bundle = _load_pretrained_gin_bundle_sync(TOX21_PRETRAINED_GIN_MODEL_KEY)
+                            explain_result = _run_with_timeout_sync(
+                                explain_tox21_task_pretrained_gin,
+                                req.explainer_timeout_ms,
+                                smiles,
+                                gin_bundle["model"],
+                                list(gin_bundle.get("task_names") or []),
+                                target_task,
+                                "cpu",
+                                req.explainer_epochs,
+                                req.mechanism_threshold,
+                            )
+                        else:
+                            explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
+
+                    if explanation_payload is None and explain_result is not None:
                         heatmap_b64 = _render_explanation_heatmap(explain_result)
 
                         atom_importance = explain_result["atom_importance"]
@@ -2105,15 +2459,19 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                         explainer_method = str(
                             explain_result.get("explainer_method") or "gnnexplainer"
                         )
-                        if explainer_method == "gradient_saliency":
+                        if selected_explainer_model_key == TOX21_PRETRAINED_GIN_MODEL_KEY:
+                            explainer_note = (
+                                "Task-level GNNExplainer on Pretrained-GIN engine selected from tox_type_model; "
+                                "for ensemble mode this uses the designated best-member explainer."
+                            )
+                        elif explainer_method == "gradient_saliency":
                             explainer_note = (
                                 "Fast gradient-saliency explainer for Tox21 task; "
                                 "selected automatically because explainer_epochs is below the stability cutoff."
                             )
                         else:
                             explainer_note = (
-                                "Fallback Tox21 task-specific GNNExplainer because "
-                                "clinical explanation was unavailable for this request."
+                                "Task-level GNNExplainer aligned with selected tox_type_model routing."
                             )
 
                         explanation_payload = ToxicityExplanationOutput(
@@ -2125,10 +2483,10 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                             molecule_png_base64=_render_molecule_png(mol),
                             explainer_note=explainer_note,
                         )
-                    except TimeoutError:
-                        raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
-                    except Exception as exc:
-                        raise HTTPException(500, f"Task-level explanation error: {str(exc)}")
+                except TimeoutError:
+                    raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
+                except Exception as exc:
+                    raise HTTPException(500, f"Task-level explanation error: {str(exc)}")
 
     mechanism_scores = dict(mechanism_raw["task_scores"])
 
@@ -2163,10 +2521,18 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
     if ood_assessment.flag:
         reliability_warning = ood_assessment.reason
     elif clinical_signal_source.startswith("pretrained_dual_head"):
+        explainer_route_note = (
+            f"explainer_engine={selected_explainer_model_key}"
+            if selected_explainer_model_key == tox_type_model_key
+            else (
+                "explainer_engine="
+                f"{selected_explainer_model_key} (fallback from tox_type={tox_type_model_key})"
+            )
+        )
         reliability_warning = (
             "Clinical and mechanism outputs use selected model keys "
             f"(binary={binary_tox_model_key}, tox_type={tox_type_model_key}); "
-            "structural explanation remains from graph-based explainer path."
+            f"structural explanation routed by selected tox-type model ({explainer_route_note})."
         )
     elif clinical_signal_source == "clinical_head":
         reliability_warning = (
@@ -2198,7 +2564,7 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
         threshold_policy=str(WORKSPACE_MODE.get("threshold_policy", "balanced")),
         clinical_threshold_applied=float(req.clinical_threshold),
         clinical_model_loaded=clinical_loaded_for_context,
-        tox21_model_loaded=tox21_available,
+        tox21_model_loaded=tox_type_model_loaded_for_context,
         explainer_used=bool(should_explain),
         explanation_available=explanation_payload is not None,
         tox21_threshold_source=model_state.get("tox21_thresholds_source"),

@@ -18,6 +18,7 @@ import copy
 import json
 import shutil
 import sys
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -706,6 +707,7 @@ def _run_phase1_pretrain(
     patience_limit = int(phase1_cfg.get("early_stopping_patience", 12))
     selection_metric = str(phase1_cfg.get("early_stopping_metric", "macro_auc_roc"))
     log_every = int(phase1_cfg.get("log_every_n_epochs", 1))
+    log_every_steps = int(phase1_cfg.get("log_every_n_steps", 0))
 
     history = {
         "train_loss": [],
@@ -720,9 +722,11 @@ def _run_phase1_pretrain(
 
     for epoch in range(num_epochs):
         model.train()
+        epoch_start = time.perf_counter()
         train_losses: List[float] = []
+        skipped_batches = 0
 
-        for batch in train_loader:
+        for step_idx, batch in enumerate(train_loader, start=1):
             ids = batch["input_ids"].to(device)
             mask = batch["attention_mask"].to(device)
             labels = batch["labels"].to(device)
@@ -733,6 +737,7 @@ def _run_phase1_pretrain(
 
             if torch.isnan(loss) or torch.isinf(loss):
                 optimizer.zero_grad()
+                skipped_batches += 1
                 continue
 
             loss.backward()
@@ -740,6 +745,21 @@ def _run_phase1_pretrain(
             optimizer.step()
             scheduler.step()
             train_losses.append(float(loss.item()))
+
+            if log_every_steps > 0 and step_idx % max(1, log_every_steps) == 0:
+                lr_backbone = float(optimizer.param_groups[0]["lr"])
+                lr_head = float(optimizer.param_groups[min(1, len(optimizer.param_groups) - 1)]["lr"])
+                recent_avg = float(np.mean(train_losses[-max(1, log_every_steps):])) if train_losses else float("nan")
+                _log(
+                    f"[Phase1][Epoch {epoch + 1:03d}][Step {step_idx:04d}/{len(train_loader):04d}] "
+                    f"loss={recent_avg:.4f} lr_backbone={lr_backbone:.2e} lr_head={lr_head:.2e}"
+                )
+
+        if not train_losses:
+            raise RuntimeError(
+                "[Phase1] All batches were skipped due to NaN/Inf loss. "
+                "Check learning-rate/loss settings and input labels."
+            )
 
         val_metrics = _evaluate_tox21(
             model=model,
@@ -766,17 +786,20 @@ def _run_phase1_pretrain(
         else:
             patience_counter += 1
 
+        epoch_seconds = float(time.perf_counter() - epoch_start)
+
         if (epoch + 1) % max(1, log_every) == 0 or epoch == 0:
-            print(
+            _log(
                 f"[Phase1][Epoch {epoch + 1:03d}] "
                 f"train_loss={history['train_loss'][-1]:.4f} "
                 f"val_loss={history['val_loss'][-1]:.4f} "
                 f"val_macro_auc={history['val_macro_auc'][-1]:.4f} "
-                f"val_macro_pr_auc={history['val_macro_pr_auc'][-1]:.4f}"
+                f"val_macro_pr_auc={history['val_macro_pr_auc'][-1]:.4f} "
+                f"skipped_batches={skipped_batches} epoch_sec={epoch_seconds:.1f}"
             )
 
         if patience_counter >= patience_limit:
-            print(f"[Phase1] Early stopping at epoch {epoch + 1}")
+            _log(f"[Phase1] Early stopping at epoch {epoch + 1}")
             break
 
     if best_state is not None:
@@ -875,6 +898,7 @@ def _run_phase2_joint_finetune(
     patience_limit = int(phase2_cfg.get("early_stopping_patience", 12))
     selection_metric = str(phase2_cfg.get("selection_metric", "joint_auc"))
     log_every = int(phase2_cfg.get("log_every_n_epochs", 1))
+    log_every_steps = int(phase2_cfg.get("log_every_n_steps", 0))
 
     history = {
         "train_joint_loss": [],
@@ -894,6 +918,7 @@ def _run_phase2_joint_finetune(
 
     for epoch in range(num_epochs):
         model.train()
+        epoch_start = time.perf_counter()
 
         tox_it = iter(tox21_train_loader)
         herg_it = iter(herg_train_loader)
@@ -902,8 +927,9 @@ def _run_phase2_joint_finetune(
         train_joint_losses: List[float] = []
         train_tox_losses: List[float] = []
         train_herg_losses: List[float] = []
+        skipped_steps = 0
 
-        for _ in range(steps):
+        for step_idx in range(1, steps + 1):
             tox_batch, tox_it = _next_batch(tox_it, tox21_train_loader)
             herg_batch, herg_it = _next_batch(herg_it, herg_train_loader)
 
@@ -925,14 +951,17 @@ def _run_phase2_joint_finetune(
 
             if torch.isnan(tox_loss) or torch.isinf(tox_loss):
                 optimizer.zero_grad()
+                skipped_steps += 1
                 continue
             if torch.isnan(herg_loss) or torch.isinf(herg_loss):
                 optimizer.zero_grad()
+                skipped_steps += 1
                 continue
 
             joint_loss = alpha_tox21 * tox_loss + beta_herg * herg_loss
             if torch.isnan(joint_loss) or torch.isinf(joint_loss):
                 optimizer.zero_grad()
+                skipped_steps += 1
                 continue
 
             joint_loss.backward()
@@ -943,6 +972,23 @@ def _run_phase2_joint_finetune(
             train_joint_losses.append(float(joint_loss.detach().cpu().item()))
             train_tox_losses.append(float(tox_loss.detach().cpu().item()))
             train_herg_losses.append(float(herg_loss.detach().cpu().item()))
+
+            if log_every_steps > 0 and step_idx % max(1, log_every_steps) == 0:
+                lr_backbone = float(optimizer.param_groups[0]["lr"])
+                lr_tox = float(optimizer.param_groups[min(1, len(optimizer.param_groups) - 1)]["lr"])
+                lr_herg = float(optimizer.param_groups[min(2, len(optimizer.param_groups) - 1)]["lr"])
+                recent_joint = float(np.mean(train_joint_losses[-max(1, log_every_steps):])) if train_joint_losses else float("nan")
+                _log(
+                    f"[Phase2][Epoch {epoch + 1:03d}][Step {step_idx:04d}/{steps:04d}] "
+                    f"joint={recent_joint:.4f} lr_backbone={lr_backbone:.2e} "
+                    f"lr_tox={lr_tox:.2e} lr_herg={lr_herg:.2e}"
+                )
+
+        if not train_joint_losses:
+            raise RuntimeError(
+                "[Phase2] All steps were skipped due to NaN/Inf loss. "
+                "Check phase2 loss/learning-rate settings."
+            )
 
         history["train_joint_loss"].append(float(np.mean(train_joint_losses)) if train_joint_losses else float("nan"))
         history["train_tox21_loss"].append(float(np.mean(train_tox_losses)) if train_tox_losses else float("nan"))
@@ -1001,19 +1047,22 @@ def _run_phase2_joint_finetune(
         else:
             patience_counter += 1
 
+        epoch_seconds = float(time.perf_counter() - epoch_start)
+
         if (epoch + 1) % max(1, log_every) == 0 or epoch == 0:
-            print(
+            _log(
                 f"[Phase2][Epoch {epoch + 1:03d}] "
                 f"train_joint={history['train_joint_loss'][-1]:.4f} "
                 f"train_tox21={history['train_tox21_loss'][-1]:.4f} "
                 f"train_herg={history['train_herg_loss'][-1]:.4f} "
                 f"val_tox21_auc={history['val_tox21_macro_auc'][-1]:.4f} "
                 f"val_herg_auc={history['val_herg_auc'][-1]:.4f} "
-                f"joint_score={history['val_joint_score'][-1]:.4f}"
+                f"joint_score={history['val_joint_score'][-1]:.4f} "
+                f"skipped_steps={skipped_steps} epoch_sec={epoch_seconds:.1f}"
             )
 
         if patience_counter >= patience_limit:
-            print(f"[Phase2] Early stopping at epoch {epoch + 1}")
+            _log(f"[Phase2] Early stopping at epoch {epoch + 1}")
             break
 
     if best_state is not None:
@@ -1041,8 +1090,18 @@ def _to_jsonable(value):
     return value
 
 
+def _log(message: str) -> None:
+    print(str(message), flush=True)
+
+
 def main() -> None:
     assert_tox21_enabled("scripts/train_pretrained_2head_herg_tox21.py")
+
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(line_buffering=True)
+        except Exception:
+            pass
 
     parser = argparse.ArgumentParser(
         description="Train pretrained dual-head model (Tox21 + hERG)"
@@ -1092,24 +1151,26 @@ def main() -> None:
     ckpt_defaults = get_checkpoint_defaults(checkpoint_name)
     max_length = int(training_cfg.get("max_length", ckpt_defaults["max_length"]))
 
-    print("=" * 88)
-    print("Pretrained Dual-Head Training (Phase1: Tox21, Phase2: Joint Tox21+hERG)")
-    print("=" * 88)
-    print(f"Device: {device}")
-    print(f"Config: {config_path}")
-    print(f"Checkpoint: {checkpoint_name}")
-    print(f"Max length: {max_length}")
-    print(f"Output: {model_dir}")
+    _log("=" * 88)
+    _log("Pretrained Dual-Head Training (Phase1: Tox21, Phase2: Joint Tox21+hERG)")
+    _log("=" * 88)
+    _log(f"Device: {device}")
+    _log(f"Config: {config_path}")
+    _log(f"Checkpoint: {checkpoint_name}")
+    _log(f"Max length: {max_length}")
+    _log(f"Output: {model_dir}")
 
-    print("\nLoading datasets...")
+    _log("\nLoading datasets...")
     cache_dir = str(project_root / data_cfg.get("cache_dir", "data"))
     split_type = str(data_cfg.get("split_type", "scaffold"))
 
+    _log("- Loading Tox21 split...")
     train_tox_df, val_tox_df, test_tox_df = load_tox21(
         cache_dir=cache_dir,
         split_type=split_type,
         seed=seed,
     )
+    _log("- Loading hERG_Karim split...")
     train_herg_df, val_herg_df, test_herg_df = load_herg_karim(
         cache_dir=cache_dir,
         split_type=split_type,
@@ -1117,15 +1178,15 @@ def main() -> None:
     )
 
     task_columns = select_tox21_task_columns(train_tox_df)
-    print(
+    _log(
         f"Tox21 sizes: train={len(train_tox_df)} val={len(val_tox_df)} test={len(test_tox_df)}"
     )
-    print(
+    _log(
         f"hERG sizes:  train={len(train_herg_df)} val={len(val_herg_df)} test={len(test_herg_df)}"
     )
-    print(f"Tox21 tasks ({len(task_columns)}): {task_columns}")
+    _log(f"Tox21 tasks ({len(task_columns)}): {task_columns}")
 
-    print("\nLoading tokenizer...")
+    _log("\nLoading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(
         checkpoint_name,
         trust_remote_code=bool(ckpt_defaults["trust_remote_code"]),
@@ -1241,7 +1302,7 @@ def main() -> None:
         num_workers=0,
     )
 
-    print("\nBuilding dual-head model...")
+    _log("\nBuilding dual-head model...")
     model = create_pretrained_dual_head_model(
         pretrained_model=checkpoint_name,
         num_tox21_tasks=int(model_cfg.get("num_tox21_tasks", len(task_columns))),
@@ -1252,7 +1313,7 @@ def main() -> None:
 
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Parameters: total={total_params:,}, trainable={trainable_params:,}")
+    _log(f"Parameters: total={total_params:,}, trainable={trainable_params:,}")
 
     tox21_pos_weight = None
     if bool(phase1_cfg.get("use_task_pos_weights", True)) or bool(phase2_cfg.get("use_task_pos_weights", True)):
@@ -1264,7 +1325,10 @@ def main() -> None:
 
     phase1_result = None
     if not args.skip_phase1:
-        print("\n[Phase1] Pretraining on Tox21...")
+        _log(
+            "\n[Phase1] Pretraining on Tox21... "
+            f"steps_per_epoch={len(tox21_train_loader_phase1)} batch_size={phase1_batch}"
+        )
         phase1_result = _run_phase1_pretrain(
             model=model,
             train_loader=tox21_train_loader_phase1,
@@ -1274,7 +1338,7 @@ def main() -> None:
             device=device,
             tox21_pos_weight=tox21_pos_weight,
         )
-        print(
+        _log(
             f"[Phase1] Done. best_score={phase1_result['best_score']:.4f}, "
             f"val_macro_auc={phase1_result['val_metrics']['macro_auc_roc']:.4f}"
         )
@@ -1301,12 +1365,16 @@ def main() -> None:
         with open(model_dir / "pretrained_2head_phase1_summary.json", "w") as f:
             json.dump(_to_jsonable(summary), f, indent=2)
 
-        print("\nPhase-1 only run completed.")
-        print(f"- Model checkpoint: {model_path}")
-        print(f"- Summary: {model_dir / 'pretrained_2head_phase1_summary.json'}")
+        _log("\nPhase-1 only run completed.")
+        _log(f"- Model checkpoint: {model_path}")
+        _log(f"- Summary: {model_dir / 'pretrained_2head_phase1_summary.json'}")
         return
 
-    print("\n[Phase2] Joint fine-tuning on Tox21 + hERG...")
+    _log(
+        "\n[Phase2] Joint fine-tuning on Tox21 + hERG... "
+        f"tox_steps={len(tox21_train_loader_phase2)} herg_steps={len(herg_train_loader_phase2)} "
+        f"steps_per_epoch={max(len(tox21_train_loader_phase2), len(herg_train_loader_phase2))}"
+    )
     phase2_result = _run_phase2_joint_finetune(
         model=model,
         tox21_train_loader=tox21_train_loader_phase2,
@@ -1322,12 +1390,12 @@ def main() -> None:
         herg_train_size=len(train_herg_ds),
     )
 
-    print(
+    _log(
         f"\n[Phase2] Done. effective_beta_herg={phase2_result['beta_herg_effective']:.4f}, "
         f"best_selection_score={phase2_result['best_score']:.4f}"
     )
 
-    print("\nCollecting validation predictions for threshold calibration...")
+    _log("\nCollecting validation predictions for threshold calibration...")
     tox21_val_preds = _evaluate_tox21(
         model=model,
         data_loader=tox21_val_loader,
@@ -1367,7 +1435,7 @@ def main() -> None:
 
     herg_threshold = float(herg_threshold_info.get("threshold", 0.5))
 
-    print("\nEvaluating final model on validation + test with calibrated thresholds...")
+    _log("\nEvaluating final model on validation + test with calibrated thresholds...")
     tox21_val_metrics = _evaluate_tox21(
         model=model,
         data_loader=tox21_val_loader,
@@ -1454,11 +1522,11 @@ def main() -> None:
     with open(summary_path, "w") as f:
         json.dump(_to_jsonable(summary), f, indent=2)
 
-    print("\nTraining completed successfully.")
-    print(f"- Model checkpoint: {model_path}")
-    print(f"- Metrics summary: {summary_path}")
-    print(f"- Tox21 thresholds: {model_dir / 'tox21_task_thresholds.json'}")
-    print(f"- hERG threshold: {model_dir / 'herg_threshold.json'}")
+    _log("\nTraining completed successfully.")
+    _log(f"- Model checkpoint: {model_path}")
+    _log(f"- Metrics summary: {summary_path}")
+    _log(f"- Tox21 thresholds: {model_dir / 'tox21_task_thresholds.json'}")
+    _log(f"- hERG threshold: {model_dir / 'herg_threshold.json'}")
 
 
 if __name__ == "__main__":

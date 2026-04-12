@@ -18,7 +18,7 @@ def run_screening(
     mechanism_threshold: float = 0.5,
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
-    tox_type_model: str = "tox21_gatv2_model",
+    tox_type_model: str = "tox21_ensemble_3_best",
 ) -> Dict[str, Any]:
     """Deterministic screening flow used for local tests and orchestration."""
     try:
