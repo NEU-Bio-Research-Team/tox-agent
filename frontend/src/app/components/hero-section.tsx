@@ -26,7 +26,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 
   // Add options for users to choose which model will use for 2 predict tasks
   const [binaryModel, setBinaryModel] = useState<string>('pretrained_2head_herg_chemberta_model');
-  const [toxTypeModel, setToxTypeModel] = useState<string>('tox21_gatv2_model');
+  const [toxTypeModel, setToxTypeModel] = useState<string>('tox21_ensemble_3_best');
 
   useEffect(() => {
     if (!value.trim()) {
@@ -224,7 +224,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
               <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>
                 Binary Toxicity Model (GNN):
               </label>
-              <p className="text-xs mb-2" style={{ color: 'var(--text-faint' }}>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-faint)' }}>
                 Chọn GNN backbone để predict xác suất độc tính nhị phân
               </p>
               <select
@@ -239,6 +239,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 }}
               >
                 <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Full · Recommended</option>
+                <option value="tox21_ensemble_3_best">Ensemble-3 Best · Binary hERG avg (ChemBERTa + MolFormer)</option>
                 <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Quick</option>
                 <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Full</option>
                 <option value="pretrained_2head_herg_molformer_quick">MolFormer Dual-Head · Quick</option>
@@ -250,7 +251,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
               <label className="text-sm mb-1 block" style={{ color: 'var(--text-muted)' }}>
                 Toxicity Type Model (GNN):
               </label>
-              <p className='text-xs mb-2' style={{ color: 'ver(--text-faint)' }}>
+              <p className='text-xs mb-2' style={{ color: 'var(--text-faint)' }}>
                 Chọn model để profile 12 Tox21 assay tasks
               </p>
               <select 
@@ -264,7 +265,9 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 color: 'var(--text)', 
               }}
               >
-                <option value="tox21_gatv2_model">GATv2 Tox21 · 12 assays · Recommended</option>
+                <option value="tox21_ensemble_3_best">Ensemble-3 Best · ChemBERTa + MolFormer + Pretrained-GIN · Recommended</option>
+                <option value="tox21_pretrained_gin_model">Pretrained-GIN (Hu et al.) · Tox21 task engine</option>
+                <option value="tox21_gatv2_model">GATv2 Tox21 · 12 assays</option>
                 <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Tox21 head (Full)</option>
                 <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Tox21 head (Quick)</option>
                 <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Tox21 head (Full)</option>

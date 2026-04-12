@@ -1,5 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { initializeDemoAccount } from '../../utils/demo-account';
+import { 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  type User as FirebaseUser,
+ } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../../../firebase-config';
 
 interface User {
   id: string;
@@ -17,84 +26,73 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper: map FirebaseUser -> User interface của app
+function mapFirebaseUser(fbUser: FirebaseUser): User {
+  return {
+    id: fbUser.uid,
+    email: fbUser.email ?? '',
+    name: fbUser.displayName ?? fbUser.email ?? '',
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Initialize demo account
-    initializeDemoAccount();
-
-    // Check for existing session
-    const savedUser = localStorage.getItem('toxagent_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Firebase Auth tự persist session - chỉ cần lắng nghe
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      setUser(fbUser ? mapFirebaseUser(fbUser): null);
+    });
+    return unsubscribe; // cleanup trước khi unmount
   }, []);
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+  const register = async (
+    email: string,
+    password: string,
+    name: string,
+  ): Promise<boolean> => {
     try {
-      // Get existing users
-      const usersJson = localStorage.getItem('toxagent_users') || '[]';
-      const users = JSON.parse(usersJson);
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Check if user already exists
-      if (users.find((u: any) => u.email === email)) {
-        return false;
-      }
+      // Gán displayName vào Firebase Auth profile
+      await updateProfile(credential.user, { displayName: name });
 
-      // Create new user
-      const newUser = {
-        id: crypto.randomUUID(),
+      // Tạo document trong Firestore collection 'users'
+      await setDoc(doc(db, 'users', credential.user.uid), {
+        uid: credential.user.uid,
         email,
-        password, // In production, this would be hashed
-        name,
-      };
+        name, 
+        createdAt: serverTimestamp(),
+        analysisCount: 0,
+      });
 
-      users.push(newUser);
-      localStorage.setItem('toxagent_users', JSON.stringify(users));
-
-      // Auto-login after registration
-      const userSession = { id: newUser.id, email: newUser.email, name: newUser.name };
-      setUser(userSession);
-      localStorage.setItem('toxagent_user', JSON.stringify(userSession));
+      setUser(mapFirebaseUser(credential.user));
 
       return true;
-    } catch (error) {
-      console.error('Registration error:', error);
+    } catch (error: any) {
+      console.error('Registration error:', error.code, error.message);
       return false;
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const usersJson = localStorage.getItem('toxagent_users') || '[]';
-      const users = JSON.parse(usersJson);
-
-      const foundUser = users.find((u: any) => u.email === email && u.password === password);
-
-      if (foundUser) {
-        const userSession = { id: foundUser.id, email: foundUser.email, name: foundUser.name };
-        setUser(userSession);
-        localStorage.setItem('toxagent_user', JSON.stringify(userSession));
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
+      await signInWithEmailAndPassword(auth, email, password);
+      return true;
+    } catch (error: any) {
+      console.error('Login error:', error.code, error.message);
       return false;
     }
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('toxagent_user');
+    signOut(auth);
   };
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
       {children}
-    </AuthContext.Provider>
+      </AuthContext.Provider>
   );
 }
 

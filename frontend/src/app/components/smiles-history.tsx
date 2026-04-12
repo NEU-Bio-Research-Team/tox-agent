@@ -1,41 +1,64 @@
 import { useEffect, useState } from 'react';
 import { Clock, Trash2, TrendingUp } from 'lucide-react';
 import { Button } from './ui/button';
-
-interface HistoryEntry {
-  id: string;
-  smiles: string;
-  timestamp: number;
-  verdict: 'toxic' | 'warning' | 'non-toxic';
-  score: number;
-}
+import {
+  deleteAnalysisFromFirestore,
+  loadAnalysesFromFirestore,
+  saveAnalysisToFirestore,
+  type AnalysisMeta,
+  type HistoryEntry,
+} from '@/lib/firestore-history';
 
 interface SmilesHistoryProps {
   onSelectSmiles: (smiles: string) => void;
+  uid: string | null; //null = guest, dùng localStorage fallback
 }
 
-export function SmilesHistory({ onSelectSmiles }: SmilesHistoryProps) {
+export function SmilesHistory({ onSelectSmiles, uid }: SmilesHistoryProps) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    loadHistory();
-  }, []);
+    void loadHistory();
+  }, [uid]);
 
-  const loadHistory = () => {
-    const saved = localStorage.getItem('toxagent_smiles_history');
-    if (saved) {
-      setHistory(JSON.parse(saved));
+  const loadHistory = async () => {
+    try {
+      if (uid) {
+        // Logged in -> Firestore
+        const entries = await loadAnalysesFromFirestore(uid);
+        setHistory(entries);
+      } else {
+        // Guest -> localStorage fallback
+        const saved = localStorage.getItem('toxagent_smiles_history');
+        setHistory(saved ? JSON.parse(saved) : []);
+      }
+    } catch (error) {
+      console.warn('Failed to load history:', error);
+      setHistory([]);
     }
   };
 
-  const deleteEntry = (id: string) => {
-    const updated = history.filter(entry => entry.id !== id);
+
+  const deleteEntry = async (id: string) => {
+    if (uid) {
+      await deleteAnalysisFromFirestore(uid, id);
+      setHistory((prev) => prev.filter((entry) => entry.id !== id));
+      return;
+    }
+
+    const updated = history.filter((entry) => entry.id !== id);
     setHistory(updated);
     localStorage.setItem('toxagent_smiles_history', JSON.stringify(updated));
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
+    if (uid) {
+      await Promise.all(history.map((entry) => deleteAnalysisFromFirestore(uid, entry.id)));
+      setHistory([]);
+      return;
+    }
+
     setHistory([]);
     localStorage.removeItem('toxagent_smiles_history');
   };
@@ -86,7 +109,9 @@ export function SmilesHistory({ onSelectSmiles }: SmilesHistoryProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={clearAll}
+            onClick={() => {
+              void clearAll();
+            }}
             className="text-xs"
             style={{ color: 'var(--accent-red)' }}
           >
@@ -135,7 +160,9 @@ export function SmilesHistory({ onSelectSmiles }: SmilesHistoryProps) {
               </button>
               
               <button
-                onClick={() => deleteEntry(entry.id)}
+                onClick={() => {
+                  void deleteEntry(entry.id);
+                }}
                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[var(--border)] rounded"
                 title="Delete"
               >
@@ -165,31 +192,42 @@ export function SmilesHistory({ onSelectSmiles }: SmilesHistoryProps) {
 }
 
 // Helper function to save to history
-export function addToHistory(smiles: string, verdict: 'toxic' | 'warning' | 'non-toxic', score: number) {
-  const saved = localStorage.getItem('toxagent_smiles_history');
-  const history: HistoryEntry[] = saved ? JSON.parse(saved) : [];
-  
-  // Check if this SMILES already exists
-  const existingIndex = history.findIndex(entry => entry.smiles === smiles);
-  
-  const newEntry: HistoryEntry = {
-    id: crypto.randomUUID(),
-    smiles,
-    timestamp: Date.now(),
-    verdict,
-    score,
-  };
-  
-  // Remove existing entry if found
-  if (existingIndex !== -1) {
-    history.splice(existingIndex, 1);
-  }
-  
-  // Add to beginning of array (most recent first)
-  history.unshift(newEntry);
-  
-  // Keep only last 50 entries
-  const trimmedHistory = history.slice(0, 50);
-  
-  localStorage.setItem('toxagent_smiles_history', JSON.stringify(trimmedHistory));
+export async function addToHistory(
+  smiles: string,
+  verdict: 'toxic' | 'warning' | 'non-toxic',
+  score: number,
+  uid?: string,
+  meta?: AnalysisMeta,
+) {
+  if (uid) {
+    // Save to Firestore
+    await saveAnalysisToFirestore(uid, smiles, verdict, score, meta);
+  } else {
+    const saved = localStorage.getItem('toxagent_smiles_history');
+    const history: HistoryEntry[] = saved ? JSON.parse(saved) : [];
+
+    // Check if this SMILES already exists
+    const existingIndex = history.findIndex((entry) => entry.smiles === smiles);
+
+    const newEntry: HistoryEntry = {
+      id: crypto.randomUUID(),
+      smiles,
+      timestamp: Date.now(),
+      verdict,
+      score,
+    };
+
+    // Remove existing entry if found
+    if (existingIndex !== -1) {
+      history.splice(existingIndex, 1);
+    }
+
+    // Add to beginning of array (most recent first)
+    history.unshift(newEntry);
+
+    // Keep only last 50 entries
+    const trimmedHistory = history.slice(0, 50);
+
+    localStorage.setItem('toxagent_smiles_history', JSON.stringify(trimmedHistory));
+}
 }

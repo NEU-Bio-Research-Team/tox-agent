@@ -7,10 +7,38 @@ import { QuickVerdictCard } from '../components/quick-verdict-card';
 import { agentAnalyze } from '../../lib/api';
 import { useReport } from '../../lib/ReportContext';
 import { Footer } from '../components/footer';
-import { SmilesHistory } from '../components/smiles-history';
+import { SmilesHistory, addToHistory } from '../components/smiles-history';
+import { useAuth } from '../components/contexts/auth-context';
+import { normalizeRiskLevel } from '../risk-level';
+
+function toHistoryVerdict(riskCode: string): 'toxic' | 'warning' | 'non-toxic' {
+  switch (riskCode) {
+    case 'CRITICAL':
+    case 'HIGH':
+      return 'toxic';
+    case 'MODERATE':
+      return 'warning';
+    default:
+      return 'non-toxic';
+  }
+}
+
+function toBoundedScore(value: number | null | undefined): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 0;
+  }
+  if (value < 0) {
+    return 0;
+  }
+  if (value > 1) {
+    return 1;
+  }
+  return value;
+}
 
 export function IndexPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [smilesInput, setSmilesInput] = useState('CC(=O)Oc1ccccc1C(=O)O');
   const {
@@ -52,6 +80,28 @@ export function IndexPage() {
       }
 
       setReport(result);
+
+      // Persist analysis history without blocking the main UI flow.
+      const normalizedRisk = normalizeRiskLevel(result.final_report.risk_level).code;
+      const probability = result.final_report.sections.clinical_toxicity?.probability;
+
+      void addToHistory(
+        smiles,
+        toHistoryVerdict(normalizedRisk),
+        toBoundedScore(probability),
+        user?.id,
+        {
+          language: preferences.language,
+          inferenceBackend: preferences.inferenceBackend,
+          binaryModel: opts.binaryModel,
+          toxTypeModel: opts.toxTypeModel,
+          sessionId: result.session_id,
+          riskLevel: normalizedRisk,
+        },
+      ).catch((historyError) => {
+        console.warn('Failed to persist analysis history:', historyError);
+      });
+
       setAnalysisComplete(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unexpected error during analysis';
@@ -126,7 +176,7 @@ export function IndexPage() {
         {/* SMILES History */}
         {!isLoading && !analysisComplete && (
           <div className="py-12">
-            <SmilesHistory onSelectSmiles={handleSelectFromHistory} />
+            <SmilesHistory onSelectSmiles={handleSelectFromHistory} uid={user?.id ?? null} />
           </div>
         )}
       </main>

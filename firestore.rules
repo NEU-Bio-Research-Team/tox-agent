@@ -28,6 +28,11 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // 3.1 Quy tắc cho lịch sử phân tích theo user
+    match /users/{userId}/analyses/{analysisId} {
+      allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     // 4. Chặn tất cả các truy cập không xác định khác
     match /{document=**} {
       allow read, write: if false;

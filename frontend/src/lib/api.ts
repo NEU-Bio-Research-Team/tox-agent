@@ -257,7 +257,7 @@ export async function agentAnalyze(
 		max_literature_results: options.maxLiteratureResults ?? 5,
 		inference_backend: options.inferenceBackend ?? 'xsmiles',
 		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
-		tox_type_model: options.toxTypeModel ?? 'tox21_gatv2_model'
+		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best'
 	};
 
 	const res = await fetch(`${BASE_URL}/agent/analyze`, {
