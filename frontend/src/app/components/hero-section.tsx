@@ -25,8 +25,8 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
   const [threshold, setThreshold] = useState(0.5);
 
   // Add options for users to choose which model will use for 2 predict tasks
-  const [binaryModel, setBinaryModel] = useState<string>('pretrained_2head_herg_chemberta_model');
-  const [toxTypeModel, setToxTypeModel] = useState<string>('tox21_ensemble_3_best');
+  const [binaryModel, setBinaryModel] = useState<string>('dualhead_ensemble6_simple');
+  const [toxTypeModel, setToxTypeModel] = useState<string>('dualhead_ensemble6_simple');
 
   useEffect(() => {
     if (!value.trim()) {
@@ -225,7 +225,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 Binary Toxicity Model (GNN):
               </label>
               <p className="text-xs mb-2" style={{ color: 'var(--text-faint)' }}>
-                Chọn GNN backbone để predict xác suất độc tính nhị phân
+                Chọn backbone hoặc ensemble để predict xác suất độc tính nhị phân
               </p>
               <select
                 value={binaryModel}
@@ -238,11 +238,17 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                   color: 'var(--text)',
                 }}
               >
-                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Full · Recommended</option>
-                <option value="tox21_ensemble_3_best">Ensemble-3 Best · Binary hERG avg (ChemBERTa + MolFormer)</option>
-                <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Quick</option>
+                <option value="dualhead_ensemble6_simple">Ensemble-6 Simple · joint_auc_beta3 0.8467 · Recommended</option>
+                <option value="dualhead_ensemble3_weighted">Ensemble-3 Weighted · joint_auc_beta3 0.8466</option>
+                <option value="dualhead_ensemble3_simple">Ensemble-3 Simple · joint_auc_beta3 0.8455</option>
+                <option value="dualhead_ensemble5_simple">Ensemble-5 Simple · joint_auc_beta3 0.8451</option>
+                <option value="tox21_ensemble_3_best">Legacy Ensemble-3 Alias (backward compatibility)</option>
                 <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Full</option>
+                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Full</option>
+                <option value="pretrained_2head_herg_pubchem_model">PubChem Dual-Head · Full</option>
+                <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Quick</option>
                 <option value="pretrained_2head_herg_molformer_quick">MolFormer Dual-Head · Quick</option>
+                <option value="pretrained_2head_herg_pubchem_quick">PubChem Dual-Head · Quick</option>
               </select>
             </div>
 
@@ -252,7 +258,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 Toxicity Type Model (GNN):
               </label>
               <p className='text-xs mb-2' style={{ color: 'var(--text-faint)' }}>
-                Chọn model để profile 12 Tox21 assay tasks
+                Chọn model hoặc ensemble để profile 12 Tox21 assay tasks
               </p>
               <select 
               value={toxTypeModel}
@@ -265,13 +271,19 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 color: 'var(--text)', 
               }}
               >
-                <option value="tox21_ensemble_3_best">Ensemble-3 Best · ChemBERTa + MolFormer + Pretrained-GIN · Recommended</option>
+                <option value="dualhead_ensemble6_simple">Ensemble-6 Simple · Tox21 mix (Dual-Head + AFP + XGB + GPS + Pretrained-GIN) · Recommended</option>
+                <option value="dualhead_ensemble3_weighted">Ensemble-3 Weighted · task-wise weighted (ChemBERTa + MolFormer + Pretrained-GIN)</option>
+                <option value="dualhead_ensemble3_simple">Ensemble-3 Simple · mean (ChemBERTa + MolFormer + Pretrained-GIN)</option>
+                <option value="dualhead_ensemble5_simple">Ensemble-5 Simple · mean (ChemBERTa + MolFormer + AFP + XGB + GPS)</option>
+                <option value="tox21_ensemble_3_best">Legacy Ensemble-3 Alias (backward compatibility)</option>
                 <option value="tox21_pretrained_gin_model">Pretrained-GIN (Hu et al.) · Tox21 task engine</option>
                 <option value="tox21_gatv2_model">GATv2 Tox21 · 12 assays</option>
-                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Tox21 head (Full)</option>
-                <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Tox21 head (Quick)</option>
                 <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Tox21 head (Full)</option>
+                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Tox21 head (Full)</option>
+                <option value="pretrained_2head_herg_pubchem_model">PubChem Dual-Head · Tox21 head (Full)</option>
+                <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Tox21 head (Quick)</option>
                 <option value="pretrained_2head_herg_molformer_quick">MolFormer Dual-Head · Tox21 head (Quick)</option>
+                <option value="pretrained_2head_herg_pubchem_quick">PubChem Dual-Head · Tox21 head (Quick)</option>
               </select>
             </div>
           </CollapsibleContent>
