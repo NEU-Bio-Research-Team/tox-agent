@@ -271,7 +271,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 color: 'var(--text)', 
               }}
               >
-                <option value="dualhead_ensemble6_simple">Ensemble-6 Simple · Tox21 mix (Dual-Head + AFP + XGB + GPS + Pretrained-GIN) · Recommended</option>
+                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Tox21 head (Full) · Recommended</option>
                 <option value="dualhead_ensemble3_weighted">Ensemble-3 Weighted · task-wise weighted (ChemBERTa + MolFormer + Pretrained-GIN)</option>
                 <option value="dualhead_ensemble3_simple">Ensemble-3 Simple · mean (ChemBERTa + MolFormer + Pretrained-GIN)</option>
                 <option value="dualhead_ensemble5_simple">Ensemble-5 Simple · mean (ChemBERTa + MolFormer + AFP + XGB + GPS)</option>
@@ -279,7 +279,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 <option value="tox21_pretrained_gin_model">Pretrained-GIN (Hu et al.) · Tox21 task engine</option>
                 <option value="tox21_gatv2_model">GATv2 Tox21 · 12 assays</option>
                 <option value="pretrained_2head_herg_molformer_model">MolFormer Dual-Head · Tox21 head (Full)</option>
-                <option value="pretrained_2head_herg_chemberta_model">ChemBERTa Dual-Head · Tox21 head (Full)</option>
+                <option value="dualhead_ensemble6_simple">Ensemble-6 Simple · Tox21 mix (Dual-Head + AFP + XGB + GPS + Pretrained-GIN)</option>
                 <option value="pretrained_2head_herg_pubchem_model">PubChem Dual-Head · Tox21 head (Full)</option>
                 <option value="pretrained_2head_herg_chemberta_quick">ChemBERTa Dual-Head · Tox21 head (Quick)</option>
                 <option value="pretrained_2head_herg_molformer_quick">MolFormer Dual-Head · Tox21 head (Quick)</option>
