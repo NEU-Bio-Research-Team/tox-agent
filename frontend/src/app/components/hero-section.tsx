@@ -15,7 +15,7 @@ const exampleMolecules = [
   { name: 'Caffeine', icon: '☕', smiles: 'Cn1cnc2c1c(=O)n(c(=O)n2C)C' },
   { name: 'Aspirin', icon: '💊', smiles: 'CC(=O)Oc1ccccc1C(=O)O' },
   { name: 'Ethanol', icon: '⚗', smiles: 'CCO' },
-  { name: 'Benzene', icon: '⚠', smiles: 'c1ccccc1' },
+  { name: 'Haloperidol', icon: '💊', smiles: 'O=C(CCCN1CCC(c2ccc(Cl)cc2)(O)CC1)c1ccc(F)cc1' },
 ];
 
 export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSectionProps) {
