@@ -7,6 +7,8 @@ from tools import analyze_molecule, validate_smiles
 
 from .adk_compat import LlmAgent
 from .language import choose_text
+from .molrag_reasoner import run_molrag_reasoning
+from services import fuse_molrag_with_baseline, retrieve_similar_molecules
 
 SCREENING_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
@@ -19,6 +21,9 @@ def run_screening(
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
     tox_type_model: str = "tox21_ensemble_3_best",
+    molrag_enabled: bool = False,
+    molrag_top_k: int = 5,
+    molrag_min_similarity: float = 0.15,
 ) -> Dict[str, Any]:
     """Deterministic screening flow used for local tests and orchestration."""
     try:
@@ -55,6 +60,12 @@ def run_screening(
         ood_assessment = analysis.get("ood_assessment", {})
         threshold_used = clinical.get("threshold_used")
         ood_risk = ood_assessment.get("ood_risk", "LOW")
+        baseline_prediction = {
+            "label": clinical.get("label"),
+            "score": clinical.get("p_toxic"),
+            "confidence": clinical.get("confidence"),
+            "ood_flag": bool(ood_assessment.get("flag", False)),
+        }
 
         summary = choose_text(
             language,
@@ -72,6 +83,50 @@ def run_screening(
             ),
         )
 
+        molrag_payload = {
+            "enabled": False,
+            "strategy": "sim_cot",
+            "retrieved_examples": [],
+            "reasoning_summary": None,
+            "suggested_label": None,
+            "confidence": None,
+            "error": None,
+        }
+        fusion_result = None
+
+        if molrag_enabled:
+            retrieval_payload = retrieve_similar_molecules(
+                canonical_smiles,
+                top_k=molrag_top_k,
+                min_similarity=molrag_min_similarity,
+            )
+            retrieved_examples = retrieval_payload.get("matches", [])
+            molrag_reasoning = run_molrag_reasoning(
+                input_smiles=canonical_smiles,
+                retrieved_examples=retrieved_examples,
+                baseline_prediction=baseline_prediction,
+                language=language,
+            )
+            molrag_payload = {
+                "enabled": True,
+                "strategy": molrag_reasoning.get("strategy", "sim_cot"),
+                "retrieval_db_size": retrieval_payload.get("db_size"),
+                "retrieval_error": retrieval_payload.get("error"),
+                "retrieved_examples": retrieved_examples,
+                "evidence_summary": molrag_reasoning.get("evidence_summary"),
+                "reasoning_summary": molrag_reasoning.get("reasoning_summary"),
+                "suggested_label": molrag_reasoning.get("suggested_label"),
+                "confidence": molrag_reasoning.get("confidence"),
+                "prompt_preview": molrag_reasoning.get("prompt_preview"),
+                "reasoning_mode": molrag_reasoning.get("reasoning_mode"),
+                "error": retrieval_payload.get("error") or molrag_reasoning.get("error"),
+            }
+            fusion_result = fuse_molrag_with_baseline(
+                baseline_prediction=baseline_prediction,
+                molrag_result=molrag_reasoning,
+                mode="evidence_only",
+            )
+
         screening_result = {
             "summary": summary,
             "smiles": analysis.get("smiles", smiles_input),
@@ -82,6 +137,9 @@ def run_screening(
             "ood_assessment": ood_assessment,
             "reliability_warning": analysis.get("reliability_warning"),
             "inference_context": analysis.get("inference_context"),
+            "baseline_prediction": baseline_prediction,
+            "molrag": molrag_payload,
+            "fusion_result": fusion_result,
             "final_verdict": final_verdict,
             "error": None,
         }

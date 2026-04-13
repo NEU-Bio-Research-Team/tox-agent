@@ -105,6 +105,9 @@ def run_orchestrator_flow(
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
     tox_type_model: str = "tox21_ensemble_3_best",
+    molrag_enabled: bool = False,
+    molrag_top_k: int = 5,
+    molrag_min_similarity: float = 0.15,
 ) -> Dict[str, Any]:
     """Deterministic orchestration flow for local and CI smoke tests."""
     normalized_language = normalize_language(language)
@@ -116,6 +119,9 @@ def run_orchestrator_flow(
         "inference_backend": str(inference_backend),
         "binary_tox_model": str(binary_tox_model),
         "tox_type_model": str(tox_type_model),
+        "molrag_enabled": bool(molrag_enabled),
+        "molrag_top_k": int(molrag_top_k),
+        "molrag_min_similarity": float(molrag_min_similarity),
         "validation_status": "INVALID",
         "screening_result": None,
         "explanation_raw": None,
@@ -164,6 +170,9 @@ def run_orchestrator_flow(
             str(inference_backend),
             str(binary_tox_model),
             str(tox_type_model),
+            bool(molrag_enabled),
+            int(molrag_top_k),
+            float(molrag_min_similarity),
         )
         research_future = executor.submit(
             run_research,
@@ -202,6 +211,9 @@ def run_orchestrator_from_text(
     inference_backend: str = "xsmiles",
     binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
     tox_type_model: str = "tox21_ensemble_3_best",
+    molrag_enabled: bool = False,
+    molrag_top_k: int = 5,
+    molrag_min_similarity: float = 0.15,
 ) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
 
@@ -241,6 +253,9 @@ def run_orchestrator_from_text(
         inference_backend=inference_backend,
         binary_tox_model=binary_tox_model,
         tox_type_model=tox_type_model,
+        molrag_enabled=molrag_enabled,
+        molrag_top_k=molrag_top_k,
+        molrag_min_similarity=molrag_min_similarity,
     )
 
 

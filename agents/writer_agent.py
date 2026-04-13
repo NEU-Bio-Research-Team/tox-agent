@@ -643,6 +643,8 @@ def build_final_report(
                 "target_task_score": explanation.get("target_task_score"),
                 "explainer_note": explanation.get("explainer_note"),
             },
+            "molrag_evidence": _to_dict(screening.get("molrag")),
+            "fusion_result": _to_dict(screening.get("fusion_result")),
             "literature_context": {
                 "compound_id": {
                     "cid": compound_info.get("cid"),
