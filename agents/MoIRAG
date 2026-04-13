@@ -1,0 +1,540 @@
+# Kế hoạch tích hợp MolRAG vào repo ToxAgent
+
+## 1. Mục tiêu
+
+Tài liệu này phân tích cách tích hợp ý tưởng **MolRAG** vào repo **tox-agent** hiện tại mà **không cần viết lại toàn bộ hệ thống**.
+
+Mục tiêu chính là bổ sung một lớp **truy xuất phân tử tương tự + suy luận bằng LLM** lên trên workflow dự đoán hiện có, trong khi vẫn giữ ổn định pipeline dự đoán graph/SMILES đang dùng.
+
+Mục tiêu thực tế của bản đầu tiên không phải là thay thế toàn bộ hệ thống hiện tại, mà là:
+
+- tăng khả năng giải thích kết quả dự đoán
+- bổ sung bằng chứng từ các phân tử tương tự
+- tạo nền tảng để sau này nâng lên hybrid reasoning/prediction
+
+---
+
+## 2. Thực trạng repo hiện tại
+
+Repo hiện tại đã được tổ chức như một **hệ thống đa agent** với 3 lớp chính:
+
+### 2.1. Lớp giao diện
+- Frontend UI
+- Hiển thị verdict, report, heatmap và hình phân tử
+
+### 2.2. Lớp điều phối agent
+- `InputValidator Agent`
+- `Screening Agent`
+- `Researcher Agent`
+- `Writer Agent`
+- `Orchestrator Agent`
+
+### 2.3. Lớp model/API
+- FastAPI model server
+- Các endpoint dự đoán
+- Graph models / explainability
+- OOD guard
+- Thông tin confidence
+
+Vì vậy, repo hiện tại **không phải hệ thống LLM-first thuần túy**.  
+Nó đang là kiến trúc **lấy model làm lõi**, còn các agent có nhiệm vụ điều phối dự đoán, giải thích và bổ sung ngữ cảnh nghiên cứu.
+
+---
+
+## 3. MolRAG bổ sung điều gì
+
+MolRAG đưa vào một ý tưởng khác:
+
+1. Truy xuất các phân tử có cấu trúc tương tự
+2. Dùng các ví dụ retrieved làm ngữ cảnh suy luận
+3. Cho LLM suy luận từng bước trước khi đưa ra dự đoán cuối cùng
+
+Nói ngắn gọn, MolRAG thêm vào repo 3 lớp logic mới:
+
+- **retrieval phân tử**
+- **prompt reasoning có cấu trúc**
+- **giải thích dựa trên bằng chứng analog molecules**
+
+Vì vậy, nếu nhúng vào ToxAgent, MolRAG nên được xem là:
+
+- **một lớp tăng cường**
+- **không phải thay thế ngay toàn bộ pipeline dự đoán hiện tại**
+
+---
+
+## 4. Phân biệt rõ 2 loại retrieval trong hệ thống
+
+Đây là điểm rất quan trọng để tránh nhầm kiến trúc.
+
+## 4.1. Retrieval của MolRAG
+Mục tiêu:
+- tìm **các phân tử tương tự** với input molecule
+
+Dữ liệu:
+- database phân tử có cấu trúc
+- label/property đã biết
+- fingerprint / metadata
+
+Đầu ra:
+- top-k analog molecules
+- similarity scores
+- labels / properties
+
+Vai trò:
+- phục vụ trực tiếp cho **prediction reasoning**
+
+---
+
+## 4.2. Retrieval của Researcher Agent
+Mục tiêu:
+- tìm **tri thức ngoài** như:
+  - PubChem
+  - PubMed
+  - assay info
+  - literature evidence
+
+Dữ liệu:
+- external knowledge sources
+
+Đầu ra:
+- compound context
+- literature summaries
+- supporting evidence
+
+Vai trò:
+- phục vụ cho **background knowledge và report enrichment**
+
+---
+
+## 4.3. Kết luận
+Hai loại retrieval này **không trùng nhau**.
+
+- `MolRAG retrieval` = retrieval các **phân tử tương tự**
+- `Researcher retrieval` = retrieval **tri thức bên ngoài**
+
+Do đó, không nên gộp MolRAG vào `ResearcherAgent` như một chức năng chính.
+
+---
+
+## 5. Quyết định thiết kế quan trọng
+
+## Hướng đề xuất:
+**Thêm MolRAG như một lớp tăng cường truy xuất và suy luận bao quanh hệ thống hiện tại.**
+
+### Không nên làm ngay:
+- bỏ `Screening Agent`
+- thay hoàn toàn graph model bằng dự đoán từ LLM
+- viết lại toàn bộ backend
+- đẩy toàn bộ logic MolRAG sang `WriterAgent`
+- gộp MolRAG vào `ResearcherAgent`
+
+### Nên làm:
+- giữ pipeline hiện tại
+- thêm truy xuất phân tử tương tự
+- thêm prompt suy luận kiểu MolRAG
+- để `Writer Agent` tổng hợp:
+  - kết quả dự đoán từ model
+  - bằng chứng từ các phân tử tương tự
+  - phần reasoning của LLM
+  - ngữ cảnh nghiên cứu bên ngoài
+
+---
+
+## 6. Agent nào nên gắn MolRAG
+
+## 6.1. Agent phù hợp nhất: `ScreeningAgent`
+Đây là nơi phù hợp nhất để nhúng logic MolRAG vì:
+
+- `ScreeningAgent` hiện đã là nơi chịu trách nhiệm prediction
+- MolRAG bản chất cũng phục vụ cho molecular property prediction
+- retrieval + reasoning của MolRAG nằm gần tầng ra quyết định nhất
+
+### Vai trò sau khi mở rộng
+`ScreeningAgent` có thể:
+- chạy baseline model prediction
+- gọi molecule retrieval
+- gọi MolRAG reasoning
+- trả về screening result giàu thông tin hơn
+
+---
+
+## 6.2. Agent điều phối phù hợp nhất: `OrchestratorAgent`
+`OrchestratorAgent` nên quyết định:
+
+- khi nào gọi MolRAG
+- khi nào chỉ dùng baseline
+- khi nào bật hybrid mode
+- xử lý fallback nếu retrieval hoặc LLM lỗi
+
+Vì vậy:
+- **ScreeningAgent** = chỗ gắn logic MolRAG chính
+- **OrchestratorAgent** = chỗ điều phối MolRAG
+
+---
+
+## 6.3. Agent không nên làm logic chính: `WriterAgent`
+`WriterAgent` chỉ nên:
+- nhận kết quả đã xử lý
+- trình bày lại thành report
+- hiển thị evidence panel / reasoning summary
+
+Không nên để writer trở thành nơi:
+- chạy retrieval
+- gọi LLM reasoning chính
+- ra quyết định prediction
+
+---
+
+## 6.4. Agent không phù hợp để nhúng trực tiếp: `ResearcherAgent`
+Không nên dùng `ResearcherAgent` làm nơi chính cho MolRAG vì:
+- agent này thiên về literature / compound knowledge
+- MolRAG cần analog retrieval + reasoning prediction
+- hai vai trò này khác nhau
+
+---
+
+## 7. Vị trí tích hợp tốt nhất trong flow hiện tại
+
+## Flow hiện tại (ước lượng)
+`SMILES -> InputValidator -> Screening -> Researcher -> Writer -> Final report`
+
+## Flow đề xuất sau khi thêm MolRAG
+`SMILES -> InputValidator -> Screening(MolRAG-enabled) -> Researcher -> Writer -> Final report`
+
+Trong đó, bên trong `Screening` sẽ có thêm:
+
+- baseline prediction
+- molecule retrieval
+- MolRAG reasoning
+- optional fusion
+
+---
+
+## 8. Flow chi tiết sau khi tích hợp
+
+## Bước 1 — User Input
+Người dùng gửi một chuỗi SMILES.
+
+## Bước 2 — Validation
+`InputValidator Agent`
+- kiểm tra định dạng
+- canonicalize nếu cần
+- từ chối input không hợp lệ
+
+## Bước 3 — Baseline Prediction
+`Screening Agent`
+- chạy pipeline model hiện tại
+- trả về toxicity score / label
+- trả về attribution / confidence / OOD info nếu có
+
+## Bước 4 — Molecular Retrieval
+Bên trong `ScreeningAgent` hoặc một service được `ScreeningAgent` gọi:
+- tạo fingerprint
+- tính similarity
+- lấy top-k phân tử tương tự
+
+## Bước 5 — Prompt Construction
+Tạo prompt MolRAG từ:
+- instruction của task
+- input SMILES
+- retrieved analogs
+- similarity scores
+- labels/properties
+
+## Bước 6 — LLM Reasoning
+`MolRAGReasoner`
+- chạy Sim-CoT mặc định
+- sinh ra reasoning
+- có thể đề xuất nhãn cuối cùng
+- có thể sinh confidence dạng mềm
+
+## Bước 7 — Optional Fusion
+Nếu dùng hybrid mode:
+- kết hợp baseline prediction
+- kết hợp MolRAG reasoning result
+- xét confidence + OOD warning
+
+## Bước 8 — External Research Context
+`Researcher Agent`
+- lấy thêm thông tin từ PubChem / PubMed nếu cần
+
+## Bước 9 — Final Synthesis
+`Writer Agent`
+- tổng hợp:
+  - kết quả dự đoán nền
+  - bằng chứng retrieval
+  - reasoning của LLM
+  - literature context
+
+## Bước 10 — Final Output
+Frontend hiển thị:
+- final verdict
+- confidence / warning
+- các phân tử tương tự
+- reasoning summary
+- bằng chứng hỗ trợ
+
+---
+
+## 9. Các thành phần mới cần bổ sung
+
+## 9.1. Molecule Retriever
+Module mới để tìm kiếm các phân tử tương tự.
+
+### Input
+- SMILES đã được kiểm tra hợp lệ
+
+### Output
+- top-k phân tử tương tự
+- similarity score
+- label/property đã biết
+- metadata về nguồn hoặc task
+
+### File gợi ý
+- `services/molecule_retriever.py`
+
+---
+
+## 9.2. Fingerprint Service
+Phụ trách:
+- chuẩn hóa / canonicalize SMILES
+- tạo Morgan fingerprint
+- tính độ tương đồng giữa các phân tử
+
+### File gợi ý
+- `services/fingerprint_service.py`
+
+---
+
+## 9.3. Prompt Builder
+Dùng để tạo prompt theo kiểu MolRAG từ:
+- instruction của task
+- phân tử đầu vào
+- top-k phân tử retrieved
+- score + label
+- chiến lược suy luận được chọn
+
+### File gợi ý
+- `services/prompt_builder.py`
+
+---
+
+## 9.4. MolRAG Reasoner
+Gọi LLM và sinh ra:
+- dự đoán
+- chuỗi suy luận
+- phần giải thích có cấu trúc
+
+### File gợi ý
+- `agents/molrag_reasoner.py`
+
+---
+
+## 9.5. Result Fusion Layer
+Module tùy chọn để kết hợp:
+- score từ model hiện tại
+- kết quả reasoning của MolRAG
+- confidence / OOD warning
+
+### File gợi ý
+- `services/result_fusion.py`
+
+---
+
+## 10. Các thành phần hiện có nên tái sử dụng
+
+## 10.1. InputValidator Agent
+Giữ nguyên.  
+Agent này đã phù hợp để:
+- kiểm tra định dạng SMILES
+- chuẩn hóa đầu vào
+- loại bỏ input lỗi
+
+## 10.2. Screening Agent
+Giữ lại làm bộ dự đoán nền và mở rộng thêm MolRAG.
+
+Vai trò mới:
+- sinh ra kết quả dự đoán độc tính ban đầu
+- trả về attribution / confidence / OOD info
+- gọi retrieval + reasoning nếu bật MolRAG mode
+
+## 10.3. Researcher Agent
+Giữ lại làm module bổ sung tri thức bên ngoài.
+
+## 10.4. Writer Agent
+Mở rộng để hiển thị:
+- top-k similar molecules
+- similarity scores
+- reasoning summary
+- caveat / warning
+- final merged explanation
+
+## 10.5. Orchestrator Agent
+Là nơi điều phối:
+- baseline only
+- baseline + MolRAG
+- hybrid mode
+- fallback strategy
+
+---
+
+## 11. Các cách tích hợp khả thi
+
+## Option A — MVP theo hướng giải thích trước
+Dùng MolRAG chỉ để **giải thích** kết quả từ model hiện tại.
+
+### Flow
+- `Screening Agent` dự đoán
+- `Molecule Retriever` tìm các phân tử tương tự
+- `MolRAG Reasoner` giải thích dự đoán bằng các bằng chứng retrieved
+- `Writer Agent` tổng hợp tất cả
+
+### Ưu điểm
+- làm nhanh nhất
+- ít rủi ro nhất
+- dễ demo nhất
+
+### Nhược điểm
+- MolRAG chưa tham gia trực tiếp vào quyết định cuối cùng
+
+---
+
+## Option B — Dùng MolRAG làm đường dự đoán chính
+Dùng MolRAG làm bộ ra quyết định chính.
+
+### Flow
+- retrieve các phân tử tương tự
+- LLM suy luận theo prompt MolRAG
+- kết quả cuối chủ yếu đến từ MolRAG
+
+### Ưu điểm
+- sát bài báo nhất
+
+### Nhược điểm
+- rủi ro cao hơn
+- khó ổn định hơn
+- phụ thuộc mạnh vào chất lượng retrieval
+
+---
+
+## Option C — Mô hình hybrid
+Dùng đồng thời:
+- kết quả từ model nền
+- truy xuất + reasoning từ MolRAG
+
+Sau đó kết hợp hai nguồn để ra quyết định cuối.
+
+### Hướng tốt về lâu dài
+Đây có thể là kiến trúc mạnh nhất về sau,  
+nhưng **không nên là bước làm đầu tiên**.
+
+---
+
+## 12. Khuyến nghị chọn hướng nào
+
+## Khuyến nghị thực tế
+### Giai đoạn 1
+Chọn **Option A**
+- dùng MolRAG như evidence-backed reasoning
+- không cho override model nền
+
+### Giai đoạn 2
+Chuyển sang **Option C**
+- cho phép fusion giữa model nền và MolRAG
+- chỉ khi retrieval quality đủ tốt và output LLM đủ ổn định
+
+### Giai đoạn 3
+Mới cân nhắc **Option B**
+- chỉ khi đã có benchmark nội bộ rõ ràng
+
+---
+
+## 13. MVP nên làm trước
+
+## Nên xây bản đầu tiên như sau:
+1. chỉ hỗ trợ **một task**
+2. có **một database phân tử**
+3. có **top-k similarity retrieval**
+4. có **Sim-CoT prompt**
+5. có **LLM reasoning output**
+6. tích hợp vào **Writer/report**
+
+### Vì sao nên làm MVP như vậy
+Vì nó đủ để chứng minh:
+- retrieval hoạt động được
+- reasoning kiểu MolRAG có thể thêm vào
+- repo hiện tại vẫn ổn định
+- giao diện / báo cáo có thêm bằng chứng và logic rõ ràng hơn
+
+---
+
+## 14. Phạm vi nên chọn cho phiên bản đầu
+
+## Chỉ nên bắt đầu với một task
+Ví dụ:
+- Tox21 toxicity classification
+- một endpoint phân loại nhị phân
+- một assay classification cụ thể
+
+### Không nên làm ngay:
+- multi-task support
+- regression tasks
+- benchmark hóa học quá rộng
+- cơ chế override hoàn toàn kết quả model nền
+
+---
+
+## 15. Lớp dữ liệu cần chuẩn bị
+
+MolRAG không thể chạy tốt nếu không có retrieval database.
+
+## Các trường tối thiểu cần có
+Mỗi bản ghi phân tử nên gồm:
+- `canonical_smiles`
+- `fingerprint`
+- `label` hoặc `target_property`
+- `task_name`
+- `source_dataset`
+- metadata tùy chọn
+
+## Dạng lưu trữ khả thi
+- `.parquet`
+- `.csv` + cache fingerprint
+- SQLite nhẹ
+- JSON cho prototype ban đầu
+
+---
+
+## 16. Schema output nên có
+
+Để dễ tích hợp với repo hiện tại, nên chuẩn hóa output của MolRAG thành một object riêng.
+
+## Ví dụ schema
+```json
+{
+  "input_smiles": "...",
+  "baseline_prediction": {
+    "label": "Toxic",
+    "score": 0.81,
+    "confidence": 0.76,
+    "ood_flag": false
+  },
+  "molrag": {
+    "enabled": true,
+    "strategy": "sim_cot",
+    "retrieved_examples": [
+      {
+        "smiles": "...",
+        "similarity": 0.84,
+        "label": "Toxic",
+        "source": "tox21"
+      }
+    ],
+    "reasoning_summary": "...",
+    "suggested_label": "Toxic"
+  },
+  "fusion_result": {
+    "final_label": "Toxic",
+    "final_confidence": 0.79
+  }
+}
