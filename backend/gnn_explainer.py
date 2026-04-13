@@ -18,6 +18,7 @@ Key design choices:
 
 import pickle
 import random
+import re
 from types import SimpleNamespace
 from typing import Dict, List, Optional, Tuple
 
@@ -70,6 +71,16 @@ def _set_explainer_seed(seed: int = 42) -> None:
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+
+
+def _importance_to_rgb(
+    importance: float,
+    cmap_name: str = "RdYlGn_r",
+) -> Tuple[float, float, float]:
+    """Map normalized importance in [0, 1] to an RGB tuple."""
+    val = float(np.clip(importance, 0.0, 1.0))
+    r, g, b, _ = plt.get_cmap(cmap_name)(val)
+    return (r, g, b)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -681,6 +692,244 @@ def explain_tox21_task_gradient(
         "predicted_class": int(target_prob >= threshold),
         "true_label": None,
         "explainer_method": "gradient_saliency",
+    }
+
+
+_ATOM_TOKEN_PATTERN = re.compile(r"\[[^\]]+\]|Br|Cl|Si|Se|Na|Ca|Li|Mg|Zn|[A-Z][a-z]?|[cnopsb]")
+
+
+def _extract_atom_spans_from_smiles(smiles: str, num_atoms: int) -> List[Tuple[int, int]]:
+    """Best-effort token spans for atoms in SMILES text order."""
+    if num_atoms <= 0:
+        return []
+
+    spans: List[Tuple[int, int]] = []
+    for match in _ATOM_TOKEN_PATTERN.finditer(smiles):
+        if len(spans) >= num_atoms:
+            break
+        start, end = match.span()
+        if end > start:
+            spans.append((int(start), int(end)))
+
+    if len(spans) >= num_atoms:
+        return spans[:num_atoms]
+
+    # Fallback: split text evenly when regex misses uncommon atom encodings.
+    text_len = max(1, int(len(smiles)))
+    while len(spans) < num_atoms:
+        idx = len(spans)
+        start = int((idx * text_len) / num_atoms)
+        end = int(((idx + 1) * text_len) / num_atoms)
+        if end <= start:
+            end = min(text_len, start + 1)
+        spans.append((start, end))
+    return spans
+
+
+def _token_scores_to_atom_importance(
+    smiles: str,
+    num_atoms: int,
+    token_scores: np.ndarray,
+    offset_mapping: Optional[np.ndarray],
+) -> np.ndarray:
+    """Project token-level saliency to atom-level importance for visualization."""
+    atom_imp = np.zeros((max(0, int(num_atoms)),), dtype=np.float32)
+    if atom_imp.size == 0:
+        return atom_imp
+
+    scores = np.asarray(token_scores, dtype=np.float32).reshape(-1)
+    if scores.size == 0:
+        return atom_imp
+
+    if offset_mapping is not None and len(smiles) > 0:
+        offsets = np.asarray(offset_mapping)
+        if offsets.ndim == 2 and offsets.shape[1] == 2:
+            char_scores = np.zeros((len(smiles),), dtype=np.float32)
+            char_counts = np.zeros((len(smiles),), dtype=np.float32)
+
+            for tok_idx in range(min(len(scores), offsets.shape[0])):
+                start = int(max(0, offsets[tok_idx, 0]))
+                end = int(min(len(smiles), offsets[tok_idx, 1]))
+                if end <= start:
+                    continue
+                char_scores[start:end] += float(scores[tok_idx])
+                char_counts[start:end] += 1.0
+
+            observed = char_counts > 0
+            if np.any(observed):
+                char_scores[observed] = char_scores[observed] / char_counts[observed]
+
+            spans = _extract_atom_spans_from_smiles(smiles=smiles, num_atoms=num_atoms)
+            for atom_idx, (start, end) in enumerate(spans):
+                if start >= len(smiles):
+                    atom_imp[atom_idx] = 0.0
+                    continue
+                end = min(end, len(smiles))
+                if end <= start:
+                    atom_imp[atom_idx] = 0.0
+                    continue
+                segment = char_scores[start:end]
+                atom_imp[atom_idx] = float(np.mean(segment)) if segment.size > 0 else 0.0
+
+    if float(atom_imp.max()) <= 0.0:
+        # Fallback: interpolate token scores to atom count.
+        src = np.linspace(0.0, 1.0, num=max(1, scores.size), dtype=np.float32)
+        dst = np.linspace(0.0, 1.0, num=atom_imp.size, dtype=np.float32)
+        atom_imp = np.interp(dst, src, scores).astype(np.float32)
+
+    max_val = float(atom_imp.max())
+    if max_val > 0.0:
+        atom_imp = atom_imp / max_val
+
+    return atom_imp
+
+
+def explain_tox21_task_pretrained_dual_head_gradient(
+    smiles: str,
+    model: nn.Module,
+    tokenizer,
+    task_names: List[str],
+    target_task: str,
+    device: str = "cpu",
+    max_length: int = 128,
+    threshold: float = 0.5,
+) -> Dict:
+    """Explain one Tox21 task for pretrained dual-head transformer via gradient saliency."""
+    if target_task not in task_names:
+        raise ValueError(
+            f"target_task '{target_task}' not found in task_names: {task_names}"
+        )
+
+    task_idx = task_names.index(target_task)
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"Invalid SMILES: {smiles}")
+
+    target_device = torch.device(device)
+    original_device = next(model.parameters()).device
+    moved_model = original_device != target_device
+
+    try:
+        _set_explainer_seed(42)
+
+        if moved_model:
+            model.to(target_device)
+
+        model.eval()
+
+        offset_mapping = None
+        try:
+            enc = tokenizer(
+                smiles,
+                return_tensors="pt",
+                truncation=True,
+                max_length=int(max_length),
+                return_offsets_mapping=True,
+            )
+            offset_mapping = enc.pop("offset_mapping", None)
+        except Exception:
+            enc = tokenizer(
+                smiles,
+                return_tensors="pt",
+                truncation=True,
+                max_length=int(max_length),
+            )
+
+        input_ids = enc["input_ids"].to(target_device)
+        attention_mask = enc.get("attention_mask")
+        if attention_mask is not None:
+            attention_mask = attention_mask.to(target_device)
+
+        backbone = getattr(model, "backbone", None)
+        embeddings = getattr(getattr(backbone, "embeddings", None), "word_embeddings", None)
+        if backbone is None or embeddings is None:
+            raise ValueError("Dual-head backbone does not expose token embeddings for gradient explanation")
+
+        input_embeds = embeddings(input_ids).detach().clone().requires_grad_(True)
+        backbone_out = backbone(inputs_embeds=input_embeds, attention_mask=attention_mask)
+
+        if hasattr(model, "_get_cls"):
+            cls_repr = model._get_cls(backbone_out)
+        elif hasattr(backbone_out, "last_hidden_state"):
+            cls_repr = backbone_out.last_hidden_state[:, 0, :]
+        else:
+            raise RuntimeError("Cannot extract CLS representation from dual-head backbone output")
+
+        if hasattr(model, "dropout"):
+            cls_repr = model.dropout(cls_repr)
+
+        tox_logits = model.tox21_head(cls_repr)
+        if tox_logits.dim() == 1:
+            tox_logits = tox_logits.unsqueeze(0)
+
+        if task_idx >= int(tox_logits.size(1)):
+            raise ValueError(
+                f"task_idx {task_idx} out of bounds for logits shape {tuple(tox_logits.shape)}"
+            )
+
+        model.zero_grad(set_to_none=True)
+        tox_logits[0, task_idx].backward()
+
+        if input_embeds.grad is None:
+            raise RuntimeError("Dual-head gradient saliency failed to produce embedding gradients")
+
+        token_imp = input_embeds.grad.norm(dim=-1).detach().cpu().numpy().reshape(-1).astype(np.float32)
+        if token_imp.size > 0 and float(token_imp.max()) > 0.0:
+            token_imp = token_imp / float(token_imp.max())
+
+        offset_array = None
+        if offset_mapping is not None:
+            if hasattr(offset_mapping, "detach"):
+                offset_array = offset_mapping[0].detach().cpu().numpy()
+            else:
+                raw_offsets = offset_mapping[0] if isinstance(offset_mapping, (list, tuple)) else offset_mapping
+                offset_array = np.asarray(raw_offsets)
+
+        atom_imp = _token_scores_to_atom_importance(
+            smiles=smiles,
+            num_atoms=mol.GetNumAtoms(),
+            token_scores=token_imp,
+            offset_mapping=offset_array,
+        )
+
+        bond_imp_arr = np.array(
+            [
+                0.5
+                * (
+                    float(atom_imp[bond.GetBeginAtomIdx()])
+                    + float(atom_imp[bond.GetEndAtomIdx()])
+                )
+                for bond in mol.GetBonds()
+            ],
+            dtype=np.float32,
+        )
+        if bond_imp_arr.size > 0 and float(bond_imp_arr.max()) > 0.0:
+            bond_imp_arr = bond_imp_arr / float(bond_imp_arr.max())
+
+        probs = torch.sigmoid(tox_logits).squeeze(0).detach().cpu().numpy()
+    finally:
+        if moved_model:
+            model.to(original_device)
+        model.eval()
+
+    task_scores = {
+        task_name: float(probs[idx]) if idx < len(probs) else 0.0
+        for idx, task_name in enumerate(task_names)
+    }
+    target_prob = float(task_scores[target_task])
+
+    return {
+        "smiles": smiles,
+        "mol": mol,
+        "target_task": target_task,
+        "target_task_index": int(task_idx),
+        "task_scores": task_scores,
+        "atom_importance": atom_imp,
+        "bond_importance": bond_imp_arr,
+        "prediction_prob": target_prob,
+        "predicted_class": int(target_prob >= threshold),
+        "true_label": None,
+        "explainer_method": "dual_head_gradient_saliency",
     }
 
 
