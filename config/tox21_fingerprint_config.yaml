@@ -1,0 +1,18 @@
+model:
+  name: "XGBoostFingerprint"
+  nbits: 2048
+  radius: 2
+  n_estimators: 300
+  max_depth: 6
+  learning_rate: 0.1
+  subsample: 0.8
+  colsample_bytree: 0.8
+  num_tasks: 12
+
+data:
+  cache_dir: "data"
+  split_type: "scaffold"
+  seed: 42
+
+output:
+  model_dir: "models/tox21_fingerprint_model"
