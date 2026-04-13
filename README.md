@@ -28,6 +28,31 @@ Production web app: https://tox-agent.web.app
 ### Upgrade Note
 - If you have an old tab open, please hard refresh your browser to get the latest bundle.
 
+### Current 2-Head Model Ranking (Web Selectable)
+
+The following ranking covers the 2-head models currently exposed in the web UI model selectors
+(`Binary Toxicity Model` and `Toxicity Type Model`), ranked by `joint_auc_beta3`.
+
+Source of truth:
+- `models/dualhead_model_ranking.csv`
+- `frontend/src/app/components/hero-section.tsx`
+
+| Rank | Model key (web option value) | UI label (short) | joint_auc_beta3 |
+|---|---|---|---:|
+| 1 | `dualhead_ensemble6_simple` | Ensemble-6 Simple (Recommended) | 0.8467 |
+| 2 | `dualhead_ensemble3_weighted` | Ensemble-3 Weighted | 0.8466 |
+| 3 | `dualhead_ensemble3_simple` | Ensemble-3 Simple | 0.8455 |
+| 4 | `dualhead_ensemble5_simple` | Ensemble-5 Simple | 0.8451 |
+| 5 | `pretrained_2head_herg_molformer_model` | MolFormer Dual-Head (Full) | 0.8270 |
+| 6 | `pretrained_2head_herg_chemberta_model` | ChemBERTa Dual-Head (Full) | 0.8178 |
+| 7 | `pretrained_2head_herg_pubchem_model` | PubChem Dual-Head (Full) | 0.8133 |
+| 8 | `pretrained_2head_herg_pubchem_quick` | PubChem Dual-Head (Quick) | 0.7896 |
+| 9 | `pretrained_2head_herg_molformer_quick` | MolFormer Dual-Head (Quick) | 0.7746 |
+| 10 | `pretrained_2head_herg_chemberta_quick` | ChemBERTa Dual-Head (Quick) | 0.7725 |
+
+Legacy compatibility note:
+- `tox21_ensemble_3_best` is still available in the UI for backward compatibility and is served as the same ensemble spec as `dualhead_ensemble3_simple`.
+
 ---
 
 ## 2) ToxAgent Overview
