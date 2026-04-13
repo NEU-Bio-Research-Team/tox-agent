@@ -65,7 +65,7 @@ export function IndexPage() {
 
     try {
       const result = await agentAnalyze(smiles, {
-        language: preferences.language,
+        language: 'en',
         clinicalThreshold: preferences.clinicalThreshold,
         mechanismThreshold: preferences.mechanismThreshold,
         inferenceBackend: preferences.inferenceBackend,

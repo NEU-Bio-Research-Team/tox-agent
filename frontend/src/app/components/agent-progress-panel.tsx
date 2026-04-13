@@ -119,7 +119,7 @@ function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean)
       current.message =
         (callName && `Calling ${callName}...`) ||
         event.text_preview ||
-        (event.is_final ? 'Hoàn tất' : 'Đang xử lý...');
+        (event.is_final ? 'Completed' : 'Processing...');
 
       logs.push({
         time,
@@ -185,7 +185,7 @@ export function AgentProgressPanel({ isAnalyzing, events }: AgentProgressPanelPr
     >
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
-          Pipeline Phan Tich
+          Analysis Pipeline
         </h3>
       </div>
 

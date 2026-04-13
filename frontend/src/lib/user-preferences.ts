@@ -11,7 +11,7 @@ export interface UserPreferences {
 const STORAGE_KEY = 'toxagent:user-preferences:v1';
 
 const DEFAULTS: UserPreferences = {
-  language: 'vi',
+  language: 'en',
   clinicalThreshold: 0.35,
   mechanismThreshold: 0.5,
   inferenceBackend: 'xsmiles',
@@ -45,7 +45,7 @@ export function loadUserPreferences(): UserPreferences {
     if (!raw) return getDefaultPreferences();
 
     const parsed = JSON.parse(raw) as Partial<UserPreferences>;
-    const language = parsed.language === 'en' ? 'en' : 'vi';
+    const language = parsed.language === 'vi' ? 'vi' : 'en';
     return {
       language,
       clinicalThreshold: clampThreshold(Number(parsed.clinicalThreshold), DEFAULTS.clinicalThreshold),
@@ -59,7 +59,7 @@ export function loadUserPreferences(): UserPreferences {
 
 export function saveUserPreferences(prefs: UserPreferences): UserPreferences {
   const normalized: UserPreferences = {
-    language: prefs.language === 'en' ? 'en' : 'vi',
+    language: prefs.language === 'vi' ? 'vi' : 'en',
     clinicalThreshold: clampThreshold(prefs.clinicalThreshold, DEFAULTS.clinicalThreshold),
     mechanismThreshold: clampThreshold(prefs.mechanismThreshold, DEFAULTS.mechanismThreshold),
     inferenceBackend: normalizeInferenceBackend(prefs.inferenceBackend),

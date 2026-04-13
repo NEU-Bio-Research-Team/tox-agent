@@ -25,7 +25,7 @@ export function SettingsPage() {
 
   const handleReset = () => {
     resetPreferences();
-    setLanguage('vi');
+    setLanguage('en');
     setDefaultThreshold(0.35);
     setMechanismThreshold(0.5);
   };

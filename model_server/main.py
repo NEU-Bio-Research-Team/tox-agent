@@ -3431,11 +3431,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
         fallback_events: List[AgentEventRecord] = []
         if req.include_agent_events:
-            fallback_preview = (
-                f"Kich hoat fallback ADK: {cause}"
-                if language == "vi"
-                else f"ADK fallback activated: {cause}"
-            )
+            fallback_preview = f"ADK fallback activated: {cause}"
             fallback_events.append(
                 AgentEventRecord(
                     type="fallback",

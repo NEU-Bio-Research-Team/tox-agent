@@ -251,7 +251,7 @@ export async function agentAnalyze(
 	const payload = {
 		smiles,
 		include_agent_events: true,
-		language: options.language ?? 'vi',
+		language: options.language ?? 'en',
 		clinical_threshold: options.clinicalThreshold ?? 0.35,
 		mechanism_threshold: options.mechanismThreshold ?? 0.5,
 		max_literature_results: options.maxLiteratureResults ?? 5,
