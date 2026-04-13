@@ -130,11 +130,11 @@ class AnalyzeRequest(BaseModel):
     target_task: Optional[str] = None
     binary_tox_model: str = Field(
         default="pretrained_2head_herg_chemberta_model",
-        description="Model key for binary toxicity prediction (e.g. pretrained_2head_herg_chemberta_model, pretrained_2head_herg_molformer_model, tox21_ensemble_3_best)",
+        description="Model key for binary toxicity prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, pretrained_2head_herg_chemberta_model)",
     )
     tox_type_model: str = Field(
         default="tox21_ensemble_3_best",
-        description="Model key for toxicity-type prediction (e.g. tox21_gatv2_model, tox21_pretrained_gin_model, tox21_ensemble_3_best)",
+        description="Model key for toxicity-type prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, tox21_pretrained_gin_model, tox21_gatv2_model)",
     )
 
 
@@ -189,11 +189,11 @@ class AgentAnalyzeRequest(BaseModel):
     )
     binary_tox_model: str = Field(
         default="pretrained_2head_herg_chemberta_model",
-        description="Model key for binary toxicity prediction (e.g. pretrained_2head_herg_chemberta_model, pretrained_2head_herg_molformer_model, tox21_ensemble_3_best)",
+        description="Model key for binary toxicity prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, pretrained_2head_herg_chemberta_model)",
     )
     tox_type_model: str = Field(
         default="tox21_ensemble_3_best",
-        description="Model key for toxicity-type prediction (e.g. tox21_gatv2_model, tox21_pretrained_gin_model, tox21_ensemble_3_best)",
+        description="Model key for toxicity-type prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, tox21_pretrained_gin_model, tox21_gatv2_model)",
     )
     include_agent_events: bool = Field(
         default=True,

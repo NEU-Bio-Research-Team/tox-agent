@@ -19,6 +19,7 @@ import io
 import json
 import logging
 import os
+import pickle
 import re
 import threading
 import uuid
@@ -29,6 +30,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch 
+import yaml
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -88,11 +90,15 @@ from backend.inference import (
     predict_toxicity_mechanism,
 )
 from backend.ood_guard import check_ood_risk
-from backend.graph_data import smiles_to_pyg_data
+from backend.graph_data import get_feature_dims, smiles_to_pyg_data
+from backend.attentivefp_model import create_attentivefp_model
+from backend.gps_model import create_gps_model
+from backend.featurization import featurize_fingerprint
 from backend.gnn_explainer import (
     explain_molecule,
     explain_tox21_task,
     explain_tox21_task_gradient,
+    explain_tox21_task_pretrained_dual_head_gradient,
     explain_tox21_task_pretrained_gin,
     visualize_explanation,
 )
@@ -121,6 +127,10 @@ CONFIG_PATH = PROJECT_ROOT / "config" / "smilesgnn_config.yaml"
 TOX21_MODEL_DIR = MODELS_ROOT / "tox21_gatv2_model"
 TOX21_CONFIG_PATH = PROJECT_ROOT / "config" / "tox21_gatv2_config.yaml"
 TOX21_PRETRAINED_GIN_MODEL_DIR = MODELS_ROOT / "tox21_pretrained_gin_model"
+TOX21_ATTENTIVEFP_MODEL_DIR = MODELS_ROOT / "tox21_attentivefp_model"
+TOX21_GPS_MODEL_DIR = MODELS_ROOT / "tox21_gps_model"
+TOX21_FINGERPRINT_MODEL_DIR = MODELS_ROOT / "tox21_fingerprint_model"
+TOX21_FINGERPRINT_CONFIG_PATH = PROJECT_ROOT / "config" / "tox21_fingerprint_config.yaml"
 CLINICAL_HEAD_MODEL_DIR = MODELS_ROOT / "clinical_head_model"
 CLINICAL_METRICS_PATH = MODEL_DIR / "smilesgnn_model_metrics.txt"
 CLINICAL_THRESHOLD_METRICS_PATH = MODEL_DIR / "clinical_threshold_metrics.json"
@@ -147,34 +157,133 @@ DEFAULT_BINARY_TOX_MODEL_KEY = "pretrained_2head_herg_chemberta_model"
 DEFAULT_TOX_TYPE_MODEL_KEY = "tox21_ensemble_3_best"
 
 TOX21_PRETRAINED_GIN_MODEL_KEY = "tox21_pretrained_gin_model"
+TOX21_ATTENTIVEFP_MODEL_KEY = "tox21_attentivefp_model"
+TOX21_GPS_MODEL_KEY = "tox21_gps_model"
+TOX21_FINGERPRINT_MODEL_KEY = "tox21_fingerprint_model"
+
 TOX21_ENSEMBLE_3_BEST_MODEL_KEY = "tox21_ensemble_3_best"
-TOX21_ENSEMBLE_3_BEST_MEMBERS: List[str] = [
+DUALHEAD_ENSEMBLE3_SIMPLE_MODEL_KEY = "dualhead_ensemble3_simple"
+DUALHEAD_ENSEMBLE3_WEIGHTED_MODEL_KEY = "dualhead_ensemble3_weighted"
+DUALHEAD_ENSEMBLE5_SIMPLE_MODEL_KEY = "dualhead_ensemble5_simple"
+DUALHEAD_ENSEMBLE6_SIMPLE_MODEL_KEY = "dualhead_ensemble6_simple"
+
+TOX21_TASK_NAMES_FALLBACK: List[str] = [
+    "NR-AR",
+    "NR-AR-LBD",
+    "NR-AhR",
+    "NR-Aromatase",
+    "NR-ER",
+    "NR-ER-LBD",
+    "NR-PPAR-gamma",
+    "SR-ARE",
+    "SR-ATAD5",
+    "SR-HSE",
+    "SR-MMP",
+    "SR-p53",
+]
+
+DUALHEAD_ENSEMBLE_HERG_MEMBERS_DEFAULT: List[str] = [
+    "pretrained_2head_herg_chemberta_model",
+    "pretrained_2head_herg_molformer_model",
+]
+DUALHEAD_ENSEMBLE3_TOX_MEMBERS: List[str] = [
     "pretrained_2head_herg_chemberta_model",
     "pretrained_2head_herg_molformer_model",
     TOX21_PRETRAINED_GIN_MODEL_KEY,
 ]
-TOX21_ENSEMBLE_3_BEST_EXPLAINER_KEY = TOX21_PRETRAINED_GIN_MODEL_KEY
-BINARY_ENSEMBLE_TOX_MODEL_KEY = TOX21_ENSEMBLE_3_BEST_MODEL_KEY
-BINARY_ENSEMBLE_3_BEST_MEMBERS: List[str] = [
+DUALHEAD_ENSEMBLE5_TOX_MEMBERS: List[str] = [
     "pretrained_2head_herg_chemberta_model",
     "pretrained_2head_herg_molformer_model",
+    TOX21_ATTENTIVEFP_MODEL_KEY,
+    TOX21_FINGERPRINT_MODEL_KEY,
+    TOX21_GPS_MODEL_KEY,
 ]
+DUALHEAD_ENSEMBLE6_TOX_MEMBERS: List[str] = [
+    "pretrained_2head_herg_chemberta_model",
+    "pretrained_2head_herg_molformer_model",
+    TOX21_ATTENTIVEFP_MODEL_KEY,
+    TOX21_FINGERPRINT_MODEL_KEY,
+    TOX21_GPS_MODEL_KEY,
+    TOX21_PRETRAINED_GIN_MODEL_KEY,
+]
+
+_DUALHEAD_ENSEMBLE_3_SIMPLE_SPEC: Dict[str, Any] = {
+    "model_dir": MODELS_ROOT / "dualhead_ensemble3",
+    "clinical_mode": "simple",
+    "mechanism_mode": "simple",
+    "clinical_members": list(DUALHEAD_ENSEMBLE_HERG_MEMBERS_DEFAULT),
+    "mechanism_members": list(DUALHEAD_ENSEMBLE3_TOX_MEMBERS),
+    "explainer_engine": TOX21_PRETRAINED_GIN_MODEL_KEY,
+}
+
+DUALHEAD_ENSEMBLE_MODEL_SPECS: Dict[str, Dict[str, Any]] = {
+    DUALHEAD_ENSEMBLE3_SIMPLE_MODEL_KEY: dict(_DUALHEAD_ENSEMBLE_3_SIMPLE_SPEC),
+    TOX21_ENSEMBLE_3_BEST_MODEL_KEY: dict(_DUALHEAD_ENSEMBLE_3_SIMPLE_SPEC),
+    DUALHEAD_ENSEMBLE3_WEIGHTED_MODEL_KEY: {
+        "model_dir": MODELS_ROOT / "dualhead_weighted_ensemble3",
+        "clinical_mode": "weighted",
+        "mechanism_mode": "taskwise_weighted",
+        "clinical_members": list(DUALHEAD_ENSEMBLE_HERG_MEMBERS_DEFAULT),
+        "mechanism_members": list(DUALHEAD_ENSEMBLE3_TOX_MEMBERS),
+        "weights_path": MODELS_ROOT / "dualhead_weighted_ensemble3" / "dualhead_metrics.json",
+        "explainer_engine": TOX21_PRETRAINED_GIN_MODEL_KEY,
+    },
+    DUALHEAD_ENSEMBLE5_SIMPLE_MODEL_KEY: {
+        "model_dir": MODELS_ROOT / "dualhead_ensemble5",
+        "clinical_mode": "simple",
+        "mechanism_mode": "simple",
+        "clinical_members": list(DUALHEAD_ENSEMBLE_HERG_MEMBERS_DEFAULT),
+        "mechanism_members": list(DUALHEAD_ENSEMBLE5_TOX_MEMBERS),
+        "explainer_engine": "pretrained_2head_herg_molformer_model",
+    },
+    DUALHEAD_ENSEMBLE6_SIMPLE_MODEL_KEY: {
+        "model_dir": MODELS_ROOT / "dualhead_ensemble6",
+        "clinical_mode": "simple",
+        "mechanism_mode": "simple",
+        "clinical_members": list(DUALHEAD_ENSEMBLE_HERG_MEMBERS_DEFAULT),
+        "mechanism_members": list(DUALHEAD_ENSEMBLE6_TOX_MEMBERS),
+        "explainer_engine": TOX21_PRETRAINED_GIN_MODEL_KEY,
+    },
+}
+
+ENSEMBLE_BINARY_MODEL_KEYS = set(DUALHEAD_ENSEMBLE_MODEL_SPECS.keys())
+ENSEMBLE_TOX_TYPE_MODEL_KEYS = set(DUALHEAD_ENSEMBLE_MODEL_SPECS.keys())
+
+AUX_TOX21_MEMBER_MODEL_DIRS: Dict[str, Path] = {
+    TOX21_ATTENTIVEFP_MODEL_KEY: TOX21_ATTENTIVEFP_MODEL_DIR,
+    TOX21_GPS_MODEL_KEY: TOX21_GPS_MODEL_DIR,
+    TOX21_FINGERPRINT_MODEL_KEY: TOX21_FINGERPRINT_MODEL_DIR,
+}
+
+TOX21_ENSEMBLE_3_BEST_EXPLAINER_KEY = TOX21_PRETRAINED_GIN_MODEL_KEY
+BINARY_ENSEMBLE_TOX_MODEL_KEY = TOX21_ENSEMBLE_3_BEST_MODEL_KEY
+BINARY_ENSEMBLE_3_BEST_MEMBERS: List[str] = list(DUALHEAD_ENSEMBLE_HERG_MEMBERS_DEFAULT)
+
+TOX21_ENSEMBLE_3_BEST_MEMBERS: List[str] = list(DUALHEAD_ENSEMBLE3_TOX_MEMBERS)
 
 DUAL_HEAD_MODEL_DIRS: Dict[str, Path] = {
     "pretrained_2head_herg_chemberta_model": MODELS_ROOT / "pretrained_2head_herg_chemberta_model",
     "pretrained_2head_herg_chemberta_quick": MODELS_ROOT / "pretrained_2head_herg_chemberta_quick",
     "pretrained_2head_herg_molformer_model": MODELS_ROOT / "pretrained_2head_herg_molformer_model",
     "pretrained_2head_herg_molformer_quick": MODELS_ROOT / "pretrained_2head_herg_molformer_quick",
+    "pretrained_2head_herg_pubchem_model": MODELS_ROOT / "pretrained_2head_herg_pubchem_model",
+    "pretrained_2head_herg_pubchem_quick": MODELS_ROOT / "pretrained_2head_herg_pubchem_quick",
 }
 
 TOX_TYPE_MODEL_DIRS: Dict[str, Path] = {
     "tox21_gatv2_model": TOX21_MODEL_DIR,
     TOX21_PRETRAINED_GIN_MODEL_KEY: TOX21_PRETRAINED_GIN_MODEL_DIR,
-    TOX21_ENSEMBLE_3_BEST_MODEL_KEY: TOX21_PRETRAINED_GIN_MODEL_DIR,
+    TOX21_ENSEMBLE_3_BEST_MODEL_KEY: MODELS_ROOT / "dualhead_ensemble3",
+    DUALHEAD_ENSEMBLE3_SIMPLE_MODEL_KEY: MODELS_ROOT / "dualhead_ensemble3",
+    DUALHEAD_ENSEMBLE3_WEIGHTED_MODEL_KEY: MODELS_ROOT / "dualhead_weighted_ensemble3",
+    DUALHEAD_ENSEMBLE5_SIMPLE_MODEL_KEY: MODELS_ROOT / "dualhead_ensemble5",
+    DUALHEAD_ENSEMBLE6_SIMPLE_MODEL_KEY: MODELS_ROOT / "dualhead_ensemble6",
     "pretrained_2head_herg_chemberta_model": MODELS_ROOT / "pretrained_2head_herg_chemberta_model",
     "pretrained_2head_herg_chemberta_quick": MODELS_ROOT / "pretrained_2head_herg_chemberta_quick",
     "pretrained_2head_herg_molformer_model": MODELS_ROOT / "pretrained_2head_herg_molformer_model",
     "pretrained_2head_herg_molformer_quick": MODELS_ROOT / "pretrained_2head_herg_molformer_quick",
+    "pretrained_2head_herg_pubchem_model": MODELS_ROOT / "pretrained_2head_herg_pubchem_model",
+    "pretrained_2head_herg_pubchem_quick": MODELS_ROOT / "pretrained_2head_herg_pubchem_quick",
 }
 INFERENCE_BACKEND_ALIASES = {
     "xsmiles": "xsmiles",
@@ -294,6 +403,8 @@ def _clear_loaded_models() -> None:
         "clinical_head_meta",
         "clinical_reference_metrics",
         "pretrained_dual_head_bundles",
+        "tox21_aux_member_bundles",
+        "ensemble_weight_payloads",
     ):
         model_state.pop(key, None)
 
@@ -307,6 +418,8 @@ def _initialize_runtime_state() -> None:
     model_state.setdefault("startup_errors", {})
     model_state.setdefault("clinical_reference_metrics", {})
     model_state.setdefault("pretrained_dual_head_bundles", {})
+    model_state.setdefault("tox21_aux_member_bundles", {})
+    model_state.setdefault("ensemble_weight_payloads", {})
     model_state.setdefault("models_loaded", False)
 
 
@@ -1257,18 +1370,638 @@ def _is_pretrained_gin_model_key(model_key: str) -> bool:
 
 
 def _is_ensemble_tox_type_model_key(model_key: str) -> bool:
-    return model_key == TOX21_ENSEMBLE_3_BEST_MODEL_KEY
+    return model_key in ENSEMBLE_TOX_TYPE_MODEL_KEYS
 
 
 def _is_ensemble_binary_model_key(model_key: str) -> bool:
-    return model_key == BINARY_ENSEMBLE_TOX_MODEL_KEY
+    return model_key in ENSEMBLE_BINARY_MODEL_KEYS
+
+
+def _get_tox21_task_names() -> List[str]:
+    task_names = list(model_state.get("tox21_tasks") or [])
+    if task_names:
+        return task_names
+    return list(TOX21_TASK_NAMES_FALLBACK)
+
+
+def _get_ensemble_spec(model_key: str) -> Optional[Dict[str, Any]]:
+    spec = DUALHEAD_ENSEMBLE_MODEL_SPECS.get(str(model_key or "").strip())
+    if spec is None:
+        return None
+    return dict(spec)
+
+
+def _load_ensemble_weight_payload(model_key: str) -> Dict[str, Any]:
+    payload_cache = model_state.setdefault("ensemble_weight_payloads", {})
+    cache_key = str(model_key or "").strip()
+    if cache_key in payload_cache:
+        cached = payload_cache.get(cache_key)
+        return dict(cached) if isinstance(cached, dict) else {}
+
+    spec = _get_ensemble_spec(cache_key)
+    if not spec:
+        payload_cache[cache_key] = {}
+        return {}
+
+    weights_path = spec.get("weights_path")
+    if not isinstance(weights_path, Path) or not weights_path.exists():
+        payload_cache[cache_key] = {}
+        return {}
+
+    try:
+        with open(weights_path, "r") as f:
+            raw = json.load(f)
+    except Exception:
+        payload_cache[cache_key] = {}
+        return {}
+
+    weights_payload = dict(raw.get("weights") or {}) if isinstance(raw, dict) else {}
+    payload_cache[cache_key] = weights_payload
+    return dict(weights_payload)
+
+
+def _load_aux_tox21_member_bundle_sync(model_key: str) -> Dict[str, Any]:
+    resolved_key = str(model_key or "").strip()
+    if resolved_key not in AUX_TOX21_MEMBER_MODEL_DIRS:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_tox21_member_model",
+                "message": f"Unsupported auxiliary tox21 member model: {resolved_key}",
+            },
+        )
+
+    bundles = model_state.setdefault("tox21_aux_member_bundles", {})
+    cache_key = f"aux_tox21::{resolved_key}"
+    if cache_key in bundles:
+        return bundles[cache_key]
+
+    model_dir = AUX_TOX21_MEMBER_MODEL_DIRS[resolved_key]
+    startup_key = f"aux_tox21_{resolved_key}"
+
+    if not model_dir.exists():
+        detail = f"Model directory not found: {model_dir}"
+        model_state.setdefault("startup_errors", {})[startup_key] = detail
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "model_not_ready",
+                "feature": startup_key,
+                "workspace_mode": WORKSPACE_MODE_NAME,
+                "message": detail,
+            },
+        )
+
+    try:
+        if resolved_key == TOX21_FINGERPRINT_MODEL_KEY:
+            n_bits = 2048
+            radius = 2
+            if TOX21_FINGERPRINT_CONFIG_PATH.exists():
+                with open(TOX21_FINGERPRINT_CONFIG_PATH, "r") as f:
+                    cfg = yaml.safe_load(f) or {}
+                mc = dict(cfg.get("model") or {})
+                n_bits = int(mc.get("nbits", n_bits))
+                radius = int(mc.get("radius", radius))
+
+            task_names = list(_get_tox21_task_names())
+            estimators: Dict[str, Any] = {}
+            model_subdir = model_dir / "models"
+            for task in task_names:
+                model_path = model_subdir / f"{task}.pkl"
+                if not model_path.exists():
+                    continue
+                with open(model_path, "rb") as f:
+                    estimators[task] = pickle.load(f)
+
+            if not estimators:
+                raise FileNotFoundError(f"No fingerprint estimators found in {model_subdir}")
+
+            bundle = {
+                "kind": "fingerprint",
+                "model_key": resolved_key,
+                "task_names": task_names,
+                "estimators": estimators,
+                "n_bits": int(n_bits),
+                "radius": int(radius),
+                "model_dir": str(model_dir),
+            }
+        else:
+            config_path = model_dir / "config.yaml"
+            ckpt_path = model_dir / "best_model.pt"
+            if not config_path.exists() or not ckpt_path.exists():
+                missing = []
+                if not config_path.exists():
+                    missing.append(str(config_path))
+                if not ckpt_path.exists():
+                    missing.append(str(ckpt_path))
+                raise FileNotFoundError("Missing artifacts: " + ", ".join(missing))
+
+            with open(config_path, "r") as f:
+                cfg = yaml.safe_load(f) or {}
+            mc = dict(cfg.get("model") or {})
+
+            node_feat_dim, edge_feat_dim = get_feature_dims()
+            num_tasks = int(mc.get("num_tasks", len(_get_tox21_task_names())))
+
+            if resolved_key == TOX21_ATTENTIVEFP_MODEL_KEY:
+                model = create_attentivefp_model(
+                    node_feat_dim=node_feat_dim,
+                    edge_feat_dim=edge_feat_dim,
+                    hidden_channels=int(mc.get("hidden_channels", 200)),
+                    num_layers=int(mc.get("num_layers", 2)),
+                    num_timesteps=int(mc.get("num_timesteps", 2)),
+                    dropout=float(mc.get("dropout", 0.2)),
+                    num_tasks=int(num_tasks),
+                )
+            elif resolved_key == TOX21_GPS_MODEL_KEY:
+                model = create_gps_model(
+                    node_feat_dim=node_feat_dim,
+                    edge_feat_dim=edge_feat_dim,
+                    hidden_channels=int(mc.get("hidden_channels", 128)),
+                    num_layers=int(mc.get("num_layers", 4)),
+                    heads=int(mc.get("heads", 4)),
+                    dropout=float(mc.get("dropout", 0.2)),
+                    num_tasks=int(num_tasks),
+                )
+            else:
+                raise ValueError(f"Unsupported auxiliary graph member: {resolved_key}")
+
+            checkpoint = torch.load(ckpt_path, map_location=DEVICE)
+            state_dict = (
+                checkpoint["model_state_dict"]
+                if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint
+                else checkpoint
+            )
+            model.load_state_dict(state_dict)
+            model.to(DEVICE)
+            model.eval()
+
+            task_names = list(_get_tox21_task_names())
+            if num_tasks != len(task_names):
+                if num_tasks <= len(task_names):
+                    task_names = task_names[:num_tasks]
+                else:
+                    task_names = [f"task_{idx}" for idx in range(num_tasks)]
+
+            bundle = {
+                "kind": "graph",
+                "model_key": resolved_key,
+                "task_names": task_names,
+                "model": model,
+                "model_dir": str(model_dir),
+            }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        msg = f"{type(exc).__name__}: {exc}"
+        model_state.setdefault("startup_errors", {})[startup_key] = msg
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "model_not_ready",
+                "feature": startup_key,
+                "workspace_mode": WORKSPACE_MODE_NAME,
+                "message": f"Failed loading auxiliary tox21 member '{resolved_key}'.",
+                "startup_error": msg,
+            },
+        )
+
+    bundles[cache_key] = bundle
+    model_state.get("startup_errors", {}).pop(startup_key, None)
+    return bundle
+
+
+def _member_score_from_estimator(estimator: Any, features: np.ndarray) -> float:
+    if estimator is None:
+        return float("nan")
+
+    if hasattr(estimator, "predict_proba"):
+        probs = estimator.predict_proba(features)
+        arr = np.asarray(probs, dtype=np.float32).reshape(-1)
+        if arr.size >= 2:
+            return float(arr[1])
+        if arr.size == 1:
+            return float(arr[0])
+
+    if hasattr(estimator, "decision_function"):
+        raw = np.asarray(estimator.decision_function(features), dtype=np.float32).reshape(-1)
+        if raw.size:
+            return float(1.0 / (1.0 + np.exp(-raw[0])))
+
+    pred = np.asarray(estimator.predict(features), dtype=np.float32).reshape(-1)
+    if pred.size:
+        return float(pred[0])
+
+    return float("nan")
+
+
+def _predict_aux_tox21_member_mechanism_sync(
+    smiles: str,
+    model_key: str,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    bundle = _load_aux_tox21_member_bundle_sync(model_key)
+    task_names = list(bundle.get("task_names") or _get_tox21_task_names())
+    threshold_map = {task: float(mechanism_threshold) for task in task_names}
+
+    if bundle.get("kind") == "fingerprint":
+        n_bits = int(bundle.get("n_bits", 2048))
+        radius = int(bundle.get("radius", 2))
+        fp = featurize_fingerprint(smiles=smiles, radius=radius, n_bits=n_bits).reshape(1, -1)
+
+        estimators = dict(bundle.get("estimators") or {})
+        probs = np.array(
+            [_member_score_from_estimator(estimators.get(task), fp) for task in task_names],
+            dtype=np.float32,
+        )
+    else:
+        data = smiles_to_pyg_data(smiles, label=None)
+        if data is None:
+            probs = np.full((len(task_names),), np.nan, dtype=np.float32)
+        else:
+            model = bundle["model"]
+            data = data.to(DEVICE)
+            batch = torch.zeros(data.num_nodes, dtype=torch.long, device=DEVICE)
+            with torch.no_grad():
+                logits = model(data.x, data.edge_index, data.edge_attr, batch)
+                if logits.dim() == 1:
+                    logits = logits.unsqueeze(0)
+                probs = torch.sigmoid(logits).squeeze(0).detach().cpu().numpy().astype(np.float32)
+
+            if probs.shape[0] != len(task_names):
+                if probs.shape[0] < len(task_names):
+                    padded = np.full((len(task_names),), np.nan, dtype=np.float32)
+                    padded[: probs.shape[0]] = probs
+                    probs = padded
+                else:
+                    probs = probs[: len(task_names)]
+
+    task_scores = {
+        task: float(probs[idx]) if np.isfinite(probs[idx]) else float("nan")
+        for idx, task in enumerate(task_names)
+    }
+    active_tasks = [
+        task
+        for idx, task in enumerate(task_names)
+        if np.isfinite(probs[idx]) and float(probs[idx]) >= float(mechanism_threshold)
+    ]
+
+    if np.any(np.isfinite(probs)):
+        safe_probs = np.where(np.isfinite(probs), probs, -np.inf)
+        top_idx = int(np.argmax(safe_probs))
+        highest_risk_task = str(task_names[top_idx])
+        highest_risk_score = float(probs[top_idx]) if np.isfinite(probs[top_idx]) else 0.0
+    else:
+        highest_risk_task = "—"
+        highest_risk_score = 0.0
+
+    return {
+        "task_scores": task_scores,
+        "active_tasks": active_tasks,
+        "highest_risk_task": highest_risk_task,
+        "highest_risk_score": highest_risk_score,
+        "assay_hits": int(len(active_tasks)),
+        "mechanistic_alert": bool(len(active_tasks) > 0),
+        "threshold_used": float(mechanism_threshold),
+        "task_thresholds": threshold_map,
+        "source": str(model_key),
+    }
+
+
+def _predict_tox21_member_mechanism_sync(
+    smiles: str,
+    member_key: str,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    if _is_pretrained_gin_model_key(member_key):
+        gin_bundle = _load_pretrained_gin_bundle_sync(member_key)
+        outputs = predict_pretrained_gin_tox21_outputs(
+            smiles_list=[smiles],
+            model=gin_bundle["model"],
+            task_names=list(gin_bundle.get("task_names") or _get_tox21_task_names()),
+            device=DEVICE,
+            mechanism_threshold=float(mechanism_threshold),
+            task_thresholds=gin_bundle.get("tox21_thresholds"),
+            batch_size=32,
+            source_name=_pretrained_gin_model_source_name(member_key),
+        )
+        return dict(outputs[0].get("mechanism") or {})
+
+    if _is_dual_head_model_key(member_key):
+        member_bundle = _load_dual_head_bundle_sync(member_key)
+        outputs = predict_pretrained_dual_head_outputs(
+            smiles_list=[smiles],
+            model=member_bundle["model"],
+            tokenizer=member_bundle["tokenizer"],
+            task_names=list(member_bundle.get("task_names") or _get_tox21_task_names()),
+            device=DEVICE,
+            clinical_threshold=0.5,
+            mechanism_threshold=float(mechanism_threshold),
+            task_thresholds=member_bundle.get("tox21_thresholds"),
+            max_length=int(member_bundle.get("max_length", 128)),
+            batch_size=32,
+            source_name=_pretrained_model_source_name(member_key),
+        )
+        return dict(outputs[0].get("mechanism") or {})
+
+    if member_key in AUX_TOX21_MEMBER_MODEL_DIRS:
+        try:
+            return _predict_aux_tox21_member_mechanism_sync(
+                smiles=smiles,
+                model_key=member_key,
+                mechanism_threshold=float(mechanism_threshold),
+            )
+        except HTTPException as exc:
+            logger.warning(
+                "Skipping auxiliary tox21 ensemble member '%s' due to load/inference error: %s",
+                member_key,
+                exc.detail,
+            )
+            task_names = _get_tox21_task_names()
+            return {
+                "task_scores": {task: float("nan") for task in task_names},
+                "active_tasks": [],
+                "highest_risk_task": "—",
+                "highest_risk_score": 0.0,
+                "assay_hits": 0,
+                "mechanistic_alert": False,
+                "threshold_used": float(mechanism_threshold),
+                "task_thresholds": {
+                    task: float(mechanism_threshold)
+                    for task in task_names
+                },
+                "source": f"{member_key}:unavailable",
+            }
+
+    if member_key == "tox21_gatv2_model":
+        if TOX21_ENABLED and _tox21_ready():
+            return predict_toxicity_mechanism(
+                smiles=smiles,
+                model=model_state["tox21_model"],
+                task_names=model_state["tox21_tasks"],
+                device=DEVICE,
+                threshold=float(mechanism_threshold),
+                task_thresholds=model_state.get("tox21_thresholds"),
+                batch_size=64,
+            )
+        return _fallback_mechanism_result(float(mechanism_threshold))
+
+    return _fallback_mechanism_result(float(mechanism_threshold))
+
+
+def _blend_member_scores_simple(member_scores: List[np.ndarray]) -> np.ndarray:
+    stacked = np.stack(member_scores, axis=0)
+    valid_counts = np.sum(np.isfinite(stacked), axis=0)
+    sums = np.nansum(stacked, axis=0)
+    out = (sums / np.maximum(valid_counts, 1)).astype(np.float32)
+    out = np.where(valid_counts > 0, out, 0.5)
+    return out
+
+
+def _blend_member_scores_weighted(
+    member_scores: List[np.ndarray],
+    member_weights: np.ndarray,
+) -> np.ndarray:
+    stacked = np.stack(member_scores, axis=0)
+    weights = np.asarray(member_weights, dtype=np.float32).reshape(-1)
+    if weights.size != stacked.shape[0]:
+        return _blend_member_scores_simple(member_scores)
+
+    weights = np.where(np.isfinite(weights) & (weights > 0.0), weights, 0.0)
+    out = np.zeros((stacked.shape[1],), dtype=np.float32)
+    for col in range(stacked.shape[1]):
+        vals = stacked[:, col]
+        mask = np.isfinite(vals)
+        if not np.any(mask):
+            out[col] = 0.5
+            continue
+        w = weights[mask]
+        if float(w.sum()) <= 0.0:
+            out[col] = float(np.mean(vals[mask]))
+            continue
+        out[col] = float(np.sum(vals[mask] * w) / np.sum(w))
+    return out
+
+
+def _blend_member_scores_taskwise(
+    member_scores: List[np.ndarray],
+    taskwise_weights: np.ndarray,
+) -> np.ndarray:
+    stacked = np.stack(member_scores, axis=0)
+    weights = np.asarray(taskwise_weights, dtype=np.float32)
+    if weights.ndim != 2:
+        return _blend_member_scores_simple(member_scores)
+
+    if weights.shape[0] != stacked.shape[1] or weights.shape[1] != stacked.shape[0]:
+        return _blend_member_scores_simple(member_scores)
+
+    out = np.zeros((stacked.shape[1],), dtype=np.float32)
+    for task_idx in range(stacked.shape[1]):
+        vals = stacked[:, task_idx]
+        mask = np.isfinite(vals)
+        if not np.any(mask):
+            out[task_idx] = 0.5
+            continue
+        w = np.where(np.isfinite(weights[task_idx]) & (weights[task_idx] > 0.0), weights[task_idx], 0.0)
+        w = w[mask]
+        if float(w.sum()) <= 0.0:
+            out[task_idx] = float(np.mean(vals[mask]))
+            continue
+        out[task_idx] = float(np.sum(vals[mask] * w) / np.sum(w))
+    return out
+
+
+def _predict_ensemble_mechanism_sync(
+    model_key: str,
+    smiles: str,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    spec = _get_ensemble_spec(model_key)
+    if not spec:
+        return _fallback_mechanism_result(float(mechanism_threshold))
+
+    task_names = list(_get_tox21_task_names())
+    member_keys = list(spec.get("mechanism_members") or [])
+
+    member_scores: List[np.ndarray] = []
+    member_sources: List[str] = []
+
+    for member_key in member_keys:
+        mechanism = _predict_tox21_member_mechanism_sync(
+            smiles=smiles,
+            member_key=str(member_key),
+            mechanism_threshold=float(mechanism_threshold),
+        )
+        scores = dict(mechanism.get("task_scores") or {})
+        score_vec = np.array(
+            [float(scores.get(task, np.nan)) for task in task_names],
+            dtype=np.float32,
+        )
+        member_scores.append(score_vec)
+        member_sources.append(str(mechanism.get("source") or member_key))
+
+    if not member_scores:
+        return _fallback_mechanism_result(threshold=float(mechanism_threshold))
+
+    mechanism_mode = str(spec.get("mechanism_mode", "simple"))
+    if mechanism_mode == "taskwise_weighted":
+        weights_payload = _load_ensemble_weight_payload(model_key)
+        raw_taskwise_weights = np.asarray(weights_payload.get("tox21_taskwise_weights") or [], dtype=np.float32)
+        raw_members = list(weights_payload.get("tox21_members") or [])
+
+        if raw_taskwise_weights.ndim == 2 and raw_members and raw_taskwise_weights.shape[1] == len(raw_members):
+            aligned = np.zeros((raw_taskwise_weights.shape[0], len(member_keys)), dtype=np.float32)
+            for idx, member in enumerate(member_keys):
+                if member in raw_members:
+                    aligned[:, idx] = raw_taskwise_weights[:, raw_members.index(member)]
+            raw_taskwise_weights = aligned
+
+        mean_scores = _blend_member_scores_taskwise(member_scores, raw_taskwise_weights)
+    else:
+        mean_scores = _blend_member_scores_simple(member_scores)
+
+    threshold_map = {
+        task_name: float(mechanism_threshold)
+        for task_name in task_names
+    }
+    active_tasks = [
+        task_name
+        for idx, task_name in enumerate(task_names)
+        if float(mean_scores[idx]) >= threshold_map[task_name]
+    ]
+    top_idx = int(np.argmax(mean_scores))
+
+    return {
+        "task_scores": {
+            task_name: float(mean_scores[idx])
+            for idx, task_name in enumerate(task_names)
+        },
+        "active_tasks": active_tasks,
+        "highest_risk_task": str(task_names[top_idx]),
+        "highest_risk_score": float(mean_scores[top_idx]),
+        "assay_hits": int(len(active_tasks)),
+        "mechanistic_alert": bool(len(active_tasks) > 0),
+        "threshold_used": float(mechanism_threshold),
+        "task_thresholds": threshold_map,
+        "source": str(model_key),
+        "ensemble_members": member_keys,
+        "ensemble_member_sources": member_sources,
+    }
+
+
+def _predict_ensemble_clinical_sync(
+    model_key: str,
+    smiles: str,
+    clinical_threshold: float,
+    mechanism_threshold: float,
+) -> Dict[str, Any]:
+    spec = _get_ensemble_spec(model_key)
+    if not spec:
+        return {
+            "label": "NON_TOXIC",
+            "is_toxic": False,
+            "confidence": 0.0,
+            "p_toxic": 0.0,
+            "threshold_used": float(clinical_threshold),
+            "source": str(model_key),
+            "ensemble_members": [],
+            "ensemble_member_sources": [],
+            "ensemble_member_probs": {},
+        }
+
+    member_keys = list(spec.get("clinical_members") or [])
+    member_probs: List[float] = []
+    member_sources: List[str] = []
+    member_prob_map: Dict[str, float] = {}
+
+    for member_key in member_keys:
+        if not _is_dual_head_model_key(member_key):
+            continue
+        member_bundle = _load_dual_head_bundle_sync(member_key)
+        outputs = predict_pretrained_dual_head_outputs(
+            smiles_list=[smiles],
+            model=member_bundle["model"],
+            tokenizer=member_bundle["tokenizer"],
+            task_names=list(member_bundle.get("task_names") or []),
+            device=DEVICE,
+            clinical_threshold=float(clinical_threshold),
+            mechanism_threshold=float(mechanism_threshold),
+            task_thresholds=member_bundle.get("tox21_thresholds"),
+            max_length=int(member_bundle.get("max_length", 128)),
+            batch_size=32,
+            source_name=_pretrained_model_source_name(member_key),
+        )
+        clinical = dict(outputs[0].get("clinical") or {})
+        p_toxic = float(clinical.get("p_toxic", np.nan))
+        if np.isfinite(p_toxic):
+            member_probs.append(p_toxic)
+            member_sources.append(str(clinical.get("source") or member_key))
+            member_prob_map[str(member_key)] = p_toxic
+
+    if not member_probs:
+        return {
+            "label": "NON_TOXIC",
+            "is_toxic": False,
+            "confidence": 0.0,
+            "p_toxic": 0.0,
+            "threshold_used": float(clinical_threshold),
+            "source": str(model_key),
+            "ensemble_members": member_keys,
+            "ensemble_member_sources": member_sources,
+            "ensemble_member_probs": member_prob_map,
+        }
+
+    clinical_mode = str(spec.get("clinical_mode", "simple"))
+    if clinical_mode == "weighted":
+        weights_payload = _load_ensemble_weight_payload(model_key)
+        raw_weights = np.asarray(weights_payload.get("herg_weights") or [], dtype=np.float32).reshape(-1)
+        raw_members = list(weights_payload.get("herg_members") or [])
+        if raw_weights.size and raw_members:
+            aligned_weights = np.zeros((len(member_keys),), dtype=np.float32)
+            for idx, member in enumerate(member_keys):
+                if member in raw_members:
+                    aligned_weights[idx] = float(raw_weights[raw_members.index(member)])
+
+            probs_arr = np.array([member_prob_map.get(member, np.nan) for member in member_keys], dtype=np.float32)
+            valid = np.isfinite(probs_arr)
+            if np.any(valid):
+                w = aligned_weights[valid]
+                if float(w.sum()) <= 0.0:
+                    mean_p_toxic = float(np.mean(probs_arr[valid]))
+                else:
+                    mean_p_toxic = float(np.sum(probs_arr[valid] * w) / np.sum(w))
+            else:
+                mean_p_toxic = 0.0
+        else:
+            mean_p_toxic = float(np.mean(np.asarray(member_probs, dtype=np.float32)))
+    else:
+        mean_p_toxic = float(np.mean(np.asarray(member_probs, dtype=np.float32)))
+
+    is_toxic = bool(mean_p_toxic >= float(clinical_threshold))
+    confidence = abs(mean_p_toxic - float(clinical_threshold)) / max(
+        float(clinical_threshold),
+        1.0 - float(clinical_threshold),
+    )
+
+    return {
+        "label": "TOXIC" if is_toxic else "NON_TOXIC",
+        "is_toxic": is_toxic,
+        "confidence": float(min(confidence, 1.0)),
+        "p_toxic": mean_p_toxic,
+        "threshold_used": float(clinical_threshold),
+        "source": str(model_key),
+        "ensemble_members": member_keys,
+        "ensemble_member_sources": member_sources,
+        "ensemble_member_probs": member_prob_map,
+    }
 
 
 def _resolve_explainer_engine_model_key(tox_type_model_key: str) -> str:
     """Pick explainer engine model based on selected tox-type model key."""
     if _is_ensemble_tox_type_model_key(tox_type_model_key):
-        return TOX21_ENSEMBLE_3_BEST_EXPLAINER_KEY
-    if tox_type_model_key in {"tox21_gatv2_model", TOX21_PRETRAINED_GIN_MODEL_KEY}:
+        spec = _get_ensemble_spec(tox_type_model_key) or {}
+        return str(spec.get("explainer_engine") or TOX21_ENSEMBLE_3_BEST_EXPLAINER_KEY)
+    if tox_type_model_key in TOX_TYPE_MODEL_DIRS:
         return tox_type_model_key
     return "tox21_gatv2_model"
 
@@ -1282,7 +2015,7 @@ def _resolve_binary_tox_model_key(raw_model: Optional[str]) -> str:
 
 def _resolve_tox_type_model_key(raw_model: Optional[str]) -> str:
     candidate = str(raw_model or "").strip()
-    if candidate in TOX_TYPE_MODEL_DIRS:
+    if candidate in TOX_TYPE_MODEL_DIRS or _is_ensemble_tox_type_model_key(candidate):
         return candidate
     return DEFAULT_TOX_TYPE_MODEL_KEY
 
@@ -1395,102 +2128,11 @@ def _predict_ensemble_3_best_mechanism_sync(
     smiles: str,
     mechanism_threshold: float,
 ) -> Dict[str, Any]:
-    """Average tox21 task probabilities from ChemBERTa + MolFormer + Pretrained-GIN."""
-    task_names = list(model_state.get("tox21_tasks") or [])
-    if not task_names:
-        task_names = [
-            "NR-AR",
-            "NR-AR-LBD",
-            "NR-AhR",
-            "NR-Aromatase",
-            "NR-ER",
-            "NR-ER-LBD",
-            "NR-PPAR-gamma",
-            "SR-ARE",
-            "SR-ATAD5",
-            "SR-HSE",
-            "SR-MMP",
-            "SR-p53",
-        ]
-
-    member_scores: List[np.ndarray] = []
-    member_sources: List[str] = []
-
-    for member_key in TOX21_ENSEMBLE_3_BEST_MEMBERS:
-        if _is_pretrained_gin_model_key(member_key):
-            gin_bundle = _load_pretrained_gin_bundle_sync(member_key)
-            outputs = predict_pretrained_gin_tox21_outputs(
-                smiles_list=[smiles],
-                model=gin_bundle["model"],
-                task_names=list(gin_bundle.get("task_names") or task_names),
-                device=DEVICE,
-                mechanism_threshold=float(mechanism_threshold),
-                task_thresholds=gin_bundle.get("tox21_thresholds"),
-                batch_size=32,
-                source_name=_pretrained_gin_model_source_name(member_key),
-            )
-            mechanism = dict(outputs[0].get("mechanism") or {})
-        else:
-            member_bundle = _load_dual_head_bundle_sync(member_key)
-            outputs = predict_pretrained_dual_head_outputs(
-                smiles_list=[smiles],
-                model=member_bundle["model"],
-                tokenizer=member_bundle["tokenizer"],
-                task_names=list(member_bundle.get("task_names") or task_names),
-                device=DEVICE,
-                clinical_threshold=0.5,
-                mechanism_threshold=float(mechanism_threshold),
-                task_thresholds=member_bundle.get("tox21_thresholds"),
-                max_length=int(member_bundle.get("max_length", 128)),
-                batch_size=32,
-                source_name=_pretrained_model_source_name(member_key),
-            )
-            mechanism = dict(outputs[0].get("mechanism") or {})
-
-        scores = dict(mechanism.get("task_scores") or {})
-        score_vec = np.array(
-            [float(scores.get(task, np.nan)) for task in task_names],
-            dtype=np.float32,
-        )
-        member_scores.append(score_vec)
-        member_sources.append(str(mechanism.get("source") or member_key))
-
-    if not member_scores:
-        return _fallback_mechanism_result(threshold=float(mechanism_threshold))
-
-    stacked = np.stack(member_scores, axis=0)
-    valid_counts = np.sum(np.isfinite(stacked), axis=0)
-    sums = np.nansum(stacked, axis=0)
-    mean_scores = (sums / np.maximum(valid_counts, 1)).astype(np.float32)
-    mean_scores = np.where(valid_counts > 0, mean_scores, 0.5)
-
-    threshold_map = {
-        task_name: float(mechanism_threshold)
-        for task_name in task_names
-    }
-    active_tasks = [
-        task_name
-        for idx, task_name in enumerate(task_names)
-        if float(mean_scores[idx]) >= threshold_map[task_name]
-    ]
-    top_idx = int(np.argmax(mean_scores))
-
-    return {
-        "task_scores": {
-            task_name: float(mean_scores[idx])
-            for idx, task_name in enumerate(task_names)
-        },
-        "active_tasks": active_tasks,
-        "highest_risk_task": str(task_names[top_idx]),
-        "highest_risk_score": float(mean_scores[top_idx]),
-        "assay_hits": int(len(active_tasks)),
-        "mechanistic_alert": bool(len(active_tasks) > 0),
-        "threshold_used": float(mechanism_threshold),
-        "task_thresholds": threshold_map,
-        "source": TOX21_ENSEMBLE_3_BEST_MODEL_KEY,
-        "ensemble_members": list(TOX21_ENSEMBLE_3_BEST_MEMBERS),
-        "ensemble_member_sources": member_sources,
-    }
+    return _predict_ensemble_mechanism_sync(
+        model_key=TOX21_ENSEMBLE_3_BEST_MODEL_KEY,
+        smiles=smiles,
+        mechanism_threshold=float(mechanism_threshold),
+    )
 
 
 def _predict_ensemble_3_best_clinical_sync(
@@ -1498,64 +2140,12 @@ def _predict_ensemble_3_best_clinical_sync(
     clinical_threshold: float,
     mechanism_threshold: float,
 ) -> Dict[str, Any]:
-    """Average hERG probabilities from ChemBERTa + MolFormer full dual-head members."""
-    member_probs: List[float] = []
-    member_sources: List[str] = []
-    member_prob_map: Dict[str, float] = {}
-
-    for member_key in BINARY_ENSEMBLE_3_BEST_MEMBERS:
-        member_bundle = _load_dual_head_bundle_sync(member_key)
-        outputs = predict_pretrained_dual_head_outputs(
-            smiles_list=[smiles],
-            model=member_bundle["model"],
-            tokenizer=member_bundle["tokenizer"],
-            task_names=list(member_bundle.get("task_names") or []),
-            device=DEVICE,
-            clinical_threshold=float(clinical_threshold),
-            mechanism_threshold=float(mechanism_threshold),
-            task_thresholds=member_bundle.get("tox21_thresholds"),
-            max_length=int(member_bundle.get("max_length", 128)),
-            batch_size=32,
-            source_name=_pretrained_model_source_name(member_key),
-        )
-        clinical = dict(outputs[0].get("clinical") or {})
-        p_toxic = float(clinical.get("p_toxic", np.nan))
-        if np.isfinite(p_toxic):
-            member_probs.append(p_toxic)
-            member_sources.append(str(clinical.get("source") or member_key))
-            member_prob_map[member_key] = p_toxic
-
-    if not member_probs:
-        return {
-            "label": "NON_TOXIC",
-            "is_toxic": False,
-            "confidence": 0.0,
-            "p_toxic": 0.0,
-            "threshold_used": float(clinical_threshold),
-            "source": BINARY_ENSEMBLE_TOX_MODEL_KEY,
-            "ensemble_members": list(BINARY_ENSEMBLE_3_BEST_MEMBERS),
-            "ensemble_member_sources": member_sources,
-            "ensemble_member_probs": member_prob_map,
-        }
-
-    mean_p_toxic = float(np.mean(np.asarray(member_probs, dtype=np.float32)))
-    is_toxic = bool(mean_p_toxic >= float(clinical_threshold))
-    confidence = abs(mean_p_toxic - float(clinical_threshold)) / max(
-        float(clinical_threshold),
-        1.0 - float(clinical_threshold),
+    return _predict_ensemble_clinical_sync(
+        model_key=TOX21_ENSEMBLE_3_BEST_MODEL_KEY,
+        smiles=smiles,
+        clinical_threshold=float(clinical_threshold),
+        mechanism_threshold=float(mechanism_threshold),
     )
-
-    return {
-        "label": "TOXIC" if is_toxic else "NON_TOXIC",
-        "is_toxic": is_toxic,
-        "confidence": float(min(confidence, 1.0)),
-        "p_toxic": mean_p_toxic,
-        "threshold_used": float(clinical_threshold),
-        "source": BINARY_ENSEMBLE_TOX_MODEL_KEY,
-        "ensemble_members": list(BINARY_ENSEMBLE_3_BEST_MEMBERS),
-        "ensemble_member_sources": member_sources,
-        "ensemble_member_probs": member_prob_map,
-    }
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -2215,7 +2805,8 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
         with _model_lock_sync():
             clinical_bundle: Optional[Dict[str, Any]] = None
             if _is_ensemble_binary_model_key(binary_tox_model_key):
-                clinical_raw = _predict_ensemble_3_best_clinical_sync(
+                clinical_raw = _predict_ensemble_clinical_sync(
+                    model_key=binary_tox_model_key,
                     smiles=smiles,
                     clinical_threshold=float(req.clinical_threshold),
                     mechanism_threshold=float(req.mechanism_threshold),
@@ -2269,7 +2860,8 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                 )
                 mechanism_raw = dict(mechanism_outputs[0].get("mechanism") or {})
             elif _is_ensemble_tox_type_model_key(tox_type_model_key):
-                mechanism_raw = _predict_ensemble_3_best_mechanism_sync(
+                mechanism_raw = _predict_ensemble_mechanism_sync(
+                    model_key=tox_type_model_key,
                     smiles=smiles,
                     mechanism_threshold=float(req.mechanism_threshold),
                 )
@@ -2443,6 +3035,20 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                                 req.explainer_epochs,
                                 req.mechanism_threshold,
                             )
+                        elif _is_dual_head_model_key(selected_explainer_model_key):
+                            dual_bundle = _load_dual_head_bundle_sync(selected_explainer_model_key)
+                            explain_result = _run_with_timeout_sync(
+                                explain_tox21_task_pretrained_dual_head_gradient,
+                                req.explainer_timeout_ms,
+                                smiles,
+                                dual_bundle["model"],
+                                dual_bundle["tokenizer"],
+                                list(dual_bundle.get("task_names") or []),
+                                target_task,
+                                "cpu",
+                                int(dual_bundle.get("max_length", 128)),
+                                req.mechanism_threshold,
+                            )
                         else:
                             explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
 
@@ -2463,6 +3069,11 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                             explainer_note = (
                                 "Task-level GNNExplainer on Pretrained-GIN engine selected from tox_type_model; "
                                 "for ensemble mode this uses the designated best-member explainer."
+                            )
+                        elif _is_dual_head_model_key(selected_explainer_model_key):
+                            explainer_note = (
+                                "Task-level dual-head gradient saliency aligned with selected tox_type_model "
+                                "(transformer backbone)."
                             )
                         elif explainer_method == "gradient_saliency":
                             explainer_note = (
