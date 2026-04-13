@@ -757,6 +757,59 @@ def _final_report_missing_structural_images(final_report: Dict[str, Any]) -> boo
     return not bool(payload.get("molecule_png_base64") or payload.get("heatmap_base64"))
 
 
+def _compose_inference_signature(
+    inference_backend: str,
+    binary_tox_model: str,
+    tox_type_model: str,
+) -> str:
+    return f"{inference_backend}|binary={binary_tox_model}|tox_type={tox_type_model}"
+
+
+def _parse_inference_signature(raw_signature: str) -> Dict[str, str]:
+    parsed = {"backend": "", "binary": "", "tox_type": ""}
+    signature = str(raw_signature or "").strip()
+    if not signature:
+        return parsed
+
+    segments = [segment.strip() for segment in signature.split("|") if segment.strip()]
+    if not segments:
+        return parsed
+
+    parsed["backend"] = segments[0].lower()
+    for segment in segments[1:]:
+        if "=" not in segment:
+            continue
+        key, value = segment.split("=", 1)
+        key_norm = key.strip().lower()
+        if key_norm in parsed:
+            parsed[key_norm] = value.strip()
+
+    return parsed
+
+
+def _screening_payload_matches_requested_models(
+    screening_payload: Dict[str, Any],
+    inference_backend: str,
+    binary_tox_model: str,
+    tox_type_model: str,
+) -> bool:
+    if not isinstance(screening_payload, dict):
+        return False
+
+    inference_context = screening_payload.get("inference_context")
+    if not isinstance(inference_context, dict):
+        return False
+
+    signature = str(inference_context.get("inference_backend") or "").strip()
+    parsed = _parse_inference_signature(signature)
+
+    return (
+        parsed["backend"] == str(inference_backend or "").strip().lower()
+        and parsed["binary"].lower() == str(binary_tox_model or "").strip().lower()
+        and parsed["tox_type"].lower() == str(tox_type_model or "").strip().lower()
+    )
+
+
 def _is_vertex_model_not_found_error(exc: Exception) -> bool:
     message = str(exc or "")
     lowered = message.lower()
@@ -2008,22 +2061,55 @@ def _resolve_explainer_engine_model_key(tox_type_model_key: str) -> str:
 
 def _resolve_binary_tox_model_key(raw_model: Optional[str]) -> str:
     candidate = str(raw_model or "").strip()
+    if not candidate:
+        return DEFAULT_BINARY_TOX_MODEL_KEY
     if candidate in DUAL_HEAD_MODEL_DIRS or _is_ensemble_binary_model_key(candidate):
         return candidate
-    return DEFAULT_BINARY_TOX_MODEL_KEY
+
+    supported_models = sorted(set([*DUAL_HEAD_MODEL_DIRS.keys(), *ENSEMBLE_BINARY_MODEL_KEYS]))
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "error": "invalid_binary_tox_model",
+            "message": f"Unsupported binary_tox_model='{raw_model}'.",
+            "requested_model": raw_model,
+            "supported_models": supported_models,
+        },
+    )
 
 
 def _resolve_tox_type_model_key(raw_model: Optional[str]) -> str:
     candidate = str(raw_model or "").strip()
+    if not candidate:
+        return DEFAULT_TOX_TYPE_MODEL_KEY
     if candidate in TOX_TYPE_MODEL_DIRS or _is_ensemble_tox_type_model_key(candidate):
         return candidate
-    return DEFAULT_TOX_TYPE_MODEL_KEY
+
+    supported_models = sorted(set([*TOX_TYPE_MODEL_DIRS.keys(), *ENSEMBLE_TOX_TYPE_MODEL_KEYS]))
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "error": "invalid_tox_type_model",
+            "message": f"Unsupported tox_type_model='{raw_model}'.",
+            "requested_model": raw_model,
+            "supported_models": supported_models,
+        },
+    )
 
 
 def _load_dual_head_bundle_sync(model_key: str) -> Dict[str, Any]:
     resolved_key = str(model_key or "").strip()
     if resolved_key not in DUAL_HEAD_MODEL_DIRS:
-        resolved_key = DEFAULT_BINARY_TOX_MODEL_KEY
+        supported_models = sorted(DUAL_HEAD_MODEL_DIRS.keys())
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_dual_head_model_key",
+                "message": f"Unsupported dual-head model key='{model_key}'.",
+                "requested_model": model_key,
+                "supported_models": supported_models,
+            },
+        )
     model_dir = DUAL_HEAD_MODEL_DIRS[resolved_key]
 
     bundles = model_state.setdefault("pretrained_dual_head_bundles", {})
@@ -3305,6 +3391,21 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             },
         )
 
+    resolved_inference_backend = _resolve_inference_backend(req.inference_backend)
+    resolved_binary_tox_model = _resolve_binary_tox_model_key(req.binary_tox_model)
+    resolved_tox_type_model = _resolve_tox_type_model_key(req.tox_type_model)
+    expected_inference_signature = _compose_inference_signature(
+        resolved_inference_backend,
+        resolved_binary_tox_model,
+        resolved_tox_type_model,
+    )
+
+    recovery_notes: List[str] = []
+
+    def _note_recovery(note: str) -> None:
+        if note and note not in recovery_notes:
+            recovery_notes.append(note)
+
     session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
 
     async def _build_fallback_response(cause: str) -> AgentAnalyzeResponse:
@@ -3316,9 +3417,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             language,
             float(req.clinical_threshold),
             float(req.mechanism_threshold),
-            str(req.inference_backend),
-            str(req.binary_tox_model),
-            str(req.tox_type_model),
+            resolved_inference_backend,
+            resolved_binary_tox_model,
+            resolved_tox_type_model,
         )
 
         final_report_payload = _coerce_json_dict(
@@ -3368,9 +3469,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         "language": language,
         "clinical_threshold": float(req.clinical_threshold),
         "mechanism_threshold": float(req.mechanism_threshold),
-        "inference_backend": str(req.inference_backend),
-        "binary_tox_model": str(req.binary_tox_model),
-        "tox_type_model": str(req.tox_type_model),
+        "inference_backend": resolved_inference_backend,
+        "binary_tox_model": resolved_binary_tox_model,
+        "tox_type_model": resolved_tox_type_model,
     }
 
     try:
@@ -3413,6 +3514,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     final_text: Optional[str] = None
     stream_close_race = False
     force_adk_continuation = False
+    force_rebuild_report_from_screening = False
 
     async def _consume_adk_events(runner: Any) -> None:
         nonlocal final_text
@@ -3475,6 +3577,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                         retry_exc,
                     )
                     stream_close_race = True
+                    _note_recovery("adk_stream_close_race")
                     return True
 
                 logger.warning("ADK root failed after model retry: %s", retry_exc)
@@ -3491,6 +3594,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 exc,
             )
             stream_close_race = True
+            _note_recovery("adk_stream_close_race")
         elif _is_vertex_model_not_found_error(exc):
             current_location = (
                 os.getenv("GEMINI_LOCATION")
@@ -3524,6 +3628,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                             retry_exc,
                         )
                         stream_close_race = True
+                        _note_recovery("adk_stream_close_race")
                     else:
                         if _is_vertex_resource_exhausted_error(retry_exc):
                             model_retry_ok = await _retry_root_with_fallback_model(
@@ -3549,6 +3654,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                     exc,
                 )
                 force_adk_continuation = True
+                _note_recovery("adk_forced_step_continuation")
         else:
             logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
             return await _build_fallback_response(f"agent_runtime_error: {exc}")
@@ -3611,9 +3717,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 smiles,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
-                str(req.inference_backend),
-                str(req.binary_tox_model),
-                str(req.tox_type_model),
+                resolved_inference_backend,
+                resolved_binary_tox_model,
+                resolved_tox_type_model,
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed (missing payload): %s", exc)
@@ -3622,6 +3728,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         if isinstance(hydrated, dict) and hydrated:
             screening_payload = hydrated
             explanation_raw_payload = _extract_explanation_payload(hydrated)
+            _note_recovery("screening_hydrated_missing")
 
     if screening_payload and not _screening_payload_has_structural_data(screening_payload):
         logger.warning("ADK screening payload missing structural explanation; hydrating via deterministic screening")
@@ -3631,9 +3738,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 smiles,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
-                str(req.inference_backend),
-                str(req.binary_tox_model),
-                str(req.tox_type_model),
+                resolved_inference_backend,
+                resolved_binary_tox_model,
+                resolved_tox_type_model,
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed: %s", exc)
@@ -3642,6 +3749,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         if isinstance(hydrated, dict) and hydrated:
             screening_payload = hydrated
             explanation_raw_payload = _extract_explanation_payload(hydrated)
+            _note_recovery("screening_hydrated_no_structural")
 
     if screening_payload and explanation_raw_payload:
         screening_payload = _merge_explanation_into_screening(screening_payload, explanation_raw_payload)
@@ -3656,6 +3764,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     )
     if needs_adk_continuation:
         logger.warning("ADK continuation triggered due incomplete state after root orchestrator")
+        _note_recovery("adk_step_continuation")
         await _run_adk_agent_step(
             agent=screening_agent,
             user_id=user_id,
@@ -3705,6 +3814,53 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         if screening_payload and explanation_raw_payload:
             screening_payload = _merge_explanation_into_screening(screening_payload, explanation_raw_payload)
 
+    if screening_payload and not _screening_payload_matches_requested_models(
+        screening_payload,
+        inference_backend=resolved_inference_backend,
+        binary_tox_model=resolved_binary_tox_model,
+        tox_type_model=resolved_tox_type_model,
+    ):
+        observed_signature = ""
+        if isinstance(screening_payload.get("inference_context"), dict):
+            observed_signature = str(
+                screening_payload.get("inference_context", {}).get("inference_backend") or ""
+            )
+
+        logger.warning(
+            "ADK screening model mismatch detected; expected=%s, observed=%s. Rehydrating deterministic screening.",
+            expected_inference_signature,
+            observed_signature,
+        )
+
+        try:
+            hydrated = await asyncio.to_thread(
+                _deterministic_screening_payload,
+                smiles,
+                float(req.clinical_threshold),
+                float(req.mechanism_threshold),
+                resolved_inference_backend,
+                resolved_binary_tox_model,
+                resolved_tox_type_model,
+            )
+        except Exception as exc:
+            logger.warning("Deterministic screening hydration failed after model mismatch: %s", exc)
+            hydrated = None
+
+        if isinstance(hydrated, dict) and hydrated:
+            screening_payload = hydrated
+            explanation_raw_payload = _extract_explanation_payload(hydrated)
+            screening_payload = _merge_explanation_into_screening(
+                screening_payload,
+                explanation_raw_payload,
+            )
+            force_rebuild_report_from_screening = True
+            _note_recovery("screening_hydrated_model_mismatch")
+        else:
+            logger.warning(
+                "Unable to enforce selected model usage from ADK screening payload; switching to deterministic fallback"
+            )
+            return await _build_fallback_response("model_selection_enforcement_failed")
+
     report_schema_complete = _is_final_report_schema_complete(final_report)
     if (not final_report or not report_schema_complete) and not screening_payload:
         logger.warning(
@@ -3716,9 +3872,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 smiles,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
-                str(req.inference_backend),
-                str(req.binary_tox_model),
-                str(req.tox_type_model),
+                resolved_inference_backend,
+                resolved_binary_tox_model,
+                resolved_tox_type_model,
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed during final report recovery: %s", exc)
@@ -3731,12 +3887,18 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 screening_payload,
                 explanation_raw_payload,
             )
+            _note_recovery("screening_hydrated_report_recovery")
 
-    if (not final_report or not report_schema_complete) and screening_payload:
-        if not final_report:
+    if (force_rebuild_report_from_screening or not final_report or not report_schema_complete) and screening_payload:
+        if force_rebuild_report_from_screening:
+            logger.warning("Rebuilding final report to align with requested model selection")
+            _note_recovery("final_report_rebuilt_model_alignment")
+        elif not final_report:
             logger.warning("ADK writer output missing/invalid; rebuilding final report from session state")
+            _note_recovery("final_report_rebuilt_missing")
         else:
             logger.warning("ADK writer report schema mismatch; rebuilding final report from session state")
+            _note_recovery("final_report_rebuilt_schema")
 
         final_report = build_final_report(
             smiles_input=smiles,
@@ -3752,6 +3914,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
     if final_report and screening_payload and _final_report_missing_structural_images(final_report):
         logger.warning("ADK final report missing structural images; rebuilding from hydrated screening payload")
+        _note_recovery("final_report_rebuilt_structural_images")
         final_report = build_final_report(
             smiles_input=smiles,
             screening_result=screening_payload,
@@ -3783,11 +3946,31 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             f"adk_state_incomplete: validation_status={validation_status}, has_payload={report_has_payload}"
         )
 
+    runtime_note = "adk_runtime_ok"
+    if recovery_notes:
+        runtime_note = f"adk_runtime_ok_with_recovery:{','.join(recovery_notes)}"
+        if req.include_agent_events:
+            recovery_preview = (
+                f"ADK recovery ap dung: {', '.join(recovery_notes)}"
+                if language == "vi"
+                else f"ADK recovery applied: {', '.join(recovery_notes)}"
+            )
+            events.append(
+                AgentEventRecord(
+                    type="recovery",
+                    author="System",
+                    function_calls=[],
+                    function_responses=[],
+                    is_final=False,
+                    text_preview=recovery_preview,
+                )
+            )
+
     return AgentAnalyzeResponse(
         session_id=session_id,
         adk_available=ADK_AVAILABLE,
         runtime_mode="adk",
-        runtime_note="adk_runtime_ok",
+        runtime_note=runtime_note,
         validation_status=validation_status,
         final_report=final_report,
         final_text=final_text,
