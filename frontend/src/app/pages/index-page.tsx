@@ -54,7 +54,7 @@ export function IndexPage() {
   const handleAnalyze = async (opts: { binaryModel: string; toxTypeModel: string }) => {
     const smiles = smilesInput.trim();
     if (!smiles) {
-      setError(preferences.language === 'en' ? 'Please enter a SMILES string before analysis.' : 'Vui lòng nhập SMILES trước khi phân tích.');
+      setError('Please enter a SMILES string before analysis.');
       return;
     }
 
@@ -91,7 +91,7 @@ export function IndexPage() {
         toBoundedScore(probability),
         user?.id,
         {
-          language: preferences.language,
+          language: 'en',
           inferenceBackend: preferences.inferenceBackend,
           binaryModel: opts.binaryModel,
           toxTypeModel: opts.toxTypeModel,

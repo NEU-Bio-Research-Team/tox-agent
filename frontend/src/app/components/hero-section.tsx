@@ -83,7 +83,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
             <Textarea
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="CC(=O)Oc1ccccc1C(=O)O  hoặc  aspirin"
+              placeholder="CC(=O)Oc1ccccc1C(=O)O  or  aspirin"
               className="pl-12 pr-10 py-4 min-h-[56px] font-mono text-sm resize-none"
               style={{
                 backgroundColor: 'var(--surface-alt)',
@@ -225,7 +225,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 Binary Toxicity Model (GNN):
               </label>
               <p className="text-xs mb-2" style={{ color: 'var(--text-faint)' }}>
-                Chọn backbone hoặc ensemble để predict xác suất độc tính nhị phân
+                Choose a backbone model or ensemble for binary toxicity probability prediction.
               </p>
               <select
                 value={binaryModel}
@@ -258,7 +258,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
                 Toxicity Type Model (GNN):
               </label>
               <p className='text-xs mb-2' style={{ color: 'var(--text-faint)' }}>
-                Chọn model hoặc ensemble để profile 12 Tox21 assay tasks
+                Choose a model or ensemble to profile all 12 Tox21 assay tasks.
               </p>
               <select 
               value={toxTypeModel}

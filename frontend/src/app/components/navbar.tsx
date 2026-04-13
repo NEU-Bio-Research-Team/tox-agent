@@ -1,4 +1,4 @@
-import { ExternalLink, FlaskConical, LogOut, Menu, Moon, Settings, Sun, User } from 'lucide-react';
+import { ExternalLink, FlaskConical, LogOut, Menu, Moon, Settings, Star, Sun, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
@@ -24,9 +24,11 @@ import {
 } from './ui/sheet';
 
 const REPO_URL = 'https://github.com/NEU-Bio-Research-Team/tox-agent';
+const RATE_US_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScgcYA17KI_UdS4JrHqK7d8HupeUQ-MsgRB3XUBeGQN1MbpdQ/viewform';
 const NAV_LINKS = [
   { to: '/about', label: 'About' },
   { to: '/settings', label: 'Settings' },
+  { to: '/documents', label: 'Documents' },
 ] as const;
 const BUILD_TIME_LABEL = `${new Date(APP_BUILD_TIME).toLocaleString('en-GB', {
   year: 'numeric',
@@ -140,6 +142,22 @@ export function Navbar() {
               {link.label}
             </NavLink>
           ))}
+
+          <a
+            href={RATE_US_URL}
+            className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-all hover:-translate-y-[1px]"
+            style={{
+              borderColor: '#0891b2',
+              backgroundColor: '#22d3ee',
+              color: '#083344',
+              boxShadow: '0 6px 14px rgba(8,145,178,0.28)',
+            }}
+            title="Rate ToxAgent"
+          >
+            <Star className="h-3.5 w-3.5" />
+            Rate us!
+          </a>
+
           <a
             href={REPO_URL}
             target="_blank"
@@ -284,6 +302,18 @@ export function Navbar() {
                       {link.label}
                     </NavLink>
                   ))}
+                  <a
+                    href={RATE_US_URL}
+                    className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm font-semibold transition-colors"
+                    style={{
+                      borderColor: '#0891b2',
+                      backgroundColor: '#22d3ee',
+                      color: '#083344',
+                    }}
+                  >
+                    <span>Rate us!</span>
+                    <Star className="h-4 w-4" />
+                  </a>
                   <a
                     href={REPO_URL}
                     target="_blank"

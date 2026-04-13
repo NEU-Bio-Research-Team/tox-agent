@@ -50,7 +50,7 @@ export function ReportPage() {
   }
 
   const finalReport = report.final_report;
-  const reportLanguage = finalReport.report_metadata?.language === 'vi' ? 'vi' : 'en';
+  const reportLanguage = 'en';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: 'Inter, sans-serif' }}>

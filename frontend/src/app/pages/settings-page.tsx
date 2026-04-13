@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navbar } from '../components/navbar';
 import { Button } from '../components/ui/button';
-import { Bell, Database, Shield, Zap } from 'lucide-react';
+import { Bell, Database, Languages, Shield, Zap } from 'lucide-react';
 import { useReport } from '../../lib/ReportContext';
 
 export function SettingsPage() {
@@ -10,13 +10,10 @@ export function SettingsPage() {
   const [autoSave, setAutoSave] = useState(true);
   const [defaultThreshold, setDefaultThreshold] = useState(preferences.clinicalThreshold);
   const [mechanismThreshold, setMechanismThreshold] = useState(preferences.mechanismThreshold);
-  const [language, setLanguage] = useState<'vi' | 'en'>(preferences.language);
-
-  const isEnglish = language === 'en';
 
   const handleSave = () => {
     setPreferences({
-      language,
+      language: 'en',
       clinicalThreshold: defaultThreshold,
       mechanismThreshold,
       inferenceBackend: preferences.inferenceBackend,
@@ -25,7 +22,6 @@ export function SettingsPage() {
 
   const handleReset = () => {
     resetPreferences();
-    setLanguage('en');
     setDefaultThreshold(0.35);
     setMechanismThreshold(0.5);
   };
@@ -41,10 +37,10 @@ export function SettingsPage() {
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text)' }}>
-            {isEnglish ? 'Settings' : 'Cài đặt'}
+            Settings
           </h1>
           <p className="text-base" style={{ color: 'var(--text-muted)' }}>
-            {isEnglish ? 'Customize your ToxAgent experience' : 'Tùy chỉnh trải nghiệm ToxAgent'}
+            Customize your ToxAgent experience
           </p>
         </div>
 
@@ -54,7 +50,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Zap className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                {isEnglish ? 'General' : 'Tổng quan'}
+                General
               </h2>
             </div>
 
@@ -63,29 +59,27 @@ export function SettingsPage() {
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Language</h3>
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {isEnglish ? 'Choose your preferred language for agent outputs' : 'Chọn ngôn ngữ đầu ra cho các agent'}
+                    ToxAgent is currently running in English only.
                   </p>
                 </div>
-                <select 
-                  value={language}
-                  onChange={(e) => setLanguage((e.target.value === 'en' ? 'en' : 'vi'))}
-                  className="px-4 py-2 rounded-lg border"
-                  style={{ 
-                    backgroundColor: 'var(--surface-alt)', 
-                    borderColor: 'var(--border)',
-                    color: 'var(--text)'
+                <div
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold"
+                  style={{
+                    backgroundColor: 'var(--accent-blue-muted)',
+                    color: 'var(--accent-blue)',
+                    border: '1px solid color-mix(in srgb, var(--accent-blue) 35%, transparent)',
                   }}
                 >
-                  <option value="vi">Tiếng Việt</option>
-                  <option value="en">English</option>
-                </select>
+                  <Languages className="w-4 h-4" />
+                  English only
+                </div>
               </div>
 
               <div className="flex items-center justify-between py-3">
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Auto-save results</h3>
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {isEnglish ? 'Automatically save analysis results' : 'Tự động lưu kết quả phân tích'}
+                    Automatically save analysis results.
                   </p>
                 </div>
                 <button
@@ -107,7 +101,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Database className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                {isEnglish ? 'Analysis' : 'Phân tích'}
+                Analysis
               </h2>
             </div>
 
@@ -115,7 +109,7 @@ export function SettingsPage() {
               <div className="py-3">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium" style={{ color: 'var(--text)' }}>
-                    {isEnglish ? 'Clinical Toxicity Threshold' : 'Ngưỡng độc tính lâm sàng'}
+                    Clinical Toxicity Threshold
                   </h3>
                   <span className="font-mono font-semibold" style={{ color: 'var(--accent-blue)' }}>
                     {defaultThreshold.toFixed(2)}
@@ -134,16 +128,16 @@ export function SettingsPage() {
                   }}
                 />
                 <div className="flex justify-between text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
-                  <span>{isEnglish ? 'Non-toxic' : 'Ít độc'}</span>
-                  <span>{isEnglish ? 'Warning' : 'Cảnh báo'}</span>
-                  <span>{isEnglish ? 'Toxic' : 'Độc'}</span>
+                  <span>Non-toxic</span>
+                  <span>Warning</span>
+                  <span>Toxic</span>
                 </div>
               </div>
 
               <div className="py-3 border-t" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium" style={{ color: 'var(--text)' }}>
-                    {isEnglish ? 'Mechanism Alert Threshold' : 'Ngưỡng cảnh báo cơ chế'}
+                    Mechanism Alert Threshold
                   </h3>
                   <span className="font-mono font-semibold" style={{ color: 'var(--accent-blue)' }}>
                     {mechanismThreshold.toFixed(2)}
@@ -171,7 +165,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Bell className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                {isEnglish ? 'Notifications' : 'Thông báo'}
+                Notifications
               </h2>
             </div>
 
@@ -180,7 +174,7 @@ export function SettingsPage() {
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Enable notifications</h3>
                   <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {isEnglish ? 'Receive alerts when analysis completes' : 'Nhận cảnh báo khi phân tích hoàn tất'}
+                    Receive alerts when analysis completes.
                   </p>
                 </div>
                 <button
@@ -202,7 +196,7 @@ export function SettingsPage() {
             <div className="flex items-center gap-3 mb-6">
               <Shield className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
               <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>
-                {isEnglish ? 'Privacy & Security' : 'Bảo mật và riêng tư'}
+                Privacy & Security
               </h2>
             </div>
 
@@ -210,16 +204,14 @@ export function SettingsPage() {
               <div className="py-3">
                 <h3 className="font-medium mb-1" style={{ color: 'var(--text)' }}>Data Storage</h3>
                 <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-                  {isEnglish
-                    ? 'All analysis data is stored locally in your browser. No data is sent to external servers.'
-                    : 'Dữ liệu phân tích được lưu cục bộ trên trình duyệt. Không gửi sang máy chủ ngoài.'}
+                  All analysis data is stored locally in your browser. No data is sent to external servers.
                 </p>
                 <Button 
                   variant="outline" 
                   className="text-sm"
                   style={{ borderColor: 'var(--accent-red)', color: 'var(--accent-red)' }}
                 >
-                  {isEnglish ? 'Clear All Data' : 'Xóa toàn bộ dữ liệu'}
+                  Clear All Data
                 </Button>
               </div>
             </div>
@@ -232,14 +224,14 @@ export function SettingsPage() {
               className="px-6"
               onClick={handleReset}
             >
-              {isEnglish ? 'Reset to Defaults' : 'Đặt lại mặc định'}
+              Reset to Defaults
             </Button>
             <Button
               className="px-6"
               style={{ backgroundColor: 'var(--accent-blue)', color: '#ffffff' }}
               onClick={handleSave}
             >
-              {isEnglish ? 'Save Changes' : 'Lưu thay đổi'}
+              Save Changes
             </Button>
           </div>
         </div>

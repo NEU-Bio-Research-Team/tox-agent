@@ -235,7 +235,7 @@ function toErrorMessage(status: number, bodyText: string): string {
 }
 
 export interface AgentAnalyzeOptions {
-	language?: 'vi' | 'en';
+	language?: 'en';
 	clinicalThreshold?: number;
 	mechanismThreshold?: number;
 	maxLiteratureResults?: number;

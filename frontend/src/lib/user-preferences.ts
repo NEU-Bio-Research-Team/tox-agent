@@ -1,4 +1,4 @@
-export type AppLanguage = 'vi' | 'en';
+export type AppLanguage = 'en';
 export type InferenceBackend = 'xsmiles' | 'chemberta' | 'pubchem' | 'molformer';
 
 export interface UserPreferences {
@@ -45,9 +45,8 @@ export function loadUserPreferences(): UserPreferences {
     if (!raw) return getDefaultPreferences();
 
     const parsed = JSON.parse(raw) as Partial<UserPreferences>;
-    const language = parsed.language === 'vi' ? 'vi' : 'en';
     return {
-      language,
+      language: 'en',
       clinicalThreshold: clampThreshold(Number(parsed.clinicalThreshold), DEFAULTS.clinicalThreshold),
       mechanismThreshold: clampThreshold(Number(parsed.mechanismThreshold), DEFAULTS.mechanismThreshold),
       inferenceBackend: normalizeInferenceBackend(parsed.inferenceBackend),
@@ -59,7 +58,7 @@ export function loadUserPreferences(): UserPreferences {
 
 export function saveUserPreferences(prefs: UserPreferences): UserPreferences {
   const normalized: UserPreferences = {
-    language: prefs.language === 'vi' ? 'vi' : 'en',
+    language: 'en',
     clinicalThreshold: clampThreshold(prefs.clinicalThreshold, DEFAULTS.clinicalThreshold),
     mechanismThreshold: clampThreshold(prefs.mechanismThreshold, DEFAULTS.mechanismThreshold),
     inferenceBackend: normalizeInferenceBackend(prefs.inferenceBackend),
