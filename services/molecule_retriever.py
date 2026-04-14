@@ -82,6 +82,15 @@ def retrieve_similar_molecules(
     canonical_smiles = str(validated["canonical_smiles"])
     query_fp = fingerprint_from_smiles(canonical_smiles)
     database = _load_retrieval_database()
+    if not database:
+        return {
+            "query_smiles": smiles,
+            "canonical_smiles": canonical_smiles,
+            "matches": [],
+            "error": "retrieval_database_empty",
+            "db_size": 0,
+        }
+
     if query_fp is None:
         return {
             "query_smiles": smiles,

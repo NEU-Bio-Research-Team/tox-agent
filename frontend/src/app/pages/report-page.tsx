@@ -8,6 +8,7 @@ import { ClinicalToxicitySection } from '../components/report/clinical-toxicity-
 import { MechanismProfilingSection } from '../components/report/mechanism-profiling-section';
 import { MetricsDashboardSection } from '../components/report/metrics-dashboard-section';
 import { StructuralExplanationSection } from '../components/report/structural-explanation-section';
+import { MolragEvidenceSection } from '../components/report/molrag-evidence-section';
 import { LiteratureContextSection } from '../components/report/literature-context-section';
 import { AIRecommendationsSection } from '../components/report/ai-recommendations-section';
 import { useReport } from '../../lib/ReportContext';
@@ -75,6 +76,11 @@ export function ReportPage() {
           <ClinicalToxicitySection data={finalReport.sections.clinical_toxicity} language={reportLanguage} />
           <MechanismProfilingSection data={finalReport.sections.mechanism_toxicity} language={reportLanguage} />
           <StructuralExplanationSection data={finalReport.sections.structural_explanation} language={reportLanguage} />
+          <MolragEvidenceSection
+            data={finalReport.sections.molrag_evidence}
+            fusionResult={finalReport.sections.fusion_result}
+            language={reportLanguage}
+          />
           <LiteratureContextSection data={finalReport.sections.literature_context} language={reportLanguage} />
           <AIRecommendationsSection
             summary={finalReport.executive_summary}
@@ -93,7 +99,14 @@ export function ReportPage() {
       </div>
       
       {/* AI Chatbot - only on report page */}
-      <AIChatbot />
+      <AIChatbot
+        chatSessionId={report.chat_session_id ?? null}
+        analysisSessionId={report.session_id}
+        reportState={{
+          smiles_input: finalReport.report_metadata.smiles,
+          final_report: finalReport,
+        }}
+      />
 
 
       <Footer />

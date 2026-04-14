@@ -78,7 +78,7 @@ export function AIRecommendationsSection({
   return (
     <section id="recommendations">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        {language === 'vi' ? '§5 Khuyến nghị AI' : '§5 AI Recommendations'}
+        {language === 'vi' ? '§6 Khuyến nghị AI' : '§6 AI Recommendations'}
       </h2>
 
       {failureRegistry?.matched && (

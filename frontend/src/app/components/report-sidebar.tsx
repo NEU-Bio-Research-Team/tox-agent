@@ -7,6 +7,7 @@ const sections = [
   { id: 'clinical', label: 'Clinical Toxicity' },
   { id: 'mechanism', label: 'Mechanism' },
   { id: 'structural', label: 'Structural' },
+  { id: 'molrag', label: 'MolRAG Evidence' },
   { id: 'literature', label: 'Literature' },
   { id: 'recommendations', label: 'AI Recommendations' },
 ];
@@ -44,6 +45,7 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
     clinical: language === 'vi' ? 'Độc tính lâm sàng' : 'Clinical Toxicity',
     mechanism: language === 'vi' ? 'Cơ chế độc tính' : 'Mechanism',
     structural: language === 'vi' ? 'Giải thích cấu trúc' : 'Structural',
+    molrag: language === 'vi' ? 'MolRAG Evidence' : 'MolRAG Evidence',
     literature: language === 'vi' ? 'Tài liệu tham khảo' : 'Literature',
     recommendations: language === 'vi' ? 'Khuyến nghị AI' : 'AI Recommendations',
   };

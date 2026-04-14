@@ -29,7 +29,7 @@ export function LiteratureContextSection({ data, language }: LiteratureContextSe
   return (
     <section id="literature">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
-        {language === 'vi' ? '§4 Bối cảnh tài liệu' : '§4 Literature Context'}
+        {language === 'vi' ? '§5 Bối cảnh tài liệu' : '§5 Literature Context'}
       </h2>
 
       <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
