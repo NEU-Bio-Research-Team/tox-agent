@@ -16,6 +16,13 @@ export const router = createBrowserRouter([
     },
   },
   {
+    path: '/chat',
+    lazy: async () => {
+      const module = await import('./pages/chatbot-page');
+      return { Component: module.ChatbotPage };
+    },
+  },
+  {
     path: '/settings',
     lazy: async () => {
       const module = await import('./pages/settings-page');
