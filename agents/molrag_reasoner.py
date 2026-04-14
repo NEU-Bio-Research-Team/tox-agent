@@ -14,6 +14,15 @@ from services.prompt_builder import build_molrag_prompt
 MOLRAG_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
 
+def _normalize_label(label: Any) -> str:
+    value = str(label or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if value in {"non_toxic", "nontoxic", "safe", "non-toxic"}:
+        return "NON_TOXIC"
+    if value in {"toxic", "1"}:
+        return "TOXIC"
+    return "UNKNOWN"
+
+
 def _baseline_label_from_prediction(baseline_prediction: Dict[str, Any]) -> str:
     label = str(baseline_prediction.get("label") or "").strip()
     if label:
@@ -47,6 +56,7 @@ def _deterministic_reasoning(
     strategy: str,
 ) -> Dict[str, Any]:
     baseline_label = _baseline_label_from_prediction(baseline_prediction)
+    baseline_label_normalized = _normalize_label(baseline_label)
     toxic_count, non_toxic_count = _count_labels(retrieved_examples)
     top_similarity = max((float(item.get("similarity", 0.0) or 0.0) for item in retrieved_examples), default=0.0)
 
@@ -89,6 +99,21 @@ def _deterministic_reasoning(
             f"Bang chung analog co xu huong nghieng ve {suggested_label} nhung MVP van giu baseline lam nguon quyet dinh cuoi.",
             f"The analog evidence leans toward {suggested_label}, but the MVP still keeps the baseline as the final decision source.",
         )
+
+    if retrieved_examples:
+        suggested_label_normalized = _normalize_label(suggested_label)
+        if suggested_label_normalized == baseline_label_normalized and suggested_label_normalized != "UNKNOWN":
+            reasoning_summary = choose_text(
+                language,
+                f"Bang chung tu analog dang dong thuan voi baseline, nen giai thich MolRAG ung ho nhan {baseline_label}.",
+                f"The analog evidence is aligned with the baseline, so MolRAG supports the {baseline_label} label.",
+            )
+        elif suggested_label_normalized != "UNKNOWN" and baseline_label_normalized != "UNKNOWN":
+            reasoning_summary = choose_text(
+                language,
+                f"Bang chung analog co xu huong nghieng ve {suggested_label} nhung MVP van giu baseline lam nguon quyet dinh cuoi.",
+                f"The analog evidence leans toward {suggested_label}, but the MVP still keeps the baseline as the final decision source.",
+            )
 
     return {
         "enabled": True,
