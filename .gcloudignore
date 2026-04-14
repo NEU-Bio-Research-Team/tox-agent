@@ -12,6 +12,12 @@ notebooks/
 results/
 temp_out.json
 
+# Keep MolRAG retrieval data in image while excluding the rest of test fixtures.
+test_data/**
+!test_data/
+!test_data/reference_panel.csv
+!test_data/screening_library.csv
+
 # Exclude all model artifacts by default, then re-include only runtime directories.
 models/**
 !models/
