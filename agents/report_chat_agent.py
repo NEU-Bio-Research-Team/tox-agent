@@ -136,7 +136,8 @@ def build_report_context(report_state: Dict[str, Any]) -> str:
     )
     risk_level = final_report.get("risk_level", "UNKNOWN")
     exec_summary = final_report.get("executive_summary", "(not available)")
-    confidence = qa_result.get("evidence_confidence", "UNKNOWN")
+    raw_confidence = str(qa_result.get("evidence_confidence") or "LOW").upper()
+    confidence = raw_confidence if raw_confidence in {"HIGH", "MEDIUM", "LOW"} else "LOW"
     flags = qa_result.get("research_quality_flags") or []
     curated_articles = qa_result.get("curated_articles") or []
     high_rel = int(qa_result.get("high_relevance_count", 0) or 0)

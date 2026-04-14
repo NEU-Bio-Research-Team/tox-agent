@@ -7,6 +7,17 @@ import { Button } from '../components/ui/button';
 import { agentChat } from '../../lib/api';
 import { useReport } from '../../lib/ReportContext';
 
+interface ChatRouteState {
+  question?: string;
+  chatSessionId?: string | null;
+  analysisSessionId?: string | null;
+  reportState?: {
+    smiles_input?: string;
+    final_report?: Record<string, unknown>;
+    evidence_qa_result?: Record<string, unknown>;
+  } | null;
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -36,10 +47,14 @@ export function ChatbotPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { report } = useReport();
-  const initialQuestion =
-    typeof location.state === 'object' && location.state !== null && 'question' in location.state
-      ? String(location.state.question ?? '')
-      : '';
+  const routeState: ChatRouteState | null =
+    typeof location.state === 'object' && location.state !== null
+      ? (location.state as ChatRouteState)
+      : null;
+  const initialQuestion = typeof routeState?.question === 'string' ? routeState.question : '';
+  const routeChatSessionId = typeof routeState?.chatSessionId === 'string' ? routeState.chatSessionId : null;
+  const routeAnalysisSessionId = typeof routeState?.analysisSessionId === 'string' ? routeState.analysisSessionId : null;
+  const routeReportState = routeState?.reportState ?? null;
 
   const finalReport = report?.final_report ?? null;
   const compoundLabel =
@@ -60,7 +75,9 @@ export function ChatbotPage() {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(report?.chat_session_id ?? null);
+  const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(
+    routeChatSessionId ?? report?.chat_session_id ?? null,
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const processedInitialQuestion = useRef(false);
 
@@ -73,9 +90,9 @@ export function ChatbotPage() {
         timestamp: Date.now(),
       },
     ]);
-    setActiveChatSessionId(report?.chat_session_id ?? null);
+    setActiveChatSessionId(routeChatSessionId ?? report?.chat_session_id ?? null);
     processedInitialQuestion.current = false;
-  }, [compoundLabel, hasGroundedReport, report?.chat_session_id, report?.session_id]);
+  }, [compoundLabel, hasGroundedReport, report?.chat_session_id, report?.session_id, routeChatSessionId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -101,13 +118,14 @@ export function ChatbotPage() {
     try {
       const result = await agentChat(userInput, {
         chatSessionId: activeChatSessionId,
-        analysisSessionId: report?.session_id ?? null,
+        analysisSessionId: routeAnalysisSessionId ?? report?.session_id ?? null,
         reportState: finalReport
           ? {
               smiles_input: finalReport.report_metadata.smiles,
               final_report: finalReport,
+              evidence_qa_result: report?.evidence_qa_result,
             }
-          : null,
+          : routeReportState,
       });
 
       if (result.chat_session_id) {

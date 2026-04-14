@@ -501,9 +501,40 @@ def build_final_report(
     if isinstance(raw_explanation.get("explanation"), dict):
         raw_explanation = _to_dict(raw_explanation.get("explanation"))
     explanation = raw_explanation or _to_dict(screening.get("explanation"))
+    if isinstance(explanation.get("data"), dict):
+        explanation = _to_dict(explanation.get("data"))
     ood_assessment = _to_dict(screening.get("ood_assessment"))
     inference_context = _to_dict(screening.get("inference_context"))
     reliability_warning = screening.get("reliability_warning")
+
+    top_atoms = explanation.get("top_atoms")
+    if not isinstance(top_atoms, list):
+        top_atoms = []
+
+    top_bonds = explanation.get("top_bonds")
+    if not isinstance(top_bonds, list):
+        top_bonds = []
+
+    heatmap_base64 = explanation.get("heatmap_base64")
+    if not isinstance(heatmap_base64, str) or not heatmap_base64.strip():
+        heatmap_base64 = None
+
+    molecule_png_base64 = explanation.get("molecule_png_base64")
+    if not isinstance(molecule_png_base64, str) or not molecule_png_base64.strip():
+        molecule_png_base64 = None
+
+    target_task = explanation.get("target_task") or mechanism.get("highest_risk_task")
+    target_task_score = explanation.get("target_task_score")
+    if not isinstance(target_task_score, (int, float)):
+        target_task_score = mechanism.get("highest_risk_score")
+
+    explainer_note = explanation.get("explainer_note")
+    if not isinstance(explainer_note, str) or not explainer_note.strip():
+        explainer_note = choose_text(
+            normalized_language,
+            "Attribution chi tiet chua san sang cho mau nay; payload cau truc duoc giu de on dinh giao dien.",
+            "Detailed structural attribution is unavailable for this sample; structural payload is preserved for UI stability.",
+        )
 
     compound_info = _to_dict(research.get("compound_info"))
     literature = _to_dict(research.get("literature"))
@@ -635,13 +666,13 @@ def build_final_report(
                 "task_scores": mechanism.get("task_scores"),
             },
             "structural_explanation": {
-                "top_atoms": explanation.get("top_atoms"),
-                "top_bonds": explanation.get("top_bonds"),
-                "heatmap_base64": explanation.get("heatmap_base64"),
-                "molecule_png_base64": explanation.get("molecule_png_base64"),
-                "target_task": explanation.get("target_task"),
-                "target_task_score": explanation.get("target_task_score"),
-                "explainer_note": explanation.get("explainer_note"),
+                "top_atoms": top_atoms,
+                "top_bonds": top_bonds,
+                "heatmap_base64": heatmap_base64,
+                "molecule_png_base64": molecule_png_base64,
+                "target_task": target_task,
+                "target_task_score": target_task_score,
+                "explainer_note": explainer_note,
             },
             "molrag_evidence": _to_dict(screening.get("molrag")),
             "fusion_result": _to_dict(screening.get("fusion_result")),

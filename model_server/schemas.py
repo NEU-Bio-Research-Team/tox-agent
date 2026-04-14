@@ -247,6 +247,10 @@ class AgentAnalyzeResponse(BaseModel):
     )
     validation_status: Optional[str] = None
     final_report: Dict[str, Any] = Field(default_factory=dict)
+    evidence_qa_result: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Evidence quality payload used by report chat for confidence calibration.",
+    )
     final_text: Optional[str] = None
     agent_events: List[AgentEventRecord] = Field(default_factory=list)
     state_keys: List[str] = Field(default_factory=list)

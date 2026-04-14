@@ -1,14 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { useState } from 'react';
+import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { Button } from './ui/button';
-import { agentChat, type FinalReport } from '../../lib/api';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
-}
+import { type FinalReport } from '../../lib/api';
 
 const AI_PROMPTS = [
   "Summarize the key toxicity risk from this report.",
@@ -28,84 +22,23 @@ interface AIChatbotProps {
 }
 
 export function AIChatbot({ chatSessionId, analysisSessionId, reportState }: AIChatbotProps) {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content:
-        "Hi! I can answer follow-up questions grounded on the current toxicity report. Ask me about risk, mechanisms, literature evidence, or recommendations.",
-      timestamp: Date.now(),
-    }
-  ]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(chatSessionId ?? null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    setActiveChatSessionId(chatSessionId ?? null);
-  }, [chatSessionId]);
-
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!input.trim()) return;
     const userInput = input.trim();
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: userInput,
-      timestamp: Date.now(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setIsTyping(true);
-
-    try {
-      const result = await agentChat(userInput, {
-        chatSessionId: activeChatSessionId,
-        analysisSessionId,
-        reportState,
-      });
-
-      if (result.chat_session_id) {
-        setActiveChatSessionId(result.chat_session_id);
-      }
-
-      setMessages(prev => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: result.response,
-          timestamp: Date.now(),
-        }
-      ]);
-    } catch (error) {
-      const fallback = error instanceof Error
-        ? error.message
-        : 'Chat runtime error. Please rerun analysis and try again.';
-      setMessages(prev => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: `I couldn't fetch a grounded report answer right now: ${fallback}`,
-          timestamp: Date.now(),
-        }
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
+    setIsOpen(false);
+    navigate('/chat', {
+      state: {
+        question: userInput,
+        chatSessionId: chatSessionId ?? null,
+        analysisSessionId: analysisSessionId ?? null,
+        reportState: reportState ?? null,
+      },
+    });
   };
 
   const handlePromptClick = (prompt: string) => {
@@ -161,96 +94,44 @@ export function AIChatbot({ chatSessionId, analysisSessionId, reportState }: AIC
             </button>
           </div>
 
-          {/* Messages */}
+          {/* Intro */}
           <div 
             className="flex-1 overflow-y-auto p-4 space-y-4"
             style={{ backgroundColor: 'var(--bg)' }}
           >
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-              >
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ 
-                    backgroundColor: message.role === 'user' 
-                      ? 'var(--accent-blue)' 
-                      : 'var(--surface-alt)' 
-                  }}
-                >
-                  {message.role === 'user' ? (
-                    <User className="w-4 h-4" style={{ color: '#ffffff' }} />
-                  ) : (
-                    <Bot className="w-4 h-4" style={{ color: 'var(--accent-blue)' }} />
-                  )}
-                </div>
-                <div
-                  className={`rounded-2xl px-4 py-2.5 max-w-[75%] ${
-                    message.role === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm'
-                  }`}
-                  style={{
-                    backgroundColor: message.role === 'user' 
-                      ? 'var(--accent-blue)' 
-                      : 'var(--surface)',
-                    color: message.role === 'user' ? '#ffffff' : 'var(--text)',
-                    border: message.role === 'assistant' ? '1px solid var(--border)' : 'none'
-                  }}
-                >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                </div>
-              </div>
-            ))}
-
-            {isTyping && (
-              <div className="flex gap-3">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: 'var(--surface-alt)' }}
-                >
-                  <Bot className="w-4 h-4" style={{ color: 'var(--accent-blue)' }} />
-                </div>
-                <div
-                  className="rounded-2xl rounded-tl-sm px-4 py-3"
-                  style={{
-                    backgroundColor: 'var(--surface)',
-                    border: '1px solid var(--border)'
-                  }}
-                >
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '300ms' }} />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
+            <div
+              className="rounded-2xl px-4 py-3"
+              style={{
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+              }}
+            >
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
+                Type your question and press Enter. We will move to the full chat page and start processing immediately.
+              </p>
+            </div>
           </div>
 
           {/* Quick Prompts */}
-          {messages.length <= 2 && (
-            <div className="px-4 py-2 border-t" style={{ borderColor: 'var(--border)' }}>
-              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Quick questions:</p>
-              <div className="flex flex-wrap gap-2">
-                {AI_PROMPTS.map((prompt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handlePromptClick(prompt)}
-                    className="text-xs px-3 py-1.5 rounded-full hover:bg-[var(--surface-alt)] transition-colors"
-                    style={{ 
-                      backgroundColor: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-muted)'
-                    }}
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
+          <div className="px-4 py-2 border-t" style={{ borderColor: 'var(--border)' }}>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Quick questions:</p>
+            <div className="flex flex-wrap gap-2">
+              {AI_PROMPTS.map((prompt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handlePromptClick(prompt)}
+                  className="text-xs px-3 py-1.5 rounded-full hover:bg-[var(--surface-alt)] transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Input */}
           <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
@@ -259,7 +140,7 @@ export function AIChatbot({ chatSessionId, analysisSessionId, reportState }: AIC
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Ask me anything..."
                 className="flex-1 px-4 py-2 rounded-lg border outline-none"
                 style={{
@@ -270,7 +151,7 @@ export function AIChatbot({ chatSessionId, analysisSessionId, reportState }: AIC
               />
               <Button
                 onClick={handleSend}
-                disabled={!input.trim() || isTyping}
+                disabled={!input.trim()}
                 className="w-10 h-10 rounded-lg flex items-center justify-center"
                 style={{ 
                   backgroundColor: input.trim() ? 'var(--accent-blue)' : 'var(--border)',
