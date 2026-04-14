@@ -203,6 +203,22 @@ class AgentAnalyzeRequest(BaseModel):
         default="vi",
         description="Report language: vi or en",
     )
+    molrag_enabled: bool = Field(
+        default=False,
+        description="Enable MolRAG retrieval + reasoning augmentation in screening output.",
+    )
+    molrag_top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Top-k similar molecules retrieved for MolRAG evidence.",
+    )
+    molrag_min_similarity: float = Field(
+        default=0.15,
+        ge=0.0,
+        le=1.0,
+        description="Minimum Tanimoto similarity threshold for MolRAG retrieval.",
+    )
 
 
 class AgentEventRecord(BaseModel):
@@ -216,6 +232,10 @@ class AgentEventRecord(BaseModel):
 
 class AgentAnalyzeResponse(BaseModel):
     session_id: str
+    chat_session_id: Optional[str] = Field(
+        default=None,
+        description="Report-chat session id used by /agent/chat for follow-up QA.",
+    )
     adk_available: bool
     runtime_mode: str = Field(
         default="adk",
@@ -231,3 +251,26 @@ class AgentAnalyzeResponse(BaseModel):
     agent_events: List[AgentEventRecord] = Field(default_factory=list)
     state_keys: List[str] = Field(default_factory=list)
 
+
+class AgentChatRequest(BaseModel):
+    message: str = Field(..., description="User message for report-level QA chat.")
+    chat_session_id: Optional[str] = Field(
+        default=None,
+        description="Session id returned by /agent/analyze as chat_session_id.",
+    )
+    analysis_session_id: Optional[str] = Field(
+        default=None,
+        description="Fallback analyze session id to resolve chat session mapping on server.",
+    )
+    report_state: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "Optional report grounding payload used to rehydrate a chat session when the runtime "
+            "is load-balanced across stateless instances."
+        ),
+    )
+
+
+class AgentChatResponse(BaseModel):
+    chat_session_id: str
+    response: str

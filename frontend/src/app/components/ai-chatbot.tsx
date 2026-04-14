@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { Button } from './ui/button';
+import { agentChat, type FinalReport } from '../../lib/api';
 
 interface Message {
   id: string;
@@ -9,35 +10,37 @@ interface Message {
   timestamp: number;
 }
 
-const SAMPLE_RESPONSES = [
-  "ToxAgent uses advanced Graph Neural Networks (GNNs) to analyze molecular structures. The model was trained on the Tox21 dataset with 12 toxicity pathways.",
-  "SMILES (Simplified Molecular Input Line Entry System) is a notation that allows you to represent chemical structures using ASCII strings. For example, 'CCO' represents ethanol.",
-  "The toxicity score ranges from 0 to 1, where values closer to 1 indicate higher toxicity. We use a threshold of 0.5 as the decision boundary.",
-  "Our multi-agent system consists of 5 specialized agents: Orchestrator, Screening, Explainer, Researcher, and Report Writer. They work in parallel for fast analysis.",
-  "The Explainer Agent uses GNNExplainer to identify which molecular substructures contribute most to the predicted toxicity.",
-  "Yes! You can analyze multiple molecules by entering different SMILES strings. Your analysis history is saved locally in your browser.",
-  "The Researcher Agent performs literature search using RAG (Retrieval-Augmented Generation) to find relevant toxicology studies.",
-];
-
 const AI_PROMPTS = [
-  "How does ToxAgent predict toxicity?",
-  "What is SMILES notation?",
-  "How accurate are the predictions?",
-  "Can I analyze multiple molecules?",
+  "Summarize the key toxicity risk from this report.",
+  "What mechanism evidence supports the highest risk?",
+  "Which recommendations should be prioritized first?",
+  "What are the key limitations of this report?",
 ];
 
-export function AIChatbot() {
+interface AIChatbotProps {
+  chatSessionId?: string | null;
+  analysisSessionId?: string | null;
+  reportState?: {
+    smiles_input?: string;
+    final_report?: FinalReport;
+    evidence_qa_result?: Record<string, unknown>;
+  } | null;
+}
+
+export function AIChatbot({ chatSessionId, analysisSessionId, reportState }: AIChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm the ToxAgent AI assistant. I can help answer questions about molecular toxicity analysis, SMILES notation, and how our multi-agent system works. What would you like to know?",
+      content:
+        "Hi! I can answer follow-up questions grounded on the current toxicity report. Ask me about risk, mechanisms, literature evidence, or recommendations.",
       timestamp: Date.now(),
     }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(chatSessionId ?? null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -48,13 +51,18 @@ export function AIChatbot() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    setActiveChatSessionId(chatSessionId ?? null);
+  }, [chatSessionId]);
+
   const handleSend = async () => {
     if (!input.trim()) return;
+    const userInput = input.trim();
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: input,
+      content: userInput,
       timestamp: Date.now(),
     };
 
@@ -62,40 +70,42 @@ export function AIChatbot() {
     setInput('');
     setIsTyping(true);
 
-    // Simulate AI response delay
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: getAIResponse(input),
-        timestamp: Date.now(),
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
-      setIsTyping(false);
-    }, 800 + Math.random() * 1000);
-  };
+    try {
+      const result = await agentChat(userInput, {
+        chatSessionId: activeChatSessionId,
+        analysisSessionId,
+        reportState,
+      });
 
-  const getAIResponse = (query: string): string => {
-    const lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.includes('smiles') || lowerQuery.includes('notation')) {
-      return SAMPLE_RESPONSES[1];
-    } else if (lowerQuery.includes('score') || lowerQuery.includes('threshold')) {
-      return SAMPLE_RESPONSES[2];
-    } else if (lowerQuery.includes('agent') || lowerQuery.includes('system')) {
-      return SAMPLE_RESPONSES[3];
-    } else if (lowerQuery.includes('explain') || lowerQuery.includes('interpret')) {
-      return SAMPLE_RESPONSES[4];
-    } else if (lowerQuery.includes('multiple') || lowerQuery.includes('history')) {
-      return SAMPLE_RESPONSES[5];
-    } else if (lowerQuery.includes('research') || lowerQuery.includes('literature')) {
-      return SAMPLE_RESPONSES[6];
-    } else if (lowerQuery.includes('predict') || lowerQuery.includes('toxic') || lowerQuery.includes('how')) {
-      return SAMPLE_RESPONSES[0];
+      if (result.chat_session_id) {
+        setActiveChatSessionId(result.chat_session_id);
+      }
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: result.response,
+          timestamp: Date.now(),
+        }
+      ]);
+    } catch (error) {
+      const fallback = error instanceof Error
+        ? error.message
+        : 'Chat runtime error. Please rerun analysis and try again.';
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `I couldn't fetch a grounded report answer right now: ${fallback}`,
+          timestamp: Date.now(),
+        }
+      ]);
+    } finally {
+      setIsTyping(false);
     }
-    
-    return "That's a great question! ToxAgent combines multiple AI technologies including Gemini 2.0 Flash for natural language processing and Graph Neural Networks for molecular analysis. Feel free to ask more specific questions about toxicity prediction, SMILES notation, or our multi-agent workflow!";
   };
 
   const handlePromptClick = (prompt: string) => {

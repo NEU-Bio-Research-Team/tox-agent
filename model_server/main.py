@@ -26,7 +26,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch 
@@ -54,9 +54,14 @@ if load_dotenv is not None:
 from agents import (
     ADK_AVAILABLE,
     build_final_report,
+    chat_with_report,
+    create_chat_session,
+    get_session as get_report_chat_session,
     researcher_agent,
     root_agent,
+    run_evidence_qa,
     run_orchestrator_flow,
+    run_screening,
     screening_agent,
     writer_agent,
 )
@@ -73,6 +78,11 @@ except Exception as exc:
     Content = None
     Part = None
     ADK_RUNTIME_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
+
+try:
+    from google import genai as google_genai
+except Exception:
+    google_genai = None
 
 from backend.inference import (
     aggregate_toxicity_verdict,
@@ -108,6 +118,8 @@ from model_server.schemas import (
     AnalyzeResponse,
     AgentAnalyzeRequest,
     AgentAnalyzeResponse,
+    AgentChatRequest,
+    AgentChatResponse,
     AgentEventRecord,
     ClinicalToxicityOutput,
     InferenceContextOutput,
@@ -316,6 +328,8 @@ ADK_APP_NAME = os.getenv("AGENT_APP_NAME", "tox-agent")
 
 adk_session_service = None
 adk_runner = None
+_report_chat_lock = threading.Lock()
+_report_chat_by_analysis_session: Dict[str, str] = {}
 
 
 def _load_tox21_thresholds() -> Tuple[Optional[Dict[str, float]], Optional[str]]:
@@ -661,6 +675,299 @@ def _recover_final_report_from_state(state: Dict[str, Any]) -> Dict[str, Any]:
     return {}
 
 
+def _resolve_report_chat_model() -> str:
+    return os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash")).strip()
+
+
+def _build_report_chat_client(location_override: Optional[str] = None) -> Tuple[Optional[Any], str]:
+    if google_genai is None:
+        return None, "google_genai_not_available"
+
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if api_key:
+        try:
+            return google_genai.Client(api_key=api_key), "api_key"
+        except Exception as exc:
+            return None, f"api_key_client_error:{type(exc).__name__}"
+
+    project = (
+        os.getenv("GOOGLE_CLOUD_PROJECT")
+        or os.getenv("GCLOUD_PROJECT")
+        or os.getenv("GCP_PROJECT")
+    )
+    if not project:
+        return None, "missing_project_for_vertexai"
+
+    configured_location = (
+        location_override
+        or os.getenv("GEMINI_LOCATION")
+        or os.getenv("GOOGLE_CLOUD_LOCATION")
+        or os.getenv("GOOGLE_CLOUD_REGION")
+        or "global"
+    )
+    try:
+        return (
+            google_genai.Client(
+                vertexai=True,
+                project=project,
+                location=configured_location,
+            ),
+            f"vertex_adc:{configured_location}",
+        )
+    except Exception as exc:
+        return None, f"vertex_client_error:{type(exc).__name__}"
+
+
+def _build_report_chat_prompt(system_prompt: str, messages: List[Dict[str, str]]) -> str:
+    lines = [system_prompt.strip(), "", "=== CONVERSATION ==="]
+    for message in messages:
+        role = str(message.get("role", "user")).upper()
+        content = str(message.get("content", "")).strip()
+        lines.append(f"{role}: {content}")
+    lines.append("ASSISTANT:")
+    return "\n".join(lines)
+
+
+def _report_chat_available_sections_text(session_id: str) -> str:
+    session = get_report_chat_session(session_id)
+    if session is None:
+        return (
+            "EXECUTIVE SUMMARY, CLINICAL TOXICITY PREDICTIONS, TOXICITY MECHANISMS, "
+            "RECOMMENDATIONS, CURATED LITERATURE EVIDENCE, QUALITY FLAGS"
+        )
+
+    final_report = _coerce_json_dict(session.report_state.get("final_report")) or {}
+    sections = _coerce_json_dict(final_report.get("sections")) or {}
+    evidence = _coerce_json_dict(session.report_state.get("evidence_qa_result")) or {}
+
+    ordered_entries: List[Tuple[str, Tuple[str, ...], str]] = [
+        ("executive_summary", ("executive_summary",), "EXECUTIVE SUMMARY"),
+        ("clinical_toxicity", ("clinical_toxicity", "toxicity_predictions"), "CLINICAL TOXICITY PREDICTIONS"),
+        ("mechanism_toxicity", ("mechanism_toxicity", "toxicity_mechanisms"), "TOXICITY MECHANISMS"),
+        ("molrag_evidence", ("molrag_evidence", "molrag"), "MOLRAG EVIDENCE"),
+        ("fusion_result", ("fusion_result",), "BASELINE/MOLRAG FUSION"),
+        ("literature_context", ("literature_context",), "LITERATURE CONTEXT"),
+        ("ood_assessment", ("ood_assessment",), "OOD ASSESSMENT"),
+        ("inference_context", ("inference_context",), "INFERENCE CONTEXT"),
+        ("recommendations", ("recommendations",), "RECOMMENDATIONS"),
+        ("risk_level", ("risk_level",), "RISK LEVEL"),
+    ]
+
+    available: List[str] = []
+    for _, candidate_keys, label in ordered_entries:
+        if any(key in final_report or key in sections for key in candidate_keys):
+            available.append(label)
+
+    curated_articles = evidence.get("curated_articles")
+    if isinstance(curated_articles, list) and curated_articles:
+        available.append("CURATED LITERATURE EVIDENCE")
+
+    if "research_quality_flags" in evidence:
+        available.append("QUALITY FLAGS")
+
+    if not available:
+        available = [
+            "EXECUTIVE SUMMARY",
+            "CLINICAL TOXICITY PREDICTIONS",
+            "TOXICITY MECHANISMS",
+            "RECOMMENDATIONS",
+            "CURATED LITERATURE EVIDENCE",
+            "QUALITY FLAGS",
+        ]
+
+    deduped = list(dict.fromkeys(available))
+    return ", ".join(deduped)
+
+
+def _normalize_report_chat_out_of_scope_reply(session_id: str, text: str) -> str:
+    response_text = str(text or "").strip()
+    refusal_prefix = "Thông tin này không có trong report hiện tại."
+    if refusal_prefix not in response_text:
+        return response_text
+
+    available_sections_text = _report_chat_available_sections_text(session_id)
+    return (
+        "Thông tin này không có trong report hiện tại. "
+        f"Report chỉ bao gồm: {available_sections_text}."
+    )
+
+
+def _format_report_chat_fallback_reply(session_id: str, user_message: str) -> str:
+    session = get_report_chat_session(session_id)
+    if session is None:
+        return "Session expired or not found. Please restart the analysis."
+
+    final_report = _coerce_json_dict(session.report_state.get("final_report")) or {}
+    evidence = _coerce_json_dict(session.report_state.get("evidence_qa_result")) or {}
+    confidence = str(evidence.get("evidence_confidence") or "UNKNOWN").upper()
+    summary = str(final_report.get("executive_summary") or "").strip()
+
+    normalized_message = str(user_message or "").lower()
+    is_vietnamese = bool(re.search(r"[ăâđêôơưáàảãạéèẻẽẹíìỉĩịóòỏõọúùủũụýỳỷỹỵ]", normalized_message))
+    if not is_vietnamese:
+        vi_hints = ("cơ chế", "độc tính", "thuốc", "báo cáo", "khuyến nghị", "rủi ro")
+        is_vietnamese = any(token in normalized_message for token in vi_hints)
+
+    if confidence == "LOW":
+        prefix_en = "Based on limited evidence, "
+        prefix_vi = "Dựa trên bằng chứng còn hạn chế, "
+    elif confidence == "MEDIUM":
+        prefix_en = "Evidence suggests "
+        prefix_vi = "Bằng chứng hiện có cho thấy "
+    else:
+        prefix_en = ""
+        prefix_vi = ""
+
+    if is_vietnamese:
+        body = (
+            f"{prefix_vi}{summary}"
+            if summary
+            else f"{prefix_vi}thông tin chi tiết chưa sẵn sàng trong phiên chat hiện tại."
+        )
+        return f"{body} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]"
+
+    body = (
+        f"{prefix_en}{summary}"
+        if summary
+        else f"{prefix_en}detailed report chat content is currently unavailable in this runtime."
+    )
+    return f"{body} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]"
+
+
+def _make_report_chat_llm_caller(session_id: str) -> Callable[..., str]:
+    def _llm_caller(system_prompt: str, messages: List[Dict[str, str]], max_tool_calls: int = 3) -> str:
+        prompt = _build_report_chat_prompt(system_prompt, messages)
+        client, auth_mode = _build_report_chat_client()
+        if client is None:
+            logger.warning("Report chat LLM unavailable (%s); using deterministic fallback", auth_mode)
+            return _format_report_chat_fallback_reply(
+                session_id,
+                messages[-1].get("content", "") if messages else "",
+            )
+
+        model_name = _resolve_report_chat_model()
+        _ = max_tool_calls  # Reserved for future native tool-calling loop.
+
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config={"temperature": 0.2},
+            )
+            text = str(getattr(response, "text", "") or "").strip()
+            if text:
+                return _normalize_report_chat_out_of_scope_reply(session_id, text)
+        except Exception as exc:
+            logger.warning("Report chat generation failed (%s): %s", auth_mode, exc)
+
+        return _format_report_chat_fallback_reply(
+            session_id,
+            messages[-1].get("content", "") if messages else "",
+        )
+
+    return _llm_caller
+
+
+def _build_evidence_qa_result(
+    research_payload: Dict[str, Any],
+    state: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    if isinstance(state, dict):
+        qa_from_state = _extract_state_payload(state, "evidence_qa_result")
+        if qa_from_state:
+            return qa_from_state
+
+    qa_wrapped = run_evidence_qa(research_payload if isinstance(research_payload, dict) else {})
+    if isinstance(qa_wrapped, dict):
+        qa_result = qa_wrapped.get("evidence_qa_result")
+        if isinstance(qa_result, dict):
+            return qa_result
+    return {}
+
+
+def _upsert_report_chat_session(
+    *,
+    analysis_session_id: str,
+    smiles: str,
+    final_report: Dict[str, Any],
+    research_payload: Dict[str, Any],
+    state: Optional[Dict[str, Any]] = None,
+) -> Optional[str]:
+    if not isinstance(final_report, dict) or not final_report:
+        return None
+
+    report_state = {
+        "smiles_input": smiles,
+        "final_report": final_report,
+        "evidence_qa_result": _build_evidence_qa_result(research_payload, state),
+    }
+    chat_session_id = create_chat_session(report_state)
+    with _report_chat_lock:
+        _report_chat_by_analysis_session[analysis_session_id] = chat_session_id
+    return chat_session_id
+
+
+def _resolve_report_chat_session_id(
+    *,
+    chat_session_id: Optional[str],
+    analysis_session_id: Optional[str],
+) -> Optional[str]:
+    if isinstance(chat_session_id, str) and chat_session_id.strip():
+        candidate = chat_session_id.strip()
+        if get_report_chat_session(candidate) is not None:
+            return candidate
+
+    if isinstance(analysis_session_id, str) and analysis_session_id.strip():
+        with _report_chat_lock:
+            mapped = _report_chat_by_analysis_session.get(analysis_session_id.strip())
+        if mapped and get_report_chat_session(mapped) is not None:
+            return mapped
+
+    return None
+
+
+def _rehydrate_report_chat_session_from_payload(
+    *,
+    requested_chat_session_id: Optional[str],
+    analysis_session_id: Optional[str],
+    report_state_payload: Optional[Dict[str, Any]],
+) -> Optional[str]:
+    if not isinstance(report_state_payload, dict) or not report_state_payload:
+        return None
+
+    final_report = _coerce_json_dict(report_state_payload.get("final_report")) or {}
+    if not final_report:
+        return None
+
+    report_metadata = final_report.get("report_metadata")
+    smiles_input = report_state_payload.get("smiles_input")
+    if not isinstance(smiles_input, str) or not smiles_input.strip():
+        if isinstance(report_metadata, dict):
+            smiles_input = str(report_metadata.get("smiles") or "").strip()
+        else:
+            smiles_input = ""
+
+    reconstructed_report_state = {
+        "smiles_input": str(smiles_input or ""),
+        "final_report": final_report,
+        "evidence_qa_result": _coerce_json_dict(report_state_payload.get("evidence_qa_result")) or {},
+    }
+    rehydrated_chat_session_id = create_chat_session(reconstructed_report_state)
+
+    if isinstance(analysis_session_id, str) and analysis_session_id.strip():
+        with _report_chat_lock:
+            _report_chat_by_analysis_session[analysis_session_id.strip()] = rehydrated_chat_session_id
+
+    logger.info(
+        "Rehydrated report chat session from payload "
+        "(requested_chat_session_id=%s, analysis_session_id=%s, rehydrated_chat_session_id=%s)",
+        requested_chat_session_id,
+        analysis_session_id,
+        rehydrated_chat_session_id,
+    )
+    return rehydrated_chat_session_id
+
+
 def _is_final_report_schema_complete(final_report: Dict[str, Any]) -> bool:
     if not isinstance(final_report, dict) or not final_report:
         return False
@@ -711,6 +1018,22 @@ def _screening_payload_has_structural_data(screening_payload: Dict[str, Any]) ->
 
     # Structural section is considered complete only when image payload exists.
     return bool(explanation.get("molecule_png_base64") or explanation.get("heatmap_base64"))
+
+
+def _screening_payload_has_molrag_data(screening_payload: Dict[str, Any]) -> bool:
+    if not isinstance(screening_payload, dict):
+        return False
+
+    molrag = screening_payload.get("molrag")
+    if not isinstance(molrag, dict):
+        return False
+
+    return bool(
+        molrag.get("enabled")
+        or "retrieved_examples" in molrag
+        or "reasoning_summary" in molrag
+        or "suggested_label" in molrag
+    )
 
 
 def _extract_explanation_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -3331,13 +3654,37 @@ def analyze_molecule_sync(
 
 def _deterministic_screening_payload(
     smiles: str,
+    language: str,
     clinical_threshold: float,
     mechanism_threshold: float,
     inference_backend: str,
     binary_tox_model: str,
     tox_type_model: str,
+    molrag_enabled: bool = False,
+    molrag_top_k: int = 5,
+    molrag_min_similarity: float = 0.15,
 ) -> Dict[str, Any]:
-    """Build screening payload directly from local sync analyze call."""
+    """Build screening payload directly from deterministic ScreeningAgent flow."""
+    screening_wrapped = run_screening(
+        smiles_input=smiles,
+        language=normalize_language(language),
+        clinical_threshold=float(clinical_threshold),
+        mechanism_threshold=float(mechanism_threshold),
+        inference_backend=str(inference_backend),
+        binary_tox_model=str(binary_tox_model),
+        tox_type_model=str(tox_type_model),
+        molrag_enabled=bool(molrag_enabled),
+        molrag_top_k=int(molrag_top_k),
+        molrag_min_similarity=float(molrag_min_similarity),
+    )
+
+    if isinstance(screening_wrapped, dict) and not screening_wrapped.get("screening_error"):
+        screening_payload = screening_wrapped.get("screening_result")
+        if isinstance(screening_payload, dict) and screening_payload:
+            return screening_payload
+
+    # Defensive fallback: keep a minimal screening payload if deterministic
+    # ScreeningAgent flow returns malformed output.
     analysis = analyze_molecule_sync(
         smiles=smiles,
         clinical_threshold=float(clinical_threshold),
@@ -3420,6 +3767,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             resolved_inference_backend,
             resolved_binary_tox_model,
             resolved_tox_type_model,
+            bool(req.molrag_enabled),
+            int(req.molrag_top_k),
+            float(req.molrag_min_similarity),
         )
 
         final_report_payload = _coerce_json_dict(
@@ -3428,6 +3778,17 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         ) or {}
         validation_status_payload = fallback_state.get("validation_status")
         summary = final_report_payload.get("executive_summary") if isinstance(final_report_payload, dict) else None
+        research_payload = _coerce_json_dict(
+            fallback_state.get("research_result"),
+            nested_key="research_result",
+        ) or {}
+        chat_session_id = _upsert_report_chat_session(
+            analysis_session_id=session_id,
+            smiles=smiles,
+            final_report=final_report_payload,
+            research_payload=research_payload,
+            state=fallback_state if isinstance(fallback_state, dict) else None,
+        )
 
         fallback_events: List[AgentEventRecord] = []
         if req.include_agent_events:
@@ -3445,6 +3806,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
         return AgentAnalyzeResponse(
             session_id=session_id,
+            chat_session_id=chat_session_id,
             adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
             runtime_mode="deterministic_fallback",
             runtime_note=cause,
@@ -3468,6 +3830,9 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         "inference_backend": resolved_inference_backend,
         "binary_tox_model": resolved_binary_tox_model,
         "tox_type_model": resolved_tox_type_model,
+        "molrag_enabled": bool(req.molrag_enabled),
+        "molrag_top_k": int(req.molrag_top_k),
+        "molrag_min_similarity": float(req.molrag_min_similarity),
     }
 
     try:
@@ -3711,11 +4076,15 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             hydrated = await asyncio.to_thread(
                 _deterministic_screening_payload,
                 smiles,
+                language,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
                 resolved_inference_backend,
                 resolved_binary_tox_model,
                 resolved_tox_type_model,
+                bool(req.molrag_enabled),
+                int(req.molrag_top_k),
+                float(req.molrag_min_similarity),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed (missing payload): %s", exc)
@@ -3732,11 +4101,15 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             hydrated = await asyncio.to_thread(
                 _deterministic_screening_payload,
                 smiles,
+                language,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
                 resolved_inference_backend,
                 resolved_binary_tox_model,
                 resolved_tox_type_model,
+                bool(req.molrag_enabled),
+                int(req.molrag_top_k),
+                float(req.molrag_min_similarity),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed: %s", exc)
@@ -3810,6 +4183,36 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         if screening_payload and explanation_raw_payload:
             screening_payload = _merge_explanation_into_screening(screening_payload, explanation_raw_payload)
 
+    if bool(req.molrag_enabled) and not _screening_payload_has_molrag_data(screening_payload):
+        logger.warning("MolRAG requested but missing from screening payload; hydrating deterministic screening")
+        try:
+            hydrated = await asyncio.to_thread(
+                _deterministic_screening_payload,
+                smiles,
+                language,
+                float(req.clinical_threshold),
+                float(req.mechanism_threshold),
+                resolved_inference_backend,
+                resolved_binary_tox_model,
+                resolved_tox_type_model,
+                True,
+                int(req.molrag_top_k),
+                float(req.molrag_min_similarity),
+            )
+        except Exception as exc:
+            logger.warning("Deterministic screening hydration failed for MolRAG recovery: %s", exc)
+            hydrated = None
+
+        if isinstance(hydrated, dict) and hydrated:
+            screening_payload = hydrated
+            explanation_raw_payload = _extract_explanation_payload(hydrated)
+            screening_payload = _merge_explanation_into_screening(
+                screening_payload,
+                explanation_raw_payload,
+            )
+            force_rebuild_report_from_screening = True
+            _note_recovery("screening_hydrated_molrag")
+
     if screening_payload and not _screening_payload_matches_requested_models(
         screening_payload,
         inference_backend=resolved_inference_backend,
@@ -3832,11 +4235,15 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             hydrated = await asyncio.to_thread(
                 _deterministic_screening_payload,
                 smiles,
+                language,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
                 resolved_inference_backend,
                 resolved_binary_tox_model,
                 resolved_tox_type_model,
+                bool(req.molrag_enabled),
+                int(req.molrag_top_k),
+                float(req.molrag_min_similarity),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed after model mismatch: %s", exc)
@@ -3866,11 +4273,15 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             hydrated = await asyncio.to_thread(
                 _deterministic_screening_payload,
                 smiles,
+                language,
                 float(req.clinical_threshold),
                 float(req.mechanism_threshold),
                 resolved_inference_backend,
                 resolved_binary_tox_model,
                 resolved_tox_type_model,
+                bool(req.molrag_enabled),
+                int(req.molrag_top_k),
+                float(req.molrag_min_similarity),
             )
         except Exception as exc:
             logger.warning("Deterministic screening hydration failed during final report recovery: %s", exc)
@@ -3962,8 +4373,17 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 )
             )
 
+    chat_session_id = _upsert_report_chat_session(
+        analysis_session_id=session_id,
+        smiles=smiles,
+        final_report=final_report,
+        research_payload=research_payload if isinstance(research_payload, dict) else {},
+        state=state if isinstance(state, dict) else None,
+    )
+
     return AgentAnalyzeResponse(
         session_id=session_id,
+        chat_session_id=chat_session_id,
         adk_available=ADK_AVAILABLE,
         runtime_mode="adk",
         runtime_note=runtime_note,
@@ -3973,3 +4393,66 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         agent_events=events if req.include_agent_events else [],
         state_keys=sorted(state.keys()),
     )
+
+
+@app.post("/agent/chat", response_model=AgentChatResponse)
+async def agent_chat(req: AgentChatRequest):
+    """Handle follow-up QA against a frozen per-report chat session."""
+    user_message = req.message.strip()
+    if not user_message:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "chat_message_empty",
+                "message": "message is required for report chat.",
+            },
+        )
+
+    chat_session_id = _resolve_report_chat_session_id(
+        chat_session_id=req.chat_session_id,
+        analysis_session_id=req.analysis_session_id,
+    )
+    if not chat_session_id:
+        chat_session_id = _rehydrate_report_chat_session_from_payload(
+            requested_chat_session_id=req.chat_session_id,
+            analysis_session_id=req.analysis_session_id,
+            report_state_payload=req.report_state,
+        )
+    if not chat_session_id:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "chat_session_not_found",
+                "message": "Report chat session not found. Run /agent/analyze again to refresh session context.",
+            },
+        )
+
+    llm_caller = _make_report_chat_llm_caller(chat_session_id)
+
+    try:
+        answer, session = await asyncio.to_thread(
+            chat_with_report,
+            chat_session_id,
+            user_message,
+            llm_caller,
+            3,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "chat_runtime_error",
+                "message": str(exc),
+            },
+        ) from exc
+
+    if session is None:
+        raise HTTPException(
+            status_code=410,
+            detail={
+                "error": "chat_session_expired",
+                "message": "Chat session expired. Please rerun analysis to restart report chat.",
+            },
+        )
+
+    return AgentChatResponse(chat_session_id=chat_session_id, response=answer)

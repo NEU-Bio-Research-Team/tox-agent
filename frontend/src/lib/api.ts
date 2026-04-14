@@ -86,6 +86,46 @@ export interface StructuralSection {
 	explainer_note?: string | null;
 }
 
+export interface MolragRetrievedExample {
+	entry_id?: string;
+	name?: string;
+	smiles?: string;
+	canonical_smiles?: string;
+	similarity?: number;
+	label?: string;
+	source?: string;
+	notes?: string;
+	is_exact_match?: boolean;
+}
+
+export interface MolragSection {
+	enabled?: boolean;
+	strategy?: string;
+	retrieval_db_size?: number | null;
+	retrieval_error?: string | null;
+	retrieved_examples?: MolragRetrievedExample[];
+	evidence_summary?: string | null;
+	reasoning_summary?: string | null;
+	suggested_label?: string | null;
+	confidence?: number | null;
+	prompt_preview?: string | null;
+	reasoning_mode?: string | null;
+	error?: string | null;
+}
+
+export interface FusionResultSection {
+	mode?: string;
+	baseline_label?: string;
+	baseline_score?: number | null;
+	baseline_confidence?: number | null;
+	molrag_label?: string;
+	molrag_confidence?: number | null;
+	final_label?: string;
+	final_confidence?: number | null;
+	agreement?: boolean | null;
+	decision_note?: string;
+}
+
 export interface OodAssessmentSection {
 	ood_risk?: string;
 	flag?: boolean;
@@ -186,6 +226,8 @@ export interface FinalReport {
 		clinical_toxicity: ClinicalSection;
 		mechanism_toxicity: MechanismSection;
 		structural_explanation: StructuralSection;
+		molrag_evidence?: MolragSection;
+		fusion_result?: FusionResultSection;
 		literature_context: LiteratureSection;
 		ood_assessment?: OodAssessmentSection;
 		inference_context?: InferenceContextSection;
@@ -199,6 +241,7 @@ export interface FinalReport {
 
 export interface AgentAnalyzeResponse {
 	session_id: string;
+	chat_session_id?: string | null;
 	adk_available: boolean;
 	runtime_mode?: 'adk' | 'deterministic_fallback' | string;
 	runtime_note?: string | null;
@@ -207,6 +250,11 @@ export interface AgentAnalyzeResponse {
 	final_text: string | null;
 	agent_events: AgentEventRecord[];
 	state_keys: string[];
+}
+
+export interface AgentChatResponse {
+	chat_session_id: string;
+	response: string;
 }
 
 function toErrorMessage(status: number, bodyText: string): string {
@@ -242,6 +290,9 @@ export interface AgentAnalyzeOptions {
 	inferenceBackend?: InferenceBackend;
 	binaryToxModel?: string;
 	toxTypeModel?: string;
+	molragEnabled?: boolean;
+	molragTopK?: number;
+	molragMinSimilarity?: number;
 }
 
 export async function agentAnalyze(
@@ -257,7 +308,10 @@ export async function agentAnalyze(
 		max_literature_results: options.maxLiteratureResults ?? 5,
 		inference_backend: options.inferenceBackend ?? 'xsmiles',
 		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
-		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best'
+		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best',
+		molrag_enabled: options.molragEnabled ?? true,
+		molrag_top_k: options.molragTopK ?? 5,
+		molrag_min_similarity: options.molragMinSimilarity ?? 0.15,
 	};
 
 	const res = await fetch(`${BASE_URL}/agent/analyze`, {
@@ -272,4 +326,39 @@ export async function agentAnalyze(
 	}
 
 	return (await res.json()) as AgentAnalyzeResponse;
+}
+
+export interface AgentChatOptions {
+	chatSessionId?: string | null;
+	analysisSessionId?: string | null;
+	reportState?: {
+		smiles_input?: string;
+		final_report?: FinalReport | Record<string, unknown>;
+		evidence_qa_result?: Record<string, unknown>;
+	} | null;
+}
+
+export async function agentChat(
+	message: string,
+	options: AgentChatOptions = {},
+): Promise<AgentChatResponse> {
+	const payload = {
+		message,
+		chat_session_id: options.chatSessionId ?? undefined,
+		analysis_session_id: options.analysisSessionId ?? undefined,
+		report_state: options.reportState ?? undefined,
+	};
+
+	const res = await fetch(`${BASE_URL}/agent/chat`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		const bodyText = await res.text();
+		throw new Error(toErrorMessage(res.status, bodyText));
+	}
+
+	return (await res.json()) as AgentChatResponse;
 }
