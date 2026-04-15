@@ -54,6 +54,15 @@ export default defineConfig({
             return 'icons';
           }
 
+          if (
+            id.includes('ketcher-react') ||
+            id.includes('ketcher-standalone') ||
+            id.includes('ketcher-core') ||
+            id.includes('indigo-ketcher')
+          ) {
+            return 'ketcher';
+          }
+
           return 'vendor';
         },
       },

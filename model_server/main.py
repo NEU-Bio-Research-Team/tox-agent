@@ -22,6 +22,7 @@ import os
 import pickle
 import re
 import threading
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from pathlib import Path
@@ -31,9 +32,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import torch 
 import yaml
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from PIL import Image, ImageOps, UnidentifiedImageError
 from rdkit import Chem
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -84,6 +86,18 @@ try:
 except Exception:
     google_genai = None
 
+try:
+    from huggingface_hub import hf_hub_download
+except Exception:
+    hf_hub_download = None
+
+MOLSCRIBE_IMPORT_ERROR: Optional[str] = None
+try:
+    from molscribe import MolScribe
+except Exception as exc:
+    MolScribe = None
+    MOLSCRIBE_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
+
 from backend.inference import (
     aggregate_toxicity_verdict,
     load_clinical_head_model,
@@ -130,6 +144,7 @@ from model_server.schemas import (
     ExplainRequest, ExplainResponse,
     AtomImportance, BondImportance,
     ToxicityExplanationOutput,
+    SmilesImageExtractionResponse,
 )
 
 # Configuration
@@ -317,6 +332,42 @@ CLINICAL_HEAD_LOAD_REQUESTED = CLINICAL_HEAD_MODEL_DIR.exists()
 FAST_EXPLAINER_EPOCH_CUTOFF = max(1, int(os.getenv("FAST_EXPLAINER_EPOCH_CUTOFF", "80")))
 CLINICAL_SIGNAL_STRATEGY = os.getenv("CLINICAL_SIGNAL_STRATEGY", "auto").strip().lower()
 
+
+def _env_flag(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return int(default)
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return int(default)
+
+
+SMILES_IMAGE_SUPPORTED_MIME_TYPES = {
+    "image/png",
+    "image/jpg",
+    "image/jpeg",
+    "image/webp",
+}
+SMILES_IMAGE_SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+SMILES_IMAGE_MAX_BYTES = max(1024, _env_int("SMILES_IMAGE_MAX_BYTES", 5 * 1024 * 1024))
+MOLSCRIBE_REPO_ID = os.getenv("MOLSCRIBE_REPO_ID", "yujieq/MolScribe").strip()
+MOLSCRIBE_CHECKPOINT_NAME = os.getenv(
+    "MOLSCRIBE_CHECKPOINT_NAME",
+    "swin_base_char_aux_1m.pth",
+).strip()
+MOLSCRIBE_MODEL_PATH = os.getenv("MOLSCRIBE_MODEL_PATH", "").strip()
+MOLSCRIBE_AUTO_DOWNLOAD = _env_flag("MOLSCRIBE_AUTO_DOWNLOAD", True)
+MOLSCRIBE_PRELOAD_ON_STARTUP = _env_flag("MOLSCRIBE_PRELOAD_ON_STARTUP", True)
+MOLSCRIBE_DEVICE = os.getenv("MOLSCRIBE_DEVICE", DEVICE).strip().lower() or DEVICE
+
 def _normalize_route(route: str, default: str) -> str:
     if not route:
         return default
@@ -419,6 +470,8 @@ def _clear_loaded_models() -> None:
         "pretrained_dual_head_bundles",
         "tox21_aux_member_bundles",
         "ensemble_weight_payloads",
+        "molscribe_predictor",
+        "molscribe_checkpoint_path",
     ):
         model_state.pop(key, None)
 
@@ -428,6 +481,8 @@ def _initialize_runtime_state() -> None:
         model_state["model_lock"] = asyncio.Lock()
     if "model_lock_sync" not in model_state:
         model_state["model_lock_sync"] = threading.Lock()
+    if "ocr_lock_sync" not in model_state:
+        model_state["ocr_lock_sync"] = threading.Lock()
 
     model_state.setdefault("startup_errors", {})
     model_state.setdefault("clinical_reference_metrics", {})
@@ -2568,6 +2623,7 @@ async def lifespan(app: FastAPI):
 
     _initialize_runtime_state()
     _initialize_adk_runtime()
+    await asyncio.to_thread(_preload_smiles_image_runtime_sync)
 
     yield
     model_state.clear()
@@ -2621,6 +2677,169 @@ def _model_lock_sync() -> threading.Lock:
         lock = threading.Lock()
         model_state["model_lock_sync"] = lock
     return lock
+
+
+def _ocr_lock_sync() -> threading.Lock:
+    lock = model_state.get("ocr_lock_sync")
+    if lock is None:
+        lock = threading.Lock()
+        model_state["ocr_lock_sync"] = lock
+    return lock
+
+
+def _image_extraction_http_error(
+    *,
+    status_code: int,
+    error_code: str,
+    message: str,
+    extra: Optional[Dict[str, Any]] = None,
+) -> HTTPException:
+    detail: Dict[str, Any] = {
+        "error": error_code,
+        "message": message,
+    }
+    if isinstance(extra, dict) and extra:
+        detail.update(extra)
+    return HTTPException(status_code=status_code, detail=detail)
+
+
+def _ocr_ready() -> bool:
+    return model_state.get("molscribe_predictor") is not None
+
+
+def _resolve_molscribe_checkpoint_path_sync() -> str:
+    cached = model_state.get("molscribe_checkpoint_path")
+    if isinstance(cached, str) and cached.strip() and Path(cached).exists():
+        return cached
+
+    if MOLSCRIBE_MODEL_PATH:
+        explicit = Path(MOLSCRIBE_MODEL_PATH)
+        if not explicit.exists():
+            raise RuntimeError(f"MOLSCRIBE_MODEL_PATH does not exist: {explicit}")
+        resolved = str(explicit)
+        model_state["molscribe_checkpoint_path"] = resolved
+        return resolved
+
+    if not MOLSCRIBE_AUTO_DOWNLOAD:
+        raise RuntimeError(
+            "MolScribe checkpoint is missing. Set MOLSCRIBE_MODEL_PATH or enable MOLSCRIBE_AUTO_DOWNLOAD."
+        )
+
+    if hf_hub_download is None:
+        raise RuntimeError(
+            "huggingface_hub is unavailable; cannot auto-download MolScribe checkpoint."
+        )
+
+    ckpt_path = hf_hub_download(repo_id=MOLSCRIBE_REPO_ID, filename=MOLSCRIBE_CHECKPOINT_NAME)
+    model_state["molscribe_checkpoint_path"] = str(ckpt_path)
+    return str(ckpt_path)
+
+
+def _load_molscribe_predictor_sync() -> Any:
+    predictor = model_state.get("molscribe_predictor")
+    if predictor is not None:
+        return predictor
+
+    with _ocr_lock_sync():
+        predictor = model_state.get("molscribe_predictor")
+        if predictor is not None:
+            return predictor
+
+        if MolScribe is None:
+            raise RuntimeError(
+                f"MolScribe import failed: {MOLSCRIBE_IMPORT_ERROR or 'unknown_import_error'}"
+            )
+
+        checkpoint_path = _resolve_molscribe_checkpoint_path_sync()
+        requested_device = (MOLSCRIBE_DEVICE or "cpu").lower()
+        if requested_device == "cuda" and torch.cuda.is_available():
+            ocr_device = torch.device("cuda")
+        else:
+            ocr_device = torch.device("cpu")
+
+        predictor = MolScribe(checkpoint_path, device=ocr_device)
+        model_state["molscribe_predictor"] = predictor
+        model_state.setdefault("startup_errors", {}).pop("smiles_image_extractor", None)
+        return predictor
+
+
+def _preload_smiles_image_runtime_sync() -> None:
+    if not MOLSCRIBE_PRELOAD_ON_STARTUP:
+        logger.info("Skipping MolScribe preload because MOLSCRIBE_PRELOAD_ON_STARTUP=false")
+        return
+
+    try:
+        _load_molscribe_predictor_sync()
+        logger.info("MolScribe OCR runtime preloaded successfully.")
+    except Exception as exc:
+        msg = f"{type(exc).__name__}: {exc}"
+        model_state.setdefault("startup_errors", {})["smiles_image_extractor"] = msg
+        logger.warning("MolScribe preload failed: %s", msg)
+
+
+def _preprocess_ocr_image(raw_image: bytes) -> np.ndarray:
+    try:
+        with Image.open(io.BytesIO(raw_image)) as image:
+            normalized = ImageOps.autocontrast(image.convert("RGB"))
+            return np.asarray(normalized, dtype=np.uint8)
+    except UnidentifiedImageError as exc:
+        raise _image_extraction_http_error(
+            status_code=415,
+            error_code="unsupported_image_format",
+            message="Image content could not be decoded. Supported formats: PNG/JPG/JPEG/WebP.",
+        ) from exc
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise _image_extraction_http_error(
+            status_code=415,
+            error_code="unsupported_image_format",
+            message="Failed to process uploaded image.",
+            extra={"startup_error": f"{type(exc).__name__}: {exc}"},
+        ) from exc
+
+
+def _extract_smiles_from_image_sync(image_rgb: np.ndarray) -> Dict[str, Any]:
+    predictor = _load_molscribe_predictor_sync()
+
+    output = predictor.predict_image(image_rgb, return_confidence=True)
+    if not isinstance(output, dict):
+        raise RuntimeError("MolScribe returned malformed output.")
+
+    smiles = str(output.get("smiles") or "").strip()
+    if not smiles:
+        raise _image_extraction_http_error(
+            status_code=422,
+            error_code="smiles_not_detected",
+            message="No SMILES sequence was detected from the uploaded image.",
+        )
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise _image_extraction_http_error(
+            status_code=422,
+            error_code="invalid_smiles_from_image",
+            message="Extracted text is not a valid SMILES sequence.",
+            extra={"smiles": smiles},
+        )
+
+    canonical_smiles = Chem.MolToSmiles(mol)
+
+    confidence_raw = output.get("confidence")
+    confidence: Optional[float] = None
+    if isinstance(confidence_raw, (int, float)):
+        confidence = float(max(0.0, min(1.0, confidence_raw)))
+
+    warnings: List[str] = []
+    if canonical_smiles != smiles:
+        warnings.append("smiles_canonicalized")
+
+    return {
+        "smiles": smiles,
+        "canonical_smiles": canonical_smiles,
+        "confidence": confidence,
+        "warnings": warnings,
+    }
 
 
 def _explainer_timeout_error(smiles: str, timeout_ms: int) -> HTTPException:
@@ -2680,6 +2899,16 @@ async def health():
         "adk_available": ADK_AVAILABLE,
         "adk_runtime_ready": adk_runner is not None and adk_session_service is not None,
         "adk_runtime_import_error": ADK_RUNTIME_IMPORT_ERROR,
+        "molscribe_import_error": MOLSCRIBE_IMPORT_ERROR,
+        "smiles_image_extraction": {
+            "enabled": MolScribe is not None,
+            "preload_on_startup": MOLSCRIBE_PRELOAD_ON_STARTUP,
+            "ready": _ocr_ready(),
+            "checkpoint_path": model_state.get("molscribe_checkpoint_path"),
+            "max_upload_bytes": SMILES_IMAGE_MAX_BYTES,
+            "supported_mime_types": sorted(SMILES_IMAGE_SUPPORTED_MIME_TYPES),
+            "startup_error": startup_errors.get("smiles_image_extractor"),
+        },
         "tox21_thresholds_loaded": model_state.get("tox21_thresholds") is not None,
         "tox21_thresholds_source": model_state.get("tox21_thresholds_source"),
         "tox21_threshold_count": len(model_state.get("tox21_thresholds") or {}),
@@ -2757,6 +2986,73 @@ def _render_molecule_png(
 app.add_api_route("/health", health, methods=["GET"], tags=["system"])
 if AIP_HEALTH_ROUTE != "/health":
     app.add_api_route(AIP_HEALTH_ROUTE, health, methods=["GET"], include_in_schema=False)
+
+
+@app.post("/extract-smiles-from-image", response_model=SmilesImageExtractionResponse)
+async def extract_smiles_from_image(file: UploadFile = File(...)):
+    filename = file.filename or "uploaded-image"
+    extension = Path(filename).suffix.lower()
+    content_type = str(file.content_type or "").strip().lower()
+
+    if content_type not in SMILES_IMAGE_SUPPORTED_MIME_TYPES and extension not in SMILES_IMAGE_SUPPORTED_EXTENSIONS:
+        raise _image_extraction_http_error(
+            status_code=415,
+            error_code="unsupported_image_format",
+            message="Unsupported image format. Use PNG/JPG/JPEG/WebP.",
+            extra={
+                "filename": filename,
+                "content_type": content_type or None,
+            },
+        )
+
+    started = time.perf_counter()
+    try:
+        payload = await file.read()
+        if not payload:
+            raise _image_extraction_http_error(
+                status_code=422,
+                error_code="smiles_not_detected",
+                message="Uploaded image is empty.",
+            )
+
+        if len(payload) > SMILES_IMAGE_MAX_BYTES:
+            raise _image_extraction_http_error(
+                status_code=413,
+                error_code="image_too_large",
+                message="Uploaded image exceeds the 5MB limit.",
+                extra={
+                    "max_bytes": SMILES_IMAGE_MAX_BYTES,
+                    "received_bytes": len(payload),
+                },
+            )
+
+        preprocessed = _preprocess_ocr_image(payload)
+
+        try:
+            extracted = await asyncio.to_thread(_extract_smiles_from_image_sync, preprocessed)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise _image_extraction_http_error(
+                status_code=503,
+                error_code="extraction_service_unavailable",
+                message="Image extraction service is unavailable.",
+                extra={"startup_error": f"{type(exc).__name__}: {exc}"},
+            ) from exc
+
+        elapsed_ms = (time.perf_counter() - started) * 1000.0
+        warnings = list(extracted.get("warnings") or [])
+
+        return SmilesImageExtractionResponse(
+            smiles=str(extracted.get("smiles") or ""),
+            canonical_smiles=str(extracted.get("canonical_smiles") or ""),
+            confidence=extracted.get("confidence"),
+            warnings=warnings,
+            error_code=None,
+            message=f"SMILES extracted successfully in {elapsed_ms:.0f} ms.",
+        )
+    finally:
+        await file.close()
 
 # Single Prediction
 @app.post("/predict", response_model=PredictResponse)
@@ -3213,36 +3509,75 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
     try:
         with _model_lock_sync():
             clinical_bundle: Optional[Dict[str, Any]] = None
-            if _is_ensemble_binary_model_key(binary_tox_model_key):
-                clinical_raw = _predict_ensemble_clinical_sync(
-                    model_key=binary_tox_model_key,
-                    smiles=smiles,
-                    clinical_threshold=float(req.clinical_threshold),
-                    mechanism_threshold=float(req.mechanism_threshold),
-                )
-                pretrained_backend_loaded = True
-            else:
-                clinical_bundle = _load_dual_head_bundle_sync(binary_tox_model_key)
-                pretrained_backend_loaded = True
-
-                clinical_outputs = predict_pretrained_dual_head_outputs(
-                    smiles_list=[smiles],
-                    model=clinical_bundle["model"],
-                    tokenizer=clinical_bundle["tokenizer"],
-                    task_names=list(clinical_bundle.get("task_names") or []),
-                    device=DEVICE,
-                    clinical_threshold=float(req.clinical_threshold),
-                    mechanism_threshold=float(req.mechanism_threshold),
-                    task_thresholds=clinical_bundle.get("tox21_thresholds"),
-                    max_length=int(clinical_bundle.get("max_length", 128)),
-                    source_name=_pretrained_model_source_name(binary_tox_model_key),
-                )
-                clinical_raw = dict(clinical_outputs[0].get("clinical") or {})
-                clinical_raw["source"] = _pretrained_model_source_name(binary_tox_model_key)
-
-            if tox_type_model_key == "tox21_gatv2_model":
-                if tox21_available:
+            mechanism_failure: Optional[Exception] = None
+            try:
+                if tox_type_model_key == "tox21_gatv2_model":
+                    if tox21_available:
+                        tox_type_model_loaded_for_context = True
+                        mechanism_raw = predict_toxicity_mechanism(
+                            smiles=smiles,
+                            model=model_state["tox21_model"],
+                            task_names=model_state["tox21_tasks"],
+                            device=DEVICE,
+                            threshold=req.mechanism_threshold,
+                            task_thresholds=model_state.get("tox21_thresholds"),
+                            batch_size=64,
+                        )
+                    else:
+                        mechanism_raw = _fallback_mechanism_result(req.mechanism_threshold)
+                elif _is_pretrained_gin_model_key(tox_type_model_key):
+                    gin_bundle = _load_pretrained_gin_bundle_sync(tox_type_model_key)
                     tox_type_model_loaded_for_context = True
+                    mechanism_outputs = predict_pretrained_gin_tox21_outputs(
+                        smiles_list=[smiles],
+                        model=gin_bundle["model"],
+                        task_names=list(gin_bundle.get("task_names") or []),
+                        device=DEVICE,
+                        mechanism_threshold=float(req.mechanism_threshold),
+                        task_thresholds=gin_bundle.get("tox21_thresholds"),
+                        batch_size=32,
+                        source_name=_pretrained_gin_model_source_name(tox_type_model_key),
+                    )
+                    mechanism_raw = dict(mechanism_outputs[0].get("mechanism") or {})
+                elif _is_ensemble_tox_type_model_key(tox_type_model_key):
+                    mechanism_raw = _predict_ensemble_mechanism_sync(
+                        model_key=tox_type_model_key,
+                        smiles=smiles,
+                        mechanism_threshold=float(req.mechanism_threshold),
+                    )
+                    tox_type_model_loaded_for_context = True
+                else:
+                    mechanism_bundle = (
+                        clinical_bundle
+                        if tox_type_model_key == binary_tox_model_key
+                        else _load_dual_head_bundle_sync(tox_type_model_key)
+                    )
+                    tox_type_model_loaded_for_context = True
+                    mechanism_outputs = predict_pretrained_dual_head_outputs(
+                        smiles_list=[smiles],
+                        model=mechanism_bundle["model"],
+                        tokenizer=mechanism_bundle["tokenizer"],
+                        task_names=list(mechanism_bundle.get("task_names") or []),
+                        device=DEVICE,
+                        clinical_threshold=float(req.clinical_threshold),
+                        mechanism_threshold=float(req.mechanism_threshold),
+                        task_thresholds=mechanism_bundle.get("tox21_thresholds"),
+                        max_length=int(mechanism_bundle.get("max_length", 128)),
+                        source_name=_pretrained_model_source_name(tox_type_model_key),
+                    )
+                    mechanism_raw = dict(mechanism_outputs[0].get("mechanism") or {})
+            except HTTPException as exc:
+                mechanism_failure = exc
+            except Exception as exc:
+                mechanism_failure = exc
+
+            if mechanism_failure is not None:
+                if tox21_available:
+                    logger.warning(
+                        "Requested tox_type_model '%s' unavailable; falling back to tox21_gatv2: %s",
+                        tox_type_model_key,
+                        mechanism_failure,
+                    )
                     mechanism_raw = predict_toxicity_mechanism(
                         smiles=smiles,
                         model=model_state["tox21_model"],
@@ -3252,56 +3587,63 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                         task_thresholds=model_state.get("tox21_thresholds"),
                         batch_size=64,
                     )
+                    tox_type_model_loaded_for_context = True
+                elif isinstance(mechanism_failure, HTTPException):
+                    raise mechanism_failure
                 else:
-                    mechanism_raw = _fallback_mechanism_result(req.mechanism_threshold)
-            elif _is_pretrained_gin_model_key(tox_type_model_key):
-                gin_bundle = _load_pretrained_gin_bundle_sync(tox_type_model_key)
-                tox_type_model_loaded_for_context = True
-                mechanism_outputs = predict_pretrained_gin_tox21_outputs(
-                    smiles_list=[smiles],
-                    model=gin_bundle["model"],
-                    task_names=list(gin_bundle.get("task_names") or []),
-                    device=DEVICE,
-                    mechanism_threshold=float(req.mechanism_threshold),
-                    task_thresholds=gin_bundle.get("tox21_thresholds"),
-                    batch_size=32,
-                    source_name=_pretrained_gin_model_source_name(tox_type_model_key),
-                )
-                mechanism_raw = dict(mechanism_outputs[0].get("mechanism") or {})
-            elif _is_ensemble_tox_type_model_key(tox_type_model_key):
-                mechanism_raw = _predict_ensemble_mechanism_sync(
-                    model_key=tox_type_model_key,
-                    smiles=smiles,
-                    mechanism_threshold=float(req.mechanism_threshold),
-                )
-                tox_type_model_loaded_for_context = True
-            else:
-                mechanism_bundle = (
-                    clinical_bundle
-                    if tox_type_model_key == binary_tox_model_key
-                    else _load_dual_head_bundle_sync(tox_type_model_key)
-                )
-                tox_type_model_loaded_for_context = True
-                mechanism_outputs = predict_pretrained_dual_head_outputs(
-                    smiles_list=[smiles],
-                    model=mechanism_bundle["model"],
-                    tokenizer=mechanism_bundle["tokenizer"],
-                    task_names=list(mechanism_bundle.get("task_names") or []),
-                    device=DEVICE,
-                    clinical_threshold=float(req.clinical_threshold),
-                    mechanism_threshold=float(req.mechanism_threshold),
-                    task_thresholds=mechanism_bundle.get("tox21_thresholds"),
-                    max_length=int(mechanism_bundle.get("max_length", 128)),
-                    source_name=_pretrained_model_source_name(tox_type_model_key),
-                )
-                mechanism_raw = dict(mechanism_outputs[0].get("mechanism") or {})
-                mechanism_raw.setdefault("task_scores", {})
-                mechanism_raw.setdefault("active_tasks", [])
-                mechanism_raw.setdefault("highest_risk_task", "—")
-                mechanism_raw.setdefault("highest_risk_score", 0.0)
-                mechanism_raw.setdefault("assay_hits", int(len(mechanism_raw.get("active_tasks") or [])))
-                mechanism_raw.setdefault("threshold_used", float(req.mechanism_threshold))
-                mechanism_raw.setdefault("task_thresholds", {})
+                    raise HTTPException(500, f"Unified inference error: {str(mechanism_failure)}")
+
+            clinical_failure: Optional[Exception] = None
+            try:
+                if _is_ensemble_binary_model_key(binary_tox_model_key):
+                    clinical_raw = _predict_ensemble_clinical_sync(
+                        model_key=binary_tox_model_key,
+                        smiles=smiles,
+                        clinical_threshold=float(req.clinical_threshold),
+                        mechanism_threshold=float(req.mechanism_threshold),
+                    )
+                    pretrained_backend_loaded = True
+                else:
+                    clinical_bundle = _load_dual_head_bundle_sync(binary_tox_model_key)
+                    pretrained_backend_loaded = True
+
+                    clinical_outputs = predict_pretrained_dual_head_outputs(
+                        smiles_list=[smiles],
+                        model=clinical_bundle["model"],
+                        tokenizer=clinical_bundle["tokenizer"],
+                        task_names=list(clinical_bundle.get("task_names") or []),
+                        device=DEVICE,
+                        clinical_threshold=float(req.clinical_threshold),
+                        mechanism_threshold=float(req.mechanism_threshold),
+                        task_thresholds=clinical_bundle.get("tox21_thresholds"),
+                        max_length=int(clinical_bundle.get("max_length", 128)),
+                        source_name=_pretrained_model_source_name(binary_tox_model_key),
+                    )
+                    clinical_raw = dict(clinical_outputs[0].get("clinical") or {})
+                    clinical_raw["source"] = _pretrained_model_source_name(binary_tox_model_key)
+            except HTTPException as exc:
+                clinical_failure = exc
+            except Exception as exc:
+                clinical_failure = exc
+
+            if clinical_failure is not None:
+                if tox21_available:
+                    logger.warning(
+                        "Requested binary_tox_model '%s' unavailable; using tox21 proxy clinical signal: %s",
+                        binary_tox_model_key,
+                        clinical_failure,
+                    )
+                    clinical_raw = predict_clinical_proxy_from_tox21(
+                        mechanism_result=mechanism_raw,
+                        threshold=float(req.clinical_threshold),
+                    )
+                    clinical_raw["source"] = "tox21_proxy"
+                    clinical_raw["fallback_reason"] = f"{type(clinical_failure).__name__}: {clinical_failure}"
+                    pretrained_backend_loaded = False
+                elif isinstance(clinical_failure, HTTPException):
+                    raise clinical_failure
+                else:
+                    raise HTTPException(500, f"Unified inference error: {str(clinical_failure)}")
 
             mechanism_raw.setdefault("task_scores", {})
             mechanism_raw.setdefault("active_tasks", [])
@@ -3369,7 +3711,14 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                     ),
                 )
             except TimeoutError:
-                raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
+                logger.warning(
+                    "Clinical explanation timed out after %s ms; returning fallback explanation payload.",
+                    req.explainer_timeout_ms,
+                )
+                explanation_payload = _fallback_explanation(
+                    target_task="CLINICAL_TOXICITY",
+                    mol=mol,
+                )
             except Exception as clinical_exc:
                 logger.warning(
                     "Clinical explanation failed; falling back to tox21 task explainer: %s",
@@ -3504,9 +3853,19 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                             explainer_note=explainer_note,
                         )
                 except TimeoutError:
-                    raise _explainer_timeout_error(smiles=smiles, timeout_ms=req.explainer_timeout_ms)
+                    logger.warning(
+                        "Task-level explanation timed out after %s ms for task '%s'; returning fallback explanation payload.",
+                        req.explainer_timeout_ms,
+                        target_task,
+                    )
+                    explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
                 except Exception as exc:
-                    raise HTTPException(500, f"Task-level explanation error: {str(exc)}")
+                    logger.warning(
+                        "Task-level explanation failed for task '%s'; returning fallback explanation payload: %s",
+                        target_task,
+                        exc,
+                    )
+                    explanation_payload = _fallback_explanation(target_task=target_task, mol=mol)
 
     mechanism_scores = dict(mechanism_raw["task_scores"])
 

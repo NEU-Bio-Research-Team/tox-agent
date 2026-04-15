@@ -213,6 +213,7 @@ python scripts/predict_tox21.py --smiles "CCO" --device cuda
 - `POST /predict`: quick prediction for a SMILES
 - `POST /analyze`: returns clinical + mechanism + explanation
 - `POST /agent/analyze`: full multi-agent workflow + final report
+- `POST /extract-smiles-from-image`: upload PNG/JPG/JPEG/WebP and extract validated canonical SMILES
 
 ### 5.2 Workspace Mode and Guard Rails
 Current workspace config:
@@ -242,6 +243,124 @@ Meaning:
 - Add benchmark/telemetry for latency and quality report per session
 - Enhance explainability with stronger chemical constraints
 - Strengthen failure registry and feedback loop process
+
+### 5.6 New Input Modes (MVP)
+Frontend now supports 3 input modes in the main analysis panel:
+- Type SMILES directly.
+- Draw molecule with **Ketcher** and export SMILES into the main input.
+- Upload structure image (PNG/JPG/JPEG/WebP) and extract SMILES from image OCR.
+
+Backend image OCR flow:
+- Validate MIME type and extension.
+- Enforce max upload size (`5MB` by default).
+- Preprocess image with Pillow (RGB + autocontrast).
+- Run MolScribe image-to-SMILES model.
+- Validate and canonicalize with RDKit.
+
+Standardized OCR error codes:
+- `unsupported_image_format`
+- `image_too_large`
+- `smiles_not_detected`
+- `invalid_smiles_from_image`
+- `extraction_service_unavailable`
+
+Performance notes:
+- Existing analysis pipeline (`/agent/analyze`) is unchanged.
+- OCR is a separate endpoint and only runs when user uploads an image.
+- MolScribe preload is enabled by default to reduce first OCR request latency.
+
+### 5.7 OCR Runtime Environment Variables
+- `SMILES_IMAGE_MAX_BYTES` (default: `5242880`)
+- `MOLSCRIBE_PRELOAD_ON_STARTUP` (default: `true`)
+- `MOLSCRIBE_AUTO_DOWNLOAD` (default: `true`)
+- `MOLSCRIBE_REPO_ID` (default: `yujieq/MolScribe`)
+- `MOLSCRIBE_CHECKPOINT_NAME` (default: `swin_base_char_aux_1m.pth`)
+- `MOLSCRIBE_MODEL_PATH` (optional explicit local checkpoint path)
+- `MOLSCRIBE_DEVICE` (`cpu` or `cuda`, default follows runtime device)
+
+---
+
+## 6) Detailed Run Guide (Step-by-Step)
+
+This guide is for re-running the project with the new Draw + Image OCR features.
+
+### Step 1: Prepare Environment
+
+Option A (recommended): Conda
+```bash
+conda env create -f environment.yml
+conda activate drug-tox-env
+```
+
+Option B: Existing Python environment
+- Ensure Python, torch stack, RDKit, and project dependencies are already available.
+
+### Step 2: Install Backend Dependencies
+```bash
+pip install -r model_server/requirements.txt
+```
+
+Install MolScribe without dependency override of torch:
+```bash
+pip install --no-deps molscribe==1.1.1
+```
+
+### Step 3: Configure OCR (Optional but Recommended)
+
+PowerShell example:
+```powershell
+$env:MOLSCRIBE_PRELOAD_ON_STARTUP="true"
+$env:MOLSCRIBE_AUTO_DOWNLOAD="true"
+$env:SMILES_IMAGE_MAX_BYTES="5242880"
+```
+
+If you already downloaded a checkpoint:
+```powershell
+$env:MOLSCRIBE_MODEL_PATH="D:/path/to/swin_base_char_aux_1m.pth"
+```
+
+### Step 4: Start Backend
+```bash
+uvicorn model_server.main:app --host 0.0.0.0 --port 8080 --workers 1
+```
+
+Quick checks:
+```bash
+curl -sS http://127.0.0.1:8080/health
+
+curl -sS -X POST http://127.0.0.1:8080/extract-smiles-from-image \
+  -F "file=@test_data/example_molecule.png"
+```
+
+### Step 5: Start Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+If backend is custom host/port, set:
+```bash
+export VITE_API_BASE_URL=http://127.0.0.1:8080
+```
+
+### Step 6: Validate End-to-End
+1. Open web UI.
+2. Use **Type SMILES** tab and run analysis.
+3. Use **Draw Molecule** tab, export SMILES, then analyze.
+4. Use **Upload Image** tab, extract SMILES, then analyze.
+5. Try invalid file type or oversized image and verify specific error code appears in UI.
+
+### Step 7: Build and Deploy
+```bash
+npm run build
+npm run deploy:hosting
+```
+
+For container builds (Cloud Run), Dockerfile is updated to:
+- install OCR runtime dependencies,
+- install MolScribe with `--no-deps`,
+- preload OCR model by default.
 
 ---
 

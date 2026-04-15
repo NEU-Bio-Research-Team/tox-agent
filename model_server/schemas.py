@@ -274,3 +274,26 @@ class AgentChatRequest(BaseModel):
 class AgentChatResponse(BaseModel):
     chat_session_id: str
     response: str
+
+
+class SmilesImageExtractionResponse(BaseModel):
+    smiles: Optional[str] = Field(
+        default=None,
+        description="SMILES extracted from uploaded image before canonicalization.",
+    )
+    canonical_smiles: Optional[str] = Field(
+        default=None,
+        description="Canonical SMILES validated by RDKit.",
+    )
+    confidence: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Model confidence for image-to-SMILES extraction when available.",
+    )
+    warnings: List[str] = Field(default_factory=list)
+    error_code: Optional[str] = Field(
+        default=None,
+        description="Machine-readable error code for frontend error handling.",
+    )
+    message: Optional[str] = Field(default=None)

@@ -5,6 +5,7 @@ import { ReportProvider } from '../lib/ReportContext';
 import { ReleaseNotesModal } from './components/release-notes-modal';
 import { RELEASE_NOTES_EVENT, RELEASE_NOTES_STORAGE_KEY } from './release-notes';
 import { AuthProvider } from './components/contexts/auth-context';
+import { Toaster } from 'sonner';
 
 export default function App() {
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
@@ -38,6 +39,7 @@ export default function App() {
       <ReportProvider>
         <RouterProvider router={router} />
         <ReleaseNotesModal open={releaseNotesOpen} onOpenChange={setReleaseNotesOpen} />
+        <Toaster position="top-right" richColors />
       </ReportProvider>
     </AuthProvider>
   );

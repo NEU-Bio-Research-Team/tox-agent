@@ -257,6 +257,27 @@ export interface AgentChatResponse {
 	response: string;
 }
 
+export interface SmilesImageExtractionResponse {
+	smiles: string | null;
+	canonical_smiles: string | null;
+	confidence: number | null;
+	warnings: string[];
+	error_code: string | null;
+	message: string | null;
+}
+
+export class SmilesImageExtractionError extends Error {
+	status: number;
+	code: string;
+
+	constructor(status: number, code: string, message: string) {
+		super(message);
+		this.name = 'SmilesImageExtractionError';
+		this.status = status;
+		this.code = code;
+	}
+}
+
 function toErrorMessage(status: number, bodyText: string): string {
 	if (!bodyText) {
 		return `API error ${status}`;
@@ -264,8 +285,19 @@ function toErrorMessage(status: number, bodyText: string): string {
 
 	try {
 		const parsed = JSON.parse(bodyText) as {
+			error?: string;
+			message?: string;
 			detail?: { message?: string; error?: string } | string;
 		};
+		if (parsed.error && parsed.message) {
+			return `API error ${status} (${parsed.error}): ${parsed.message}`;
+		}
+		if (parsed.message) {
+			return `API error ${status}: ${parsed.message}`;
+		}
+		if (parsed.error) {
+			return `API error ${status}: ${parsed.error}`;
+		}
 		if (typeof parsed.detail === 'string') {
 			return `API error ${status}: ${parsed.detail}`;
 		}
@@ -306,9 +338,9 @@ export async function agentAnalyze(
 		clinical_threshold: options.clinicalThreshold ?? 0.35,
 		mechanism_threshold: options.mechanismThreshold ?? 0.5,
 		max_literature_results: options.maxLiteratureResults ?? 5,
-		inference_backend: options.inferenceBackend ?? 'xsmiles',
+		inference_backend: options.inferenceBackend ?? 'chemberta',
 		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
-		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best',
+		tox_type_model: options.toxTypeModel ?? 'tox21_gatv2_model',
 		molrag_enabled: options.molragEnabled ?? true,
 		molrag_top_k: options.molragTopK ?? 5,
 		molrag_min_similarity: options.molragMinSimilarity ?? 0.15,
@@ -361,4 +393,53 @@ export async function agentChat(
 	}
 
 	return (await res.json()) as AgentChatResponse;
+}
+
+export async function extractSmilesFromImage(
+	file: File,
+): Promise<SmilesImageExtractionResponse> {
+	const formData = new FormData();
+	formData.append('file', file);
+
+	const res = await fetch(`${BASE_URL}/extract-smiles-from-image`, {
+		method: 'POST',
+		body: formData,
+	});
+
+	if (!res.ok) {
+		const bodyText = await res.text();
+		let code = 'extraction_service_unavailable';
+		let message = toErrorMessage(res.status, bodyText);
+
+		if (bodyText) {
+			try {
+				const parsed = JSON.parse(bodyText) as {
+					error?: string;
+					message?: string;
+					detail?: { error?: string; message?: string } | string;
+				};
+
+				if (typeof parsed.error === 'string' && parsed.error.trim()) {
+					code = parsed.error;
+				}
+				if (typeof parsed.message === 'string' && parsed.message.trim()) {
+					message = parsed.message;
+				}
+				if (typeof parsed.detail === 'object' && parsed.detail) {
+					if (typeof parsed.detail.error === 'string' && parsed.detail.error.trim()) {
+						code = parsed.detail.error;
+					}
+					if (typeof parsed.detail.message === 'string' && parsed.detail.message.trim()) {
+						message = parsed.detail.message;
+					}
+				}
+			} catch {
+				// Keep fallback error message/code.
+			}
+		}
+
+		throw new SmilesImageExtractionError(res.status, code, message);
+	}
+
+	return (await res.json()) as SmilesImageExtractionResponse;
 }

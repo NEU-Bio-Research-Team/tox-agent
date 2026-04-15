@@ -14,16 +14,17 @@ const DEFAULTS: UserPreferences = {
   language: 'en',
   clinicalThreshold: 0.35,
   mechanismThreshold: 0.5,
-  inferenceBackend: 'xsmiles',
+  inferenceBackend: 'chemberta',
 };
 
 function normalizeInferenceBackend(value: unknown): InferenceBackend {
   const candidate = String(value ?? '').trim().toLowerCase();
   if (candidate === 'chembert') return 'chemberta';
+  if (candidate === 'xsmiles') return 'chemberta';
   if (candidate === 'chemberta' || candidate === 'pubchem' || candidate === 'molformer') {
     return candidate;
   }
-  return 'xsmiles';
+  return 'chemberta';
 }
 
 function clampThreshold(value: number, fallback: number): number {

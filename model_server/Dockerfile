@@ -22,6 +22,10 @@ ENV AIP_HTTP_PORT=8080
 # Không hardcore ở đây - truyền qua --set-env-vars khi gcloud deploy
 ENV GOOGLE_CLOUD_PROJECT=""
 ENV GOOGLE_CLOUD_LOCATION="us-central1"
+ENV MOLSCRIBE_PRELOAD_ON_STARTUP="true"
+ENV MOLSCRIBE_AUTO_DOWNLOAD="true"
+ENV MOLSCRIBE_REPO_ID="yujieq/MolScribe"
+ENV MOLSCRIBE_CHECKPOINT_NAME="swin_base_char_aux_1m.pth"
 
 # Python behaviour
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -61,6 +65,10 @@ RUN pip install --no-cache-dir \
 
 # Install model server dependencies (lean runtime set)
 RUN pip install --no-cache-dir -r /app/model_server/requirements.txt
+
+# MolScribe currently pins torch<2.0 in metadata, so install without deps to
+# preserve the pre-installed torch runtime used by the toxicity pipeline.
+RUN pip install --no-cache-dir --no-deps molscribe==1.1.1
 
 # Export port (Cloud Run uses 8080)
 EXPOSE 8080
