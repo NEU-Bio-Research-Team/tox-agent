@@ -15,6 +15,8 @@ const sections = [
 interface ReportSidebarProps {
   finalReport: FinalReport;
   language: 'vi' | 'en';
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
 function riskColor(riskLevel: string) {
@@ -23,7 +25,7 @@ function riskColor(riskLevel: string) {
   return 'var(--accent-green)';
 }
 
-export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
+export function ReportSidebar({ finalReport, language, isOpen, onToggle }: ReportSidebarProps) {
   const [activeSection, setActiveSection] = useState('metrics');
   const pToxic = Number(finalReport.sections.clinical_toxicity?.probability ?? 0);
   const threshold = Number(finalReport.sections.clinical_toxicity?.threshold_used ?? 0.35);
@@ -171,13 +173,30 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
 
   return (
     <aside
-      className="border-b px-4 py-4 md:px-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:border-r lg:border-b-0 lg:p-6 lg:overflow-y-auto"
+      className={`overflow-hidden border-b transition-all duration-300 ease-out lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:border-r lg:border-b-0 ${
+        isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 lg:max-h-[calc(100vh-4rem)]'
+      }`}
       style={{ borderColor: 'var(--border)' }}
     >
+      <div className="px-4 py-4 md:px-6 lg:h-full lg:overflow-y-auto lg:p-6">
       <div className="mb-0 lg:mb-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-          {language === 'vi' ? 'N\u1ed9i dung b\u00e1o c\u00e1o' : 'Report Sections'}
-        </h3>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase" style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+            {language === 'vi' ? 'N\u1ed9i dung b\u00e1o c\u00e1o' : 'Report Sections'}
+          </h3>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="rounded-lg px-2 py-1 text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: 'var(--surface-alt)',
+              color: 'var(--text-muted)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            {language === 'vi' ? '\u0110\u00f3ng' : 'Close'}
+          </button>
+        </div>
         <nav className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
           {sections.map((section) => (
             <button
@@ -186,6 +205,9 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
                 setActiveSection(section.id);
                 if (typeof window !== 'undefined') {
                   document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  if (window.innerWidth < 1024) {
+                    onToggle();
+                  }
                 }
               }}
               className="shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm transition-colors lg:w-full"
@@ -194,7 +216,7 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
                 color: activeSection === section.id ? 'var(--accent-blue)' : 'var(--text-muted)',
               }}
             >
-              {activeSection === section.id ? '●' : '○'} {sectionLabels[section.id] || section.label}
+              {activeSection === section.id ? '\u25cf' : '\u25cb'} {sectionLabels[section.id] || section.label}
             </button>
           ))}
         </nav>
@@ -218,6 +240,7 @@ export function ReportSidebar({ finalReport, language }: ReportSidebarProps) {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </aside>
   );

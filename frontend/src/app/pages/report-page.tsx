@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { PanelLeft, PanelLeftClose } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Navbar } from '../components/navbar';
 import { AIChatbot } from '../components/ai-chatbot';
@@ -11,11 +13,13 @@ import { StructuralExplanationSection } from '../components/report/structural-ex
 import { MolragEvidenceSection } from '../components/report/molrag-evidence-section';
 import { LiteratureContextSection } from '../components/report/literature-context-section';
 import { AIRecommendationsSection } from '../components/report/ai-recommendations-section';
+import { Button } from '../components/ui/button';
 import { useReport } from '../../lib/ReportContext';
 
 export function ReportPage() {
   const navigate = useNavigate();
   const { report, setReport, error } = useReport();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   if (!report?.final_report) {
     return (
@@ -66,9 +70,30 @@ export function ReportPage() {
         }}
       />
 
-      <div className="max-w-[1400px] mx-auto lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+      <div className="mx-auto flex max-w-[1400px] justify-end px-4 pt-4 md:px-6 lg:px-10">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsSidebarOpen((current) => !current)}
+          className="gap-2"
+          style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+        >
+          {isSidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+          {isSidebarOpen ? 'Hide report sections' : 'Show report sections'}
+        </Button>
+      </div>
+
+      <div
+        className="max-w-[1400px] mx-auto lg:grid lg:items-start"
+        style={{ gridTemplateColumns: isSidebarOpen ? '280px minmax(0, 1fr)' : '0 minmax(0, 1fr)' }}
+      >
         {/* Sidebar */}
-        <ReportSidebar finalReport={finalReport} language={reportLanguage} />
+        <ReportSidebar
+          finalReport={finalReport}
+          language={reportLanguage}
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen((current) => !current)}
+        />
 
         {/* Main Content */}
         <main className="min-w-0 w-full max-w-[860px] p-4 md:p-6 lg:p-10 space-y-10 lg:space-y-12">
