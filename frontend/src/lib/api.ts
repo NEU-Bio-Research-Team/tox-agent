@@ -247,6 +247,7 @@ export interface AgentAnalyzeResponse {
 	runtime_note?: string | null;
 	validation_status: string | null;
 	final_report: FinalReport;
+	evidence_qa_result?: Record<string, unknown>;
 	final_text: string | null;
 	agent_events: AgentEventRecord[];
 	state_keys: string[];

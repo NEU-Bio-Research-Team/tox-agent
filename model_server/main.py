@@ -847,14 +847,98 @@ def _normalize_report_chat_out_of_scope_reply(session_id: str, text: str) -> str
     )
 
 
+def _report_chat_confidence_level(session_id: str) -> str:
+    session = get_report_chat_session(session_id)
+    if session is None:
+        return "LOW"
+
+    evidence = _coerce_json_dict(session.report_state.get("evidence_qa_result")) or {}
+    return _normalize_evidence_confidence(evidence.get("evidence_confidence"))
+
+
+def _normalize_report_chat_citation_confidence(session_id: str, text: str) -> str:
+    response_text = str(text or "").strip()
+    if not response_text:
+        return response_text
+
+    if response_text.startswith("Thông tin này không có trong report hiện tại."):
+        return response_text
+
+    confidence = _report_chat_confidence_level(session_id)
+
+    response_text = re.sub(
+        r"(\|\s*Evidence\s*:\s*)(HIGH|MEDIUM|LOW|UNKNOWN)",
+        lambda match: f"{match.group(1)}{confidence}",
+        response_text,
+        flags=re.IGNORECASE,
+    )
+
+    has_evidence_tag = bool(re.search(r"\|\s*Evidence\s*:", response_text, flags=re.IGNORECASE))
+    has_source_block = "[Source:" in response_text or "[Nguồn:" in response_text
+
+    if has_source_block and not has_evidence_tag:
+        response_text = re.sub(
+            r"\[Source:\s*([^\]]+)\]",
+            lambda match: f"[Source: {match.group(1)} | Evidence: {confidence}]",
+            response_text,
+            count=1,
+        )
+        response_text = re.sub(
+            r"\[Nguồn:\s*([^\]]+)\]",
+            lambda match: f"[Nguồn: {match.group(1)} | Evidence: {confidence}]",
+            response_text,
+            count=1,
+        )
+
+    if not has_source_block and not has_evidence_tag:
+        response_text = f"{response_text} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]"
+
+    return response_text
+
+
+def _extract_relevant_papers_from_final_report(final_report: Dict[str, Any]) -> List[Dict[str, Any]]:
+    sections = _coerce_json_dict(final_report.get("sections")) or {}
+    literature_context = _coerce_json_dict(final_report.get("literature_context")) or _coerce_json_dict(
+        sections.get("literature_context")
+    )
+    papers = literature_context.get("relevant_papers")
+    if not isinstance(papers, list):
+        return []
+
+    sanitized: List[Dict[str, Any]] = []
+    for paper in papers:
+        if isinstance(paper, dict):
+            sanitized.append(paper)
+    return sanitized
+
+
+def _infer_evidence_qa_result_from_report(final_report: Dict[str, Any]) -> Dict[str, Any]:
+    papers = _extract_relevant_papers_from_final_report(final_report)
+    total_curated = len(papers)
+    confidence = "MEDIUM" if total_curated >= 3 else "LOW"
+
+    flags: List[str] = ["rehydrated_from_final_report_only"]
+    if total_curated == 0:
+        flags.append("no_articles_found")
+
+    return {
+        "research_result_sanitized": {},
+        "curated_articles": papers,
+        "total_articles_in": total_curated,
+        "total_articles_curated": total_curated,
+        "high_relevance_count": 0,
+        "evidence_confidence": confidence,
+        "research_quality_flags": flags,
+    }
+
+
 def _format_report_chat_fallback_reply(session_id: str, user_message: str) -> str:
     session = get_report_chat_session(session_id)
     if session is None:
         return "Session expired or not found. Please restart the analysis."
 
     final_report = _coerce_json_dict(session.report_state.get("final_report")) or {}
-    evidence = _coerce_json_dict(session.report_state.get("evidence_qa_result")) or {}
-    confidence = str(evidence.get("evidence_confidence") or "UNKNOWN").upper()
+    confidence = _report_chat_confidence_level(session_id)
     summary = str(final_report.get("executive_summary") or "").strip()
 
     normalized_message = str(user_message or "").lower()
@@ -879,14 +963,20 @@ def _format_report_chat_fallback_reply(session_id: str, user_message: str) -> st
             if summary
             else f"{prefix_vi}thông tin chi tiết chưa sẵn sàng trong phiên chat hiện tại."
         )
-        return f"{body} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]"
+        return _normalize_report_chat_citation_confidence(
+            session_id,
+            f"{body} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]",
+        )
 
     body = (
         f"{prefix_en}{summary}"
         if summary
         else f"{prefix_en}detailed report chat content is currently unavailable in this runtime."
     )
-    return f"{body} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]"
+    return _normalize_report_chat_citation_confidence(
+        session_id,
+        f"{body} [Source: EXECUTIVE SUMMARY | Evidence: {confidence}]",
+    )
 
 
 def _make_report_chat_llm_caller(session_id: str) -> Callable[..., str]:
@@ -911,7 +1001,8 @@ def _make_report_chat_llm_caller(session_id: str) -> Callable[..., str]:
             )
             text = str(getattr(response, "text", "") or "").strip()
             if text:
-                return _normalize_report_chat_out_of_scope_reply(session_id, text)
+                normalized = _normalize_report_chat_out_of_scope_reply(session_id, text)
+                return _normalize_report_chat_citation_confidence(session_id, normalized)
         except Exception as exc:
             logger.warning("Report chat generation failed (%s): %s", auth_mode, exc)
 
@@ -927,17 +1018,60 @@ def _build_evidence_qa_result(
     research_payload: Dict[str, Any],
     state: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
+    def _normalize_evidence_qa_result(payload: Dict[str, Any]) -> Dict[str, Any]:
+        normalized = dict(payload) if isinstance(payload, dict) else {}
+
+        curated_articles = normalized.get("curated_articles")
+        if not isinstance(curated_articles, list):
+            curated_articles = []
+        curated_articles = [item for item in curated_articles if isinstance(item, dict)]
+
+        research_flags = normalized.get("research_quality_flags")
+        if not isinstance(research_flags, list):
+            research_flags = []
+        research_flags = [str(flag) for flag in research_flags if str(flag).strip()]
+
+        total_curated_raw = normalized.get("total_articles_curated", len(curated_articles))
+        total_in_raw = normalized.get("total_articles_in", total_curated_raw)
+        high_relevance_raw = normalized.get("high_relevance_count", 0)
+
+        try:
+            total_curated = int(total_curated_raw)
+        except (TypeError, ValueError):
+            total_curated = len(curated_articles)
+
+        try:
+            total_in = int(total_in_raw)
+        except (TypeError, ValueError):
+            total_in = total_curated
+
+        try:
+            high_relevance_count = int(high_relevance_raw)
+        except (TypeError, ValueError):
+            high_relevance_count = 0
+
+        normalized["curated_articles"] = curated_articles
+        normalized["research_quality_flags"] = research_flags
+        normalized["total_articles_curated"] = max(total_curated, 0)
+        normalized["total_articles_in"] = max(total_in, 0)
+        normalized["high_relevance_count"] = max(high_relevance_count, 0)
+        normalized["evidence_confidence"] = _normalize_evidence_confidence(
+            normalized.get("evidence_confidence")
+        )
+
+        return normalized
+
     if isinstance(state, dict):
         qa_from_state = _extract_state_payload(state, "evidence_qa_result")
         if qa_from_state:
-            return qa_from_state
+            return _normalize_evidence_qa_result(qa_from_state)
 
     qa_wrapped = run_evidence_qa(research_payload if isinstance(research_payload, dict) else {})
     if isinstance(qa_wrapped, dict):
         qa_result = qa_wrapped.get("evidence_qa_result")
         if isinstance(qa_result, dict):
-            return qa_result
-    return {}
+            return _normalize_evidence_qa_result(qa_result)
+    return _normalize_evidence_qa_result({})
 
 
 def _upsert_report_chat_session(
@@ -947,14 +1081,21 @@ def _upsert_report_chat_session(
     final_report: Dict[str, Any],
     research_payload: Dict[str, Any],
     state: Optional[Dict[str, Any]] = None,
+    evidence_qa_result: Optional[Dict[str, Any]] = None,
 ) -> Optional[str]:
     if not isinstance(final_report, dict) or not final_report:
         return None
 
+    evidence_payload = (
+        _build_evidence_qa_result(research_payload, state)
+        if not isinstance(evidence_qa_result, dict)
+        else _build_evidence_qa_result(research_payload={}, state={"evidence_qa_result": evidence_qa_result})
+    )
+
     report_state = {
         "smiles_input": smiles,
         "final_report": final_report,
-        "evidence_qa_result": _build_evidence_qa_result(research_payload, state),
+        "evidence_qa_result": evidence_payload,
     }
     chat_session_id = create_chat_session(report_state)
     with _report_chat_lock:
@@ -1005,7 +1146,15 @@ def _rehydrate_report_chat_session_from_payload(
     reconstructed_report_state = {
         "smiles_input": str(smiles_input or ""),
         "final_report": final_report,
-        "evidence_qa_result": _coerce_json_dict(report_state_payload.get("evidence_qa_result")) or {},
+        "evidence_qa_result": _build_evidence_qa_result(
+            research_payload={},
+            state={
+                "evidence_qa_result": (
+                    _coerce_json_dict(report_state_payload.get("evidence_qa_result"))
+                    or _infer_evidence_qa_result_from_report(final_report)
+                )
+            },
+        ),
     }
     rehydrated_chat_session_id = create_chat_session(reconstructed_report_state)
 
@@ -1051,10 +1200,18 @@ def _is_final_report_schema_complete(final_report: Dict[str, Any]) -> bool:
     else:
         structural_payload = structural
 
-    if not any(
-        key in structural_payload
-        for key in ("molecule_png_base64", "heatmap_base64", "top_atoms", "top_bonds")
-    ):
+    has_visuals = bool(
+        structural_payload.get("molecule_png_base64")
+        or structural_payload.get("heatmap_base64")
+    )
+    top_atoms = structural_payload.get("top_atoms")
+    top_bonds = structural_payload.get("top_bonds")
+    has_ranked_features = (
+        (isinstance(top_atoms, list) and len(top_atoms) > 0)
+        or (isinstance(top_bonds, list) and len(top_bonds) > 0)
+    )
+
+    if not (has_visuals or has_ranked_features):
         return False
 
     if not isinstance(recommendations, list):
@@ -1071,8 +1228,14 @@ def _screening_payload_has_structural_data(screening_payload: Dict[str, Any]) ->
     if not isinstance(explanation, dict):
         return False
 
-    # Structural section is considered complete only when image payload exists.
-    return bool(explanation.get("molecule_png_base64") or explanation.get("heatmap_base64"))
+    has_visuals = bool(explanation.get("molecule_png_base64") or explanation.get("heatmap_base64"))
+    top_atoms = explanation.get("top_atoms")
+    top_bonds = explanation.get("top_bonds")
+    has_ranked_features = (
+        (isinstance(top_atoms, list) and len(top_atoms) > 0)
+        or (isinstance(top_bonds, list) and len(top_bonds) > 0)
+    )
+    return has_visuals or has_ranked_features
 
 
 def _screening_payload_has_molrag_data(screening_payload: Dict[str, Any]) -> bool:
@@ -1099,7 +1262,12 @@ def _extract_explanation_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(explanation, dict):
         return explanation
 
-    if payload.get("heatmap_base64") or payload.get("molecule_png_base64"):
+    if (
+        payload.get("heatmap_base64")
+        or payload.get("molecule_png_base64")
+        or isinstance(payload.get("top_atoms"), list)
+        or isinstance(payload.get("top_bonds"), list)
+    ):
         return payload
 
     return {}
@@ -1206,6 +1374,58 @@ def _is_vertex_resource_exhausted_error(exc: Exception) -> bool:
         or "resource_exhausted" in lowered
         or "rate exceeded" in lowered
         or "quota" in lowered
+    )
+
+
+def _normalize_evidence_confidence(value: Any) -> str:
+    normalized = str(value or "").strip().upper()
+    if normalized in {"HIGH", "MEDIUM", "LOW"}:
+        return normalized
+    return "LOW"
+
+
+def _flatten_exception_messages(exc: BaseException, max_messages: int = 12) -> List[str]:
+    pending: List[BaseException] = [exc]
+    seen_ids: set[int] = set()
+    messages: List[str] = []
+
+    while pending and len(messages) < max_messages:
+        current = pending.pop(0)
+        current_id = id(current)
+        if current_id in seen_ids:
+            continue
+        seen_ids.add(current_id)
+
+        text = str(current or "").strip()
+        if text and text not in messages:
+            messages.append(text)
+
+        nested = getattr(current, "exceptions", None)
+        if isinstance(nested, (list, tuple)):
+            for child in nested:
+                if isinstance(child, BaseException):
+                    pending.append(child)
+
+        for linked in (getattr(current, "__cause__", None), getattr(current, "__context__", None)):
+            if isinstance(linked, BaseException):
+                pending.append(linked)
+
+    return messages
+
+
+def _is_adk_taskgroup_runtime_error(exc: Exception) -> bool:
+    lowered_messages = [message.lower() for message in _flatten_exception_messages(exc)]
+    if not lowered_messages:
+        lowered_messages = [str(exc or "").lower()]
+
+    combined = " | ".join(lowered_messages)
+    return (
+        "taskgroup" in combined
+        or "exceptiongroup" in combined
+        or (
+            "unhandled errors" in combined
+            and "sub-exception" in combined
+        )
     )
 
 
@@ -1655,15 +1875,45 @@ def _fallback_explanation(
 ) -> ToxicityExplanationOutput:
     task = target_task or "UNAVAILABLE_NO_TOX21_MODEL"
     molecule_png_base64 = _render_molecule_png(mol)
+
+    top_atoms: List[AtomImportance] = []
+    top_bonds: List[BondImportance] = []
+    if mol is not None:
+        for atom in list(mol.GetAtoms())[:10]:
+            top_atoms.append(
+                AtomImportance(
+                    atom_idx=int(atom.GetIdx()),
+                    element=str(atom.GetSymbol()),
+                    importance=0.0,
+                    is_in_ring=bool(atom.IsInRing()),
+                    is_aromatic=bool(atom.GetIsAromatic()),
+                )
+            )
+
+        for bond in list(mol.GetBonds())[:10]:
+            begin_idx = int(bond.GetBeginAtomIdx())
+            end_idx = int(bond.GetEndAtomIdx())
+            begin_atom = mol.GetAtomWithIdx(begin_idx)
+            end_atom = mol.GetAtomWithIdx(end_idx)
+            top_bonds.append(
+                BondImportance(
+                    bond_idx=int(bond.GetIdx()),
+                    atom_pair=f"{begin_atom.GetSymbol()}({begin_idx}) - {end_atom.GetSymbol()}({end_idx})",
+                    bond_type=str(bond.GetBondTypeAsDouble()),
+                    importance=0.0,
+                )
+            )
+
     return ToxicityExplanationOutput(
         target_task=task,
         target_task_score=0.0,
-        top_atoms=[],
-        top_bonds=[],
+        top_atoms=top_atoms,
+        top_bonds=top_bonds,
         heatmap_base64=None,
         molecule_png_base64=molecule_png_base64,
         explainer_note=(
-            "Tox21 model unavailable. Returning placeholder explanation payload for API contract testing."
+            "Explainer attribution is unavailable in this runtime. "
+            "Returning deterministic structural placeholders for API contract stability."
         ),
     )
 
@@ -4024,6 +4274,24 @@ def _deterministic_screening_payload(
     molrag_min_similarity: float = 0.15,
 ) -> Dict[str, Any]:
     """Build screening payload directly from deterministic ScreeningAgent flow."""
+    def _ensure_structural_explanation(payload: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(payload, dict):
+            return payload
+
+        explanation_candidate = payload.get("explanation")
+        if isinstance(explanation_candidate, dict) and _screening_payload_has_structural_data({"explanation": explanation_candidate}):
+            return payload
+
+        canonical_smiles = str(payload.get("canonical_smiles") or payload.get("smiles") or smiles).strip()
+        mol = Chem.MolFromSmiles(canonical_smiles) if canonical_smiles else None
+        mechanism_payload = payload.get("mechanism") if isinstance(payload.get("mechanism"), dict) else {}
+        target_task = str(mechanism_payload.get("highest_risk_task") or "").strip() or None
+
+        fallback_explanation = _fallback_explanation(target_task=target_task, mol=mol).model_dump()
+        merged_payload = dict(payload)
+        merged_payload["explanation"] = fallback_explanation
+        return merged_payload
+
     screening_wrapped = run_screening(
         smiles_input=smiles,
         language=normalize_language(language),
@@ -4040,7 +4308,7 @@ def _deterministic_screening_payload(
     if isinstance(screening_wrapped, dict) and not screening_wrapped.get("screening_error"):
         screening_payload = screening_wrapped.get("screening_result")
         if isinstance(screening_payload, dict) and screening_payload:
-            return screening_payload
+            return _ensure_structural_explanation(screening_payload)
 
     # Defensive fallback: keep a minimal screening payload if deterministic
     # ScreeningAgent flow returns malformed output.
@@ -4056,7 +4324,7 @@ def _deterministic_screening_payload(
     if not isinstance(analysis, dict) or analysis.get("error"):
         return {}
 
-    return {
+    fallback_payload = {
         "summary": None,
         "smiles": analysis.get("smiles", smiles),
         "canonical_smiles": analysis.get("canonical_smiles", smiles),
@@ -4069,6 +4337,7 @@ def _deterministic_screening_payload(
         "final_verdict": analysis.get("final_verdict", "UNKNOWN"),
         "error": None,
     }
+    return _ensure_structural_explanation(fallback_payload)
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
@@ -4141,12 +4410,17 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             fallback_state.get("research_result"),
             nested_key="research_result",
         ) or {}
+        evidence_qa_result_payload = _build_evidence_qa_result(
+            research_payload,
+            fallback_state if isinstance(fallback_state, dict) else None,
+        )
         chat_session_id = _upsert_report_chat_session(
             analysis_session_id=session_id,
             smiles=smiles,
             final_report=final_report_payload,
             research_payload=research_payload,
             state=fallback_state if isinstance(fallback_state, dict) else None,
+            evidence_qa_result=evidence_qa_result_payload,
         )
 
         fallback_events: List[AgentEventRecord] = []
@@ -4171,6 +4445,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             runtime_note=cause,
             validation_status=validation_status_payload,
             final_report=final_report_payload,
+            evidence_qa_result=evidence_qa_result_payload,
             final_text=summary if isinstance(summary, str) else None,
             agent_events=fallback_events,
             state_keys=sorted(fallback_state.keys()),
@@ -4360,6 +4635,13 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                                     retry_exc,
                                 )
                                 return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
+                        elif _is_adk_taskgroup_runtime_error(retry_exc):
+                            logger.warning(
+                                "ADK root global retry ended with TaskGroup runtime; forcing ADK step continuation: %s",
+                                retry_exc,
+                            )
+                            force_adk_continuation = True
+                            _note_recovery("adk_taskgroup_step_continuation")
                         else:
                             logger.warning("ADK runtime failed after global retry, using deterministic fallback: %s", retry_exc)
                             return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
@@ -4375,6 +4657,13 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 )
                 force_adk_continuation = True
                 _note_recovery("adk_forced_step_continuation")
+        elif _is_adk_taskgroup_runtime_error(exc):
+            logger.warning(
+                "ADK root raised TaskGroup runtime error; forcing ADK step continuation path: %s",
+                exc,
+            )
+            force_adk_continuation = True
+            _note_recovery("adk_taskgroup_step_continuation")
         else:
             logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
             return await _build_fallback_response(f"agent_runtime_error: {exc}")
@@ -4732,12 +5021,18 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 )
             )
 
+    evidence_qa_result_payload = _build_evidence_qa_result(
+        research_payload if isinstance(research_payload, dict) else {},
+        state if isinstance(state, dict) else None,
+    )
+
     chat_session_id = _upsert_report_chat_session(
         analysis_session_id=session_id,
         smiles=smiles,
         final_report=final_report,
         research_payload=research_payload if isinstance(research_payload, dict) else {},
         state=state if isinstance(state, dict) else None,
+        evidence_qa_result=evidence_qa_result_payload,
     )
 
     return AgentAnalyzeResponse(
@@ -4748,6 +5043,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         runtime_note=runtime_note,
         validation_status=validation_status,
         final_report=final_report,
+        evidence_qa_result=evidence_qa_result_payload,
         final_text=final_text,
         agent_events=events if req.include_agent_events else [],
         state_keys=sorted(state.keys()),

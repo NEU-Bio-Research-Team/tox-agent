@@ -105,6 +105,7 @@ export function ReportPage() {
         reportState={{
           smiles_input: finalReport.report_metadata.smiles,
           final_report: finalReport,
+          evidence_qa_result: report.evidence_qa_result,
         }}
       />
 
