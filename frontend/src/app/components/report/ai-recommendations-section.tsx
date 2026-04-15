@@ -76,7 +76,7 @@ export function AIRecommendationsSection({
   };
 
   return (
-    <section id="recommendations">
+    <section id="recommendations" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§6 Khuyến nghị AI' : '§6 AI Recommendations'}
       </h2>
@@ -156,7 +156,7 @@ export function AIRecommendationsSection({
           borderLeft: '3px solid var(--accent-blue)',
         }}
       >
-        <div className="flex items-center gap-2 mb-6">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
           <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="M9 9h.01M15 9h.01M9 15h6" />
@@ -220,7 +220,7 @@ export function AIRecommendationsSection({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-8 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="mt-8 flex flex-col gap-3 pt-6 sm:flex-row sm:items-center" style={{ borderTop: '1px solid var(--border)' }}>
           <Button variant="ghost" size="sm" className="text-sm" style={{ color: 'var(--text-muted)' }} disabled>
             <RefreshCw className="w-4 h-4 mr-2" />
             {language === 'vi' ? 'Tạo lại báo cáo' : 'Regenerate report'}

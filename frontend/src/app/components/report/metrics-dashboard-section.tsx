@@ -59,7 +59,7 @@ export function MetricsDashboardSection({ finalReport, language }: MetricsDashbo
   const oodFlag = Boolean(ood?.flag);
 
   return (
-    <section id="metrics">
+    <section id="metrics" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§0 Bảng chỉ số quyết định' : '§0 Decision Metrics Dashboard'}
       </h2>

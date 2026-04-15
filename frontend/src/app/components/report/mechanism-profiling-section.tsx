@@ -17,12 +17,12 @@ export function MechanismProfilingSection({ data, language }: MechanismProfiling
   const highestRiskScore = highestRisk?.score ?? 0;
 
   return (
-    <section id="mechanism">
+    <section id="mechanism" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§2 Hồ sơ cơ chế độc tính' : '§2 Mechanism Profiling'}
       </h2>
 
-      <div className="mb-4 flex items-center gap-6">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
           {language === 'vi' ? 'Rủi ro cao nhất' : 'Highest Risk'}:{' '}
           <span className="font-semibold" style={{ color: 'var(--accent-red)' }}>
@@ -57,8 +57,8 @@ export function MechanismProfilingSection({ data, language }: MechanismProfiling
                 : 'var(--accent-green)';
 
           return (
-            <div key={task.name || idx} className="flex items-center gap-3">
-              <div className="w-32 text-sm font-medium" style={{ color: 'var(--text)' }}>
+            <div key={task.name || idx} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <div className="text-sm font-medium sm:w-32" style={{ color: 'var(--text)' }}>
                 {task.name}
               </div>
               <div className="flex-1 h-5 rounded relative" style={{ backgroundColor: 'var(--border)' }}>
@@ -72,10 +72,10 @@ export function MechanismProfilingSection({ data, language }: MechanismProfiling
                   }}
                 />
               </div>
-              <div className="w-12 text-sm font-mono text-right" style={{ color: 'var(--text)' }}>
+              <div className="text-sm font-mono sm:w-12 sm:text-right" style={{ color: 'var(--text)' }}>
                 {task.score.toFixed(2)}
               </div>
-              <div className="w-32 text-xs">
+              <div className="text-xs sm:w-32">
                 {isHighest && (
                   <span className="font-bold uppercase" style={{ color: 'var(--accent-red)' }}>
                     {language === 'vi' ? '★ RỦI RO CAO NHẤT' : '★ HIGHEST RISK'}

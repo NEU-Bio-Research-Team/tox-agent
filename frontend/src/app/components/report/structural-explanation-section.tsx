@@ -14,7 +14,7 @@ export function StructuralExplanationSection({ data, language }: StructuralExpla
   const moleculeSrc = moleculePng ? `data:image/png;base64,${moleculePng}` : null;
 
   return (
-    <section id="structural">
+    <section id="structural" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§3 Giải thích cấu trúc' : '§3 Structural Explanation'}
       </h2>
@@ -89,7 +89,7 @@ export function StructuralExplanationSection({ data, language }: StructuralExpla
           </p>
         )}
 
-        <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+        <div className="mb-2 flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:justify-between" style={{ color: 'var(--text-muted)' }}>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: 'var(--accent-green)' }} />
             <span>{language === 'vi' ? 'Ít nguy hiểm' : 'Lower risk contribution'}</span>

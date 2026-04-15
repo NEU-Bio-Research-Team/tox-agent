@@ -32,7 +32,7 @@ export function MolragEvidenceSection({ data, fusionResult, language }: MolragEv
   const agreement = fusionResult?.agreement;
 
   return (
-    <section id="molrag">
+    <section id="molrag" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§4 MolRAG Evidence & Reasoning' : '§4 MolRAG Evidence & Reasoning'}
       </h2>

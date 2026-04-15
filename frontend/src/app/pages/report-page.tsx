@@ -66,12 +66,12 @@ export function ReportPage() {
         }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] max-w-[1400px] mx-auto">
+      <div className="max-w-[1400px] mx-auto lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
         {/* Sidebar */}
         <ReportSidebar finalReport={finalReport} language={reportLanguage} />
 
         {/* Main Content */}
-        <main className="p-10 space-y-12 max-w-[860px]">
+        <main className="min-w-0 w-full max-w-[860px] p-4 md:p-6 lg:p-10 space-y-10 lg:space-y-12">
           <MetricsDashboardSection finalReport={finalReport} language={reportLanguage} />
           <ClinicalToxicitySection data={finalReport.sections.clinical_toxicity} language={reportLanguage} />
           <MechanismProfilingSection data={finalReport.sections.mechanism_toxicity} language={reportLanguage} />

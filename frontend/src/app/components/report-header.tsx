@@ -51,13 +51,13 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
 
   return (
     <div className="border-b" style={{ borderColor: 'var(--border)' }}>
-      <div className="max-w-[1400px] mx-auto px-10 py-8">
+      <div className="max-w-[1400px] mx-auto px-4 py-6 md:px-6 lg:px-10 lg:py-8">
         {/* Action Buttons */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
             variant="ghost"
             onClick={onNewAnalysis}
-            className="text-sm"
+            className="justify-start text-sm"
             style={{ color: 'var(--text-muted)' }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -66,7 +66,7 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
           <Button
             variant="outline"
             onClick={() => window.print()}
-            className="text-sm"
+            className="self-start text-sm sm:self-auto"
             style={{ borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}
           >
             <Download className="w-4 h-4 mr-2" />
@@ -75,9 +75,9 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
         </div>
 
         {/* Molecule Info */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--text)' }}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <h1 className="mb-2 text-3xl font-bold sm:text-4xl" style={{ color: 'var(--text)' }}>
               {compoundName}
             </h1>
             <p className="text-base italic mb-3" style={{ color: 'var(--text-muted)' }}>
@@ -92,7 +92,10 @@ export function ReportHeader({ finalReport, language, onNewAnalysis }: ReportHea
           </div>
 
           {/* Verdict Badge */}
-          <div className="rounded-xl px-6 py-4" style={{ backgroundColor: verdictStyle.bg, border: `1px solid ${verdictStyle.color}` }}>
+          <div
+            className="w-full rounded-xl px-5 py-4 sm:w-fit sm:px-6 lg:max-w-[320px]"
+            style={{ backgroundColor: verdictStyle.bg, border: `1px solid ${verdictStyle.color}` }}
+          >
             <div className="flex items-center gap-2 mb-1">
               {verdict === 'LOW' ? (
                 <CheckCircle className="w-6 h-6" style={{ color: verdictStyle.color }} />

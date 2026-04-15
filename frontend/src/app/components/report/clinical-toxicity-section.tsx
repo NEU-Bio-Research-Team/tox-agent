@@ -25,12 +25,12 @@ export function ClinicalToxicitySection({ data, language }: ClinicalToxicitySect
   const accentColor = getClinicalColor(pToxic);
 
   return (
-    <section id="clinical">
+    <section id="clinical" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§1 Độc tính lâm sàng' : '§1 Clinical Toxicity'}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
           <div className="relative mb-4">
             <svg viewBox="0 0 200 200" className="w-full max-w-[200px] mx-auto">
@@ -93,7 +93,7 @@ export function ClinicalToxicitySection({ data, language }: ClinicalToxicitySect
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="rounded-xl p-5" style={{ backgroundColor: `${accentColor}22`, border: `1px solid ${accentColor}` }}>
             <div className="text-xl font-bold mb-1 uppercase" style={{ color: accentColor }}>
               {verdict}

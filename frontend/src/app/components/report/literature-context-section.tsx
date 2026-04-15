@@ -27,7 +27,7 @@ export function LiteratureContextSection({ data, language }: LiteratureContextSe
   const activeAssays = bioassay?.active_assays ?? [];
 
   return (
-    <section id="literature">
+    <section id="literature" className="scroll-mt-24 lg:scroll-mt-20">
       <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>
         {language === 'vi' ? '§5 Bối cảnh tài liệu' : '§5 Literature Context'}
       </h2>
