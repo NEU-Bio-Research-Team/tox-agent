@@ -48,6 +48,7 @@ COPY . /app/
 ARG TORCH_VARIANT=cpu
 RUN pip install --no-cache-dir \
     torch==2.6.0+${TORCH_VARIANT} \
+    torchvision==0.21.0+${TORCH_VARIANT} \
     --index-url https://download.pytorch.org/whl/${TORCH_VARIANT} \
     --extra-index-url https://pypi.org/simple
 
@@ -66,9 +67,23 @@ RUN pip install --no-cache-dir \
 # Install model server dependencies (lean runtime set)
 RUN pip install --no-cache-dir -r /app/model_server/requirements.txt
 
+# MolScribe depends on OpenNMT (module `onmt`), but both MolScribe/OpenNMT pin
+# torch<2.0 in metadata. Install without deps to preserve the pre-installed
+# torch runtime used by the toxicity pipeline.
+RUN pip install --no-cache-dir --no-deps OpenNMT-py==2.2.0
+
+# OpenNMT-py 2.2.0 imports legacy torchtext (torchtext.data) from its package
+# __init__, which is not needed for MolScribe inference and does not have
+# reliable wheels on modern Python. Patch the package init to avoid importing
+# training/data-loading modules at import time.
+RUN python -c "import site; from pathlib import Path; init_path=next((Path(base) / 'onmt' / '__init__.py' for base in site.getsitepackages() if (Path(base) / 'onmt' / '__init__.py').exists()), None); assert init_path is not None, 'Could not locate onmt/__init__.py in site-packages'; init_path.write_text('\"\"\"Trimmed OpenNMT package init for MolScribe inference.\n\"\"\"\n__version__ = \"2.2.0\"\n'); print(f'Patched {init_path}')"
+
 # MolScribe currently pins torch<2.0 in metadata, so install without deps to
 # preserve the pre-installed torch runtime used by the toxicity pipeline.
 RUN pip install --no-cache-dir --no-deps molscribe==1.1.1
+
+# Fail the image build early if the optional image-to-SMILES stack cannot import.
+RUN python -c "from molscribe import MolScribe; print('MolScribe import OK')"
 
 # Export port (Cloud Run uses 8080)
 EXPOSE 8080

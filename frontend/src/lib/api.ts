@@ -267,6 +267,14 @@ export interface SmilesImageExtractionResponse {
 	message: string | null;
 }
 
+export interface SmilesPreviewResponse {
+	input_smiles: string;
+	canonical_smiles: string | null;
+	molecule_png_base64: string | null;
+	error_code: string | null;
+	message: string | null;
+}
+
 export class SmilesImageExtractionError extends Error {
 	status: number;
 	code: string;
@@ -274,6 +282,18 @@ export class SmilesImageExtractionError extends Error {
 	constructor(status: number, code: string, message: string) {
 		super(message);
 		this.name = 'SmilesImageExtractionError';
+		this.status = status;
+		this.code = code;
+	}
+}
+
+export class SmilesPreviewError extends Error {
+	status: number;
+	code: string;
+
+	constructor(status: number, code: string, message: string) {
+		super(message);
+		this.name = 'SmilesPreviewError';
 		this.status = status;
 		this.code = code;
 	}
@@ -443,4 +463,55 @@ export async function extractSmilesFromImage(
 	}
 
 	return (await res.json()) as SmilesImageExtractionResponse;
+}
+
+export async function previewSmiles(
+	smiles: string,
+): Promise<SmilesPreviewResponse> {
+	const payload = {
+		smiles,
+	};
+
+	const res = await fetch(`${BASE_URL}/smiles/preview`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		const bodyText = await res.text();
+		let code = 'preview_failed';
+		let message = toErrorMessage(res.status, bodyText);
+
+		if (bodyText) {
+			try {
+				const parsed = JSON.parse(bodyText) as {
+					error?: string;
+					message?: string;
+					detail?: { error?: string; message?: string } | string;
+				};
+
+				if (typeof parsed.error === 'string' && parsed.error.trim()) {
+					code = parsed.error;
+				}
+				if (typeof parsed.message === 'string' && parsed.message.trim()) {
+					message = parsed.message;
+				}
+				if (typeof parsed.detail === 'object' && parsed.detail) {
+					if (typeof parsed.detail.error === 'string' && parsed.detail.error.trim()) {
+						code = parsed.detail.error;
+					}
+					if (typeof parsed.detail.message === 'string' && parsed.detail.message.trim()) {
+						message = parsed.detail.message;
+					}
+				}
+			} catch {
+				// Keep fallback error message/code.
+			}
+		}
+
+		throw new SmilesPreviewError(res.status, code, message);
+	}
+
+	return (await res.json()) as SmilesPreviewResponse;
 }

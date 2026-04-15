@@ -1,0 +1,36 @@
+# Keep Docker build context/image lean (backend only).
+# IMPORTANT: Do NOT ignore `models/` here; runtime inference needs it.
+
+.gcloudignore
+.git
+.git/
+.gitignore
+.vscode/
+.firebase/
+
+# Node / frontend
+node_modules/
+frontend/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local envs / artifacts
+.venv/
+tox_env/
+
+# Not needed for backend runtime
+notebooks/
+docs/
+outputs/
+results/
+logs/
+
+# Misc
+*.log
+*.tmp
+temp_out.json
+output.json

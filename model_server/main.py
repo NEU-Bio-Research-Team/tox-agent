@@ -145,6 +145,8 @@ from model_server.schemas import (
     AtomImportance, BondImportance,
     ToxicityExplanationOutput,
     SmilesImageExtractionResponse,
+	SmilesPreviewRequest,
+	SmilesPreviewResponse,
 )
 
 # Configuration
@@ -3303,6 +3305,44 @@ async def extract_smiles_from_image(file: UploadFile = File(...)):
         )
     finally:
         await file.close()
+
+
+@app.post("/smiles/preview", response_model=SmilesPreviewResponse)
+async def preview_smiles(req: SmilesPreviewRequest):
+    smiles = (req.smiles or "").strip()
+    if not smiles:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "empty_smiles",
+                "message": "SMILES input is empty.",
+            },
+        )
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise _invalid_smiles_error(smiles)
+
+    canonical = Chem.MolToSmiles(mol)
+    size = (int(req.width), int(req.height))
+    depiction_b64 = _render_molecule_png(mol, size=size)
+
+    if not depiction_b64:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "render_failed",
+                "message": "Failed to render molecule depiction.",
+            },
+        )
+
+    return SmilesPreviewResponse(
+        input_smiles=smiles,
+        canonical_smiles=canonical,
+        molecule_png_base64=depiction_b64,
+        error_code=None,
+        message="OK",
+    )
 
 # Single Prediction
 @app.post("/predict", response_model=PredictResponse)

@@ -1,0 +1,77 @@
+declare module 'lucide-react' {
+  import type * as React from 'react';
+
+  export type IconProps = React.SVGProps<SVGSVGElement> & {
+    size?: string | number;
+    absoluteStrokeWidth?: boolean;
+  };
+
+  export type LucideIcon = React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
+
+  export const Activity: LucideIcon;
+  export const AlertCircle: LucideIcon;
+  export const AlertTriangle: LucideIcon;
+  export const ArrowLeft: LucideIcon;
+  export const ArrowRight: LucideIcon;
+  export const Atom: LucideIcon;
+  export const Bell: LucideIcon;
+  export const Bot: LucideIcon;
+  export const BookOpen: LucideIcon;
+  export const BookOpenText: LucideIcon;
+  export const Check: LucideIcon;
+  export const CheckCircle: LucideIcon;
+  export const CheckCircle2: LucideIcon;
+  export const CheckIcon: LucideIcon;
+  export const ChevronDown: LucideIcon;
+  export const ChevronDownIcon: LucideIcon;
+  export const ChevronLeft: LucideIcon;
+  export const ChevronRight: LucideIcon;
+  export const ChevronRightIcon: LucideIcon;
+  export const Circle: LucideIcon;
+  export const CircleIcon: LucideIcon;
+  export const Clock: LucideIcon;
+  export const Copy: LucideIcon;
+  export const Database: LucideIcon;
+  export const Download: LucideIcon;
+  export const ExternalLink: LucideIcon;
+  export const Eye: LucideIcon;
+  export const FileText: LucideIcon;
+  export const FlaskConical: LucideIcon;
+  export const Github: LucideIcon;
+  export const GripVerticalIcon: LucideIcon;
+  export const ImagePlus: LucideIcon;
+  export const Info: LucideIcon;
+  export const Languages: LucideIcon;
+  export const Link: LucideIcon;
+  export const Loader2: LucideIcon;
+  export const LogOut: LucideIcon;
+  export const Mail: LucideIcon;
+  export const Menu: LucideIcon;
+  export const MessageCircle: LucideIcon;
+  export const MinusIcon: LucideIcon;
+  export const Moon: LucideIcon;
+  export const MoreHorizontal: LucideIcon;
+  export const Network: LucideIcon;
+  export const PanelLeftIcon: LucideIcon;
+  export const PenTool: LucideIcon;
+  export const Play: LucideIcon;
+  export const RefreshCw: LucideIcon;
+  export const SearchIcon: LucideIcon;
+  export const Send: LucideIcon;
+  export const Settings: LucideIcon;
+  export const Shield: LucideIcon;
+  export const Sparkles: LucideIcon;
+  export const Star: LucideIcon;
+  export const Sun: LucideIcon;
+  export const Target: LucideIcon;
+  export const Trash2: LucideIcon;
+  export const TrendingUp: LucideIcon;
+  export const UploadCloud: LucideIcon;
+  export const User: LucideIcon;
+  export const Users: LucideIcon;
+  export const WandSparkles: LucideIcon;
+  export const X: LucideIcon;
+  export const XCircle: LucideIcon;
+  export const XIcon: LucideIcon;
+  export const Zap: LucideIcon;
+}

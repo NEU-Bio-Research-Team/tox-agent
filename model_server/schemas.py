@@ -301,3 +301,39 @@ class SmilesImageExtractionResponse(BaseModel):
         description="Machine-readable error code for frontend error handling.",
     )
     message: Optional[str] = Field(default=None)
+
+
+class SmilesPreviewRequest(BaseModel):
+    smiles: str = Field(
+        ...,
+        description="SMILES string to validate, canonicalize, and render into an RDKit depiction.",
+    )
+    width: int = Field(
+        default=800,
+        ge=100,
+        le=2000,
+        description="Requested image width in pixels.",
+    )
+    height: int = Field(
+        default=420,
+        ge=100,
+        le=2000,
+        description="Requested image height in pixels.",
+    )
+
+
+class SmilesPreviewResponse(BaseModel):
+    input_smiles: str = Field(..., description="Original SMILES provided by the caller.")
+    canonical_smiles: Optional[str] = Field(
+        default=None,
+        description="Canonical SMILES validated by RDKit.",
+    )
+    molecule_png_base64: Optional[str] = Field(
+        default=None,
+        description="Base64-encoded PNG depiction of the molecule.",
+    )
+    error_code: Optional[str] = Field(
+        default=None,
+        description="Machine-readable error code for frontend error handling.",
+    )
+    message: Optional[str] = Field(default=None)

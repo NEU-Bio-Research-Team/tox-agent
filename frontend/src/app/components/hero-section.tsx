@@ -1,9 +1,10 @@
-import { Suspense, lazy, useCallback, useEffect, useState, type ComponentType } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
 import { Loader2, RefreshCw, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { previewSmiles, SmilesPreviewError, type SmilesPreviewResponse } from '../../lib/api';
 
 const SmilesImageUploadPanel = lazy(async () => {
 	const module = await import('./smiles-image-upload-panel');
@@ -34,6 +35,7 @@ const exampleMolecules = [
 ];
 
 export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSectionProps) {
+	const trimmedSmiles = value.trim();
 	const [inputMode, setInputMode] = useState<InputMode>('text');
 	const [validationState, setValidationState] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
 	const [validationMessage, setValidationMessage] = useState('');
@@ -46,6 +48,17 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 	const [drawEditorLoading, setDrawEditorLoading] = useState(false);
 	const [drawEditorSlow, setDrawEditorSlow] = useState(false);
 	const [drawEditorError, setDrawEditorError] = useState<string | null>(null);
+	const [smilesPreview, setSmilesPreview] = useState<SmilesPreviewResponse | null>(null);
+	const [smilesPreviewLoading, setSmilesPreviewLoading] = useState(false);
+	const [smilesPreviewError, setSmilesPreviewError] = useState<string | null>(null);
+	const drawEditorImportRef = useRef<Promise<typeof import('./smiles-drawing-panel')> | null>(null);
+
+	const importDrawEditor = useCallback(() => {
+		if (!drawEditorImportRef.current) {
+			drawEditorImportRef.current = import('./smiles-drawing-panel');
+		}
+		return drawEditorImportRef.current;
+	}, []);
 
 	const loadDrawEditor = useCallback(async () => {
 		if (DrawPanelComponent || drawEditorLoading) {
@@ -61,7 +74,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 		}, 8000);
 
 		try {
-			const module = await import('./smiles-drawing-panel');
+			const module = await importDrawEditor();
 			setDrawPanelComponent(() => module.SmilesDrawingPanel as SmilesDrawingPanelComponent);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error while loading Ketcher.';
@@ -70,10 +83,37 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 			window.clearTimeout(slowTimer);
 			setDrawEditorLoading(false);
 		}
-	}, [DrawPanelComponent, drawEditorLoading]);
+	}, [DrawPanelComponent, drawEditorLoading, importDrawEditor]);
 
 	useEffect(() => {
-		if (!value.trim()) {
+		if (DrawPanelComponent) {
+			return;
+		}
+
+		const connection = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
+		if (connection?.saveData) {
+			return;
+		}
+
+		const requestIdle = (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number })
+			.requestIdleCallback;
+		const cancelIdle = (window as unknown as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+
+		if (requestIdle && cancelIdle) {
+			const idleId = requestIdle(() => {
+				void importDrawEditor();
+			}, { timeout: 2500 });
+			return () => cancelIdle(idleId);
+		}
+
+		const timer = window.setTimeout(() => {
+			void importDrawEditor();
+		}, 2000);
+		return () => window.clearTimeout(timer);
+	}, [DrawPanelComponent, importDrawEditor]);
+
+	useEffect(() => {
+		if (!trimmedSmiles) {
 			setValidationState('idle');
 			setValidationMessage('');
 			return;
@@ -81,7 +121,49 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 
 		setValidationState('valid');
 		setValidationMessage('Ready to call API. Detailed validation will be handled by the backend.');
-	}, [value]);
+	}, [trimmedSmiles]);
+
+	useEffect(() => {
+		if (!trimmedSmiles || isAnalyzing) {
+			setSmilesPreview(null);
+			setSmilesPreviewLoading(false);
+			setSmilesPreviewError(null);
+			return;
+		}
+
+		let cancelled = false;
+		const timer = window.setTimeout(async () => {
+			setSmilesPreviewLoading(true);
+			setSmilesPreviewError(null);
+			try {
+				const preview = await previewSmiles(trimmedSmiles);
+				if (!cancelled) {
+					setSmilesPreview(preview);
+				}
+			} catch (error) {
+				if (cancelled) {
+					return;
+				}
+
+				setSmilesPreview(null);
+				if (error instanceof SmilesPreviewError) {
+					setSmilesPreviewError(error.message);
+				} else {
+					const message = error instanceof Error ? error.message : 'Failed to render SMILES preview.';
+					setSmilesPreviewError(message);
+				}
+			} finally {
+				if (!cancelled) {
+					setSmilesPreviewLoading(false);
+				}
+			}
+		}, 400);
+
+		return () => {
+			cancelled = true;
+			window.clearTimeout(timer);
+		};
+	}, [trimmedSmiles, isAnalyzing]);
 
 	const getButtonState = () => {
 		if (isAnalyzing) {
@@ -124,7 +206,18 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 			</div>
 
 			<div className="rounded-2xl p-8 shadow-lg" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-				<Tabs value={inputMode} onValueChange={(next) => setInputMode(next as InputMode)} className="mb-4">
+				<Tabs
+					value={inputMode}
+					onValueChange={(next) => {
+						const nextMode = next as InputMode;
+						setInputMode(nextMode);
+						if (nextMode === 'draw' && !DrawPanelComponent && !drawEditorLoading) {
+							setDrawEditorRequested(true);
+							void loadDrawEditor();
+						}
+					}}
+					className="mb-4"
+				>
 					<TabsList className="grid w-full grid-cols-3" style={{ backgroundColor: 'var(--surface-alt)' }}>
 						<TabsTrigger value="text">Type SMILES</TabsTrigger>
 						<TabsTrigger value="draw">Draw Molecule</TabsTrigger>
@@ -213,17 +306,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 									className="rounded-xl border p-4 text-sm"
 									style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-alt)' }}
 								>
-									<div className="mb-2">The drawing editor is loaded on demand to keep the main UI responsive.</div>
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => {
-											setDrawEditorRequested(true);
-											void loadDrawEditor();
-										}}
-									>
-										Load Drawing Editor
-									</Button>
+									The drawing editor will load when needed to keep the main UI responsive.
 								</div>
 							)}
 
@@ -318,8 +401,65 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 						Current SMILES for Analysis
 					</p>
 					<p className="font-mono text-sm break-all" style={{ color: 'var(--text)' }}>
-						{value.trim() || 'No SMILES selected yet.'}
+						{trimmedSmiles || 'No SMILES selected yet.'}
 					</p>
+				</div>
+
+				<div className="mb-4 rounded-lg border px-4 py-3" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)' }}>
+					<div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+						<div className="flex-1">
+							<p className="text-xs uppercase mb-1" style={{ color: 'var(--text-faint)', letterSpacing: '0.05em' }}>
+								RDKit Molecule Preview
+							</p>
+
+							{!trimmedSmiles && (
+								<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+									Enter or extract a SMILES string to render a structure preview.
+								</p>
+							)}
+
+							{trimmedSmiles && smilesPreviewLoading && (
+								<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+									Rendering preview...
+								</p>
+							)}
+
+							{trimmedSmiles && smilesPreviewError && (
+								<p className="text-sm" style={{ color: 'var(--accent-red)' }}>
+									{smilesPreviewError}
+								</p>
+							)}
+
+							{trimmedSmiles && !smilesPreviewLoading && smilesPreview?.molecule_png_base64 && (
+								<div className="mt-3 overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)', backgroundColor: '#ffffff' }}>
+									<img
+										src={`data:image/png;base64,${smilesPreview.molecule_png_base64}`}
+										alt="RDKit molecule preview"
+										className="w-full object-contain"
+										style={{ maxHeight: 280 }}
+									/>
+								</div>
+							)}
+
+							{trimmedSmiles && !smilesPreviewLoading && smilesPreview?.canonical_smiles && (
+								<p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+									Canonical SMILES: <span className="font-mono" style={{ color: 'var(--text)' }}>{smilesPreview.canonical_smiles}</span>
+								</p>
+							)}
+						</div>
+
+						<div className="flex justify-end">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => onChange('')}
+								disabled={isAnalyzing || !trimmedSmiles}
+							>
+								<RefreshCw className="mr-2 h-4 w-4" />
+								Retry
+							</Button>
+						</div>
+					</div>
 				</div>
 
 				<div className="mb-4 flex items-center justify-end">

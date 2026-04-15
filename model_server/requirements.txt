@@ -16,11 +16,12 @@ PyYAML
 matplotlib
 pillow
 rdkit
-scikit-learn
 xgboost
 transformers==4.56.2
 
 # File upload + image-to-SMILES runtime dependencies.
+# NOTE: MolScribe/OpenNMT are installed in Dockerfile with `--no-deps`
+# to avoid downgrading torch required by the toxicity pipeline.
 python-multipart
 huggingface_hub>=0.22.2
 opencv-python-headless>=4.8.0
