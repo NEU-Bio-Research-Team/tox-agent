@@ -16,12 +16,14 @@ interface SmilesDrawingPanelProps {
 	currentSmiles: string;
 	onSmilesExtracted: (smiles: string) => void;
 	disabled?: boolean;
+	onReady?: () => void;
 }
 
 export function SmilesDrawingPanel({
 	currentSmiles,
 	onSmilesExtracted,
 	disabled = false,
+	onReady,
 }: SmilesDrawingPanelProps) {
 	const editorRef = useRef<KetcherLike | null>(null);
 	const [extracting, setExtracting] = useState(false);
@@ -122,6 +124,8 @@ export function SmilesDrawingPanel({
 						errorHandler={(message) => setEditorError(message)}
 						onInit={(ketcher) => {
 							editorRef.current = ketcher as unknown as KetcherLike;
+							setEditorError(null);
+							onReady?.();
 						}}
 						disableMacromoleculesEditor
 					/>

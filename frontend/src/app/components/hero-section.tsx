@@ -1,14 +1,9 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState, type ComponentType } from 'react';
 import { Loader2, RefreshCw, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-
-const SmilesDrawingPanel = lazy(async () => {
-	const module = await import('./smiles-drawing-panel');
-	return { default: module.SmilesDrawingPanel };
-});
 
 const SmilesImageUploadPanel = lazy(async () => {
 	const module = await import('./smiles-image-upload-panel');
@@ -23,6 +18,13 @@ interface HeroSectionProps {
 }
 
 type InputMode = 'text' | 'draw' | 'image';
+
+type SmilesDrawingPanelComponent = ComponentType<{
+	currentSmiles: string;
+	onSmilesExtracted: (smiles: string) => void;
+	disabled?: boolean;
+	onReady?: () => void;
+}>;
 
 const exampleMolecules = [
 	{ name: 'Caffeine', icon: 'C', smiles: 'Cn1cnc2c1c(=O)n(c(=O)n2C)C' },
@@ -39,6 +41,36 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 	const [threshold, setThreshold] = useState(0.5);
 	const [binaryModel, setBinaryModel] = useState<string>('pretrained_2head_herg_chemberta_model');
 	const [toxTypeModel, setToxTypeModel] = useState<string>('tox21_gatv2_model');
+	const [DrawPanelComponent, setDrawPanelComponent] = useState<SmilesDrawingPanelComponent | null>(null);
+	const [drawEditorRequested, setDrawEditorRequested] = useState(false);
+	const [drawEditorLoading, setDrawEditorLoading] = useState(false);
+	const [drawEditorSlow, setDrawEditorSlow] = useState(false);
+	const [drawEditorError, setDrawEditorError] = useState<string | null>(null);
+
+	const loadDrawEditor = useCallback(async () => {
+		if (DrawPanelComponent || drawEditorLoading) {
+			return;
+		}
+
+		setDrawEditorError(null);
+		setDrawEditorSlow(false);
+		setDrawEditorLoading(true);
+
+		const slowTimer = window.setTimeout(() => {
+			setDrawEditorSlow(true);
+		}, 8000);
+
+		try {
+			const module = await import('./smiles-drawing-panel');
+			setDrawPanelComponent(() => module.SmilesDrawingPanel as SmilesDrawingPanelComponent);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Unknown error while loading Ketcher.';
+			setDrawEditorError(`Unable to load drawing editor. ${message}`);
+		} finally {
+			window.clearTimeout(slowTimer);
+			setDrawEditorLoading(false);
+		}
+	}, [DrawPanelComponent, drawEditorLoading]);
 
 	useEffect(() => {
 		if (!value.trim()) {
@@ -175,9 +207,70 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 					</TabsContent>
 
 					<TabsContent value="draw" className="pt-3">
-						<Suspense fallback={tabFallback}>
-							<SmilesDrawingPanel currentSmiles={value} onSmilesExtracted={onChange} disabled={isAnalyzing} />
-						</Suspense>
+						<div className="space-y-3">
+							{!DrawPanelComponent && !drawEditorRequested && (
+								<div
+									className="rounded-xl border p-4 text-sm"
+									style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-alt)' }}
+								>
+									<div className="mb-2">The drawing editor is loaded on demand to keep the main UI responsive.</div>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => {
+											setDrawEditorRequested(true);
+											void loadDrawEditor();
+										}}
+									>
+										Load Drawing Editor
+									</Button>
+								</div>
+							)}
+
+							{drawEditorRequested && drawEditorLoading && tabFallback}
+
+							{drawEditorRequested && drawEditorLoading && drawEditorSlow && (
+								<div
+									className="rounded-xl border p-4 text-sm"
+									style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-alt)' }}
+								>
+									First-time Ketcher load can take 10-30 seconds on slower networks or CPUs.
+								</div>
+							)}
+
+							{drawEditorRequested && drawEditorError && (
+								<div
+									className="rounded-xl border p-4 text-sm"
+									style={{ borderColor: 'rgba(239,68,68,0.35)', color: 'var(--accent-red)', backgroundColor: 'rgba(239,68,68,0.08)' }}
+								>
+									<div>{drawEditorError}</div>
+									<div className="mt-2">
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => {
+												setDrawEditorRequested(true);
+												void loadDrawEditor();
+											}}
+										>
+											Retry Loading Editor
+										</Button>
+									</div>
+								</div>
+							)}
+
+							{DrawPanelComponent && !drawEditorError && (
+								<DrawPanelComponent
+									currentSmiles={value}
+									onSmilesExtracted={onChange}
+									disabled={isAnalyzing}
+									onReady={() => {
+										setDrawEditorSlow(false);
+										setDrawEditorError(null);
+									}}
+								/>
+							)}
+						</div>
 					</TabsContent>
 
 					<TabsContent value="image" className="pt-3">

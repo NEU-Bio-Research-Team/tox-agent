@@ -25,6 +25,19 @@ export default defineConfig({
     },
   },
   build: {
+    commonjsOptions: {
+      // ketcher-core ships mixed ESM+CJS and contains require('raphael') in ESM files.
+      // This ensures Rollup rewrites those requires for browser-safe output.
+      transformMixedEsModules: true,
+    },
+    modulePreload: {
+      resolveDependencies(_url, deps, context) {
+        if (context.hostType === 'html') {
+          return deps.filter((dep) => !dep.includes('ketcher-'));
+        }
+        return deps;
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id): string | undefined {

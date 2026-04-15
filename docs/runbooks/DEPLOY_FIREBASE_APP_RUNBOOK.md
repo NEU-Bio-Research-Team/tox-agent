@@ -237,7 +237,9 @@ curl -sS -X POST "$RUN_URL/analyze" \
 ```bash
 npm ci
 npm run build
-npx -y firebase-tools@latest deploy --only hosting --project "$PROJECT_ID"
+: "${PROJECT_ID:=tox-agent}"
+echo "PROJECT_ID=${PROJECT_ID}"
+npx -y firebase-tools@latest deploy --only hosting --project "${PROJECT_ID}"
 ```
 
 Expected URL:
@@ -315,6 +317,19 @@ Re-check:
 - `firebase.json` rewrite `serviceId` and `region`
 - Cloud Run service exists and is serving traffic
 
+### E) Firebase deploy command exits unexpectedly (terminal crash / closed session)
+
+Use explicit project id + debug logs to a file:
+
+```bash
+mkdir -p logs
+npx -y firebase-tools@latest deploy --only hosting --project tox-agent --debug 2>&1 | tee logs/firebase-hosting-deploy.log
+```
+
+If deploy succeeds but UI still looks old:
+- Hard refresh browser (`Ctrl+Shift+R`) or open in Incognito
+- Validate with cache-busting URL: `https://tox-agent.web.app/?r=$(date +%s)`
+
 ## 14) Quick Re-Deploy (after code change)
 
 ```bash
@@ -326,7 +341,9 @@ Re-check:
 For frontend-only changes:
 ```bash
 npm run build
-npx -y firebase-tools@latest deploy --only hosting --project "$PROJECT_ID"
+: "${PROJECT_ID:=tox-agent}"
+echo "PROJECT_ID=${PROJECT_ID}"
+npx -y firebase-tools@latest deploy --only hosting --project "${PROJECT_ID}"
 ```
 
 For backend-only changes (no model changes):
