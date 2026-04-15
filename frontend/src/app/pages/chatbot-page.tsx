@@ -4,7 +4,9 @@ import { ArrowRight, Bot, FlaskConical, Send, Sparkles, User } from 'lucide-reac
 import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
 import { Button } from '../components/ui/button';
+import { useAuth } from '../components/contexts/auth-context';
 import { agentChat } from '../../lib/api';
+import { appendChatTurnToFirestore, loadChatSessionFromFirestore, type PersistedChatMessage } from '../../lib/chat-history';
 import { useReport } from '../../lib/ReportContext';
 
 interface ChatRouteState {
@@ -43,9 +45,36 @@ function buildInitialMessage(hasReport: boolean, compoundLabel: string) {
     : 'I can help explain the ToxAgent workflow and UI. Run an analysis first if you want answers grounded in a specific report.';
 }
 
+function createAssistantMessage(hasReport: boolean, compoundLabel: string): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    role: 'assistant',
+    content: buildInitialMessage(hasReport, compoundLabel),
+    timestamp: Date.now(),
+  };
+}
+
+function toPersistedMessage(message: ChatMessage): PersistedChatMessage {
+  return {
+    role: message.role,
+    content: message.content,
+    timestamp: message.timestamp,
+  };
+}
+
+function fromPersistedMessage(message: PersistedChatMessage): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    role: message.role,
+    content: message.content,
+    timestamp: message.timestamp,
+  };
+}
+
 export function ChatbotPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { report } = useReport();
   const routeState: ChatRouteState | null =
     typeof location.state === 'object' && location.state !== null
@@ -57,6 +86,9 @@ export function ChatbotPage() {
   const routeReportState = routeState?.reportState ?? null;
 
   const finalReport = report?.final_report ?? null;
+  const groundedSmiles =
+    finalReport?.report_metadata.smiles ??
+    (typeof routeReportState?.smiles_input === 'string' ? routeReportState.smiles_input : null);
   const compoundLabel =
     finalReport?.report_metadata.compound_name ||
     finalReport?.report_metadata.common_name ||
@@ -65,16 +97,10 @@ export function ChatbotPage() {
   const hasGroundedReport = Boolean(finalReport);
   const promptList = hasGroundedReport ? REPORT_PROMPTS : DEFAULT_PROMPTS;
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: buildInitialMessage(hasGroundedReport, compoundLabel),
-      timestamp: Date.now(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([createAssistantMessage(hasGroundedReport, compoundLabel)]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isHydratingSession, setIsHydratingSession] = useState(false);
   const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(
     routeChatSessionId ?? report?.chat_session_id ?? null,
   );
@@ -82,14 +108,7 @@ export function ChatbotPage() {
   const processedInitialQuestion = useRef(false);
 
   useEffect(() => {
-    setMessages([
-      {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: buildInitialMessage(hasGroundedReport, compoundLabel),
-        timestamp: Date.now(),
-      },
-    ]);
+    setMessages([createAssistantMessage(hasGroundedReport, compoundLabel)]);
     setActiveChatSessionId(routeChatSessionId ?? report?.chat_session_id ?? null);
     processedInitialQuestion.current = false;
   }, [compoundLabel, hasGroundedReport, report?.chat_session_id, report?.session_id, routeChatSessionId]);
@@ -97,6 +116,40 @@ export function ChatbotPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateChatSession = async () => {
+      if (!user?.id || !activeChatSessionId) {
+        setIsHydratingSession(false);
+        return;
+      }
+
+      setIsHydratingSession(true);
+
+      try {
+        const storedSession = await loadChatSessionFromFirestore(user.id, activeChatSessionId);
+        if (cancelled || !storedSession || storedSession.messages.length === 0) {
+          return;
+        }
+
+        setMessages(storedSession.messages.map((message) => fromPersistedMessage(message)));
+      } catch (error) {
+        console.warn('Failed to hydrate report chat session from Firestore:', error);
+      } finally {
+        if (!cancelled) {
+          setIsHydratingSession(false);
+        }
+      }
+    };
+
+    void hydrateChatSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeChatSessionId, user?.id]);
 
   const sendMessage = async (messageText?: string) => {
     const userInput = (messageText ?? input).trim();
@@ -128,19 +181,32 @@ export function ChatbotPage() {
           : routeReportState,
       });
 
-      if (result.chat_session_id) {
-        setActiveChatSessionId(result.chat_session_id);
+      const resolvedChatSessionId = result.chat_session_id ?? activeChatSessionId;
+      if (resolvedChatSessionId) {
+        setActiveChatSessionId(resolvedChatSessionId);
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: result.response,
-          timestamp: Date.now(),
-        },
-      ]);
+      const assistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: result.response,
+        timestamp: Date.now(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      if (user?.id && resolvedChatSessionId) {
+        try {
+          await appendChatTurnToFirestore(user.id, {
+            sessionId: resolvedChatSessionId,
+            analysisSessionId: routeAnalysisSessionId ?? report?.session_id ?? null,
+            smiles: groundedSmiles,
+            messages: [toPersistedMessage(userMessage), toPersistedMessage(assistantMessage)],
+          });
+        } catch (persistError) {
+          console.warn('Failed to persist report chat session turn:', persistError);
+        }
+      }
     } catch (error) {
       const fallback = error instanceof Error ? error.message : 'Chat runtime error.';
       setMessages((prev) => [
@@ -160,13 +226,13 @@ export function ChatbotPage() {
   };
 
   useEffect(() => {
-    if (!initialQuestion || processedInitialQuestion.current) {
+    if (!initialQuestion || processedInitialQuestion.current || isHydratingSession) {
       return;
     }
 
     processedInitialQuestion.current = true;
     void sendMessage(initialQuestion);
-  }, [initialQuestion]);
+  }, [initialQuestion, isHydratingSession]);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)', fontFamily: 'Inter, sans-serif' }}>

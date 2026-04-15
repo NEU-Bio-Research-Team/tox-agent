@@ -33,6 +33,28 @@ service cloud.firestore {
       allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
 
+    // 3.2 Quy tắc cho report chat sessions theo user
+    match /users/{userId}/chatSessions/{sessionId} {
+      // Chi cho phep user doc chat cua chinh ho
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Khi tao cap session, sessionId trong payload phai khop ID document
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.sessionId == sessionId;
+
+      // Khi cap nhat, bat buoc giu nguyen sessionId va dung owner
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && resource.data.sessionId == sessionId
+                    && request.resource.data.sessionId == sessionId;
+
+      // Chi owner moi duoc xoa va chi xoa session dung ID
+      allow delete: if request.auth != null
+                    && request.auth.uid == userId
+                    && resource.data.sessionId == sessionId;
+    }
+
     // 4. Chặn tất cả các truy cập không xác định khác
     match /{document=**} {
       allow read, write: if false;
