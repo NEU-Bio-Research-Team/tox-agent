@@ -79,7 +79,8 @@ export function ReportPage() {
           style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
         >
           {isSidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-          {isSidebarOpen ? 'Hide report sections' : 'Show report sections'}
+          <span className="lg:hidden">{isSidebarOpen ? 'Hide sections' : 'Sections'}</span>
+          <span className="hidden lg:inline">{isSidebarOpen ? 'Hide report sections' : 'Show report sections'}</span>
         </Button>
       </div>
 
@@ -96,7 +97,11 @@ export function ReportPage() {
         />
 
         {/* Main Content */}
-        <main className="min-w-0 w-full max-w-[860px] p-4 md:p-6 lg:p-10 space-y-10 lg:space-y-12">
+        <main
+          className={`min-w-0 w-full max-w-[860px] p-4 md:p-6 lg:p-10 space-y-10 lg:space-y-12 ${
+            isSidebarOpen ? 'hidden lg:block' : 'block'
+          }`}
+        >
           <MetricsDashboardSection finalReport={finalReport} language={reportLanguage} />
           <ClinicalToxicitySection data={finalReport.sections.clinical_toxicity} language={reportLanguage} />
           <MechanismProfilingSection data={finalReport.sections.mechanism_toxicity} language={reportLanguage} />
