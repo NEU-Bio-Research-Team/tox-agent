@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import unittest
+from unittest import mock
 from typing import Any, Dict, List
 
 report_chat = importlib.import_module("agents.report_chat_agent")
@@ -190,6 +191,28 @@ class ReportChatAgentTests(unittest.TestCase):
 
         self.assertIn("Session expired or not found", response)
         self.assertIsNone(session)
+
+    def test_explain_mechanism_matches_scaffold_query(self) -> None:
+        mechanism_docs = [
+            {
+                "doc_id": "mechanism:herg_inhibition",
+                "type": "mechanism",
+                "title": "hERG Channel Inhibition",
+                "summary": "hERG blockade can prolong QT interval.",
+                "risk_level": "high",
+                "clinical_manifestation": "QT prolongation",
+                "associated_scaffolds": ["piperidine", "phenothiazine"],
+                "structural_alerts": ["basic nitrogen", "aromatic ring"],
+                "tox_class": ["cardiotoxicity"],
+            }
+        ]
+
+        with mock.patch.object(report_chat, "fetch_collection_documents", return_value=mechanism_docs):
+            result = report_chat.explain_mechanism("Why does piperidine ring contribute to toxicity?")
+
+        self.assertEqual(result.get("doc_id"), "mechanism:herg_inhibition")
+        self.assertEqual(result.get("matched_by"), "query_semantic")
+        self.assertIn("piperidine", " ".join(result.get("matched_terms") or []))
 
 
 if __name__ == "__main__":

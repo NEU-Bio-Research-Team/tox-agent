@@ -5,9 +5,11 @@ import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../components/contexts/auth-context';
-import { agentChat } from '../../lib/api';
+import { agentChatStream, type AgentChatStreamEvent } from '../../lib/api';
 import { appendChatTurnToFirestore, loadChatSessionFromFirestore, type PersistedChatMessage } from '../../lib/chat-history';
 import { useReport } from '../../lib/ReportContext';
+import { MarkdownMessage } from '../components/markdown-message';
+import { AgentThinkingLog, type ThinkingStep } from '../components/agent-thinking-log';
 
 interface ChatRouteState {
   question?: string;
@@ -100,6 +102,8 @@ export function ChatbotPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([createAssistantMessage(hasGroundedReport, compoundLabel)]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [streamingText, setStreamingText] = useState('');
+  const [streamingSteps, setStreamingSteps] = useState<ThinkingStep[]>([]);
   const [isHydratingSession, setIsHydratingSession] = useState(false);
   const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(
     routeChatSessionId ?? report?.chat_session_id ?? null,
@@ -111,11 +115,13 @@ export function ChatbotPage() {
     setMessages([createAssistantMessage(hasGroundedReport, compoundLabel)]);
     setActiveChatSessionId(routeChatSessionId ?? report?.chat_session_id ?? null);
     processedInitialQuestion.current = false;
+    setStreamingText('');
+    setStreamingSteps([]);
   }, [compoundLabel, hasGroundedReport, report?.chat_session_id, report?.session_id, routeChatSessionId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, streamingText, streamingSteps]);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,9 +173,11 @@ export function ChatbotPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
+    setStreamingText('');
+    setStreamingSteps([]);
 
     try {
-      const result = await agentChat(userInput, {
+      const stream = agentChatStream(userInput, {
         chatSessionId: activeChatSessionId,
         analysisSessionId: routeAnalysisSessionId ?? report?.session_id ?? null,
         reportState: finalReport
@@ -181,15 +189,93 @@ export function ChatbotPage() {
           : routeReportState,
       });
 
-      const resolvedChatSessionId = result.chat_session_id ?? activeChatSessionId;
-      if (resolvedChatSessionId) {
-        setActiveChatSessionId(resolvedChatSessionId);
+      let assistantText = '';
+      let resolvedChatSessionId = activeChatSessionId;
+
+      for await (const event of stream) {
+        const streamEvent = event as AgentChatStreamEvent;
+
+        if (streamEvent.type === 'reasoning') {
+          setStreamingSteps((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              type: 'reasoning',
+              status: 'done',
+              text: streamEvent.text || 'Analyzing your question.',
+            },
+          ]);
+          continue;
+        }
+
+        if (streamEvent.type === 'tool_call') {
+          setStreamingSteps((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              type: 'tool_call',
+              status: 'running',
+              tool: streamEvent.tool,
+              input: streamEvent.input,
+            },
+          ]);
+          continue;
+        }
+
+        if (streamEvent.type === 'tool_result') {
+          setStreamingSteps((prev) =>
+            prev.map((step) =>
+              step.type === 'tool_call' && step.tool === streamEvent.tool && step.status === 'running'
+                ? { ...step, status: 'done' }
+                : step,
+            ),
+          );
+          setStreamingSteps((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              type: 'tool_result',
+              status: 'done',
+              tool: streamEvent.tool,
+            },
+          ]);
+          continue;
+        }
+
+        if (streamEvent.type === 'token') {
+          const token = typeof streamEvent.text === 'string' ? streamEvent.text : '';
+          if (token) {
+            assistantText += token;
+            setStreamingText(assistantText);
+          }
+          continue;
+        }
+
+        if (streamEvent.type === 'done') {
+          if (typeof streamEvent.chat_session_id === 'string' && streamEvent.chat_session_id.trim()) {
+            resolvedChatSessionId = streamEvent.chat_session_id;
+            setActiveChatSessionId(streamEvent.chat_session_id);
+          }
+          if (typeof streamEvent.response === 'string' && streamEvent.response.trim()) {
+            assistantText = streamEvent.response;
+            setStreamingText(assistantText);
+          }
+          continue;
+        }
+
+        if (streamEvent.type === 'error') {
+          throw new Error(streamEvent.message || streamEvent.error || 'Streaming chat error.');
+        }
+      }
+
+      if (!assistantText.trim()) {
+        throw new Error('No assistant response received from stream.');
       }
 
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: result.response,
+        content: assistantText,
         timestamp: Date.now(),
       };
 
@@ -207,8 +293,13 @@ export function ChatbotPage() {
           console.warn('Failed to persist report chat session turn:', persistError);
         }
       }
+
+      setStreamingText('');
+      setStreamingSteps([]);
     } catch (error) {
       const fallback = error instanceof Error ? error.message : 'Chat runtime error.';
+      setStreamingText('');
+      setStreamingSteps([]);
       setMessages((prev) => [
         ...prev,
         {
@@ -361,7 +452,7 @@ export function ChatbotPage() {
                     border: message.role === 'assistant' ? '1px solid var(--border)' : 'none',
                   }}
                 >
-                  <p className="text-sm leading-7 whitespace-pre-wrap">{message.content}</p>
+                  <MarkdownMessage content={message.content} isUser={message.role === 'user'} />
                 </div>
               </div>
             ))}
@@ -375,14 +466,29 @@ export function ChatbotPage() {
                   <Bot className="h-4 w-4" />
                 </div>
                 <div
-                  className="rounded-3xl rounded-tl-md border px-4 py-3"
-                  style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  className="max-w-[85%] flex-1"
                 >
-                  <div className="flex gap-1.5">
-                    <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '0ms' }} />
-                    <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '150ms' }} />
-                    <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '300ms' }} />
-                  </div>
+                  <AgentThinkingLog steps={streamingSteps} />
+
+                  {streamingText ? (
+                    <div
+                      className="rounded-3xl rounded-tl-md border px-4 py-3"
+                      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    >
+                      <MarkdownMessage content={`${streamingText}▍`} />
+                    </div>
+                  ) : (
+                    <div
+                      className="rounded-3xl rounded-tl-md border px-4 py-3"
+                      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    >
+                      <div className="flex gap-1.5">
+                        <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '0ms' }} />
+                        <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '150ms' }} />
+                        <div className="h-2 w-2 animate-bounce rounded-full" style={{ backgroundColor: 'var(--text-muted)', animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

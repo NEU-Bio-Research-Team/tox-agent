@@ -207,6 +207,18 @@ export interface RecommendationSection {
 	content?: string | null;
 }
 
+export interface StructuredRecommendation {
+	priority?: 'HIGH' | 'MEDIUM' | 'LOW' | string;
+	action_type?: 'experimental' | 'structural' | 'regulatory' | 'monitoring' | string;
+	action?: string;
+	rationale?: string;
+}
+
+export type RecommendationPayload =
+	| string[]
+	| StructuredRecommendation[]
+	| RecommendationSection;
+
 export interface FinalReport {
 	report_metadata: {
 		smiles: string;
@@ -235,7 +247,7 @@ export interface FinalReport {
 		recommendation_source?: 'llm' | 'deterministic' | string;
 		recommendation_source_detail?: string;
 		failure_registry?: FailureRegistrySection;
-		recommendations?: string[] | RecommendationSection;
+		recommendations?: RecommendationPayload;
 	};
 }
 
@@ -256,6 +268,18 @@ export interface AgentAnalyzeResponse {
 export interface AgentChatResponse {
 	chat_session_id: string;
 	response: string;
+}
+
+export interface AgentChatStreamEvent {
+	type: 'reasoning' | 'tool_call' | 'tool_result' | 'token' | 'done' | 'error' | string;
+	text?: string;
+	tool?: string;
+	input?: string;
+	status?: string;
+	response?: string;
+	chat_session_id?: string;
+	error?: string;
+	message?: string;
 }
 
 export interface SmilesImageExtractionResponse {
@@ -414,6 +438,129 @@ export async function agentChat(
 	}
 
 	return (await res.json()) as AgentChatResponse;
+}
+
+export async function* agentChatStream(
+	message: string,
+	options: AgentChatOptions = {},
+): AsyncGenerator<AgentChatStreamEvent> {
+	const parseStreamEvent = (rawEvent: string): AgentChatStreamEvent | null => {
+		const normalizedEvent = rawEvent.replace(/\r\n/g, '\n').trim();
+		if (!normalizedEvent) {
+			return null;
+		}
+
+		const dataLines = normalizedEvent
+			.split('\n')
+			.map((line) => line.trimStart())
+			.filter((line) => line.startsWith('data:'))
+			.map((line) => line.slice(5).trimStart());
+
+		if (dataLines.length === 0) {
+			const singleLine = normalizedEvent.trimStart();
+			if (!singleLine.startsWith('data:')) {
+				return null;
+			}
+			dataLines.push(singleLine.slice(5).trimStart());
+		}
+
+		const rawData = dataLines.join('\n').trim();
+		if (!rawData) {
+			return null;
+		}
+
+		try {
+			return JSON.parse(rawData) as AgentChatStreamEvent;
+		} catch {
+			return null;
+		}
+	};
+
+	const consumeBuffer = (input: string, allowTailEvent: boolean) => {
+		const parsedEvents: AgentChatStreamEvent[] = [];
+		let remaining = input.replace(/\r\n/g, '\n');
+
+		// Standard SSE delimiter.
+		let separatorIndex = remaining.indexOf('\n\n');
+		while (separatorIndex >= 0) {
+			const rawEvent = remaining.slice(0, separatorIndex);
+			remaining = remaining.slice(separatorIndex + 2);
+			const parsed = parseStreamEvent(rawEvent);
+			if (parsed) {
+				parsedEvents.push(parsed);
+			}
+			separatorIndex = remaining.indexOf('\n\n');
+		}
+
+		// Fallback for escaped separators that can appear through some proxies/rewrite layers.
+		let escapedSeparatorIndex = remaining.search(/\\n\\n(?=\s*data:)/);
+		while (escapedSeparatorIndex >= 0) {
+			const rawEvent = remaining.slice(0, escapedSeparatorIndex);
+			remaining = remaining.slice(escapedSeparatorIndex + 4);
+			const parsed = parseStreamEvent(rawEvent);
+			if (parsed) {
+				parsedEvents.push(parsed);
+			}
+			escapedSeparatorIndex = remaining.search(/\\n\\n(?=\s*data:)/);
+		}
+
+		if (allowTailEvent) {
+			const tailEvent = parseStreamEvent(remaining);
+			if (tailEvent) {
+				parsedEvents.push(tailEvent);
+				remaining = '';
+			}
+		}
+
+		return { parsedEvents, remaining };
+	};
+
+	const payload = {
+		message,
+		chat_session_id: options.chatSessionId ?? undefined,
+		analysis_session_id: options.analysisSessionId ?? undefined,
+		report_state: options.reportState ?? undefined,
+	};
+
+	const res = await fetch(`${BASE_URL}/agent/chat/stream`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		const bodyText = await res.text();
+		throw new Error(toErrorMessage(res.status, bodyText));
+	}
+
+	if (!res.body) {
+		throw new Error('Streaming not supported by this runtime.');
+	}
+
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = '';
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) {
+			buffer += decoder.decode();
+			const { parsedEvents } = consumeBuffer(buffer, true);
+			for (const parsedEvent of parsedEvents) {
+				yield parsedEvent;
+			}
+			buffer = '';
+			break;
+		}
+
+		buffer += decoder.decode(value, { stream: true });
+
+		const { parsedEvents, remaining } = consumeBuffer(buffer, false);
+		for (const parsedEvent of parsedEvents) {
+			yield parsedEvent;
+		}
+		buffer = remaining;
+	}
 }
 
 export async function extractSmilesFromImage(

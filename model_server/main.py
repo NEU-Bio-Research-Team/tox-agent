@@ -34,7 +34,7 @@ import torch
 import yaml
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 from rdkit import Chem
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -57,9 +57,18 @@ from agents import (
     ADK_AVAILABLE,
     build_final_report,
     chat_with_report,
+    check_claim_support,
+    compare_with_analogs,
     create_chat_session,
+    explain_mechanism,
+    fetch_pubmed_context,
+    get_article_detail,
+    get_report_section,
     get_session as get_report_chat_session,
+    lookup_structural_alerts,
+    query_molrag_live,
     researcher_agent,
+    rerun_screening,
     root_agent,
     run_evidence_qa,
     run_orchestrator_flow,
@@ -839,7 +848,16 @@ def _report_chat_available_sections_text(session_id: str) -> str:
 def _normalize_report_chat_out_of_scope_reply(session_id: str, text: str) -> str:
     response_text = str(text or "").strip()
     refusal_prefix = "Thông tin này không có trong report hiện tại."
-    if refusal_prefix not in response_text:
+    lower_response = response_text.lower()
+    lower_prefix = refusal_prefix.lower()
+
+    # Normalize only when the response is a pure refusal-style answer.
+    # Avoid rewriting mixed answers that include valid tool-backed content.
+    if not lower_response.startswith(lower_prefix):
+        return response_text
+    if "report chỉ bao gồm" not in lower_response:
+        return response_text
+    if "[source:" in lower_response or "[nguồn:" in lower_response:
         return response_text
 
     available_sections_text = _report_chat_available_sections_text(session_id)
@@ -981,37 +999,424 @@ def _format_report_chat_fallback_reply(session_id: str, user_message: str) -> st
     )
 
 
-def _make_report_chat_llm_caller(session_id: str) -> Callable[..., str]:
+def _strip_code_fence(text: str) -> str:
+    stripped = str(text or "").strip()
+    if not stripped.startswith("```"):
+        return stripped
+    lines = stripped.splitlines()
+    if lines and lines[0].startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip().startswith("```"):
+        lines = lines[:-1]
+    return "\n".join(lines).strip()
+
+
+def _extract_json_object(text: str) -> Dict[str, Any]:
+    candidate = _strip_code_fence(text)
+    try:
+        payload = json.loads(candidate)
+        if isinstance(payload, dict):
+            return payload
+    except Exception:
+        pass
+
+    match = re.search(r"\{[\s\S]*\}", candidate)
+    if not match:
+        return {}
+
+    try:
+        payload = json.loads(match.group(0))
+        if isinstance(payload, dict):
+            return payload
+    except Exception:
+        return {}
+    return {}
+
+
+def _truncate_text(value: Any, max_chars: int = 220) -> str:
+    text = str(value or "").strip()
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "..."
+
+
+def _compact_tool_result(payload: Any, max_chars: int = 1800) -> str:
+    try:
+        text = json.dumps(payload, ensure_ascii=False)
+    except Exception:
+        text = str(payload)
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "... [truncated]"
+
+
+_SMILES_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9@+\-\[\]\(\)=#$\\/%.]{6,}")
+
+
+def _extract_smiles_candidate(text: str) -> Optional[str]:
+    candidates: List[str] = []
+    for token in _SMILES_TOKEN_PATTERN.findall(str(text or "")):
+        cleaned = token.strip(".,;:!?")
+        if cleaned.lower().startswith("http"):
+            continue
+        if any(ch in cleaned for ch in "=#[]()"):
+            candidates.append(cleaned)
+            continue
+        if sum(1 for ch in cleaned if ch.isdigit()) >= 2:
+            candidates.append(cleaned)
+    if not candidates:
+        return None
+    return max(candidates, key=len)
+
+
+def _session_report_smiles(session_id: str) -> str:
+    session = get_report_chat_session(session_id)
+    if session is None:
+        return ""
+    report_smiles = str(session.report_state.get("smiles_input") or "").strip()
+    if report_smiles:
+        return report_smiles
+
+    final_report = _coerce_json_dict(session.report_state.get("final_report")) or {}
+    metadata = _coerce_json_dict(final_report.get("report_metadata"))
+    return str(metadata.get("smiles") or "").strip()
+
+
+def _normalize_section_name_from_message(message: str) -> Optional[str]:
+    text = str(message or "").lower()
+    mapping = {
+        "executive_summary": ("executive", "summary", "tong quan", "tóm tắt"),
+        "clinical_toxicity": ("clinical", "lâm sàng", "probability", "p_toxic"),
+        "mechanism_toxicity": ("mechanism", "cơ chế", "tox21", "assay"),
+        "molrag_evidence": ("molrag", "analog", "similar compound"),
+        "fusion_result": ("fusion", "agreement", "consensus"),
+        "literature_context": ("literature", "paper", "pubmed", "evidence"),
+        "ood_assessment": ("ood", "out-of-distribution"),
+        "inference_context": ("inference", "threshold policy", "backend"),
+        "recommendations": ("recommendation", "khuyến nghị", "next step"),
+        "compound_info": ("compound", "cid", "metadata"),
+        "risk_level": ("risk", "rủi ro", "verdict"),
+    }
+    for section_name, hints in mapping.items():
+        if any(hint in text for hint in hints):
+            return section_name
+    return None
+
+
+def _execute_report_chat_tool(
+    *,
+    session_id: str,
+    tool_name: str,
+    args: Dict[str, Any],
+    user_message: str,
+) -> Dict[str, Any]:
+    normalized_args = dict(args) if isinstance(args, dict) else {}
+    message_smiles = _extract_smiles_candidate(user_message)
+    report_smiles = _session_report_smiles(session_id)
+
+    try:
+        if tool_name == "get_article_detail":
+            pmid = str(normalized_args.get("pmid") or "").strip()
+            if not pmid:
+                match = re.search(r"\b(\d{4,10})\b", user_message)
+                pmid = match.group(1) if match else ""
+            if not pmid:
+                return {"error": "pmid_required"}
+            return get_article_detail(pmid=pmid, session_id=session_id)
+
+        if tool_name == "check_claim_support":
+            claim = str(normalized_args.get("claim") or user_message).strip()
+            if not claim:
+                return {"error": "claim_required"}
+            return check_claim_support(claim=claim, session_id=session_id)
+
+        if tool_name == "get_report_section":
+            section_name = str(normalized_args.get("section_name") or "").strip()
+            if not section_name:
+                section_name = _normalize_section_name_from_message(user_message) or "executive_summary"
+            return get_report_section(section_name=section_name, session_id=session_id)
+
+        if tool_name == "rerun_screening":
+            smiles = str(normalized_args.get("smiles") or message_smiles or "").strip()
+            if not smiles:
+                return {"error": "new_smiles_required"}
+            return rerun_screening(smiles=smiles, session_id=session_id)
+
+        if tool_name == "query_molrag_live":
+            smiles = str(normalized_args.get("smiles") or message_smiles or report_smiles).strip()
+            if not smiles:
+                return {"error": "smiles_required"}
+            return query_molrag_live(
+                smiles=smiles,
+                top_k=max(1, min(int(normalized_args.get("top_k", 5) or 5), 20)),
+                min_similarity=float(normalized_args.get("min_similarity", 0.3) or 0.3),
+            )
+
+        if tool_name == "compare_with_analogs":
+            smiles = str(normalized_args.get("smiles") or message_smiles or report_smiles).strip()
+            if not smiles:
+                return {"error": "smiles_required"}
+            return compare_with_analogs(
+                smiles=smiles,
+                top_k=max(1, min(int(normalized_args.get("top_k", 5) or 5), 20)),
+            )
+
+        if tool_name == "lookup_structural_alerts":
+            smiles = str(normalized_args.get("smiles") or message_smiles or report_smiles).strip()
+            if not smiles:
+                return {"error": "smiles_required"}
+            return lookup_structural_alerts(smiles=smiles, max_results=10)
+
+        if tool_name == "explain_mechanism":
+            mechanism_id = str(normalized_args.get("mechanism_id") or "").strip()
+            if not mechanism_id:
+                mechanism_id = str(normalized_args.get("query") or user_message).strip()
+            mechanism_result = explain_mechanism(mechanism_id=mechanism_id)
+            if isinstance(mechanism_result, dict) and mechanism_result.get("error"):
+                fallback_smiles = str(normalized_args.get("smiles") or message_smiles or report_smiles).strip()
+                if fallback_smiles:
+                    alert_result = lookup_structural_alerts(smiles=fallback_smiles, max_results=10)
+                    if isinstance(alert_result, dict) and not alert_result.get("error"):
+                        return {
+                            "query": mechanism_id,
+                            "fallback_tool": "lookup_structural_alerts",
+                            "mechanism_error": mechanism_result.get("error"),
+                            "structural_alert_result": alert_result,
+                            "source_scope": "live_molrag_knowledge",
+                            "note": "Mechanism query did not match directly; returned structural alert evidence for report SMILES.",
+                        }
+            return mechanism_result
+
+        if tool_name == "fetch_pubmed_context":
+            query = str(normalized_args.get("query") or user_message).strip()
+            return fetch_pubmed_context(
+                query=query,
+                max_results=max(1, min(int(normalized_args.get("max_results", 5) or 5), 10)),
+            )
+    except Exception as exc:
+        return {"error": f"{tool_name}_failed: {type(exc).__name__}: {str(exc)[:180]}"}
+
+    return {"error": f"unsupported_tool:{tool_name}"}
+
+
+def _heuristic_report_chat_tool_plan(user_message: str) -> Dict[str, Any]:
+    message = str(user_message or "").lower()
+
+    pmid_match = re.search(r"\bpmid\s*[:#]?\s*(\d{4,10})\b", message)
+    if pmid_match:
+        return {"tool": "get_article_detail", "args": {"pmid": pmid_match.group(1)}, "reasoning": "Retrieve requested PMID details."}
+
+    if any(token in message for token in ["rerun", "re-run", "predict", "re-analyze", "what if", "thử", "dự đoán"]):
+        smiles = _extract_smiles_candidate(user_message)
+        if smiles:
+            return {"tool": "rerun_screening", "args": {"smiles": smiles}, "reasoning": "User requested a new prediction for explicit SMILES."}
+
+    if any(token in message for token in ["analog", "similar", "tanimoto", "tương tự"]):
+        return {"tool": "compare_with_analogs", "args": {}, "reasoning": "User asked for nearest analog comparison."}
+
+    if any(token in message for token in ["structural alert", "alert", "toxicophore", "cảnh báo cấu trúc"]):
+        return {"tool": "lookup_structural_alerts", "args": {}, "reasoning": "User asked about structural alert motifs."}
+
+    if any(token in message for token in ["pubmed", "paper", "literature", "bài báo"]):
+        return {"tool": "fetch_pubmed_context", "args": {}, "reasoning": "User asked for additional literature context."}
+
+    if any(token in message for token in ["support", "backed", "evidence for", "bằng chứng"]):
+        return {"tool": "check_claim_support", "args": {"claim": user_message}, "reasoning": "Validate claim support against curated evidence."}
+
+    if any(token in message for token in ["section", "full report", "show", "mục", "phần"]):
+        section_name = _normalize_section_name_from_message(user_message)
+        if section_name:
+            return {"tool": "get_report_section", "args": {"section_name": section_name}, "reasoning": "Retrieve the requested report section."}
+
+    return {"tool": "none", "args": {}, "reasoning": "No tool needed; answer from report context."}
+
+
+def _plan_report_chat_tool_call(
+    *,
+    client: Any,
+    model_name: str,
+    session_id: str,
+    user_message: str,
+    observations: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    available_sections_text = _report_chat_available_sections_text(session_id)
+    observation_preview = "\n".join(
+        f"- {item.get('tool')}: {item.get('result_summary')}" for item in observations[-3:]
+    )
+    planning_prompt = (
+        "You are selecting one report-chat tool call. Return STRICT JSON only.\\n"
+        "Schema: {\"tool\":\"...\",\"args\":{...},\"reasoning\":\"...\"}\\n"
+        "Allowed tools: none, get_article_detail, check_claim_support, get_report_section, "
+        "rerun_screening, query_molrag_live, compare_with_analogs, lookup_structural_alerts, "
+        "explain_mechanism, fetch_pubmed_context.\\n"
+        "Rules:\\n"
+        "- Choose rerun_screening only if user explicitly provides a replacement SMILES string.\\n"
+        "- Prefer report-grounded tools first (get_report_section/check_claim_support/get_article_detail).\\n"
+        "- If enough context already exists, choose tool=none.\\n"
+        f"Available report sections: {available_sections_text}.\\n"
+        f"User message: {user_message}\\n"
+        f"Recent tool observations:\\n{observation_preview or '- none'}"
+    )
+
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=planning_prompt,
+            config={"temperature": 0.0, "response_mime_type": "application/json"},
+        )
+        payload = _extract_json_object(getattr(response, "text", ""))
+        tool_name = str(payload.get("tool") or "none").strip()
+        if tool_name not in {
+            "none",
+            "get_article_detail",
+            "check_claim_support",
+            "get_report_section",
+            "rerun_screening",
+            "query_molrag_live",
+            "compare_with_analogs",
+            "lookup_structural_alerts",
+            "explain_mechanism",
+            "fetch_pubmed_context",
+        }:
+            return _heuristic_report_chat_tool_plan(user_message)
+
+        args = payload.get("args")
+        return {
+            "tool": tool_name,
+            "args": args if isinstance(args, dict) else {},
+            "reasoning": str(payload.get("reasoning") or "").strip(),
+        }
+    except Exception:
+        return _heuristic_report_chat_tool_plan(user_message)
+
+
+def _make_report_chat_llm_caller(
+    session_id: str,
+    event_emitter: Optional[Callable[[Dict[str, Any]], None]] = None,
+) -> Callable[..., str]:
+    def _emit(event: Dict[str, Any]) -> None:
+        if event_emitter is None:
+            return
+        try:
+            event_emitter(event)
+        except Exception:
+            return
+
     def _llm_caller(system_prompt: str, messages: List[Dict[str, str]], max_tool_calls: int = 3) -> str:
+        user_message = str(messages[-1].get("content", "") if messages else "")
         prompt = _build_report_chat_prompt(system_prompt, messages)
         client, auth_mode = _build_report_chat_client()
+        token_emitted = False
+
+        def _emit_tokens_from_text(text_value: str) -> None:
+            nonlocal token_emitted
+            if event_emitter is None:
+                return
+            for token in re.findall(r"\S+\s*", text_value):
+                token_emitted = True
+                _emit({"type": "token", "text": token})
+
         if client is None:
             logger.warning("Report chat LLM unavailable (%s); using deterministic fallback", auth_mode)
-            return _format_report_chat_fallback_reply(
-                session_id,
-                messages[-1].get("content", "") if messages else "",
-            )
+            fallback_text = _format_report_chat_fallback_reply(session_id, user_message)
+            _emit_tokens_from_text(fallback_text)
+            return fallback_text
 
         model_name = _resolve_report_chat_model()
-        _ = max_tool_calls  # Reserved for future native tool-calling loop.
+        tool_observations: List[Dict[str, Any]] = []
+        safe_tool_calls = max(0, min(int(max_tool_calls or 0), 4))
+
+        for _ in range(safe_tool_calls):
+            plan = _plan_report_chat_tool_call(
+                client=client,
+                model_name=model_name,
+                session_id=session_id,
+                user_message=user_message,
+                observations=tool_observations,
+            )
+            tool_name = str(plan.get("tool") or "none").strip()
+            plan_reasoning = _truncate_text(plan.get("reasoning") or "Selecting best next step.", max_chars=160)
+            _emit({"type": "reasoning", "text": plan_reasoning})
+
+            if tool_name in {"", "none"}:
+                break
+
+            tool_args = plan.get("args") if isinstance(plan.get("args"), dict) else {}
+            _emit(
+                {
+                    "type": "tool_call",
+                    "tool": tool_name,
+                    "input": _truncate_text(json.dumps(tool_args, ensure_ascii=False), max_chars=140),
+                }
+            )
+            result = _execute_report_chat_tool(
+                session_id=session_id,
+                tool_name=tool_name,
+                args=tool_args,
+                user_message=user_message,
+            )
+            tool_observations.append(
+                {
+                    "tool": tool_name,
+                    "args": tool_args,
+                    "result": result,
+                    "result_summary": _truncate_text(_compact_tool_result(result), max_chars=220),
+                }
+            )
+            _emit({"type": "tool_result", "tool": tool_name, "status": "done"})
+
+            if isinstance(result, dict) and result.get("error"):
+                break
+
+        if tool_observations:
+            prompt += "\n\n=== TOOL OBSERVATIONS ===\n"
+            for index, item in enumerate(tool_observations, start=1):
+                prompt += (
+                    f"[{index}] TOOL={item.get('tool')} ARGS={json.dumps(item.get('args') or {}, ensure_ascii=False)}\n"
+                    f"RESULT={_compact_tool_result(item.get('result'))}\n"
+                )
+            prompt += (
+                "\nUse tool observations where relevant. "
+                "Do not claim a tool was called if no observation is present."
+            )
 
         try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config={"temperature": 0.2},
-            )
-            text = str(getattr(response, "text", "") or "").strip()
+            if event_emitter is not None and hasattr(client.models, "generate_content_stream"):
+                chunks: List[str] = []
+                for chunk in client.models.generate_content_stream(
+                    model=model_name,
+                    contents=prompt,
+                    config={"temperature": 0.2},
+                ):
+                    token = str(getattr(chunk, "text", "") or "")
+                    if not token:
+                        continue
+                    chunks.append(token)
+                    token_emitted = True
+                    _emit({"type": "token", "text": token})
+                text = "".join(chunks).strip()
+            else:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config={"temperature": 0.2},
+                )
+                text = str(getattr(response, "text", "") or "").strip()
+                if text:
+                    _emit_tokens_from_text(text)
+
             if text:
                 normalized = _normalize_report_chat_out_of_scope_reply(session_id, text)
+                if normalized and not token_emitted:
+                    _emit_tokens_from_text(normalized)
                 return _normalize_report_chat_citation_confidence(session_id, normalized)
         except Exception as exc:
             logger.warning("Report chat generation failed (%s): %s", auth_mode, exc)
 
-        return _format_report_chat_fallback_reply(
-            session_id,
-            messages[-1].get("content", "") if messages else "",
-        )
+        fallback_text = _format_report_chat_fallback_reply(session_id, user_message)
+        if fallback_text and not token_emitted:
+            _emit_tokens_from_text(fallback_text)
+        return fallback_text
 
     return _llm_caller
 
@@ -5090,19 +5495,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     )
 
 
-@app.post("/agent/chat", response_model=AgentChatResponse)
-async def agent_chat(req: AgentChatRequest):
-    """Handle follow-up QA against a frozen per-report chat session."""
-    user_message = req.message.strip()
-    if not user_message:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "chat_message_empty",
-                "message": "message is required for report chat.",
-            },
-        )
-
+def _resolve_or_rehydrate_chat_session(req: AgentChatRequest) -> str:
     chat_session_id = _resolve_report_chat_session_id(
         chat_session_id=req.chat_session_id,
         analysis_session_id=req.analysis_session_id,
@@ -5121,7 +5514,27 @@ async def agent_chat(req: AgentChatRequest):
                 "message": "Report chat session not found. Run /agent/analyze again to refresh session context.",
             },
         )
+    return chat_session_id
 
+
+def _sse_data(payload: Dict[str, Any]) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\\n\\n"
+
+
+@app.post("/agent/chat", response_model=AgentChatResponse)
+async def agent_chat(req: AgentChatRequest):
+    """Handle follow-up QA against a frozen per-report chat session."""
+    user_message = req.message.strip()
+    if not user_message:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "chat_message_empty",
+                "message": "message is required for report chat.",
+            },
+        )
+
+    chat_session_id = _resolve_or_rehydrate_chat_session(req)
     llm_caller = _make_report_chat_llm_caller(chat_session_id)
 
     try:
@@ -5151,3 +5564,88 @@ async def agent_chat(req: AgentChatRequest):
         )
 
     return AgentChatResponse(chat_session_id=chat_session_id, response=answer)
+
+
+@app.post("/agent/chat/stream")
+async def agent_chat_stream(req: AgentChatRequest):
+    """Stream report-chat reasoning/tool events and tokens as Server-Sent Events."""
+    user_message = req.message.strip()
+    if not user_message:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "chat_message_empty",
+                "message": "message is required for report chat.",
+            },
+        )
+
+    chat_session_id = _resolve_or_rehydrate_chat_session(req)
+
+    async def _event_stream():
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[Dict[str, Any]] = asyncio.Queue()
+
+        def _emit(event: Dict[str, Any]) -> None:
+            loop.call_soon_threadsafe(queue.put_nowait, event)
+
+        llm_caller = _make_report_chat_llm_caller(chat_session_id, event_emitter=_emit)
+        task = asyncio.create_task(
+            asyncio.to_thread(
+                chat_with_report,
+                chat_session_id,
+                user_message,
+                llm_caller,
+                3,
+            )
+        )
+
+        try:
+            while not task.done() or not queue.empty():
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=0.2)
+                except asyncio.TimeoutError:
+                    continue
+                yield _sse_data(event)
+
+            try:
+                answer, session = await task
+            except Exception as exc:
+                yield _sse_data(
+                    {
+                        "type": "error",
+                        "error": "chat_runtime_error",
+                        "message": str(exc),
+                    }
+                )
+                return
+
+            if session is None:
+                yield _sse_data(
+                    {
+                        "type": "error",
+                        "error": "chat_session_expired",
+                        "message": "Chat session expired. Please rerun analysis to restart report chat.",
+                    }
+                )
+                return
+
+            yield _sse_data(
+                {
+                    "type": "done",
+                    "chat_session_id": chat_session_id,
+                    "response": answer,
+                }
+            )
+        finally:
+            if not task.done():
+                task.cancel()
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

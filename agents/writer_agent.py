@@ -57,7 +57,36 @@ def _strip_code_fence(text: str) -> str:
     return "\n".join(lines).strip()
 
 
-def _parse_llm_recommendations(raw_text: str) -> List[str]:
+def _normalize_priority(value: Any) -> str:
+    raw = str(value or "MEDIUM").strip().upper()
+    if raw in {"HIGH", "MEDIUM", "LOW"}:
+        return raw
+    return "MEDIUM"
+
+
+def _normalize_action_type(value: Any) -> str:
+    raw = str(value or "monitoring").strip().lower()
+    if raw in {"experimental", "structural", "regulatory", "monitoring"}:
+        return raw
+    return "monitoring"
+
+
+def _to_recommendation_item(
+    *,
+    action: str,
+    rationale: str,
+    priority: str = "MEDIUM",
+    action_type: str = "monitoring",
+) -> Dict[str, str]:
+    return {
+        "priority": _normalize_priority(priority),
+        "action_type": _normalize_action_type(action_type),
+        "action": str(action or "").strip(),
+        "rationale": str(rationale or "").strip(),
+    }
+
+
+def _parse_llm_recommendations(raw_text: str) -> List[Dict[str, str]]:
     candidate = _strip_code_fence(raw_text)
     payload: Any = None
 
@@ -74,22 +103,55 @@ def _parse_llm_recommendations(raw_text: str) -> List[str]:
     if not isinstance(payload, dict):
         # Fallback parser when the model returns plain bullets instead of JSON.
         lines = [line.strip() for line in candidate.splitlines() if line.strip()]
-        parsed_lines: List[str] = []
+        parsed_lines: List[Dict[str, str]] = []
         for line in lines:
             cleaned = re.sub(r"^[\-\*\d\.)\s]+", "", line).strip()
             if cleaned:
-                parsed_lines.append(cleaned)
+                parsed_lines.append(
+                    _to_recommendation_item(
+                        action=cleaned,
+                        rationale="Generated from free-text fallback response.",
+                        priority="MEDIUM",
+                        action_type="monitoring",
+                    )
+                )
         return parsed_lines[:5]
 
     recs = payload.get("recommendations")
     if not isinstance(recs, list):
         return []
 
-    cleaned: List[str] = []
+    cleaned: List[Dict[str, str]] = []
     for rec in recs:
-        text = str(rec or "").strip()
-        if text:
-            cleaned.append(text)
+        if isinstance(rec, str):
+            text = rec.strip()
+            if text:
+                cleaned.append(
+                    _to_recommendation_item(
+                        action=text,
+                        rationale="Model returned unstructured recommendation text.",
+                        priority="MEDIUM",
+                        action_type="monitoring",
+                    )
+                )
+            continue
+
+        if not isinstance(rec, dict):
+            continue
+
+        action = str(rec.get("action") or "").strip()
+        rationale = str(rec.get("rationale") or "").strip()
+        if not action:
+            continue
+
+        cleaned.append(
+            _to_recommendation_item(
+                action=action,
+                rationale=rationale,
+                priority=rec.get("priority", "MEDIUM"),
+                action_type=rec.get("action_type", "monitoring"),
+            )
+        )
     return cleaned[:5]
 
 
@@ -100,7 +162,7 @@ def _default_recommendations(
     clinical: Dict[str, Any],
     ood_assessment: Dict[str, Any],
     inference_context: Dict[str, Any],
-) -> List[str]:
+) -> List[Dict[str, str]]:
     highest_risk_task = mechanism.get("highest_risk_task")
     assay_hits = int(mechanism.get("assay_hits", 0) or 0)
     p_toxic = float(clinical.get("p_toxic", 0.0) or 0.0)
@@ -112,121 +174,268 @@ def _default_recommendations(
     if not isinstance(rare_elements, list):
         rare_elements = []
 
-    recs: List[str] = [
-        choose_text(
-            language,
-            (
-                f"Bối cảnh quyết định hiện tại: p_toxic={p_toxic:.3f}, "
-                f"ngưỡng={threshold_used:.2f}, assay_hits={assay_hits}."
+    recs: List[Dict[str, str]] = [
+        _to_recommendation_item(
+            priority="MEDIUM",
+            action_type="monitoring",
+            action=choose_text(
+                language,
+                "Theo dõi lại quyết định độc tính theo policy ngưỡng hiện tại.",
+                "Re-check the toxicity decision under the active threshold policy.",
             ),
-            (
-                f"Current decision context: p_toxic={p_toxic:.3f}, "
-                f"threshold={threshold_used:.2f}, assay_hits={assay_hits}."
+            rationale=choose_text(
+                language,
+                (
+                    f"Bối cảnh hiện tại: p_toxic={p_toxic:.3f}, ngưỡng={threshold_used:.2f}, "
+                    f"assay_hits={assay_hits}, threshold_policy={threshold_policy}."
+                ),
+                (
+                    f"Current context: p_toxic={p_toxic:.3f}, threshold={threshold_used:.2f}, "
+                    f"assay_hits={assay_hits}, threshold_policy={threshold_policy}."
+                ),
             ),
         )
     ]
 
-    recs.append(
-        choose_text(
-            language,
-            f"Threshold policy đang áp dụng: {threshold_policy}.",
-            f"Current threshold policy in use: {threshold_policy}.",
+    if ood_flag:
+        element_text = ", ".join(str(item) for item in rare_elements) if rare_elements else "N/A"
+        recs.insert(
+            0,
+            _to_recommendation_item(
+                priority="HIGH",
+                action_type="regulatory",
+                action=choose_text(
+                    language,
+                    "Khoá quyết định progression và yêu cầu review chuyên gia do cờ OOD.",
+                    "Gate progression and require expert adjudication due to OOD flag.",
+                ),
+                rationale=choose_text(
+                    language,
+                    f"OOD={ood_risk}; nguyên tố hiếm={element_text}.",
+                    f"OOD={ood_risk}; rare elements={element_text}.",
+                ),
+            ),
         )
-    )
 
     if risk_level == "CRITICAL":
-        recs.extend(choose_text(
-            language,
+        recs.extend(
             [
-                "Ưu tiên xác nhận in-vitro ngay và mở review dược hóa chuyên sâu.",
-                "Tạm dừng progression cho đến khi có kế hoạch giảm thiểu theo cơ chế độc tính.",
-            ],
-            [
-                "Escalate to immediate in-vitro follow-up and medicinal chemistry review.",
-                "Block progression until mechanism-specific safety mitigation is defined.",
-            ],
-        ))
+                _to_recommendation_item(
+                    priority="HIGH",
+                    action_type="experimental",
+                    action=choose_text(
+                        language,
+                        "Ưu tiên assay xác nhận in-vitro khẩn cấp cho các tín hiệu độc tính chính.",
+                        "Run immediate in-vitro confirmatory assays for top toxicity signals.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        f"Risk level={risk_level} với assay_hits={assay_hits} và p_toxic={p_toxic:.3f}.",
+                        f"Risk level={risk_level} with assay_hits={assay_hits} and p_toxic={p_toxic:.3f}.",
+                    ),
+                ),
+                _to_recommendation_item(
+                    priority="HIGH",
+                    action_type="structural",
+                    action=choose_text(
+                        language,
+                        "Tạm dừng progression và mở vòng tối ưu cấu trúc để giảm liability chính.",
+                        "Pause progression and launch structural optimization against primary liabilities.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        "Mức rủi ro CRITICAL yêu cầu giảm thiểu trước khi quyết định tiếp theo.",
+                        "CRITICAL risk requires mitigation before next-stage decisions.",
+                    ),
+                ),
+            ]
+        )
     elif risk_level == "HIGH":
-        recs.extend(choose_text(
-            language,
+        recs.extend(
             [
-                "Chạy assay xác nhận tập trung vào các cơ chế có điểm rủi ro cao.",
-                "Cân nhắc tối ưu scaffold/substituent tại các vùng đóng góp độc tính cao.",
-            ],
-            [
-                "Run targeted confirmatory assays for predicted mechanism liabilities.",
-                "Consider structure edits around high-contributing substructures.",
-            ],
-        ))
+                _to_recommendation_item(
+                    priority="HIGH",
+                    action_type="experimental",
+                    action=choose_text(
+                        language,
+                        "Chạy panel assay xác nhận tập trung vào pathway rủi ro cao.",
+                        "Run targeted confirmatory assay panel on highest-risk pathways.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        f"Mức HIGH với assay_hits={assay_hits} và p_toxic={p_toxic:.3f}.",
+                        f"HIGH risk with assay_hits={assay_hits} and p_toxic={p_toxic:.3f}.",
+                    ),
+                ),
+                _to_recommendation_item(
+                    priority="MEDIUM",
+                    action_type="structural",
+                    action=choose_text(
+                        language,
+                        "Đề xuất tối ưu scaffold/substituent quanh vùng đóng góp độc tính cao.",
+                        "Propose scaffold/substituent optimization around high-risk contribution regions.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        "Giảm liability cấu trúc có thể hạ xác suất toxic trong vòng lặp kế tiếp.",
+                        "Structural liability reduction can lower toxic probability in next iteration.",
+                    ),
+                ),
+            ]
+        )
     elif risk_level == "MODERATE":
-        recs.extend(choose_text(
-            language,
+        recs.extend(
             [
-                "Ưu tiên assay orthogonal cho pathway rủi ro cao nhất.",
-                "Theo dõi độ bất định và so sánh với các analog gần cấu trúc.",
-            ],
-            [
-                "Prioritize orthogonal assays for the top risk pathway.",
-                "Track uncertainty and compare with close structural analogs.",
-            ],
-        ))
+                _to_recommendation_item(
+                    priority="MEDIUM",
+                    action_type="experimental",
+                    action=choose_text(
+                        language,
+                        "Ưu tiên assay orthogonal cho cơ chế có điểm cao nhất.",
+                        "Prioritize orthogonal assays for the highest-scoring mechanism.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        "Mức MODERATE cần xác nhận thực nghiệm để giảm bất định.",
+                        "MODERATE risk requires experimental confirmation to reduce uncertainty.",
+                    ),
+                ),
+                _to_recommendation_item(
+                    priority="MEDIUM",
+                    action_type="monitoring",
+                    action=choose_text(
+                        language,
+                        "So sánh profile với các analog gần cấu trúc trước khi nâng cấp quyết định.",
+                        "Compare profile with close analogs before escalating decisions.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        "Đối chiếu analog giúp kiểm tra tính ổn định tín hiệu độc tính.",
+                        "Analog comparison helps verify signal stability.",
+                    ),
+                ),
+            ]
+        )
     else:
-        recs.extend(choose_text(
-            language,
+        recs.extend(
             [
-                "Tiếp tục panel xác nhận tiêu chuẩn với kiểm soát an toàn mặc định.",
-                "Đánh giá lại rủi ro sau mọi thay đổi scaffold hoặc substituent.",
-            ],
-            [
-                "Proceed with routine validation panel under standard safety controls.",
-                "Re-check risk after any scaffold or substituent modifications.",
-            ],
-        ))
+                _to_recommendation_item(
+                    priority="LOW",
+                    action_type="experimental",
+                    action=choose_text(
+                        language,
+                        "Duy trì panel xác nhận tiêu chuẩn theo quy trình safety hiện tại.",
+                        "Continue routine validation panel under current safety workflow.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        f"Risk={risk_level} với p_toxic={p_toxic:.3f} dưới ngưỡng cảnh báo cao.",
+                        f"Risk={risk_level} with p_toxic={p_toxic:.3f} below high-alert territory.",
+                    ),
+                ),
+                _to_recommendation_item(
+                    priority="LOW",
+                    action_type="monitoring",
+                    action=choose_text(
+                        language,
+                        "Đánh giá lại rủi ro sau mỗi thay đổi scaffold/substituent.",
+                        "Re-evaluate risk after each scaffold/substituent change.",
+                    ),
+                    rationale=choose_text(
+                        language,
+                        "Ngay cả profile LOW cũng cần theo dõi khi tối ưu hóa lead.",
+                        "Even LOW-risk profiles should be tracked during lead optimization.",
+                    ),
+                ),
+            ]
+        )
 
     if highest_risk_task:
         recs.append(
-            choose_text(
-                language,
-                f"Assay ưu tiên vòng tiếp theo: {highest_risk_task}.",
-                f"Focus next mechanism assay on {highest_risk_task}.",
+            _to_recommendation_item(
+                priority="MEDIUM",
+                action_type="experimental",
+                action=choose_text(
+                    language,
+                    f"Ưu tiên assay vòng kế tiếp: {highest_risk_task}.",
+                    f"Prioritize next assay cycle on {highest_risk_task}.",
+                ),
+                rationale=choose_text(
+                    language,
+                    "Assay này là tín hiệu cơ chế nổi bật nhất trong lần screening hiện tại.",
+                    "This assay is the strongest mechanism signal in the current screening output.",
+                ),
             )
         )
 
-    if ood_flag:
-        element_text = ", ".join(str(item) for item in rare_elements) if rare_elements else "N/A"
-        recs.append(
-            choose_text(
-                language,
-                f"Gắn cờ OOD mức {ood_risk}. Nguyên tố hiếm: {element_text}.",
-                f"OOD is flagged at level {ood_risk}. Rare elements: {element_text}.",
-            )
-        )
-
-    return recs
+    return recs[:5]
 
 
 def _build_llm_prompt(
     language: str,
     risk_level: str,
+    smiles: str,
+    compound_name: Optional[str],
     clinical: Dict[str, Any],
     mechanism: Dict[str, Any],
     ood_assessment: Dict[str, Any],
     research: Dict[str, Any],
+    molrag: Dict[str, Any],
+    fusion_result: Dict[str, Any],
 ) -> str:
     language_name = "Vietnamese" if language == "vi" else "English"
+
+    task_scores = mechanism.get("task_scores") if isinstance(mechanism.get("task_scores"), dict) else {}
+    active_tasks = mechanism.get("active_tasks") if isinstance(mechanism.get("active_tasks"), list) else []
+    ranked_tasks = sorted(
+        [
+            (str(task), float(task_scores.get(task, 0.0) or 0.0))
+            for task in active_tasks
+            if str(task).strip()
+        ],
+        key=lambda item: item[1],
+        reverse=True,
+    )[:4]
+
+    article_titles: List[str] = []
+    literature_articles = _to_dict(research.get("literature")).get("articles")
+    if isinstance(literature_articles, list):
+        for article in literature_articles[:4]:
+            if not isinstance(article, dict):
+                continue
+            title = str(article.get("title") or "").strip()
+            if title:
+                article_titles.append(title)
+
     prompt_payload = {
+        "compound": {
+            "smiles": smiles,
+            "name": compound_name or "Unknown",
+        },
         "risk_level": risk_level,
-        "clinical": {
+        "clinical_prediction": {
             "label": clinical.get("label"),
             "p_toxic": clinical.get("p_toxic"),
             "threshold_used": clinical.get("threshold_used"),
             "confidence": clinical.get("confidence"),
         },
-        "mechanism": {
+        "mechanism_signals": {
             "assay_hits": mechanism.get("assay_hits"),
             "highest_risk_task": mechanism.get("highest_risk_task"),
             "highest_risk_score": mechanism.get("highest_risk_score"),
             "active_tasks": mechanism.get("active_tasks"),
+            "top_active_tasks_with_scores": ranked_tasks,
+        },
+        "molrag_evidence": {
+            "label": molrag.get("suggested_label") or molrag.get("label"),
+            "confidence": molrag.get("confidence"),
+            "tox_classes": (molrag.get("tox_classes") or [])[:5],
+            "analogs_found": len(molrag.get("retrieved_examples") or []),
+        },
+        "model_fusion": {
+            "agreement": fusion_result.get("agreement"),
+            "final_label": fusion_result.get("final_label"),
+            "final_confidence": fusion_result.get("final_confidence"),
         },
         "ood_assessment": {
             "ood_risk": ood_assessment.get("ood_risk"),
@@ -234,23 +443,38 @@ def _build_llm_prompt(
             "reason": ood_assessment.get("reason"),
             "recommendation": ood_assessment.get("recommendation"),
         },
-        "literature": {
+        "literature_signals": {
             "query_name_used": research.get("query_name_used"),
             "total_found": (research.get("literature") or {}).get("total_found"),
             "tox21_active_count": (research.get("bioassay_summary") or {}).get("tox21_active_count"),
+            "representative_titles": article_titles,
         },
     }
 
+    output_schema = {
+        "recommendations": [
+            {
+                "priority": "HIGH|MEDIUM|LOW",
+                "action_type": "experimental|structural|regulatory|monitoring",
+                "action": "<clear actionable instruction>",
+                "rationale": "<one sentence grounded in input data>",
+            }
+        ]
+    }
+
     return (
-        "You are a medicinal safety advisor drafting action items for a toxicity screening report. "
+        "You are a senior medicinal safety advisor drafting action items for a toxicity screening report. "
         f"Output language must be {language_name}.\n"
         "Return STRICT JSON only with schema:\n"
-        "{\"recommendations\": [\"...\", \"...\", \"...\"]}\n"
+        f"{json.dumps(output_schema, ensure_ascii=True)}\n"
         "Rules:\n"
-        "- Provide 3 to 5 concise action items.\n"
-        "- Mention threshold policy and OOD handling when relevant.\n"
+        "- Provide 3 to 5 recommendations.\n"
+        "- Each recommendation must include priority, action_type, action, and rationale.\n"
+        "- Ground each rationale in actual input signals (scores, tasks, OOD, MolRAG, literature).\n"
+        "- Cover at least one experimental and one monitoring action type where possible.\n"
+        "- If fusion agreement is false, include an expert adjudication recommendation.\n"
         "- Do not output markdown or prose outside JSON.\n"
-        f"Input: {json.dumps(prompt_payload, ensure_ascii=True)}"
+        f"Input: {json.dumps(prompt_payload, ensure_ascii=False)}"
     )
 
 
@@ -296,20 +520,28 @@ def _generate_llm_recommendations_with_client(
     client: Any,
     language: str,
     risk_level: str,
+    smiles: str,
+    compound_name: Optional[str],
     clinical: Dict[str, Any],
     mechanism: Dict[str, Any],
     ood_assessment: Dict[str, Any],
     research: Dict[str, Any],
-) -> Tuple[List[str], str]:
+    molrag: Dict[str, Any],
+    fusion_result: Dict[str, Any],
+) -> Tuple[List[Dict[str, str]], str]:
     response = client.models.generate_content(
         model=WRITER_MODEL,
         contents=_build_llm_prompt(
             language=language,
             risk_level=risk_level,
+            smiles=smiles,
+            compound_name=compound_name,
             clinical=clinical,
             mechanism=mechanism,
             ood_assessment=ood_assessment,
             research=research,
+            molrag=molrag,
+            fusion_result=fusion_result,
         ),
         config={
             "temperature": 0.3,
@@ -330,11 +562,15 @@ def _generate_llm_recommendations_with_client(
 def _maybe_llm_recommendations(
     language: str,
     risk_level: str,
+    smiles: str,
+    compound_name: Optional[str],
     clinical: Dict[str, Any],
     mechanism: Dict[str, Any],
     ood_assessment: Dict[str, Any],
     research: Dict[str, Any],
-) -> Tuple[List[str], str]:
+    molrag: Dict[str, Any],
+    fusion_result: Dict[str, Any],
+) -> Tuple[List[Dict[str, str]], str]:
     enabled = str(os.getenv("WRITER_ENABLE_LLM_RECOMMENDATIONS", "1")).strip().lower()
     if enabled in {"0", "false", "no"}:
         return [], "llm_disabled_by_env"
@@ -350,10 +586,14 @@ def _maybe_llm_recommendations(
             client=client,
             language=language,
             risk_level=risk_level,
+            smiles=smiles,
+            compound_name=compound_name,
             clinical=clinical,
             mechanism=mechanism,
             ood_assessment=ood_assessment,
             research=research,
+            molrag=molrag,
+            fusion_result=fusion_result,
         )
         if parsed:
             return parsed, f"{status}:{auth_mode}"
@@ -373,10 +613,14 @@ def _maybe_llm_recommendations(
                         client=retry_client,
                         language=language,
                         risk_level=risk_level,
+                        smiles=smiles,
+                        compound_name=compound_name,
                         clinical=clinical,
                         mechanism=mechanism,
                         ood_assessment=ood_assessment,
                         research=research,
+                        molrag=molrag,
+                        fusion_result=fusion_result,
                     )
                     if parsed:
                         return parsed, f"{status}:{retry_auth}"
@@ -388,20 +632,28 @@ def _maybe_llm_recommendations(
 
 def _build_recommendations(
     risk_level: str,
+    smiles: str,
+    compound_name: Optional[str],
     mechanism: Dict[str, Any],
     language: str,
     clinical: Dict[str, Any],
     ood_assessment: Dict[str, Any],
     research: Dict[str, Any],
+    molrag: Dict[str, Any],
+    fusion_result: Dict[str, Any],
     inference_context: Dict[str, Any],
-) -> Tuple[List[str], str, str]:
+) -> Tuple[List[Dict[str, str]], str, str]:
     dynamic_recs, detail = _maybe_llm_recommendations(
         language=language,
         risk_level=risk_level,
+        smiles=smiles,
+        compound_name=compound_name,
         clinical=clinical,
         mechanism=mechanism,
         ood_assessment=ood_assessment,
         research=research,
+        molrag=molrag,
+        fusion_result=fusion_result,
     )
     if dynamic_recs:
         return dynamic_recs, "llm", detail
@@ -539,15 +791,22 @@ def build_final_report(
     compound_info = _to_dict(research.get("compound_info"))
     literature = _to_dict(research.get("literature"))
     bioassay_summary = research.get("bioassay_summary")
+    compound_name = compound_info.get("common_name") or compound_info.get("iupac_name")
+    molrag_data = _to_dict(screening.get("molrag"))
+    fusion_data = _to_dict(screening.get("fusion_result"))
 
     risk_level = _compute_risk_level(clinical, mechanism)
     recommendations, recommendation_source, recommendation_source_detail = _build_recommendations(
         risk_level=risk_level,
+        smiles=smiles_input,
+        compound_name=compound_name,
         mechanism=mechanism,
         language=normalized_language,
         clinical=clinical,
         ood_assessment=ood_assessment,
         research=research,
+        molrag=molrag_data,
+        fusion_result=fusion_data,
         inference_context=inference_context,
     )
 
@@ -558,14 +817,21 @@ def build_final_report(
     if failure_match is not None:
         recommendations.insert(
             0,
-            choose_text(
-                normalized_language,
-                f"Khớp Failure Registry ({failure_match.get('id', 'N/A')}): ưu tiên expert review.",
-                f"Failure Registry match ({failure_match.get('id', 'N/A')}): route to expert review.",
+            _to_recommendation_item(
+                priority="HIGH",
+                action_type="regulatory",
+                action=choose_text(
+                    normalized_language,
+                    f"Khớp Failure Registry ({failure_match.get('id', 'N/A')}): ưu tiên expert review.",
+                    f"Failure Registry match ({failure_match.get('id', 'N/A')}): route to expert review.",
+                ),
+                rationale=choose_text(
+                    normalized_language,
+                    "Mẫu đã ghi nhận tiền lệ false-negative nên cần kiểm định thủ công trước khi ra quyết định.",
+                    "The pattern has prior false-negative precedent, so manual adjudication is required before decisions.",
+                ),
             ),
         )
-
-    compound_name = compound_info.get("common_name") or compound_info.get("iupac_name")
 
     executive_summary = choose_text(
         normalized_language,
