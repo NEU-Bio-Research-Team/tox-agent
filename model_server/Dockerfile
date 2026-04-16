@@ -68,7 +68,7 @@ RUN pip install --no-cache-dir \
 
 # PyG: install prebuilt extension wheels first to avoid source builds.
 RUN pip install --no-cache-dir \
-    pyg-lib torch-scatter torch-sparse torch-cluster torch-spline-conv \
+    torch-scatter torch-sparse torch-cluster torch-spline-conv \
     --find-links https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html \
     --prefer-binary
 
