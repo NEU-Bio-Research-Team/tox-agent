@@ -4,14 +4,15 @@ import { normalizeRiskLevel } from '../../risk-level';
 import type {
   FailureRegistrySection,
   OodAssessmentSection,
-  RecommendationSection,
+  RecommendationPayload,
   RiskLevel,
   RiskLevelCode,
+  StructuredRecommendation,
 } from '../../../lib/api';
 
 interface AIRecommendationsSectionProps {
   summary: string;
-  recommendations?: string[] | RecommendationSection | null;
+  recommendations?: RecommendationPayload | null;
   riskLevel: RiskLevel;
   language: 'vi' | 'en';
   reliabilityWarning?: string | null;
@@ -23,6 +24,26 @@ interface AIRecommendationsSectionProps {
   runtimeNote?: string | null;
 }
 
+interface NormalizedRecommendation {
+  action: string;
+  rationale?: string;
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW' | string;
+  actionType?: 'experimental' | 'structural' | 'regulatory' | 'monitoring' | string;
+}
+
+const PRIORITY_STYLE: Record<string, { bg: string; text: string }> = {
+  HIGH: { bg: 'rgba(239,68,68,0.12)', text: 'var(--accent-red)' },
+  MEDIUM: { bg: 'rgba(245,158,11,0.14)', text: 'var(--accent-yellow)' },
+  LOW: { bg: 'rgba(34,197,94,0.14)', text: 'var(--accent-green)' },
+};
+
+const ACTION_TYPE_STYLE: Record<string, string> = {
+  experimental: 'var(--accent-blue)',
+  structural: '#f59e0b',
+  regulatory: '#ef4444',
+  monitoring: '#22c55e',
+};
+
 function getRiskLabel(riskLevel: RiskLevelCode, language: 'vi' | 'en') {
   if (riskLevel === 'CRITICAL') return language === 'vi' ? 'Cảnh báo khẩn cấp' : 'Critical alert';
   if (riskLevel === 'HIGH') return language === 'vi' ? 'Rủi ro cao' : 'High risk';
@@ -33,17 +54,36 @@ function getRiskLabel(riskLevel: RiskLevelCode, language: 'vi' | 'en') {
 
 function normalizeRecommendations(
   recommendations: AIRecommendationsSectionProps['recommendations'],
-): string[] {
+): NormalizedRecommendation[] {
   if (Array.isArray(recommendations)) {
-    return recommendations
-      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
-      .map((item) => item.trim());
+    const normalized: NormalizedRecommendation[] = [];
+    for (const item of recommendations) {
+      if (typeof item === 'string' && item.trim().length > 0) {
+        normalized.push({ action: item.trim() });
+        continue;
+      }
+
+      if (item && typeof item === 'object') {
+        const structured = item as StructuredRecommendation;
+        const action = typeof structured.action === 'string' ? structured.action.trim() : '';
+        if (!action) {
+          continue;
+        }
+        normalized.push({
+          action,
+          rationale: typeof structured.rationale === 'string' ? structured.rationale.trim() : undefined,
+          priority: typeof structured.priority === 'string' ? structured.priority.toUpperCase() : undefined,
+          actionType: typeof structured.action_type === 'string' ? structured.action_type.toLowerCase() : undefined,
+        });
+      }
+    }
+    return normalized;
   }
 
   if (recommendations && typeof recommendations === 'object') {
-    const content = recommendations.content;
+    const content = (recommendations as { content?: string }).content;
     if (typeof content === 'string' && content.trim().length > 0) {
-      return [content.trim()];
+      return [{ action: content.trim() }];
     }
   }
 
@@ -67,7 +107,18 @@ export function AIRecommendationsSection({
   const recommendationItems = normalizeRecommendations(recommendations);
 
   const handleCopy = async () => {
-    const content = [summary, '', ...recommendationItems.map((item, index) => `${index + 1}. ${item}`)].join('\n');
+    const content = [
+    summary,
+    '',
+    ...recommendationItems.map((item, index) => {
+      const meta: string[] = [];
+      if (item.priority) meta.push(`priority=${item.priority}`);
+      if (item.actionType) meta.push(`type=${item.actionType}`);
+      const metaText = meta.length > 0 ? ` [${meta.join(', ')}]` : '';
+      const rationaleText = item.rationale ? `\n   rationale: ${item.rationale}` : '';
+      return `${index + 1}. ${item.action}${metaText}${rationaleText}`;
+    }),
+  ].join('\n');
     try {
       await navigator.clipboard.writeText(content);
     } catch {
@@ -208,14 +259,63 @@ export function AIRecommendationsSection({
                   {language === 'vi' ? 'Không có khuyến nghị bổ sung.' : 'No additional recommendations.'}
                 </p>
               )}
-              {recommendationItems.map((item, index) => (
-                <div key={`${index}-${item.slice(0, 20)}`} className="flex items-start gap-3">
-                  <span style={{ color: 'var(--accent-green)', fontSize: '18px' }}>•</span>
-                  <p className="text-base flex-1" style={{ color: 'var(--text)' }}>
-                    {item}
-                  </p>
-                </div>
-              ))}
+              {recommendationItems.map((item, index) => {
+                const priority = String(item.priority || '').toUpperCase();
+                const actionType = String(item.actionType || '').toLowerCase();
+                const priorityStyle = PRIORITY_STYLE[priority];
+                const actionTypeColor = ACTION_TYPE_STYLE[actionType] || 'var(--text-muted)';
+
+                return (
+                  <div
+                    key={`${index}-${item.action.slice(0, 20)}`}
+                    className="rounded-xl border p-4"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-mono" style={{ color: 'var(--text-faint)' }}>
+                        #{index + 1}
+                      </span>
+
+                      {priorityStyle && (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                          style={{
+                            backgroundColor: priorityStyle.bg,
+                            color: priorityStyle.text,
+                          }}
+                        >
+                          {priority}
+                        </span>
+                      )}
+
+                      {actionType && (
+                        <span
+                          className="rounded-full border px-2 py-0.5 text-xs font-mono"
+                          style={{
+                            borderColor: actionTypeColor,
+                            color: actionTypeColor,
+                          }}
+                        >
+                          {actionType}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
+                      {item.action}
+                    </p>
+
+                    {item.rationale && (
+                      <p className="mt-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                        {item.rationale}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
