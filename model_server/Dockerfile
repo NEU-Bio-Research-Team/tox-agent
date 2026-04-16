@@ -66,9 +66,10 @@ RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/${TORCH_VARIANT} \
     --extra-index-url https://pypi.org/simple
 
-# PyG: install prebuilt extension wheels first to avoid source builds.
-RUN pip install --no-cache-dir \
-    torch-scatter torch-sparse torch-cluster torch-spline-conv \
+# PyG optional extension wheels vary by torch/cuda/python matrix.
+# For torch 2.6 + cu121 + py310, the index currently ships torch-cluster only.
+RUN pip install --no-cache-dir --only-binary=:all: \
+    torch-cluster \
     --find-links https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html \
     --prefer-binary
 
