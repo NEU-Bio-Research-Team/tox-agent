@@ -4,12 +4,25 @@
 #-------------------------------------------------------------------
 # Build arg để switch CPU <-> không cần sửa file
 # Build CPU:    docker build --build-arg TORCH_VARIANT=cpu
-# Build GPU:    docker build --build-arg TORCH_VARIANT=cu121
+# Build GPU:    docker build --build-arg TORCH_VARIANT=cu121 \
+#               --build-arg BASE_IMAGE=nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 #-------------------------------------------------------------------
 ARG TORCH_VARIANT=cpu
+ARG BASE_IMAGE=python:3.10-slim
 
-# Use python 3.10 slim as base 
-FROM python:3.10-slim
+# Use python base by default. For FPT GPU, pass CUDA runtime base via BASE_IMAGE.
+FROM ${BASE_IMAGE}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# CUDA runtime image does not include Python by default.
+RUN if ! command -v python >/dev/null 2>&1; then \
+            apt-get update && apt-get install -y --no-install-recommends \
+            python3.10 python3-pip python3.10-dev && \
+            ln -sf /usr/bin/python3.10 /usr/bin/python && \
+            ln -sf /usr/bin/pip3 /usr/bin/pip && \
+            rm -rf /var/lib/apt/lists/*; \
+        fi
 
 # Metadata cho Vertex AI Prediction
 # Vertex AI sẽ gọi GET /health và POST /predict
@@ -22,6 +35,7 @@ ENV AIP_HTTP_PORT=8080
 # Không hardcore ở đây - truyền qua --set-env-vars khi gcloud deploy
 ENV GOOGLE_CLOUD_PROJECT=""
 ENV GOOGLE_CLOUD_LOCATION="us-central1"
+ENV MODELS_ROOT="/models"
 ENV MOLSCRIBE_PRELOAD_ON_STARTUP="true"
 ENV MOLSCRIBE_AUTO_DOWNLOAD="true"
 ENV MOLSCRIBE_REPO_ID="yujieq/MolScribe"
@@ -47,15 +61,18 @@ COPY . /app/
 # TORCH_VARIANT được truyền từ build arg
 ARG TORCH_VARIANT=cpu
 RUN pip install --no-cache-dir \
-    torch==2.6.0+${TORCH_VARIANT} \
-    torchvision==0.21.0+${TORCH_VARIANT} \
+    torch==2.6.0 \
+    torchvision==0.21.0 \
     --index-url https://download.pytorch.org/whl/${TORCH_VARIANT} \
     --extra-index-url https://pypi.org/simple
 
-# PyG: torch-scatter, torch-geometric
+# PyG: install prebuilt extension wheels first to avoid source builds.
 RUN pip install --no-cache-dir \
-    torch-scatter torch-sparse torch-geometric \
-    -f https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html
+    pyg-lib torch-scatter torch-sparse torch-cluster torch-spline-conv \
+    --find-links https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html \
+    --prefer-binary
+
+RUN pip install --no-cache-dir torch-geometric
 
 # Google Cloud SDK (Vertex AI, Gemini, Firebase)
 RUN pip install --no-cache-dir \
