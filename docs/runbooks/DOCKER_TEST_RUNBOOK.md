@@ -44,10 +44,17 @@ docker build \
 ### GPU image (CUDA 12.1 wheels)
 ```bash
 docker build \
+  --build-arg BASE_IMAGE=nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04 \
   --build-arg TORCH_VARIANT=cu121 \
   -t toxagent:cu121 \
   -f model_server/Dockerfile .
 ```
+
+For FPT AI Factory, prefer the CUDA base image command above so the container has
+NVIDIA runtime libraries available at runtime.
+
+The server now reads model artifacts from `MODELS_ROOT`, so mount your persistent
+volume to `/models` and set `MODELS_ROOT=/models` at runtime.
 
 
 ## 4) Run Container
@@ -190,6 +197,33 @@ docker stop toxagent-cpu
 Optional image cleanup:
 ```bash
 docker image rm toxagent:cpu toxagent:cu121
+```
+
+
+## 11) FPT AI Factory Deploy Checklist (GPU)
+
+Use image from Docker Hub and set these env vars in container form:
+
+- `TORCH_VARIANT=cu121`
+- `NVIDIA_VISIBLE_DEVICES=all`
+- `NVIDIA_DRIVER_CAPABILITIES=compute,utility`
+- `GOOGLE_CLOUD_PROJECT=<your-project-id>`
+- `GOOGLE_CLOUD_LOCATION=us-central1`
+- `MODELS_ROOT=/models`
+
+Mount the persistent volume to `/models` and place all required model folders
+there, including the dual-head `.pt` checkpoints.
+
+Recommended build + push flow:
+
+```bash
+docker build \
+  --build-arg BASE_IMAGE=nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04 \
+  --build-arg TORCH_VARIANT=cu121 \
+  -t <dockerhub-user>/tox-model-server:gpu-cu121 \
+  -f model_server/Dockerfile .
+
+docker push <dockerhub-user>/tox-model-server:gpu-cu121
 ```
 
 

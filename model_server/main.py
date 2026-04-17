@@ -159,7 +159,7 @@ from model_server.schemas import (
 )
 
 # Configuration
-MODELS_ROOT = PROJECT_ROOT / "models"
+MODELS_ROOT = Path(os.getenv("MODELS_ROOT", str(PROJECT_ROOT / "models")))
 MODEL_DIR = MODELS_ROOT / "smilesgnn_model"
 CONFIG_PATH = PROJECT_ROOT / "config" / "smilesgnn_config.yaml"
 TOX21_MODEL_DIR = MODELS_ROOT / "tox21_gatv2_model"
