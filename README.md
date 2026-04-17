@@ -267,11 +267,11 @@ Standardized OCR error codes:
 Performance notes:
 - Existing analysis pipeline (`/agent/analyze`) is unchanged.
 - OCR is a separate endpoint and only runs when user uploads an image.
-- MolScribe preload is enabled by default to reduce first OCR request latency.
+- MolScribe preload is disabled by default to avoid startup dependency on Hugging Face connectivity.
 
 ### 5.7 OCR Runtime Environment Variables
 - `SMILES_IMAGE_MAX_BYTES` (default: `5242880`)
-- `MOLSCRIBE_PRELOAD_ON_STARTUP` (default: `true`)
+- `MOLSCRIBE_PRELOAD_ON_STARTUP` (default: `false`)
 - `MOLSCRIBE_AUTO_DOWNLOAD` (default: `true`)
 - `MOLSCRIBE_REPO_ID` (default: `yujieq/MolScribe`)
 - `MOLSCRIBE_CHECKPOINT_NAME` (default: `swin_base_char_aux_1m.pth`)
@@ -309,10 +309,14 @@ pip install --no-deps molscribe==1.1.1
 
 PowerShell example:
 ```powershell
-$env:MOLSCRIBE_PRELOAD_ON_STARTUP="true"
+$env:MOLSCRIBE_PRELOAD_ON_STARTUP="false"
 $env:MOLSCRIBE_AUTO_DOWNLOAD="true"
 $env:SMILES_IMAGE_MAX_BYTES="5242880"
 ```
+
+For startup-sensitive deployments (for example FPT AI Factory), keep
+`MOLSCRIBE_PRELOAD_ON_STARTUP=false` and provide a local checkpoint via
+`MOLSCRIBE_MODEL_PATH` if outbound Hugging Face access is restricted.
 
 If you already downloaded a checkpoint:
 ```powershell
@@ -360,7 +364,7 @@ npm run deploy:hosting
 For container builds (Cloud Run), Dockerfile is updated to:
 - install OCR runtime dependencies,
 - install MolScribe with `--no-deps`,
-- preload OCR model by default.
+- skip OCR preload by default so startup is non-blocking.
 
 ---
 

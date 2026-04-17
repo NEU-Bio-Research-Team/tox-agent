@@ -25,9 +25,9 @@ RUN if ! command -v python >/dev/null 2>&1; then \
         fi
 
 # Metadata cho Vertex AI Prediction
-# Vertex AI sẽ gọi GET /health và POST /predict
+# Vertex AI/FPT probes can override routes via env vars.
 # Có thể override qua env vars khi deploy
-ENV AIP_HEALTH_ROUTE=/health
+ENV AIP_HEALTH_ROUTE=/livez
 ENV AIP_PREDICT_ROUTE=/predict
 ENV AIP_HTTP_PORT=8080
 
@@ -36,7 +36,7 @@ ENV AIP_HTTP_PORT=8080
 ENV GOOGLE_CLOUD_PROJECT=""
 ENV GOOGLE_CLOUD_LOCATION="us-central1"
 ENV MODELS_ROOT="/models"
-ENV MOLSCRIBE_PRELOAD_ON_STARTUP="true"
+ENV MOLSCRIBE_PRELOAD_ON_STARTUP="false"
 ENV MOLSCRIBE_AUTO_DOWNLOAD="true"
 ENV MOLSCRIBE_REPO_ID="yujieq/MolScribe"
 ENV MOLSCRIBE_CHECKPOINT_NAME="swin_base_char_aux_1m.pth"

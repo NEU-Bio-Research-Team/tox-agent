@@ -376,7 +376,7 @@ MOLSCRIBE_CHECKPOINT_NAME = os.getenv(
 ).strip()
 MOLSCRIBE_MODEL_PATH = os.getenv("MOLSCRIBE_MODEL_PATH", "").strip()
 MOLSCRIBE_AUTO_DOWNLOAD = _env_flag("MOLSCRIBE_AUTO_DOWNLOAD", True)
-MOLSCRIBE_PRELOAD_ON_STARTUP = _env_flag("MOLSCRIBE_PRELOAD_ON_STARTUP", True)
+MOLSCRIBE_PRELOAD_ON_STARTUP = _env_flag("MOLSCRIBE_PRELOAD_ON_STARTUP", False)
 MOLSCRIBE_DEVICE = os.getenv("MOLSCRIBE_DEVICE", DEVICE).strip().lower() or DEVICE
 
 def _normalize_route(route: str, default: str) -> str:
@@ -483,6 +483,8 @@ def _clear_loaded_models() -> None:
         "ensemble_weight_payloads",
         "molscribe_predictor",
         "molscribe_checkpoint_path",
+        "molscribe_preload_started",
+        "molscribe_preload_thread",
     ):
         model_state.pop(key, None)
 
@@ -500,6 +502,7 @@ def _initialize_runtime_state() -> None:
     model_state.setdefault("pretrained_dual_head_bundles", {})
     model_state.setdefault("tox21_aux_member_bundles", {})
     model_state.setdefault("ensemble_weight_payloads", {})
+    model_state.setdefault("molscribe_preload_started", False)
     model_state.setdefault("models_loaded", False)
 
 
@@ -3280,7 +3283,7 @@ async def lifespan(app: FastAPI):
 
     _initialize_runtime_state()
     _initialize_adk_runtime()
-    await asyncio.to_thread(_preload_smiles_image_runtime_sync)
+    _start_molscribe_preload_background()
 
     yield
     model_state.clear()
@@ -3434,6 +3437,25 @@ def _preload_smiles_image_runtime_sync() -> None:
         logger.warning("MolScribe preload failed: %s", msg)
 
 
+def _start_molscribe_preload_background() -> None:
+    if not MOLSCRIBE_PRELOAD_ON_STARTUP:
+        logger.info("Skipping MolScribe preload because MOLSCRIBE_PRELOAD_ON_STARTUP=false")
+        return
+
+    if model_state.get("molscribe_preload_started"):
+        return
+
+    preload_thread = threading.Thread(
+        target=_preload_smiles_image_runtime_sync,
+        name="molscribe-preload",
+        daemon=True,
+    )
+    model_state["molscribe_preload_started"] = True
+    model_state["molscribe_preload_thread"] = preload_thread
+    preload_thread.start()
+    logger.info("MolScribe preload started in background thread.")
+
+
 def _preprocess_ocr_image(raw_image: bytes) -> np.ndarray:
     try:
         with Image.open(io.BytesIO(raw_image)) as image:
@@ -3560,6 +3582,7 @@ async def health():
         "smiles_image_extraction": {
             "enabled": MolScribe is not None,
             "preload_on_startup": MOLSCRIBE_PRELOAD_ON_STARTUP,
+            "preload_started": bool(model_state.get("molscribe_preload_started")),
             "ready": _ocr_ready(),
             "checkpoint_path": model_state.get("molscribe_checkpoint_path"),
             "max_upload_bytes": SMILES_IMAGE_MAX_BYTES,
@@ -3596,6 +3619,15 @@ async def health():
     }
     status_code = 200 if model_ready else 503
     return JSONResponse(content=payload, status_code=status_code)
+
+
+async def livez():
+    payload = {
+        "status": "ok",
+        "workspace_mode": WORKSPACE_MODE_NAME,
+        "device": DEVICE,
+    }
+    return JSONResponse(content=payload, status_code=200)
 
 
 def _render_explanation_heatmap(result: dict) -> str:
@@ -3641,7 +3673,8 @@ def _render_molecule_png(
         return None
 
 app.add_api_route("/health", health, methods=["GET"], tags=["system"])
-if AIP_HEALTH_ROUTE != "/health":
+app.add_api_route("/livez", livez, methods=["GET"], tags=["system"])
+if AIP_HEALTH_ROUTE not in {"/health", "/livez"}:
     app.add_api_route(AIP_HEALTH_ROUTE, health, methods=["GET"], include_in_schema=False)
 
 

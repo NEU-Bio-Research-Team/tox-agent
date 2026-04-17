@@ -5,7 +5,7 @@
 This runbook helps you build and test ToxAgent in Docker for:
 - local CPU testing
 - local GPU testing (optional)
-- API smoke tests (`/health`, `/analyze`)
+- API smoke tests (`/livez`, `/health`, `/analyze`)
 
 Repository root assumed:
 - `/home/mluser/BRT-FDA/MinhQuang/tox-agent`
@@ -77,6 +77,14 @@ Notes:
 ## 5) Health Check
 
 In a second terminal:
+```bash
+curl -s http://localhost:8080/livez | python -m json.tool
+```
+
+Expected liveness fields:
+- `status`: `ok`
+
+Readiness check (loads models lazily):
 ```bash
 curl -s http://localhost:8080/health | python -m json.tool
 ```
@@ -177,6 +185,7 @@ docker logs -f toxagent-cpu
 
 Common checks:
 - If `/health` is `starting`, wait until model load finishes.
+- If `/health` is `degraded`, inspect `startup_errors` for missing model folders under `MODELS_ROOT`.
 - If thresholds are not loaded, ensure one of these files exists:
   - `models/tox21_gatv2_model/tox21_task_thresholds.json`
   - `models/tox21_gatv2_model/task_thresholds.json`
@@ -210,9 +219,29 @@ Use image from Docker Hub and set these env vars in container form:
 - `GOOGLE_CLOUD_PROJECT=<your-project-id>`
 - `GOOGLE_CLOUD_LOCATION=us-central1`
 - `MODELS_ROOT=/models`
+- `MOLSCRIBE_PRELOAD_ON_STARTUP=false`
+- `AIP_HEALTH_ROUTE=/livez`
 
 Mount the persistent volume to `/models` and place all required model folders
 there, including the dual-head `.pt` checkpoints.
+
+If your platform has restricted outbound internet, pre-download MolScribe and set:
+
+- `MOLSCRIBE_MODEL_PATH=/models/molscribe/swin_base_char_aux_1m.pth`
+- `MOLSCRIBE_AUTO_DOWNLOAD=false`
+
+Deploy using immutable image digest instead of only `gpu-latest`.
+Container platforms usually pin digest at creation time and do not auto-refresh
+when a tag moves.
+
+Example:
+
+```bash
+docker pull <dockerhub-user>/tox-model-server@sha256:<digest>
+```
+
+When a new digest is published, recreate the container with the new
+`image@sha256` reference.
 
 Recommended build + push flow:
 
