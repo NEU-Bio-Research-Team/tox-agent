@@ -1,0 +1,112 @@
+name: Auto deploy backend and frontend live on agent_test push
+
+on:
+  push:
+    branches:
+      - agent_test
+    paths:
+      - backend/**
+      - model_server/**
+      - config/**
+      - scripts/**
+      - cloudbuild.tox-agent.yaml
+      - frontend/**
+      - firebase.json
+      - .firebaserc
+      - package.json
+      - package-lock.json
+      - .github/workflows/firebase-hosting-agent-test-push.yml
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy_backend:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_ID: tox-agent
+      REGION: asia-southeast1
+      REPO: tox-agent-repo
+      SERVICE: tox-agent-cpu
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOX_AGENT }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker auth for Artifact Registry
+        run: gcloud auth configure-docker "${{ env.REGION }}-docker.pkg.dev" --quiet
+
+      - name: Prepare backend image metadata
+        id: meta
+        run: |
+          TAG="agent-test-${GITHUB_SHA::12}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/tox-agent:${TAG}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push backend image with Cloud Build
+        run: |
+          gcloud builds submit \
+            --project="${PROJECT_ID}" \
+            --config=cloudbuild.tox-agent.yaml \
+            --substitutions="_IMAGE=${{ steps.meta.outputs.image }}" \
+            .
+
+      - name: Deploy backend to Cloud Run
+        run: |
+          gcloud run deploy "${SERVICE}" \
+            --image="${{ steps.meta.outputs.image }}" \
+            --region="${REGION}" \
+            --platform=managed \
+            --cpu=4 \
+            --memory=8Gi \
+            --concurrency=1 \
+            --timeout=600 \
+            --min-instances=1 \
+            --startup-probe=httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=5,periodSeconds=10,failureThreshold=30 \
+            --allow-unauthenticated \
+            --project="${PROJECT_ID}"
+
+      - name: Smoke test backend health
+        run: |
+          RUN_URL=$(gcloud run services describe "${SERVICE}" \
+            --region="${REGION}" \
+            --project="${PROJECT_ID}" \
+            --format='value(status.url)')
+          curl -fsS "${RUN_URL}/health" >/dev/null
+
+  deploy_frontend_live:
+    needs: deploy_backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Deploy to Firebase Hosting live
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOX_AGENT }}
+          projectId: tox-agent
+          channelId: live
