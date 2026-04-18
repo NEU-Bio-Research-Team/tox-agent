@@ -13,10 +13,8 @@ on:
       - .github/workflows/firebase-hosting-agent-test-push.yml
 
 permissions:
-  checks: write
   contents: read
-  pull-requests: write
-  deployments: write
+  id-token: write
 
 jobs:
   deploy_frontend_live:
@@ -38,11 +36,14 @@ jobs:
         run: npm run build
         working-directory: frontend
 
+      - name: Authenticate to Google Cloud (OIDC)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/147622422092/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc
+          service_account: github-action-1193576515@tox-agent.iam.gserviceaccount.com
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+
       - name: Deploy to Firebase Hosting live
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
-        run: |
-          cat > "$GOOGLE_APPLICATION_CREDENTIALS" <<'JSON'
-          ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOX_AGENT }}
-          JSON
-          npx -y firebase-tools@latest deploy --only hosting --project tox-agent --non-interactive
+        run: firebase deploy --only hosting --project tox-agent --non-interactive
