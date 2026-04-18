@@ -26,6 +26,18 @@ def _to_dict(value: Any) -> Dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def _to_list(value: Any) -> List[Any]:
+    return value if isinstance(value, list) else []
+
+
+def _to_non_negative_int(value: Any, default: int = 0) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return max(parsed, 0)
+
+
 def _compute_risk_level(clinical: Dict[str, Any], mechanism: Dict[str, Any]) -> str:
     p_toxic = float(clinical.get("p_toxic", 0.0) or 0.0)
 
@@ -795,6 +807,16 @@ def build_final_report(
     molrag_data = _to_dict(screening.get("molrag"))
     fusion_data = _to_dict(screening.get("fusion_result"))
 
+    literature_articles = _to_list(literature.get("articles"))
+    relevant_papers = [article for article in literature_articles if isinstance(article, dict)]
+
+    mechanism_active_tasks = _to_list(mechanism.get("active_tasks"))
+    mechanism_active_tasks = [task for task in mechanism_active_tasks if isinstance(task, str)]
+
+    mechanism_task_scores = mechanism.get("task_scores")
+    if not isinstance(mechanism_task_scores, dict):
+        mechanism_task_scores = {}
+
     risk_level = _compute_risk_level(clinical, mechanism)
     recommendations, recommendation_source, recommendation_source_detail = _build_recommendations(
         risk_level=risk_level,
@@ -890,9 +912,19 @@ def build_final_report(
         }
     else:
         bioassay_evidence_output.setdefault("cid", compound_info.get("cid"))
-        bioassay_evidence_output.setdefault("total_assays_tested", 0)
-        bioassay_evidence_output.setdefault("active_assays", [])
-        bioassay_evidence_output.setdefault("tox21_active_count", 0)
+
+        active_assays = _to_list(bioassay_evidence_output.get("active_assays"))
+        bioassay_evidence_output["active_assays"] = [
+            assay for assay in active_assays if isinstance(assay, dict)
+        ]
+
+        bioassay_evidence_output["total_assays_tested"] = _to_non_negative_int(
+            bioassay_evidence_output.get("total_assays_tested", 0)
+        )
+        bioassay_evidence_output["tox21_active_count"] = _to_non_negative_int(
+            bioassay_evidence_output.get("tox21_active_count", 0)
+        )
+
         err_value = bioassay_evidence_output.get("error")
         if err_value is None or (isinstance(err_value, str) and not err_value.strip()):
             bioassay_evidence_output["error"] = "none"
@@ -926,10 +958,10 @@ def build_final_report(
                 "interpretation": clinical_interpretation,
             },
             "mechanism_toxicity": {
-                "active_tox21_tasks": mechanism.get("active_tasks", []),
+                "active_tox21_tasks": mechanism_active_tasks,
                 "highest_risk": mechanism.get("highest_risk_task"),
                 "assay_hits": mechanism.get("assay_hits"),
-                "task_scores": mechanism.get("task_scores"),
+                "task_scores": mechanism_task_scores,
             },
             "structural_explanation": {
                 "top_atoms": top_atoms,
@@ -949,7 +981,7 @@ def build_final_report(
                 },
                 "query_name_used": research.get("query_name_used"),
                 "total_found": literature.get("total_found"),
-                "relevant_papers": literature.get("articles", []),
+                "relevant_papers": relevant_papers,
                 "bioassay_evidence": bioassay_evidence_output,
                 "bioassay_explanation": bioassay_explanation,
             },

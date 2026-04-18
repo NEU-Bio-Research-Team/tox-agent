@@ -22,9 +22,9 @@ function getPaperSnippet(paper: LiteraturePaper) {
 export function LiteratureContextSection({ data, language }: LiteratureContextSectionProps) {
   const cid = data?.compound_id?.cid;
   const pubchemUrl = data?.compound_id?.pubchem_url;
-  const papers = data?.relevant_papers ?? [];
+  const papers = Array.isArray(data?.relevant_papers) ? data.relevant_papers : [];
   const bioassay = data?.bioassay_evidence;
-  const activeAssays = bioassay?.active_assays ?? [];
+  const activeAssays = Array.isArray(bioassay?.active_assays) ? bioassay.active_assays : [];
 
   return (
     <section id="literature" className="scroll-mt-24 lg:scroll-mt-20">

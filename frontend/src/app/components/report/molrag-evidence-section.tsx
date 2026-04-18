@@ -24,7 +24,7 @@ function similarityColor(similarity: number | null | undefined): string {
 
 export function MolragEvidenceSection({ data, fusionResult, language }: MolragEvidenceSectionProps) {
   const enabled = Boolean(data?.enabled);
-  const examples = data?.retrieved_examples ?? [];
+  const examples = Array.isArray(data?.retrieved_examples) ? data.retrieved_examples : [];
   const strategy = data?.strategy || 'sim_cot';
   const suggestedLabel = data?.suggested_label || 'N/A';
   const confidenceText = toFixedNumber(data?.confidence, 3);

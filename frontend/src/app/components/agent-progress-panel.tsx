@@ -40,6 +40,20 @@ function getCallName(call: Record<string, unknown>): string {
   return 'tool_call';
 }
 
+function getResponseName(response: Record<string, unknown>): string {
+  const directName = response.name;
+  if (typeof directName === 'string' && directName) {
+    return directName;
+  }
+
+  const nestedName = (response.response as { name?: unknown } | undefined)?.name;
+  if (typeof nestedName === 'string' && nestedName) {
+    return nestedName;
+  }
+
+  return 'tool_result';
+}
+
 function buildFallbackState(isAnalyzing: boolean): { agents: AgentStatus[]; logs: LogLine[] } {
   if (isAnalyzing) {
     return {
@@ -113,11 +127,15 @@ function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean)
     if (agentMap.has(author)) {
       const current = agentMap.get(author)!;
       const callName = event.function_calls?.[0] ? getCallName(event.function_calls[0]) : null;
+      const responseName = event.function_responses?.[0]
+        ? getResponseName(event.function_responses[0])
+        : null;
 
       current.status = event.is_final ? 'done' : 'running';
       current.progress = event.is_final ? 100 : Math.max(current.progress, 65);
       current.message =
         (callName && `Calling ${callName}...`) ||
+        (responseName && `Received ${responseName} result`) ||
         event.text_preview ||
         (event.is_final ? 'Completed' : 'Processing...');
 
@@ -143,6 +161,16 @@ function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean)
         time,
         agent: author,
         message: event.text_preview,
+      });
+    }
+
+    if (event.function_responses?.length) {
+      event.function_responses.forEach((response) => {
+        logs.push({
+          time,
+          agent: author,
+          message: `Tool result: ${getResponseName(response)}`,
+        });
       });
     }
 

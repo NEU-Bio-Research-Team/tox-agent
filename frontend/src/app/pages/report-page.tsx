@@ -42,7 +42,7 @@ export function ReportPage() {
               </p>
             )}
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/analyze')}
               className="px-4 py-2 rounded-lg"
               style={{ backgroundColor: 'var(--accent-blue)', color: '#fff' }}
             >
@@ -66,7 +66,7 @@ export function ReportPage() {
         language={reportLanguage}
         onNewAnalysis={() => {
           setReport(null);
-          navigate('/');
+          navigate('/analyze');
         }}
       />
 

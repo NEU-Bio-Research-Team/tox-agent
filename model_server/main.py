@@ -1957,14 +1957,29 @@ async def _run_adk_agent_step(
             new_message=message,
         ):
             if include_events and event_sink is not None:
+                function_calls = _extract_event_function_calls(event)
+                function_responses = _extract_event_function_responses(event)
+                is_final = _is_final_event_response(event)
+                text_preview = _extract_event_text_preview(
+                    event,
+                    function_calls=function_calls,
+                    function_responses=function_responses,
+                    is_final=is_final,
+                )
                 event_sink.append(
                     AgentEventRecord(
-                        type=getattr(event, "type", None),
-                        author=getattr(event, "author", None),
-                        function_calls=_extract_event_function_calls(event),
-                        function_responses=_extract_event_function_responses(event),
-                        is_final=_is_final_event_response(event),
-                        text_preview=_extract_event_text_preview(event),
+                        type=_normalize_event_type(
+                            event,
+                            function_calls=function_calls,
+                            function_responses=function_responses,
+                            is_final=is_final,
+                            text_preview=text_preview,
+                        ),
+                        author=_extract_event_author(event),
+                        function_calls=function_calls,
+                        function_responses=function_responses,
+                        is_final=is_final,
+                        text_preview=text_preview,
                     )
                 )
 
@@ -2082,6 +2097,62 @@ def _initialize_adk_runtime() -> None:
         logger.warning("ADK runtime initialization FAILED: %s", err)
 
 
+def _extract_event_author(event: Any) -> Optional[str]:
+    author = getattr(event, "author", None)
+    if isinstance(author, str) and author.strip():
+        return author
+
+    if isinstance(author, dict):
+        for key in ("name", "author", "id"):
+            value = author.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+
+    author_name = getattr(author, "name", None)
+    if isinstance(author_name, str) and author_name.strip():
+        return author_name
+
+    if author is not None:
+        try:
+            rendered = str(author).strip()
+        except Exception:
+            rendered = ""
+        if rendered:
+            return rendered
+
+    return None
+
+
+def _normalize_event_type(
+    event: Any,
+    *,
+    function_calls: List[Dict[str, Any]],
+    function_responses: List[Dict[str, Any]],
+    is_final: bool,
+    text_preview: Optional[str],
+) -> Optional[str]:
+    raw_type = getattr(event, "type", None)
+    if isinstance(raw_type, str) and raw_type.strip():
+        return raw_type
+    if raw_type is not None:
+        try:
+            rendered = str(raw_type).strip()
+        except Exception:
+            rendered = ""
+        if rendered:
+            return rendered
+
+    if function_calls:
+        return "tool_call"
+    if function_responses:
+        return "tool_response"
+    if is_final:
+        return "final"
+    if text_preview:
+        return "message"
+    return "event"
+
+
 def _extract_event_function_calls(event: Any) -> List[Dict[str, Any]]:
     getter = getattr(event, "get_function_calls", None)
     if not callable(getter):
@@ -2137,23 +2208,57 @@ def _extract_event_function_responses(event: Any) -> List[Dict[str, Any]]:
     return payload
 
 
-def _extract_event_text_preview(event: Any) -> Optional[str]:
+def _extract_event_text_preview(
+    event: Any,
+    *,
+    function_calls: Optional[List[Dict[str, Any]]] = None,
+    function_responses: Optional[List[Dict[str, Any]]] = None,
+    is_final: Optional[bool] = None,
+) -> Optional[str]:
     content = getattr(event, "content", None)
-    if content is None:
-        return None
-    parts = getattr(content, "parts", None)
-    if not isinstance(parts, list):
-        return None
-
     chunks: List[str] = []
-    for part in parts:
-        text = getattr(part, "text", None)
-        if text:
-            chunks.append(str(text))
 
-    if not chunks:
-        return None
-    return " ".join(chunks)[:500]
+    if content is not None:
+        parts = getattr(content, "parts", None)
+        if isinstance(parts, list):
+            for part in parts:
+                text = getattr(part, "text", None)
+                if text:
+                    chunks.append(str(text))
+
+    if chunks:
+        return " ".join(chunks)[:500]
+
+    calls = function_calls if function_calls is not None else _extract_event_function_calls(event)
+    if calls:
+        call_names: List[str] = []
+        for call in calls:
+            name = call.get("name")
+            if isinstance(name, str) and name.strip():
+                call_names.append(name)
+        if call_names:
+            return f"Tool call: {', '.join(call_names[:3])}"[:500]
+        return "Tool call"[:500]
+
+    responses = (
+        function_responses
+        if function_responses is not None
+        else _extract_event_function_responses(event)
+    )
+    if responses:
+        first = responses[0]
+        name = first.get("name") if isinstance(first, dict) else None
+        response_payload = first.get("response") if isinstance(first, dict) else first
+        compact = _truncate_text(_compact_tool_result(response_payload), max_chars=220)
+        if isinstance(name, str) and name.strip():
+            return f"Tool result ({name}): {compact}"[:500]
+        return f"Tool result: {compact}"[:500]
+
+    final_flag = is_final if is_final is not None else _is_final_event_response(event)
+    if final_flag:
+        return "Final response ready"
+
+    return None
 
 
 def _is_final_event_response(event: Any) -> bool:
@@ -4966,13 +5071,24 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             function_calls = _extract_event_function_calls(event)
             function_responses = _extract_event_function_responses(event)
             is_final = _is_final_event_response(event)
-            text_preview = _extract_event_text_preview(event)
+            text_preview = _extract_event_text_preview(
+                event,
+                function_calls=function_calls,
+                function_responses=function_responses,
+                is_final=is_final,
+            )
 
             if req.include_agent_events:
                 events.append(
                     AgentEventRecord(
-                        type=getattr(event, "type", None),
-                        author=getattr(event, "author", None),
+                        type=_normalize_event_type(
+                            event,
+                            function_calls=function_calls,
+                            function_responses=function_responses,
+                            is_final=is_final,
+                            text_preview=text_preview,
+                        ),
+                        author=_extract_event_author(event),
                         function_calls=function_calls,
                         function_responses=function_responses,
                         is_final=is_final,
@@ -5466,9 +5582,38 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                 )
             )
 
+    response_state: Dict[str, Any] = dict(state) if isinstance(state, dict) else {}
+    if validation_status is not None:
+        response_state["validation_status"] = validation_status
+    if isinstance(screening_payload, dict) and screening_payload:
+        response_state["screening_result"] = screening_payload
+    if isinstance(research_payload, dict) and research_payload:
+        response_state["research_result"] = research_payload
+    if isinstance(explanation_raw_payload, dict) and explanation_raw_payload:
+        response_state["explanation_raw"] = explanation_raw_payload
+    if isinstance(final_report, dict) and final_report:
+        response_state["final_report"] = final_report
+    if recovery_notes:
+        response_state["runtime_recovery_notes"] = list(recovery_notes)
+
+    if adk_session_service is not None:
+        try:
+            persisted = await adk_session_service.get_session(
+                app_name=ADK_APP_NAME,
+                user_id=user_id,
+                session_id=session_id,
+            )
+            persisted_state = getattr(persisted, "state", None) if persisted is not None else None
+            if isinstance(persisted_state, dict):
+                persisted_state.update(response_state)
+            elif persisted is not None:
+                setattr(persisted, "state", dict(response_state))
+        except Exception as exc:
+            logger.warning("Failed to sync hydrated ADK state for session %s: %s", session_id, exc)
+
     evidence_qa_result_payload = _build_evidence_qa_result(
         research_payload if isinstance(research_payload, dict) else {},
-        state if isinstance(state, dict) else None,
+        response_state,
     )
 
     chat_session_id = _upsert_report_chat_session(
@@ -5476,7 +5621,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         smiles=smiles,
         final_report=final_report,
         research_payload=research_payload if isinstance(research_payload, dict) else {},
-        state=state if isinstance(state, dict) else None,
+        state=response_state,
         evidence_qa_result=evidence_qa_result_payload,
     )
 
@@ -5491,7 +5636,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
         evidence_qa_result=evidence_qa_result_payload,
         final_text=final_text,
         agent_events=events if req.include_agent_events else [],
-        state_keys=sorted(state.keys()),
+        state_keys=sorted(response_state.keys()),
     )
 
 

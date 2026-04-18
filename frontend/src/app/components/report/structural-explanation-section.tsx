@@ -6,8 +6,8 @@ interface StructuralExplanationSectionProps {
 }
 
 export function StructuralExplanationSection({ data, language }: StructuralExplanationSectionProps) {
-  const topAtoms = data?.top_atoms ?? [];
-  const topBonds = data?.top_bonds ?? [];
+  const topAtoms = Array.isArray(data?.top_atoms) ? data.top_atoms : [];
+  const topBonds = Array.isArray(data?.top_bonds) ? data.top_bonds : [];
   const heatmap = data?.heatmap_base64 || null;
   const moleculePng = data?.molecule_png_base64 || null;
   const heatmapSrc = heatmap ? `data:image/png;base64,${heatmap}` : null;

@@ -1,9 +1,9 @@
 {
-    "session_id": "session_5b6d7c7e7ff9",
-    "chat_session_id": "e727971c-a8f2-4600-af4c-9595f5244d9e",
+    "session_id": "session_43209aed2f0e",
+    "chat_session_id": "510dd2ab-cacd-4bfd-aed8-5d822183805e",
     "adk_available": true,
-    "runtime_mode": "deterministic_fallback",
-    "runtime_note": "agent_runtime_error: unhandled errors in a TaskGroup (1 sub-exception)",
+    "runtime_mode": "adk",
+    "runtime_note": "adk_runtime_ok_with_recovery:adk_stream_close_race,screening_hydrated_missing,adk_step_continuation,screening_hydrated_molrag,final_report_rebuilt_model_alignment",
     "validation_status": "VALID",
     "final_report": {
         "report_metadata": {
@@ -11,7 +11,7 @@
             "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
             "compound_name": null,
             "language": "en",
-            "analysis_timestamp": "2026-04-14T06:43:09.558134+00:00",
+            "analysis_timestamp": "2026-04-18T14:41:10.846327+00:00",
             "report_version": "1.0"
         },
         "executive_summary": "Molecule is classified as NON_TOXIC with risk level MODERATE. Final verdict: MECHANISTIC_ALERT.",
@@ -19,10 +19,10 @@
         "sections": {
             "clinical_toxicity": {
                 "verdict": "NON_TOXIC",
-                "probability": 0.02957041561603546,
-                "confidence": 0.4929685913599454,
+                "probability": 0.025974035263061523,
+                "confidence": 0.49850148421067453,
                 "threshold_used": 0.35,
-                "interpretation": "Clinical=NON_TOXIC (p_toxic=0.02957041561603546, threshold=0.35), assay_hits=1, verdict=MECHANISTIC_ALERT, OOD=LOW."
+                "interpretation": "Clinical interpretation: NON_TOXIC (p_toxic=0.026, threshold=0.35)."
             },
             "mechanism_toxicity": {
                 "active_tox21_tasks": [
@@ -31,18 +31,18 @@
                 "highest_risk": "NR-PPAR-gamma",
                 "assay_hits": 1,
                 "task_scores": {
-                    "NR-AR": 0.2977524697780609,
-                    "NR-AR-LBD": 0.30478334426879883,
-                    "NR-AhR": 0.029504181817173958,
-                    "NR-Aromatase": 0.033631131052970886,
-                    "NR-ER": 0.20480167865753174,
-                    "NR-ER-LBD": 0.25800785422325134,
+                    "NR-AR": 0.29775211215019226,
+                    "NR-AR-LBD": 0.30478331446647644,
+                    "NR-AhR": 0.029504241421818733,
+                    "NR-Aromatase": 0.03363121300935745,
+                    "NR-ER": 0.2048020362854004,
+                    "NR-ER-LBD": 0.25800836086273193,
                     "NR-PPAR-gamma": 0.776913583278656,
-                    "SR-ARE": 0.2040872424840927,
-                    "SR-ATAD5": 0.1399264931678772,
-                    "SR-HSE": 0.24410057067871094,
-                    "SR-MMP": 0.023642074316740036,
-                    "SR-p53": 0.11809804290533066
+                    "SR-ARE": 0.20408757030963898,
+                    "SR-ATAD5": 0.1399267017841339,
+                    "SR-HSE": 0.24410054087638855,
+                    "SR-MMP": 0.02364211156964302,
+                    "SR-p53": 0.11809813976287842
                 }
             },
             "structural_explanation": {
@@ -186,102 +186,22 @@
                 "target_task_score": 0.776913583278656,
                 "explainer_note": "Task-level dual-head gradient saliency aligned with selected tox_type_model (transformer backbone)."
             },
-            "molrag_evidence": {
-                "enabled": true,
-                "strategy": "sim_cot",
-                "retrieval_db_size": 37,
-                "retrieval_error": null,
-                "retrieved_examples": [
-                    {
-                        "entry_id": "reference_panel:5",
-                        "name": "Aspirin",
-                        "smiles": "CC(=O)Oc1ccccc1C(=O)O",
-                        "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
-                        "similarity": 1.0,
-                        "label": "Non-toxic",
-                        "source": "reference_panel",
-                        "notes": "Safe NSAID",
-                        "is_exact_match": true
-                    },
-                    {
-                        "entry_id": "reference_panel:7",
-                        "name": "Warfarin",
-                        "smiles": "CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O",
-                        "canonical_smiles": "CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O",
-                        "similarity": 0.2449,
-                        "label": "Non-toxic",
-                        "source": "reference_panel",
-                        "notes": "Anticoagulant",
-                        "is_exact_match": false
-                    },
-                    {
-                        "entry_id": "reference_panel:8",
-                        "name": "Acetaminophen",
-                        "smiles": "CC(=O)Nc1ccc(O)cc1",
-                        "canonical_smiles": "CC(=O)Nc1ccc(O)cc1",
-                        "similarity": 0.2222,
-                        "label": "Non-toxic",
-                        "source": "reference_panel",
-                        "notes": "Safe analgesic",
-                        "is_exact_match": false
-                    },
-                    {
-                        "entry_id": "screening_library:29",
-                        "name": "SAFE-033",
-                        "smiles": "c1ccc2c(c1)c(c[nH]2)C(=O)OC3C[C@H]4CC5CC(C3)[NH+]4CC5=O",
-                        "canonical_smiles": "O=C(OC1CC2CC3C[C@H](C1)[NH+]2CC3=O)c1c[nH]c2ccccc12",
-                        "similarity": 0.1724,
-                        "label": "Non-toxic",
-                        "source": "screening_library",
-                        "notes": "",
-                        "is_exact_match": false
-                    },
-                    {
-                        "entry_id": "screening_library:28",
-                        "name": "SAFE-023",
-                        "smiles": "c1ccc2c(c1)CC(=O)c3ccccc3N2C(=O)N",
-                        "canonical_smiles": "NC(=O)N1c2ccccc2CC(=O)c2ccccc21",
-                        "similarity": 0.1702,
-                        "label": "Non-toxic",
-                        "source": "screening_library",
-                        "notes": "",
-                        "is_exact_match": false
-                    }
-                ],
-                "evidence_summary": "Retrieved 5 analogs with top similarity=1.00, toxic=0, non_toxic=5.",
-                "reasoning_summary": "The analog evidence leans toward Non-toxic, but the MVP still keeps the baseline as the final decision source.",
-                "suggested_label": "Non-toxic",
-                "confidence": 0.95,
-                "prompt_preview": "Use the retrieved analog molecules to explain the current toxicity prediction.\nReturn structured reasoning with: evidence_summary, reasoning_summary, suggested_label, confidence.\nContext JSON: {\"strategy\": \"sim_cot\", \"input_smiles\": \"CC(=O)Oc1ccccc1C(=O)O\", \"baseline_prediction\": {\"label\": \"NON_TOXIC\", \"score\": 0.02957041561603546, \"confidence\": 0.4929685913599454, \"ood_flag\": false}, \"retrieved_examples\": [{\"entry_id\": \"reference_panel:5\", \"name\": \"Aspirin\", \"smiles\": \"CC(=O)Oc1ccccc1C(=O)O\", \"canonical_smiles\": \"CC(=O)Oc1ccccc1C(=O)O\", \"similarity\": 1.0, \"label\": \"Non-toxic\", \"source\": \"reference_panel\", \"notes\": \"Safe NSAID\", \"is_exact_match\": true}, {\"entry_id\": \"reference_panel:7\", \"name\": \"Warfarin\", \"smiles\": \"CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O\", \"canonical_smiles\": \"CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O\", \"similarity\": 0.2449, \"label\": \"Non-toxic\", \"source\": \"reference_panel\", \"notes\": \"Anticoagulant\", \"is_exact_match\": false}, {\"entry_id\": \"reference_panel:8\", \"name\": \"Acetaminophen\", \"smiles\": \"CC(=O)Nc1ccc(O)cc1\", \"canonical_smiles\": \"CC(=O)Nc1ccc(O)cc1\", \"similarity\": 0.2222, \"label\": \"Non-toxic\", \"source\": \"reference_panel\", \"notes\": \"Safe analgesic\", \"is_exact_matc",
-                "reasoning_mode": "deterministic",
-                "error": null
-            },
-            "fusion_result": {
-                "mode": "evidence_only",
-                "baseline_label": "NON_TOXIC",
-                "baseline_score": 0.02957041561603546,
-                "baseline_confidence": 0.4929685913599454,
-                "molrag_label": "Non-toxic",
-                "molrag_confidence": 0.95,
-                "final_label": "NON_TOXIC",
-                "final_confidence": 0.4929685913599454,
-                "agreement": false,
-                "decision_note": "Baseline model remains the source of truth in MVP mode."
-            },
+            "molrag_evidence": {},
+            "fusion_result": {},
             "literature_context": {
                 "compound_id": {
                     "cid": null,
                     "pubchem_url": null
                 },
-                "query_name_used": "CC(=O)Oc1ccccc1C(=O)O",
+                "query_name_used": null,
                 "total_found": 0,
                 "relevant_papers": [],
                 "bioassay_evidence": {
-                    "cid": null,
+                    "active_assays": 0,
+                    "error": "CID not available from PubChem.",
                     "total_assays_tested": 0,
-                    "active_assays": [],
                     "tox21_active_count": 0,
-                    "error": "not_available"
+                    "cid": null
                 },
                 "bioassay_explanation": "Bioassay data are public biological assay outcomes (PubChem) for this compound, used to cross-check model mechanism signals against prior experimental evidence."
             },
@@ -295,7 +215,7 @@
             },
             "inference_context": {
                 "workspace_mode": "tox21_only",
-                "inference_backend": "xsmiles|binary=dualhead_ensemble6_simple|tox_type=pretrained_2head_herg_chemberta_model",
+                "inference_backend": "chemberta|binary=dualhead_ensemble6_simple|tox_type=pretrained_2head_herg_chemberta_model",
                 "inference_backend_loaded": true,
                 "threshold_policy": "safety_first",
                 "clinical_threshold_applied": 0.35,
@@ -318,50 +238,558 @@
                 "registry_size": 0
             },
             "recommendations": [
-                "Initiate a confirmatory in vitro assay for NR-PPAR-gamma to validate the high-scoring computational hit and determine potency.",
-                "Escalate for safety committee review due to the conflicting signals between the low-confidence 'NON_TOXIC' prediction and the high-risk mechanism hit.",
-                "Conduct an expanded manual literature search for the compound's chemical series, focusing on off-target liabilities, given the absence of direct literature evidence.",
-                "Evaluate if the current risk threshold policy adequately handles cases with low predicted clinical toxicity but high-scoring individual assay hits."
+                {
+                    "priority": "HIGH",
+                    "action_type": "experimental",
+                    "action": "Conduct an in-vitro assay to confirm or refute activity against the NR-PPAR-gamma nuclear receptor.",
+                    "rationale": "The compound shows a high in-silico activity score (0.78) for NR-PPAR-gamma, which requires experimental validation to clarify the moderate risk profile."
+                },
+                {
+                    "priority": "HIGH",
+                    "action_type": "monitoring",
+                    "action": "Identify the compound's canonical name and CAS number, and re-run the full screening pipeline, including literature search, MolRAG, and model fusion.",
+                    "rationale": "Key evidence sources including literature search (0 hits), MolRAG (0 analogs), and model fusion (null) failed to provide data, likely due to the compound being listed as 'Unknown'."
+                },
+                {
+                    "priority": "MEDIUM",
+                    "action_type": "monitoring",
+                    "action": "Schedule a formal expert review of the conflicting data signals, specifically the low-confidence clinical prediction versus the high-confidence mechanism prediction.",
+                    "rationale": "The clinical prediction of 'NON_TOXIC' has low confidence (0.50) and conflicts with a high mechanism signal for NR-PPAR-gamma, warranting expert adjudication."
+                },
+                {
+                    "priority": "LOW",
+                    "action_type": "structural",
+                    "action": "Initiate a focused search for analogs that mitigate the predicted NR-PPAR-gamma activity while retaining desired properties.",
+                    "rationale": "The high in-silico score for NR-PPAR-gamma (0.78) suggests a potential off-target liability that could be addressed through structural modification if this compound becomes a lead."
+                }
             ]
         }
+    },
+    "evidence_qa_result": {
+        "research_result_sanitized": {
+            "compound_info": {
+                "cid": null,
+                "common_name": null,
+                "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",
+                "iupac_name": null,
+                "molecular_formula": null,
+                "molecular_weight": null,
+                "pubchem_url": null,
+                "synonyms": []
+            },
+            "literature": {
+                "articles": [],
+                "error": "Compound name not available from PubChem.",
+                "query_used": null,
+                "total_found": 0,
+                "total_curated": 0,
+                "total_incoming": 0,
+                "high_relevance_count": 0
+            },
+            "bioassay_summary": {
+                "active_assays": 0,
+                "error": "CID not available from PubChem.",
+                "total_assays_tested": 0,
+                "tox21_active_count": 0,
+                "cid": null
+            },
+            "query_name_used": null
+        },
+        "curated_articles": [],
+        "total_articles_in": 0,
+        "total_articles_curated": 0,
+        "high_relevance_count": 0,
+        "evidence_confidence": "LOW",
+        "research_quality_flags": [
+            "literature_error_present",
+            "no_articles_found"
+        ]
     },
     "final_text": "Molecule is classified as NON_TOXIC with risk level MODERATE. Final verdict: MECHANISTIC_ALERT.",
     "agent_events": [
         {
-            "type": "fallback",
-            "author": "System",
+            "type": null,
+            "author": "InputValidator",
+            "function_calls": [
+                {
+                    "name": "validate_smiles",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "InputValidator",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "validate_smiles",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-2132b3e3-8f67-427c-8aa5-fdf43a44d410",
+                        "name": "validate_smiles",
+                        "response": {
+                            "valid": true,
+                            "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+                            "error": null,
+                            "atom_count": 13
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "InputValidator",
             "function_calls": [],
             "function_responses": [],
             "is_final": true,
-            "text_preview": "ADK fallback activated: agent_runtime_error: unhandled errors in a TaskGroup (1 sub-exception)"
+            "text_preview": "```json\n{\n    \"validation_result\": {\n        \"validation_status\": \"VALID\",\n        \"validation_error\": null,\n        \"canonical_smiles\": \"CC(=O)Oc1ccccc1C(=O)O\",\n        \"health\": {\n            \"healthy\": true,\n            \"status\": \"skipped\",\n            \"note\": \"health_check_skipped_internal_validation\",\n            \"error\": null\n        },\n        \"smiles_validation\": {\n            \"valid\": true,\n            \"canonical_smiles\": \"CC(=O)Oc1ccccc1C(=O)O\",\n            \"error\": null,\n            \""
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-8082e9fa-62a7-467a-9991-00ddb29ea6c8",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-edafa4e0-7f6c-42de-9f7e-ad6f1d78e45d",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-564c6e21-fefa-4774-91ee-c98f5207d9b9",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-fe92a68e-4621-4b2c-a5d7-9f6b0f1ec756",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-58c1b28b-0ecc-406a-bc88-b1fa6da1b541",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-c8bc36fa-a34c-4c83-94e1-1024ae3765a4",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-8c3f33d3-7359-41b0-b451-b167ae21be2c",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-47e558fa-9f64-46ee-b5a9-993171c1d639",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "args": {
+                        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+                    }
+                }
+            ],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [
+                {
+                    "name": "get_compound_info_pubchem",
+                    "response": {
+                        "will_continue": null,
+                        "scheduling": null,
+                        "parts": null,
+                        "id": "adk-abcc5d28-d11f-45f3-aedd-bbd4ce38ac8d",
+                        "name": "get_compound_info_pubchem",
+                        "response": {
+                            "cid": null,
+                            "iupac_name": null,
+                            "common_name": null,
+                            "molecular_formula": null,
+                            "molecular_weight": null,
+                            "synonyms": [],
+                            "pubchem_url": null,
+                            "error": "Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503"
+                        }
+                    }
+                }
+            ],
+            "is_final": false,
+            "text_preview": null
+        },
+        {
+            "type": null,
+            "author": "ResearcherAgent",
+            "function_calls": [],
+            "function_responses": [],
+            "is_final": true,
+            "text_preview": "```json\n{\n  \"research_result\": {\n    \"compound_info\": {\n      \"cid\": null,\n      \"common_name\": null,\n      \"error\": \"Server error '503 PUGREST.ServerBusy' for url 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/CC%28%3DO%29Oc1ccccc1C%28%3DO%29O/cids/JSON'\\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503\",\n      \"iupac_name\": null,\n      \"molecular_formula\": null,\n      \"molecular_weight\": null,\n      \"pubchem_url\": null,\n      \"synonyms\": []\n "
+        },
+        {
+            "type": null,
+            "author": "WriterAgent",
+            "function_calls": [],
+            "function_responses": [],
+            "is_final": true,
+            "text_preview": "```json\n{\n  \"final_report\": {\n    \"error\": \"Toxicity analysis could not be completed. The core toxicity screening step did not provide a result, and the literature research step failed due to external service errors. The report is incomplete.\",\n    \"report_metadata\": {\n      \"smiles\": \"CC(=O)Oc1ccccc1C(=O)O\",\n      \"common_name\": \"Unknown\",\n      \"iupac_name\": \"Unknown\",\n      \"language\": \"en\",\n      \"timestamp\": \"2024-05-22T10:00:00Z\"\n    },\n    \"executive_summary\": \"A toxicity analysis was req"
+        },
+        {
+            "type": "recovery",
+            "author": "System",
+            "function_calls": [],
+            "function_responses": [],
+            "is_final": false,
+            "text_preview": "ADK recovery applied: adk_stream_close_race, screening_hydrated_missing, adk_step_continuation, screening_hydrated_molrag, final_report_rebuilt_model_alignment"
         }
     ],
     "state_keys": [
         "binary_tox_model",
         "clinical_threshold",
-        "explanation_raw",
         "final_report",
-        "health",
         "inference_backend",
         "language",
+        "max_literature_results",
         "mechanism_threshold",
         "molrag_enabled",
         "molrag_min_similarity",
         "molrag_top_k",
-        "research_error",
         "research_result",
-        "screening_error",
-        "screening_result",
         "smiles_input",
-        "smiles_validation",
         "tox_type_model",
-        "validation_error",
-        "validation_status"
+        "validation_result"
     ]
-}
-
-
-{
-    "chat_session_id": "46bfb3d2-e74e-4e5f-8d89-3066cafe3d5c",
-    "response": "Based on the SMILES string for Aspirin (CC(=O)Oc1ccccc1C(=O)O) provided in the report, there are 9 carbon atoms. [Source: MOLRAG EVIDENCE | Evidence: UNKNOWN]"
 }
