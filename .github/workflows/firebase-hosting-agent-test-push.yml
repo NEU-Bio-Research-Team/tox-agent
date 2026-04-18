@@ -13,7 +13,10 @@ on:
       - .github/workflows/firebase-hosting-agent-test-push.yml
 
 permissions:
+  checks: write
   contents: read
+  pull-requests: write
+  deployments: write
 
 jobs:
   deploy_frontend_live:
