@@ -39,9 +39,10 @@ jobs:
         working-directory: frontend
 
       - name: Deploy to Firebase Hosting live
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOX_AGENT }}
-          projectId: tox-agent
-          channelId: live
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+        run: |
+          cat > "$GOOGLE_APPLICATION_CREDENTIALS" <<'JSON'
+          ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOX_AGENT }}
+          JSON
+          npx -y firebase-tools@latest deploy --only hosting --project tox-agent --non-interactive
