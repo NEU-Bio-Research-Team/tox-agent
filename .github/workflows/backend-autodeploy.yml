@@ -36,8 +36,8 @@ jobs:
       REGION: ${{ vars.GCP_REGION || 'asia-southeast1' }}
       REPO: ${{ vars.GCP_ARTIFACT_REGISTRY_REPO || 'tox-agent-repo' }}
       SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'tox-agent-cpu' }}
-      WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || '' }}
-      WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || secrets.GCP_SERVICE_ACCOUNT_EMAIL || '' }}
+      WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || 'projects/147622422092/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc' }}
+      WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || secrets.GCP_SERVICE_ACCOUNT_EMAIL || 'github-action-1193576515@tox-agent.iam.gserviceaccount.com' }}
       GCP_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON || '' }}
 
     steps:
