@@ -1,4 +1,8 @@
-import type { LiteraturePaper, LiteratureSection } from '../../../lib/api';
+import type {
+  BioassayItem,
+  LiteraturePaper,
+  LiteratureSection,
+} from '../../../lib/api';
 
 interface LiteratureContextSectionProps {
   data: LiteratureSection;
@@ -19,12 +23,24 @@ function getPaperSnippet(paper: LiteraturePaper) {
   return paper.snippet || paper.abstract_snippet || '';
 }
 
+function ensureArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value as Record<string, T>);
+  }
+
+  return [];
+}
+
 export function LiteratureContextSection({ data, language }: LiteratureContextSectionProps) {
   const cid = data?.compound_id?.cid;
   const pubchemUrl = data?.compound_id?.pubchem_url;
-  const papers = data?.relevant_papers ?? [];
+  const papers = ensureArray<LiteraturePaper>(data?.relevant_papers);
   const bioassay = data?.bioassay_evidence;
-  const activeAssays = bioassay?.active_assays ?? [];
+  const activeAssays = ensureArray<BioassayItem>(bioassay?.active_assays);
 
   return (
     <section id="literature" className="scroll-mt-24 lg:scroll-mt-20">

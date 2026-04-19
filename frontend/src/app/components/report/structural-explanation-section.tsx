@@ -1,13 +1,29 @@
-import type { StructuralSection } from '../../../lib/api';
+import type {
+  StructuralAtom,
+  StructuralBond,
+  StructuralSection,
+} from '../../../lib/api';
 
 interface StructuralExplanationSectionProps {
   data: StructuralSection;
   language: 'vi' | 'en';
 }
 
+function ensureArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value as Record<string, T>);
+  }
+
+  return [];
+}
+
 export function StructuralExplanationSection({ data, language }: StructuralExplanationSectionProps) {
-  const topAtoms = data?.top_atoms ?? [];
-  const topBonds = data?.top_bonds ?? [];
+  const topAtoms = ensureArray<StructuralAtom>(data?.top_atoms);
+  const topBonds = ensureArray<StructuralBond>(data?.top_bonds);
   const heatmap = data?.heatmap_base64 || null;
   const moleculePng = data?.molecule_png_base64 || null;
   const heatmapSrc = heatmap ? `data:image/png;base64,${heatmap}` : null;
