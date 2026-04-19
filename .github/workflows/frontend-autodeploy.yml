@@ -26,16 +26,54 @@ jobs:
     env:
       FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID || vars.GCP_PROJECT_ID || 'tox-agent' }}
       SITE_ID: ${{ vars.FIREBASE_SITE_ID || vars.FIREBASE_PROJECT_ID || vars.GCP_PROJECT_ID || 'tox-agent' }}
+      WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || '' }}
+      WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || secrets.GCP_SERVICE_ACCOUNT_EMAIL || '' }}
+      GCP_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON || '' }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud (OIDC)
+      - name: Resolve auth mode
+        id: auth_mode
+        shell: bash
+        run: |
+          if [[ -n "$WIF_PROVIDER" && -n "$WIF_SERVICE_ACCOUNT" ]]; then
+            echo "mode=wif" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -n "$GCP_CREDENTIALS_JSON" ]]; then
+            echo "mode=json" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "mode=none" >> "$GITHUB_OUTPUT"
+
+      - name: Fail fast when auth inputs are missing
+        if: ${{ steps.auth_mode.outputs.mode == 'none' }}
+        run: |
+          echo "Missing Google auth configuration for frontend deploy."
+          echo "Set either:"
+          echo "1) vars/secrets GCP_WORKLOAD_IDENTITY_PROVIDER + GCP_SERVICE_ACCOUNT_EMAIL (recommended)"
+          echo "or"
+          echo "2) secret GCP_CREDENTIALS_JSON"
+          exit 1
+
+      - name: Authenticate to Google Cloud (WIF)
+        if: ${{ steps.auth_mode.outputs.mode == 'wif' }}
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Authenticate to Google Cloud (JSON key fallback)
+        if: ${{ steps.auth_mode.outputs.mode == 'json' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GCP_CREDENTIALS_JSON }}
           create_credentials_file: true
           export_environment_variables: true
 
