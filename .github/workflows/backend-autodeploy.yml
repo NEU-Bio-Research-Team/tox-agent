@@ -93,27 +93,26 @@ jobs:
       - name: Setup gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Ensure Artifact Registry exists
-        run: |
-          gcloud artifacts repositories describe "$REPO" \
-            --location="$REGION" \
-            --project="$PROJECT_ID" >/dev/null 2>&1 || \
-          gcloud artifacts repositories create "$REPO" \
-            --repository-format=docker \
-            --location="$REGION" \
-            --project="$PROJECT_ID"
-
-      - name: Build and push backend image via Cloud Build
+      - name: Compute backend image URI
         run: |
           SHORT_SHA="${GITHUB_SHA::12}"
           IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/tox-agent:backend-${SHORT_SHA}"
           echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
 
-          gcloud builds submit \
-            --project="$PROJECT_ID" \
-            --config=cloudbuild.tox-agent.yaml \
-            --substitutions="_IMAGE=${IMAGE}" \
+      - name: Configure Docker auth for Artifact Registry
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Build backend Docker image
+        run: |
+          docker build \
+            -f model_server/Dockerfile \
+            -t "${IMAGE}" \
             .
+
+      - name: Push backend Docker image
+        run: |
+          docker push "${IMAGE}"
 
       - name: Deploy backend to Cloud Run
         run: |
