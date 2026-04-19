@@ -402,7 +402,7 @@ export function ChatbotPage() {
 
           <Button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/analyze')}
             className="w-full justify-between rounded-2xl px-4 py-6"
             style={{ backgroundColor: 'var(--accent-blue)', color: '#ffffff' }}
           >

@@ -33,7 +33,7 @@ export function RegisterPage() {
     const success = await register(email, password, name);
     
     if (success) {
-      navigate('/');
+      navigate('/analyze');
     } else {
       setError('Email already exists');
     }

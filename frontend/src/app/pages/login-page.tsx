@@ -21,7 +21,7 @@ export function LoginPage() {
     const success = await login(email, password);
     
     if (success) {
-      navigate('/');
+      navigate('/analyze');
     } else {
       setError('Invalid email or password');
     }
