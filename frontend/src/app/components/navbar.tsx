@@ -98,7 +98,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 border-b backdrop-blur-xl bg-[var(--bg)]/80" style={{ borderColor: 'var(--border)' }}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Link to="/" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80">
+          <Link to="/analyze" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80">
             <img src={logoImage} alt="ToxAgent Logo" className="h-8 w-auto shrink-0" />
             <div className="hidden min-w-0 sm:block">
               <p className="truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>
@@ -294,7 +294,7 @@ export function Navbar() {
                 </div>
 
                 <div className="space-y-2">
-                  <NavLink to="/" end className={mobileNavLinkClassName}>
+                  <NavLink to="/analyze" end className={mobileNavLinkClassName}>
                     Home
                   </NavLink>
                   {NAV_LINKS.map((link) => (

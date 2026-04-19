@@ -4,6 +4,13 @@ export const router = createBrowserRouter([
   {
     path: '/',
     lazy: async () => {
+      const module = await import('./pages/landing-page');
+      return { Component: module.LandingPage };
+    },
+  },
+  {
+    path: '/analyze',
+    lazy: async () => {
       const module = await import('./pages/index-page');
       return { Component: module.IndexPage };
     },
