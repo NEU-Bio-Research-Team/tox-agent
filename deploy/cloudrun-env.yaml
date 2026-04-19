@@ -1,30 +1,25 @@
 # Paste your runtime keys here, then run:
-#   ./scripts/apply_cloudrun_env.sh
+#   ./scripts/apply_cloudrun_env.sh
 #
 # These variables are applied to Cloud Run service tox-agent-cpu by default.
-
 # Optional. Leave empty to use Vertex AI ADC via Cloud Run service account.
 GOOGLE_API_KEY: ""
 PUBMED_API_KEY: ""
-
 # Optional model overrides. Keep defaults unless you need different models.
 AGENT_MODEL_FAST: "gemini-2.5-flash"
 AGENT_MODEL_PRO: "gemini-2.5-pro"
 GEMINI_MODEL: "gemini-2.5-flash"
-
 # Default path: Vertex AI billing via service-account auth (ADC).
 # Ensure the Cloud Run service account has roles/aiplatform.user.
 GOOGLE_GENAI_USE_VERTEXAI: "true"
 GOOGLE_CLOUD_PROJECT: "tox-agent"
 GOOGLE_CLOUD_LOCATION: "global"
 GEMINI_LOCATION: "global"
-
 AGENT_APP_NAME: "tox-agent"
 MODEL_SERVER_TIMEOUT: "30"
 MODEL_SERVER_URL: "https://tox-agent-cpu-znk3y6tgnq-as.a.run.app"
 TOX_AGENT_ANALYZE_SERVER_URL: "https://tox-agent-cpu-znk3y6tgnq-as.a.run.app"
 TOX_AGENT_DIRECT_ANALYZE: "true"
-
 # Đảm bảo app không kết nối tới localhost:8080
 FIRESTORE_EMULATOR_HOST: "" 
 # (Tùy chọn) Nếu bạn muốn chỉ định cụ thể database

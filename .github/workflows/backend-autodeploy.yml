@@ -1,0 +1,113 @@
+name: Backend Auto Deploy
+
+'on':
+  push:
+    branches:
+      - main
+    paths:
+      - agents/**
+      - backend/**
+      - model_server/**
+      - services/**
+      - tools/**
+      - src/**
+      - config/**
+      - models/**
+      - cloudbuild.tox-agent.yaml
+      - deploy/cloudrun-env.yaml
+      - .gcloudignore
+      - .github/workflows/backend-autodeploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: backend-autodeploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'tox-agent' }}
+      REGION: ${{ vars.GCP_REGION || 'asia-southeast1' }}
+      REPO: ${{ vars.GCP_ARTIFACT_REGISTRY_REPO || 'tox-agent-repo' }}
+      SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'tox-agent-cpu' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 1
+
+      - name: Authenticate to Google Cloud (OIDC)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Setup gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Ensure Artifact Registry exists
+        run: |
+          gcloud artifacts repositories describe "$REPO" \
+            --location="$REGION" \
+            --project="$PROJECT_ID" >/dev/null 2>&1 || \
+          gcloud artifacts repositories create "$REPO" \
+            --repository-format=docker \
+            --location="$REGION" \
+            --project="$PROJECT_ID"
+
+      - name: Build and push backend image via Cloud Build
+        run: |
+          SHORT_SHA="${GITHUB_SHA::12}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/tox-agent:backend-${SHORT_SHA}"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+
+          gcloud builds submit \
+            --project="$PROJECT_ID" \
+            --config=cloudbuild.tox-agent.yaml \
+            --substitutions="_IMAGE=${IMAGE}" \
+            .
+
+      - name: Deploy backend to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --platform=managed \
+            --cpu=4 \
+            --memory=8Gi \
+            --concurrency=1 \
+            --timeout=600 \
+            --min-instances=1 \
+            --startup-probe=httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=5,periodSeconds=10,failureThreshold=30 \
+            --allow-unauthenticated \
+            --project="$PROJECT_ID"
+
+      - name: Apply Cloud Run runtime environment
+        run: |
+          gcloud run services update "$SERVICE" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --quiet \
+            --env-vars-file deploy/cloudrun-env.yaml
+
+      - name: Smoke test backend health endpoint
+        run: |
+          RUN_URL="$(gcloud run services describe "$SERVICE" \
+            --region="$REGION" \
+            --project="$PROJECT_ID" \
+            --format='value(status.url)')"
+
+          echo "Deployed backend URL: ${RUN_URL}"
+          curl -fsS --max-time 120 "${RUN_URL}/health" > /tmp/health.json
+          head -c 800 /tmp/health.json
+          echo
