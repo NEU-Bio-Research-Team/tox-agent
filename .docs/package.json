@@ -1,0 +1,29 @@
+{
+  "name": "production-ready-project",
+  "version": "1.0.0",
+  "description": "A production-ready Node.js reference service for readiness checks and operational hygiene.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test src/index.test.js",
+    "smoke": "node -e \"fetch('http://127.0.0.1:3000/health').then((r)=>r.text()).then(console.log)\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/production-ready-project.git"
+  },
+  "keywords": [
+    "nodejs",
+    "reference-service",
+    "production-readiness",
+    "api"
+  ],
+  "author": "Tox Agent Contributors",
+  "license": "MIT",
+  "dependencies": {}
+}
