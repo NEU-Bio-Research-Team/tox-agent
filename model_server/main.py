@@ -3522,13 +3522,6 @@ def _run_with_timeout_sync(fn: Any, timeout_ms: int, *args: Any, **kwargs: Any) 
 
 # Health Check
 async def health():
-    try:
-        await _ensure_models_loaded()
-    except Exception as exc:
-        msg = f"{type(exc).__name__}: {exc}"
-        model_state.setdefault("startup_errors", {})["model_bootstrap"] = msg
-        logger.warning("Lazy model loading failed in /health: %s", msg)
-
     xsmiles_ready = _xsmiles_ready()
     tox21_ready = _tox21_ready()
     clinical_head_ready = _clinical_head_ready()
@@ -3538,9 +3531,9 @@ async def health():
     if model_ready:
         status = "healthy"
     elif startup_errors:
-        status = "degraded"
+        status = "loading"
     else:
-        status = "starting"
+        status = "loading"
 
     payload = {
         "status": status,
@@ -3594,8 +3587,7 @@ async def health():
         "gpu_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         "gpu_memory_gb": round(torch.cuda.get_device_properties(0).total_memory / 1e9, 1) if torch.cuda.is_available() else None,
     }
-    status_code = 200 if model_ready else 503
-    return JSONResponse(content=payload, status_code=status_code)
+    return JSONResponse(content=payload, status_code=200)
 
 
 def _render_explanation_heatmap(result: dict) -> str:
@@ -4283,6 +4275,8 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                         batch_size=64,
                     )
                     tox_type_model_loaded_for_context = True
+                    # Keep explanation path aligned with the actual mechanism engine.
+                    selected_explainer_model_key = "tox21_gatv2_model"
                 elif isinstance(mechanism_failure, HTTPException):
                     raise mechanism_failure
                 else:
@@ -4436,6 +4430,28 @@ def _analyze_request_sync(req: AnalyzeRequest) -> AnalyzeResponse:
                     "SR-MMP",
                     "SR-p53",
                 ]
+            elif _is_dual_head_model_key(selected_explainer_model_key):
+                dual_engine_tasks: List[str] = []
+                try:
+                    dual_engine_bundle = _load_dual_head_bundle_sync(selected_explainer_model_key)
+                    dual_engine_tasks = list(dual_engine_bundle.get("task_names") or [])
+                except Exception as exc:
+                    if tox21_available:
+                        logger.warning(
+                            "Requested explainer engine '%s' unavailable; switching explainer to tox21_gatv2: %s",
+                            selected_explainer_model_key,
+                            exc,
+                        )
+                        selected_explainer_model_key = "tox21_gatv2_model"
+                        dual_engine_tasks = list(model_state.get("tox21_tasks") or [])
+                    else:
+                        logger.warning(
+                            "Requested explainer engine '%s' unavailable and tox21 fallback is not ready: %s",
+                            selected_explainer_model_key,
+                            exc,
+                        )
+
+                engine_tasks = dual_engine_tasks or list(model_state.get("tox21_tasks") or [])
             else:
                 engine_tasks = list(model_state.get("tox21_tasks") or [])
 

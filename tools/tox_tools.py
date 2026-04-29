@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
+import threading
 import time
-from urllib.parse import urlparse
 from typing import Any, Dict, List
 
 import httpx
@@ -28,7 +28,9 @@ DEFAULT_MODEL_SERVER_PORT = (
     or os.getenv("PORT")
     or "8000"
 ).strip()
-MODEL_SERVER_URL = os.getenv(
+_AWS_URL = (os.getenv("MODEL_SERVER_URL_AWS") or "").rstrip("/")
+_GCP_URL = (os.getenv("MODEL_SERVER_URL_GCP") or "").rstrip("/")
+_LEGACY_URL = os.getenv(
     "MODEL_SERVER_URL",
     f"http://127.0.0.1:{DEFAULT_MODEL_SERVER_PORT}",
 ).rstrip("/")
@@ -37,23 +39,121 @@ MODEL_SERVER_HEALTH_TIMEOUT = _get_env_float("MODEL_SERVER_HEALTH_TIMEOUT", 12.0
 BATCH_TIMEOUT = max(MODEL_SERVER_TIMEOUT * 4.0, 120.0)
 
 
-def _is_local_model_server_url(url: str) -> bool:
-    try:
-        parsed = urlparse(url)
-    except Exception:
-        return False
+class ModelServerRouter:
+    """Route model-server requests to AWS first, then fall back to GCP."""
 
-    hostname = (parsed.hostname or "").lower()
-    return hostname in {"127.0.0.1", "localhost", "::1"}
+    def __init__(self) -> None:
+        urls: List[str] = []
+        if _AWS_URL:
+            urls.append(_AWS_URL)
+        if _GCP_URL:
+            urls.append(_GCP_URL)
+        if not urls:
+            urls.append(_LEGACY_URL)
+
+        self._urls = urls
+        self._active_url = urls[0]
+        self._last_check = 0.0
+        self._check_interval = 60.0
+        self._lock = threading.Lock()
+
+    def _probe(self, base_url: str, timeout: float | None = None) -> bool:
+        try:
+            response = httpx.get(
+                f"{base_url}/health",
+                timeout=timeout or MODEL_SERVER_HEALTH_TIMEOUT,
+            )
+            return response.status_code == 200
+        except Exception:
+            return False
+
+    def _resolve_url(self) -> str:
+        now = time.monotonic()
+        with self._lock:
+            active_url = self._active_url
+            should_recheck_primary = (
+                len(self._urls) > 1
+                and active_url != self._urls[0]
+                and (now - self._last_check) > self._check_interval
+            )
+
+        if should_recheck_primary and self._probe(self._urls[0]):
+            with self._lock:
+                self._active_url = self._urls[0]
+                self._last_check = now
+                active_url = self._active_url
+
+        return active_url
+
+    def _record_success(self, url: str) -> None:
+        with self._lock:
+            if url != self._active_url:
+                self._active_url = url
+            self._last_check = time.monotonic()
+
+    def _record_failure(self) -> None:
+        with self._lock:
+            self._last_check = time.monotonic()
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        timeout: float,
+        json: Dict[str, Any] | None = None,
+    ) -> Dict[str, Any]:
+        active_url = self._resolve_url()
+        urls_to_try = [active_url] + [url for url in self._urls if url != active_url]
+        last_exc: Exception | None = None
+
+        for url in urls_to_try:
+            try:
+                response = httpx.request(
+                    method,
+                    f"{url}{path}",
+                    json=json,
+                    timeout=timeout,
+                )
+                response.raise_for_status()
+                data = response.json()
+                if not isinstance(data, dict):
+                    raise RuntimeError("invalid_response")
+                self._record_success(url)
+                return data
+            except httpx.HTTPStatusError as exc:
+                last_exc = exc
+                status_code = exc.response.status_code if exc.response is not None else None
+                if status_code is not None and status_code < 500 and status_code != 429:
+                    raise
+                self._record_failure()
+                continue
+            except (httpx.TimeoutException, httpx.ConnectError, httpx.RequestError) as exc:
+                last_exc = exc
+                self._record_failure()
+                continue
+            except Exception as exc:
+                last_exc = exc
+                break
+
+        raise last_exc or RuntimeError("all_model_servers_failed")
+
+    def get(self, path: str, timeout: float) -> Dict[str, Any]:
+        return self._request("GET", path, timeout=timeout)
+
+    def post(self, path: str, json: Dict[str, Any], timeout: float) -> Dict[str, Any]:
+        return self._request("POST", path, json=json, timeout=timeout)
+
+    def active_backend(self) -> str:
+        url = self._resolve_url()
+        if _AWS_URL and url == _AWS_URL:
+            return "aws"
+        if _GCP_URL and url == _GCP_URL:
+            return "gcp"
+        return "legacy"
 
 
-def _should_use_direct_model_server_call() -> bool:
-    override = os.getenv("TOX_AGENT_DIRECT_ANALYZE")
-    if override is not None:
-        return override.strip().lower() not in {"0", "false", "no", "off"}
-    # Prefer the in-process route by default to avoid self-call loops when the
-    # app's own public URL is stored in MODEL_SERVER_URL.
-    return True
+_router = ModelServerRouter()
 
 
 def validate_smiles(smiles: str) -> Dict[str, Any]:
@@ -117,7 +217,7 @@ def analyze_molecule(
 ) -> Dict[str, Any]:
     """Run full model-server toxicity analysis for one validated SMILES.
 
-    This tool calls ``POST {MODEL_SERVER_URL}/analyze`` and returns the unified
+    This tool calls the routed ``POST /analyze`` model-server endpoint and returns the unified
     clinical/mechanistic/explainer payload. Prefer canonical SMILES returned by
     ``validate_smiles``.
 
@@ -141,54 +241,24 @@ def analyze_molecule(
             "final_verdict": "ANALYSIS_FAILED",
         }
 
-    if _should_use_direct_model_server_call():
-        try:
-            from model_server.main import analyze_molecule_sync
-
-            data = analyze_molecule_sync(
-                smiles=smiles,
-                clinical_threshold=float(clinical_threshold),
-                mechanism_threshold=float(mechanism_threshold),
-                inference_backend=str(inference_backend),
-                explain_only_if_alert=False,
-                binary_tox_model=str(binary_tox_model),
-                tox_type_model=str(tox_type_model),
-            )
-
-            if isinstance(data, dict):
-                data.setdefault("error", None)
-                return data
-        except Exception:
-            # Fall back to HTTP below if the in-process path is unavailable.
-            pass
+    payload = {
+        "smiles": smiles,
+        "clinical_threshold": float(clinical_threshold),
+        "mechanism_threshold": float(mechanism_threshold),
+        "inference_backend": str(inference_backend),
+        "explain_only_if_alert": False,
+        "binary_tox_model": str(binary_tox_model),
+        "tox_type_model": str(tox_type_model),
+    }
 
     try:
-        response = httpx.post(
-            f"{MODEL_SERVER_URL}/analyze",
-            json={
-                "smiles": smiles,
-                "clinical_threshold": float(clinical_threshold),
-                "mechanism_threshold": float(mechanism_threshold),
-                "inference_backend": str(inference_backend),
-                "explain_only_if_alert": False,
-                "binary_tox_model": str(binary_tox_model),
-                "tox_type_model": str(tox_type_model),
-            },
-            timeout=MODEL_SERVER_TIMEOUT,
-        )
-        response.raise_for_status()
-        data = response.json()
-        if isinstance(data, dict):
-            data.setdefault("error", None)
-            return data
-        return {
-            "error": "invalid_response",
-            "smiles": smiles,
-            "final_verdict": "ANALYSIS_FAILED",
-        }
+        data = _router.post("/analyze", json=payload, timeout=MODEL_SERVER_TIMEOUT)
+        data.setdefault("error", None)
+        data["_backend"] = _router.active_backend()
+        return data
     except httpx.TimeoutException:
         return {
-            "error": f"model_server_timeout_{MODEL_SERVER_TIMEOUT}s",
+            "error": f"all_backends_timeout_{MODEL_SERVER_TIMEOUT}s",
             "smiles": smiles,
             "final_verdict": "ANALYSIS_FAILED",
         }
@@ -217,7 +287,7 @@ def analyze_molecule(
 def analyze_molecules_batch(smiles_list: List[str]) -> Dict[str, Any]:
     """Run batch clinical predictions for multiple SMILES strings.
 
-    This tool calls ``POST {MODEL_SERVER_URL}/predict/batch`` and is intended
+    This tool calls the routed ``POST /predict/batch`` endpoint and is intended
     for throughput-oriented screening. It does not return full mechanism/
     explainer outputs like ``analyze_molecule``.
 
@@ -242,29 +312,14 @@ def analyze_molecules_batch(smiles_list: List[str]) -> Dict[str, Any]:
         }
 
     try:
-        response = httpx.post(
-            f"{MODEL_SERVER_URL}/predict/batch",
+        payload = _router.post(
+            "/predict/batch",
             json={"smiles_list": smiles_list},
             timeout=BATCH_TIMEOUT,
         )
-        response.raise_for_status()
-        payload = response.json()
 
-        # Support both legacy list payloads and current BatchPredictResponse dict.
-        if isinstance(payload, dict):
-            results = payload.get("results", [])
-            total = int(payload.get("total", len(smiles_list)) or len(smiles_list))
-        elif isinstance(payload, list):
-            results = payload
-            total = len(results)
-        else:
-            return {
-                "error": "invalid_response",
-                "results": [],
-                "total": len(smiles_list),
-                "success_count": 0,
-            }
-
+        results = payload.get("results", [])
+        total = int(payload.get("total", len(smiles_list)) or len(smiles_list))
         if not isinstance(results, list):
             return {
                 "error": "invalid_response",
@@ -310,17 +365,10 @@ def check_model_server_health() -> Dict[str, Any]:
     start = time.perf_counter()
     last_error: Exception | None = None
 
-    # Internal self-calls on Cloud Run can be bursty under load.
-    # Retry once with a larger timeout before declaring the server unhealthy.
     timeouts = [MODEL_SERVER_HEALTH_TIMEOUT, max(MODEL_SERVER_HEALTH_TIMEOUT * 2.0, 20.0)]
     for idx, timeout in enumerate(timeouts):
         try:
-            response = httpx.get(
-                f"{MODEL_SERVER_URL}/health",
-                timeout=timeout,
-            )
-            response.raise_for_status()
-            data = response.json()
+            data = _router.get("/health", timeout=timeout)
             latency_ms = (time.perf_counter() - start) * 1000.0
             status = data.get("status") if isinstance(data, dict) else None
             payload = {
@@ -328,6 +376,7 @@ def check_model_server_health() -> Dict[str, Any]:
                 "status": status or "ok",
                 "latency_ms": latency_ms,
                 "error": None,
+                "backend": _router.active_backend(),
             }
             if idx > 0:
                 payload["retry_count"] = idx
