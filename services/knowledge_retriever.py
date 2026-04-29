@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Any, Dict, Iterable, List, Sequence, Set
 
 from .firestore_client import fetch_collection_documents, get_firestore_availability
+from .molrag_fallback_data import FALLBACK_KNOWLEDGE_DOCS, FALLBACK_LITERATURE_DOCS
 
 
 _TEXT_HINT_KEYWORDS: Dict[str, Sequence[str]] = {
@@ -56,12 +57,14 @@ def _derive_keyword_hints(tox_classes: Sequence[str]) -> List[str]:
 
 @lru_cache(maxsize=1)
 def _load_knowledge_docs() -> List[Dict[str, Any]]:
-    return fetch_collection_documents("molrag_knowledge")
+    docs = fetch_collection_documents("molrag_knowledge")
+    return docs or list(FALLBACK_KNOWLEDGE_DOCS)
 
 
 @lru_cache(maxsize=1)
 def _load_literature_docs() -> List[Dict[str, Any]]:
-    return fetch_collection_documents("molrag_literature")
+    docs = fetch_collection_documents("molrag_literature")
+    return docs or list(FALLBACK_LITERATURE_DOCS)
 
 
 def _smarts_match_score(smiles: str, doc: Dict[str, Any]) -> float:
@@ -116,7 +119,7 @@ def _score_knowledge_doc(
     return score
 
 
-def _score_literature_doc(doc: Dict[str, Any], keyword_hints: Sequence[str]) -> float:
+def _score_literature_doc(doc: Dict[str, Any], keyword_hints: Sequence[str], input_smiles: str = "") -> float:
     score = 0.0
     haystack = " ".join(
         [
@@ -131,6 +134,8 @@ def _score_literature_doc(doc: Dict[str, Any], keyword_hints: Sequence[str]) -> 
     for hint in keyword_hints:
         if hint and hint.lower() in haystack:
             score += 1.0
+
+    score += min(2.0, _smarts_match_score(input_smiles, doc))
 
     try:
         score += min(1.5, max(0.0, (float(doc.get("year", 0)) - 2010.0) / 20.0))
@@ -182,6 +187,7 @@ def retrieve_knowledge_context(
                 "summary": _clean_text(doc.get("summary")),
                 "tox_class": _to_list(doc.get("tox_class")),
                 "risk_level": _clean_text(doc.get("risk_level") or doc.get("severity")),
+                "source": _clean_text(doc.get("source") or "firestore"),
                 "smarts_hit": smarts_hit,
                 "score": round(score, 3),
             }
@@ -191,7 +197,7 @@ def retrieve_knowledge_context(
 
     literature_scored: List[Dict[str, Any]] = []
     for doc in literature_docs:
-        score = _score_literature_doc(doc, keyword_hints)
+        score = _score_literature_doc(doc, keyword_hints, input_smiles)
         if score <= 0:
             continue
 
@@ -202,6 +208,7 @@ def retrieve_knowledge_context(
                 "year": doc.get("year"),
                 "pmid": _clean_text(doc.get("pmid") or doc.get("pubmed_id")),
                 "source_query": _clean_text(doc.get("source_query")),
+                "source": _clean_text(doc.get("source") or "firestore"),
                 "relevant_targets": _to_list(doc.get("relevant_targets")),
                 "compound_mentions": _to_list(doc.get("compound_mentions"))[:5],
                 "excerpt": _clean_text(doc.get("abstract_chunk"))[:280],

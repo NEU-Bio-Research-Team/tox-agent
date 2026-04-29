@@ -3001,11 +3001,21 @@ def _predict_ensemble_clinical_sync(
     member_probs: List[float] = []
     member_sources: List[str] = []
     member_prob_map: Dict[str, float] = {}
+    member_errors: Dict[str, str] = {}
 
     for member_key in member_keys:
         if not _is_dual_head_model_key(member_key):
             continue
-        member_bundle = _load_dual_head_bundle_sync(member_key)
+        try:
+            member_bundle = _load_dual_head_bundle_sync(member_key)
+        except HTTPException as exc:
+            detail = getattr(exc, "detail", {})
+            if isinstance(detail, dict):
+                msg = str(detail.get("startup_error") or detail.get("message") or exc)
+            else:
+                msg = str(exc)
+            member_errors[str(member_key)] = msg
+            continue
         outputs = predict_pretrained_dual_head_outputs(
             smiles_list=[smiles],
             model=member_bundle["model"],
@@ -3037,6 +3047,7 @@ def _predict_ensemble_clinical_sync(
             "ensemble_members": member_keys,
             "ensemble_member_sources": member_sources,
             "ensemble_member_probs": member_prob_map,
+            "ensemble_member_errors": member_errors,
         }
 
     clinical_mode = str(spec.get("clinical_mode", "simple"))
@@ -3081,6 +3092,7 @@ def _predict_ensemble_clinical_sync(
         "ensemble_members": member_keys,
         "ensemble_member_sources": member_sources,
         "ensemble_member_probs": member_prob_map,
+        "ensemble_member_errors": member_errors,
     }
 
 
