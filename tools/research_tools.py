@@ -310,6 +310,7 @@ def _build_synthesis_prompt(
         else "Respond entirely in English."
     )
     evidence_mode = "title/snippet fallback" if using_title_only else "abstract-backed"
+    papers_text = "\n\n".join(paper_blocks)
 
     return f"""You are a pharmacotoxicology literature synthesis assistant.
 
@@ -319,7 +320,7 @@ Evidence mode: {evidence_mode}
 {language_instruction}
 
 Papers:
-{'\n\n'.join(paper_blocks)}
+{papers_text}
 
 Return a JSON object with exactly these keys:
 {{
