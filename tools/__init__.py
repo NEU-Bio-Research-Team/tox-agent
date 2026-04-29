@@ -1,4 +1,5 @@
 from .tox_tools import (
+    _router,
     analyze_molecule,
     analyze_molecules_batch,
     check_model_server_health,
@@ -11,6 +12,7 @@ from .research_tools import (
 )
 
 __all__ = [
+    "_router",
     "analyze_molecule",
     "analyze_molecules_batch",
     "check_model_server_health",
