@@ -1,0 +1,151 @@
+name: Backend Auto Deploy
+
+'on':
+  push:
+    branches:
+      - main
+    paths:
+      - agents/**
+      - backend/**
+      - model_server/**
+      - services/**
+      - tools/**
+      - src/**
+      - config/**
+      - models/**
+      - cloudbuild.tox-agent.yaml
+      - deploy/cloudrun-env.yaml
+      - .gcloudignore
+      - .github/workflows/backend-autodeploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: backend-autodeploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'tox-agent' }}
+      REGION: ${{ vars.GCP_REGION || 'asia-southeast1' }}
+      REPO: ${{ vars.GCP_ARTIFACT_REGISTRY_REPO || 'tox-agent-repo' }}
+      SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'tox-agent-cpu' }}
+      WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || 'projects/147622422092/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc' }}
+      WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || secrets.GCP_SERVICE_ACCOUNT_EMAIL || 'github-action-1193576515@tox-agent.iam.gserviceaccount.com' }}
+      GCP_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON || '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 1
+
+      - name: Resolve auth mode
+        id: auth_mode
+        shell: bash
+        run: |
+          if [[ -n "$WIF_PROVIDER" && -n "$WIF_SERVICE_ACCOUNT" ]]; then
+            echo "mode=wif" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -n "$GCP_CREDENTIALS_JSON" ]]; then
+            echo "mode=json" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "mode=none" >> "$GITHUB_OUTPUT"
+
+      - name: Fail fast when auth inputs are missing
+        if: ${{ steps.auth_mode.outputs.mode == 'none' }}
+        run: |
+          echo "Missing Google auth configuration for backend deploy."
+          echo "Set either:"
+          echo "1) vars/secrets GCP_WORKLOAD_IDENTITY_PROVIDER + GCP_SERVICE_ACCOUNT_EMAIL (recommended)"
+          echo "or"
+          echo "2) secret GCP_CREDENTIALS_JSON"
+          exit 1
+
+      - name: Authenticate to Google Cloud (WIF)
+        if: ${{ steps.auth_mode.outputs.mode == 'wif' }}
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Authenticate to Google Cloud (JSON key fallback)
+        if: ${{ steps.auth_mode.outputs.mode == 'json' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GCP_CREDENTIALS_JSON }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Setup gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Compute backend image URI
+        run: |
+          SHORT_SHA="${GITHUB_SHA::12}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/tox-agent:backend-${SHORT_SHA}"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+
+      - name: Configure Docker auth for Artifact Registry
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Build backend Docker image
+        run: |
+          docker build \
+            -f model_server/Dockerfile \
+            -t "${IMAGE}" \
+            .
+
+      - name: Push backend Docker image
+        run: |
+          docker push "${IMAGE}"
+
+      - name: Deploy backend to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --platform=managed \
+            --cpu=4 \
+            --memory=8Gi \
+            --concurrency=1 \
+            --timeout=600 \
+            --min-instances=1 \
+            --startup-probe=httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=5,periodSeconds=10,failureThreshold=30 \
+            --allow-unauthenticated \
+            --quiet \
+            --project="$PROJECT_ID"
+
+      - name: Apply Cloud Run runtime environment
+        run: |
+          gcloud run services update "$SERVICE" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --quiet \
+            --env-vars-file deploy/cloudrun-env.yaml
+
+      - name: Smoke test backend health endpoint
+        run: |
+          RUN_URL="$(gcloud run services describe "$SERVICE" \
+            --region="$REGION" \
+            --project="$PROJECT_ID" \
+            --format='value(status.url)')"
+
+          echo "Deployed backend URL: ${RUN_URL}"
+          curl -fsS --max-time 120 "${RUN_URL}/health" > /tmp/health.json
+          head -c 800 /tmp/health.json
+          echo

@@ -1,8 +1,10 @@
 import { createBrowserRouter } from 'react-router';
+import { RouteErrorBoundary } from './components/route-error-boundary';
 
 export const router = createBrowserRouter([
   {
     path: '/',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/landing-page');
       return { Component: module.LandingPage };
@@ -10,6 +12,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/analyze',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/index-page');
       return { Component: module.IndexPage };
@@ -17,6 +20,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/report',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/report-page');
       return { Component: module.ReportPage };
@@ -24,6 +28,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/chat',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/chatbot-page');
       return { Component: module.ChatbotPage };
@@ -31,6 +36,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/settings',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/settings-page');
       return { Component: module.SettingsPage };
@@ -38,6 +44,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/about',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/about-page');
       return { Component: module.AboutPage };
@@ -45,6 +52,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/documents',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/documents-page');
       return { Component: module.DocumentsPage };
@@ -52,6 +60,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/login-page');
       return { Component: module.LoginPage };
@@ -59,6 +68,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/register',
+    errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/register-page');
       return { Component: module.RegisterPage };

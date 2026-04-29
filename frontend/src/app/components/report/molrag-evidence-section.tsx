@@ -1,4 +1,8 @@
-import type { FusionResultSection, MolragSection } from '../../../lib/api';
+import type {
+  FusionResultSection,
+  MolragRetrievedExample,
+  MolragSection,
+} from '../../../lib/api';
 
 interface MolragEvidenceSectionProps {
   data?: MolragSection;
@@ -22,9 +26,21 @@ function similarityColor(similarity: number | null | undefined): string {
   return 'var(--accent-green)';
 }
 
+function ensureArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value as Record<string, T>);
+  }
+
+  return [];
+}
+
 export function MolragEvidenceSection({ data, fusionResult, language }: MolragEvidenceSectionProps) {
   const enabled = Boolean(data?.enabled);
-  const examples = data?.retrieved_examples ?? [];
+  const examples = ensureArray<MolragRetrievedExample>(data?.retrieved_examples);
   const strategy = data?.strategy || 'sim_cot';
   const suggestedLabel = data?.suggested_label || 'N/A';
   const confidenceText = toFixedNumber(data?.confidence, 3);
