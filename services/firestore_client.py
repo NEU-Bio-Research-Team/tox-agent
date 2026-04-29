@@ -21,6 +21,12 @@ def _clean_env(value: Optional[str]) -> str:
     return str(value or "").strip()
 
 
+def _unset_blank_env(name: str) -> None:
+    if _clean_env(os.getenv(name)):
+        return
+    os.environ.pop(name, None)
+
+
 def _is_enabled(raw_value: Optional[str]) -> bool:
     value = _clean_env(raw_value).lower()
     if value == "":
@@ -87,6 +93,7 @@ def _probe_firestore_client(client: Any) -> Dict[str, Any]:
 @lru_cache(maxsize=1)
 def _resolve_firestore_state() -> Dict[str, Any]:
     """Resolve a working Firestore client and expose diagnostics for the chosen database."""
+    _unset_blank_env("FIRESTORE_EMULATOR_HOST")
     service_account = _resolve_service_account_path()
     project_id = _resolve_project_id()
     configured_database_id = _clean_env(os.getenv("FIRESTORE_DATABASE_ID")) or "(default)"
