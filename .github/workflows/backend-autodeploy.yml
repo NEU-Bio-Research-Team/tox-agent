@@ -13,10 +13,10 @@ name: Backend Auto Deploy
       - tools/**
       - src/**
       - config/**
-      - models/**
       - cloudbuild.tox-agent.yaml
       - deploy/cloudrun-env.yaml
       - .gcloudignore
+      - .dockerignore
       - .github/workflows/backend-autodeploy.yml
   workflow_dispatch:
 
@@ -45,7 +45,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           fetch-depth: 1
 
       - name: Resolve auth mode

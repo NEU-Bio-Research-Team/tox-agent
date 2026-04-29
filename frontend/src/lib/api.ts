@@ -98,18 +98,115 @@ export interface MolragRetrievedExample {
 	is_exact_match?: boolean;
 }
 
+export interface MolragKnowledgeHit {
+	doc_id?: string;
+	type?: string;
+	name?: string;
+	summary?: string;
+	risk_level?: string;
+	source?: string;
+	smarts_hit?: boolean;
+	score?: number;
+}
+
+export interface MolragLiteratureHit {
+	doc_id?: string;
+	title?: string;
+	year?: string | number;
+	pmid?: string;
+	source_query?: string;
+	source?: string;
+	relevant_targets?: string[];
+	compound_mentions?: string[];
+	excerpt?: string;
+	score?: number;
+}
+
+export interface MolragEvidencePayload {
+	analog_support?: {
+		count?: number;
+		top_sim?: number;
+		top_name?: string;
+		vote?: string;
+	};
+	mechanism_matches?: Array<{
+		name?: string;
+		smarts_hit?: boolean;
+		risk?: string;
+		summary?: string;
+	}>;
+	literature_support?: Array<{
+		title?: string;
+		year?: string | number;
+		pmid?: string;
+		excerpt?: string;
+	}>;
+	contrastive_pair?: {
+		same_label_name?: string;
+		same_label?: string;
+		same_sim?: number;
+		opposite_label_name?: string;
+		opposite_label?: string;
+		opposite_sim?: number;
+		note?: string;
+	} | null;
+	confidence_zone?: string;
+	has_smarts_hit?: boolean;
+}
+
+export interface MolragRetrievalOverview {
+	db_source?: string;
+	db_size?: number;
+	match_count?: number;
+}
+
+export interface MolragFirestoreState {
+	enabled?: boolean;
+	ready?: boolean;
+	reason?: string | null;
+	service_account?: string | null;
+	credential_source?: string | null;
+	project_id?: string | null;
+	database_id?: string | null;
+	configured_database_id?: string | null;
+	used_database_fallback?: boolean;
+	fallback_reason?: string | null;
+	attempts?: Array<{
+		database_id?: string;
+		ready?: boolean;
+		reason?: string | null;
+	}>;
+}
+
 export interface MolragSection {
 	enabled?: boolean;
 	strategy?: string;
 	retrieval_db_size?: number | null;
+	retrieval_db_source?: string | null;
 	retrieval_error?: string | null;
 	retrieved_examples?: MolragRetrievedExample[];
+	evidence_overview?: string | null;
 	evidence_summary?: string | null;
 	reasoning_summary?: string | null;
+	longform_summary?: string | null;
+	mechanism_chain?: string[];
+	key_substructures?: string[];
+	analogy_reasoning?: string | null;
+	confidence_rationale?: string | null;
+	risk_modifiers?: string[];
+	knowledge_highlights?: string[];
+	literature_highlights?: string[];
 	suggested_label?: string | null;
 	confidence?: number | null;
+	tox_classes?: string[];
+	knowledge_hits?: MolragKnowledgeHit[];
+	literature_hits?: MolragLiteratureHit[];
+	retrieval_overview?: MolragRetrievalOverview;
+	molrag_evidence?: MolragEvidencePayload;
+	firestore?: MolragFirestoreState;
 	prompt_preview?: string | null;
 	reasoning_mode?: string | null;
+	llm_status?: string | null;
 	error?: string | null;
 }
 
@@ -174,8 +271,25 @@ export interface LiteraturePaper {
 	year?: string;
 	journal?: string;
 	snippet?: string;
+	abstract?: string;
+	abstract_source?: string;
+	search_source?: string;
 	abstract_snippet?: string;
 	pubmed_url?: string;
+}
+
+export interface LiteratureSynthesis {
+	consensus_mechanisms?: string[];
+	key_targets?: string[];
+	dose_response_signals?: string[];
+	conflicting_findings?: string[];
+	confidence_level?: string;
+	synthesis_text?: string;
+	papers_with_content?: number;
+	pmids_used?: string[];
+	source_coverage?: Record<string, number>;
+	evidence_basis?: string;
+	error?: string | null;
 }
 
 export interface BioassayItem {
@@ -191,7 +305,11 @@ export interface LiteratureSection {
 	};
 	query_name_used?: string;
 	total_found?: number;
+	search_source?: string;
+	fallback_used?: boolean;
+	search_error?: string | null;
 	relevant_papers?: LiteraturePaper[];
+	literature_synthesis?: LiteratureSynthesis;
 	bioassay_evidence?: {
 		cid?: number;
 		active_assays?: BioassayItem[];

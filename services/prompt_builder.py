@@ -21,12 +21,14 @@ def build_molrag_prompt(
     retrieved_examples: List[Dict[str, Any]],
     knowledge_hits: List[Dict[str, Any]] | None = None,
     literature_hits: List[Dict[str, Any]] | None = None,
+    retrieval_context: Dict[str, Any] | None = None,
+    firestore_state: Dict[str, Any] | None = None,
     strategy: str = "sim_cot",
 ) -> str:
     task_instruction = _choose_text(
         language,
-        "Hay su dung cac phan tu tuong tu de giai thich ket qua du doan doc tinh hien tai.",
-        "Use the retrieved analog molecules to explain the current toxicity prediction.",
+        "Hay dong vai tro la lop bang chung MolRAG trung tam, dung analog, knowledge va literature de giai thich sau va ro rang ket qua doc tinh hien tai.",
+        "Act as the core MolRAG evidence layer and use analogs, curated knowledge, and literature to deeply explain the current toxicity prediction.",
     )
 
     payload = {
@@ -36,17 +38,24 @@ def build_molrag_prompt(
         "retrieved_examples": retrieved_examples,
         "knowledge_hits": knowledge_hits or [],
         "literature_hits": literature_hits or [],
+        "retrieval_context": retrieval_context or {},
+        "firestore_state": firestore_state or {},
     }
 
     return (
         f"{task_instruction}\n"
         "Return structured JSON reasoning with these fields:\n"
-        "  mechanism_chain: array of reasoning steps (e.g. SMARTS match → metabolic pathway → toxicity endpoint)\n"
-        "  key_substructures: array of SMILES/SMARTS fragments that drive the prediction\n"
-        "  analogy_reasoning: explanation of how the closest analog supports or contradicts the verdict\n"
-        "  confidence_rationale: why the confidence score is high/medium/low\n"
-        "  risk_modifiers: any structural features that increase or decrease risk\n"
+        "  evidence_overview: string summarizing retrieval breadth and evidence source quality\n"
+        "  longform_summary: detailed 4-6 sentence narrative that reads like an evidence agent report\n"
+        "  mechanism_chain: array of reasoning steps (e.g. SMARTS match -> mechanistic liability -> endpoint)\n"
+        "  key_substructures: array of structural motifs or substructures driving the call\n"
+        "  analogy_reasoning: detailed explanation of how the best analogs support or contradict the verdict\n"
+        "  confidence_rationale: detailed explanation of why confidence is high/medium/low\n"
+        "  risk_modifiers: array of features or caveats that increase/decrease risk\n"
+        "  knowledge_highlights: array of short bullets extracted from curated knowledge hits\n"
+        "  literature_highlights: array of short bullets extracted from literature hits\n"
         "  suggested_label: 'Toxic' or 'Non-toxic'\n"
-        "  confidence: float 0.0–1.0\n"
+        "  confidence: float 0.0-1.0\n"
+        "Make the narrative explicit about evidence strength, disagreements, and whether Firestore or fallback sources were used.\n"
         f"Context JSON: {json.dumps(payload, ensure_ascii=True)}"
     )

@@ -790,6 +790,7 @@ def build_final_report(
 
     compound_info = _to_dict(research.get("compound_info"))
     literature = _to_dict(research.get("literature"))
+    literature_synthesis = _to_dict(research.get("literature_synthesis"))
     bioassay_summary = research.get("bioassay_summary")
     compound_name = compound_info.get("common_name") or compound_info.get("iupac_name")
     molrag_data = _to_dict(screening.get("molrag"))
@@ -949,7 +950,11 @@ def build_final_report(
                 },
                 "query_name_used": research.get("query_name_used"),
                 "total_found": literature.get("total_found"),
+                "search_source": literature.get("search_source"),
+                "fallback_used": literature.get("fallback_used"),
+                "search_error": literature.get("error"),
                 "relevant_papers": literature.get("articles", []),
+                "literature_synthesis": literature_synthesis,
                 "bioassay_evidence": bioassay_evidence_output,
                 "bioassay_explanation": bioassay_explanation,
             },

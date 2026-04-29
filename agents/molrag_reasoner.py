@@ -198,6 +198,217 @@ def _compose_context_summary(
     )
 
 
+def _build_key_substructures(knowledge_hits: List[Dict[str, Any]], retrieved_examples: List[Dict[str, Any]]) -> List[str]:
+    motifs: List[str] = []
+
+    for hit in knowledge_hits:
+        if not hit.get("smarts_hit"):
+            continue
+        name = str(hit.get("name") or "").strip()
+        if name and name not in motifs:
+            motifs.append(name)
+
+    if not motifs:
+        for hit in knowledge_hits[:3]:
+            name = str(hit.get("name") or "").strip()
+            if name and name not in motifs:
+                motifs.append(name)
+
+    if not motifs:
+        for item in retrieved_examples[:2]:
+            note = str(item.get("notes") or item.get("name") or "").strip()
+            if note and note not in motifs:
+                motifs.append(note[:80])
+
+    return motifs[:5]
+
+
+def _build_knowledge_highlights(knowledge_hits: List[Dict[str, Any]]) -> List[str]:
+    highlights: List[str] = []
+    for hit in knowledge_hits[:4]:
+        name = str(hit.get("name") or "").strip() or "Unnamed mechanism"
+        summary = str(hit.get("summary") or "").strip()
+        risk = str(hit.get("risk_level") or "").strip().upper()
+        prefix = f"{name}"
+        if risk:
+            prefix = f"{prefix} [{risk}]"
+        text = f"{prefix}: {summary[:160]}" if summary else prefix
+        highlights.append(text)
+    return highlights
+
+
+def _build_literature_highlights(literature_hits: List[Dict[str, Any]]) -> List[str]:
+    highlights: List[str] = []
+    for hit in literature_hits[:4]:
+        title = str(hit.get("title") or "").strip() or "Untitled paper"
+        excerpt = str(hit.get("excerpt") or "").strip()
+        year = str(hit.get("year") or "").strip()
+        pmid = str(hit.get("pmid") or "").strip()
+        ref_parts = [part for part in [year, f"PMID:{pmid}" if pmid else ""] if part]
+        ref = f" ({', '.join(ref_parts)})" if ref_parts else ""
+        highlights.append(f"{title}{ref}: {excerpt[:160]}" if excerpt else f"{title}{ref}")
+    return highlights
+
+
+def _build_analogy_reasoning(
+    *,
+    retrieved_examples: List[Dict[str, Any]],
+    suggested_label: str,
+    baseline_label: str,
+    contrastive_pair: Optional[Dict[str, Any]],
+    language: str,
+) -> str:
+    if not retrieved_examples:
+        return choose_text(
+            language,
+            "Khong co analog dat nguong similarity, nen MolRAG khong co du bang chung so sanh truc tiep va phai dua nhieu hon vao knowledge/literature bo tro.",
+            "No analog passed the similarity threshold, so MolRAG lacks direct structural comparators and must rely more heavily on supporting knowledge and literature.",
+        )
+
+    top_analog = max(retrieved_examples, key=lambda item: float(item.get("similarity", 0.0) or 0.0))
+    top_name = str(top_analog.get("name") or top_analog.get("smiles") or "top analog").strip()
+    top_similarity = float(top_analog.get("similarity", 0.0) or 0.0)
+    top_label = str(top_analog.get("label") or "Unknown").strip()
+
+    base_text = choose_text(
+        language,
+        f"Analog gan nhat la {top_name} voi similarity={top_similarity:.2f} va nhan {top_label}; xu huong nay dan MolRAG nghieng ve {suggested_label} trong khi baseline hien tai la {baseline_label}.",
+        f"The closest analog is {top_name} with similarity={top_similarity:.2f} and label {top_label}; this pushes MolRAG toward {suggested_label} while the current baseline remains {baseline_label}.",
+    )
+
+    if contrastive_pair and contrastive_pair.get("note"):
+        return f"{base_text} {contrastive_pair['note']}"
+    return base_text
+
+
+def _build_confidence_rationale(
+    *,
+    confidence_zone: str,
+    top_similarity: float,
+    has_smarts_hit: bool,
+    knowledge_hits: List[Dict[str, Any]],
+    literature_hits: List[Dict[str, Any]],
+    firestore_state: Dict[str, Any],
+    language: str,
+) -> str:
+    firestore_ready = bool(firestore_state.get("ready", False))
+    firestore_note = choose_text(
+        language,
+        "Firestore san sang" if firestore_ready else "Firestore khong san sang, mot phan bang chung co the dang dung fallback",
+        "Firestore is ready" if firestore_ready else "Firestore is not ready, so some evidence may be coming from fallback sources",
+    )
+    smarts_note = choose_text(
+        language,
+        "co SMARTS hit" if has_smarts_hit else "khong co SMARTS hit truc tiep",
+        "a direct SMARTS hit is present" if has_smarts_hit else "no direct SMARTS hit is present",
+    )
+
+    return choose_text(
+        language,
+        (
+            f"Confidence zone={confidence_zone}, similarity cao nhat={top_similarity:.2f}, {smarts_note}, "
+            f"knowledge_hits={len(knowledge_hits)}, literature_hits={len(literature_hits)}; {firestore_note}."
+        ),
+        (
+            f"Confidence zone={confidence_zone}, top similarity={top_similarity:.2f}, {smarts_note}, "
+            f"knowledge_hits={len(knowledge_hits)}, literature_hits={len(literature_hits)}; {firestore_note}."
+        ),
+    )
+
+
+def _build_risk_modifiers(
+    *,
+    knowledge_hits: List[Dict[str, Any]],
+    literature_hits: List[Dict[str, Any]],
+    top_similarity: float,
+    has_smarts_hit: bool,
+    firestore_state: Dict[str, Any],
+    language: str,
+) -> List[str]:
+    modifiers: List[str] = []
+    if top_similarity < 0.5:
+        modifiers.append(
+            choose_text(
+                language,
+                "Similarity thap lam giam do tin cay khi suy dien tu analog.",
+                "Low similarity weakens confidence in analog-based extrapolation.",
+            )
+        )
+    if has_smarts_hit:
+        modifiers.append(
+            choose_text(
+                language,
+                "Co SMARTS hit truc tiep lam tang suc nang co che.",
+                "A direct SMARTS hit strengthens mechanistic plausibility.",
+            )
+        )
+    if any(str(hit.get("risk_level") or "").strip().lower() in {"high", "severe"} for hit in knowledge_hits):
+        modifiers.append(
+            choose_text(
+                language,
+                "Knowledge base chua cac motif nguy co cao, day la tin hieu tang risk.",
+                "Curated knowledge contains high-risk motifs, which increases concern.",
+            )
+        )
+    if not literature_hits:
+        modifiers.append(
+            choose_text(
+                language,
+                "Khong co literature hit manh nen lop bang chung van con mong.",
+                "No strong literature hits were retrieved, so the evidence layer remains thin.",
+            )
+        )
+    if not bool(firestore_state.get("ready", False)):
+        modifiers.append(
+            choose_text(
+                language,
+                "Firestore chua san sang, co the dang dung csv/doc fallback thay vi kho tri thuc day du.",
+                "Firestore is not ready, so fallback data may be used instead of the full curated store.",
+            )
+        )
+    return modifiers[:5]
+
+
+def _compose_longform_summary(
+    *,
+    baseline_label: str,
+    suggested_label: str,
+    top_similarity: float,
+    toxic_score: float,
+    non_toxic_score: float,
+    knowledge_hits: List[Dict[str, Any]],
+    literature_hits: List[Dict[str, Any]],
+    contrastive_pair: Optional[Dict[str, Any]],
+    confidence_rationale: str,
+    firestore_state: Dict[str, Any],
+    language: str,
+) -> str:
+    top_knowledge = ", ".join(str(hit.get("name") or "").strip() for hit in knowledge_hits[:2] if str(hit.get("name") or "").strip()) or choose_text(language, "khong co", "none")
+    top_literature = ", ".join(str(hit.get("title") or "").strip() for hit in literature_hits[:2] if str(hit.get("title") or "").strip()) or choose_text(language, "khong co", "none")
+    contrast_note = str(contrastive_pair.get("note") or "").strip() if contrastive_pair else ""
+    firestore_source = choose_text(
+        language,
+        "Firestore san sang" if firestore_state.get("ready") else "Firestore khong san sang",
+        "Firestore is ready" if firestore_state.get("ready") else "Firestore is not ready",
+    )
+
+    return choose_text(
+        language,
+        (
+            f"MolRAG tim thay bang chung tu analog voi top similarity={top_similarity:.2f}, toxic_score={toxic_score:.2f} va non_toxic_score={non_toxic_score:.2f}. "
+            f"Lop knowledge/literature hien tai nhan manh {top_knowledge}; cac paper noi bat gom {top_literature}. "
+            f"Do do, MolRAG tam nghieng ve nhan {suggested_label}, nhung baseline van giu vai tro quyet dinh cuoi la {baseline_label}. "
+            f"{contrast_note} {confidence_rationale} {firestore_source}."
+        ),
+        (
+            f"MolRAG retrieved analog evidence with top similarity={top_similarity:.2f}, toxic_score={toxic_score:.2f}, and non_toxic_score={non_toxic_score:.2f}. "
+            f"The current knowledge/literature layer emphasizes {top_knowledge}; top papers include {top_literature}. "
+            f"As a result, MolRAG currently leans toward {suggested_label}, while the baseline remains the final decision source as {baseline_label}. "
+            f"{contrast_note} {confidence_rationale} {firestore_source}."
+        ),
+    )
+
+
 def _deterministic_reasoning(
     *,
     input_smiles: str,
@@ -206,6 +417,7 @@ def _deterministic_reasoning(
     knowledge_context: Dict[str, Any],
     language: str,
     strategy: str,
+    retrieval_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     baseline_label = _baseline_label_from_prediction(baseline_prediction)
     baseline_label_normalized = _normalize_label(baseline_label)
@@ -248,6 +460,35 @@ def _deterministic_reasoning(
     )
 
     contrastive_pair = _find_contrastive_pair(retrieved_examples, suggested_label)
+    firestore_state = knowledge_context.get("firestore") if isinstance(knowledge_context.get("firestore"), dict) else {}
+    retrieval_context = retrieval_context if isinstance(retrieval_context, dict) else {}
+    key_substructures = _build_key_substructures(knowledge_hits, retrieved_examples)
+    knowledge_highlights = _build_knowledge_highlights(knowledge_hits)
+    literature_highlights = _build_literature_highlights(literature_hits)
+    analogy_reasoning = _build_analogy_reasoning(
+        retrieved_examples=retrieved_examples,
+        suggested_label=suggested_label,
+        baseline_label=baseline_label,
+        contrastive_pair=contrastive_pair,
+        language=language,
+    )
+    confidence_rationale = _build_confidence_rationale(
+        confidence_zone=confidence_zone,
+        top_similarity=top_similarity,
+        has_smarts_hit=has_smarts_hit,
+        knowledge_hits=knowledge_hits,
+        literature_hits=literature_hits,
+        firestore_state=firestore_state,
+        language=language,
+    )
+    risk_modifiers = _build_risk_modifiers(
+        knowledge_hits=knowledge_hits,
+        literature_hits=literature_hits,
+        top_similarity=top_similarity,
+        has_smarts_hit=has_smarts_hit,
+        firestore_state=firestore_state,
+        language=language,
+    )
 
     analog_evidence = choose_text(
         language,
@@ -267,6 +508,17 @@ def _deterministic_reasoning(
         literature_hits=literature_hits,
     )
     evidence_summary = f"{analog_evidence} {context_evidence}".strip()
+    evidence_overview = choose_text(
+        language,
+        (
+            f"Nguon retrieval={retrieval_context.get('db_source') or 'unknown'}, db_size={retrieval_context.get('db_size') or 0}, "
+            f"firestore_ready={bool(firestore_state.get('ready', False))}. {evidence_summary}"
+        ),
+        (
+            f"Retrieval source={retrieval_context.get('db_source') or 'unknown'}, db_size={retrieval_context.get('db_size') or 0}, "
+            f"firestore_ready={bool(firestore_state.get('ready', False))}. {evidence_summary}"
+        ),
+    )
 
     if not retrieved_examples and not knowledge_hits and not literature_hits:
         reasoning_summary = choose_text(
@@ -298,6 +550,20 @@ def _deterministic_reasoning(
             f"Bang chung analog co xu huong nghieng ve {suggested_label} nhung MVP van giu baseline lam nguon quyet dinh cuoi.",
             f"The analog evidence leans toward {suggested_label}, but the MVP still keeps the baseline as the final decision source.",
         )
+
+    longform_summary = _compose_longform_summary(
+        baseline_label=baseline_label,
+        suggested_label=suggested_label,
+        top_similarity=top_similarity,
+        toxic_score=toxic_score,
+        non_toxic_score=non_toxic_score,
+        knowledge_hits=knowledge_hits,
+        literature_hits=literature_hits,
+        contrastive_pair=contrastive_pair,
+        confidence_rationale=confidence_rationale,
+        firestore_state=firestore_state,
+        language=language,
+    )
 
     # Structured evidence block for writer_agent rendering
     molrag_evidence = {
@@ -340,9 +606,17 @@ def _deterministic_reasoning(
         "strategy": strategy,
         "input_smiles": input_smiles,
         "reasoning_mode": "deterministic",
+        "evidence_overview": evidence_overview,
         "evidence_summary": evidence_summary,
         "reasoning_summary": reasoning_summary,
+        "longform_summary": longform_summary,
         "mechanism_chain": mechanism_chain,
+        "key_substructures": key_substructures,
+        "analogy_reasoning": analogy_reasoning,
+        "confidence_rationale": confidence_rationale,
+        "risk_modifiers": risk_modifiers,
+        "knowledge_highlights": knowledge_highlights,
+        "literature_highlights": literature_highlights,
         "suggested_label": suggested_label,
         "confidence": confidence,
         "confidence_zone": confidence_zone,
@@ -350,8 +624,13 @@ def _deterministic_reasoning(
         "knowledge_hits": knowledge_hits,
         "literature_hits": literature_hits,
         "molrag_evidence": molrag_evidence,
+        "retrieval_overview": {
+            "db_source": retrieval_context.get("db_source"),
+            "db_size": retrieval_context.get("db_size"),
+            "match_count": len(retrieved_examples),
+        },
         "knowledge_error": knowledge_context.get("error"),
-        "firestore": knowledge_context.get("firestore"),
+        "firestore": firestore_state,
     }
 
 
@@ -362,6 +641,7 @@ def run_molrag_reasoning(
     baseline_prediction: Dict[str, Any],
     language: str = "vi",
     strategy: str = "sim_cot",
+    retrieval_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     normalized_language = normalize_language(language)
     knowledge_context = retrieve_knowledge_context(
@@ -378,6 +658,8 @@ def run_molrag_reasoning(
         retrieved_examples=retrieved_examples,
         knowledge_hits=knowledge_hits,
         literature_hits=literature_hits,
+        retrieval_context=retrieval_context,
+        firestore_state=knowledge_context.get("firestore") if isinstance(knowledge_context.get("firestore"), dict) else {},
         strategy=strategy,
     )
 
@@ -388,10 +670,11 @@ def run_molrag_reasoning(
         knowledge_context=knowledge_context,
         language=normalized_language,
         strategy=strategy,
+        retrieval_context=retrieval_context,
     )
-    result["prompt_preview"] = prompt[:1200]
+    result["prompt_preview"] = prompt[:1800]
 
-    if genai is None or not os.getenv("GEMINI_MODEL"):
+    if genai is None or not MOLRAG_MODEL:
         result["llm_status"] = "llm_unavailable"
         return result
 
@@ -402,18 +685,30 @@ def run_molrag_reasoning(
             contents=prompt,
             config=genai.types.GenerateContentConfig(
                 response_mime_type="application/json",
+                temperature=0.3,
+                max_output_tokens=1600,
                 response_schema={
                     "type": "object",
                     "properties": {
+                        "evidence_overview": {"type": "string"},
+                        "longform_summary": {"type": "string"},
                         "mechanism_chain": {"type": "array", "items": {"type": "string"}},
                         "key_substructures": {"type": "array", "items": {"type": "string"}},
                         "confidence_rationale": {"type": "string"},
                         "analogy_reasoning": {"type": "string"},
                         "risk_modifiers": {"type": "array", "items": {"type": "string"}},
+                        "knowledge_highlights": {"type": "array", "items": {"type": "string"}},
+                        "literature_highlights": {"type": "array", "items": {"type": "string"}},
                         "suggested_label": {"type": "string"},
                         "confidence": {"type": "number"},
                     },
-                    "required": ["mechanism_chain", "suggested_label", "confidence"],
+                    "required": [
+                        "evidence_overview",
+                        "longform_summary",
+                        "mechanism_chain",
+                        "suggested_label",
+                        "confidence",
+                    ],
                 },
             ),
         )
