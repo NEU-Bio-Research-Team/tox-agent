@@ -40,6 +40,13 @@ def build_molrag_prompt(
 
     return (
         f"{task_instruction}\n"
-        "Return structured reasoning with: evidence_summary, reasoning_summary, suggested_label, confidence.\n"
+        "Return structured JSON reasoning with these fields:\n"
+        "  mechanism_chain: array of reasoning steps (e.g. SMARTS match → metabolic pathway → toxicity endpoint)\n"
+        "  key_substructures: array of SMILES/SMARTS fragments that drive the prediction\n"
+        "  analogy_reasoning: explanation of how the closest analog supports or contradicts the verdict\n"
+        "  confidence_rationale: why the confidence score is high/medium/low\n"
+        "  risk_modifiers: any structural features that increase or decrease risk\n"
+        "  suggested_label: 'Toxic' or 'Non-toxic'\n"
+        "  confidence: float 0.0–1.0\n"
         f"Context JSON: {json.dumps(payload, ensure_ascii=True)}"
     )

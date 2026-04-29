@@ -64,7 +64,30 @@ def _load_literature_docs() -> List[Dict[str, Any]]:
     return fetch_collection_documents("molrag_literature")
 
 
-def _score_knowledge_doc(doc: Dict[str, Any], tox_classes: Sequence[str], keyword_hints: Sequence[str]) -> float:
+def _smarts_match_score(smiles: str, doc: Dict[str, Any]) -> float:
+    """Return 3.0 bonus if the query SMILES has a substructure match for doc.smarts."""
+    smarts_str = _clean_text(doc.get("smarts"))
+    if not smarts_str or not smiles:
+        return 0.0
+    try:
+        from rdkit import Chem  # local import to avoid hard dependency at module level
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return 0.0
+        pattern = Chem.MolFromSmarts(smarts_str)
+        if pattern is not None and mol.HasSubstructMatch(pattern):
+            return 3.0
+    except Exception:
+        pass
+    return 0.0
+
+
+def _score_knowledge_doc(
+    doc: Dict[str, Any],
+    tox_classes: Sequence[str],
+    keyword_hints: Sequence[str],
+    input_smiles: str = "",
+) -> float:
     score = 0.0
 
     doc_tox = {item.lower() for item in _to_list(doc.get("tox_class"))}
@@ -87,6 +110,8 @@ def _score_knowledge_doc(doc: Dict[str, Any], tox_classes: Sequence[str], keywor
 
     if _clean_text(doc.get("type")).lower() == "mechanism":
         score += 0.5
+
+    score += _smarts_match_score(input_smiles, doc)
 
     return score
 
@@ -122,8 +147,6 @@ def retrieve_knowledge_context(
     top_k_knowledge: int = 4,
     top_k_literature: int = 4,
 ) -> Dict[str, Any]:
-    del input_smiles  # reserved for future embedding/rule-based enrichments
-
     firestore_state = get_firestore_availability()
     knowledge_docs = _load_knowledge_docs()
     literature_docs = _load_literature_docs()
@@ -141,10 +164,15 @@ def retrieve_knowledge_context(
         }
 
     knowledge_scored: List[Dict[str, Any]] = []
+    has_smarts_hit = False
     for doc in knowledge_docs:
-        score = _score_knowledge_doc(doc, tox_classes, keyword_hints)
+        score = _score_knowledge_doc(doc, tox_classes, keyword_hints, input_smiles)
         if score <= 0:
             continue
+
+        smarts_hit = _smarts_match_score(input_smiles, doc) > 0
+        if smarts_hit:
+            has_smarts_hit = True
 
         knowledge_scored.append(
             {
@@ -154,6 +182,7 @@ def retrieve_knowledge_context(
                 "summary": _clean_text(doc.get("summary")),
                 "tox_class": _to_list(doc.get("tox_class")),
                 "risk_level": _clean_text(doc.get("risk_level") or doc.get("severity")),
+                "smarts_hit": smarts_hit,
                 "score": round(score, 3),
             }
         )
@@ -171,6 +200,7 @@ def retrieve_knowledge_context(
                 "doc_id": _clean_text(doc.get("doc_id")),
                 "title": _clean_text(doc.get("title")),
                 "year": doc.get("year"),
+                "pmid": _clean_text(doc.get("pmid") or doc.get("pubmed_id")),
                 "source_query": _clean_text(doc.get("source_query")),
                 "relevant_targets": _to_list(doc.get("relevant_targets")),
                 "compound_mentions": _to_list(doc.get("compound_mentions"))[:5],
@@ -192,6 +222,7 @@ def retrieve_knowledge_context(
         "keyword_hints": keyword_hints,
         "knowledge_hits": knowledge_scored[: max(int(top_k_knowledge), 0)],
         "literature_hits": literature_scored[: max(int(top_k_literature), 0)],
+        "has_smarts_hit": has_smarts_hit,
         "error": None,
         "firestore": firestore_state,
     }
