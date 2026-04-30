@@ -619,6 +619,13 @@ def synthesize_literature(
         using_title_only=using_title_only,
     )
 
+    if str(os.getenv("RESEARCH_ENABLE_LLM_SYNTHESIS", "1")).strip().lower() in {"0", "false", "no"}:
+        return _deterministic_literature_synthesis(
+            articles=prompt_articles,
+            language=language,
+            error="llm_disabled_by_env",
+        )
+
     if genai is None:
         return _deterministic_literature_synthesis(
             articles=prompt_articles,

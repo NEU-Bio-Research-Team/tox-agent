@@ -23,3 +23,7 @@ MODEL_SERVER_URL: "https://tox-agent-cpu-znk3y6tgnq-as.a.run.app"
 DEFAULT_INFERENCE_BACKEND: "chemberta"
 # Database thật đang tồn tại trong project tox-agent là (default)
 FIRESTORE_DATABASE_ID: "(default)"
+# Disable LLM in orchestrator pipeline to reduce latency (~6-15s savings).
+# Set to "1" to re-enable when higher-quality synthesis/recommendations are needed.
+RESEARCH_ENABLE_LLM_SYNTHESIS: "0"
+WRITER_ENABLE_LLM_RECOMMENDATIONS: "0"
