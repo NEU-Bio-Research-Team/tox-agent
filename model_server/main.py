@@ -4930,6 +4930,11 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     user_id = req.user_id.strip() or "default_user"
     initial_state = {
         "smiles_input": smiles,
+        # Pre-populate canonical_smiles so ScreeningAgent's {canonical_smiles}
+        # template variable resolves without error. InputValidator will update
+        # validation_result (which contains canonical_smiles nested), but the
+        # top-level canonical_smiles key must exist before ScreeningAgent runs.
+        "canonical_smiles": smiles,
         "max_literature_results": int(req.max_literature_results),
         "language": language,
         "clinical_threshold": float(req.clinical_threshold),
