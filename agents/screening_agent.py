@@ -13,6 +13,18 @@ from services import fuse_molrag_with_baseline, retrieve_similar_molecules
 SCREENING_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
 
+def _molrag_error_payload(exc: Exception) -> Dict[str, Any]:
+    return {
+        "enabled": True,
+        "strategy": "sim_cot",
+        "retrieved_examples": [],
+        "reasoning_summary": None,
+        "suggested_label": None,
+        "confidence": None,
+        "error": f"molrag_exception: {type(exc).__name__}: {str(exc)[:200]}",
+    }
+
+
 def run_screening(
     smiles_input: str,
     language: str = "vi",
@@ -103,57 +115,61 @@ def run_screening(
         fusion_result = None
 
         if molrag_enabled:
-            retrieval_payload = retrieve_similar_molecules(
-                effective_canonical,
-                top_k=molrag_top_k,
-                min_similarity=molrag_min_similarity,
-            )
-            retrieved_examples = retrieval_payload.get("matches", [])
-            molrag_reasoning = run_molrag_reasoning(
-                input_smiles=effective_canonical,
-                retrieved_examples=retrieved_examples,
-                baseline_prediction=baseline_prediction,
-                language=language,
-                retrieval_context=retrieval_payload,
-            )
-            molrag_payload = {
-                "enabled": True,
-                "strategy": molrag_reasoning.get("strategy", "sim_cot"),
-                "retrieval_db_size": retrieval_payload.get("db_size"),
-                "retrieval_db_source": retrieval_payload.get("db_source"),
-                "retrieval_error": retrieval_payload.get("error"),
-                "firestore": retrieval_payload.get("firestore") or molrag_reasoning.get("firestore"),
-                "retrieved_examples": retrieved_examples,
-                "evidence_overview": molrag_reasoning.get("evidence_overview"),
-                "evidence_summary": molrag_reasoning.get("evidence_summary"),
-                "reasoning_summary": molrag_reasoning.get("reasoning_summary"),
-                "longform_summary": molrag_reasoning.get("longform_summary"),
-                "mechanism_chain": molrag_reasoning.get("mechanism_chain", []),
-                "key_substructures": molrag_reasoning.get("key_substructures", []),
-                "analogy_reasoning": molrag_reasoning.get("analogy_reasoning"),
-                "confidence_rationale": molrag_reasoning.get("confidence_rationale"),
-                "risk_modifiers": molrag_reasoning.get("risk_modifiers", []),
-                "knowledge_highlights": molrag_reasoning.get("knowledge_highlights", []),
-                "literature_highlights": molrag_reasoning.get("literature_highlights", []),
-                "presentation": molrag_reasoning.get("presentation", {}),
-                "suggested_label": molrag_reasoning.get("suggested_label"),
-                "confidence": molrag_reasoning.get("confidence"),
-                "tox_classes": molrag_reasoning.get("tox_classes", []),
-                "knowledge_hits": molrag_reasoning.get("knowledge_hits", []),
-                "literature_hits": molrag_reasoning.get("literature_hits", []),
-                "retrieval_overview": molrag_reasoning.get("retrieval_overview", {}),
-                "molrag_evidence": molrag_reasoning.get("molrag_evidence", {}),
-                "knowledge_error": molrag_reasoning.get("knowledge_error"),
-                "prompt_preview": molrag_reasoning.get("prompt_preview"),
-                "reasoning_mode": molrag_reasoning.get("reasoning_mode"),
-                "llm_status": molrag_reasoning.get("llm_status"),
-                "error": retrieval_payload.get("error") or molrag_reasoning.get("error"),
-            }
-            fusion_result = fuse_molrag_with_baseline(
-                baseline_prediction=baseline_prediction,
-                molrag_result=molrag_reasoning,
-                mode="evidence_only",
-            )
+            try:
+                retrieval_payload = retrieve_similar_molecules(
+                    effective_canonical,
+                    top_k=molrag_top_k,
+                    min_similarity=molrag_min_similarity,
+                )
+                retrieved_examples = retrieval_payload.get("matches", [])
+                molrag_reasoning = run_molrag_reasoning(
+                    input_smiles=effective_canonical,
+                    retrieved_examples=retrieved_examples,
+                    baseline_prediction=baseline_prediction,
+                    language=language,
+                    retrieval_context=retrieval_payload,
+                )
+                molrag_payload = {
+                    "enabled": True,
+                    "strategy": molrag_reasoning.get("strategy", "sim_cot"),
+                    "retrieval_db_size": retrieval_payload.get("db_size"),
+                    "retrieval_db_source": retrieval_payload.get("db_source"),
+                    "retrieval_error": retrieval_payload.get("error"),
+                    "firestore": retrieval_payload.get("firestore") or molrag_reasoning.get("firestore"),
+                    "retrieved_examples": retrieved_examples,
+                    "evidence_overview": molrag_reasoning.get("evidence_overview"),
+                    "evidence_summary": molrag_reasoning.get("evidence_summary"),
+                    "reasoning_summary": molrag_reasoning.get("reasoning_summary"),
+                    "longform_summary": molrag_reasoning.get("longform_summary"),
+                    "mechanism_chain": molrag_reasoning.get("mechanism_chain", []),
+                    "key_substructures": molrag_reasoning.get("key_substructures", []),
+                    "analogy_reasoning": molrag_reasoning.get("analogy_reasoning"),
+                    "confidence_rationale": molrag_reasoning.get("confidence_rationale"),
+                    "risk_modifiers": molrag_reasoning.get("risk_modifiers", []),
+                    "knowledge_highlights": molrag_reasoning.get("knowledge_highlights", []),
+                    "literature_highlights": molrag_reasoning.get("literature_highlights", []),
+                    "presentation": molrag_reasoning.get("presentation", {}),
+                    "suggested_label": molrag_reasoning.get("suggested_label"),
+                    "confidence": molrag_reasoning.get("confidence"),
+                    "tox_classes": molrag_reasoning.get("tox_classes", []),
+                    "knowledge_hits": molrag_reasoning.get("knowledge_hits", []),
+                    "literature_hits": molrag_reasoning.get("literature_hits", []),
+                    "retrieval_overview": molrag_reasoning.get("retrieval_overview", {}),
+                    "molrag_evidence": molrag_reasoning.get("molrag_evidence", {}),
+                    "knowledge_error": molrag_reasoning.get("knowledge_error"),
+                    "prompt_preview": molrag_reasoning.get("prompt_preview"),
+                    "reasoning_mode": molrag_reasoning.get("reasoning_mode"),
+                    "llm_status": molrag_reasoning.get("llm_status"),
+                    "error": retrieval_payload.get("error") or molrag_reasoning.get("error"),
+                }
+                fusion_result = fuse_molrag_with_baseline(
+                    baseline_prediction=baseline_prediction,
+                    molrag_result=molrag_reasoning,
+                    mode="evidence_only",
+                )
+            except Exception as exc:
+                molrag_payload = _molrag_error_payload(exc)
+                fusion_result = None
 
         screening_result = {
             "summary": summary,

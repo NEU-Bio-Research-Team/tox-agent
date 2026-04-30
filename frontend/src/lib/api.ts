@@ -523,7 +523,7 @@ export async function agentAnalyze(
 		max_literature_results: options.maxLiteratureResults ?? 5,
 		inference_backend: options.inferenceBackend ?? 'chemberta',
 		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
-		tox_type_model: options.toxTypeModel ?? 'tox21_gatv2_model',
+		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best',
 		molrag_enabled: options.molragEnabled ?? true,
 		molrag_top_k: options.molragTopK ?? 5,
 		molrag_min_similarity: options.molragMinSimilarity ?? 0.15,
