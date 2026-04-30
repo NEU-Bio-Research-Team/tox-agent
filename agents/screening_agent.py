@@ -24,20 +24,24 @@ def run_screening(
     molrag_enabled: bool = False,
     molrag_top_k: int = 5,
     molrag_min_similarity: float = 0.15,
+    canonical_smiles: str | None = None,
 ) -> Dict[str, Any]:
     """Deterministic screening flow used for local tests and orchestration."""
     try:
-        validation = validate_smiles(smiles_input)
-        if not validation.get("valid"):
-            return {
-                "screening_result": None,
-                "screening_error": validation.get("error") or "invalid_smiles",
-                "canonical_smiles": None,
-            }
-
-        canonical_smiles = validation.get("canonical_smiles") or smiles_input.strip()
+        if canonical_smiles is not None:
+            # Already validated upstream; skip redundant RDKit call
+            validated_canonical = canonical_smiles
+        else:
+            validation = validate_smiles(smiles_input)
+            if not validation.get("valid"):
+                return {
+                    "screening_result": None,
+                    "screening_error": validation.get("error") or "invalid_smiles",
+                    "canonical_smiles": None,
+                }
+            validated_canonical = validation.get("canonical_smiles") or smiles_input.strip()
         analysis = analyze_molecule(
-            canonical_smiles,
+            validated_canonical,
             clinical_threshold=clinical_threshold,
             mechanism_threshold=mechanism_threshold,
             inference_backend=inference_backend,
@@ -45,11 +49,15 @@ def run_screening(
             tox_type_model=tox_type_model,
         )
 
+        # Use server-returned canonical SMILES for downstream MolRAG and retrieval
+        # to ensure consistency if the model server applies different canonicalisation
+        effective_canonical = analysis.get("canonical_smiles") or validated_canonical
+
         if analysis.get("error"):
             return {
                 "screening_result": None,
                 "screening_error": analysis.get("error"),
-                "canonical_smiles": canonical_smiles,
+                "canonical_smiles": effective_canonical,
                 "analysis_raw": analysis,
             }
 
@@ -96,13 +104,13 @@ def run_screening(
 
         if molrag_enabled:
             retrieval_payload = retrieve_similar_molecules(
-                canonical_smiles,
+                effective_canonical,
                 top_k=molrag_top_k,
                 min_similarity=molrag_min_similarity,
             )
             retrieved_examples = retrieval_payload.get("matches", [])
             molrag_reasoning = run_molrag_reasoning(
-                input_smiles=canonical_smiles,
+                input_smiles=effective_canonical,
                 retrieved_examples=retrieved_examples,
                 baseline_prediction=baseline_prediction,
                 language=language,
@@ -150,7 +158,7 @@ def run_screening(
         screening_result = {
             "summary": summary,
             "smiles": analysis.get("smiles", smiles_input),
-            "canonical_smiles": analysis.get("canonical_smiles", canonical_smiles),
+            "canonical_smiles": effective_canonical,
             "clinical": clinical,
             "mechanism": mechanism,
             "explanation": explanation,

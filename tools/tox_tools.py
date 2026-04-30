@@ -198,7 +198,7 @@ def validate_smiles(smiles: str) -> Dict[str, Any]:
             "atom_count": None,
         }
 
-    canonical = Chem.MolToSmiles(mol)
+    canonical = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
     return {
         "valid": True,
         "canonical_smiles": canonical,

@@ -183,6 +183,7 @@ def run_orchestrator_flow(
             bool(molrag_enabled),
             int(molrag_top_k),
             float(molrag_min_similarity),
+            canonical_smiles,  # skip redundant validate_smiles in run_screening
         )
         stagger_seconds = _analysis_stagger_seconds()
         if stagger_seconds > 0:
