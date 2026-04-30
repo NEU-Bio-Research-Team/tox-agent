@@ -387,6 +387,7 @@ def _normalize_route(route: str, default: str) -> str:
 AIP_HEALTH_ROUTE = _normalize_route(os.getenv("AIP_HEALTH_ROUTE", "/health"), "/health")
 AIP_PREDICT_ROUTE = _normalize_route(os.getenv("AIP_PREDICT_ROUTE", "/predict"), "/predict")
 ADK_APP_NAME = os.getenv("AGENT_APP_NAME", "tox-agent")
+TOX_AGENT_ANALYZE_RUNTIME = os.getenv("TOX_AGENT_ANALYZE_RUNTIME", "deterministic").strip().lower()
 
 adk_session_service = None
 adk_runner = None
@@ -4856,8 +4857,14 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
     session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
 
-    async def _build_fallback_response(cause: str) -> AgentAnalyzeResponse:
-        """Fallback to deterministic orchestrator flow when ADK runtime is unavailable."""
+    async def _build_deterministic_response(
+        cause: str,
+        *,
+        runtime_mode: str = "deterministic_fallback",
+        event_type: str = "fallback",
+        event_prefix: str = "ADK fallback activated",
+    ) -> AgentAnalyzeResponse:
+        """Execute deterministic orchestrator flow for fallback or configured runtime."""
         fallback_state = await asyncio.to_thread(
             run_orchestrator_flow,
             smiles,
@@ -4898,10 +4905,10 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
         fallback_events: List[AgentEventRecord] = []
         if req.include_agent_events:
-            fallback_preview = f"ADK fallback activated: {cause}"
+            fallback_preview = f"{event_prefix}: {cause}"
             fallback_events.append(
                 AgentEventRecord(
-                    type="fallback",
+                    type=event_type,
                     author="System",
                     function_calls=[],
                     function_responses=[],
@@ -4914,7 +4921,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             session_id=session_id,
             chat_session_id=chat_session_id,
             adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
-            runtime_mode="deterministic_fallback",
+            runtime_mode=runtime_mode,
             runtime_note=cause,
             validation_status=validation_status_payload,
             final_report=final_report_payload,
@@ -4922,6 +4929,18 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             final_text=summary if isinstance(summary, str) else None,
             agent_events=fallback_events,
             state_keys=sorted(fallback_state.keys()),
+        )
+
+    async def _build_fallback_response(cause: str) -> AgentAnalyzeResponse:
+        """Fallback to deterministic orchestrator flow when ADK runtime is unavailable."""
+        return await _build_deterministic_response(cause)
+
+    if TOX_AGENT_ANALYZE_RUNTIME != "adk":
+        return await _build_deterministic_response(
+            f"configured_runtime:{TOX_AGENT_ANALYZE_RUNTIME}",
+            runtime_mode="deterministic",
+            event_type="runtime",
+            event_prefix="Deterministic runtime selected",
         )
 
     if adk_runner is None or adk_session_service is None or Content is None or Part is None:
