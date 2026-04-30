@@ -10,44 +10,23 @@ try:
 except Exception:
     genai = None
 
-try:
-    from google.ai import generativelanguage as _glm
-    _MOLRAG_RESPONSE_SCHEMA = _glm.Schema(
-        type=_glm.Type.OBJECT,
-        properties={
-            "evidence_overview": _glm.Schema(type=_glm.Type.STRING),
-            "longform_summary": _glm.Schema(type=_glm.Type.STRING),
-            "mechanism_chain": _glm.Schema(type=_glm.Type.ARRAY, items=_glm.Schema(type=_glm.Type.STRING)),
-            "key_substructures": _glm.Schema(type=_glm.Type.ARRAY, items=_glm.Schema(type=_glm.Type.STRING)),
-            "confidence_rationale": _glm.Schema(type=_glm.Type.STRING),
-            "analogy_reasoning": _glm.Schema(type=_glm.Type.STRING),
-            "risk_modifiers": _glm.Schema(type=_glm.Type.ARRAY, items=_glm.Schema(type=_glm.Type.STRING)),
-            "knowledge_highlights": _glm.Schema(type=_glm.Type.ARRAY, items=_glm.Schema(type=_glm.Type.STRING)),
-            "literature_highlights": _glm.Schema(type=_glm.Type.ARRAY, items=_glm.Schema(type=_glm.Type.STRING)),
-            "suggested_label": _glm.Schema(type=_glm.Type.STRING),
-            "confidence": _glm.Schema(type=_glm.Type.NUMBER),
-        },
-        required=["evidence_overview", "longform_summary", "mechanism_chain", "suggested_label", "confidence"],
-    )
-except Exception:
-    _glm = None
-    _MOLRAG_RESPONSE_SCHEMA = {
-        "type": "object",
-        "properties": {
-            "evidence_overview": {"type": "string"},
-            "longform_summary": {"type": "string"},
-            "mechanism_chain": {"type": "array", "items": {"type": "string"}},
-            "key_substructures": {"type": "array", "items": {"type": "string"}},
-            "confidence_rationale": {"type": "string"},
-            "analogy_reasoning": {"type": "string"},
-            "risk_modifiers": {"type": "array", "items": {"type": "string"}},
-            "knowledge_highlights": {"type": "array", "items": {"type": "string"}},
-            "literature_highlights": {"type": "array", "items": {"type": "string"}},
-            "suggested_label": {"type": "string"},
-            "confidence": {"type": "number"},
-        },
-        "required": ["evidence_overview", "longform_summary", "mechanism_chain", "suggested_label", "confidence"],
-    }
+_MOLRAG_RESPONSE_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "evidence_overview": {"type": "string"},
+        "longform_summary": {"type": "string"},
+        "mechanism_chain": {"type": "array", "items": {"type": "string"}},
+        "key_substructures": {"type": "array", "items": {"type": "string"}},
+        "confidence_rationale": {"type": "string"},
+        "analogy_reasoning": {"type": "string"},
+        "risk_modifiers": {"type": "array", "items": {"type": "string"}},
+        "knowledge_highlights": {"type": "array", "items": {"type": "string"}},
+        "literature_highlights": {"type": "array", "items": {"type": "string"}},
+        "suggested_label": {"type": "string"},
+        "confidence": {"type": "number"},
+    },
+    "required": ["evidence_overview", "longform_summary", "mechanism_chain", "suggested_label", "confidence"],
+}
 
 from .language import choose_text, normalize_language
 from services.knowledge_retriever import retrieve_knowledge_context
