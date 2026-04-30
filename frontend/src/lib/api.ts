@@ -160,6 +160,25 @@ export interface MolragRetrievalOverview {
 	match_count?: number;
 }
 
+export interface MolragPresentationCard {
+	eyebrow?: string | null;
+	title?: string | null;
+	body?: string | null;
+	tone?: 'support' | 'conflict' | 'warning' | 'neutral' | string;
+}
+
+export interface MolragPresentation {
+	headline?: string | null;
+	subheadline?: string | null;
+	takeaways?: string[];
+	evidence_cards?: MolragPresentationCard[];
+	caveats?: string[];
+	confidence_banner?: {
+		label?: string | null;
+		detail?: string | null;
+	} | null;
+}
+
 export interface MolragFirestoreState {
 	enabled?: boolean;
 	ready?: boolean;
@@ -196,6 +215,7 @@ export interface MolragSection {
 	risk_modifiers?: string[];
 	knowledge_highlights?: string[];
 	literature_highlights?: string[];
+	presentation?: MolragPresentation;
 	suggested_label?: string | null;
 	confidence?: number | null;
 	tox_classes?: string[];

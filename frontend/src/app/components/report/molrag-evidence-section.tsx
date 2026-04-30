@@ -119,6 +119,39 @@ function renderTextList(items: string[]) {
   );
 }
 
+function presentationToneStyles(tone?: string | null): {
+  borderColor: string;
+  backgroundColor: string;
+  accentColor: string;
+} {
+  switch ((tone || '').toLowerCase()) {
+    case 'support':
+      return {
+        borderColor: 'var(--accent-green)',
+        backgroundColor: 'var(--surface-alt)',
+        accentColor: 'var(--accent-green)',
+      };
+    case 'conflict':
+      return {
+        borderColor: 'var(--accent-red)',
+        backgroundColor: 'var(--surface-alt)',
+        accentColor: 'var(--accent-red)',
+      };
+    case 'warning':
+      return {
+        borderColor: 'var(--accent-yellow)',
+        backgroundColor: 'var(--surface-alt)',
+        accentColor: 'var(--accent-yellow)',
+      };
+    default:
+      return {
+        borderColor: 'var(--border)',
+        backgroundColor: 'var(--surface-alt)',
+        accentColor: 'var(--text)',
+      };
+  }
+}
+
 function renderFirestoreAttempts(firestore?: MolragFirestoreState) {
   const attempts = ensureArray<{ database_id?: string; ready?: boolean; reason?: string | null }>(firestore?.attempts);
   if (attempts.length === 0) {
@@ -153,6 +186,22 @@ export function MolragEvidenceSection({ data, fusionResult, language }: MolragEv
   const retrievalSource = data?.retrieval_overview?.db_source || data?.retrieval_db_source || 'N/A';
   const retrievalDbSize = data?.retrieval_overview?.db_size ?? data?.retrieval_db_size ?? 0;
   const firestore = data?.firestore;
+  const presentation = data?.presentation;
+  const presentationTakeaways = ensureStringArray(presentation?.takeaways);
+  const presentationCaveats = ensureStringArray(presentation?.caveats);
+  const evidenceCards = ensureArray<{
+    eyebrow?: string | null;
+    title?: string | null;
+    body?: string | null;
+    tone?: string | null;
+  }>(presentation?.evidence_cards).filter((card) => Boolean(card?.title || card?.body));
+  const heroHeadline = presentation?.headline
+    || data?.reasoning_summary
+    || (language === 'vi' ? 'MolRAG summary chưa sẵn sàng.' : 'MolRAG summary is not available yet.');
+  const heroSubheadline = presentation?.subheadline || data?.evidence_summary || null;
+  const confidenceBannerLabel = presentation?.confidence_banner?.label
+    || (language === 'vi' ? 'Mức tin cậy hiện tại' : 'Current confidence');
+  const confidenceBannerDetail = presentation?.confidence_banner?.detail || data?.confidence_rationale || null;
 
   return (
     <section id="molrag" className="scroll-mt-24 lg:scroll-mt-20">
@@ -170,6 +219,153 @@ export function MolragEvidenceSection({ data, fusionResult, language }: MolragEv
               ? 'MolRAG hiện chưa được bật cho phiên phân tích này.'
               : 'MolRAG is not enabled for this analysis session.'}
           </p>
+        </div>
+      )}
+
+      {enabled && (
+        <div
+          className="rounded-[28px] p-6 md:p-7 mb-6"
+          style={{
+            background: 'linear-gradient(135deg, var(--surface) 0%, var(--surface-alt) 100%)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_320px] gap-6">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.22em] mb-3" style={{ color: 'var(--text-faint)' }}>
+                {language === 'vi' ? 'MolRAG brief' : 'MolRAG brief'}
+              </p>
+              <h3 className="text-2xl md:text-[2rem] font-semibold leading-tight mb-3" style={{ color: 'var(--text)' }}>
+                {heroHeadline}
+              </h3>
+              {heroSubheadline && (
+                <p className="text-sm md:text-base" style={{ color: 'var(--text-muted)', lineHeight: '1.75' }}>
+                  {heroSubheadline}
+                </p>
+              )}
+
+              {presentationTakeaways.length > 0 && (
+                <div className="mt-6 space-y-3">
+                  {presentationTakeaways.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-2xl px-4 py-3"
+                      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+                    >
+                      <p className="text-sm" style={{ color: 'var(--text)', lineHeight: '1.7' }}>
+                        {item}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div
+                className="rounded-2xl p-4"
+                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+              >
+                <p className="text-xs uppercase mb-2" style={{ color: 'var(--text-muted)' }}>
+                  {language === 'vi' ? 'Confidence banner' : 'Confidence banner'}
+                </p>
+                <p className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                  {confidenceBannerLabel}
+                </p>
+                {confidenceBannerDetail && (
+                  <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                    {confidenceBannerDetail}
+                  </p>
+                )}
+              </div>
+
+              <div
+                className="rounded-2xl p-4"
+                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+              >
+                <p className="text-xs uppercase mb-2" style={{ color: 'var(--text-muted)' }}>
+                  {language === 'vi' ? 'Decision alignment' : 'Decision alignment'}
+                </p>
+                <div className="space-y-2 text-sm">
+                  <p style={{ color: 'var(--text-muted)' }}>
+                    {language === 'vi' ? 'MolRAG' : 'MolRAG'}: <span style={{ color: 'var(--text)' }}>{suggestedLabel}</span>
+                  </p>
+                  <p style={{ color: 'var(--text-muted)' }}>
+                    {language === 'vi' ? 'Final fusion' : 'Final fusion'}: <span style={{ color: 'var(--text)' }}>{fusionLabel}</span>
+                  </p>
+                  <p
+                    className="font-semibold"
+                    style={{
+                      color:
+                        agreement === true
+                          ? 'var(--accent-green)'
+                          : agreement === false
+                            ? 'var(--accent-yellow)'
+                            : 'var(--text-muted)',
+                    }}
+                  >
+                    {agreement === true
+                      ? (language === 'vi' ? 'MolRAG và baseline đang đồng thuận.' : 'MolRAG and baseline are aligned.')
+                      : agreement === false
+                        ? (language === 'vi' ? 'MolRAG đang đóng vai trò bằng chứng phản biện.' : 'MolRAG is acting as counter-evidence.')
+                        : (language === 'vi' ? 'Chưa có dữ liệu alignment.' : 'Alignment data is unavailable.')}
+                  </p>
+                </div>
+              </div>
+
+              {presentationCaveats.length > 0 && (
+                <div
+                  className="rounded-2xl p-4"
+                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+                >
+                  <p className="text-xs uppercase mb-3" style={{ color: 'var(--text-muted)' }}>
+                    {language === 'vi' ? 'Read with caution' : 'Read with caution'}
+                  </p>
+                  <div className="space-y-2">
+                    {presentationCaveats.map((item) => (
+                      <p key={item} className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                        • {item}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {evidenceCards.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+              {evidenceCards.map((card, index) => {
+                const toneStyles = presentationToneStyles(card.tone);
+                return (
+                  <div
+                    key={`${card.title || 'card'}-${index}`}
+                    className="rounded-2xl p-4"
+                    style={{
+                      backgroundColor: toneStyles.backgroundColor,
+                      border: `1px solid ${toneStyles.borderColor}`,
+                    }}
+                  >
+                    {card.eyebrow && (
+                      <p className="text-[11px] uppercase tracking-[0.18em] mb-2" style={{ color: toneStyles.accentColor }}>
+                        {card.eyebrow}
+                      </p>
+                    )}
+                    {card.title && (
+                      <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                        {card.title}
+                      </h4>
+                    )}
+                    {card.body && (
+                      <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: '1.7' }}>
+                        {card.body}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

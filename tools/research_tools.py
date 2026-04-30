@@ -9,6 +9,14 @@ from typing import Any, Dict, List
 
 import httpx
 
+from services.genai_runtime import (
+    build_genai_client_candidates,
+    call_with_retry,
+    dedupe_strings,
+    is_model_unavailable_error,
+    is_resource_exhausted_error,
+)
+
 try:
     from google import genai
 except Exception:
@@ -618,58 +626,94 @@ def synthesize_literature(
             error="genai_unavailable",
         )
 
-    try:
-        client = genai.Client()
-        prompt = _build_synthesis_prompt(
-            articles=prompt_articles,
-            compound_name=compound_name,
-            compound_smiles=compound_smiles,
-            language=language,
-            using_title_only=using_title_only,
-        )
-        response = client.models.generate_content(
-            model=os.getenv("AGENT_MODEL_FAST", "gemini-2.5-flash"),
-            contents=prompt,
-            config=genai.types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema={
-                    "type": "object",
-                    "properties": {
-                        "consensus_mechanisms": {"type": "array", "items": {"type": "string"}},
-                        "key_targets": {"type": "array", "items": {"type": "string"}},
-                        "dose_response_signals": {"type": "array", "items": {"type": "string"}},
-                        "conflicting_findings": {"type": "array", "items": {"type": "string"}},
-                        "confidence_level": {"type": "string"},
-                        "synthesis_text": {"type": "string"},
-                        "pmids_used": {"type": "array", "items": {"type": "string"}},
-                        "evidence_basis": {"type": "string"},
-                    },
-                    "required": [
-                        "consensus_mechanisms",
-                        "key_targets",
-                        "dose_response_signals",
-                        "conflicting_findings",
-                        "confidence_level",
-                        "synthesis_text",
-                        "pmids_used",
-                        "evidence_basis",
-                    ],
-                },
-            ),
-        )
-        result = json.loads(response.text)
-        result["papers_with_content"] = len(papers_with_abstract)
-        result["source_coverage"] = source_coverage
-        result["confidence_level"] = _clean_text(result.get("confidence_level") or default_confidence).lower() or default_confidence
-        result["evidence_basis"] = "title_only" if using_title_only else "abstract"
-        result["error"] = None
-        return result
-    except Exception as exc:
+    model_candidates = dedupe_strings(
+        [
+            os.getenv("LITERATURE_SYNTHESIS_MODEL"),
+            os.getenv("AGENT_MODEL_FAST"),
+            os.getenv("GEMINI_MODEL"),
+            os.getenv("AGENT_MODEL_PRO"),
+            "gemini-2.5-flash",
+        ]
+    )
+    client_candidates = build_genai_client_candidates()
+    if not client_candidates:
         return _deterministic_literature_synthesis(
             articles=prompt_articles,
             language=language,
-            error=str(exc),
+            error="genai_client_unavailable",
         )
+
+    prompt = _build_synthesis_prompt(
+        articles=prompt_articles,
+        compound_name=compound_name,
+        compound_smiles=compound_smiles,
+        language=language,
+        using_title_only=using_title_only,
+    )
+    config = genai.types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_schema={
+            "type": "object",
+            "properties": {
+                "consensus_mechanisms": {"type": "array", "items": {"type": "string"}},
+                "key_targets": {"type": "array", "items": {"type": "string"}},
+                "dose_response_signals": {"type": "array", "items": {"type": "string"}},
+                "conflicting_findings": {"type": "array", "items": {"type": "string"}},
+                "confidence_level": {"type": "string"},
+                "synthesis_text": {"type": "string"},
+                "pmids_used": {"type": "array", "items": {"type": "string"}},
+                "evidence_basis": {"type": "string"},
+            },
+            "required": [
+                "consensus_mechanisms",
+                "key_targets",
+                "dose_response_signals",
+                "conflicting_findings",
+                "confidence_level",
+                "synthesis_text",
+                "pmids_used",
+                "evidence_basis",
+            ],
+        },
+    )
+
+    errors: List[str] = []
+    try:
+        for client, auth_mode in client_candidates:
+            for model_name in model_candidates:
+                try:
+                    response = call_with_retry(
+                        lambda client=client, model_name=model_name: client.models.generate_content(
+                            model=model_name,
+                            contents=prompt,
+                            config=config,
+                        )
+                    )
+                    result = json.loads(response.text)
+                    result["papers_with_content"] = len(papers_with_abstract)
+                    result["source_coverage"] = source_coverage
+                    result["confidence_level"] = _clean_text(result.get("confidence_level") or default_confidence).lower() or default_confidence
+                    result["evidence_basis"] = "title_only" if using_title_only else "abstract"
+                    result["error"] = None
+                    result["runtime_detail"] = f"{auth_mode}:{model_name}"
+                    return result
+                except Exception as exc:
+                    errors.append(f"{auth_mode}:{model_name}:{type(exc).__name__}:{str(exc)[:180]}")
+                    if is_resource_exhausted_error(exc) or is_model_unavailable_error(exc):
+                        continue
+                    raise
+    except Exception:
+        return _deterministic_literature_synthesis(
+            articles=prompt_articles,
+            language=language,
+            error=errors[0] if errors else "genai_request_failed",
+        )
+
+    return _deterministic_literature_synthesis(
+        articles=prompt_articles,
+        language=language,
+        error=errors[0] if errors else "genai_request_failed",
+    )
 
 
 def get_pubchem_bioassay_data(cid: int) -> Dict[str, Any]:

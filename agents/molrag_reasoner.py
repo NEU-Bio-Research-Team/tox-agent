@@ -12,8 +12,16 @@ except Exception:
 from .language import choose_text, normalize_language
 from services.knowledge_retriever import retrieve_knowledge_context
 from services.prompt_builder import build_molrag_prompt
+from services.genai_runtime import (
+    build_genai_client_candidates,
+    call_with_retry,
+    dedupe_strings,
+    is_model_unavailable_error,
+    is_resource_exhausted_error,
+)
 
 MOLRAG_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
+MOLRAG_FALLBACK_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
 
 
 def _normalize_label(label: Any) -> str:
@@ -409,6 +417,184 @@ def _compose_longform_summary(
     )
 
 
+def _confidence_label(confidence: float, language: str) -> str:
+    if confidence >= 0.75:
+        return choose_text(language, "Tin cậy cao", "High confidence")
+    if confidence >= 0.45:
+        return choose_text(language, "Tin cậy trung bình", "Moderate confidence")
+    return choose_text(language, "Tin cậy thấp", "Low confidence")
+
+
+def _top_analog(retrieved_examples: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not retrieved_examples:
+        return None
+    return max(
+        retrieved_examples,
+        key=lambda item: float(item.get("similarity", 0.0) or 0.0),
+    )
+
+
+def _append_if_present(items: List[str], value: str) -> None:
+    cleaned = str(value or "").strip()
+    if cleaned and cleaned not in items:
+        items.append(cleaned)
+
+
+def _build_presentation(
+    *,
+    baseline_label: str,
+    suggested_label: str,
+    confidence: float,
+    top_similarity: float,
+    retrieved_examples: List[Dict[str, Any]],
+    knowledge_hits: List[Dict[str, Any]],
+    literature_hits: List[Dict[str, Any]],
+    confidence_rationale: str,
+    risk_modifiers: List[str],
+    language: str,
+) -> Dict[str, Any]:
+    top_analog = _top_analog(retrieved_examples)
+    top_knowledge = knowledge_hits[0] if knowledge_hits else None
+    top_literature = literature_hits[0] if literature_hits else None
+    disagrees = suggested_label.strip().lower() != baseline_label.strip().lower()
+    confidence_label = _confidence_label(confidence, language)
+
+    if disagrees:
+        headline = choose_text(
+            language,
+            f"MolRAG nghiêng về {suggested_label}, nhưng baseline vẫn chốt {baseline_label}.",
+            f"MolRAG leans {suggested_label}, while the baseline still decides {baseline_label}.",
+        )
+    else:
+        headline = choose_text(
+            language,
+            f"MolRAG và baseline đang đồng thuận ở nhãn {baseline_label}.",
+            f"MolRAG and the baseline are aligned on the {baseline_label} label.",
+        )
+
+    subheadline = choose_text(
+        language,
+        f"Top analog similarity {top_similarity:.2f}; {confidence_label.lower()}; phần kết luận cuối hiện vẫn ưu tiên baseline trong chế độ MVP.",
+        f"Top analog similarity is {top_similarity:.2f}; {confidence_label.lower()}; the final call still prioritizes the baseline in MVP mode.",
+    )
+
+    takeaways: List[str] = []
+    if top_analog is not None:
+        top_name = str(top_analog.get("name") or top_analog.get("smiles") or "top analog").strip()
+        top_label = str(top_analog.get("label") or "Unknown").strip()
+        _append_if_present(
+            takeaways,
+            choose_text(
+                language,
+                f"Analog gần nhất là {top_name} (similarity {float(top_analog.get('similarity', 0.0) or 0.0):.2f}) với nhãn {top_label}.",
+                f"The closest analog is {top_name} (similarity {float(top_analog.get('similarity', 0.0) or 0.0):.2f}) with label {top_label}.",
+            ),
+        )
+    else:
+        _append_if_present(
+            takeaways,
+            choose_text(
+                language,
+                "Không có analog vượt ngưỡng similarity, nên MolRAG phải dựa nhiều hơn vào lớp knowledge/literature.",
+                "No analog cleared the similarity threshold, so MolRAG leans more heavily on knowledge and literature.",
+            ),
+        )
+
+    if top_knowledge is not None:
+        _append_if_present(
+            takeaways,
+            choose_text(
+                language,
+                f"Tín hiệu cơ chế nổi bật nhất là {str(top_knowledge.get('name') or 'N/A').strip()}.",
+                f"The strongest mechanistic signal is {str(top_knowledge.get('name') or 'N/A').strip()}.",
+            ),
+        )
+
+    if top_literature is not None:
+        _append_if_present(
+            takeaways,
+            choose_text(
+                language,
+                f"Literature hỗ trợ hiện thiên về bài: {str(top_literature.get('title') or 'N/A').strip()}.",
+                f"Current literature support is led by: {str(top_literature.get('title') or 'N/A').strip()}.",
+            ),
+        )
+
+    _append_if_present(takeaways, confidence_rationale)
+
+    evidence_cards: List[Dict[str, Any]] = []
+    if top_analog is not None:
+        evidence_cards.append(
+            {
+                "eyebrow": choose_text(language, "Analog chính", "Top analog"),
+                "title": str(top_analog.get("name") or top_analog.get("smiles") or "Top analog").strip(),
+                "body": choose_text(
+                    language,
+                    f"Similarity {float(top_analog.get('similarity', 0.0) or 0.0):.2f} · nhãn {str(top_analog.get('label') or 'Unknown').strip()}.",
+                    f"Similarity {float(top_analog.get('similarity', 0.0) or 0.0):.2f} · label {str(top_analog.get('label') or 'Unknown').strip()}.",
+                ),
+                "tone": "conflict" if disagrees else "support",
+            }
+        )
+
+    if top_knowledge is not None:
+        evidence_cards.append(
+            {
+                "eyebrow": choose_text(language, "Cơ chế", "Mechanism"),
+                "title": str(top_knowledge.get("name") or "Mechanistic signal").strip(),
+                "body": str(top_knowledge.get("summary") or "").strip()[:180],
+                "tone": "warning" if str(top_knowledge.get("risk_level") or "").strip().lower() in {"high", "severe"} else "neutral",
+            }
+        )
+
+    if top_literature is not None:
+        evidence_cards.append(
+            {
+                "eyebrow": choose_text(language, "Literature", "Literature"),
+                "title": str(top_literature.get("title") or "Literature support").strip(),
+                "body": str(top_literature.get("excerpt") or "").strip()[:180],
+                "tone": "neutral",
+            }
+        )
+
+    if disagrees or risk_modifiers:
+        evidence_cards.append(
+            {
+                "eyebrow": choose_text(language, "Cảnh báo", "Caveat"),
+                "title": choose_text(language, "Điểm cần thận trọng", "What to watch"),
+                "body": risk_modifiers[0] if risk_modifiers else choose_text(
+                    language,
+                    "MolRAG và baseline chưa đồng thuận hoàn toàn, nên cần đọc kết quả như lớp bằng chứng bổ sung.",
+                    "MolRAG and the baseline are not fully aligned, so treat this as supporting evidence rather than the final decision.",
+                ),
+                "tone": "warning",
+            }
+        )
+
+    caveats = risk_modifiers[:3]
+    if disagrees:
+        caveats.insert(
+            0,
+            choose_text(
+                language,
+                f"MolRAG ({suggested_label}) đang khác baseline ({baseline_label}).",
+                f"MolRAG ({suggested_label}) is currently different from the baseline ({baseline_label}).",
+            ),
+        )
+
+    return {
+        "headline": headline,
+        "subheadline": subheadline,
+        "takeaways": takeaways[:4],
+        "evidence_cards": evidence_cards[:4],
+        "caveats": caveats[:3],
+        "confidence_banner": {
+            "label": confidence_label,
+            "detail": confidence_rationale,
+        },
+    }
+
+
 def _deterministic_reasoning(
     *,
     input_smiles: str,
@@ -600,6 +786,18 @@ def _deterministic_reasoning(
         "confidence_zone": confidence_zone,
         "has_smarts_hit": has_smarts_hit,
     }
+    presentation = _build_presentation(
+        baseline_label=baseline_label,
+        suggested_label=suggested_label,
+        confidence=confidence,
+        top_similarity=top_similarity,
+        retrieved_examples=retrieved_examples,
+        knowledge_hits=knowledge_hits,
+        literature_hits=literature_hits,
+        confidence_rationale=confidence_rationale,
+        risk_modifiers=risk_modifiers,
+        language=language,
+    )
 
     return {
         "enabled": True,
@@ -617,6 +815,7 @@ def _deterministic_reasoning(
         "risk_modifiers": risk_modifiers,
         "knowledge_highlights": knowledge_highlights,
         "literature_highlights": literature_highlights,
+        "presentation": presentation,
         "suggested_label": suggested_label,
         "confidence": confidence,
         "confidence_zone": confidence_zone,
@@ -678,46 +877,64 @@ def run_molrag_reasoning(
         result["llm_status"] = "llm_unavailable"
         return result
 
-    try:
-        client = genai.Client()
-        response = client.models.generate_content(
-            model=MOLRAG_MODEL,
-            contents=prompt,
-            config=genai.types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.3,
-                max_output_tokens=1600,
-                response_schema={
-                    "type": "object",
-                    "properties": {
-                        "evidence_overview": {"type": "string"},
-                        "longform_summary": {"type": "string"},
-                        "mechanism_chain": {"type": "array", "items": {"type": "string"}},
-                        "key_substructures": {"type": "array", "items": {"type": "string"}},
-                        "confidence_rationale": {"type": "string"},
-                        "analogy_reasoning": {"type": "string"},
-                        "risk_modifiers": {"type": "array", "items": {"type": "string"}},
-                        "knowledge_highlights": {"type": "array", "items": {"type": "string"}},
-                        "literature_highlights": {"type": "array", "items": {"type": "string"}},
-                        "suggested_label": {"type": "string"},
-                        "confidence": {"type": "number"},
-                    },
-                    "required": [
-                        "evidence_overview",
-                        "longform_summary",
-                        "mechanism_chain",
-                        "suggested_label",
-                        "confidence",
-                    ],
-                },
-            ),
-        )
-        llm_out = json.loads(response.text)
-        # Merge LLM output — LLM mechanism_chain overrides deterministic when available
-        result.update(llm_out)
-        result["reasoning_mode"] = "llm"
-        result["llm_status"] = "llm_ok"
-    except Exception as exc:
-        result["llm_status"] = f"llm_error: {exc!s}"
+    client_candidates = build_genai_client_candidates()
+    if not client_candidates:
+        result["llm_status"] = "llm_client_unavailable"
+        return result
+
+    model_candidates = dedupe_strings([MOLRAG_MODEL, MOLRAG_FALLBACK_MODEL])
+    config = genai.types.GenerateContentConfig(
+        response_mime_type="application/json",
+        temperature=0.3,
+        max_output_tokens=1600,
+        response_schema={
+            "type": "object",
+            "properties": {
+                "evidence_overview": {"type": "string"},
+                "longform_summary": {"type": "string"},
+                "mechanism_chain": {"type": "array", "items": {"type": "string"}},
+                "key_substructures": {"type": "array", "items": {"type": "string"}},
+                "confidence_rationale": {"type": "string"},
+                "analogy_reasoning": {"type": "string"},
+                "risk_modifiers": {"type": "array", "items": {"type": "string"}},
+                "knowledge_highlights": {"type": "array", "items": {"type": "string"}},
+                "literature_highlights": {"type": "array", "items": {"type": "string"}},
+                "suggested_label": {"type": "string"},
+                "confidence": {"type": "number"},
+            },
+            "required": [
+                "evidence_overview",
+                "longform_summary",
+                "mechanism_chain",
+                "suggested_label",
+                "confidence",
+            ],
+        },
+    )
+
+    errors: List[str] = []
+    for client, auth_mode in client_candidates:
+        for model_name in model_candidates:
+            try:
+                response = call_with_retry(
+                    lambda client=client, model_name=model_name: client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config=config,
+                    )
+                )
+                llm_out = json.loads(response.text)
+                result.update(llm_out)
+                result["reasoning_mode"] = "llm"
+                result["llm_status"] = f"llm_ok:{auth_mode}:{model_name}"
+                return result
+            except Exception as exc:
+                errors.append(f"llm_error:{type(exc).__name__}:{auth_mode}:{model_name}:{str(exc)[:180]}")
+                if is_resource_exhausted_error(exc) or is_model_unavailable_error(exc):
+                    continue
+                result["llm_status"] = errors[0]
+                return result
+
+    result["llm_status"] = errors[0] if errors else "llm_error:unknown"
 
     return result

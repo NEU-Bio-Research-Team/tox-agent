@@ -10,6 +10,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .adk_compat import LlmAgent
 from .language import choose_text, normalize_language
+from services.genai_runtime import (
+    build_genai_client_candidates,
+    call_with_retry,
+    dedupe_strings,
+    is_model_unavailable_error,
+    is_resource_exhausted_error,
+)
 
 try:
     from google import genai
@@ -17,6 +24,7 @@ except Exception:
     genai = None
 
 WRITER_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
+WRITER_FALLBACK_MODEL = os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 FALSE_NEGATIVE_REGISTRY_PATH = (
     Path(__file__).resolve().parent.parent / "test_data" / "false_negative_registry.json"
 )
@@ -478,46 +486,10 @@ def _build_llm_prompt(
     )
 
 
-def _build_genai_client(location_override: Optional[str] = None) -> Tuple[Optional[Any], str]:
-    """Create a genai client using API key if present, otherwise Vertex AI ADC."""
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if api_key:
-        try:
-            return genai.Client(api_key=api_key), "api_key"
-        except Exception as exc:
-            return None, f"api_key_client_error:{type(exc).__name__}"
-
-    project = (
-        os.getenv("GOOGLE_CLOUD_PROJECT")
-        or os.getenv("GCLOUD_PROJECT")
-        or os.getenv("GCP_PROJECT")
-    )
-    if not project:
-        return None, "missing_project_for_vertexai"
-
-    configured_location = (
-        location_override
-        or os.getenv("GEMINI_LOCATION")
-        or os.getenv("GOOGLE_CLOUD_LOCATION")
-        or os.getenv("GOOGLE_CLOUD_REGION")
-        or "global"
-    )
-    try:
-        return (
-            genai.Client(
-                vertexai=True,
-                project=project,
-                location=configured_location,
-            ),
-            f"vertex_adc:{configured_location}",
-        )
-    except Exception as exc:
-        return None, f"vertex_client_error:{type(exc).__name__}"
-
-
 def _generate_llm_recommendations_with_client(
     *,
     client: Any,
+    model_name: str,
     language: str,
     risk_level: str,
     smiles: str,
@@ -529,24 +501,27 @@ def _generate_llm_recommendations_with_client(
     molrag: Dict[str, Any],
     fusion_result: Dict[str, Any],
 ) -> Tuple[List[Dict[str, str]], str]:
-    response = client.models.generate_content(
-        model=WRITER_MODEL,
-        contents=_build_llm_prompt(
-            language=language,
-            risk_level=risk_level,
-            smiles=smiles,
-            compound_name=compound_name,
-            clinical=clinical,
-            mechanism=mechanism,
-            ood_assessment=ood_assessment,
-            research=research,
-            molrag=molrag,
-            fusion_result=fusion_result,
-        ),
-        config={
-            "temperature": 0.3,
-            "response_mime_type": "application/json",
-        },
+    prompt = _build_llm_prompt(
+        language=language,
+        risk_level=risk_level,
+        smiles=smiles,
+        compound_name=compound_name,
+        clinical=clinical,
+        mechanism=mechanism,
+        ood_assessment=ood_assessment,
+        research=research,
+        molrag=molrag,
+        fusion_result=fusion_result,
+    )
+    response = call_with_retry(
+        lambda: client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config={
+                "temperature": 0.3,
+                "response_mime_type": "application/json",
+            },
+        )
     )
     text = str(getattr(response, "text", "") or "").strip()
     if not text:
@@ -577,57 +552,40 @@ def _maybe_llm_recommendations(
     if genai is None:
         return [], "google_genai_not_available"
 
-    client, auth_mode = _build_genai_client()
-    if client is None:
-        return [], auth_mode
+    client_candidates = build_genai_client_candidates()
+    if not client_candidates:
+        return [], "genai_client_unavailable"
 
-    try:
-        parsed, status = _generate_llm_recommendations_with_client(
-            client=client,
-            language=language,
-            risk_level=risk_level,
-            smiles=smiles,
-            compound_name=compound_name,
-            clinical=clinical,
-            mechanism=mechanism,
-            ood_assessment=ood_assessment,
-            research=research,
-            molrag=molrag,
-            fusion_result=fusion_result,
-        )
-        if parsed:
-            return parsed, f"{status}:{auth_mode}"
-        return [], status
-    except Exception as exc:
-        first_error = f"llm_error:{type(exc).__name__}:{auth_mode}:{str(exc)[:180]}"
+    model_candidates = dedupe_strings([WRITER_MODEL, WRITER_FALLBACK_MODEL])
+    errors: List[str] = []
 
-        if auth_mode.startswith("vertex_adc:"):
-            for fallback_location in ("global", "us-central1"):
-                if auth_mode.endswith(fallback_location):
+    for client, auth_mode in client_candidates:
+        for model_name in model_candidates:
+            try:
+                parsed, status = _generate_llm_recommendations_with_client(
+                    client=client,
+                    model_name=model_name,
+                    language=language,
+                    risk_level=risk_level,
+                    smiles=smiles,
+                    compound_name=compound_name,
+                    clinical=clinical,
+                    mechanism=mechanism,
+                    ood_assessment=ood_assessment,
+                    research=research,
+                    molrag=molrag,
+                    fusion_result=fusion_result,
+                )
+                if parsed:
+                    return parsed, f"{status}:{auth_mode}:{model_name}"
+                errors.append(f"{status}:{auth_mode}:{model_name}")
+            except Exception as exc:
+                errors.append(f"llm_error:{type(exc).__name__}:{auth_mode}:{model_name}:{str(exc)[:180]}")
+                if is_resource_exhausted_error(exc) or is_model_unavailable_error(exc):
                     continue
-                retry_client, retry_auth = _build_genai_client(location_override=fallback_location)
-                if retry_client is None:
-                    continue
-                try:
-                    parsed, status = _generate_llm_recommendations_with_client(
-                        client=retry_client,
-                        language=language,
-                        risk_level=risk_level,
-                        smiles=smiles,
-                        compound_name=compound_name,
-                        clinical=clinical,
-                        mechanism=mechanism,
-                        ood_assessment=ood_assessment,
-                        research=research,
-                        molrag=molrag,
-                        fusion_result=fusion_result,
-                    )
-                    if parsed:
-                        return parsed, f"{status}:{retry_auth}"
-                except Exception:
-                    continue
+                return [], errors[0]
 
-        return [], first_error
+    return [], (errors[0] if errors else "llm_failed")
 
 
 def _build_recommendations(

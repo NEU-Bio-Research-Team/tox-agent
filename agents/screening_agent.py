@@ -127,6 +127,7 @@ def run_screening(
                 "risk_modifiers": molrag_reasoning.get("risk_modifiers", []),
                 "knowledge_highlights": molrag_reasoning.get("knowledge_highlights", []),
                 "literature_highlights": molrag_reasoning.get("literature_highlights", []),
+                "presentation": molrag_reasoning.get("presentation", {}),
                 "suggested_label": molrag_reasoning.get("suggested_label"),
                 "confidence": molrag_reasoning.get("confidence"),
                 "tox_classes": molrag_reasoning.get("tox_classes", []),
