@@ -5115,11 +5115,10 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                                 return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
                         elif _is_adk_taskgroup_runtime_error(retry_exc):
                             logger.warning(
-                                "ADK root global retry ended with TaskGroup runtime; forcing ADK step continuation: %s",
+                                "ADK root global retry ended with TaskGroup runtime; using deterministic fallback: %s",
                                 retry_exc,
                             )
-                            force_adk_continuation = True
-                            _note_recovery("adk_taskgroup_step_continuation")
+                            return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
                         else:
                             logger.warning("ADK runtime failed after global retry, using deterministic fallback: %s", retry_exc)
                             return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
@@ -5130,18 +5129,16 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             model_retry_ok = await _retry_root_with_fallback_model("quota exhausted")
             if not model_retry_ok:
                 logger.warning(
-                    "ADK root quota-exhausted and model retry unavailable; forcing ADK step continuation path: %s",
+                    "ADK root quota-exhausted and model retry unavailable; using deterministic fallback: %s",
                     exc,
                 )
-                force_adk_continuation = True
-                _note_recovery("adk_forced_step_continuation")
+                return await _build_fallback_response(f"agent_runtime_error: {exc}")
         elif _is_adk_taskgroup_runtime_error(exc):
             logger.warning(
-                "ADK root raised TaskGroup runtime error; forcing ADK step continuation path: %s",
+                "ADK root raised TaskGroup runtime error; using deterministic fallback: %s",
                 exc,
             )
-            force_adk_continuation = True
-            _note_recovery("adk_taskgroup_step_continuation")
+            return await _build_fallback_response(f"agent_runtime_error: {exc}")
         else:
             logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
             return await _build_fallback_response(f"agent_runtime_error: {exc}")
