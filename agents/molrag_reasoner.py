@@ -44,11 +44,59 @@ MOLRAG_FALLBACK_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
 
 
 def _safe_json_parse(text: str) -> dict:
-    """Parse JSON from LLM response, stripping markdown code fences if present."""
+    """Parse JSON from LLM response, stripping markdown code fences and repairing truncation."""
     text = text.strip()
     if text.startswith("```"):
         text = _re.sub(r"^```(?:json)?\n?", "", text).rstrip("`").strip()
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    # Attempt to repair truncated JSON: close any open string then close open objects/arrays
+    repaired = text
+    # Count open braces/brackets to figure out depth
+    depth = 0
+    in_string = False
+    escape_next = False
+    for ch in repaired:
+        if escape_next:
+            escape_next = False
+            continue
+        if ch == "\\" and in_string:
+            escape_next = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+        elif not in_string:
+            if ch == '{' or ch == '[':
+                depth += 1
+            elif ch == '}' or ch == ']':
+                depth -= 1
+    # If we're mid-string, close it first (truncated string value)
+    if in_string:
+        repaired += '"'
+        depth_adjustment = depth
+        # after closing the string we may be in the middle of a value; add null close
+        repaired += ' }'
+        depth_adjustment -= 1
+        repaired += '}' * max(0, depth_adjustment - 1)
+    else:
+        repaired += '}' * max(0, depth)
+    try:
+        return json.loads(repaired)
+    except json.JSONDecodeError:
+        pass
+    # Last resort: extract only complete top-level key-value pairs using regex
+    result: dict = {}
+    for m in _re.finditer(r'"(\w+)"\s*:\s*("(?:[^"\\]|\\.)*"|\[[^\]]*\]|[\d.]+|true|false|null)', text):
+        key, val_str = m.group(1), m.group(2)
+        try:
+            result[key] = json.loads(val_str)
+        except Exception:
+            pass
+    if result:
+        return result
+    raise ValueError(f"Could not parse LLM JSON response (length={len(text)})")
 
 
 def _normalize_label(label: Any) -> str:
@@ -942,7 +990,7 @@ def run_molrag_reasoning(
     config = genai.types.GenerateContentConfig(
         response_mime_type="application/json",
         temperature=0.3,
-        max_output_tokens=4096,
+        max_output_tokens=8192,
         response_schema=_MOLRAG_RESPONSE_SCHEMA,
     )
 
