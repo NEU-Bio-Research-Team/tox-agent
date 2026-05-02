@@ -109,6 +109,8 @@ export function ChatbotPage() {
   const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(
     routeChatSessionId ?? report?.chat_session_id ?? null,
   );
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const processedInitialQuestion = useRef(false);
 
@@ -121,8 +123,26 @@ export function ChatbotPage() {
   }, [compoundLabel, hasGroundedReport, report?.chat_session_id, report?.session_id, routeChatSessionId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping, streamingText, streamingSteps]);
+    const container = scrollContainerRef.current;
+    if (!container || !isAtBottomRef.current) {
+      return;
+    }
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [messages, isTyping]);
+
+  const handleMessageScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    isAtBottomRef.current = distanceFromBottom < 56;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -442,7 +462,12 @@ export function ChatbotPage() {
             </p>
           </div>
 
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-5" style={{ backgroundColor: 'var(--bg)' }}>
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleMessageScroll}
+            className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-5"
+            style={{ backgroundColor: 'var(--bg)' }}
+          >
             {messages.map((message) => (
               <div
                 key={message.id}

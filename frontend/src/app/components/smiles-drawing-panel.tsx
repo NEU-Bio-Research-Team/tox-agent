@@ -57,10 +57,12 @@ export function SmilesDrawingPanel({
 		};
 
 		window.addEventListener('resize', handleViewportChange);
+		window.addEventListener('scroll', handleViewportChange, true);
 		document.addEventListener('fullscreenchange', handleViewportChange);
 
 		return () => {
 			window.removeEventListener('resize', handleViewportChange);
+			window.removeEventListener('scroll', handleViewportChange, true);
 			document.removeEventListener('fullscreenchange', handleViewportChange);
 		};
 	}, [refreshEditorViewport]);
@@ -155,7 +157,7 @@ export function SmilesDrawingPanel({
 				</Alert>
 			)}
 
-			<div className="overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)' }}>
+			<div className="overflow-visible rounded-xl border" style={{ borderColor: 'var(--border)' }}>
 				<div className="relative z-10" style={{ minHeight: 420 }}>
 					<Editor
 						staticResourcesUrl="/"
