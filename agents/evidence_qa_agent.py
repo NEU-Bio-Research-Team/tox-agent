@@ -42,6 +42,13 @@ def _clean_text(value: Any) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+def _truncate_text(value: Any, limit: int = 260) -> str:
+    text = _clean_text(value)
+    if len(text) <= limit:
+        return text
+    return f"{text[: max(limit - 3, 0)].rstrip()}..."
+
+
 def _normalize_key(value: str) -> str:
     lowered = value.lower().strip()
     return re.sub(r"[^a-z0-9]+", " ", lowered).strip()
@@ -179,6 +186,7 @@ def run_evidence_qa(
     normalized_input: List[Dict[str, Any]] = []
     for item in articles_in:
         article = _to_dict(item)
+        key_finding = _clean_text(article.get("abstract")) or _clean_text(article.get("snippet"))
         normalized_input.append(
             {
                 "pmid": _clean_text(article.get("pmid")),
@@ -187,6 +195,7 @@ def run_evidence_qa(
                 "year": _clean_text(article.get("year")),
                 "journal": _clean_text(article.get("journal")),
                 "pubmed_url": _clean_text(article.get("pubmed_url")),
+                "key_finding": _truncate_text(key_finding, 260),
             }
         )
 

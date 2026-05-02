@@ -145,6 +145,65 @@ def _resolve_literature_query(compound_name: str, compound_smiles: Optional[str]
     return preferred
 
 
+def _pubmed_search_once(query: str, max_results: int) -> Dict[str, Any]:
+    """Run one PubMed search/summarize pass for a single query."""
+    encoded_query = urllib.parse.quote(query)
+    api_key_param = f"&api_key={PUBMED_API_KEY}" if PUBMED_API_KEY else ""
+
+    search_resp = _pubmed_get_with_retry(
+        f"{PUBMED_BASE}/esearch.fcgi?db=pubmed&term={encoded_query}"
+        f"&retmax={max_results}&retmode=json&sort=relevance{api_key_param}",
+        timeout=15.0,
+    )
+    search_resp.raise_for_status()
+    search_data = search_resp.json().get("esearchresult", {})
+    pmids = search_data.get("idlist", [])
+    total_found = int(search_data.get("count", 0) or 0)
+
+    if not pmids:
+        return {
+            "articles": [],
+            "total_found": total_found,
+            "query_used": query,
+            "search_source": "pubmed",
+            "fallback_used": False,
+            "error": None,
+        }
+
+    ids_str = ",".join(pmids)
+    summary_resp = _pubmed_get_with_retry(
+        f"{PUBMED_BASE}/esummary.fcgi?db=pubmed&id={ids_str}"
+        f"&retmode=json{api_key_param}",
+        timeout=15.0,
+    )
+    summary_resp.raise_for_status()
+    summary_data = summary_resp.json().get("result", {})
+    abstracts = fetch_pubmed_abstracts(pmids)
+
+    articles: List[Dict[str, Any]] = []
+    for pmid in pmids:
+        article = _article_from_pubmed_summary(str(pmid), summary_data)
+        abstract_info = abstracts.get(str(pmid), {})
+        abstract_text = _clean_text(abstract_info.get("text")) if isinstance(abstract_info, dict) else ""
+        if abstract_text:
+            article["abstract"] = abstract_text
+            article["abstract_source"] = _clean_text(abstract_info.get("source") or "pubmed")
+            article["snippet"] = _truncate_text(abstract_text, 240)
+        articles.append(article)
+
+    return {
+        "articles": articles,
+        "total_found": total_found,
+        "query_used": query,
+        "search_source": "pubmed",
+        "fallback_used": any(
+            str(article.get("abstract_source") or "") not in {"", "none", "pubmed"}
+            for article in articles
+        ),
+        "error": None,
+    }
+
+
 def _parse_pubmed_abstracts(xml_text: str) -> Dict[str, Dict[str, str]]:
     result: Dict[str, Dict[str, str]] = {}
     root = ET.fromstring(xml_text)
@@ -580,81 +639,49 @@ def search_toxicity_literature(
     """
     max_results = min(max_results, 10)
     resolved_name = _resolve_literature_query(compound_name, compound_smiles)
-    query = f"{resolved_name} toxicity mechanism"
-    encoded_query = urllib.parse.quote(query)
-    api_key_param = f"&api_key={PUBMED_API_KEY}" if PUBMED_API_KEY else ""
+    query_candidates: List[str] = []
+    primary_query = f"{resolved_name} toxicity mechanism"
+    query_candidates.append(primary_query)
+
+    if compound_smiles and _looks_like_smiles(resolved_name):
+        retry_info = get_compound_info_pubchem(compound_smiles)
+        retry_name = _clean_text(retry_info.get("common_name") or retry_info.get("iupac_name"))
+        if retry_name and not _looks_like_smiles(retry_name):
+            query_candidates.append(f"{retry_name} toxicity mechanism")
+            query_candidates.append(f"{retry_name} adverse effects")
+
+    # Always include a structure-keyword fallback so PubMed still has a chance if naming lookup fails.
+    if compound_smiles:
+        query_candidates.append(f"{compound_smiles} toxicity mechanism")
+
+    query_candidates = dedupe_strings([q for q in query_candidates if _clean_text(q)])
     pubmed_error: str | None = None
+    last_pubmed_result: Dict[str, Any] | None = None
 
-    try:
-        search_resp = _pubmed_get_with_retry(
-            f"{PUBMED_BASE}/esearch.fcgi?db=pubmed&term={encoded_query}"
-            f"&retmax={max_results}&retmode=json&sort=relevance{api_key_param}",
-            timeout=15.0,
-        )
-        search_resp.raise_for_status()
-        search_data = search_resp.json().get("esearchresult", {})
-        pmids = search_data.get("idlist", [])
-        total_found = int(search_data.get("count", 0) or 0)
-
-        if not pmids:
-            return {
-                "articles": [],
-                "total_found": total_found,
-                "query_used": query,
-                "search_source": "pubmed",
-                "fallback_used": False,
-                "error": None,
-            }
-
-        ids_str = ",".join(pmids)
-        summary_resp = _pubmed_get_with_retry(
-            f"{PUBMED_BASE}/esummary.fcgi?db=pubmed&id={ids_str}"
-            f"&retmode=json{api_key_param}",
-            timeout=15.0,
-        )
-        summary_resp.raise_for_status()
-        summary_data = summary_resp.json().get("result", {})
-        abstracts = fetch_pubmed_abstracts(pmids)
-
-        articles: List[Dict[str, Any]] = []
-        for pmid in pmids:
-            article = _article_from_pubmed_summary(str(pmid), summary_data)
-            abstract_info = abstracts.get(str(pmid), {})
-            abstract_text = _clean_text(abstract_info.get("text")) if isinstance(abstract_info, dict) else ""
-            if abstract_text:
-                article["abstract"] = abstract_text
-                article["abstract_source"] = _clean_text(abstract_info.get("source") or "pubmed")
-                article["snippet"] = _truncate_text(abstract_text, 240)
-            articles.append(article)
-
-        return {
-            "articles": articles,
-            "total_found": total_found,
-            "query_used": query,
-            "search_source": "pubmed",
-            "fallback_used": any(
-                str(article.get("abstract_source") or "") not in {"", "none", "pubmed"}
-                for article in articles
-            ),
-            "error": None,
-        }
-    except Exception as exc:
-        pubmed_error = str(exc)
+    for query in query_candidates:
+        try:
+            pubmed_result = _pubmed_search_once(query=query, max_results=max_results)
+            last_pubmed_result = pubmed_result
+            if pubmed_result.get("articles"):
+                return pubmed_result
+        except Exception as exc:
+            pubmed_error = str(exc)
 
     for fallback_search in (_search_europe_pmc_literature, _search_semantic_scholar_literature):
         try:
-            fallback_result = fallback_search(query, max_results)
-            if fallback_result.get("articles"):
-                fallback_result["fallback_used"] = True
-                fallback_result["error"] = pubmed_error
-                return fallback_result
+            for query in query_candidates:
+                fallback_result = fallback_search(query, max_results)
+                if fallback_result.get("articles"):
+                    fallback_result["fallback_used"] = True
+                    fallback_result["error"] = pubmed_error
+                    return fallback_result
         except Exception:
             continue
 
     return {
         "articles": [],
-        "total_found": 0,
-        "query_used": query,
+        "total_found": int((last_pubmed_result or {}).get("total_found") or 0),
+        "query_used": (last_pubmed_result or {}).get("query_used") or primary_query,
         "search_source": "pubmed",
         "fallback_used": False,
         "error": pubmed_error or "search_failed",
