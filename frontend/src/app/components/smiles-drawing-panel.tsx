@@ -21,6 +21,7 @@ interface SmilesDrawingPanelProps {
 	onSmilesExtracted: (smiles: string) => void;
 	disabled?: boolean;
 	onReady?: () => void;
+	isActive?: boolean;
 }
 
 export function SmilesDrawingPanel({
@@ -28,42 +29,73 @@ export function SmilesDrawingPanel({
 	onSmilesExtracted,
 	disabled = false,
 	onReady,
+	isActive = true,
 }: SmilesDrawingPanelProps) {
 	const editorRef = useRef<KetcherLike | null>(null);
+	const editorHostRef = useRef<HTMLDivElement | null>(null);
 	const [extracting, setExtracting] = useState(false);
 	const [syncing, setSyncing] = useState(false);
 	const [editorError, setEditorError] = useState<string | null>(null);
 
 	const structServiceProvider = useMemo(() => new StandaloneStructServiceProvider(), []);
 
-	const refreshEditorViewport = useCallback(() => {
+	const refreshEditorViewport = useCallback((fitToCanvas = false) => {
 		const editor = editorRef.current as (KetcherLike & { editor?: { zoomToFit?: () => void } }) | null;
 		if (!editor) {
 			return;
 		}
 
-		// Resize + repaint are enough for most fullscreen/normal mode transitions.
+		// Resize + repaint are enough for most normal-mode transitions.
 		window.dispatchEvent(new Event('resize'));
 		editor.render?.();
 		editor.update?.();
-		editor.zoomToFit?.();
-		editor.editor?.zoomToFit?.();
-		editor.setZoom?.(1.35);
+
+		if (fitToCanvas) {
+			editor.zoomToFit?.();
+			editor.editor?.zoomToFit?.();
+		}
 	}, []);
 
 	useEffect(() => {
 		const handleViewportChange = () => {
-			window.requestAnimationFrame(refreshEditorViewport);
+			window.requestAnimationFrame(() => refreshEditorViewport(false));
 		};
 
 		window.addEventListener('resize', handleViewportChange);
-		window.addEventListener('scroll', handleViewportChange, true);
 		document.addEventListener('fullscreenchange', handleViewportChange);
 
 		return () => {
 			window.removeEventListener('resize', handleViewportChange);
-			window.removeEventListener('scroll', handleViewportChange, true);
 			document.removeEventListener('fullscreenchange', handleViewportChange);
+		};
+	}, [refreshEditorViewport]);
+
+	useEffect(() => {
+		if (!isActive) {
+			return;
+		}
+
+		const firstFrame = window.requestAnimationFrame(() => refreshEditorViewport(true));
+		const secondFrame = window.setTimeout(() => refreshEditorViewport(true), 120);
+
+		return () => {
+			window.cancelAnimationFrame(firstFrame);
+			window.clearTimeout(secondFrame);
+		};
+	}, [isActive, refreshEditorViewport]);
+
+	useEffect(() => {
+		if (!editorHostRef.current || typeof ResizeObserver === 'undefined') {
+			return;
+		}
+
+		const observer = new ResizeObserver(() => {
+			window.requestAnimationFrame(() => refreshEditorViewport(false));
+		});
+		observer.observe(editorHostRef.current);
+
+		return () => {
+			observer.disconnect();
 		};
 	}, [refreshEditorViewport]);
 
@@ -157,7 +189,7 @@ export function SmilesDrawingPanel({
 				</Alert>
 			)}
 
-			<div className="overflow-visible rounded-xl border" style={{ borderColor: 'var(--border)' }}>
+			<div ref={editorHostRef} className="overflow-visible rounded-xl border" style={{ borderColor: 'var(--border)' }}>
 				<div className="relative z-10" style={{ minHeight: 420 }}>
 					<Editor
 						staticResourcesUrl="/"
@@ -166,7 +198,7 @@ export function SmilesDrawingPanel({
 						onInit={(ketcher) => {
 							editorRef.current = ketcher as unknown as KetcherLike;
 							setEditorError(null);
-							window.requestAnimationFrame(refreshEditorViewport);
+							window.requestAnimationFrame(() => refreshEditorViewport(true));
 							onReady?.();
 						}}
 						disableMacromoleculesEditor

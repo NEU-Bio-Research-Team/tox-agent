@@ -369,15 +369,22 @@ SMILES_IMAGE_SUPPORTED_MIME_TYPES = {
 }
 SMILES_IMAGE_SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 SMILES_IMAGE_MAX_BYTES = max(1024, _env_int("SMILES_IMAGE_MAX_BYTES", 5 * 1024 * 1024))
+MOLSCRIBE_DEFAULT_CHECKPOINT_NAME = "swin_base_char_aux_1m.pth"
 MOLSCRIBE_REPO_ID = os.getenv("MOLSCRIBE_REPO_ID", "yujieq/MolScribe").strip()
 MOLSCRIBE_CHECKPOINT_NAME = os.getenv(
     "MOLSCRIBE_CHECKPOINT_NAME",
-    "swin_base_char_aux_1m.pth",
+    MOLSCRIBE_DEFAULT_CHECKPOINT_NAME,
 ).strip()
 MOLSCRIBE_MODEL_PATH = os.getenv("MOLSCRIBE_MODEL_PATH", "").strip()
+MOLSCRIBE_MODEL_DIR = os.getenv("MOLSCRIBE_MODEL_DIR", "").strip()
 MOLSCRIBE_AUTO_DOWNLOAD = _env_flag("MOLSCRIBE_AUTO_DOWNLOAD", True)
 MOLSCRIBE_PRELOAD_ON_STARTUP = _env_flag("MOLSCRIBE_PRELOAD_ON_STARTUP", True)
 MOLSCRIBE_DEVICE = os.getenv("MOLSCRIBE_DEVICE", DEVICE).strip().lower() or DEVICE
+MOLSCRIBE_FALLBACK_CHECKPOINT_NAMES = tuple(
+    name.strip()
+    for name in os.getenv("MOLSCRIBE_FALLBACK_CHECKPOINT_NAMES", "").split(",")
+    if name.strip()
+)
 
 def _normalize_route(route: str, default: str) -> str:
     if not route:
@@ -3382,27 +3389,72 @@ def _resolve_molscribe_checkpoint_path_sync() -> str:
     if isinstance(cached, str) and cached.strip() and Path(cached).exists():
         return cached
 
+    checkpoint_names: List[str] = []
+    for name in (
+        MOLSCRIBE_CHECKPOINT_NAME,
+        MOLSCRIBE_DEFAULT_CHECKPOINT_NAME,
+        *MOLSCRIBE_FALLBACK_CHECKPOINT_NAMES,
+    ):
+        normalized = str(name or "").strip()
+        if normalized and normalized not in checkpoint_names:
+            checkpoint_names.append(normalized)
+
+    candidates: List[Path] = []
+
     if MOLSCRIBE_MODEL_PATH:
-        explicit = Path(MOLSCRIBE_MODEL_PATH)
+        explicit = Path(MOLSCRIBE_MODEL_PATH).expanduser()
         if not explicit.exists():
             raise RuntimeError(f"MOLSCRIBE_MODEL_PATH does not exist: {explicit}")
-        resolved = str(explicit)
-        model_state["molscribe_checkpoint_path"] = resolved
-        return resolved
+        candidates.append(explicit)
 
-    if not MOLSCRIBE_AUTO_DOWNLOAD:
+    local_model_dirs: List[Path] = []
+    if MOLSCRIBE_MODEL_DIR:
+        local_model_dirs.append(Path(MOLSCRIBE_MODEL_DIR).expanduser())
+    local_model_dirs.append(MODELS_ROOT / "molscribe")
+    local_model_dirs.append(MODELS_ROOT)
+
+    for base_dir in local_model_dirs:
+        for ckpt_name in checkpoint_names:
+            candidate = (base_dir / ckpt_name).expanduser()
+            if candidate.exists() and candidate not in candidates:
+                candidates.append(candidate)
+
+    if MOLSCRIBE_AUTO_DOWNLOAD:
+        if hf_hub_download is None:
+            raise RuntimeError(
+                "huggingface_hub is unavailable; cannot auto-download MolScribe checkpoint."
+            )
+        for ckpt_name in checkpoint_names:
+            try:
+                ckpt_path = Path(
+                    hf_hub_download(repo_id=MOLSCRIBE_REPO_ID, filename=ckpt_name)
+                )
+                if ckpt_path.exists() and ckpt_path not in candidates:
+                    candidates.append(ckpt_path)
+            except Exception as exc:
+                logger.warning(
+                    "MolScribe checkpoint download failed for %s/%s: %s",
+                    MOLSCRIBE_REPO_ID,
+                    ckpt_name,
+                    exc,
+                )
+    elif not candidates:
+        searched_dirs = ", ".join(str(path) for path in local_model_dirs)
         raise RuntimeError(
-            "MolScribe checkpoint is missing. Set MOLSCRIBE_MODEL_PATH or enable MOLSCRIBE_AUTO_DOWNLOAD."
+            "MolScribe checkpoint is missing. Set MOLSCRIBE_MODEL_PATH, place checkpoint under "
+            f"MOLSCRIBE_MODEL_DIR or MODELS_ROOT/molscribe, or enable MOLSCRIBE_AUTO_DOWNLOAD. "
+            f"Searched directories: {searched_dirs}"
         )
 
-    if hf_hub_download is None:
+    if not candidates:
         raise RuntimeError(
-            "huggingface_hub is unavailable; cannot auto-download MolScribe checkpoint."
+            "Unable to resolve any MolScribe checkpoint candidates from explicit path, local model dirs, or Hugging Face."
         )
 
-    ckpt_path = hf_hub_download(repo_id=MOLSCRIBE_REPO_ID, filename=MOLSCRIBE_CHECKPOINT_NAME)
-    model_state["molscribe_checkpoint_path"] = str(ckpt_path)
-    return str(ckpt_path)
+    model_state["molscribe_checkpoint_candidates"] = [str(path) for path in candidates]
+    resolved = str(candidates[0])
+    model_state["molscribe_checkpoint_path"] = resolved
+    return resolved
 
 
 def _load_molscribe_predictor_sync() -> Any:
@@ -3420,17 +3472,43 @@ def _load_molscribe_predictor_sync() -> Any:
                 f"MolScribe import failed: {MOLSCRIBE_IMPORT_ERROR or 'unknown_import_error'}"
             )
 
-        checkpoint_path = _resolve_molscribe_checkpoint_path_sync()
         requested_device = (MOLSCRIBE_DEVICE or "cpu").lower()
         if requested_device == "cuda" and torch.cuda.is_available():
             ocr_device = torch.device("cuda")
         else:
             ocr_device = torch.device("cpu")
 
-        predictor = MolScribe(checkpoint_path, device=ocr_device)
-        model_state["molscribe_predictor"] = predictor
-        model_state.setdefault("startup_errors", {}).pop("smiles_image_extractor", None)
-        return predictor
+        _resolve_molscribe_checkpoint_path_sync()
+        candidate_paths = list(model_state.get("molscribe_checkpoint_candidates") or [])
+        current_path = model_state.get("molscribe_checkpoint_path")
+        if isinstance(current_path, str) and current_path:
+            if current_path in candidate_paths:
+                candidate_paths.remove(current_path)
+            candidate_paths.insert(0, current_path)
+
+        if not candidate_paths:
+            raise RuntimeError("No MolScribe checkpoint candidates were resolved.")
+
+        attempt_errors: List[str] = []
+        for checkpoint_path in candidate_paths:
+            try:
+                predictor = MolScribe(checkpoint_path, device=ocr_device)
+                model_state["molscribe_predictor"] = predictor
+                model_state["molscribe_checkpoint_path"] = str(checkpoint_path)
+                model_state.setdefault("startup_errors", {}).pop("smiles_image_extractor", None)
+                return predictor
+            except Exception as exc:
+                attempt_errors.append(f"{checkpoint_path}: {type(exc).__name__}: {exc}")
+                logger.warning(
+                    "MolScribe init failed with checkpoint %s: %s",
+                    checkpoint_path,
+                    exc,
+                )
+
+        raise RuntimeError(
+            "All MolScribe checkpoint candidates failed to initialize. "
+            + " | ".join(attempt_errors)
+        )
 
 
 def _preload_smiles_image_runtime_sync() -> None:
