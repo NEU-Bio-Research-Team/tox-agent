@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import urllib.parse
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -63,6 +64,85 @@ def _pubmed_get_with_retry(url: str, timeout: float = 15.0, max_retries: int = 3
     if last_exc is not None:
         raise last_exc
     raise RuntimeError("pubmed_request_failed")
+
+
+def _pubchem_get_with_retry(url: str, timeout: float = 12.0, max_retries: int = 3) -> httpx.Response:
+    """GET with exponential backoff for transient PubChem overload/rate-limit errors."""
+    last_exc: Exception | None = None
+
+    for attempt in range(max_retries):
+        try:
+            response = httpx.get(url, timeout=timeout)
+            if response.status_code in {429, 500, 502, 503, 504} and attempt < max_retries - 1:
+                time.sleep(2**attempt)
+                continue
+            return response
+        except httpx.RequestError as exc:
+            last_exc = exc
+            if attempt < max_retries - 1:
+                time.sleep(2**attempt)
+                continue
+            raise
+
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError("pubchem_request_failed")
+
+
+def _looks_like_smiles(value: str) -> bool:
+    text = (value or "").strip()
+    if len(text) < 8:
+        return False
+    return re.fullmatch(r"[A-Za-z0-9@+\-\[\]\(\)=#$\\/.%]+", text) is not None
+
+
+def _build_rdkit_metadata_fallback(smiles: str) -> Dict[str, Any]:
+    """Best-effort local metadata fallback when PubChem is unavailable."""
+    output = {
+        "cid": None,
+        "iupac_name": None,
+        "common_name": None,
+        "molecular_formula": None,
+        "molecular_weight": None,
+        "synonyms": [],
+        "pubchem_url": None,
+        "error": "pubchem_unavailable",
+        "fallback_source": "rdkit",
+    }
+    try:
+        from rdkit import Chem
+        from rdkit.Chem import Descriptors, rdMolDescriptors
+
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            output["error"] = "invalid_smiles_for_rdkit_fallback"
+            return output
+
+        output["molecular_formula"] = rdMolDescriptors.CalcMolFormula(mol)
+        output["molecular_weight"] = round(float(Descriptors.MolWt(mol)), 4)
+        output["error"] = "pubchem_unavailable_rdkit_fallback"
+        return output
+    except Exception as exc:
+        output["error"] = f"rdkit_fallback_failed:{type(exc).__name__}:{str(exc)[:120]}"
+        return output
+
+
+def _resolve_literature_query(compound_name: str, compound_smiles: Optional[str]) -> str:
+    """Resolve a PubMed-friendly compound query, upgrading SMILES-like input to a known name when possible."""
+    preferred = (compound_name or "").strip()
+    smiles_hint = (compound_smiles or "").strip()
+    candidate_smiles = smiles_hint or preferred
+
+    if _looks_like_smiles(preferred) or _looks_like_smiles(candidate_smiles):
+        lookup = get_compound_info_pubchem(candidate_smiles)
+        lookup_name = str(lookup.get("common_name") or lookup.get("iupac_name") or "").strip()
+        if lookup_name and not _looks_like_smiles(lookup_name):
+            preferred = lookup_name
+
+    if not preferred:
+        preferred = candidate_smiles or "unknown compound"
+
+    return preferred
 
 
 def _parse_pubmed_abstracts(xml_text: str) -> Dict[str, Dict[str, str]]:
@@ -433,26 +513,19 @@ def get_compound_info_pubchem(smiles: str) -> Dict[str, Any]:
     """
     encoded = urllib.parse.quote(smiles, safe="")
     try:
-        cid_resp = httpx.get(
+        cid_resp = _pubchem_get_with_retry(
             f"{PUBCHEM_BASE}/compound/smiles/{encoded}/cids/JSON",
             timeout=10.0,
         )
         cid_resp.raise_for_status()
         cid_list = cid_resp.json().get("IdentifierList", {}).get("CID", [])
         if not cid_list:
-            return {
-                "cid": None,
-                "iupac_name": None,
-                "common_name": None,
-                "molecular_formula": None,
-                "molecular_weight": None,
-                "synonyms": [],
-                "pubchem_url": None,
-                "error": "cid_not_found",
-            }
+            fallback = _build_rdkit_metadata_fallback(smiles)
+            fallback["error"] = "cid_not_found_rdkit_fallback"
+            return fallback
         cid = cid_list[0]
 
-        props_resp = httpx.get(
+        props_resp = _pubchem_get_with_retry(
             f"{PUBCHEM_BASE}/compound/cid/{cid}/property/"
             "IUPACName,MolecularFormula,MolecularWeight/JSON",
             timeout=10.0,
@@ -460,7 +533,7 @@ def get_compound_info_pubchem(smiles: str) -> Dict[str, Any]:
         props_resp.raise_for_status()
         props = props_resp.json().get("PropertyTable", {}).get("Properties", [{}])[0]
 
-        syn_resp = httpx.get(
+        syn_resp = _pubchem_get_with_retry(
             f"{PUBCHEM_BASE}/compound/cid/{cid}/synonyms/JSON",
             timeout=10.0,
         )
@@ -482,21 +555,19 @@ def get_compound_info_pubchem(smiles: str) -> Dict[str, Any]:
             "synonyms": synonyms,
             "pubchem_url": f"https://pubchem.ncbi.nlm.nih.gov/compound/{cid}",
             "error": None,
+            "fallback_source": "pubchem",
         }
     except Exception as exc:
-        return {
-            "cid": None,
-            "iupac_name": None,
-            "common_name": None,
-            "molecular_formula": None,
-            "molecular_weight": None,
-            "synonyms": [],
-            "pubchem_url": None,
-            "error": str(exc),
-        }
+        fallback = _build_rdkit_metadata_fallback(smiles)
+        fallback["error"] = str(exc)
+        return fallback
 
 
-def search_toxicity_literature(compound_name: str, max_results: int = 5) -> Dict[str, Any]:
+def search_toxicity_literature(
+    compound_name: str,
+    max_results: int = 5,
+    compound_smiles: Optional[str] = None,
+) -> Dict[str, Any]:
     """Search toxicity/mechanism literature with PubMed primary source and search fallbacks.
 
     Args:
@@ -508,7 +579,8 @@ def search_toxicity_literature(compound_name: str, max_results: int = 5) -> Dict
         ``search_source``, ``fallback_used`` and ``error``.
     """
     max_results = min(max_results, 10)
-    query = f"{compound_name} toxicity mechanism"
+    resolved_name = _resolve_literature_query(compound_name, compound_smiles)
+    query = f"{resolved_name} toxicity mechanism"
     encoded_query = urllib.parse.quote(query)
     api_key_param = f"&api_key={PUBMED_API_KEY}" if PUBMED_API_KEY else ""
     pubmed_error: str | None = None

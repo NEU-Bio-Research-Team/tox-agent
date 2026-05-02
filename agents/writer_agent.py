@@ -753,6 +753,22 @@ def build_final_report(
     compound_name = compound_info.get("common_name") or compound_info.get("iupac_name")
     molrag_data = _to_dict(screening.get("molrag"))
     fusion_data = _to_dict(screening.get("fusion_result"))
+    inference_backend_name = str(inference_context.get("inference_backend") or "").strip().lower()
+    binary_model_name = str(inference_context.get("binary_tox_model") or "").strip().lower()
+    herg_model_scope = "herg" in inference_backend_name or "herg" in binary_model_name
+    herg_hit_names = [
+        str(item.get("name") or "").strip()
+        for item in (molrag_data.get("knowledge_hits") or [])
+        if isinstance(item, dict) and "herg" in str(item.get("name") or "").lower()
+    ]
+    herg_mechanistic_signal = bool(herg_hit_names)
+    herg_risk_label = (
+        "HIGH"
+        if str(clinical.get("label") or "").upper() == "TOXIC"
+        else "MODERATE"
+        if herg_mechanistic_signal
+        else "LOW"
+    )
 
     risk_level = _compute_risk_level(clinical, mechanism)
     recommendations, recommendation_source, recommendation_source_detail = _build_recommendations(
@@ -889,6 +905,20 @@ def build_final_report(
                 "highest_risk": mechanism.get("highest_risk_task"),
                 "assay_hits": mechanism.get("assay_hits"),
                 "task_scores": mechanism.get("task_scores"),
+            },
+            "herg_risk": {
+                "model_scope": "clinical_hERG_binary" if herg_model_scope else "clinical_binary",
+                "risk_label": herg_risk_label,
+                "clinical_label": clinical.get("label"),
+                "p_toxic": clinical.get("p_toxic"),
+                "threshold_used": clinical.get("threshold_used"),
+                "mechanistic_signal_present": herg_mechanistic_signal,
+                "mechanistic_evidence": herg_hit_names[:3],
+                "interpretation": choose_text(
+                    normalized_language,
+                    "Danh gia hERG duoc tong hop tu model lam sang va bang chung co che (MolRAG) khi co.",
+                    "hERG assessment is summarized from the clinical model and mechanistic evidence (MolRAG) when available.",
+                ),
             },
             "structural_explanation": {
                 "top_atoms": top_atoms,

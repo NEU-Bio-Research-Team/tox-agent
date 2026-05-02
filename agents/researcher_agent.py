@@ -24,7 +24,11 @@ def run_research(smiles_input: str, max_results: int = 5, language: str = "vi") 
         or compound_info.get("iupac_name")
         or smiles_input
     )
-    literature = search_toxicity_literature(preferred_name, max_results=max_results)
+    literature = search_toxicity_literature(
+        preferred_name,
+        max_results=max_results,
+        compound_smiles=smiles_input,
+    )
     literature_synthesis = None
     articles = literature.get("articles", []) if isinstance(literature, dict) else []
     if isinstance(articles, list) and articles:

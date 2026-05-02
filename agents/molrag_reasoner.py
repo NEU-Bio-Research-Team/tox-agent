@@ -116,6 +116,24 @@ def _calibrate_confidence(
     base += min(len(knowledge_hits), 4) * 0.01
     base += min(len(literature_hits), 4) * 0.005
 
+    # If analog coverage is weak but curated mechanism evidence is rich,
+    # avoid over-penalizing known liabilities purely due to DB sparsity.
+    if top_similarity < 0.2:
+        mechanism_text = " ".join(
+            [
+                str(hit.get("name") or "").lower()
+                + " "
+                + str(hit.get("summary") or "").lower()
+                for hit in knowledge_hits[:6]
+            ]
+        )
+        has_known_liability = any(
+            token in mechanism_text
+            for token in ["herg", "qt", "torsades", "reactive metabolite", "mitochond", "dili"]
+        )
+        if has_known_liability:
+            base += 0.08
+
     return round(min(0.95, base), 3), zone
 
 
@@ -233,7 +251,11 @@ def _compose_context_summary(
     )
 
 
-def _build_key_substructures(knowledge_hits: List[Dict[str, Any]], retrieved_examples: List[Dict[str, Any]]) -> List[str]:
+def _build_key_substructures(
+    knowledge_hits: List[Dict[str, Any]],
+    retrieved_examples: List[Dict[str, Any]],
+    input_smiles: str,
+) -> List[str]:
     motifs: List[str] = []
 
     for hit in knowledge_hits:
@@ -254,6 +276,13 @@ def _build_key_substructures(knowledge_hits: List[Dict[str, Any]], retrieved_exa
             note = str(item.get("notes") or item.get("name") or "").strip()
             if note and note not in motifs:
                 motifs.append(note[:80])
+
+    smiles_lower = str(input_smiles or "").lower()
+    # Lightweight heuristic for frequent aromatic oxygen scaffold mentions in antiarrhythmics.
+    if any(token in smiles_lower for token in ["o1", "oc", "c1oc"]):
+        benzofuran_label = "Benzofuran-like aromatic oxygen scaffold"
+        if benzofuran_label not in motifs:
+            motifs.append(benzofuran_label)
 
     return motifs[:5]
 
@@ -675,7 +704,7 @@ def _deterministic_reasoning(
     contrastive_pair = _find_contrastive_pair(retrieved_examples, suggested_label)
     firestore_state = knowledge_context.get("firestore") if isinstance(knowledge_context.get("firestore"), dict) else {}
     retrieval_context = retrieval_context if isinstance(retrieval_context, dict) else {}
-    key_substructures = _build_key_substructures(knowledge_hits, retrieved_examples)
+    key_substructures = _build_key_substructures(knowledge_hits, retrieved_examples, input_smiles)
     knowledge_highlights = _build_knowledge_highlights(knowledge_hits)
     literature_highlights = _build_literature_highlights(literature_hits)
     analogy_reasoning = _build_analogy_reasoning(
