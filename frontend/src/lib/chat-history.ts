@@ -1,4 +1,4 @@
-import { doc, getDoc, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, where } from 'firebase/firestore';
 import { db } from '../firebase-config';
 
 export type ChatRole = 'user' | 'assistant';
@@ -172,5 +172,38 @@ export async function appendChatTurnToFirestore(uid: string, input: AppendChatTu
     }
 
     transaction.set(ref, payload, { merge: true });
+  });
+}
+
+export async function listChatSessionsByAnalysisId(
+  uid: string,
+  analysisSessionId: string,
+): Promise<ChatSessionRecord[]> {
+  if (!uid || !analysisSessionId) {
+    return [];
+  }
+
+  const ref = collection(db, 'users', uid, 'chatSessions');
+  const q = query(ref, where('analysisSessionId', '==', analysisSessionId));
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
+    const rawMessages = Array.isArray(data.messages) ? data.messages : [];
+    const messages = rawMessages
+      .map((item) => normalizeMessage(item))
+      .filter((item): item is PersistedChatMessage => item !== null);
+
+    return {
+      sessionId: docSnap.id,
+      analysisSessionId: typeof data.analysisSessionId === 'string' ? data.analysisSessionId : null,
+      smiles: typeof data.smiles === 'string' ? data.smiles : null,
+      title: typeof data.title === 'string' ? data.title : undefined,
+      messages,
+      messageCount: typeof data.messageCount === 'number' ? data.messageCount : messages.length,
+      lastMessagePreview: typeof data.lastMessagePreview === 'string' ? data.lastMessagePreview : undefined,
+      createdAtMs: toMillis(data.createdAt),
+      updatedAtMs: toMillis(data.updatedAt),
+    };
   });
 }

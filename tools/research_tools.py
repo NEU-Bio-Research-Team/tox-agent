@@ -96,6 +96,19 @@ def _looks_like_smiles(value: str) -> bool:
     return re.fullmatch(r"[A-Za-z0-9@+\-\[\]\(\)=#$\\/.%]+", text) is not None
 
 
+def _get_canonical_smiles(smiles: str) -> Optional[str]:
+    """Return RDKit canonical SMILES, or None if RDKit is unavailable or the SMILES is invalid."""
+    try:
+        from rdkit import Chem
+
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is not None:
+            return Chem.MolToSmiles(mol)
+    except Exception:
+        pass
+    return None
+
+
 def _build_rdkit_metadata_fallback(smiles: str) -> Dict[str, Any]:
     """Best-effort local metadata fallback when PubChem is unavailable."""
     output = {
@@ -138,6 +151,11 @@ def _resolve_literature_query(compound_name: str, compound_smiles: Optional[str]
         lookup_name = str(lookup.get("common_name") or lookup.get("iupac_name") or "").strip()
         if lookup_name and not _looks_like_smiles(lookup_name):
             preferred = lookup_name
+        else:
+            # Fallback: use molecular formula as query base — far more meaningful than raw SMILES
+            mol_formula = _clean_text(lookup.get("molecular_formula"))
+            if mol_formula:
+                preferred = mol_formula
 
     if not preferred:
         preferred = candidate_smiles or "unknown compound"
@@ -578,6 +596,20 @@ def get_compound_info_pubchem(smiles: str) -> Dict[str, Any]:
         )
         cid_resp.raise_for_status()
         cid_list = cid_resp.json().get("IdentifierList", {}).get("CID", [])
+        if not cid_list:
+            # Retry with RDKit canonical SMILES — PubChem may not recognize non-canonical forms
+            canonical = _get_canonical_smiles(smiles)
+            if canonical and canonical != smiles:
+                enc_canonical = urllib.parse.quote(canonical, safe="")
+                try:
+                    retry_resp = _pubchem_get_with_retry(
+                        f"{PUBCHEM_BASE}/compound/smiles/{enc_canonical}/cids/JSON",
+                        timeout=10.0,
+                    )
+                    if retry_resp.status_code == 200:
+                        cid_list = retry_resp.json().get("IdentifierList", {}).get("CID", [])
+                except Exception:
+                    pass
         if not cid_list:
             fallback = _build_rdkit_metadata_fallback(smiles)
             fallback["error"] = "cid_not_found_rdkit_fallback"

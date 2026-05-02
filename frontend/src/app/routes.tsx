@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 import { RouteErrorBoundary } from './components/route-error-boundary';
+import { ProtectedRoute } from './components/protected-route';
 
 export const router = createBrowserRouter([
   {
@@ -15,7 +16,13 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/index-page');
-      return { Component: module.IndexPage };
+      return {
+        Component: () => (
+          <ProtectedRoute>
+            <module.IndexPage />
+          </ProtectedRoute>
+        ),
+      };
     },
   },
   {
@@ -23,7 +30,13 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/report-page');
-      return { Component: module.ReportPage };
+      return {
+        Component: () => (
+          <ProtectedRoute>
+            <module.ReportPage />
+          </ProtectedRoute>
+        ),
+      };
     },
   },
   {
@@ -39,7 +52,13 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/settings-page');
-      return { Component: module.SettingsPage };
+      return {
+        Component: () => (
+          <ProtectedRoute>
+            <module.SettingsPage />
+          </ProtectedRoute>
+        ),
+      };
     },
   },
   {
@@ -55,7 +74,13 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
       const module = await import('./pages/documents-page');
-      return { Component: module.DocumentsPage };
+      return {
+        Component: () => (
+          <ProtectedRoute>
+            <module.DocumentsPage />
+          </ProtectedRoute>
+        ),
+      };
     },
   },
   {

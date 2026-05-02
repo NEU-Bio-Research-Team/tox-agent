@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { ArrowRight, Bot, FlaskConical, Send, Sparkles, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bot, FlaskConical, Send, Sparkles, User } from 'lucide-react';
 import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
 import { Button } from '../components/ui/button';
@@ -10,6 +10,7 @@ import { appendChatTurnToFirestore, loadChatSessionFromFirestore, type Persisted
 import { useReport } from '../../lib/ReportContext';
 import { MarkdownMessage } from '../components/markdown-message';
 import { AgentThinkingLog, type ThinkingStep } from '../components/agent-thinking-log';
+import { buildChatContext } from '../../lib/chat-context';
 
 interface ChatRouteState {
   question?: string;
@@ -183,8 +184,7 @@ export function ChatbotPage() {
         reportState: finalReport
           ? {
               smiles_input: finalReport.report_metadata.smiles,
-              final_report: finalReport,
-              evidence_qa_result: report?.evidence_qa_result,
+              final_report: buildChatContext(finalReport),
             }
           : routeReportState,
       });
@@ -409,6 +409,19 @@ export function ChatbotPage() {
             Run or restart an analysis
             <ArrowRight className="h-4 w-4" />
           </Button>
+
+          {hasGroundedReport && (
+            <Button
+              type="button"
+              onClick={() => navigate('/report')}
+              className="mt-3 w-full justify-between rounded-2xl px-4 py-6"
+              variant="outline"
+              style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Report
+            </Button>
+          )}
         </section>
 
         <section

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PanelLeft, PanelLeftClose } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MessageSquare, PanelLeft, PanelLeftClose, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Navbar } from '../components/navbar';
 import { AIChatbot } from '../components/ai-chatbot';
@@ -15,11 +15,30 @@ import { LiteratureContextSection } from '../components/report/literature-contex
 import { AIRecommendationsSection } from '../components/report/ai-recommendations-section';
 import { Button } from '../components/ui/button';
 import { useReport } from '../../lib/ReportContext';
+import { useAuth } from '../components/contexts/auth-context';
+import { listChatSessionsByAnalysisId, type ChatSessionRecord } from '../../lib/chat-history';
 
 export function ReportPage() {
   const navigate = useNavigate();
   const { report, setReport, error } = useReport();
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [chatSessions, setChatSessions] = useState<ChatSessionRecord[]>([]);
+
+  const analysisSessionId = report?.session_id ?? null;
+
+  useEffect(() => {
+    if (!user?.id || !analysisSessionId) return;
+    let cancelled = false;
+    listChatSessionsByAnalysisId(user.id, analysisSessionId)
+      .then((sessions) => {
+        if (!cancelled) setChatSessions(sessions);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, analysisSessionId]);
 
   if (!report?.final_report) {
     return (
@@ -139,6 +158,78 @@ export function ReportPage() {
         }}
       />
 
+      {/* Chat History Panel */}
+      {chatSessions.length > 0 && (
+        <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-6 lg:px-10">
+          <div
+            className="rounded-2xl border p-5"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" style={{ color: 'var(--accent-blue)' }} />
+                <h2 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+                  Previous Chat Sessions for This Report
+                </h2>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+                onClick={() =>
+                  navigate('/chat', {
+                    state: {
+                      analysisSessionId: report.session_id,
+                      chatSessionId: null,
+                      reportState: {
+                        smiles_input: finalReport.report_metadata.smiles,
+                        final_report: finalReport,
+                        evidence_qa_result: report.evidence_qa_result,
+                      },
+                    },
+                  })
+                }
+              >
+                <Plus className="h-3 w-3" />
+                New Chat
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {chatSessions.map((session) => (
+                <button
+                  key={session.sessionId}
+                  type="button"
+                  className="w-full rounded-xl border px-4 py-3 text-left transition-colors hover:bg-[var(--surface-alt)]"
+                  style={{ borderColor: 'var(--border)' }}
+                  onClick={() =>
+                    navigate('/chat', {
+                      state: {
+                        chatSessionId: session.sessionId,
+                        analysisSessionId: report.session_id,
+                        reportState: {
+                          smiles_input: finalReport.report_metadata.smiles,
+                          final_report: finalReport,
+                          evidence_qa_result: report.evidence_qa_result,
+                        },
+                      },
+                    })
+                  }
+                >
+                  <p className="truncate text-sm font-medium" style={{ color: 'var(--text)' }}>
+                    {session.title ?? `Session ${session.sessionId.slice(0, 8)}`}
+                  </p>
+                  {session.lastMessagePreview && (
+                    <p className="mt-0.5 truncate text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {session.lastMessagePreview}
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

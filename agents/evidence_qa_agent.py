@@ -229,6 +229,9 @@ def run_evidence_qa(
     )
     if curated and high_rel_count == 0:
         flags.append("low_relevance_evidence")
+        # All articles are low-quality (likely irrelevant due to bad search query).
+        # Reject them entirely to prevent misleading evidence from entering the report.
+        curated = []
 
     confidence = _confidence_from_quality(high_rel_count, len(curated), flags)
 
