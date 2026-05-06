@@ -33,7 +33,6 @@ import numpy as np
 import torch 
 import yaml
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 from rdkit import Chem
@@ -136,6 +135,12 @@ from backend.gnn_explainer import (
     visualize_explanation,
 )
 from backend.workspace_mode import get_workspace_mode
+from model_server.app_factory import create_model_server_app
+from model_server.route_groups import (
+    build_inference_api_router,
+    build_report_chat_router,
+    build_system_router,
+)
 from model_server.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -3305,28 +3310,18 @@ async def lifespan(app: FastAPI):
     yield
     model_state.clear()
 
-# FastAPI App
-app = FastAPI(
-    title="ToxAgent Model Server",
-    description="SMILESGNN toxicity prediction API for ToxAgent agentic system",
-    version="0.0.6",
-    lifespan=lifespan,
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],    # Restrict in production
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Return structured API errors when details provide explicit error payloads."""
     if isinstance(exc.detail, dict) and "error" in exc.detail:
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+# FastAPI App
+app = create_model_server_app(
+    lifespan=lifespan,
+    http_exception_handler=http_exception_handler,
+)
 
 
 def _invalid_smiles_error(smiles: str) -> HTTPException:
@@ -3723,12 +3718,7 @@ def _render_molecule_png(
     except Exception:
         return None
 
-app.add_api_route("/health", health, methods=["GET"], tags=["system"])
-if AIP_HEALTH_ROUTE != "/health":
-    app.add_api_route(AIP_HEALTH_ROUTE, health, methods=["GET"], include_in_schema=False)
 
-
-@app.post("/extract-smiles-from-image", response_model=SmilesImageExtractionResponse)
 async def extract_smiles_from_image(file: UploadFile = File(...)):
     filename = file.filename or "uploaded-image"
     extension = Path(filename).suffix.lower()
@@ -3795,7 +3785,6 @@ async def extract_smiles_from_image(file: UploadFile = File(...)):
         await file.close()
 
 
-@app.post("/smiles/preview", response_model=SmilesPreviewResponse)
 async def preview_smiles(req: SmilesPreviewRequest):
     smiles = (req.smiles or "").strip()
     if not smiles:
@@ -3833,7 +3822,6 @@ async def preview_smiles(req: SmilesPreviewRequest):
     )
 
 # Single Prediction
-@app.post("/predict", response_model=PredictResponse)
 async def predict(req: PredictRequest):
     """Predict clinical toxicity for a single SMILES molecule"""
     await _ensure_models_loaded()
@@ -3959,17 +3947,7 @@ async def predict(req: PredictRequest):
         threshold_used=req.threshold,
     )
 
-if AIP_PREDICT_ROUTE != "/predict":
-    app.add_api_route(
-        AIP_PREDICT_ROUTE,
-        predict,
-        methods=["POST"],
-        response_model=PredictResponse,
-        include_in_schema=False,
-    )
-
 # Batch Prediction
-@app.post("/predict/batch", response_model=BatchPredictResponse)
 async def predict_batch_endpoint(req: BatchPredictRequest):
     """Predict clinical toxicity for a list of SMILES molecules."""
     await _ensure_models_loaded()
@@ -4124,7 +4102,6 @@ async def predict_batch_endpoint(req: BatchPredictRequest):
     )
 
 # GNNExplainer
-@app.post("/explain", response_model=ExplainResponse)
 async def explain(req: ExplainRequest):
     """
     Generate GNNExplainer atom/bond attribution for a molecule.
@@ -4891,8 +4868,6 @@ def _deterministic_screening_payload(
     }
     return _ensure_structural_explanation(fallback_payload)
 
-
-@app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest):
     """
     Unified production endpoint with three outputs for one SMILES:
@@ -4903,8 +4878,6 @@ async def analyze(req: AnalyzeRequest):
     await _ensure_models_loaded()
     return await asyncio.to_thread(_analyze_request_sync, req)
 
-
-@app.post("/agent/analyze", response_model=AgentAnalyzeResponse)
 async def agent_analyze(req: AgentAnalyzeRequest):
     """Execute the ADK agent runtime and return final report + tool-calling traces."""
     smiles = req.smiles.strip()
@@ -5647,8 +5620,6 @@ def _resolve_or_rehydrate_chat_session(req: AgentChatRequest) -> str:
 def _sse_data(payload: Dict[str, Any]) -> str:
     return f"data: {json.dumps(payload, ensure_ascii=False)}\\n\\n"
 
-
-@app.post("/agent/chat", response_model=AgentChatResponse)
 async def agent_chat(req: AgentChatRequest):
     """Handle follow-up QA against a frozen per-report chat session."""
     user_message = req.message.strip()
@@ -5692,8 +5663,6 @@ async def agent_chat(req: AgentChatRequest):
 
     return AgentChatResponse(chat_session_id=chat_session_id, response=answer)
 
-
-@app.post("/agent/chat/stream")
 async def agent_chat_stream(req: AgentChatRequest):
     """Stream report-chat reasoning/tool events and tokens as Server-Sent Events."""
     user_message = req.message.strip()
@@ -5776,3 +5745,24 @@ async def agent_chat_stream(req: AgentChatRequest):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+app.include_router(build_system_router(health_handler=health, health_alias=AIP_HEALTH_ROUTE))
+app.include_router(
+    build_inference_api_router(
+        image_extract_handler=extract_smiles_from_image,
+        smiles_preview_handler=preview_smiles,
+        predict_handler=predict,
+        batch_predict_handler=predict_batch_endpoint,
+        explain_handler=explain,
+        analyze_handler=analyze,
+        agent_analyze_handler=agent_analyze,
+        predict_alias=AIP_PREDICT_ROUTE,
+    )
+)
+app.include_router(
+    build_report_chat_router(
+        chat_handler=agent_chat,
+        chat_stream_handler=agent_chat_stream,
+    )
+)
