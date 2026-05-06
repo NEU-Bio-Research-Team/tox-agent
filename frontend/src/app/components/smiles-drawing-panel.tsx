@@ -154,6 +154,19 @@ export function SmilesDrawingPanel({
 				.ketcher-host * {
 					pointer-events: auto;
 				}
+
+				.ketcher-host .ketcher-editor-frame {
+					isolation: isolate;
+				}
+
+				.ketcher-host .ketcher-editor-frame > div {
+					height: 100%;
+				}
+
+				.ketcher-host .ketcher-editor-frame [class*='BottomToolbar-module_root'] {
+					position: relative;
+					z-index: 1;
+				}
 			`}</style>
 			<div className="flex flex-col gap-2 rounded-lg border p-3 md:flex-row md:items-center md:justify-between" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)' }}>
 				<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -189,8 +202,15 @@ export function SmilesDrawingPanel({
 				</Alert>
 			)}
 
-			<div ref={editorHostRef} className="overflow-visible rounded-xl border" style={{ borderColor: 'var(--border)' }}>
-				<div className="relative z-10" style={{ minHeight: 420 }}>
+			<div
+				ref={editorHostRef}
+				className="overflow-hidden rounded-xl border"
+				style={{ borderColor: 'var(--border)', backgroundColor: '#ffffff' }}
+			>
+				<div
+					className="relative z-0 w-full ketcher-editor-frame"
+					style={{ minHeight: 420, height: 'clamp(420px, 58vh, 520px)' }}
+				>
 					<Editor
 						staticResourcesUrl="/"
 						structServiceProvider={structServiceProvider}
