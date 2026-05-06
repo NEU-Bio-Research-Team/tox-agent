@@ -70,12 +70,14 @@ from agents import (
     rerun_screening,
     root_agent,
     run_evidence_qa,
+    run_input_validation,
     run_orchestrator_flow,
+    run_research,
     run_screening,
     screening_agent,
     writer_agent,
 )
-from agents.language import normalize_language
+from agents.language import choose_text, normalize_language
 
 ADK_RUNTIME_IMPORT_ERROR: Optional[str] = None
 try:
@@ -5595,6 +5597,388 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     )
 
 
+async def agent_analyze_stream(req: AgentAnalyzeRequest):
+    """Stream deterministic analyze progress over SSE and finish with full payload."""
+    smiles = req.smiles.strip()
+    language = normalize_language(req.language)
+    if not smiles:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "smiles_empty",
+                "message": "SMILES is required for agent analysis.",
+            },
+        )
+
+    resolved_inference_backend = _resolve_inference_backend(req.inference_backend)
+    resolved_binary_tox_model = _resolve_binary_tox_model_key(req.binary_tox_model)
+    resolved_tox_type_model = _resolve_tox_type_model_key(req.tox_type_model)
+    session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
+
+    async def _event_stream():
+        emitted_events: List[AgentEventRecord] = []
+
+        def _emit_agent_event(
+            *,
+            author: str,
+            text_preview: str,
+            is_final: bool,
+            event_type: str = "stage",
+        ) -> str:
+            event = AgentEventRecord(
+                type=event_type,
+                author=author,
+                function_calls=[],
+                function_responses=[],
+                is_final=is_final,
+                text_preview=text_preview,
+            )
+            if req.include_agent_events:
+                emitted_events.append(event)
+            return _sse_data(
+                {
+                    "type": "agent_event",
+                    "session_id": session_id,
+                    "event": event.model_dump(mode="json"),
+                }
+            )
+
+        def _emit_done(result: AgentAnalyzeResponse) -> str:
+            return _sse_data(
+                {
+                    "type": "done",
+                    "session_id": result.session_id,
+                    "result": result.model_dump(mode="json"),
+                }
+            )
+
+        try:
+            if TOX_AGENT_ANALYZE_RUNTIME == "adk":
+                yield _emit_agent_event(
+                    author="System",
+                    text_preview=(
+                        "Streaming endpoint delegating to ADK runtime."
+                        if language == "en"
+                        else "Streaming endpoint dang uy quyen cho ADK runtime."
+                    ),
+                    is_final=False,
+                    event_type="runtime",
+                )
+                result = await agent_analyze(req)
+                if req.include_agent_events:
+                    for event in result.agent_events:
+                        yield _sse_data(
+                            {
+                                "type": "agent_event",
+                                "session_id": result.session_id,
+                                "event": event.model_dump(mode="json"),
+                            }
+                        )
+                yield _emit_done(result)
+                return
+
+            state: Dict[str, Any] = {
+                "smiles_input": smiles,
+                "language": language,
+                "clinical_threshold": float(req.clinical_threshold),
+                "mechanism_threshold": float(req.mechanism_threshold),
+                "inference_backend": resolved_inference_backend,
+                "binary_tox_model": resolved_binary_tox_model,
+                "tox_type_model": resolved_tox_type_model,
+                "molrag_enabled": bool(req.molrag_enabled),
+                "molrag_top_k": int(req.molrag_top_k),
+                "molrag_min_similarity": float(req.molrag_min_similarity),
+                "validation_status": "INVALID",
+                "screening_result": None,
+                "explanation_raw": None,
+                "screening_error": None,
+                "research_result": None,
+                "research_error": None,
+                "final_report": None,
+            }
+
+            yield _emit_agent_event(
+                author="InputValidator",
+                text_preview=(
+                    "Validating SMILES input..."
+                    if language == "en"
+                    else "Dang kiem tra dinh dang SMILES..."
+                ),
+                is_final=False,
+            )
+            validation = await asyncio.to_thread(run_input_validation, smiles)
+            state["validation_status"] = validation.get("validation_status")
+            state["validation_error"] = validation.get("validation_error")
+            state["health"] = validation.get("health")
+            state["smiles_validation"] = validation.get("smiles_validation")
+            state["canonical_smiles"] = validation.get("canonical_smiles")
+
+            validation_status = str(validation.get("validation_status") or "UNKNOWN")
+            validation_error = validation.get("validation_error")
+            if validation_error:
+                validation_text = (
+                    f"Validation failed: {validation_error}"
+                    if language == "en"
+                    else f"Validation that bai: {validation_error}"
+                )
+            else:
+                validation_text = (
+                    f"Validation status: {validation_status}"
+                    if language == "en"
+                    else f"Trang thai validation: {validation_status}"
+                )
+            yield _emit_agent_event(
+                author="InputValidator",
+                text_preview=validation_text,
+                is_final=True,
+            )
+
+            if validation_status != "VALID":
+                state["final_report"] = {
+                    "report_metadata": {
+                        "smiles": smiles,
+                        "report_version": "1.0",
+                        "language": language,
+                    },
+                    "error": validation_error,
+                    "executive_summary": choose_text(
+                        language,
+                        "SMILES khong hop le, pipeline dung tai buoc validation.",
+                        "SMILES validation failed before running downstream agents.",
+                    ),
+                    "risk_level": "UNKNOWN",
+                    "sections": {
+                        "clinical_toxicity": {},
+                        "mechanism_toxicity": {},
+                    },
+                }
+                final_report_payload = _coerce_json_dict(
+                    state.get("final_report"),
+                    nested_key="final_report",
+                ) or {}
+                evidence_qa_result_payload = _build_evidence_qa_result({}, state)
+                chat_session_id = _upsert_report_chat_session(
+                    analysis_session_id=session_id,
+                    smiles=smiles,
+                    final_report=final_report_payload,
+                    research_payload={},
+                    state=state,
+                    evidence_qa_result=evidence_qa_result_payload,
+                )
+                result = AgentAnalyzeResponse(
+                    session_id=session_id,
+                    chat_session_id=chat_session_id,
+                    adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
+                    runtime_mode="deterministic",
+                    runtime_note="streaming_deterministic_runtime",
+                    validation_status=validation_status,
+                    final_report=final_report_payload,
+                    evidence_qa_result=evidence_qa_result_payload,
+                    final_text=final_report_payload.get("executive_summary") if isinstance(final_report_payload.get("executive_summary"), str) else None,
+                    agent_events=emitted_events if req.include_agent_events else [],
+                    state_keys=sorted(state.keys()),
+                )
+                yield _emit_done(result)
+                return
+
+            canonical_smiles = str(validation.get("canonical_smiles") or smiles)
+            state["canonical_smiles"] = canonical_smiles
+
+            yield _emit_agent_event(
+                author="ScreeningAgent",
+                text_preview=(
+                    "Running toxicity screening models..."
+                    if language == "en"
+                    else "Dang chay screening doc tinh..."
+                ),
+                is_final=False,
+            )
+            screening_task = asyncio.create_task(
+                asyncio.to_thread(
+                    run_screening,
+                    canonical_smiles,
+                    language,
+                    float(req.clinical_threshold),
+                    float(req.mechanism_threshold),
+                    resolved_inference_backend,
+                    resolved_binary_tox_model,
+                    resolved_tox_type_model,
+                    bool(req.molrag_enabled),
+                    int(req.molrag_top_k),
+                    float(req.molrag_min_similarity),
+                    canonical_smiles,
+                )
+            )
+
+            yield _emit_agent_event(
+                author="ResearcherAgent",
+                text_preview=(
+                    "Retrieving literature and analog evidence..."
+                    if language == "en"
+                    else "Dang truy xuat tai lieu va bang chung analog..."
+                ),
+                is_final=False,
+            )
+            research_task = asyncio.create_task(
+                asyncio.to_thread(
+                    run_research,
+                    canonical_smiles,
+                    int(req.max_literature_results),
+                    language,
+                )
+            )
+
+            pending_tasks = {
+                screening_task: "screening",
+                research_task: "research",
+            }
+            screening_payload: Dict[str, Any] = {}
+            research_payload: Dict[str, Any] = {}
+
+            while pending_tasks:
+                completed, _ = await asyncio.wait(
+                    pending_tasks.keys(),
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                for task in completed:
+                    stage_name = pending_tasks.pop(task)
+                    payload = task.result()
+
+                    if stage_name == "screening":
+                        screening_payload = payload if isinstance(payload, dict) else {}
+                        state["screening_result"] = screening_payload.get("screening_result")
+                        state["screening_error"] = screening_payload.get("screening_error")
+                        if isinstance(state.get("screening_result"), dict):
+                            state["explanation_raw"] = state["screening_result"].get("explanation")
+                        screening_text = screening_payload.get("screening_error")
+                        if screening_text:
+                            screening_message = (
+                                f"Screening completed with warning: {screening_text}"
+                                if language == "en"
+                                else f"Screening hoan tat voi canh bao: {screening_text}"
+                            )
+                        else:
+                            screening_message = (
+                                "Screening completed."
+                                if language == "en"
+                                else "Screening da hoan tat."
+                            )
+                        yield _emit_agent_event(
+                            author="ScreeningAgent",
+                            text_preview=screening_message,
+                            is_final=True,
+                        )
+                        continue
+
+                    research_payload = payload if isinstance(payload, dict) else {}
+                    state["research_result"] = research_payload.get("research_result")
+                    state["research_error"] = research_payload.get("research_error")
+                    research_text = research_payload.get("research_error")
+                    if research_text:
+                        research_message = (
+                            f"Research completed with warning: {research_text}"
+                            if language == "en"
+                            else f"Research hoan tat voi canh bao: {research_text}"
+                        )
+                    else:
+                        research_message = (
+                            "Research completed."
+                            if language == "en"
+                            else "Research da hoan tat."
+                        )
+                    yield _emit_agent_event(
+                        author="ResearcherAgent",
+                        text_preview=research_message,
+                        is_final=True,
+                    )
+
+            yield _emit_agent_event(
+                author="WriterAgent",
+                text_preview=(
+                    "Synthesizing the final report..."
+                    if language == "en"
+                    else "Dang tong hop bao cao cuoi cung..."
+                ),
+                is_final=False,
+            )
+
+            final_report = await asyncio.to_thread(
+                build_final_report,
+                smiles,
+                state.get("screening_result"),
+                state.get("research_result"),
+                state.get("explanation_raw"),
+                language,
+            )
+            state["final_report"] = final_report
+
+            yield _emit_agent_event(
+                author="WriterAgent",
+                text_preview=(
+                    "Final report ready."
+                    if language == "en"
+                    else "Bao cao cuoi cung da san sang."
+                ),
+                is_final=True,
+            )
+
+            final_report_payload = _coerce_json_dict(
+                state.get("final_report"),
+                nested_key="final_report",
+            ) or {}
+            research_payload_for_chat = _coerce_json_dict(
+                state.get("research_result"),
+                nested_key="research_result",
+            ) or {}
+            evidence_qa_result_payload = _build_evidence_qa_result(
+                research_payload_for_chat,
+                state,
+            )
+            chat_session_id = _upsert_report_chat_session(
+                analysis_session_id=session_id,
+                smiles=smiles,
+                final_report=final_report_payload,
+                research_payload=research_payload_for_chat,
+                state=state,
+                evidence_qa_result=evidence_qa_result_payload,
+            )
+            summary = final_report_payload.get("executive_summary")
+            result = AgentAnalyzeResponse(
+                session_id=session_id,
+                chat_session_id=chat_session_id,
+                adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
+                runtime_mode="deterministic",
+                runtime_note="streaming_deterministic_runtime",
+                validation_status=validation_status,
+                final_report=final_report_payload,
+                evidence_qa_result=evidence_qa_result_payload,
+                final_text=summary if isinstance(summary, str) else None,
+                agent_events=emitted_events if req.include_agent_events else [],
+                state_keys=sorted(state.keys()),
+            )
+            yield _emit_done(result)
+        except Exception as exc:
+            logger.exception("agent_analyze_stream failed")
+            yield _sse_data(
+                {
+                    "type": "error",
+                    "session_id": session_id,
+                    "error": "agent_stream_runtime_error",
+                    "message": str(exc),
+                }
+            )
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 def _resolve_or_rehydrate_chat_session(req: AgentChatRequest) -> str:
     chat_session_id = _resolve_report_chat_session_id(
         chat_session_id=req.chat_session_id,
@@ -5757,6 +6141,7 @@ app.include_router(
         explain_handler=explain,
         analyze_handler=analyze,
         agent_analyze_handler=agent_analyze,
+        agent_analyze_stream_handler=agent_analyze_stream,
         predict_alias=AIP_PREDICT_ROUTE,
     )
 )

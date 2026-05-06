@@ -420,6 +420,15 @@ export interface AgentChatStreamEvent {
 	message?: string;
 }
 
+export interface AgentAnalyzeStreamEvent {
+	type: 'agent_event' | 'done' | 'error' | string;
+	session_id?: string;
+	event?: AgentEventRecord;
+	result?: AgentAnalyzeResponse;
+	error?: string;
+	message?: string;
+}
+
 export interface SmilesImageExtractionResponse {
 	smiles: string | null;
 	canonical_smiles: string | null;
@@ -541,6 +550,135 @@ export async function agentAnalyze(
 	}
 
 	return (await res.json()) as AgentAnalyzeResponse;
+}
+
+export async function* agentAnalyzeStream(
+	smiles: string,
+	options: AgentAnalyzeOptions = {},
+): AsyncGenerator<AgentAnalyzeStreamEvent> {
+	const parseStreamEvent = (rawEvent: string): AgentAnalyzeStreamEvent | null => {
+		const normalizedEvent = rawEvent.replace(/\r\n/g, '\n').trim();
+		if (!normalizedEvent) {
+			return null;
+		}
+
+		const dataLines = normalizedEvent
+			.split('\n')
+			.map((line) => line.trimStart())
+			.filter((line) => line.startsWith('data:'))
+			.map((line) => line.slice(5).trimStart());
+
+		if (dataLines.length === 0) {
+			const singleLine = normalizedEvent.trimStart();
+			if (!singleLine.startsWith('data:')) {
+				return null;
+			}
+			dataLines.push(singleLine.slice(5).trimStart());
+		}
+
+		const rawData = dataLines.join('\n').trim();
+		if (!rawData) {
+			return null;
+		}
+
+		try {
+			return JSON.parse(rawData) as AgentAnalyzeStreamEvent;
+		} catch {
+			return null;
+		}
+	};
+
+	const consumeBuffer = (input: string, allowTailEvent: boolean) => {
+		const parsedEvents: AgentAnalyzeStreamEvent[] = [];
+		let remaining = input.replace(/\r\n/g, '\n');
+
+		let separatorIndex = remaining.indexOf('\n\n');
+		while (separatorIndex >= 0) {
+			const rawEvent = remaining.slice(0, separatorIndex);
+			remaining = remaining.slice(separatorIndex + 2);
+			const parsed = parseStreamEvent(rawEvent);
+			if (parsed) {
+				parsedEvents.push(parsed);
+			}
+			separatorIndex = remaining.indexOf('\n\n');
+		}
+
+		let escapedSeparatorIndex = remaining.search(/\\n\\n(?=\s*data:)/);
+		while (escapedSeparatorIndex >= 0) {
+			const rawEvent = remaining.slice(0, escapedSeparatorIndex);
+			remaining = remaining.slice(escapedSeparatorIndex + 4);
+			const parsed = parseStreamEvent(rawEvent);
+			if (parsed) {
+				parsedEvents.push(parsed);
+			}
+			escapedSeparatorIndex = remaining.search(/\\n\\n(?=\s*data:)/);
+		}
+
+		if (allowTailEvent) {
+			const tailEvent = parseStreamEvent(remaining);
+			if (tailEvent) {
+				parsedEvents.push(tailEvent);
+				remaining = '';
+			}
+		}
+
+		return { parsedEvents, remaining };
+	};
+
+	const payload = {
+		smiles,
+		include_agent_events: true,
+		language: options.language ?? 'en',
+		clinical_threshold: options.clinicalThreshold ?? 0.35,
+		mechanism_threshold: options.mechanismThreshold ?? 0.5,
+		max_literature_results: options.maxLiteratureResults ?? 5,
+		inference_backend: options.inferenceBackend ?? 'chemberta',
+		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
+		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best',
+		molrag_enabled: options.molragEnabled ?? true,
+		molrag_top_k: options.molragTopK ?? 5,
+		molrag_min_similarity: options.molragMinSimilarity ?? 0.15,
+	};
+
+	const res = await fetch(`${BASE_URL}/agent/analyze/stream`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		const bodyText = await res.text();
+		throw new Error(toErrorMessage(res.status, bodyText));
+	}
+
+	if (!res.body) {
+		throw new Error('Streaming not supported by this runtime.');
+	}
+
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = '';
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) {
+			buffer += decoder.decode();
+			const { parsedEvents } = consumeBuffer(buffer, true);
+			for (const parsedEvent of parsedEvents) {
+				yield parsedEvent;
+			}
+			buffer = '';
+			break;
+		}
+
+		buffer += decoder.decode(value, { stream: true });
+
+		const { parsedEvents, remaining } = consumeBuffer(buffer, false);
+		for (const parsedEvent of parsedEvents) {
+			yield parsedEvent;
+		}
+		buffer = remaining;
+	}
 }
 
 export interface AgentChatOptions {

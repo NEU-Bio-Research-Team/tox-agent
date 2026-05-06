@@ -42,6 +42,7 @@ def build_inference_api_router(
     explain_handler: RouteHandler,
     analyze_handler: RouteHandler,
     agent_analyze_handler: RouteHandler,
+    agent_analyze_stream_handler: RouteHandler,
     predict_alias: Optional[str] = None,
 ) -> APIRouter:
     router = APIRouter()
@@ -96,6 +97,11 @@ def build_inference_api_router(
         agent_analyze_handler,
         methods=["POST"],
         response_model=AgentAnalyzeResponse,
+    )
+    router.add_api_route(
+        "/agent/analyze/stream",
+        agent_analyze_stream_handler,
+        methods=["POST"],
     )
     return router
 
