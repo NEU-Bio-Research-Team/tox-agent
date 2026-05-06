@@ -6002,7 +6002,7 @@ def _resolve_or_rehydrate_chat_session(req: AgentChatRequest) -> str:
 
 
 def _sse_data(payload: Dict[str, Any]) -> str:
-    return f"data: {json.dumps(payload, ensure_ascii=False)}\\n\\n"
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 async def agent_chat(req: AgentChatRequest):
     """Handle follow-up QA against a frozen per-report chat session."""

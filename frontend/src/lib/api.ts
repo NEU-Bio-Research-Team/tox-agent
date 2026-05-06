@@ -577,12 +577,13 @@ export async function* agentAnalyzeStream(
 		}
 
 		const rawData = dataLines.join('\n').trim();
-		if (!rawData) {
+		const normalizedData = rawData.replace(/(?:\\n)+$/, '').trim();
+		if (!normalizedData) {
 			return null;
 		}
 
 		try {
-			return JSON.parse(rawData) as AgentAnalyzeStreamEvent;
+			return JSON.parse(normalizedData) as AgentAnalyzeStreamEvent;
 		} catch {
 			return null;
 		}
@@ -741,12 +742,13 @@ export async function* agentChatStream(
 		}
 
 		const rawData = dataLines.join('\n').trim();
-		if (!rawData) {
+		const normalizedData = rawData.replace(/(?:\\n)+$/, '').trim();
+		if (!normalizedData) {
 			return null;
 		}
 
 		try {
-			return JSON.parse(rawData) as AgentChatStreamEvent;
+			return JSON.parse(normalizedData) as AgentChatStreamEvent;
 		} catch {
 			return null;
 		}
