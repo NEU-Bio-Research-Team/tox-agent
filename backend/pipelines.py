@@ -7,10 +7,10 @@ This module provides high-level functions for:
 
 Model Types:
 -----------
-- **MLP Model** (Self-designed): FingerprintMLP from src.models
+- **MLP Model** (Self-designed): FingerprintMLP from backend.models
   - Input: Morgan fingerprints (fixed-length vectors)
   - Framework: PyTorch (custom training loop)
-  - Featurization: src.featurization.featurize_batch(mode="fingerprint")
+    - Featurization: backend.featurization.featurize_batch(mode="fingerprint")
   
 - **GNN Model** (Imported): torch-molecule BFGNNMolecularPredictor/GRINMolecularPredictor
   - Input: SMILES strings (direct)
@@ -26,15 +26,15 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple, Any, List
 import pickle
 
-from src.data import load_clintox
-from src.featurization import featurize_batch
-from src.models import create_baseline_model
-from src.train import (
+from backend.data import load_clintox
+from backend.featurization import featurize_batch
+from backend.models import create_baseline_model
+from backend.train import (
     train_baseline_model, 
     evaluate_model, 
     predict_with_torch_molecule_model
 )
-from src.utils import set_seed, get_default_config, save_metrics
+from backend.utils import set_seed, get_default_config, save_metrics
 
 
 # ============================================================================

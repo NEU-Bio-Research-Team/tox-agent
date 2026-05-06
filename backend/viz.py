@@ -38,7 +38,7 @@ def plot_explained_molecule(
         >>> importances = np.array([0.1, 0.5, 0.9])
         >>> plot_explained_molecule("CCO", importances, title="Ethanol Explanation")
     """
-    from src.featurization import smiles_to_mol
+    from backend.featurization import smiles_to_mol
     
     mol = smiles_to_mol(smiles)
     if mol is None:
@@ -110,7 +110,7 @@ def plot_explained_grid(
         figsize_per_mol: Size of each molecule subplot
         colormap: Matplotlib colormap name
     """
-    from src.featurization import smiles_to_mol
+    from backend.featurization import smiles_to_mol
     
     n_mols = len(smiles_list)
     n_rows = (n_mols + n_cols - 1) // n_cols
@@ -201,7 +201,7 @@ def map_fingerprint_to_atoms(
     Returns:
         Atom-level importance scores
     """
-    from src.featurization import smiles_to_mol
+    from backend.featurization import smiles_to_mol
     from rdkit.Chem import AllChem
     
     mol = smiles_to_mol(smiles)

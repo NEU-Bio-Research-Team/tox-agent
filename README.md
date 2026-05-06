@@ -75,6 +75,14 @@ ToxAgent is a multi-agent system with 3 main layers:
    - Graph models + explainability
    - OOD guard and confidence information
 
+Workspace layout today:
+- `frontend/`: production web app and the only frontend build target used by Firebase Hosting
+- `model_server/`: FastAPI deploy target used by Cloud Run
+- `agents/`, `backend/`, `services/`: runtime packages for orchestration, ML, and infra
+- `tests/`: automated unit tests; `tests/smoke/`: manual smoke checks
+- `legacy/`: archived prototypes and MVP surfaces kept outside the main product root
+- `src/`: compatibility wrappers retained for legacy scripts while runtime code imports `backend.*` directly
+
 ToxAgent aims to:
 - Not just provide toxicity scores
 - But also explain why the model made its assessment
@@ -191,6 +199,8 @@ npm run deploy:hosting
 Notes:
 - `npm run build` now builds `frontend/` directly.
 - `npm run deploy:hosting` will build first, then deploy only Firebase Hosting.
+- The primary production deploy path is GitHub Actions via `.github/workflows/frontend-autodeploy.yml`
+  and `.github/workflows/backend-autodeploy.yml`; local deploy commands are optional/manual.
 
 If backend is running on a different port, set env variable before running frontend:
 ```bash
@@ -270,6 +280,13 @@ Performance notes:
 - MolScribe preload is enabled by default to reduce first OCR request latency.
 
 ### 5.7 OCR Runtime Environment Variables
+
+### 5.8 Archived Legacy Surfaces
+- Historical prototypes now live under `legacy/` to keep the product root focused.
+- `legacy/api-local-tester/` contains the old local-only API playground.
+- `legacy/landing-page-prototype/` contains the archived landing page prototype.
+- `legacy/streamlit-clintox/` contains the old Streamlit ClinTox UI.
+- None of the archived `legacy/` apps are part of the Firebase Hosting or Cloud Run deploy path.
 - `SMILES_IMAGE_MAX_BYTES` (default: `5242880`)
 - `MOLSCRIBE_PRELOAD_ON_STARTUP` (default: `true`)
 - `MOLSCRIBE_AUTO_DOWNLOAD` (default: `true`)

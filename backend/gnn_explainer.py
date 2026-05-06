@@ -343,7 +343,7 @@ def explain_tox21_task(
 
     Returns a dict aligned with visualize_explanation plus task metadata.
     """
-    from src.graph_data import smiles_to_pyg_data
+    from backend.graph_data import smiles_to_pyg_data
 
     if target_task not in task_names:
         raise ValueError(
@@ -594,7 +594,7 @@ def explain_tox21_task_gradient(
     threshold: float = 0.5,
 ) -> Dict:
     """Fast deterministic gradient saliency for one Tox21 task."""
-    from src.graph_data import smiles_to_pyg_data
+    from backend.graph_data import smiles_to_pyg_data
 
     if target_task not in task_names:
         raise ValueError(

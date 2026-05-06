@@ -27,15 +27,15 @@ from torch.utils.data import DataLoader
 from torch_geometric.data import Batch
 from transformers import AutoTokenizer
 
-from src.data import get_task_names
-from src.graph_data import get_feature_dims, smiles_to_pyg_data
-from src.graph_models import create_gatv2_model
-from src.graph_models_hybrid import create_hybrid_model
-from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 from backend.clinical_head import create_clinical_head, scores_dict_to_feature_vector
+from backend.data import get_task_names
 from backend.featurization import featurize_fingerprint
+from backend.graph_data import get_feature_dims, smiles_to_pyg_data
+from backend.graph_models import create_gatv2_model
+from backend.graph_models_hybrid import create_hybrid_model
 from backend.pretrained_gnn import create_pretrained_gin_model, mol_to_graph_hu2020
 from backend.pretrained_mol_model import create_pretrained_dual_head_model, get_checkpoint_defaults
+from backend.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 
 
 def _env_float(name: str, default: float) -> float:

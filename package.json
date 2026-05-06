@@ -10,7 +10,11 @@
     "preview": "npm --prefix frontend run preview -- --host",
     "build:frontend": "npm --prefix frontend run build",
     "deploy:hosting": "npm run build && npx firebase-tools deploy --only hosting",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:backend",
+    "test:backend": "python -m unittest discover -s tests -p \"test_*.py\"",
+    "test:smoke": "python -m tests.smoke.agent_layer_flow_smoke",
+    "test:smoke:adk": "python -m tests.smoke.adk_live_smoke",
+    "validate": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",
