@@ -1,401 +1,316 @@
-# ToxAgent (v0.0.6 Beta)
+# ToxAgent
 
-A multi-agent AI platform for molecular toxicity analysis from SMILES, combining:
-- Screening mechanisms from graph/SMILES models
-- Structural explanation (atom/bond attribution)
-- Research context enrichment from external sources
-- Structured report synthesis for direct R&D workflow integration
+ToxAgent is a multi-agent toxicity analysis platform for SMILES-based compound screening. The current workspace combines a React/Vite frontend, a FastAPI model server, multi-agent orchestration, explainability tooling, and Firebase-backed persistence for analysis history and report chat sessions.
 
-Production web app: https://tox-agent.web.app
+Production app: https://tox-agent.web.app
 
----
+## Current Snapshot
 
-## 1) Current Version and Updates
+- Frontend bundle version: `0.0.9`
+- Root npm package version: `1.0.0`
+- Checked-in workspace mode: `full`
+- Primary dataset: `tox21`
+- Threshold policy: `safety_first`
+- Frontend deploy target: Firebase Hosting from `frontend/dist`
+- Backend deploy target: Cloud Run service `tox-agent-cpu`
+- Auth and persistence: Firebase Auth + Cloud Firestore
 
-### Current Version
-- Frontend: **0.0.6 (Beta)**
-- Default workspace mode: **tox21_only**
-- Workspace priority: **safety_first**
+Version note:
+- The UI bundle version and the root npm package version are different on purpose. The frontend release label currently tracks `0.0.9`, while the repo-level npm scripts package is `1.0.0`.
 
-### What's New in 0.0.6
-- Added new tox-type mechanism model options:
-  - `tox21_ensemble_3_best` (ChemBERTa + MolFormer + Pretrained-GIN).
-  - `tox21_pretrained_gin_model`.
-- Updated analyze routing so explainer engine follows selected `tox_type_model`.
-- For ensemble mode, explainer now routes to the designated best-member engine.
-- Extended backend serving with pretrained-GIN Tox21 inference support.
+## What The System Does
 
-### Upgrade Note
-- If you have an old tab open, please hard refresh your browser to get the latest bundle.
+ToxAgent currently supports these product flows:
 
-### Current 2-Head Model Ranking (Web Selectable)
+- Accept SMILES from plain text input, molecular drawing, or image upload plus OCR.
+- Run fast prediction with `/predict`, full structured analysis with `/analyze`, or multi-agent report generation with `/agent/analyze`.
+- Produce toxicity reports that combine clinical signal, mechanism signal, structural explanation, OOD assessment, and follow-up recommendations.
+- Support grounded report chat through `/agent/chat` and `/agent/chat/stream`.
+- Persist authenticated user analyses and chat sessions in Firestore.
+- Route hosted frontend API calls through Firebase Hosting rewrites to the Cloud Run backend.
 
-The following ranking covers the 2-head models currently exposed in the web UI model selectors
-(`Binary Toxicity Model` and `Toxicity Type Model`), ranked by `joint_auc_beta3`.
+## System Architecture
 
-Source of truth:
-- `models/dualhead_model_ranking.csv`
-- `frontend/src/app/components/hero-section.tsx`
+### 1. Frontend Layer
 
-| Rank | Model key (web option value) | UI label (short) | joint_auc_beta3 |
-|---|---|---|---:|
-| 1 | `dualhead_ensemble6_simple` | Ensemble-6 Simple (Recommended) | 0.8467 |
-| 2 | `dualhead_ensemble3_weighted` | Ensemble-3 Weighted | 0.8466 |
-| 3 | `dualhead_ensemble3_simple` | Ensemble-3 Simple | 0.8455 |
-| 4 | `dualhead_ensemble5_simple` | Ensemble-5 Simple | 0.8451 |
-| 5 | `pretrained_2head_herg_molformer_model` | MolFormer Dual-Head (Full) | 0.8270 |
-| 6 | `pretrained_2head_herg_chemberta_model` | ChemBERTa Dual-Head (Full) | 0.8178 |
-| 7 | `pretrained_2head_herg_pubchem_model` | PubChem Dual-Head (Full) | 0.8133 |
-| 8 | `pretrained_2head_herg_pubchem_quick` | PubChem Dual-Head (Quick) | 0.7896 |
-| 9 | `pretrained_2head_herg_molformer_quick` | MolFormer Dual-Head (Quick) | 0.7746 |
-| 10 | `pretrained_2head_herg_chemberta_quick` | ChemBERTa Dual-Head (Quick) | 0.7725 |
+`frontend/` is the only active web client shipped to production.
 
-Legacy compatibility note:
-- `tox21_ensemble_3_best` is still available in the UI for backward compatibility and is served as the same ensemble spec as `dualhead_ensemble3_simple`.
+- Stack: React 18, React Router 7, TypeScript, Vite 6, MUI, and Radix UI.
+- Main app entrypoint: `frontend/src/main.tsx` -> `frontend/src/app/App.tsx`.
+- Main routes:
+  - `/` landing page
+  - `/analyze` protected analysis workspace
+  - `/report` protected report view
+  - `/chat` follow-up chatbot view
+  - `/settings`, `/documents`, `/about`, `/login`, `/register`
+- The frontend uses a safe base URL resolver so hosted builds fall back to relative API paths when a localhost API URL is accidentally bundled.
 
----
+### 2. API And Orchestration Layer
 
-## 2) ToxAgent Overview
+`model_server/main.py` is the FastAPI entrypoint for the backend runtime.
 
-ToxAgent is a multi-agent system with 3 main layers:
+- Core route registration lives in `model_server/route_groups.py`.
+- The backend can run either:
+  - ADK-backed orchestration when Google ADK is available
+  - deterministic fallback orchestration when ADK is unavailable or disabled
+- The server exposes system, inference, analysis, streaming, and report-chat routes from one FastAPI app.
 
-1. Presentation layer (Frontend)
-   - React + Vite
-   - Displays quick verdict, full report, heatmap, and molecule image
+### 3. Agent Layer
 
-2. Agent orchestration layer
-   - InputValidator Agent: input normalization/validation
-   - Screening Agent: calls model pipeline for prediction + attribution
-   - Researcher Agent: fetches research context (PubChem/PubMed)
-   - Writer Agent: synthesizes results into a final structured report
-   - Orchestrator Agent: coordinates, fallbacks, and state repair as needed
+`agents/` is no longer limited to the older four-agent description. The active runtime surface now includes:
 
-3. Model/API layer
-   - FastAPI model server with endpoints `/health`, `/predict`, `/analyze`, `/agent/analyze`
-   - Graph models + explainability
-   - OOD guard and confidence information
+- `orchestrator_agent.py`: request coordination, validation, routing, and fallback behavior
+- `screening_agent.py`: screening pipeline execution and structured prediction packaging
+- `researcher_agent.py`: research context lookup
+- `evidence_qa_agent.py`: evidence curation and claim-support checks
+- `writer_agent.py`: final report synthesis
+- `report_chat_agent.py`: grounded report QA, report section lookup, analog comparison, rerun helpers, and mechanism explanation
+- `adk_compat.py`: ADK availability and compatibility helpers
 
-Workspace layout today:
-- `frontend/`: production web app and the only frontend build target used by Firebase Hosting
-- `model_server/`: FastAPI deploy target used by Cloud Run
-- `agents/`, `backend/`, `services/`: runtime packages for orchestration, ML, and infra
-- `tests/`: automated unit tests; `tests/smoke/`: manual smoke checks
-- `legacy/`: archived prototypes and MVP surfaces kept outside the main product root
-- `src/`: compatibility wrappers retained for legacy scripts while runtime code imports `backend.*` directly
+### 4. ML And Inference Layer
 
-ToxAgent aims to:
-- Not just provide toxicity scores
-- But also explain why the model made its assessment
-- And provide literature context to support research decisions
+`backend/` contains the model and explainability runtime.
 
----
+Current runtime capabilities include:
 
-## 3) ToxAgent Workflow (ASCII)
+- xSMILES clinical inference paths
+- pretrained dual-head hERG models
+- Tox21 ensemble routing and pretrained-GIN support
+- additional Tox21 backends such as AttentiveFP, GPS, and fingerprint-based models
+- clinical head inference support
+- GNNExplainer and gradient-based explanation flows
+- OOD guard logic and inference context reporting
+- workspace mode controls from `config/workspace_mode.yaml`
+
+### 5. Data And Service Layer
+
+`services/` and Firebase resources support persistence and knowledge retrieval.
+
+- `services/firestore_client.py`: Firestore access helpers
+- `services/genai_runtime.py`: GenAI runtime integration
+- `services/knowledge_retriever.py`: knowledge retrieval utilities
+- `services/molecule_retriever.py`: similar-molecule retrieval used by MolRAG-style flows
+- `services/result_fusion.py`: fusion helpers between baseline model output and retrieval/context signals
+
+Firestore rules currently cover these main surfaces:
+
+- `molecules`
+- `predictions`
+- `users/{uid}`
+- `users/{uid}/analyses`
+- `users/{uid}/chatSessions`
+
+## Current Deployment Topology
 
 ```text
-+-------------------+
-| User enters SMILES|
-+---------+---------+
-          |
-          v
-+-------------------+
-| Frontend (React)  |
-| POST /agent/analyze
-+---------+---------+
-          |
-          v
-+-----------------------------+
-| Orchestrator Agent          |
-+-----+-----------------+-----+
-      |                 |
-      v                 v
-+-------------+   +----------------+
-| Input       |   | Researcher     |
-| Validator   |   | Agent          |
-+------+------+   +-------+--------+
-       |                  |
-       v                  v
-+----------------+   +----------------------+
-| Screening Agent|   | PubChem / PubMed     |
-+-------+--------+   +----------------------+
-        |
-        | tool call: analyze_molecule
-        v
-+----------------------------------------------+
-| Model Server (/analyze)                      |
-| - Canonicalize + validation                  |
-| - Toxicity scoring                           |
-| - Tox21 mechanism scores                     |
-| - Structural explanation (heatmap + molecule)|
-| - OOD assessment                             |
-+----------------------+-----------------------+
-                       |
-                       v
-              +----------------+
-              | Writer Agent   |
-              | final_report   |
-              +--------+-------+
-                       |
-                       v
-+-----------------------------------------------+
-| Frontend Report                               |
-| - Executive summary                           |
-| - Clinical/mechanism sections                 |
-| - Structural explanation images + top atoms   |
-| - Literature context + recommendations        |
-+-----------------------------------------------+
+Browser
+  |
+  v
+Firebase Hosting
+  |-- serves frontend/dist
+  |
+  |-- rewrites /health, /predict, /analyze, /agent/**,
+  |           /smiles/**, /extract-smiles-from-image
+  v
+Cloud Run: tox-agent-cpu
+  |
+  +-- FastAPI model server
+      |
+      +-- agents/
+      +-- backend/
+      +-- services/
+      |
+      +-- external services
+          - Firebase Auth / Firestore
+          - PubChem / PubMed style retrieval
+          - Google GenAI / ADK runtime
 ```
 
----
+## End-To-End Runtime Flow
 
-## 4) How to Use ToxAgent
+```text
+User input
+  |- type SMILES
+  |- draw molecule
+  `- upload image for OCR
+          |
+          v
+Frontend (React + Vite)
+          |
+          +--> /smiles/preview
+          +--> /extract-smiles-from-image
+          +--> /predict
+          +--> /analyze
+          `--> /agent/analyze or /agent/analyze/stream
+                      |
+                      v
+FastAPI model server
+  |- validation and canonicalization
+  |- screening and mechanism inference
+  |- explanation and OOD assessment
+  |- research enrichment and report synthesis
+  `- chat session creation for follow-up QA
+                      |
+                      v
+Structured report + optional Firestore persistence + report chat
+```
 
-### Easiest Way (Production)
-1. Open https://tox-agent.web.app
-2. Enter SMILES
-3. Adjust threshold in Settings if needed
-4. Click Analyze
-5. View quick verdict and full report
-6. Click version badge to view release notes anytime
+## Repository Layout
 
-### Run Local Backend (FastAPI)
+The repo has grown beyond the older MVP structure. The directories below are the main active surfaces today:
+
+- `frontend/`: production web app and build output for Firebase Hosting
+- `model_server/`: FastAPI serving layer and Cloud Run container target
+- `agents/`: orchestration, report generation, evidence QA, and report chat logic
+- `backend/`: model loading, inference, explainers, OOD logic, and workspace controls
+- `services/`: Firestore, retrieval, GenAI, and result-fusion helpers
+- `firestore/`: Firestore-related utilities and scripts
+- `config/`: model config and workspace mode config
+- `models/`: local model artifacts expected by the backend runtime
+- `tests/`: unit tests plus smoke-style coverage
+- `scripts/`: training, prediction, and experiment utilities
+- `deploy/`: deployment manifests and environment assets
+- `docs/`: specs, runbooks, and archived documentation
+- `legacy/`: archived or superseded surfaces not used in the current deploy path
+- `src/`: compatibility wrappers retained for older scripts and integrations
+
+## Local Development
+
+### 1. Create The Python Environment
+
+Use the checked-in conda environment name:
+
 ```bash
 conda env create -f environment.yml
 conda activate drug-tox-env
 pip install -r model_server/requirements.txt
+```
+
+### 2. Install Frontend And Root Npm Dependencies
+
+The root package provides convenience scripts. The frontend has its own dependency tree.
+
+```bash
+npm install
+npm --prefix frontend install
+```
+
+### 3. Configure Environment Variables
+
+Common local variables:
+
+```bash
+export MODELS_ROOT="$PWD/models"
+export VITE_API_BASE_URL="http://127.0.0.1:8080"
+```
+
+Optional repo-level env files:
+
+- `.env`
+- `.env.local`
+
+If you use OCR or hosted AI features, those env files are the right place for runtime-specific secrets and toggles.
+
+### 4. Start The Backend
+
+```bash
 uvicorn model_server.main:app --host 0.0.0.0 --port 8080 --workers 1
 ```
 
-Quick check:
+Health check:
+
 ```bash
 curl -sS http://127.0.0.1:8080/health
+```
 
+Minimal analysis example:
+
+```bash
 curl -sS -X POST http://127.0.0.1:8080/analyze \
   -H 'Content-Type: application/json' \
   -d '{
-    "smiles":"CC(=O)Oc1ccccc1C(=O)O",
-    "clinical_threshold":0.6,
-    "mechanism_threshold":0.6,
-    "return_all_scores":true,
-    "explain_only_if_alert":false,
-    "explainer_epochs":80,
-    "explainer_timeout_ms":30000
+    "smiles": "CC(=O)Oc1ccccc1C(=O)O"
   }'
 ```
 
-### Run Local Frontend
+### 5. Start The Frontend
+
+From the repo root:
+
 ```bash
-cd frontend
-npm install
 npm run dev
 ```
 
-### Build UI and Deploy Hosting (from repo root)
+That command delegates to `frontend/` and starts the Vite dev server.
+
+### 6. Run Tests And Build
+
 ```bash
+npm run test
+npm run test:smoke
+npm run test:smoke:adk
 npm run build
-npm run deploy:hosting
 ```
 
 Notes:
-- `npm run build` now builds `frontend/` directly.
-- `npm run deploy:hosting` will build first, then deploy only Firebase Hosting.
-- The primary production deploy path is GitHub Actions via `.github/workflows/frontend-autodeploy.yml`
-  and `.github/workflows/backend-autodeploy.yml`; local deploy commands are optional/manual.
 
-If backend is running on a different port, set env variable before running frontend:
-```bash
-export VITE_API_BASE_URL=http://127.0.0.1:8080
-npm run dev
-```
+- `npm run test` runs the Python unit test suite under `tests/`.
+- `npm run build` builds `frontend/`.
+- `npm run deploy:hosting` builds first, then deploys only Firebase Hosting.
 
-### Run Tox21 Script (current workspace mode)
-```bash
-python scripts/train_tox21_gatv2.py --device cuda --config config/tox21_gatv2_config.yaml
-python scripts/predict_tox21.py --smiles "CCO" --device cuda
-```
+## API Quick Reference
 
----
+### System
 
-## 5) Other Important Details
+- `GET /health`: health check
 
-### 5.1 API Quick Reference
-- `GET /health`: model/runtime status
-- `POST /predict`: quick prediction for a SMILES
-- `POST /analyze`: returns clinical + mechanism + explanation
-- `POST /agent/analyze`: full multi-agent workflow + final report
-- `POST /extract-smiles-from-image`: upload PNG/JPG/JPEG/WebP and extract validated canonical SMILES
+### Molecule Input And Inference
 
-### 5.2 Workspace Mode and Guard Rails
-Current workspace config:
-- `mode: tox21_only`
+- `POST /extract-smiles-from-image`: image-to-SMILES OCR
+- `POST /smiles/preview`: render or preview a molecule structure
+- `POST /predict`: single-molecule toxicity prediction
+- `POST /predict/batch`: batch toxicity prediction
+- `POST /explain`: explanation for a molecule or target class
+- `POST /analyze`: structured analysis with clinical, mechanism, explanation, and OOD outputs
+
+### Agent And Report Flows
+
+- `POST /agent/analyze`: full multi-agent report generation
+- `POST /agent/analyze/stream`: streaming event version of report generation
+- `POST /agent/chat`: grounded follow-up QA against a generated report
+- `POST /agent/chat/stream`: streaming report-chat endpoint
+
+## Current Workspace Configuration
+
+The checked-in workspace config in `config/workspace_mode.yaml` is currently:
+
+- `mode: full`
 - `primary_dataset: tox21`
-- `clintox_enabled: false`
+- `clintox_enabled: true`
 - `tox21_enabled: true`
+- `threshold_policy: safety_first`
 
-Meaning:
-- Pipeline and scripts prioritize Tox21
-- ClinTox training/eval paths are restricted by guard rails
+This is a meaningful change from older README versions that described the workspace as `tox21_only`.
 
-### 5.3 Reliability and Explanation
-- GNNExplainer is an attribution tool, not an absolute certificate
-- OOD flag should be prioritized in decision making
-- Model results should be combined with expert review and experimental data
+## OCR Runtime Notes
 
-### 5.4 Quick Troubleshooting
-- Symptom: heatmap present but no molecule image
-  - Check drawing runtime libs in container (Cairo/font)
-- Symptom: slow first request
-  - Check warm instance/startup probe on Cloud Run
-- Symptom: frontend calls localhost in production
-  - Check `VITE_API_BASE_URL` and Firebase Hosting rewrite
+The image-upload path is handled separately from the normal analysis flow.
 
-### 5.5 Next Directions
-- Add benchmark/telemetry for latency and quality report per session
-- Enhance explainability with stronger chemical constraints
-- Strengthen failure registry and feedback loop process
+- Uploads are validated before OCR.
+- MolScribe is used for image-to-SMILES extraction when available.
+- Common runtime knobs include `SMILES_IMAGE_MAX_BYTES`, `MOLSCRIBE_PRELOAD_ON_STARTUP`, and `MOLSCRIBE_MODEL_PATH`.
 
-### 5.6 New Input Modes (MVP)
-Frontend now supports 3 input modes in the main analysis panel:
-- Type SMILES directly.
-- Draw molecule with **Ketcher** and export SMILES into the main input.
-- Upload structure image (PNG/JPG/JPEG/WebP) and extract SMILES from image OCR.
+## Deployment Notes
 
-Backend image OCR flow:
-- Validate MIME type and extension.
-- Enforce max upload size (`5MB` by default).
-- Preprocess image with Pillow (RGB + autocontrast).
-- Run MolScribe image-to-SMILES model.
-- Validate and canonicalize with RDKit.
+- `firebase.json` serves the SPA from `frontend/dist` and rewrites API requests to Cloud Run.
+- `cloudbuild.tox-agent.yaml` builds the backend container from `model_server/Dockerfile`.
+- The Cloud Run health route can be aliased through `AIP_HEALTH_ROUTE` when the environment requires a non-default health path.
 
-Standardized OCR error codes:
-- `unsupported_image_format`
-- `image_too_large`
-- `smiles_not_detected`
-- `invalid_smiles_from_image`
-- `extraction_service_unavailable`
+## Research And Safety Notes
 
-Performance notes:
-- Existing analysis pipeline (`/agent/analyze`) is unchanged.
-- OCR is a separate endpoint and only runs when user uploads an image.
-- MolScribe preload is enabled by default to reduce first OCR request latency.
-
-### 5.7 OCR Runtime Environment Variables
-
-### 5.8 Archived Legacy Surfaces
-- Historical prototypes now live under `legacy/` to keep the product root focused.
-- `legacy/api-local-tester/` contains the old local-only API playground.
-- `legacy/landing-page-prototype/` contains the archived landing page prototype.
-- `legacy/streamlit-clintox/` contains the old Streamlit ClinTox UI.
-- None of the archived `legacy/` apps are part of the Firebase Hosting or Cloud Run deploy path.
-- `SMILES_IMAGE_MAX_BYTES` (default: `5242880`)
-- `MOLSCRIBE_PRELOAD_ON_STARTUP` (default: `true`)
-- `MOLSCRIBE_AUTO_DOWNLOAD` (default: `true`)
-- `MOLSCRIBE_REPO_ID` (default: `yujieq/MolScribe`)
-- `MOLSCRIBE_CHECKPOINT_NAME` (default: `swin_base_char_aux_1m.pth`)
-- `MOLSCRIBE_MODEL_PATH` (optional explicit local checkpoint path)
-- `MOLSCRIBE_DEVICE` (`cpu` or `cuda`, default follows runtime device)
-
----
-
-## 6) Detailed Run Guide (Step-by-Step)
-
-This guide is for re-running the project with the new Draw + Image OCR features.
-
-### Step 1: Prepare Environment
-
-Option A (recommended): Conda
-```bash
-conda env create -f environment.yml
-conda activate drug-tox-env
-```
-
-Option B: Existing Python environment
-- Ensure Python, torch stack, RDKit, and project dependencies are already available.
-
-### Step 2: Install Backend Dependencies
-```bash
-pip install -r model_server/requirements.txt
-```
-
-Install MolScribe without dependency override of torch:
-```bash
-pip install --no-deps molscribe==1.1.1
-```
-
-### Step 3: Configure OCR (Optional but Recommended)
-
-PowerShell example:
-```powershell
-$env:MOLSCRIBE_PRELOAD_ON_STARTUP="true"
-$env:MOLSCRIBE_AUTO_DOWNLOAD="true"
-$env:SMILES_IMAGE_MAX_BYTES="5242880"
-```
-
-If you already downloaded a checkpoint:
-```powershell
-$env:MOLSCRIBE_MODEL_PATH="D:/path/to/swin_base_char_aux_1m.pth"
-```
-
-### Step 4: Start Backend
-```bash
-uvicorn model_server.main:app --host 0.0.0.0 --port 8080 --workers 1
-```
-
-Quick checks:
-```bash
-curl -sS http://127.0.0.1:8080/health
-
-curl -sS -X POST http://127.0.0.1:8080/extract-smiles-from-image \
-  -F "file=@test_data/example_molecule.png"
-```
-
-### Step 5: Start Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-If backend is custom host/port, set:
-```bash
-export VITE_API_BASE_URL=http://127.0.0.1:8080
-```
-
-### Step 6: Validate End-to-End
-1. Open web UI.
-2. Use **Type SMILES** tab and run analysis.
-3. Use **Draw Molecule** tab, export SMILES, then analyze.
-4. Use **Upload Image** tab, extract SMILES, then analyze.
-5. Try invalid file type or oversized image and verify specific error code appears in UI.
-
-### Step 7: Build and Deploy
-```bash
-npm run build
-npm run deploy:hosting
-```
-
-For container builds (Cloud Run), Dockerfile is updated to:
-- install OCR runtime dependencies,
-- install MolScribe with `--no-deps`,
-- preload OCR model by default.
-
----
-
-## Project Structure (summary)
-
-```text
-tox-agent/
-|- agents/              # Multi-agent orchestration
-|- backend/             # Data/model/explainer core
-|- model_server/        # FastAPI serving layer
-|- frontend/            # React web app
-|- scripts/             # Train/predict/evaluate utilities
-|- config/              # Workspace + model config
-|- models/              # Saved model artifacts
-`- deploy/              # Cloud Run/Firebase deployment assets
-```
-
----
+- This project is intended for research and decision-support workflows, not as a standalone medical or regulatory system.
+- Structural explanations are supportive evidence, not proof of mechanism.
+- OOD warnings should be treated as first-class reliability signals.
 
 ## Citation
 
@@ -409,8 +324,6 @@ tox-agent/
 }
 ```
 
----
-
 ## License
 
-This project is for research purposes. Tox21 and ClinTox are from MoleculeNet (MIT License).
+This project is for research purposes. Tox21 and ClinTox are from MoleculeNet and follow their respective upstream licensing terms.
