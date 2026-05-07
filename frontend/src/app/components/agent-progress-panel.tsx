@@ -558,7 +558,7 @@ function MoleculePulseAnimation() {
               cx={node.x}
               cy={node.y}
               r="8"
-              fill="rgba(224, 255, 250, 0.92)"
+              fill="rgba(3, 11, 10, 0.92)"
               animate={{ opacity: [0.72, 1, 0.72] }}
               transition={{ duration: 2.1, delay: node.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
