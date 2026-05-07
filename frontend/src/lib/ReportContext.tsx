@@ -8,6 +8,30 @@ import {
   type UserPreferences,
 } from './user-preferences';
 
+const REPORT_SESSION_KEY = 'tox_agent_report_snapshot';
+
+function saveReportToSession(report: AgentAnalyzeResponse | null): void {
+  try {
+    if (report) {
+      sessionStorage.setItem(REPORT_SESSION_KEY, JSON.stringify(report));
+    } else {
+      sessionStorage.removeItem(REPORT_SESSION_KEY);
+    }
+  } catch {
+    // sessionStorage may be unavailable (private browsing, quota exceeded)
+  }
+}
+
+function loadReportFromSession(): AgentAnalyzeResponse | null {
+  try {
+    const raw = sessionStorage.getItem(REPORT_SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AgentAnalyzeResponse;
+  } catch {
+    return null;
+  }
+}
+
 interface ReportContextValue {
   report: AgentAnalyzeResponse | null;
   setReport: (nextReport: AgentAnalyzeResponse | null) => void;
@@ -23,10 +47,15 @@ interface ReportContextValue {
 const ReportContext = createContext<ReportContextValue | undefined>(undefined);
 
 export function ReportProvider({ children }: { children: ReactNode }) {
-  const [report, setReport] = useState<AgentAnalyzeResponse | null>(null);
+  const [report, setReportState] = useState<AgentAnalyzeResponse | null>(() => loadReportFromSession());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preferences, setPreferencesState] = useState<UserPreferences>(() => loadUserPreferences());
+
+  const setReport = (nextReport: AgentAnalyzeResponse | null) => {
+    setReportState(nextReport);
+    saveReportToSession(nextReport);
+  };
 
   const setPreferences = (next: UserPreferences) => {
     const normalized = saveUserPreferences(next);

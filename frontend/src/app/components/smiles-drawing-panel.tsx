@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Editor } from 'ketcher-react';
 import { StandaloneStructServiceProvider } from 'ketcher-standalone';
 import { AlertCircle, PenTool, WandSparkles } from 'lucide-react';
@@ -10,6 +10,10 @@ import 'ketcher-react/dist/index.css';
 type KetcherLike = {
 	getSmiles: (isExtended?: boolean) => Promise<string>;
 	setMolecule?: (structure: string) => Promise<void>;
+	zoomToFit?: () => void;
+	setZoom?: (value: number) => void;
+	render?: () => void;
+	update?: () => void;
 };
 
 interface SmilesDrawingPanelProps {
@@ -17,6 +21,7 @@ interface SmilesDrawingPanelProps {
 	onSmilesExtracted: (smiles: string) => void;
 	disabled?: boolean;
 	onReady?: () => void;
+	isActive?: boolean;
 }
 
 export function SmilesDrawingPanel({
@@ -24,13 +29,75 @@ export function SmilesDrawingPanel({
 	onSmilesExtracted,
 	disabled = false,
 	onReady,
+	isActive = true,
 }: SmilesDrawingPanelProps) {
 	const editorRef = useRef<KetcherLike | null>(null);
+	const editorHostRef = useRef<HTMLDivElement | null>(null);
 	const [extracting, setExtracting] = useState(false);
 	const [syncing, setSyncing] = useState(false);
 	const [editorError, setEditorError] = useState<string | null>(null);
 
 	const structServiceProvider = useMemo(() => new StandaloneStructServiceProvider(), []);
+
+	const refreshEditorViewport = useCallback((fitToCanvas = false) => {
+		const editor = editorRef.current as (KetcherLike & { editor?: { zoomToFit?: () => void } }) | null;
+		if (!editor) {
+			return;
+		}
+
+		// Resize + repaint are enough for most normal-mode transitions.
+		window.dispatchEvent(new Event('resize'));
+		editor.render?.();
+		editor.update?.();
+
+		if (fitToCanvas) {
+			editor.zoomToFit?.();
+			editor.editor?.zoomToFit?.();
+		}
+	}, []);
+
+	useEffect(() => {
+		const handleViewportChange = () => {
+			window.requestAnimationFrame(() => refreshEditorViewport(false));
+		};
+
+		window.addEventListener('resize', handleViewportChange);
+		document.addEventListener('fullscreenchange', handleViewportChange);
+
+		return () => {
+			window.removeEventListener('resize', handleViewportChange);
+			document.removeEventListener('fullscreenchange', handleViewportChange);
+		};
+	}, [refreshEditorViewport]);
+
+	useEffect(() => {
+		if (!isActive) {
+			return;
+		}
+
+		const firstFrame = window.requestAnimationFrame(() => refreshEditorViewport(true));
+		const secondFrame = window.setTimeout(() => refreshEditorViewport(true), 120);
+
+		return () => {
+			window.cancelAnimationFrame(firstFrame);
+			window.clearTimeout(secondFrame);
+		};
+	}, [isActive, refreshEditorViewport]);
+
+	useEffect(() => {
+		if (!editorHostRef.current || typeof ResizeObserver === 'undefined') {
+			return;
+		}
+
+		const observer = new ResizeObserver(() => {
+			window.requestAnimationFrame(() => refreshEditorViewport(false));
+		});
+		observer.observe(editorHostRef.current);
+
+		return () => {
+			observer.disconnect();
+		};
+	}, [refreshEditorViewport]);
 
 	const handleExtractSmiles = async () => {
 		if (disabled || !editorRef.current) {
@@ -81,7 +148,26 @@ export function SmilesDrawingPanel({
 	};
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 ketcher-host">
+			<style>{`
+				.ketcher-host,
+				.ketcher-host * {
+					pointer-events: auto;
+				}
+
+				.ketcher-host .ketcher-editor-frame {
+					isolation: isolate;
+				}
+
+				.ketcher-host .ketcher-editor-frame > div {
+					height: 100%;
+				}
+
+				.ketcher-host .ketcher-editor-frame [class*='BottomToolbar-module_root'] {
+					position: relative;
+					z-index: 1;
+				}
+			`}</style>
 			<div className="flex flex-col gap-2 rounded-lg border p-3 md:flex-row md:items-center md:justify-between" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)' }}>
 				<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
 					Use Ketcher to draw a structure, then export canonical SMILES for analysis.
@@ -116,8 +202,15 @@ export function SmilesDrawingPanel({
 				</Alert>
 			)}
 
-			<div className="overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)' }}>
-				<div style={{ minHeight: 420 }}>
+			<div
+				ref={editorHostRef}
+				className="overflow-hidden rounded-xl border"
+				style={{ borderColor: 'var(--border)', backgroundColor: '#ffffff' }}
+			>
+				<div
+					className="relative z-0 w-full ketcher-editor-frame"
+					style={{ minHeight: 420, height: 'clamp(420px, 58vh, 520px)' }}
+				>
 					<Editor
 						staticResourcesUrl="/"
 						structServiceProvider={structServiceProvider}
@@ -125,6 +218,7 @@ export function SmilesDrawingPanel({
 						onInit={(ketcher) => {
 							editorRef.current = ketcher as unknown as KetcherLike;
 							setEditorError(null);
+							window.requestAnimationFrame(() => refreshEditorViewport(true));
 							onReady?.();
 						}}
 						disableMacromoleculesEditor

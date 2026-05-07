@@ -1,5 +1,6 @@
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle, Loader2, Circle } from 'lucide-react';
+import { Activity, Atom, CheckCircle, Circle, Loader2, Sparkles, Zap } from 'lucide-react';
 import type { AgentEventRecord } from '../../lib/api';
 
 interface AgentProgressPanelProps {
@@ -21,6 +22,33 @@ interface LogLine {
 }
 
 const AGENT_ORDER = ['InputValidator', 'ScreeningAgent', 'ResearcherAgent', 'WriterAgent'];
+
+const SCIENCE_TIPS = [
+  'LD50 estimates the dose required to cause lethality in 50% of a tested population.',
+  'Lipinski\'s Rule of 5 is a fast heuristic for screening drug-like oral candidates.',
+  'hERG inhibition is a common early safety flag because it can correlate with QT prolongation.',
+  'Toxicity workflows gain reliability when model predictions are paired with literature evidence.',
+];
+
+const MOLECULE_NODES = [
+  { id: 'n1', x: 44, y: 84, delay: 0 },
+  { id: 'n2', x: 108, y: 42, delay: 0.22 },
+  { id: 'n3', x: 162, y: 90, delay: 0.4 },
+  { id: 'n4', x: 232, y: 54, delay: 0.6 },
+  { id: 'n5', x: 278, y: 116, delay: 0.82 },
+  { id: 'n6', x: 138, y: 146, delay: 1.04 },
+];
+
+const MOLECULE_EDGES = [
+  ['n1', 'n2'],
+  ['n2', 'n3'],
+  ['n3', 'n4'],
+  ['n4', 'n5'],
+  ['n3', 'n6'],
+  ['n1', 'n6'],
+  ['n2', 'n6'],
+  ['n3', 'n5'],
+] as const;
 
 function getCurrentTimeLabel() {
   return new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -47,26 +75,26 @@ function buildFallbackState(isAnalyzing: boolean): { agents: AgentStatus[]; logs
         {
           name: 'InputValidator',
           status: 'running',
-          progress: 40,
-          message: 'Checking SMILES and Health Endpoints...',
+          progress: 52,
+          message: 'Checking SMILES integrity and service readiness...',
         },
         {
           name: 'ScreeningAgent',
-          status: 'running',
-          progress: 55,
-          message: 'Running toxicity analysis model...',
+          status: 'pending',
+          progress: 0,
+          message: 'Queued for toxicity model evaluation...',
         },
         {
           name: 'ResearcherAgent',
-          status: 'running',
-          progress: 50,
-          message: 'Querying PubChem/PubMed...',
+          status: 'pending',
+          progress: 0,
+          message: 'Queued for PubChem and PubMed evidence retrieval...',
         },
         {
           name: 'WriterAgent',
           status: 'pending',
           progress: 0,
-          message: 'Waiting for report generation...',
+          message: 'Queued for report synthesis...',
         },
       ],
       logs: [
@@ -171,9 +199,30 @@ function buildEventDrivenState(events: AgentEventRecord[], isAnalyzing: boolean)
 
 export function AgentProgressPanel({ isAnalyzing, events }: AgentProgressPanelProps) {
   const hasEvents = events.length > 0;
-  const state = hasEvents
-    ? buildEventDrivenState(events, isAnalyzing)
-    : buildFallbackState(isAnalyzing);
+  const state = useMemo(
+    () => (hasEvents ? buildEventDrivenState(events, isAnalyzing) : buildFallbackState(isAnalyzing)),
+    [events, hasEvents, isAnalyzing],
+  );
+  const [tipIndex, setTipIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setTipIndex(0);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setTipIndex((current) => (current + 1) % SCIENCE_TIPS.length);
+    }, 3000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isAnalyzing]);
+
+  if (isAnalyzing) {
+    return <AnalyzingProgressExperience state={state} tip={SCIENCE_TIPS[tipIndex]} />;
+  }
 
   return (
     <motion.div
@@ -185,7 +234,7 @@ export function AgentProgressPanel({ isAnalyzing, events }: AgentProgressPanelPr
     >
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
-          Analysis Pipeline
+          Pipeline Summary
         </h3>
       </div>
 
@@ -228,6 +277,415 @@ export function AgentProgressPanel({ isAnalyzing, events }: AgentProgressPanelPr
       </div>
     </motion.div>
   );
+}
+
+function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentStatus[]; logs: LogLine[] }; tip: string }) {
+  const overallProgress = Math.max(
+    12,
+    Math.round(state.agents.reduce((total, agent) => total + agent.progress, 0) / state.agents.length),
+  );
+  const activeAgentIndex = getActiveAgentIndex(state.agents);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className="relative mb-6 overflow-hidden rounded-[28px] border p-6 shadow-xl md:p-8"
+      style={{
+        background:
+          'linear-gradient(140deg, rgba(255, 255, 255, 0.42) 0%, rgba(223, 245, 241, 0.3) 48%, rgba(207, 229, 239, 0.22) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+        backdropFilter: 'blur(26px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(26px) saturate(160%)',
+        boxShadow: '0 24px 80px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.42)',
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0">
+        <motion.div
+          className="absolute -left-20 top-10 h-48 w-48 rounded-full blur-3xl"
+          style={{ backgroundColor: 'rgba(125, 211, 252, 0.24)' }}
+          animate={{ scale: [1, 1.18, 1], opacity: [0.3, 0.55, 0.3] }}
+          transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute right-0 top-0 h-56 w-56 rounded-full blur-3xl"
+          style={{ backgroundColor: 'rgba(192, 132, 252, 0.16)' }}
+          animate={{ scale: [1.12, 0.92, 1.12], opacity: [0.18, 0.32, 0.18] }}
+          transition={{ duration: 5.6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute inset-x-12 bottom-0 h-32 rounded-full blur-3xl"
+          style={{ backgroundColor: 'rgba(244, 114, 182, 0.1)' }}
+          animate={{ scale: [0.96, 1.04, 0.96], opacity: [0.12, 0.2, 0.12] }}
+          transition={{ duration: 6.4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+
+      <div className="relative grid gap-6 xl:grid-cols-[1.2fr_0.88fr]">
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div
+                className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.28em]"
+                style={{ color: 'rgba(15, 59, 70, 0.68)' }}
+              >
+                <Atom className="h-4 w-4" />
+                Live Molecular Scan
+              </div>
+              <h3 className="text-2xl font-semibold" style={{ color: '#113843' }}>
+                Analyzing molecular toxicity
+              </h3>
+              <p className="mt-2 max-w-xl text-sm leading-6" style={{ color: 'rgba(17, 56, 67, 0.76)' }}>
+                Validation, toxicity screening, evidence lookup, and report synthesis are progressing through the agent pipeline.
+              </p>
+            </div>
+
+            <div
+              className="rounded-full border px-4 py-2 text-sm font-medium"
+              style={{
+                color: '#0f3b46',
+                borderColor: 'rgba(255, 255, 255, 0.4)',
+                backgroundColor: 'rgba(255, 255, 255, 0.24)',
+                backdropFilter: 'blur(18px)',
+                WebkitBackdropFilter: 'blur(18px)',
+              }}
+            >
+              {overallProgress}% complete
+            </div>
+          </div>
+
+          <div
+            className="rounded-[24px] border p-5"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(219, 245, 242, 0.2))',
+              borderColor: 'rgba(255, 255, 255, 0.38)',
+              backdropFilter: 'blur(22px)',
+              WebkitBackdropFilter: 'blur(22px)',
+            }}
+          >
+            <MoleculePulseAnimation />
+
+            <div className="mt-5 space-y-2">
+              <div
+                className="flex items-center justify-between text-xs uppercase tracking-[0.22em]"
+                style={{ color: 'rgba(15, 59, 70, 0.72)' }}
+              >
+                <span>Scanning structure</span>
+                <span>{overallProgress}%</span>
+              </div>
+
+              <div className="relative h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}>
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: 'linear-gradient(90deg, rgba(13, 148, 136, 0.95) 0%, rgba(59, 130, 246, 0.9) 100%)' }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${overallProgress}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                />
+                <motion.div
+                  className="absolute inset-y-0 w-24"
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent)' }}
+                  animate={{ x: ['-140%', '430%'] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="rounded-2xl border p-4"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.22)',
+              borderColor: 'rgba(255, 255, 255, 0.34)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <div
+              className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.22em]"
+              style={{ color: 'rgba(15, 59, 70, 0.72)' }}
+            >
+              <Sparkles className="h-4 w-4" />
+              Rotating science tip
+            </div>
+
+            <motion.p
+              key={tip}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="text-sm leading-6"
+              style={{ color: '#143c47' }}
+            >
+              {tip}
+            </motion.p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div
+            className="rounded-[24px] border p-4"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              borderColor: 'rgba(255, 255, 255, 0.38)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <div
+              className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.22em]"
+              style={{ color: 'rgba(10, 37, 46, 0.62)' }}
+            >
+              <Zap className="h-4 w-4" />
+              Agent pipeline
+            </div>
+
+            <div className="space-y-3">
+              {state.agents.map((agent, index) => (
+                <AgentSequenceStep
+                  key={agent.name}
+                  agent={agent}
+                  index={index}
+                  isActive={index === activeAgentIndex}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div
+            className="rounded-[24px] border p-4"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16, 57, 69, 0.18), rgba(255, 255, 255, 0.2))',
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <div
+              className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.22em]"
+              style={{ color: 'rgba(15, 59, 70, 0.72)' }}
+            >
+              <Activity className="h-4 w-4" />
+              Live log stream
+            </div>
+
+            <div className="max-h-56 space-y-2 overflow-y-auto font-mono text-xs leading-5" style={{ color: '#143c47' }}>
+              {state.logs.map((log, idx) => (
+                <motion.div
+                  key={`${log.time}-${log.agent}-${idx}`}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-lg px-3 py-2"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.24)' }}
+                >
+                  <span style={{ color: 'rgba(15, 59, 70, 0.52)' }}>{log.time}</span>{' '}
+                  <span style={{ color: '#0f766e' }}>{log.agent}</span>{' '}
+                  <span style={{ color: '#163b45' }}>{log.message}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function MoleculePulseAnimation() {
+  const nodeMap = new Map(MOLECULE_NODES.map((node) => [node.id, node]));
+
+  return (
+    <div className="relative overflow-hidden rounded-[22px] border p-3" style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }}>
+      <svg viewBox="0 0 320 180" className="h-[220px] w-full" role="img" aria-label="Animated molecule scan">
+        <defs>
+          <linearGradient id="molecule-edge-gradient" x1="0%" x2="100%" y1="0%" y2="0%">
+            <stop offset="0%" stopColor="rgba(45, 212, 191, 0.18)" />
+            <stop offset="50%" stopColor="rgba(4, 6, 7, 0.92)" />
+            <stop offset="100%" stopColor="rgba(34, 197, 94, 0.22)" />
+          </linearGradient>
+          <linearGradient id="molecule-scan-gradient" x1="0%" x2="100%" y1="0%" y2="0%">
+            <stop offset="0%" stopColor="rgba(255, 255, 255, 0)" />
+            <stop offset="50%" stopColor="rgba(255, 255, 255, 0.2)" />
+            <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
+          </linearGradient>
+        </defs>
+
+        <rect x="0" y="0" width="320" height="180" rx="22" fill="rgba(255, 255, 255, 0.02)" />
+
+        {MOLECULE_EDGES.map(([fromId, toId], index) => {
+          const from = nodeMap.get(fromId)!;
+          const to = nodeMap.get(toId)!;
+
+          return (
+            <motion.line
+              key={`${fromId}-${toId}`}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke="url(#molecule-edge-gradient)"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              initial={{ opacity: 0.22 }}
+              animate={{ opacity: [0.22, 0.84, 0.22] }}
+              transition={{ duration: 2.6, delay: index * 0.08, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          );
+        })}
+
+        <motion.rect
+          x="-80"
+          y="0"
+          width="96"
+          height="180"
+          fill="url(#molecule-scan-gradient)"
+          animate={{ x: [-96, 336] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'linear' }}
+        />
+
+        {MOLECULE_NODES.map((node) => (
+          <g key={node.id}>
+            <motion.circle
+              cx={node.x}
+              cy={node.y}
+              r="14"
+              fill="rgba(45, 212, 191, 0.12)"
+              animate={{ r: [14, 22, 14], opacity: [0.14, 0.42, 0.14] }}
+              transition={{ duration: 2.4, delay: node.delay, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.circle
+              cx={node.x}
+              cy={node.y}
+              r="8"
+              fill="rgba(3, 11, 10, 0.92)"
+              animate={{ opacity: [0.72, 1, 0.72] }}
+              transition={{ duration: 2.1, delay: node.delay, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function AgentSequenceStep({
+  agent,
+  index,
+  isActive,
+}: {
+  agent: AgentStatus;
+  index: number;
+  isActive: boolean;
+}) {
+  const statusLabel =
+    agent.status === 'done' ? 'Completed' : agent.status === 'running' ? 'Running' : agent.status === 'error' ? 'Issue' : 'Queued';
+  const barWidth = agent.status === 'running' ? Math.max(agent.progress, 18) : agent.progress;
+  const isDone = agent.status === 'done';
+  const isRunning = agent.status === 'running';
+  const isError = agent.status === 'error';
+
+  return (
+    <motion.div
+      animate={{
+        scale: isActive ? 1.015 : 1,
+        boxShadow: isActive ? '0 16px 40px rgba(13, 148, 136, 0.16)' : '0 0 0 rgba(0, 0, 0, 0)',
+      }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="rounded-2xl border p-4"
+      style={{
+        background: isActive
+          ? 'linear-gradient(135deg, rgba(240, 253, 250, 0.98), rgba(220, 252, 231, 0.9))'
+          : isDone
+            ? 'rgba(240, 253, 244, 0.82)'
+            : 'rgba(255, 255, 255, 0.9)',
+        borderColor: isActive
+          ? 'rgba(13, 148, 136, 0.34)'
+          : isDone
+            ? 'rgba(34, 197, 94, 0.24)'
+            : 'rgba(15, 23, 42, 0.08)',
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border"
+          style={{
+            borderColor: isError ? 'rgba(239, 68, 68, 0.3)' : isActive ? 'rgba(13, 148, 136, 0.28)' : 'rgba(148, 163, 184, 0.22)',
+            backgroundColor: isError ? 'rgba(239, 68, 68, 0.12)' : isActive ? 'rgba(20, 184, 166, 0.12)' : 'rgba(255, 255, 255, 0.84)',
+            color: '#0f172a',
+          }}
+        >
+          {isDone ? (
+            <CheckCircle className="h-5 w-5" style={{ color: '#16a34a' }} />
+          ) : isRunning ? (
+            <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#0f766e' }} />
+          ) : isError ? (
+            <span className="text-sm font-semibold" style={{ color: '#dc2626' }}>!</span>
+          ) : (
+            <span className="text-sm font-semibold">{index + 1}</span>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold" style={{ color: '#0f172a' }}>
+              {agent.name}
+            </p>
+            <span
+              className="rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.18em]"
+              style={{
+                color: isDone ? '#166534' : isRunning ? '#115e59' : isError ? '#991b1b' : '#475569',
+                backgroundColor: isDone
+                  ? 'rgba(34, 197, 94, 0.12)'
+                  : isRunning
+                    ? 'rgba(20, 184, 166, 0.12)'
+                    : isError
+                      ? 'rgba(239, 68, 68, 0.1)'
+                      : 'rgba(148, 163, 184, 0.14)',
+              }}
+            >
+              {statusLabel}
+            </span>
+          </div>
+
+          <p className="mt-1 text-xs leading-5" style={{ color: 'rgba(15, 23, 42, 0.68)' }}>
+            {agent.message}
+          </p>
+
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(148, 163, 184, 0.2)' }}>
+            <motion.div
+              className="h-full rounded-full"
+              style={{
+                background: isDone
+                  ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)'
+                  : isError
+                    ? 'linear-gradient(90deg, #f87171 0%, #dc2626 100%)'
+                    : 'linear-gradient(90deg, #14b8a6 0%, #06b6d4 100%)',
+              }}
+              initial={{ width: 0 }}
+              animate={{ width: `${barWidth}%` }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function getActiveAgentIndex(agents: AgentStatus[]) {
+  const errorIndex = agents.findIndex((agent) => agent.status === 'error');
+  if (errorIndex >= 0) {
+    return errorIndex;
+  }
+
+  const runningIndex = agents.findIndex((agent) => agent.status === 'running');
+  if (runningIndex >= 0) {
+    return runningIndex;
+  }
+
+  const completedCount = agents.filter((agent) => agent.status === 'done').length;
+  return Math.min(completedCount, agents.length - 1);
 }
 
 function AgentNode({ agent }: { agent: AgentStatus }) {

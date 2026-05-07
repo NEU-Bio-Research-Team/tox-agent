@@ -2,6 +2,7 @@ import type {
   BioassayItem,
   LiteraturePaper,
   LiteratureSection,
+  LiteratureSynthesis,
 } from '../../../lib/api';
 
 interface LiteratureContextSectionProps {
@@ -23,6 +24,19 @@ function getPaperSnippet(paper: LiteraturePaper) {
   return paper.snippet || paper.abstract_snippet || '';
 }
 
+function formatSourceLabel(source?: string) {
+  switch ((source || '').toLowerCase()) {
+    case 'pubmed':
+      return 'PubMed';
+    case 'europepmc':
+      return 'Europe PMC';
+    case 'semanticscholar':
+      return 'Semantic Scholar';
+    default:
+      return source || 'Unknown';
+  }
+}
+
 function ensureArray<T>(value: unknown): T[] {
   if (Array.isArray(value)) {
     return value as T[];
@@ -35,12 +49,77 @@ function ensureArray<T>(value: unknown): T[] {
   return [];
 }
 
+function ensureStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean);
+}
+
+function renderSourceCoverage(synthesis?: LiteratureSynthesis) {
+  const coverage = synthesis?.source_coverage;
+  if (!coverage || typeof coverage !== 'object') {
+    return null;
+  }
+
+  const entries = Object.entries(coverage).filter(([, count]) => typeof count === 'number' && count > 0);
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-3">
+      {entries.map(([source, count]) => (
+        <span
+          key={source}
+          className="px-2 py-1 rounded-full text-xs"
+          style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}
+        >
+          {formatSourceLabel(source)}: {count}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function renderBadgeList(items: string[], color: string) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-3">
+      {items.map((item) => (
+        <span
+          key={item}
+          className="px-2 py-1 rounded-full text-xs"
+          style={{ backgroundColor: 'var(--surface-alt)', color }}
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function LiteratureContextSection({ data, language }: LiteratureContextSectionProps) {
   const cid = data?.compound_id?.cid;
   const pubchemUrl = data?.compound_id?.pubchem_url;
   const papers = ensureArray<LiteraturePaper>(data?.relevant_papers);
+  const synthesis = data?.literature_synthesis;
   const bioassay = data?.bioassay_evidence;
   const activeAssays = ensureArray<BioassayItem>(bioassay?.active_assays);
+  const mechanisms = ensureStringArray(synthesis?.consensus_mechanisms);
+  const targets = ensureStringArray(synthesis?.key_targets);
+  const doseSignals = ensureStringArray(synthesis?.dose_response_signals);
+  const conflicts = ensureStringArray(synthesis?.conflicting_findings);
+  const confidence = (synthesis?.confidence_level || 'unknown').toUpperCase();
+  const evidenceBasis = synthesis?.evidence_basis === 'title_only'
+    ? 'Title/snippet fallback'
+    : 'Abstract-backed';
 
   return (
     <section id="literature" className="scroll-mt-24 lg:scroll-mt-20">
@@ -65,6 +144,24 @@ export function LiteratureContextSection({ data, language }: LiteratureContextSe
             </span>{' '}
             <span>{data?.total_found ?? 0}</span>
           </p>
+          <p style={{ color: 'var(--text)' }}>
+            <span style={{ color: 'var(--text-muted)' }}>
+              {language === 'vi' ? 'Nguồn truy vấn' : 'Search source'}:
+            </span>{' '}
+            <span>{formatSourceLabel(data?.search_source || 'pubmed')}</span>
+          </p>
+          {data?.fallback_used && (
+            <p className="text-sm" style={{ color: 'var(--accent-yellow)' }}>
+              {language === 'vi'
+                ? 'Có dùng fallback source cho một phần dữ liệu literature.'
+                : 'Fallback sources were used for part of the literature evidence.'}
+            </p>
+          )}
+          {data?.search_error && data.search_error !== 'none' && (
+            <p className="text-sm" style={{ color: 'var(--text-faint)' }}>
+              {language === 'vi' ? 'Lỗi nguồn chính' : 'Primary source error'}: {data.search_error}
+            </p>
+          )}
           {pubchemUrl && (
             <a
               href={pubchemUrl}
@@ -80,6 +177,87 @@ export function LiteratureContextSection({ data, language }: LiteratureContextSe
             </a>
           )}
         </div>
+      </div>
+
+      <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 className="font-semibold" style={{ color: 'var(--text)' }}>
+            {language === 'vi' ? 'Tổng hợp từ literature' : 'Literature synthesis'}
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}>
+              Confidence: {confidence}
+            </span>
+            <span className="px-2 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}>
+              {language === 'vi' ? 'Evidence basis' : 'Evidence basis'}: {evidenceBasis}
+            </span>
+            <span className="px-2 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}>
+              {language === 'vi' ? 'Paper có nội dung' : 'Papers with content'}: {synthesis?.papers_with_content ?? 0}
+            </span>
+          </div>
+        </div>
+
+        <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: '1.75' }}>
+          {synthesis?.synthesis_text || (language === 'vi'
+            ? 'Chưa có tổng hợp literature.'
+            : 'No literature synthesis is available yet.')}
+        </p>
+
+        {renderSourceCoverage(synthesis)}
+
+        {mechanisms.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+              Consensus mechanisms
+            </p>
+            {renderBadgeList(mechanisms, 'var(--accent-red)')}
+          </div>
+        )}
+
+        {targets.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+              Key targets
+            </p>
+            {renderBadgeList(targets, 'var(--accent-blue)')}
+          </div>
+        )}
+
+        {doseSignals.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text)' }}>
+              {language === 'vi' ? 'Dose / response signals' : 'Dose / response signals'}
+            </p>
+            <div className="space-y-2">
+              {doseSignals.map((signal) => (
+                <p key={signal} className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  • {signal}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {conflicts.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text)' }}>
+              {language === 'vi' ? 'Conflicting findings' : 'Conflicting findings'}
+            </p>
+            <div className="space-y-2">
+              {conflicts.map((item) => (
+                <p key={item} className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  • {item}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {synthesis?.error && synthesis.error !== 'none' && (
+          <p className="text-sm mt-4" style={{ color: 'var(--accent-yellow)' }}>
+            {language === 'vi' ? 'Synthesis note' : 'Synthesis note'}: {synthesis.error}
+          </p>
+        )}
       </div>
 
       <div className="mb-6">
@@ -101,6 +279,7 @@ export function LiteratureContextSection({ data, language }: LiteratureContextSe
             const authors = formatAuthors(paper.authors);
             const snippet = getPaperSnippet(paper);
             const link = paper.pubmed_url || (paper.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}` : null);
+            const abstractSource = formatSourceLabel(paper.abstract_source || paper.search_source || 'unknown');
 
             return (
               <div
@@ -115,6 +294,9 @@ export function LiteratureContextSection({ data, language }: LiteratureContextSe
                 </div>
                 <p className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
                   {authors} · <span className="italic">{paper.journal || 'N/A'}</span> ({paper.year || 'N/A'})
+                </p>
+                <p className="text-xs mb-2" style={{ color: 'var(--text-faint)' }}>
+                  {language === 'vi' ? 'Evidence source' : 'Evidence source'}: {abstractSource}
                 </p>
                 {snippet && (
                   <p className="text-sm mb-2 italic" style={{ color: 'var(--text-faint)' }}>

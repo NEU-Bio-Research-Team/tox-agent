@@ -22,6 +22,8 @@ ENV AIP_HTTP_PORT=8080
 # Không hardcore ở đây - truyền qua --set-env-vars khi gcloud deploy
 ENV GOOGLE_CLOUD_PROJECT=""
 ENV GOOGLE_CLOUD_LOCATION="us-central1"
+ENV MODELS_ROOT="/app/models"
+ENV MODEL_ARTIFACTS_URI=""
 ENV MOLSCRIBE_PRELOAD_ON_STARTUP="true"
 ENV MOLSCRIBE_AUTO_DOWNLOAD="true"
 ENV MOLSCRIBE_REPO_ID="yujieq/MolScribe"
@@ -40,7 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ libxrender1 libxext6 libcairo2 libfontconfig1 libfreetype6 curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy XSmiles source (entire project, since model_server import src/)
+# Copy backend source tree; heavy model artifacts are excluded by .dockerignore
 COPY . /app/
 
 # PyTorch (CPU default, GPU khi có quota)
@@ -88,15 +90,13 @@ RUN python -c "from molscribe import MolScribe; print('MolScribe import OK')"
 # Export port (Cloud Run uses 8080)
 EXPOSE 8080
 
+RUN chmod +x /app/model_server/scripts/entrypoint.sh
+
 # Health probe (Cloud Run sẽ dùng cái này)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -fsS "http://localhost:${AIP_HTTP_PORT}${AIP_HEALTH_ROUTE}" || exit 1
 
-# Start FastAPI server
-CMD ["uvicorn", "model_server.main:app", \
-    "--host", "0.0.0.0", \
-    "--port", "8080", \
-    "--workers", "1", \
-    "--timeout-keep-alive", "75"]
+# Download model artifacts before boot, then start FastAPI server.
+CMD ["/app/model_server/scripts/entrypoint.sh"]
 
 

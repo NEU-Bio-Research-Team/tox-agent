@@ -34,7 +34,7 @@ _LEGACY_URL = os.getenv(
     "MODEL_SERVER_URL",
     f"http://127.0.0.1:{DEFAULT_MODEL_SERVER_PORT}",
 ).rstrip("/")
-MODEL_SERVER_TIMEOUT = _get_env_float("MODEL_SERVER_TIMEOUT", 30.0)
+MODEL_SERVER_TIMEOUT = _get_env_float("MODEL_SERVER_TIMEOUT", 240.0)
 MODEL_SERVER_HEALTH_TIMEOUT = _get_env_float("MODEL_SERVER_HEALTH_TIMEOUT", 12.0)
 BATCH_TIMEOUT = max(MODEL_SERVER_TIMEOUT * 4.0, 120.0)
 
@@ -198,7 +198,7 @@ def validate_smiles(smiles: str) -> Dict[str, Any]:
             "atom_count": None,
         }
 
-    canonical = Chem.MolToSmiles(mol)
+    canonical = Chem.MolToSmiles(mol, isomericSmiles=True, canonical=True)
     return {
         "valid": True,
         "canonical_smiles": canonical,

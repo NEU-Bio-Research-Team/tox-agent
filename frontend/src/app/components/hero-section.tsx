@@ -25,6 +25,7 @@ type SmilesDrawingPanelComponent = ComponentType<{
 	onSmilesExtracted: (smiles: string) => void;
 	disabled?: boolean;
 	onReady?: () => void;
+	isActive?: boolean;
 }>;
 
 const exampleMolecules = [
@@ -347,6 +348,7 @@ export function HeroSection({ value, onChange, onAnalyze, isAnalyzing }: HeroSec
 									currentSmiles={value}
 									onSmilesExtracted={onChange}
 									disabled={isAnalyzing}
+									isActive={inputMode === 'draw'}
 									onReady={() => {
 										setDrawEditorSlow(false);
 										setDrawEditorError(null);

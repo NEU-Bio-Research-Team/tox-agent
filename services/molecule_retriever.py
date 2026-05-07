@@ -167,26 +167,39 @@ def retrieve_similar_molecules(
             "firestore": firestore_state,
         }
 
-    matches: List[Dict[str, Any]] = []
-    for row in database:
-        similarity = tanimoto_similarity(query_fp, row.get("fingerprint"))
-        if similarity is None or similarity < float(min_similarity):
-            continue
+    def _collect_matches(threshold: float) -> List[Dict[str, Any]]:
+        bucket: List[Dict[str, Any]] = []
+        for row in database:
+            similarity = tanimoto_similarity(query_fp, row.get("fingerprint"))
+            if similarity is None or similarity < float(threshold):
+                continue
 
-        matches.append(
-            {
-                "entry_id": row["entry_id"],
-                "name": row["name"],
-                "smiles": row["smiles"],
-                "canonical_smiles": row["canonical_smiles"],
-                "similarity": round(float(similarity), 4),
-                "label": row["label"],
-                "source": row["source_dataset"],
-                "notes": row["notes"],
-                "tox_class": row.get("tox_class", []),
-                "is_exact_match": row["canonical_smiles"] == canonical_smiles,
-            }
-        )
+            bucket.append(
+                {
+                    "entry_id": row["entry_id"],
+                    "name": row["name"],
+                    "smiles": row["smiles"],
+                    "canonical_smiles": row["canonical_smiles"],
+                    "similarity": round(float(similarity), 4),
+                    "label": row["label"],
+                    "source": row["source_dataset"],
+                    "notes": row["notes"],
+                    "tox_class": row.get("tox_class", []),
+                    "is_exact_match": row["canonical_smiles"] == canonical_smiles,
+                }
+            )
+        return bucket
+
+    requested_threshold = float(min_similarity)
+    effective_threshold = requested_threshold
+    matches = _collect_matches(requested_threshold)
+    relaxed_threshold = max(0.05, requested_threshold * 0.5)
+    retrieval_mode = "default"
+    if not matches and relaxed_threshold < requested_threshold:
+        matches = _collect_matches(relaxed_threshold)
+        if matches:
+            effective_threshold = relaxed_threshold
+            retrieval_mode = "relaxed_threshold"
 
     matches.sort(
         key=lambda item: (
@@ -204,4 +217,7 @@ def retrieve_similar_molecules(
         "db_size": len(database),
         "db_source": db_source,
         "firestore": firestore_state,
+        "requested_min_similarity": round(requested_threshold, 4),
+        "effective_min_similarity": round(effective_threshold, 4),
+        "retrieval_mode": retrieval_mode,
     }

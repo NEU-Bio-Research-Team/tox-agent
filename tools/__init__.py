@@ -9,6 +9,7 @@ from .research_tools import (
     get_compound_info_pubchem,
     get_pubchem_bioassay_data,
     search_toxicity_literature,
+    synthesize_literature,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "get_compound_info_pubchem",
     "get_pubchem_bioassay_data",
     "search_toxicity_literature",
+    "synthesize_literature",
 ]

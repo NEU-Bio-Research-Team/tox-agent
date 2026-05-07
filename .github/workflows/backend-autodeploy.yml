@@ -1,9 +1,10 @@
 name: Backend Auto Deploy
+# Agent test redeploy marker: 2026-04-29 refresh
 
 'on':
   push:
     branches:
-      - main
+      - agent_test
     paths:
       - agents/**
       - backend/**
@@ -12,10 +13,10 @@ name: Backend Auto Deploy
       - tools/**
       - src/**
       - config/**
-      - models/**
       - cloudbuild.tox-agent.yaml
       - deploy/cloudrun-env.yaml
       - .gcloudignore
+      - .dockerignore
       - .github/workflows/backend-autodeploy.yml
   workflow_dispatch:
 
@@ -35,7 +36,7 @@ jobs:
       PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'tox-agent' }}
       REGION: ${{ vars.GCP_REGION || 'asia-southeast1' }}
       REPO: ${{ vars.GCP_ARTIFACT_REGISTRY_REPO || 'tox-agent-repo' }}
-      SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'tox-agent-cpu' }}
+      SERVICE: tox-agent-cpu
       WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || 'projects/147622422092/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc' }}
       WIF_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || secrets.GCP_SERVICE_ACCOUNT_EMAIL || 'github-action-1193576515@tox-agent.iam.gserviceaccount.com' }}
       GCP_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON || '' }}
@@ -44,7 +45,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: false
           fetch-depth: 1
 
       - name: Resolve auth mode
@@ -122,21 +123,14 @@ jobs:
             --platform=managed \
             --cpu=4 \
             --memory=8Gi \
-            --concurrency=1 \
+            --concurrency=4 \
             --timeout=600 \
             --min-instances=1 \
+            --env-vars-file=deploy/cloudrun-env.yaml \
             --startup-probe=httpGet.path=/health,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=5,periodSeconds=10,failureThreshold=30 \
             --allow-unauthenticated \
             --quiet \
             --project="$PROJECT_ID"
-
-      - name: Apply Cloud Run runtime environment
-        run: |
-          gcloud run services update "$SERVICE" \
-            --project "$PROJECT_ID" \
-            --region "$REGION" \
-            --quiet \
-            --env-vars-file deploy/cloudrun-env.yaml
 
       - name: Smoke test backend health endpoint
         run: |

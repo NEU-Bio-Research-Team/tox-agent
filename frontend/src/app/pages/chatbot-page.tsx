@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { ArrowRight, Bot, FlaskConical, Send, Sparkles, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bot, FlaskConical, Send, Sparkles, User } from 'lucide-react';
 import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
 import { Button } from '../components/ui/button';
@@ -10,6 +10,7 @@ import { appendChatTurnToFirestore, loadChatSessionFromFirestore, type Persisted
 import { useReport } from '../../lib/ReportContext';
 import { MarkdownMessage } from '../components/markdown-message';
 import { AgentThinkingLog, type ThinkingStep } from '../components/agent-thinking-log';
+import { buildChatContext } from '../../lib/chat-context';
 
 interface ChatRouteState {
   question?: string;
@@ -108,6 +109,8 @@ export function ChatbotPage() {
   const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(
     routeChatSessionId ?? report?.chat_session_id ?? null,
   );
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const processedInitialQuestion = useRef(false);
 
@@ -120,8 +123,26 @@ export function ChatbotPage() {
   }, [compoundLabel, hasGroundedReport, report?.chat_session_id, report?.session_id, routeChatSessionId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping, streamingText, streamingSteps]);
+    const container = scrollContainerRef.current;
+    if (!container || !isAtBottomRef.current) {
+      return;
+    }
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [messages, isTyping]);
+
+  const handleMessageScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    isAtBottomRef.current = distanceFromBottom < 56;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -183,8 +204,7 @@ export function ChatbotPage() {
         reportState: finalReport
           ? {
               smiles_input: finalReport.report_metadata.smiles,
-              final_report: finalReport,
-              evidence_qa_result: report?.evidence_qa_result,
+              final_report: buildChatContext(finalReport),
             }
           : routeReportState,
       });
@@ -409,6 +429,19 @@ export function ChatbotPage() {
             Run or restart an analysis
             <ArrowRight className="h-4 w-4" />
           </Button>
+
+          {hasGroundedReport && (
+            <Button
+              type="button"
+              onClick={() => navigate('/report')}
+              className="mt-3 w-full justify-between rounded-2xl px-4 py-6"
+              variant="outline"
+              style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Report
+            </Button>
+          )}
         </section>
 
         <section
@@ -429,7 +462,12 @@ export function ChatbotPage() {
             </p>
           </div>
 
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-5" style={{ backgroundColor: 'var(--bg)' }}>
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleMessageScroll}
+            className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-5"
+            style={{ backgroundColor: 'var(--bg)' }}
+          >
             {messages.map((message) => (
               <div
                 key={message.id}

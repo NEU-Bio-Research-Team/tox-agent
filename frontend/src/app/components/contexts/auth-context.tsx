@@ -22,6 +22,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,11 +38,13 @@ function mapFirebaseUser(fbUser: FirebaseUser): User {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Firebase Auth tự persist session - chỉ cần lắng nghe
     const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       setUser(fbUser ? mapFirebaseUser(fbUser): null);
+      setIsLoading(false);
     });
     return unsubscribe; // cleanup trước khi unmount
   }, []);
@@ -90,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user, isLoading }}>
       {children}
       </AuthContext.Provider>
   );

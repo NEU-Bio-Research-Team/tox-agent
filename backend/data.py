@@ -11,7 +11,7 @@ import json
 import pandas as pd
 import numpy as np
 
-from src.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
+from backend.workspace_mode import assert_clintox_enabled, assert_tox21_enabled
 
 
 def _splitter_name(split_type: str) -> str:

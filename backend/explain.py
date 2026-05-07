@@ -131,8 +131,8 @@ def explain_torch_molecule_model_perturbation(
     Returns:
         Tuple of (atom_importances, molecule_object)
     """
-    from src.featurization import smiles_to_mol
-    from src.train import predict_with_torch_molecule_model
+    from backend.featurization import smiles_to_mol
+    from backend.train import predict_with_torch_molecule_model
     from scipy.special import expit
     
     if mol is None:
@@ -243,7 +243,7 @@ def explain_torch_molecule_model_gradient(
     Returns:
         Tuple of (atom_importances, molecule_object)
     """
-    from src.featurization import smiles_to_mol
+    from backend.featurization import smiles_to_mol
     
     if mol is None:
         mol = smiles_to_mol(smiles)
@@ -299,7 +299,7 @@ def explain_molecule(
     Returns:
         Tuple of (attribution_scores, molecule_object)
     """
-    from src.featurization import smiles_to_mol
+    from backend.featurization import smiles_to_mol
     
     mol = smiles_to_mol(smiles)
     

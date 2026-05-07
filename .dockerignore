@@ -1,16 +1,21 @@
 # Keep Docker build context/image lean (backend only).
-# IMPORTANT: Do NOT ignore `models/` here; runtime inference needs it.
+# Model artifacts now come from object storage at runtime.
 
 .gcloudignore
 .git
 .git/
 .gitignore
+.env
 .vscode/
 .firebase/
+gha-creds-*.json
+serviceAccountKey.json
 
 # Node / frontend
 node_modules/
 frontend/
+legacy/
+tests/
 
 # Python caches
 __pycache__/
@@ -28,6 +33,7 @@ docs/
 outputs/
 results/
 logs/
+models/
 
 # Misc
 *.log

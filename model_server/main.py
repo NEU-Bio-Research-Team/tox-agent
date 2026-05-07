@@ -33,7 +33,6 @@ import numpy as np
 import torch 
 import yaml
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 from rdkit import Chem
@@ -71,12 +70,14 @@ from agents import (
     rerun_screening,
     root_agent,
     run_evidence_qa,
+    run_input_validation,
     run_orchestrator_flow,
+    run_research,
     run_screening,
     screening_agent,
     writer_agent,
 )
-from agents.language import normalize_language
+from agents.language import choose_text, normalize_language
 
 ADK_RUNTIME_IMPORT_ERROR: Optional[str] = None
 try:
@@ -136,6 +137,12 @@ from backend.gnn_explainer import (
     visualize_explanation,
 )
 from backend.workspace_mode import get_workspace_mode
+from model_server.app_factory import create_model_server_app
+from model_server.route_groups import (
+    build_inference_api_router,
+    build_report_chat_router,
+    build_system_router,
+)
 from model_server.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -159,7 +166,7 @@ from model_server.schemas import (
 )
 
 # Configuration
-MODELS_ROOT = PROJECT_ROOT / "models"
+MODELS_ROOT = Path(os.getenv("MODELS_ROOT") or (PROJECT_ROOT / "models")).expanduser()
 MODEL_DIR = MODELS_ROOT / "smilesgnn_model"
 CONFIG_PATH = PROJECT_ROOT / "config" / "smilesgnn_config.yaml"
 TOX21_MODEL_DIR = MODELS_ROOT / "tox21_gatv2_model"
@@ -369,15 +376,22 @@ SMILES_IMAGE_SUPPORTED_MIME_TYPES = {
 }
 SMILES_IMAGE_SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 SMILES_IMAGE_MAX_BYTES = max(1024, _env_int("SMILES_IMAGE_MAX_BYTES", 5 * 1024 * 1024))
+MOLSCRIBE_DEFAULT_CHECKPOINT_NAME = "swin_base_char_aux_1m.pth"
 MOLSCRIBE_REPO_ID = os.getenv("MOLSCRIBE_REPO_ID", "yujieq/MolScribe").strip()
 MOLSCRIBE_CHECKPOINT_NAME = os.getenv(
     "MOLSCRIBE_CHECKPOINT_NAME",
-    "swin_base_char_aux_1m.pth",
+    MOLSCRIBE_DEFAULT_CHECKPOINT_NAME,
 ).strip()
 MOLSCRIBE_MODEL_PATH = os.getenv("MOLSCRIBE_MODEL_PATH", "").strip()
+MOLSCRIBE_MODEL_DIR = os.getenv("MOLSCRIBE_MODEL_DIR", "").strip()
 MOLSCRIBE_AUTO_DOWNLOAD = _env_flag("MOLSCRIBE_AUTO_DOWNLOAD", True)
 MOLSCRIBE_PRELOAD_ON_STARTUP = _env_flag("MOLSCRIBE_PRELOAD_ON_STARTUP", True)
 MOLSCRIBE_DEVICE = os.getenv("MOLSCRIBE_DEVICE", DEVICE).strip().lower() or DEVICE
+MOLSCRIBE_FALLBACK_CHECKPOINT_NAMES = tuple(
+    name.strip()
+    for name in os.getenv("MOLSCRIBE_FALLBACK_CHECKPOINT_NAMES", "").split(",")
+    if name.strip()
+)
 
 def _normalize_route(route: str, default: str) -> str:
     if not route:
@@ -387,6 +401,7 @@ def _normalize_route(route: str, default: str) -> str:
 AIP_HEALTH_ROUTE = _normalize_route(os.getenv("AIP_HEALTH_ROUTE", "/health"), "/health")
 AIP_PREDICT_ROUTE = _normalize_route(os.getenv("AIP_PREDICT_ROUTE", "/predict"), "/predict")
 ADK_APP_NAME = os.getenv("AGENT_APP_NAME", "tox-agent")
+TOX_AGENT_ANALYZE_RUNTIME = os.getenv("TOX_AGENT_ANALYZE_RUNTIME", "deterministic").strip().lower()
 
 adk_session_service = None
 adk_runner = None
@@ -3001,11 +3016,21 @@ def _predict_ensemble_clinical_sync(
     member_probs: List[float] = []
     member_sources: List[str] = []
     member_prob_map: Dict[str, float] = {}
+    member_errors: Dict[str, str] = {}
 
     for member_key in member_keys:
         if not _is_dual_head_model_key(member_key):
             continue
-        member_bundle = _load_dual_head_bundle_sync(member_key)
+        try:
+            member_bundle = _load_dual_head_bundle_sync(member_key)
+        except HTTPException as exc:
+            detail = getattr(exc, "detail", {})
+            if isinstance(detail, dict):
+                msg = str(detail.get("startup_error") or detail.get("message") or exc)
+            else:
+                msg = str(exc)
+            member_errors[str(member_key)] = msg
+            continue
         outputs = predict_pretrained_dual_head_outputs(
             smiles_list=[smiles],
             model=member_bundle["model"],
@@ -3037,6 +3062,7 @@ def _predict_ensemble_clinical_sync(
             "ensemble_members": member_keys,
             "ensemble_member_sources": member_sources,
             "ensemble_member_probs": member_prob_map,
+            "ensemble_member_errors": member_errors,
         }
 
     clinical_mode = str(spec.get("clinical_mode", "simple"))
@@ -3081,6 +3107,7 @@ def _predict_ensemble_clinical_sync(
         "ensemble_members": member_keys,
         "ensemble_member_sources": member_sources,
         "ensemble_member_probs": member_prob_map,
+        "ensemble_member_errors": member_errors,
     }
 
 
@@ -3285,28 +3312,18 @@ async def lifespan(app: FastAPI):
     yield
     model_state.clear()
 
-# FastAPI App
-app = FastAPI(
-    title="ToxAgent Model Server",
-    description="SMILESGNN toxicity prediction API for ToxAgent agentic system",
-    version="0.0.6",
-    lifespan=lifespan,
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],    # Restrict in production
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Return structured API errors when details provide explicit error payloads."""
     if isinstance(exc.detail, dict) and "error" in exc.detail:
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+# FastAPI App
+app = create_model_server_app(
+    lifespan=lifespan,
+    http_exception_handler=http_exception_handler,
+)
 
 
 def _invalid_smiles_error(smiles: str) -> HTTPException:
@@ -3369,27 +3386,72 @@ def _resolve_molscribe_checkpoint_path_sync() -> str:
     if isinstance(cached, str) and cached.strip() and Path(cached).exists():
         return cached
 
+    checkpoint_names: List[str] = []
+    for name in (
+        MOLSCRIBE_CHECKPOINT_NAME,
+        MOLSCRIBE_DEFAULT_CHECKPOINT_NAME,
+        *MOLSCRIBE_FALLBACK_CHECKPOINT_NAMES,
+    ):
+        normalized = str(name or "").strip()
+        if normalized and normalized not in checkpoint_names:
+            checkpoint_names.append(normalized)
+
+    candidates: List[Path] = []
+
     if MOLSCRIBE_MODEL_PATH:
-        explicit = Path(MOLSCRIBE_MODEL_PATH)
+        explicit = Path(MOLSCRIBE_MODEL_PATH).expanduser()
         if not explicit.exists():
             raise RuntimeError(f"MOLSCRIBE_MODEL_PATH does not exist: {explicit}")
-        resolved = str(explicit)
-        model_state["molscribe_checkpoint_path"] = resolved
-        return resolved
+        candidates.append(explicit)
 
-    if not MOLSCRIBE_AUTO_DOWNLOAD:
+    local_model_dirs: List[Path] = []
+    if MOLSCRIBE_MODEL_DIR:
+        local_model_dirs.append(Path(MOLSCRIBE_MODEL_DIR).expanduser())
+    local_model_dirs.append(MODELS_ROOT / "molscribe")
+    local_model_dirs.append(MODELS_ROOT)
+
+    for base_dir in local_model_dirs:
+        for ckpt_name in checkpoint_names:
+            candidate = (base_dir / ckpt_name).expanduser()
+            if candidate.exists() and candidate not in candidates:
+                candidates.append(candidate)
+
+    if MOLSCRIBE_AUTO_DOWNLOAD:
+        if hf_hub_download is None:
+            raise RuntimeError(
+                "huggingface_hub is unavailable; cannot auto-download MolScribe checkpoint."
+            )
+        for ckpt_name in checkpoint_names:
+            try:
+                ckpt_path = Path(
+                    hf_hub_download(repo_id=MOLSCRIBE_REPO_ID, filename=ckpt_name)
+                )
+                if ckpt_path.exists() and ckpt_path not in candidates:
+                    candidates.append(ckpt_path)
+            except Exception as exc:
+                logger.warning(
+                    "MolScribe checkpoint download failed for %s/%s: %s",
+                    MOLSCRIBE_REPO_ID,
+                    ckpt_name,
+                    exc,
+                )
+    elif not candidates:
+        searched_dirs = ", ".join(str(path) for path in local_model_dirs)
         raise RuntimeError(
-            "MolScribe checkpoint is missing. Set MOLSCRIBE_MODEL_PATH or enable MOLSCRIBE_AUTO_DOWNLOAD."
+            "MolScribe checkpoint is missing. Set MOLSCRIBE_MODEL_PATH, place checkpoint under "
+            f"MOLSCRIBE_MODEL_DIR or MODELS_ROOT/molscribe, or enable MOLSCRIBE_AUTO_DOWNLOAD. "
+            f"Searched directories: {searched_dirs}"
         )
 
-    if hf_hub_download is None:
+    if not candidates:
         raise RuntimeError(
-            "huggingface_hub is unavailable; cannot auto-download MolScribe checkpoint."
+            "Unable to resolve any MolScribe checkpoint candidates from explicit path, local model dirs, or Hugging Face."
         )
 
-    ckpt_path = hf_hub_download(repo_id=MOLSCRIBE_REPO_ID, filename=MOLSCRIBE_CHECKPOINT_NAME)
-    model_state["molscribe_checkpoint_path"] = str(ckpt_path)
-    return str(ckpt_path)
+    model_state["molscribe_checkpoint_candidates"] = [str(path) for path in candidates]
+    resolved = str(candidates[0])
+    model_state["molscribe_checkpoint_path"] = resolved
+    return resolved
 
 
 def _load_molscribe_predictor_sync() -> Any:
@@ -3407,17 +3469,43 @@ def _load_molscribe_predictor_sync() -> Any:
                 f"MolScribe import failed: {MOLSCRIBE_IMPORT_ERROR or 'unknown_import_error'}"
             )
 
-        checkpoint_path = _resolve_molscribe_checkpoint_path_sync()
         requested_device = (MOLSCRIBE_DEVICE or "cpu").lower()
         if requested_device == "cuda" and torch.cuda.is_available():
             ocr_device = torch.device("cuda")
         else:
             ocr_device = torch.device("cpu")
 
-        predictor = MolScribe(checkpoint_path, device=ocr_device)
-        model_state["molscribe_predictor"] = predictor
-        model_state.setdefault("startup_errors", {}).pop("smiles_image_extractor", None)
-        return predictor
+        _resolve_molscribe_checkpoint_path_sync()
+        candidate_paths = list(model_state.get("molscribe_checkpoint_candidates") or [])
+        current_path = model_state.get("molscribe_checkpoint_path")
+        if isinstance(current_path, str) and current_path:
+            if current_path in candidate_paths:
+                candidate_paths.remove(current_path)
+            candidate_paths.insert(0, current_path)
+
+        if not candidate_paths:
+            raise RuntimeError("No MolScribe checkpoint candidates were resolved.")
+
+        attempt_errors: List[str] = []
+        for checkpoint_path in candidate_paths:
+            try:
+                predictor = MolScribe(checkpoint_path, device=ocr_device)
+                model_state["molscribe_predictor"] = predictor
+                model_state["molscribe_checkpoint_path"] = str(checkpoint_path)
+                model_state.setdefault("startup_errors", {}).pop("smiles_image_extractor", None)
+                return predictor
+            except Exception as exc:
+                attempt_errors.append(f"{checkpoint_path}: {type(exc).__name__}: {exc}")
+                logger.warning(
+                    "MolScribe init failed with checkpoint %s: %s",
+                    checkpoint_path,
+                    exc,
+                )
+
+        raise RuntimeError(
+            "All MolScribe checkpoint candidates failed to initialize. "
+            + " | ".join(attempt_errors)
+        )
 
 
 def _preload_smiles_image_runtime_sync() -> None:
@@ -3632,12 +3720,7 @@ def _render_molecule_png(
     except Exception:
         return None
 
-app.add_api_route("/health", health, methods=["GET"], tags=["system"])
-if AIP_HEALTH_ROUTE != "/health":
-    app.add_api_route(AIP_HEALTH_ROUTE, health, methods=["GET"], include_in_schema=False)
 
-
-@app.post("/extract-smiles-from-image", response_model=SmilesImageExtractionResponse)
 async def extract_smiles_from_image(file: UploadFile = File(...)):
     filename = file.filename or "uploaded-image"
     extension = Path(filename).suffix.lower()
@@ -3704,7 +3787,6 @@ async def extract_smiles_from_image(file: UploadFile = File(...)):
         await file.close()
 
 
-@app.post("/smiles/preview", response_model=SmilesPreviewResponse)
 async def preview_smiles(req: SmilesPreviewRequest):
     smiles = (req.smiles or "").strip()
     if not smiles:
@@ -3742,7 +3824,6 @@ async def preview_smiles(req: SmilesPreviewRequest):
     )
 
 # Single Prediction
-@app.post("/predict", response_model=PredictResponse)
 async def predict(req: PredictRequest):
     """Predict clinical toxicity for a single SMILES molecule"""
     await _ensure_models_loaded()
@@ -3868,17 +3949,7 @@ async def predict(req: PredictRequest):
         threshold_used=req.threshold,
     )
 
-if AIP_PREDICT_ROUTE != "/predict":
-    app.add_api_route(
-        AIP_PREDICT_ROUTE,
-        predict,
-        methods=["POST"],
-        response_model=PredictResponse,
-        include_in_schema=False,
-    )
-
 # Batch Prediction
-@app.post("/predict/batch", response_model=BatchPredictResponse)
 async def predict_batch_endpoint(req: BatchPredictRequest):
     """Predict clinical toxicity for a list of SMILES molecules."""
     await _ensure_models_loaded()
@@ -4033,7 +4104,6 @@ async def predict_batch_endpoint(req: BatchPredictRequest):
     )
 
 # GNNExplainer
-@app.post("/explain", response_model=ExplainResponse)
 async def explain(req: ExplainRequest):
     """
     Generate GNNExplainer atom/bond attribution for a molecule.
@@ -4800,8 +4870,6 @@ def _deterministic_screening_payload(
     }
     return _ensure_structural_explanation(fallback_payload)
 
-
-@app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest):
     """
     Unified production endpoint with three outputs for one SMILES:
@@ -4812,8 +4880,6 @@ async def analyze(req: AnalyzeRequest):
     await _ensure_models_loaded()
     return await asyncio.to_thread(_analyze_request_sync, req)
 
-
-@app.post("/agent/analyze", response_model=AgentAnalyzeResponse)
 async def agent_analyze(req: AgentAnalyzeRequest):
     """Execute the ADK agent runtime and return final report + tool-calling traces."""
     smiles = req.smiles.strip()
@@ -4844,8 +4910,14 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
     session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
 
-    async def _build_fallback_response(cause: str) -> AgentAnalyzeResponse:
-        """Fallback to deterministic orchestrator flow when ADK runtime is unavailable."""
+    async def _build_deterministic_response(
+        cause: str,
+        *,
+        runtime_mode: str = "deterministic_fallback",
+        event_type: str = "fallback",
+        event_prefix: str = "ADK fallback activated",
+    ) -> AgentAnalyzeResponse:
+        """Execute deterministic orchestrator flow for fallback or configured runtime."""
         fallback_state = await asyncio.to_thread(
             run_orchestrator_flow,
             smiles,
@@ -4886,10 +4958,10 @@ async def agent_analyze(req: AgentAnalyzeRequest):
 
         fallback_events: List[AgentEventRecord] = []
         if req.include_agent_events:
-            fallback_preview = f"ADK fallback activated: {cause}"
+            fallback_preview = f"{event_prefix}: {cause}"
             fallback_events.append(
                 AgentEventRecord(
-                    type="fallback",
+                    type=event_type,
                     author="System",
                     function_calls=[],
                     function_responses=[],
@@ -4902,7 +4974,7 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             session_id=session_id,
             chat_session_id=chat_session_id,
             adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
-            runtime_mode="deterministic_fallback",
+            runtime_mode=runtime_mode,
             runtime_note=cause,
             validation_status=validation_status_payload,
             final_report=final_report_payload,
@@ -4912,12 +4984,29 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             state_keys=sorted(fallback_state.keys()),
         )
 
+    async def _build_fallback_response(cause: str) -> AgentAnalyzeResponse:
+        """Fallback to deterministic orchestrator flow when ADK runtime is unavailable."""
+        return await _build_deterministic_response(cause)
+
+    if TOX_AGENT_ANALYZE_RUNTIME != "adk":
+        return await _build_deterministic_response(
+            f"configured_runtime:{TOX_AGENT_ANALYZE_RUNTIME}",
+            runtime_mode="deterministic",
+            event_type="runtime",
+            event_prefix="Deterministic runtime selected",
+        )
+
     if adk_runner is None or adk_session_service is None or Content is None or Part is None:
         return await _build_fallback_response("adk_runtime_unavailable")
 
     user_id = req.user_id.strip() or "default_user"
     initial_state = {
         "smiles_input": smiles,
+        # Pre-populate canonical_smiles so ScreeningAgent's {canonical_smiles}
+        # template variable resolves without error. InputValidator will update
+        # validation_result (which contains canonical_smiles nested), but the
+        # top-level canonical_smiles key must exist before ScreeningAgent runs.
+        "canonical_smiles": smiles,
         "max_literature_results": int(req.max_literature_results),
         "language": language,
         "clinical_threshold": float(req.clinical_threshold),
@@ -5098,11 +5187,10 @@ async def agent_analyze(req: AgentAnalyzeRequest):
                                 return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
                         elif _is_adk_taskgroup_runtime_error(retry_exc):
                             logger.warning(
-                                "ADK root global retry ended with TaskGroup runtime; forcing ADK step continuation: %s",
+                                "ADK root global retry ended with TaskGroup runtime; using deterministic fallback: %s",
                                 retry_exc,
                             )
-                            force_adk_continuation = True
-                            _note_recovery("adk_taskgroup_step_continuation")
+                            return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
                         else:
                             logger.warning("ADK runtime failed after global retry, using deterministic fallback: %s", retry_exc)
                             return await _build_fallback_response(f"agent_runtime_error: {retry_exc}")
@@ -5113,18 +5201,16 @@ async def agent_analyze(req: AgentAnalyzeRequest):
             model_retry_ok = await _retry_root_with_fallback_model("quota exhausted")
             if not model_retry_ok:
                 logger.warning(
-                    "ADK root quota-exhausted and model retry unavailable; forcing ADK step continuation path: %s",
+                    "ADK root quota-exhausted and model retry unavailable; using deterministic fallback: %s",
                     exc,
                 )
-                force_adk_continuation = True
-                _note_recovery("adk_forced_step_continuation")
+                return await _build_fallback_response(f"agent_runtime_error: {exc}")
         elif _is_adk_taskgroup_runtime_error(exc):
             logger.warning(
-                "ADK root raised TaskGroup runtime error; forcing ADK step continuation path: %s",
+                "ADK root raised TaskGroup runtime error; using deterministic fallback: %s",
                 exc,
             )
-            force_adk_continuation = True
-            _note_recovery("adk_taskgroup_step_continuation")
+            return await _build_fallback_response(f"agent_runtime_error: {exc}")
         else:
             logger.warning("ADK runtime failed, using deterministic fallback: %s", exc)
             return await _build_fallback_response(f"agent_runtime_error: {exc}")
@@ -5511,6 +5597,388 @@ async def agent_analyze(req: AgentAnalyzeRequest):
     )
 
 
+async def agent_analyze_stream(req: AgentAnalyzeRequest):
+    """Stream deterministic analyze progress over SSE and finish with full payload."""
+    smiles = req.smiles.strip()
+    language = normalize_language(req.language)
+    if not smiles:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "smiles_empty",
+                "message": "SMILES is required for agent analysis.",
+            },
+        )
+
+    resolved_inference_backend = _resolve_inference_backend(req.inference_backend)
+    resolved_binary_tox_model = _resolve_binary_tox_model_key(req.binary_tox_model)
+    resolved_tox_type_model = _resolve_tox_type_model_key(req.tox_type_model)
+    session_id = req.session_id or f"session_{uuid.uuid4().hex[:12]}"
+
+    async def _event_stream():
+        emitted_events: List[AgentEventRecord] = []
+
+        def _emit_agent_event(
+            *,
+            author: str,
+            text_preview: str,
+            is_final: bool,
+            event_type: str = "stage",
+        ) -> str:
+            event = AgentEventRecord(
+                type=event_type,
+                author=author,
+                function_calls=[],
+                function_responses=[],
+                is_final=is_final,
+                text_preview=text_preview,
+            )
+            if req.include_agent_events:
+                emitted_events.append(event)
+            return _sse_data(
+                {
+                    "type": "agent_event",
+                    "session_id": session_id,
+                    "event": event.model_dump(mode="json"),
+                }
+            )
+
+        def _emit_done(result: AgentAnalyzeResponse) -> str:
+            return _sse_data(
+                {
+                    "type": "done",
+                    "session_id": result.session_id,
+                    "result": result.model_dump(mode="json"),
+                }
+            )
+
+        try:
+            if TOX_AGENT_ANALYZE_RUNTIME == "adk":
+                yield _emit_agent_event(
+                    author="System",
+                    text_preview=(
+                        "Streaming endpoint delegating to ADK runtime."
+                        if language == "en"
+                        else "Streaming endpoint dang uy quyen cho ADK runtime."
+                    ),
+                    is_final=False,
+                    event_type="runtime",
+                )
+                result = await agent_analyze(req)
+                if req.include_agent_events:
+                    for event in result.agent_events:
+                        yield _sse_data(
+                            {
+                                "type": "agent_event",
+                                "session_id": result.session_id,
+                                "event": event.model_dump(mode="json"),
+                            }
+                        )
+                yield _emit_done(result)
+                return
+
+            state: Dict[str, Any] = {
+                "smiles_input": smiles,
+                "language": language,
+                "clinical_threshold": float(req.clinical_threshold),
+                "mechanism_threshold": float(req.mechanism_threshold),
+                "inference_backend": resolved_inference_backend,
+                "binary_tox_model": resolved_binary_tox_model,
+                "tox_type_model": resolved_tox_type_model,
+                "molrag_enabled": bool(req.molrag_enabled),
+                "molrag_top_k": int(req.molrag_top_k),
+                "molrag_min_similarity": float(req.molrag_min_similarity),
+                "validation_status": "INVALID",
+                "screening_result": None,
+                "explanation_raw": None,
+                "screening_error": None,
+                "research_result": None,
+                "research_error": None,
+                "final_report": None,
+            }
+
+            yield _emit_agent_event(
+                author="InputValidator",
+                text_preview=(
+                    "Validating SMILES input..."
+                    if language == "en"
+                    else "Dang kiem tra dinh dang SMILES..."
+                ),
+                is_final=False,
+            )
+            validation = await asyncio.to_thread(run_input_validation, smiles)
+            state["validation_status"] = validation.get("validation_status")
+            state["validation_error"] = validation.get("validation_error")
+            state["health"] = validation.get("health")
+            state["smiles_validation"] = validation.get("smiles_validation")
+            state["canonical_smiles"] = validation.get("canonical_smiles")
+
+            validation_status = str(validation.get("validation_status") or "UNKNOWN")
+            validation_error = validation.get("validation_error")
+            if validation_error:
+                validation_text = (
+                    f"Validation failed: {validation_error}"
+                    if language == "en"
+                    else f"Validation that bai: {validation_error}"
+                )
+            else:
+                validation_text = (
+                    f"Validation status: {validation_status}"
+                    if language == "en"
+                    else f"Trang thai validation: {validation_status}"
+                )
+            yield _emit_agent_event(
+                author="InputValidator",
+                text_preview=validation_text,
+                is_final=True,
+            )
+
+            if validation_status != "VALID":
+                state["final_report"] = {
+                    "report_metadata": {
+                        "smiles": smiles,
+                        "report_version": "1.0",
+                        "language": language,
+                    },
+                    "error": validation_error,
+                    "executive_summary": choose_text(
+                        language,
+                        "SMILES khong hop le, pipeline dung tai buoc validation.",
+                        "SMILES validation failed before running downstream agents.",
+                    ),
+                    "risk_level": "UNKNOWN",
+                    "sections": {
+                        "clinical_toxicity": {},
+                        "mechanism_toxicity": {},
+                    },
+                }
+                final_report_payload = _coerce_json_dict(
+                    state.get("final_report"),
+                    nested_key="final_report",
+                ) or {}
+                evidence_qa_result_payload = _build_evidence_qa_result({}, state)
+                chat_session_id = _upsert_report_chat_session(
+                    analysis_session_id=session_id,
+                    smiles=smiles,
+                    final_report=final_report_payload,
+                    research_payload={},
+                    state=state,
+                    evidence_qa_result=evidence_qa_result_payload,
+                )
+                result = AgentAnalyzeResponse(
+                    session_id=session_id,
+                    chat_session_id=chat_session_id,
+                    adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
+                    runtime_mode="deterministic",
+                    runtime_note="streaming_deterministic_runtime",
+                    validation_status=validation_status,
+                    final_report=final_report_payload,
+                    evidence_qa_result=evidence_qa_result_payload,
+                    final_text=final_report_payload.get("executive_summary") if isinstance(final_report_payload.get("executive_summary"), str) else None,
+                    agent_events=emitted_events if req.include_agent_events else [],
+                    state_keys=sorted(state.keys()),
+                )
+                yield _emit_done(result)
+                return
+
+            canonical_smiles = str(validation.get("canonical_smiles") or smiles)
+            state["canonical_smiles"] = canonical_smiles
+
+            yield _emit_agent_event(
+                author="ScreeningAgent",
+                text_preview=(
+                    "Running toxicity screening models..."
+                    if language == "en"
+                    else "Dang chay screening doc tinh..."
+                ),
+                is_final=False,
+            )
+            screening_task = asyncio.create_task(
+                asyncio.to_thread(
+                    run_screening,
+                    canonical_smiles,
+                    language,
+                    float(req.clinical_threshold),
+                    float(req.mechanism_threshold),
+                    resolved_inference_backend,
+                    resolved_binary_tox_model,
+                    resolved_tox_type_model,
+                    bool(req.molrag_enabled),
+                    int(req.molrag_top_k),
+                    float(req.molrag_min_similarity),
+                    canonical_smiles,
+                )
+            )
+
+            yield _emit_agent_event(
+                author="ResearcherAgent",
+                text_preview=(
+                    "Retrieving literature and analog evidence..."
+                    if language == "en"
+                    else "Dang truy xuat tai lieu va bang chung analog..."
+                ),
+                is_final=False,
+            )
+            research_task = asyncio.create_task(
+                asyncio.to_thread(
+                    run_research,
+                    canonical_smiles,
+                    int(req.max_literature_results),
+                    language,
+                )
+            )
+
+            pending_tasks = {
+                screening_task: "screening",
+                research_task: "research",
+            }
+            screening_payload: Dict[str, Any] = {}
+            research_payload: Dict[str, Any] = {}
+
+            while pending_tasks:
+                completed, _ = await asyncio.wait(
+                    pending_tasks.keys(),
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                for task in completed:
+                    stage_name = pending_tasks.pop(task)
+                    payload = task.result()
+
+                    if stage_name == "screening":
+                        screening_payload = payload if isinstance(payload, dict) else {}
+                        state["screening_result"] = screening_payload.get("screening_result")
+                        state["screening_error"] = screening_payload.get("screening_error")
+                        if isinstance(state.get("screening_result"), dict):
+                            state["explanation_raw"] = state["screening_result"].get("explanation")
+                        screening_text = screening_payload.get("screening_error")
+                        if screening_text:
+                            screening_message = (
+                                f"Screening completed with warning: {screening_text}"
+                                if language == "en"
+                                else f"Screening hoan tat voi canh bao: {screening_text}"
+                            )
+                        else:
+                            screening_message = (
+                                "Screening completed."
+                                if language == "en"
+                                else "Screening da hoan tat."
+                            )
+                        yield _emit_agent_event(
+                            author="ScreeningAgent",
+                            text_preview=screening_message,
+                            is_final=True,
+                        )
+                        continue
+
+                    research_payload = payload if isinstance(payload, dict) else {}
+                    state["research_result"] = research_payload.get("research_result")
+                    state["research_error"] = research_payload.get("research_error")
+                    research_text = research_payload.get("research_error")
+                    if research_text:
+                        research_message = (
+                            f"Research completed with warning: {research_text}"
+                            if language == "en"
+                            else f"Research hoan tat voi canh bao: {research_text}"
+                        )
+                    else:
+                        research_message = (
+                            "Research completed."
+                            if language == "en"
+                            else "Research da hoan tat."
+                        )
+                    yield _emit_agent_event(
+                        author="ResearcherAgent",
+                        text_preview=research_message,
+                        is_final=True,
+                    )
+
+            yield _emit_agent_event(
+                author="WriterAgent",
+                text_preview=(
+                    "Synthesizing the final report..."
+                    if language == "en"
+                    else "Dang tong hop bao cao cuoi cung..."
+                ),
+                is_final=False,
+            )
+
+            final_report = await asyncio.to_thread(
+                build_final_report,
+                smiles,
+                state.get("screening_result"),
+                state.get("research_result"),
+                state.get("explanation_raw"),
+                language,
+            )
+            state["final_report"] = final_report
+
+            yield _emit_agent_event(
+                author="WriterAgent",
+                text_preview=(
+                    "Final report ready."
+                    if language == "en"
+                    else "Bao cao cuoi cung da san sang."
+                ),
+                is_final=True,
+            )
+
+            final_report_payload = _coerce_json_dict(
+                state.get("final_report"),
+                nested_key="final_report",
+            ) or {}
+            research_payload_for_chat = _coerce_json_dict(
+                state.get("research_result"),
+                nested_key="research_result",
+            ) or {}
+            evidence_qa_result_payload = _build_evidence_qa_result(
+                research_payload_for_chat,
+                state,
+            )
+            chat_session_id = _upsert_report_chat_session(
+                analysis_session_id=session_id,
+                smiles=smiles,
+                final_report=final_report_payload,
+                research_payload=research_payload_for_chat,
+                state=state,
+                evidence_qa_result=evidence_qa_result_payload,
+            )
+            summary = final_report_payload.get("executive_summary")
+            result = AgentAnalyzeResponse(
+                session_id=session_id,
+                chat_session_id=chat_session_id,
+                adk_available=bool(ADK_AVAILABLE and adk_runner is not None and adk_session_service is not None),
+                runtime_mode="deterministic",
+                runtime_note="streaming_deterministic_runtime",
+                validation_status=validation_status,
+                final_report=final_report_payload,
+                evidence_qa_result=evidence_qa_result_payload,
+                final_text=summary if isinstance(summary, str) else None,
+                agent_events=emitted_events if req.include_agent_events else [],
+                state_keys=sorted(state.keys()),
+            )
+            yield _emit_done(result)
+        except Exception as exc:
+            logger.exception("agent_analyze_stream failed")
+            yield _sse_data(
+                {
+                    "type": "error",
+                    "session_id": session_id,
+                    "error": "agent_stream_runtime_error",
+                    "message": str(exc),
+                }
+            )
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 def _resolve_or_rehydrate_chat_session(req: AgentChatRequest) -> str:
     chat_session_id = _resolve_report_chat_session_id(
         chat_session_id=req.chat_session_id,
@@ -5534,10 +6002,8 @@ def _resolve_or_rehydrate_chat_session(req: AgentChatRequest) -> str:
 
 
 def _sse_data(payload: Dict[str, Any]) -> str:
-    return f"data: {json.dumps(payload, ensure_ascii=False)}\\n\\n"
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
-
-@app.post("/agent/chat", response_model=AgentChatResponse)
 async def agent_chat(req: AgentChatRequest):
     """Handle follow-up QA against a frozen per-report chat session."""
     user_message = req.message.strip()
@@ -5581,8 +6047,6 @@ async def agent_chat(req: AgentChatRequest):
 
     return AgentChatResponse(chat_session_id=chat_session_id, response=answer)
 
-
-@app.post("/agent/chat/stream")
 async def agent_chat_stream(req: AgentChatRequest):
     """Stream report-chat reasoning/tool events and tokens as Server-Sent Events."""
     user_message = req.message.strip()
@@ -5665,3 +6129,25 @@ async def agent_chat_stream(req: AgentChatRequest):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+app.include_router(build_system_router(health_handler=health, health_alias=AIP_HEALTH_ROUTE))
+app.include_router(
+    build_inference_api_router(
+        image_extract_handler=extract_smiles_from_image,
+        smiles_preview_handler=preview_smiles,
+        predict_handler=predict,
+        batch_predict_handler=predict_batch_endpoint,
+        explain_handler=explain,
+        analyze_handler=analyze,
+        agent_analyze_handler=agent_analyze,
+        agent_analyze_stream_handler=agent_analyze_stream,
+        predict_alias=AIP_PREDICT_ROUTE,
+    )
+)
+app.include_router(
+    build_report_chat_router(
+        chat_handler=agent_chat,
+        chat_stream_handler=agent_chat_stream,
+    )
+)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, Optional
 
@@ -17,8 +18,17 @@ VALIDATOR_MODEL = os.getenv(
     "AGENT_MODEL_FAST",
     os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
 )
+ANALYSIS_AGENT_MODE = (os.getenv("AGENT_ANALYSIS_MODE") or "sequential").strip().lower()
 
 _SMILES_TOKEN = re.compile(r"[A-Za-z0-9@+\-\[\]\(\)=#$\\/%.]+")
+
+
+def _analysis_stagger_seconds() -> float:
+    raw = (os.getenv("ORCHESTRATOR_PARALLEL_STAGGER_SECONDS") or "0.35").strip()
+    try:
+        return max(0.0, float(raw))
+    except Exception:
+        return 0.35
 
 
 def _looks_like_smiles(token: str) -> bool:
@@ -173,7 +183,11 @@ def run_orchestrator_flow(
             bool(molrag_enabled),
             int(molrag_top_k),
             float(molrag_min_similarity),
+            canonical_smiles,  # skip redundant validate_smiles in run_screening
         )
+        stagger_seconds = _analysis_stagger_seconds()
+        if stagger_seconds > 0:
+            time.sleep(stagger_seconds)
         research_future = executor.submit(
             run_research,
             canonical_smiles,
@@ -300,15 +314,23 @@ input_validator = LlmAgent(
     output_key="validation_result",
 )
 
-parallel_analysis = ParallelAgent(
-    name="ParallelAnalysis",
-    sub_agents=[screening_agent, researcher_agent],
-    description="Run ScreeningAgent and ResearcherAgent in parallel after validation.",
+analysis_stage = (
+    ParallelAgent(
+        name="ParallelAnalysis",
+        sub_agents=[screening_agent, researcher_agent],
+        description="Run ScreeningAgent and ResearcherAgent in parallel after validation.",
+    )
+    if ANALYSIS_AGENT_MODE == "parallel"
+    else SequentialAgent(
+        name="SequentialAnalysis",
+        sub_agents=[screening_agent, researcher_agent],
+        description="Run ScreeningAgent then ResearcherAgent to reduce burst pressure on LLM quotas.",
+    )
 )
 
 orchestrator = SequentialAgent(
     name="ToxAgentOrchestrator",
-    sub_agents=[input_validator, parallel_analysis, writer_agent],
+    sub_agents=[input_validator, analysis_stage, writer_agent],
     description="Orchestrate full toxicity pipeline: validate -> parallel analysis -> synthesis.",
 )
 

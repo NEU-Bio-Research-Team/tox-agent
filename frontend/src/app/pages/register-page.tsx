@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, useLocation, Link } from 'react-router';
 import { useAuth } from '../components/contexts/auth-context';
 import { Button } from '../components/ui/button';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -14,6 +14,12 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectTo =
+    typeof (location.state as { from?: string } | null)?.from === 'string'
+      ? (location.state as { from: string }).from
+      : '/analyze';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +39,7 @@ export function RegisterPage() {
     const success = await register(email, password, name);
     
     if (success) {
-      navigate('/analyze');
+      navigate(redirectTo, { replace: true });
     } else {
       setError('Email already exists');
     }

@@ -3,7 +3,7 @@
 > Note: This folder is a preserved ClinTox-era artifact. In `tox21_only` mode,
 > ClinTox runtime workflows are disabled, but these files are kept for reference.
 
-Test files for the SMILESGNN Streamlit app (`app.py`).
+Test files for the archived Streamlit app (`legacy/streamlit-clintox/app.py`).
 All organic compounds are drawn from the **ClinTox scaffold-split test set** (148 molecules).
 
 ---

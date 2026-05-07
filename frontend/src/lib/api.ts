@@ -98,18 +98,135 @@ export interface MolragRetrievedExample {
 	is_exact_match?: boolean;
 }
 
+export interface MolragKnowledgeHit {
+	doc_id?: string;
+	type?: string;
+	name?: string;
+	summary?: string;
+	risk_level?: string;
+	source?: string;
+	smarts_hit?: boolean;
+	score?: number;
+}
+
+export interface MolragLiteratureHit {
+	doc_id?: string;
+	title?: string;
+	year?: string | number;
+	pmid?: string;
+	source_query?: string;
+	source?: string;
+	relevant_targets?: string[];
+	compound_mentions?: string[];
+	excerpt?: string;
+	score?: number;
+}
+
+export interface MolragEvidencePayload {
+	analog_support?: {
+		count?: number;
+		top_sim?: number;
+		top_name?: string;
+		vote?: string;
+	};
+	mechanism_matches?: Array<{
+		name?: string;
+		smarts_hit?: boolean;
+		risk?: string;
+		summary?: string;
+	}>;
+	literature_support?: Array<{
+		title?: string;
+		year?: string | number;
+		pmid?: string;
+		excerpt?: string;
+	}>;
+	contrastive_pair?: {
+		same_label_name?: string;
+		same_label?: string;
+		same_sim?: number;
+		opposite_label_name?: string;
+		opposite_label?: string;
+		opposite_sim?: number;
+		note?: string;
+	} | null;
+	confidence_zone?: string;
+	has_smarts_hit?: boolean;
+}
+
+export interface MolragRetrievalOverview {
+	db_source?: string;
+	db_size?: number;
+	match_count?: number;
+}
+
+export interface MolragPresentationCard {
+	eyebrow?: string | null;
+	title?: string | null;
+	body?: string | null;
+	tone?: 'support' | 'conflict' | 'warning' | 'neutral' | string;
+}
+
+export interface MolragPresentation {
+	headline?: string | null;
+	subheadline?: string | null;
+	takeaways?: string[];
+	evidence_cards?: MolragPresentationCard[];
+	caveats?: string[];
+	confidence_banner?: {
+		label?: string | null;
+		detail?: string | null;
+	} | null;
+}
+
+export interface MolragFirestoreState {
+	enabled?: boolean;
+	ready?: boolean;
+	reason?: string | null;
+	service_account?: string | null;
+	credential_source?: string | null;
+	project_id?: string | null;
+	database_id?: string | null;
+	configured_database_id?: string | null;
+	used_database_fallback?: boolean;
+	fallback_reason?: string | null;
+	attempts?: Array<{
+		database_id?: string;
+		ready?: boolean;
+		reason?: string | null;
+	}>;
+}
+
 export interface MolragSection {
 	enabled?: boolean;
 	strategy?: string;
 	retrieval_db_size?: number | null;
+	retrieval_db_source?: string | null;
 	retrieval_error?: string | null;
 	retrieved_examples?: MolragRetrievedExample[];
+	evidence_overview?: string | null;
 	evidence_summary?: string | null;
 	reasoning_summary?: string | null;
+	longform_summary?: string | null;
+	mechanism_chain?: string[];
+	key_substructures?: string[];
+	analogy_reasoning?: string | null;
+	confidence_rationale?: string | null;
+	risk_modifiers?: string[];
+	knowledge_highlights?: string[];
+	literature_highlights?: string[];
+	presentation?: MolragPresentation;
 	suggested_label?: string | null;
 	confidence?: number | null;
+	tox_classes?: string[];
+	knowledge_hits?: MolragKnowledgeHit[];
+	literature_hits?: MolragLiteratureHit[];
+	retrieval_overview?: MolragRetrievalOverview;
+	molrag_evidence?: MolragEvidencePayload;
+	firestore?: MolragFirestoreState;
 	prompt_preview?: string | null;
 	reasoning_mode?: string | null;
+	llm_status?: string | null;
 	error?: string | null;
 }
 
@@ -174,8 +291,25 @@ export interface LiteraturePaper {
 	year?: string;
 	journal?: string;
 	snippet?: string;
+	abstract?: string;
+	abstract_source?: string;
+	search_source?: string;
 	abstract_snippet?: string;
 	pubmed_url?: string;
+}
+
+export interface LiteratureSynthesis {
+	consensus_mechanisms?: string[];
+	key_targets?: string[];
+	dose_response_signals?: string[];
+	conflicting_findings?: string[];
+	confidence_level?: string;
+	synthesis_text?: string;
+	papers_with_content?: number;
+	pmids_used?: string[];
+	source_coverage?: Record<string, number>;
+	evidence_basis?: string;
+	error?: string | null;
 }
 
 export interface BioassayItem {
@@ -191,7 +325,11 @@ export interface LiteratureSection {
 	};
 	query_name_used?: string;
 	total_found?: number;
+	search_source?: string;
+	fallback_used?: boolean;
+	search_error?: string | null;
 	relevant_papers?: LiteraturePaper[];
+	literature_synthesis?: LiteratureSynthesis;
 	bioassay_evidence?: {
 		cid?: number;
 		active_assays?: BioassayItem[];
@@ -278,6 +416,15 @@ export interface AgentChatStreamEvent {
 	status?: string;
 	response?: string;
 	chat_session_id?: string;
+	error?: string;
+	message?: string;
+}
+
+export interface AgentAnalyzeStreamEvent {
+	type: 'agent_event' | 'done' | 'error' | string;
+	session_id?: string;
+	event?: AgentEventRecord;
+	result?: AgentAnalyzeResponse;
 	error?: string;
 	message?: string;
 }
@@ -385,7 +532,7 @@ export async function agentAnalyze(
 		max_literature_results: options.maxLiteratureResults ?? 5,
 		inference_backend: options.inferenceBackend ?? 'chemberta',
 		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
-		tox_type_model: options.toxTypeModel ?? 'tox21_gatv2_model',
+		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best',
 		molrag_enabled: options.molragEnabled ?? true,
 		molrag_top_k: options.molragTopK ?? 5,
 		molrag_min_similarity: options.molragMinSimilarity ?? 0.15,
@@ -403,6 +550,136 @@ export async function agentAnalyze(
 	}
 
 	return (await res.json()) as AgentAnalyzeResponse;
+}
+
+export async function* agentAnalyzeStream(
+	smiles: string,
+	options: AgentAnalyzeOptions = {},
+): AsyncGenerator<AgentAnalyzeStreamEvent> {
+	const parseStreamEvent = (rawEvent: string): AgentAnalyzeStreamEvent | null => {
+		const normalizedEvent = rawEvent.replace(/\r\n/g, '\n').trim();
+		if (!normalizedEvent) {
+			return null;
+		}
+
+		const dataLines = normalizedEvent
+			.split('\n')
+			.map((line) => line.trimStart())
+			.filter((line) => line.startsWith('data:'))
+			.map((line) => line.slice(5).trimStart());
+
+		if (dataLines.length === 0) {
+			const singleLine = normalizedEvent.trimStart();
+			if (!singleLine.startsWith('data:')) {
+				return null;
+			}
+			dataLines.push(singleLine.slice(5).trimStart());
+		}
+
+		const rawData = dataLines.join('\n').trim();
+		const normalizedData = rawData.replace(/(?:\\n)+$/, '').trim();
+		if (!normalizedData) {
+			return null;
+		}
+
+		try {
+			return JSON.parse(normalizedData) as AgentAnalyzeStreamEvent;
+		} catch {
+			return null;
+		}
+	};
+
+	const consumeBuffer = (input: string, allowTailEvent: boolean) => {
+		const parsedEvents: AgentAnalyzeStreamEvent[] = [];
+		let remaining = input.replace(/\r\n/g, '\n');
+
+		let separatorIndex = remaining.indexOf('\n\n');
+		while (separatorIndex >= 0) {
+			const rawEvent = remaining.slice(0, separatorIndex);
+			remaining = remaining.slice(separatorIndex + 2);
+			const parsed = parseStreamEvent(rawEvent);
+			if (parsed) {
+				parsedEvents.push(parsed);
+			}
+			separatorIndex = remaining.indexOf('\n\n');
+		}
+
+		let escapedSeparatorIndex = remaining.search(/\\n\\n(?=\s*data:)/);
+		while (escapedSeparatorIndex >= 0) {
+			const rawEvent = remaining.slice(0, escapedSeparatorIndex);
+			remaining = remaining.slice(escapedSeparatorIndex + 4);
+			const parsed = parseStreamEvent(rawEvent);
+			if (parsed) {
+				parsedEvents.push(parsed);
+			}
+			escapedSeparatorIndex = remaining.search(/\\n\\n(?=\s*data:)/);
+		}
+
+		if (allowTailEvent) {
+			const tailEvent = parseStreamEvent(remaining);
+			if (tailEvent) {
+				parsedEvents.push(tailEvent);
+				remaining = '';
+			}
+		}
+
+		return { parsedEvents, remaining };
+	};
+
+	const payload = {
+		smiles,
+		include_agent_events: true,
+		language: options.language ?? 'en',
+		clinical_threshold: options.clinicalThreshold ?? 0.35,
+		mechanism_threshold: options.mechanismThreshold ?? 0.5,
+		max_literature_results: options.maxLiteratureResults ?? 5,
+		inference_backend: options.inferenceBackend ?? 'chemberta',
+		binary_tox_model: options.binaryToxModel ?? 'pretrained_2head_herg_chemberta_model',
+		tox_type_model: options.toxTypeModel ?? 'tox21_ensemble_3_best',
+		molrag_enabled: options.molragEnabled ?? true,
+		molrag_top_k: options.molragTopK ?? 5,
+		molrag_min_similarity: options.molragMinSimilarity ?? 0.15,
+	};
+
+	const res = await fetch(`${BASE_URL}/agent/analyze/stream`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) {
+		const bodyText = await res.text();
+		throw new Error(toErrorMessage(res.status, bodyText));
+	}
+
+	if (!res.body) {
+		throw new Error('Streaming not supported by this runtime.');
+	}
+
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = '';
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) {
+			buffer += decoder.decode();
+			const { parsedEvents } = consumeBuffer(buffer, true);
+			for (const parsedEvent of parsedEvents) {
+				yield parsedEvent;
+			}
+			buffer = '';
+			break;
+		}
+
+		buffer += decoder.decode(value, { stream: true });
+
+		const { parsedEvents, remaining } = consumeBuffer(buffer, false);
+		for (const parsedEvent of parsedEvents) {
+			yield parsedEvent;
+		}
+		buffer = remaining;
+	}
 }
 
 export interface AgentChatOptions {
@@ -465,12 +742,13 @@ export async function* agentChatStream(
 		}
 
 		const rawData = dataLines.join('\n').trim();
-		if (!rawData) {
+		const normalizedData = rawData.replace(/(?:\\n)+$/, '').trim();
+		if (!normalizedData) {
 			return null;
 		}
 
 		try {
-			return JSON.parse(rawData) as AgentChatStreamEvent;
+			return JSON.parse(normalizedData) as AgentChatStreamEvent;
 		} catch {
 			return null;
 		}

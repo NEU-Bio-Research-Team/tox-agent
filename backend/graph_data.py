@@ -13,7 +13,7 @@ from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem import Descriptors
 
-from src.featurization import smiles_to_mol
+from backend.featurization import smiles_to_mol
 
 
 def get_atom_features(atom: Chem.Atom, mol: Chem.Mol) -> np.ndarray:

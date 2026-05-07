@@ -343,7 +343,7 @@ Frontend đọc `VITE_API_BASE_URL` từ env. Nếu không có, hoặc lỡ bund
 
 ## 9. Entry Points Phụ Và Legacy
 
-### `app.py`
+### `legacy/streamlit-clintox/app.py`
 
 Đây là Streamlit app cũ cho giao diện trực tiếp với SMILESGNN.
 
@@ -351,7 +351,7 @@ Frontend đọc `VITE_API_BASE_URL` từ env. Nếu không có, hoặc lỡ bund
 - Hiện tại bị chặn khi workspace ở `tox21_only`.
 - Nó vẫn hữu ích như reference cho workflow explainability, nhưng không phải đường chạy chính của sản phẩm hiện tại.
 
-### `scripts/test_agent_layer_flow.py`
+### `tests/smoke/agent_layer_flow_smoke.py`
 
 Đây là smoke test cho agent layer end-to-end.
 

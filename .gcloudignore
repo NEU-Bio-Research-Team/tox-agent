@@ -1,9 +1,12 @@
-# Keep Docker build context small, but DO include models/ for runtime inference.
+# Keep Docker build context small; model artifacts now come from object storage.
 .gcloudignore
 .git/
 .gitignore
+.env
 .vscode/
 .firebase/
+gha-creds-*.json
+serviceAccountKey.json
 node_modules/
 __pycache__/
 .venv/
@@ -12,10 +15,14 @@ tox_env/
 *.log
 *.tmp
 frontend/
+legacy/
+tests/
 notebooks/
 outputs/
 results/
 temp_out.json
+output.json
+models/
 # Local documents / photos are not needed in the backend image.
 documents photos/
 # Keep MolRAG retrieval data in image while excluding the rest of test fixtures.
@@ -23,4 +30,3 @@ test_data/**
 !test_data/
 !test_data/reference_panel.csv
 !test_data/screening_library.csv
-# Keep all model artifacts in build context (full model build requested).

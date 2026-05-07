@@ -1,87 +1,79 @@
-# Python
+# Python cache and build outputs
 __pycache__/
 *.py[cod]
 *.so
 *.egg-info/
 .eggs/
-dist/
+*$py.class
 build/
-requirements.txt
-setup.py
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.conda/
+tox_env/
 
 # Jupyter
 .ipynb_checkpoints/
 
-# Runtime artifacts (recreated by training)
-data/
-# models/ Disabled for easy testing
+# Node package managers and build outputs
+node_modules/
+**/node_modules/
+frontend/dist/
+legacy/**/dist/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Priority 3 notebooks (kept locally, not uploaded to GitHub)
-notebooks/04_explainability_and_visualization.ipynb
-notebooks/05_results_and_error_analysis.ipynb
-notebooks/06_representation.ipynb
+# Local environment and secrets
+.env
+.env.*
+serviceAccountKey.json
+gha-creds-*.json
 
-# Claude Code config
-.claude/
+# Firebase local artifacts
+.firebase/
+firestore-debug.log
+ui-debug.log
 
-# Serialized objects
+# Workspace-generated artifacts
+results/
+outputs/
+logs/
+temp_out.json
+output.json
+
+# Serialized artifacts commonly regenerated locally
 *.pkl
 *.pt
 *.pth
 *.h5
 *.hdf5
 
-# Model metadata and report artifacts
-models/**/*.json
-models/**/*.txt
+# Datasets and local-only content
+data/
+documents photos/
 
-# Logs
-*.log
-*.tmp
-
-# OS
+# OS and editor files
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *~
-.env
-# models
-__pycache__/
-# models/
-*.pyc
-# Node.js - Loại bỏ thư viện rác
-node_modules/
-npm-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-dist/
-build/
 
-# Python - Loại bỏ môi trường ảo và cache AI
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-env/
-.env
-.venv
-.conda/
-results/
-temp_out.json
+# Archived prototypes may create their own local dependencies
+legacy/
+legacy/**/node_modules/
+notebooks/
 
-# Firebase
-.firebase/
-firestore-debug.log
-ui-debug.log
-serviceAccountKey.json
+# Keep committed model metadata and selected runtime assets explicit.
+models/**/*.json
+models/**/*.txt
+!models/dualhead_model_ranking.csv
+!models/pretrained_2head_herg_chemberta_model/
+!models/pretrained_2head_herg_chemberta_model/**
 
-# IDE rác
-.vscode/
-.DS_Storetox_env/
-venv/
-.env
-__pycache__/
+/.agents/skills

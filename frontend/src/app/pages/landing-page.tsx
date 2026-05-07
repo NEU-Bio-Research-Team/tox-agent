@@ -623,11 +623,10 @@ function ImpressiveScaleSection() {
 function ResearchSourceSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
-  const navigate = useNavigate();
 
   const sources = [
-    { name: 'HERG', link: '/analyze?dataset=herg' },
-    { name: 'TOX21', link: '/analyze?dataset=tox21' },
+    { name: 'HERG', link: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3232635/' },
+    { name: 'TOX21', link: 'https://tox21.gov/' },
   ];
 
   return (
@@ -651,7 +650,7 @@ function ResearchSourceSection() {
               transition={{ duration: 0.8, delay: index * 0.2 }}
               whileHover={{ y: -10, boxShadow: "0 30px 80px rgba(26,0,77,0.3)" }}
               className="border-4 border-[#1E0368] rounded-[60px] p-12 md:p-16 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden group cursor-pointer bg-white"
-              onClick={() => navigate(source.link)}
+              onClick={() => window.open(source.link, '_blank', 'noopener,noreferrer')}
             >
               <h3 className="font-['Cal_Sans'] text-7xl md:text-9xl font-bold bg-gradient-to-r from-[#1E0368] to-purple-600 bg-clip-text text-transparent mb-8 relative z-10">
                 {source.name}
@@ -818,7 +817,7 @@ function AffiliationSection() {
           transition={{ duration: 0.8 }}
           className="font-['Climate_Crisis'] text-5xl md:text-7xl text-white mb-12"
         >
-          AFFILIATION THANKS TO
+          THANKS TO
         </motion.h2>
 
         <motion.div

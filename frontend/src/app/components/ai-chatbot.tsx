@@ -3,6 +3,7 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Button } from './ui/button';
 import { type FinalReport } from '../../lib/api';
+import { buildChatContext } from '../../lib/chat-context';
 
 const AI_PROMPTS = [
   "Summarize the key toxicity risk from this report.",
@@ -36,7 +37,12 @@ export function AIChatbot({ chatSessionId, analysisSessionId, reportState }: AIC
         question: userInput,
         chatSessionId: chatSessionId ?? null,
         analysisSessionId: analysisSessionId ?? null,
-        reportState: reportState ?? null,
+        reportState: reportState?.final_report
+          ? {
+              smiles_input: reportState.smiles_input,
+              final_report: buildChatContext(reportState.final_report),
+            }
+          : reportState ?? null,
       },
     });
   };

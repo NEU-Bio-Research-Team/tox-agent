@@ -4,7 +4,7 @@ import { Navbar } from '../components/navbar';
 import { HeroSection } from '../components/hero-section';
 import { AgentProgressPanel } from '../components/agent-progress-panel';
 import { QuickVerdictCard } from '../components/quick-verdict-card';
-import { agentAnalyze } from '../../lib/api';
+import { agentAnalyzeStream, type AgentAnalyzeResponse, type AgentEventRecord } from '../../lib/api';
 import { useReport } from '../../lib/ReportContext';
 import { Footer } from '../components/footer';
 import { SmilesHistory, addToHistory } from '../components/smiles-history';
@@ -39,8 +39,8 @@ function toBoundedScore(value: number | null | undefined): number {
 export function IndexPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [analysisComplete, setAnalysisComplete] = useState(false);
   const [smilesInput, setSmilesInput] = useState('CC(=O)Oc1ccccc1C(=O)O');
+  const [streamEvents, setStreamEvents] = useState<AgentEventRecord[]>([]);
   const {
     report,
     setReport,
@@ -50,6 +50,9 @@ export function IndexPage() {
     setError,
     preferences,
   } = useReport();
+  const hasReport = Boolean(report && Object.keys(report.final_report ?? {}).length > 0);
+  const progressEvents = report?.agent_events?.length ? report.agent_events : streamEvents;
+  const showProgressPanel = isLoading || hasReport || streamEvents.length > 0;
 
   const handleAnalyze = async (opts: { binaryModel: string; toxTypeModel: string }) => {
     const smiles = smilesInput.trim();
@@ -61,10 +64,10 @@ export function IndexPage() {
     setIsLoading(true);
     setError(null);
     setReport(null);
-    setAnalysisComplete(false);
+    setStreamEvents([]);
 
     try {
-      const result = await agentAnalyze(smiles, {
+      const stream = agentAnalyzeStream(smiles, {
         language: 'en',
         clinicalThreshold: preferences.clinicalThreshold,
         mechanismThreshold: preferences.mechanismThreshold,
@@ -72,10 +75,33 @@ export function IndexPage() {
         binaryToxModel: opts.binaryModel,     
         toxTypeModel: opts.toxTypeModel,
       });
+      let result: AgentAnalyzeResponse | null = null;
+
+      for await (const event of stream) {
+        if (event.type === 'agent_event' && event.event) {
+          setStreamEvents((prev) => [...prev, event.event as AgentEventRecord]);
+          continue;
+        }
+
+        if (event.type === 'done' && event.result) {
+          result = event.result as AgentAnalyzeResponse;
+          setStreamEvents(result.agent_events ?? []);
+          continue;
+        }
+
+        if (event.type === 'error') {
+          throw new Error(event.message || event.error || 'Unexpected streaming analysis error');
+        }
+      }
+
+      if (!result) {
+        throw new Error('No final response received from analysis stream');
+      }
+
       if (result.validation_status && result.validation_status !== 'VALID') {
         throw new Error(`Validation failed: ${result.validation_status}`);
       }
-      if (!result.final_report) {
+      if (!result.final_report || Object.keys(result.final_report).length === 0) {
         throw new Error('API response missing final_report');
       }
 
@@ -101,8 +127,6 @@ export function IndexPage() {
       ).catch((historyError) => {
         console.warn('Failed to persist analysis history:', historyError);
       });
-
-      setAnalysisComplete(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unexpected error during analysis';
       setError(message);
@@ -117,8 +141,8 @@ export function IndexPage() {
 
   const handleSmilesChange = (value: string) => {
     setSmilesInput(value);
-    if (analysisComplete) {
-      setAnalysisComplete(false);
+    if (!report) {
+      setStreamEvents([]);
     }
   };
 
@@ -158,15 +182,15 @@ export function IndexPage() {
         )}
 
         {/* Agent Progress Panel */}
-        {(isLoading || analysisComplete) && (
+        {showProgressPanel && (
           <AgentProgressPanel
             isAnalyzing={isLoading}
-            events={report?.agent_events ?? []}
+            events={progressEvents}
           />
         )}
 
         {/* Quick Verdict Card */}
-        {analysisComplete && report?.final_report && (
+        {hasReport && report?.final_report && (
           <QuickVerdictCard
             finalReport={report.final_report}
             onViewReport={handleViewReport}
@@ -174,7 +198,7 @@ export function IndexPage() {
         )}
 
         {/* SMILES History */}
-        {!isLoading && !analysisComplete && (
+        {!isLoading && !hasReport && streamEvents.length === 0 && (
           <div className="py-12">
             <SmilesHistory onSelectSmiles={handleSelectFromHistory} uid={user?.id ?? null} />
           </div>
