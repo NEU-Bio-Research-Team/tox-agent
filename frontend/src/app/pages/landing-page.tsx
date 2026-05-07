@@ -817,7 +817,7 @@ function AffiliationSection() {
           transition={{ duration: 0.8 }}
           className="font-['Climate_Crisis'] text-5xl md:text-7xl text-white mb-12"
         >
-          AFFILIATION THANKS TO
+          THANKS TO
         </motion.h2>
 
         <motion.div

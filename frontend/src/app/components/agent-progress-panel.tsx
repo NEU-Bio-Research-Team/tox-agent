@@ -501,7 +501,7 @@ function MoleculePulseAnimation() {
         <defs>
           <linearGradient id="molecule-edge-gradient" x1="0%" x2="100%" y1="0%" y2="0%">
             <stop offset="0%" stopColor="rgba(45, 212, 191, 0.18)" />
-            <stop offset="50%" stopColor="rgba(186, 230, 253, 0.92)" />
+            <stop offset="50%" stopColor="rgba(4, 6, 7, 0.92)" />
             <stop offset="100%" stopColor="rgba(34, 197, 94, 0.22)" />
           </linearGradient>
           <linearGradient id="molecule-scan-gradient" x1="0%" x2="100%" y1="0%" y2="0%">
