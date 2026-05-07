@@ -294,22 +294,31 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
       className="relative mb-6 overflow-hidden rounded-[28px] border p-6 shadow-xl md:p-8"
       style={{
         background:
-          'linear-gradient(135deg, rgba(5, 24, 37, 0.98) 0%, rgba(9, 55, 59, 0.96) 46%, rgba(234, 248, 244, 0.98) 100%)',
-        border: '1px solid rgba(15, 23, 42, 0.08)',
+          'linear-gradient(140deg, rgba(255, 255, 255, 0.42) 0%, rgba(223, 245, 241, 0.3) 48%, rgba(207, 229, 239, 0.22) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+        backdropFilter: 'blur(26px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(26px) saturate(160%)',
+        boxShadow: '0 24px 80px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.42)',
       }}
     >
       <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -left-20 top-10 h-48 w-48 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(45, 212, 191, 0.18)' }}
+          style={{ backgroundColor: 'rgba(125, 211, 252, 0.24)' }}
           animate={{ scale: [1, 1.18, 1], opacity: [0.3, 0.55, 0.3] }}
           transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
           className="absolute right-0 top-0 h-56 w-56 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(59, 130, 246, 0.14)' }}
+          style={{ backgroundColor: 'rgba(192, 132, 252, 0.16)' }}
           animate={{ scale: [1.12, 0.92, 1.12], opacity: [0.18, 0.32, 0.18] }}
           transition={{ duration: 5.6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute inset-x-12 bottom-0 h-32 rounded-full blur-3xl"
+          style={{ backgroundColor: 'rgba(244, 114, 182, 0.1)' }}
+          animate={{ scale: [0.96, 1.04, 0.96], opacity: [0.12, 0.2, 0.12] }}
+          transition={{ duration: 6.4, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
@@ -319,15 +328,15 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
             <div>
               <div
                 className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.28em]"
-                style={{ color: 'rgba(229, 245, 242, 0.76)' }}
+                style={{ color: 'rgba(15, 59, 70, 0.68)' }}
               >
                 <Atom className="h-4 w-4" />
                 Live Molecular Scan
               </div>
-              <h3 className="text-2xl font-semibold" style={{ color: '#f6fffd' }}>
+              <h3 className="text-2xl font-semibold" style={{ color: '#113843' }}>
                 Analyzing molecular toxicity
               </h3>
-              <p className="mt-2 max-w-xl text-sm leading-6" style={{ color: 'rgba(224, 240, 237, 0.84)' }}>
+              <p className="mt-2 max-w-xl text-sm leading-6" style={{ color: 'rgba(17, 56, 67, 0.76)' }}>
                 Validation, toxicity screening, evidence lookup, and report synthesis are progressing through the agent pipeline.
               </p>
             </div>
@@ -335,9 +344,11 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
             <div
               className="rounded-full border px-4 py-2 text-sm font-medium"
               style={{
-                color: '#f6fffd',
-                borderColor: 'rgba(255, 255, 255, 0.18)',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#0f3b46',
+                borderColor: 'rgba(255, 255, 255, 0.4)',
+                backgroundColor: 'rgba(255, 255, 255, 0.24)',
+                backdropFilter: 'blur(18px)',
+                WebkitBackdropFilter: 'blur(18px)',
               }}
             >
               {overallProgress}% complete
@@ -347,8 +358,10 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
           <div
             className="rounded-[24px] border p-5"
             style={{
-              background: 'linear-gradient(135deg, rgba(9, 20, 31, 0.84), rgba(12, 52, 61, 0.72))',
-              borderColor: 'rgba(255, 255, 255, 0.12)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(219, 245, 242, 0.2))',
+              borderColor: 'rgba(255, 255, 255, 0.38)',
+              backdropFilter: 'blur(22px)',
+              WebkitBackdropFilter: 'blur(22px)',
             }}
           >
             <MoleculePulseAnimation />
@@ -356,23 +369,23 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
             <div className="mt-5 space-y-2">
               <div
                 className="flex items-center justify-between text-xs uppercase tracking-[0.22em]"
-                style={{ color: 'rgba(215, 233, 230, 0.74)' }}
+                style={{ color: 'rgba(15, 59, 70, 0.72)' }}
               >
                 <span>Scanning structure</span>
                 <span>{overallProgress}%</span>
               </div>
 
-              <div className="relative h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}>
+              <div className="relative h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.4)' }}>
                 <motion.div
                   className="h-full rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #2dd4bf 0%, #22c55e 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, rgba(13, 148, 136, 0.95) 0%, rgba(59, 130, 246, 0.9) 100%)' }}
                   initial={{ width: 0 }}
                   animate={{ width: `${overallProgress}%` }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                 />
                 <motion.div
                   className="absolute inset-y-0 w-24"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent)' }}
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent)' }}
                   animate={{ x: ['-140%', '430%'] }}
                   transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
                 />
@@ -382,11 +395,16 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
 
           <div
             className="rounded-2xl border p-4"
-            style={{ backgroundColor: 'rgba(7, 18, 28, 0.48)', borderColor: 'rgba(255, 255, 255, 0.12)' }}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.22)',
+              borderColor: 'rgba(255, 255, 255, 0.34)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
           >
             <div
               className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.22em]"
-              style={{ color: 'rgba(215, 233, 230, 0.74)' }}
+              style={{ color: 'rgba(15, 59, 70, 0.72)' }}
             >
               <Sparkles className="h-4 w-4" />
               Rotating science tip
@@ -398,7 +416,7 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               className="text-sm leading-6"
-              style={{ color: '#f2fffc' }}
+              style={{ color: '#143c47' }}
             >
               {tip}
             </motion.p>
@@ -408,7 +426,12 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
         <div className="space-y-4">
           <div
             className="rounded-[24px] border p-4"
-            style={{ backgroundColor: 'rgba(248, 252, 251, 0.92)', borderColor: 'rgba(8, 47, 73, 0.08)' }}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              borderColor: 'rgba(255, 255, 255, 0.38)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
           >
             <div
               className="mb-4 flex items-center gap-2 text-xs uppercase tracking-[0.22em]"
@@ -432,28 +455,33 @@ function AnalyzingProgressExperience({ state, tip }: { state: { agents: AgentSta
 
           <div
             className="rounded-[24px] border p-4"
-            style={{ backgroundColor: 'rgba(7, 18, 28, 0.82)', borderColor: 'rgba(148, 163, 184, 0.18)' }}
+            style={{
+              background: 'linear-gradient(135deg, rgba(16, 57, 69, 0.18), rgba(255, 255, 255, 0.2))',
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
           >
             <div
               className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.22em]"
-              style={{ color: 'rgba(162, 255, 223, 0.8)' }}
+              style={{ color: 'rgba(15, 59, 70, 0.72)' }}
             >
               <Activity className="h-4 w-4" />
               Live log stream
             </div>
 
-            <div className="max-h-56 space-y-2 overflow-y-auto font-mono text-xs leading-5" style={{ color: '#d6fff3' }}>
+            <div className="max-h-56 space-y-2 overflow-y-auto font-mono text-xs leading-5" style={{ color: '#143c47' }}>
               {state.logs.map((log, idx) => (
                 <motion.div
                   key={`${log.time}-${log.agent}-${idx}`}
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-lg px-3 py-2"
-                  style={{ backgroundColor: 'rgba(15, 45, 43, 0.32)' }}
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.24)' }}
                 >
-                  <span style={{ color: 'rgba(153, 246, 228, 0.66)' }}>{log.time}</span>{' '}
-                  <span style={{ color: '#5eead4' }}>{log.agent}</span>{' '}
-                  <span style={{ color: '#eafff8' }}>{log.message}</span>
+                  <span style={{ color: 'rgba(15, 59, 70, 0.52)' }}>{log.time}</span>{' '}
+                  <span style={{ color: '#0f766e' }}>{log.agent}</span>{' '}
+                  <span style={{ color: '#163b45' }}>{log.message}</span>
                 </motion.div>
               ))}
             </div>
