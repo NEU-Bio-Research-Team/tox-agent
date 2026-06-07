@@ -761,6 +761,16 @@ def _resolve_report_chat_model() -> str:
 
 
 def _build_report_chat_client(location_override: Optional[str] = None) -> Tuple[Optional[Any], str]:
+    llm_runtime = (os.getenv("LLM_RUNTIME") or "gemini").strip().lower()
+    if llm_runtime in ("local", "auto"):
+        try:
+            from services.local_llm_runtime import build_local_client
+            return build_local_client(), "local_llm"
+        except Exception as exc:
+            logger.warning("Failed to build local client in report chat: %s", exc)
+            if llm_runtime == "local":
+                return None, "local_llm_failed"
+
     if google_genai is None:
         return None, "google_genai_not_available"
 
