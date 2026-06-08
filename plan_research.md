@@ -1,485 +1,428 @@
-# Fine-tuning Local LLM cho ToxAgent: SOTA Research & Harness Architecture (RTX 3090 24GB)
+<aside>
+✅
 
-## 1. Executive Summary
+Tài liệu này đã được **kiểm chứng trực tiếp** với mã nguồn thật trên branch `agent_test` của repo NEU-Bio-Research-Team/tox-agent. Mỗi nhận định về bug/gap đều ghi rõ trạng thái: **ĐÚNG (xác nhận)**, **CẦN SỬA LẠI**, hoặc **bổ sung mới**. Một số kết luận trong bản nháp gốc của bạn (đặc biệt Gap #3) **không khớp với code thực tế** và đã được chỉnh lại bên dưới.
 
-Repo `tox-agent` hiện có **7 agents LLM** tất cả đều gọi Gemini API qua `google.genai`: `InputValidator`, `ScreeningAgent`, `ResearcherAgent`, `WriterAgent`, `MolRAG Reasoner`, `EvidenceQAAgent`, và `ReportChatAgent`. Mỗi agent có profile nhiệm vụ khác nhau — từ tool-calling JSON-structured (Validator, Screener) đến long-form scientific reasoning (MolRAG, Writer) đến conversational QA (EvidenceQA, ReportChat). Chiến lược tối ưu là **không fine-tune một model duy nhất cho tất cả**, mà phân nhóm agents theo đặc tính và áp dụng recipe fine-tuning phù hợp với từng nhóm. Với budget RTX 3090 24GB, QLoRA + Unsloth là bắt buộc cho tất cả fine-tuning runs.
+</aside>
 
-***
+## Tóm tắt kiểm chứng nhanh
 
-## 2. Phân Tích Agents — Nhóm Theo Đặc Tính LLM
+| Nhận định trong bản nháp | Trạng thái sau khi đọc code | Ghi chú |
+| --- | --- | --- |
+| Bug #1 — `import json` sai scope trong `finetune_group_a.py` | ✅ **ĐÚNG** | Crash thật khi `dataset.map()` chạy `format_prompts` ở subprocess worker. |
+| Gap #2 — `REQUIRED_KEYS` (7) lệch `_MOLRAG_RESPONSE_SCHEMA` (11) | ✅ **ĐÚNG** (và còn tệ hơn) | Nhánh thưởng `1.5` cho "perfect match" gần như **không bao giờ đạt được** nếu model xuất đủ 11 field. Xem phân tích bên dưới. |
+| Gap #3 — `genai_runtime.py` trả về `LocalLLMClient` khi `LLM_RUNTIME=local` | ❌ **SAI — cần sửa lại** | `build_genai_client_candidates()` **không hề** tham chiếu `LocalLLMClient`. Local runtime là **dead code chưa được nối dây**. Đây mới là gap thật. |
+| Gap #3 — `config = genai.types...` sẽ crash khi `genai = None` | ❌ **SAI** | Đã có guard `if genai is None ... return result` **trước** dòng đó, nên không bao giờ chạm tới. "Fix" đề xuất là thừa. |
+| Group A tool gồm `validate_smiles`  • `predict_toxicity` | ⚠️ **MỘT PHẦN** | Tool thật là `validate_smiles` và **`analyze_molecule`** (không phải `predict_toxicity`). |
+| GRPO: `use_vllm=True`, `vllm_gpu_memory_utilization=0.4`, `num_generations=4` | ✅ **ĐÚNG** | Xác nhận trong `finetune_group_b_grpo.py`. |
 
-### 2.1 Agent Inventory từ Codebase
+---
 
-Dựa trên đọc source code trực tiếp từ repo:
+## Phần 1 — Fine-tuning LLM là gì và quy trình tổng quát
 
-| Agent | File | Env Var Model | Task Profile | Output Type |
-|-------|------|--------------|-------------|-------------|
-| **InputValidator** | `orchestrator_agent.py` | `AGENT_MODEL_FAST` | Tool calling: `validate_smiles()` → JSON output | Structured JSON |
-| **ScreeningAgent** | `screening_agent.py` | `AGENT_MODEL_FAST` | Tool calling: `analyze_molecule()` → JSON | Structured JSON |
-| **ResearcherAgent** | `researcher_agent.py` | (default fast) | Literature/PubMed retrieval reasoning | Semi-structured |
-| **WriterAgent** | `writer_agent.py` | (default) | Long-form report synthesis từ evidence | Long-form text |
-| **MolRAG Reasoner** | `molrag_reasoner.py` | `AGENT_MODEL_FAST` / `AGENT_MODEL_PRO` | Chemical analogy reasoning + JSON (`evidence_overview`, `mechanism_chain`, `confidence`) | Structured JSON |
-| **EvidenceQAAgent** | `evidence_qa_agent.py` | (default) | Multi-turn Q&A trên evidence retrieved | Conversational |
-| **ReportChatAgent** | `report_chat_agent.py` | (default) | Chat về báo cáo đã sinh | Conversational |
+### Khái niệm nền tảng
 
-Tất cả models đều được inject qua `AGENT_MODEL_FAST`/`AGENT_MODEL_PRO` env vars, defaulting về `gemini-2.5-flash`/`gemini-2.5-pro`. Đây là điểm injection để swap sang local LLM.
+Fine-tuning là quá trình tiếp tục huấn luyện một pretrained LLM trên tập dữ liệu nhỏ, chuyên biệt hơn, nhằm "khắc" vào model những hành vi cụ thể mà pretrained weights chưa có sẵn. Pretrained LLM (Qwen2.5-7B, Mistral-7B) đã nắm ngôn ngữ, lý luận chung và nhiều kiến thức chemistry/biology. Fine-tuning **không dạy lại từ đầu** — nó *điều hướng lại* model theo domain của bạn.
 
-### 2.2 Phân Nhóm Fine-tuning
+Repo của bạn dùng **3 paradigm**, mỗi cái cho một nhóm agent:
 
-**Nhóm A — Structured Tool Calling (InputValidator, ScreeningAgent, MolRAG Reasoner):** Output bắt buộc là strict JSON, agent phải gọi tool đúng schema. Fine-tuning cần tập trung vào JSON schema adherence + tool-call formatting. MolRAG Reasoner có schema phức tạp nhất với các fields như `mechanism_chain`, `key_substructures`, `confidence`.
+| Paradigm | Script (đã xác nhận) | Base model | Cơ chế |
+| --- | --- | --- | --- |
+| **SFT** (Supervised Fine-Tuning) | `finetune_group_a.py`, `finetune_group_b_sft.py` | Qwen2.5-7B-Instruct / Mistral-7B-Instruct-v0.3 | Minimize cross-entropy trên cặp (prompt, response) — bắt chước teacher. |
+| **GRPO** (Group Relative Policy Optimization) | `finetune_group_b_grpo.py` | Checkpoint SFT của Group B | Sinh G completions/prompt, dùng reward functions điều chỉnh policy. |
+| **ORPO** (Odds-Ratio Preference Optimization) | `finetune_group_c_d.py` | Qwen2.5-7B-Instruct | Gộp SFT loss + contrastive preference loss (chosen vs rejected) trong một pass, không cần reference model. |
 
-**Nhóm B — Chemical Domain Reasoning (MolRAG Reasoner, ResearcherAgent):** Đây là nhóm domain-critical nhất. Model cần hiểu SMILES, cơ chế độc tính, SMARTS patterns, similarity reasoning, và trích xuất evidence từ literature. Fine-tuning domain-specific lên chemistry/toxicology corpus là cần thiết.[^1][^2]
+**QLoRA** được dùng ở cả 3 script (`load_in_4bit=True` + LoRA adapters qua Unsloth `FastLanguageModel`): model gốc quantize 4-bit (đóng băng), chỉ train ~0.3–1% tham số. Đây là yếu tố giúp fit RTX 3090 24GB.
 
-**Nhóm C — Long-form Synthesis (WriterAgent):** Cần instruction-following tốt và khả năng tổng hợp multi-source evidence thành báo cáo có cấu trúc. Ít tool-calling nhưng cần coherent long-context reasoning.
+### Quy trình từ A đến Z
 
-**Nhóm D — Conversational QA (EvidenceQAAgent, ReportChatAgent):** Cần multi-turn coherence và khả năng trả lời từ context document. Đây là nhóm dễ fine-tune nhất và có thể chia sẻ một base model.
-
-***
-
-## 3. SOTA Fine-tuning Methods — Lựa Chọn Theo Task
-
-### 3.1 SFT (Supervised Fine-tuning) với QLoRA — Baseline bắt buộc
-
-QLoRA là phương pháp **không thể bỏ qua** với RTX 3090 24GB. Kỹ thuật này freeze toàn bộ model weights, chỉ train low-rank adapter matrices nhỏ. Với Unsloth, Llama-3.1-8B QLoRA 4-bit tiêu thụ khoảng 15GB VRAM, Qwen2.5-7B tương tự. Quy trình SFT với TRL/PEFT:[^3][^4][^5]
-
-```python
-from unsloth import FastLanguageModel
-from trl import SFTTrainer
-
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name="unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
-    max_seq_length=8192,
-    load_in_4bit=True,
-)
-model = FastLanguageModel.get_peft_model(
-    model,
-    r=32,           # LoRA rank; tăng lên 64 cho Nhóm B (chemistry)
-    target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
-    lora_alpha=16,
-    lora_dropout=0,
-    use_gradient_checkpointing="unsloth",
-)
+```
+[1] Thu thập raw data (SMILES + labels, ví dụ Tox21)
+        ↓
+[2] Generate teacher responses (Gemini Flash) — knowledge distillation
+        ↓
+[3] Preprocess → JSON đúng schema từng script
+        ↓
+[4] Sửa bug/gap trong repo (xem Phần 2)
+        ↓
+[5] SFT: Group A → Group B (Stage 1 → Stage 2) → Group C
+        ↓
+[6] GRPO: chạy TỪ checkpoint SFT của Group B
+        ↓
+[7] Serve GGUF qua vLLM (OpenAI-compatible endpoint)
+        ↓
+[8] *** NỐI DÂY local runtime *** rồi đặt LLM_RUNTIME=local (xem Gap #3)
 ```
 
-Unsloth cung cấp tới 2x tốc độ training và giảm 70% memory so với vanilla HuggingFace. Model được export sang GGUF và serve qua Ollama hoặc vLLM sau khi train.[^4]
+<aside>
+⚠️
 
-### 3.2 GRPO (Group Relative Policy Optimization) — Cho Nhóm B & MolRAG
+Bước [8] trong bản nháp giả định chỉ cần `export LLM_RUNTIME=local` là agent sẽ dùng model local. **Điều này hiện KHÔNG đúng** với code trên `agent_test` — phải sửa code nối dây trước (chi tiết ở Gap #3). Nếu không, dù train model local xong, các agent vẫn không bao giờ gọi tới nó.
 
-GRPO là method được phát triển bởi DeepSeek team (dùng cho R1 model) và hiện đang được áp dụng rộng rãi cho fine-tuning LLM reasoning. GRPO đặc biệt phù hợp với **Nhóm B** (MolRAG Reasoner) vì:[^6][^7]
+</aside>
 
-1. Không cần large labeled dataset — hoạt động với <100 examples nếu reward function được thiết kế tốt[^7]
-2. Reward function viết bằng Python → có thể viết rule-based reward cho toxicity classification (binary label verification, JSON schema check, SMARTS hit validation)
-3. Cải thiện multi-step reasoning — chính xác những gì MolRAG Reasoner cần cho `mechanism_chain` generation
+---
 
-Với GRPO + LoRA, Llama3.1-8B chỉ cần 15GB VRAM. Reward functions cho MolRAG có thể bao gồm:[^5]
+## Phần 2 — Bug/Gap cần sửa trước khi train
+
+### Bug #1 (CRASH) — `import json` sai scope trong `finetune_group_a.py` — ✅ ĐÚNG
+
+Đã xác nhận trong scripts/finetune_group_a.py: `import json` nằm **bên trong** `if __name__ == "__main__":` ở cuối file, trong khi `format_prompts()` (được gọi qua `dataset.map(format_prompts, batched=True)`) dùng `json.dumps(...)` ở module scope. Khi HuggingFace `datasets` chạy `format_prompts` trong subprocess worker (`dataset_num_proc`), `json` chưa được import ở scope đó → **NameError / crash**.
+
+**Fix** — đưa `import json` lên đầu file:
 
 ```python
-def toxicity_label_reward(completions, ground_truth_labels, **kwargs) -> list[float]:
-    rewards = []
-    for completion, gt_label in zip(completions, ground_truth_labels):
-        try:
-            parsed = json.loads(completion)
-            predicted = parsed.get("suggested_label", "").upper()
-            rewards.append(1.0 if predicted == gt_label.upper() else -0.5)
-        except:
-            rewards.append(-1.0)  # Penalize non-JSON
-    return rewards
+# Đầu file finetune_group_a.py
+import json  # ← phải ở module level, KHÔNG để trong __main__
+import os
+import torch
+from datasets import load_dataset
+from trl import SFTTrainer
+from transformers import TrainingArguments
+from unsloth import FastLanguageModel
+```
 
-def json_schema_reward(completions, **kwargs) -> list[float]:
-    required_keys = {"evidence_overview", "mechanism_chain", "suggested_label", "confidence"}
+<aside>
+💡
+
+**Lưu ý đối chiếu**: `finetune_group_b_sft.py`, `finetune_group_b_grpo.py`, `finetune_group_c_d.py` đều đã có `import json` ở đầu file → KHÔNG dính bug này. Chỉ `finetune_group_a.py` cần sửa.
+
+</aside>
+
+### Gap #2 (CRITICAL) — `REQUIRED_KEYS` lệch schema — ✅ ĐÚNG (và nghiêm trọng hơn bản nháp mô tả)
+
+Xác nhận: trong scripts/grpo_rewards.py, `REQUIRED_KEYS` có đúng **7 key**. Trong agents/molrag_reasoner.py, `_MOLRAG_RESPONSE_SCHEMA` có **11 `properties`** nhưng phần `required` của schema lại chỉ liệt kê **5 key**. Tức là có **lệch ba chiều**:
+
+| Nguồn | Số key | Danh sách |
+| --- | --- | --- |
+| `_MOLRAG_RESPONSE_SCHEMA.properties` | 11 | evidence_overview, longform_summary, mechanism_chain, key_substructures, confidence_rationale, analogy_reasoning, risk_modifiers, knowledge_highlights, literature_highlights, suggested_label, confidence |
+| `_MOLRAG_RESPONSE_SCHEMA.required` | 5 | evidence_overview, longform_summary, mechanism_chain, suggested_label, confidence |
+| `REQUIRED_KEYS` (reward) | 7 | 5 key trên + key_substructures, confidence_rationale |
+
+**Hệ quả nghiêm trọng hơn bản nháp nói**: trong `json_schema_reward`, nhánh thưởng `1.5` chỉ kích hoạt khi `len(overlap) == len(REQUIRED_KEYS)` **VÀ** `len(present_keys) == len(REQUIRED_KEYS)` — tức model phải xuất **đúng 7 key, không thừa không thiếu**. Nhưng nếu bạn train model (qua SFT Stage 2) để xuất **đủ 11 field theo schema**, thì `present_keys = 11 ≠ 7` → **không bao giờ** chạm nhánh `1.5`, chỉ nhận `score = 7/11 ≈ 0.636`. Reward signal vừa sai vừa mâu thuẫn với mục tiêu SFT.
+
+**Fix khuyến nghị** — đồng bộ `REQUIRED_KEYS` lên đủ 11 và làm reward mượt:
+
+```python
+REQUIRED_KEYS = {
+    "evidence_overview", "longform_summary", "mechanism_chain",
+    "key_substructures", "confidence_rationale", "suggested_label", "confidence",
+    # 4 key còn thiếu:
+    "analogy_reasoning", "risk_modifiers", "knowledge_highlights", "literature_highlights",
+}
+
+def json_schema_reward(prompts, completions, **kwargs):
     rewards = []
-    for comp in completions:
+    for completion in completions:
         try:
-            parsed = json.loads(comp)
-            coverage = len(required_keys & set(parsed.keys())) / len(required_keys)
-            rewards.append(coverage)
-        except:
+            payload = json.loads(_strip_fence(completion))
+            present = set(payload.keys())
+            overlap = REQUIRED_KEYS & present
+            partial = len(overlap) / len(REQUIRED_KEYS)
+            # Thưởng theo tỉ lệ, nhân hệ số khi đủ — gradient mượt, không nhị phân
+            rewards.append(partial * 1.5)
+        except Exception:
             rewards.append(-1.0)
     return rewards
 ```
 
-### 3.3 DPO/ORPO — Cho Nhóm C & D (Writer, QA)
+<aside>
+📌
 
-Direct Preference Optimization (DPO) và ORPO (Odds Ratio Preference Optimization) phù hợp cho WriterAgent và conversational agents vì chúng không có verifiable outcomes rõ ràng như classification. ORPO đặc biệt efficient hơn DPO vì gộp SFT và preference learning trong một pass, giảm memory footprint. Dataset cần pairs của (báo cáo tốt, báo cáo kém) cho DPO.[^8]
+Quyết định thiết kế cần bạn chốt: model nên xuất **7 hay 11 field**? Nếu giữ schema 11 field, đồng bộ `REQUIRED_KEYS=11`. Nếu chỉ cần 7 field cốt lõi, rút gọn `_MOLRAG_RESPONSE_SCHEMA.properties` xuống 7. Quan trọng là **schema sinh dữ liệu, schema response, và REQUIRED_KEYS phải khớp nhau**.
 
-### 3.4 Retriever-Aware Training (RAT) — Cho ResearcherAgent
+</aside>
 
-Gorilla (Berkeley) đề xuất RAT: trong khi training, model được expose với retrieved documents thay vì chỉ static knowledge. Điều này cực kỳ phù hợp với `ResearcherAgent` vì agent này cần grounding vào retrieved PubMed abstracts. RAT giảm hallucination đáng kể khi model học cách dùng context động thay vì memorized facts.[^9][^10]
+### Gap #3 — ❌ BẢN NHÁP SAI, đây là phân tích đúng
 
-***
+Bản nháp kết luận: *"`genai_runtime.py` đã handle `LLM_RUNTIME=local` bằng cách trả về `LocalLLMClient`"* và *"`config = genai.types...` sẽ crash khi `genai=None`"*. **Cả hai đều không khớp code thực tế.**
 
-## 4. Domain-Specific Fine-tuning: Chemistry & Toxicology
+**Sự thật 1 — `genai_runtime.py` KHÔNG hề biết tới local runtime.**
 
-### 4.1 Dataset SOTA cho Domain này
+Đọc services/genai_runtime.py: `build_genai_client_candidates()` chỉ tạo client Gemini (API key) hoặc Vertex AI. Nó **không import** và **không bao giờ trả về** `LocalLLMClient`. Nếu `genai is None` → trả về `[]`. Không có một dòng nào kiểm tra `LLM_RUNTIME`.
 
-| Dataset/Model | Size | Tasks | Relevance cho ToxAgent |
-|--------------|------|-------|----------------------|
-| **SMolInstruct** (LlaSMol) | 3.3M samples, 1.6M molecules | 14 chemistry tasks incl. property prediction | Rất cao — bao gồm molecular property prediction, SMILES processing[^2][^11] |
-| **ChemBERTa-2** pretrain data | 77M SMILES (PubChem) | Self-supervised SMILES MLM | Tốt cho tokenizer/embedding fine-tuning[^12] |
-| **Tox21 + ToxCast** | ~12K compounds, 617 assays | Multi-label toxicity binary classification | Trực tiếp relevant — chính là task của ScreeningAgent |
-| **SMILES-BERT tasks** | Downstream classification | Toxicity, bioactivity | Fine-tune cho binary SMILES classification[^13] |
-| **OpenBioLLM training data** | 3K+ healthcare topics | Medical QA, clinical tasks | Tốt cho ResearcherAgent literature reasoning[^14][^15] |
-| **PubMed Central (BioMistral)** | 65M articles continual pretraining | Biomedical domain | Background cho ResearcherAgent/WriterAgent[^16] |
+**Sự thật 2 — local runtime là dead code chưa nối dây.**
 
-**Key insight từ LlaSMol:** Fine-tuning Mistral-7B trên SMolInstruct cho kết quả 93.2% EM trên SMILES-to-Formula, vượt GPT-4 (4.8%) và Claude 3 Opus (9.2%). Đây là bằng chứng mạnh rằng **domain fine-tuning nhỏ beats large generalist API** cho chemistry tasks.[^11]
+services/local_llm_runtime.py định nghĩa `LocalLLMClient`, `LocalLLMModels.generate_content()` (có đọc `LLM_RUNTIME`, có convert `response_schema` → `response_format` cho vLLM) và `build_local_client()`. **Nhưng không file nào gọi `build_local_client()`** trong luồng chọn client của agent. Tức là dù `LLM_RUNTIME=local`, MolRAG/Writer vẫn đi qua `build_genai_client_candidates()` → vẫn cố gọi Gemini, **không bao giờ chạm model local của bạn**.
 
-### 4.2 Custom Dataset Construction cho ToxAgent
+**Sự thật 3 — không có crash `genai.types` như mô tả.**
 
-Dataset construction theo AgentInstruct pipeline — dùng teacher model (Gemini hoặc GPT-4) để generate training data:[^17]
-
-**Bước 1 — Mining từ repo hiện tại:**
-- Extract tất cả `(input_smiles, retrieved_examples, baseline_prediction) → molrag_output` traces từ production logs
-- Mỗi trace là một training sample hoàn chỉnh cho MolRAG Reasoner
-- Lọc bằng confidence score (chỉ giữ samples với `confidence >= 0.7`)
-
-**Bước 2 — Augmentation từ public datasets:**
-- Sample từ TDC (Therapeutics Data Commons) toxicity benchmarks: ClinTox, SIDER, hERG
-- Với mỗi SMILES, gọi teacher LLM để generate `mechanism_chain` explanation
-- Tạo negative examples (sai label hoặc sai JSON) cho DPO/ORPO pairs
-
-**Bước 3 — Tool-call traces cho Nhóm A:**
-- Format theo Berkeley Function Calling Leaderboard (BFCL) schema[^18]
-- Mỗi sample: `(system_prompt_with_tool_schema, user_message) → {"tool_call": "validate_smiles", "arguments": {"smiles": "..."}, "output": {...}}`
-
-Curriculum-inspired approach từ EMNLP 2025 paper: train bằng structured reasoning templates trước, sau đó full fine-tuning. Cụ thể cho MolRAG: step 1 training trên `mechanism_chain` structure, step 2 training trên full JSON output.[^19][^20]
-
-***
-
-## 5. Base Model Selection — RTX 3090 24GB Budget
-
-### 5.1 Model Comparison
-
-| Model | Params | 4-bit VRAM | Tool Calling | Chemistry | Vietnamese | Recommendation |
-|-------|--------|-----------|--------------|-----------|-----------|----------------|
-| **Qwen2.5-7B-Instruct** | 7B | ~6GB | ✅ Native | Good | ✅ 29 langs | **Best overall** |
-| **Llama-3.1-8B-Instruct** | 8B | ~7GB | ✅ (fine-tune needed) | Moderate | Limited | Good for Nhóm C/D |
-| **Mistral-7B-Instruct-v0.3** | 7B | ~6GB | ✅ | **Best (LlaSMol)** | Limited | Best for chemistry Nhóm B |
-| **BioMistral-7B** | 7B | ~6GB | ❌ | ✅ PubMed pretrain | Limited | Good base for Nhóm B/C [^16] |
-| **Qwen2.5-3B-Instruct** | 3B | ~3GB | ✅ | Moderate | ✅ | Backup cho Nhóm A (nhẹ) |
-| **OpenBioLLM-Llama3-8B** | 8B | ~7GB | ❌ | ✅ Medical | Limited | Good base for Nhóm C/D[^14] |
-
-**Khuyến nghị theo nhóm:**
-- **Nhóm A (Validator, Screener):** `Qwen2.5-7B-Instruct` — native JSON/tool calling, structured output tốt nhất[^21]
-- **Nhóm B (MolRAG):** `Mistral-7B` base → fine-tune trên SMolInstruct subset + Tox21 — đây là combo được LlaSMol validate[^2][^11]
-- **Nhóm C (Writer):** `Qwen2.5-7B-Instruct` hoặc `Llama-3.1-8B` — long-context, coherent generation
-- **Nhóm D (QA Agents):** `Qwen2.5-3B-Instruct` — đủ nhẹ để serve nhiều sessions song song, Qwen native multilingual hỗ trợ Vietnamese[^21]
-
-### 5.2 VRAM Budget Analysis
-
-Với RTX 3090 24GB:
-- **Inference serving:** Qwen2.5-7B-Instruct GGUF Q4_K_M ~ 4.8GB. Có thể serve 2 models song song (ví dụ Nhóm A + Nhóm D cùng lúc).
-- **Fine-tuning:** QLoRA 4-bit rank-32 trên Qwen2.5-7B tiêu thụ ~10-12GB, còn 12GB cho batch size và gradients. GRPO thêm rollout buffer, nên batch size phải nhỏ (2-4).
-- **Multi-model fine-tuning approach:** Fine-tune từng model một, export GGUF xong rồi chuyển sang model tiếp theo. Không cần serve và train đồng thời.
-
-***
-
-## 6. Local LLM Harness Infrastructure
-
-### 6.1 Serving: vLLM vs Ollama cho ToxAgent
-
-Vì ToxAgent đang dùng `google.genai` client với structured output schema (`response_schema` param trong GenAI SDK), việc chuyển sang local cần một server **OpenAI-compatible** với structured output support.[^22]
-
-| Feature | vLLM | Ollama |
-|---------|------|--------|
-| OpenAI `/v1/chat/completions` | ✅ | ✅ |
-| Structured JSON schema (`response_format`) | ✅ xgrammar backend[^23] | Limited |
-| Tool calling schema | ✅ hermes parser[^23] | Limited |
-| Throughput | **20x cao hơn**[^24] | Thấp |
-| Setup complexity | Medium | Very easy |
-| Concurrent requests | ✅ PagedAttention | Single-user |
-
-**Kết luận:** Dùng **vLLM** cho production serving của ToxAgent. Lý do: MolRAG Reasoner và ScreeningAgent đòi hỏi strict JSON schema (`_MOLRAG_RESPONSE_SCHEMA` trong code), vLLM với xgrammar backend đảm bảo constrained decoding. Ollama phù hợp cho development/testing.[^23][^22]
-
-```bash
-# Serve Qwen2.5-7B với structured output + tool calling
-vllm serve Qwen/Qwen2.5-7B-Instruct \
-  --dtype bfloat16 \
-  --structured-outputs-config.backend xgrammar \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes \
-  --port 8000 \
-  --max-model-len 32768
-```
-
-### 6.2 Thay thế Gemini API trong codebase
-
-Hiện tại `genai_runtime.py` build Gemini clients. Cần tạo một `local_llm_runtime.py` adapter:
+Đọc `run_molrag_reasoning()` trong `molrag_reasoner.py`, thứ tự thực thi là:
 
 ```python
-# services/local_llm_runtime.py
-from openai import OpenAI
+result = _deterministic_reasoning(...)   # 1) Luôn tính kết quả DETERMINISTIC trước
+result["prompt_preview"] = prompt[:1800]
 
-_LOCAL_BASE_URL = os.getenv("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1")
+if genai is None or not MOLRAG_MODEL:    # 2) GUARD — thoát sớm nếu không có genai
+    result["llm_status"] = "llm_unavailable"
+    return result
 
-def build_local_client():
-    return OpenAI(base_url=_LOCAL_BASE_URL, api_key="local")
+client_candidates = build_genai_client_candidates()
+if not client_candidates:
+    result["llm_status"] = "llm_client_unavailable"
+    return result
 
-def call_local_with_schema(
-    prompt: str,
-    response_schema: dict,
-    model: str = "Qwen2.5-7B-Instruct",
-) -> dict:
-    client = build_local_client()
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        response_format={
-            "type": "json_schema",
-            "json_schema": {"name": "response", "schema": response_schema, "strict": True}
-        }
-    )
-    return json.loads(response.choices.message.content)
+config = genai.types.GenerateContentConfig(...)  # 3) Chỉ tới đây khi genai != None
 ```
 
-### 6.3 Constrained Decoding để đảm bảo JSON validity
+Vì có guard `if genai is None: return result` **trước** dòng `genai.types...`, nên **không thể** xảy ra `AttributeError: 'NoneType'`. "Fix" wrap `if genai is not None` mà bản nháp đề xuất là **thừa**.
 
-MolRAG Reasoner hiện dùng `_safe_json_parse()` với JSON repair logic phức tạp vì Gemini đôi khi trả về malformed JSON. Với vLLM xgrammar, **constrained decoding** đảm bảo output luôn valid JSON matching `_MOLRAG_RESPONSE_SCHEMA` — loại bỏ hoàn toàn nhu cầu repair logic này. Đây là lợi thế kỹ thuật quan trọng của local deployment.
+**Sự thật 4 (quan trọng nhất cho fine-tuning) — MolRAG về bản chất là DETERMINISTIC.**
 
-### 6.4 RAG Harness: MAIN-RAG cho ResearcherAgent
+`run_molrag_reasoning()` luôn sinh đầy đủ output (`mechanism_chain`, `key_substructures`, `confidence`, ...) bằng **Python thuần** (`_deterministic_reasoning`, các hàm `_build_*`). LLM chỉ là lớp *tùy chọn ghi đè* (`result.update(llm_out)`) khi có Gemini. Nghĩa là: fine-tune Group B chỉ có tác dụng **khi luồng LLM được kích hoạt** (`molrag_enabled=True` + có client). Hiện `molrag_enabled` mặc định `False` trong `run_screening`.
 
-MAIN-RAG (EMNLP/ACL 2025) đề xuất dùng multiple LLM agents để filter và score retrieved documents, với adaptive threshold dựa trên score distribution. Cải thiện 2-11% accuracy trên QA benchmarks. Cho ResearcherAgent, có thể implement lightweight MAIN-RAG với 2 local Qwen2.5-3B judges để filter PubMed retrieval results trước khi đưa vào main reasoner.[^25]
-
-### 6.5 Chemical-Specific Tokenizer Augmentation
-
-Paper từ ScienceDirect 2024 chỉ ra rằng standard tokenization không capture hết SMILES grammar. Nên thêm custom SMILES tokens vào tokenizer trước khi fine-tuning Nhóm B:[^26]
+**Gap #3 thật sự cần sửa** — nối dây local runtime vào bộ chọn client. Ví dụ trong `services/genai_runtime.py`:
 
 ```python
-from transformers import AutoTokenizer
-
-tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.3")
-# Add chemistry-specific tokens
-smiles_tokens = ["[NH]", "[NH2]", "[NH3+]", "[OH]", "[CH2]", "C#N", "C=O", "S=O", "P=O"]
-tokenizer.add_tokens(smiles_tokens)
-# Resize embedding matrix accordingly
-model.resize_token_embeddings(len(tokenizer))
+def build_genai_client_candidates(location_override=None):
+    runtime = (os.getenv("LLM_RUNTIME") or "gemini").strip().lower()
+    if runtime in ("local", "auto"):
+        try:
+            from services.local_llm_runtime import build_local_client
+            local = [(build_local_client(), "local_llm")]
+            if runtime == "local":
+                return local            # chỉ dùng local
+            # auto: ưu tiên local rồi fallback gemini bên dưới
+        except Exception as exc:
+            LOG.warning("Local client init failed: %s", exc)
+            local = []
+    else:
+        local = []
+    # ... phần build Gemini/Vertex hiện có ...
+    return local + gemini_candidates
 ```
 
-***
+<aside>
+🔧
 
-## 7. Fine-tuning Roadmap Cụ Thể cho ToxAgent
+Thêm một điểm khớp tốt: `LocalLLMModels.generate_content()` đã xử lý cả `config` dạng **dict lẫn object** (`getattr`/`.get`), và `molrag_reasoner` truyền `genai.types.GenerateContentConfig(...)` (object) trong khi `writer_agent` truyền **dict**. Cả hai đều tương thích với local client. Nhưng vì `genai.types.GenerateContentConfig` chỉ tồn tại khi thư viện `google-genai` được cài, bạn vẫn cần `genai` installed để đi qua guard — kể cả khi muốn dùng local. Cân nhắc bỏ điều kiện `genai is None` ra khỏi guard cho nhánh local, hoặc tạo config bằng dict khi chạy local.
 
-### 7.1 Phase 1: Nhóm A — Tool Calling Agents (2-3 ngày)
+</aside>
 
-**Target:** InputValidator, ScreeningAgent
-**Method:** SFT + QLoRA
-**Base model:** Qwen2.5-7B-Instruct (native JSON/tool calling)[^21]
-**Dataset:**
-- Giai đoạn 1: Dùng Gorilla APIBench tool-calling format[^27][^9]
-- Giai đoạn 2: Custom dataset từ validate_smiles + analyze_molecule call traces
-- Size: 500-2000 examples là đủ cho task đơn giản này[^28]
+### Các vấn đề bổ sung phát hiện thêm khi đọc code
 
-**Training config:**
-```python
-SFTConfig(
-    max_seq_length=4096,
-    per_device_train_batch_size=4,
-    gradient_accumulation_steps=4,
-    learning_rate=2e-4,
-    num_train_epochs=3,
-    lr_scheduler_type="cosine",
-    warmup_ratio=0.05,
-    optim="adamw_8bit",
-)
-```
+<aside>
+🆕
 
-**Evaluation:** BFCL v2 benchmark và custom test với ToxAgent SMILES inputs. Target: >90% valid JSON, >95% correct tool selection.[^19]
+Những mục dưới đây **không có trong bản nháp** nhưng là rủi ro thật, nên xử lý trước khi train/serve.
 
-### 7.2 Phase 2: Nhóm B — MolRAG Reasoner (1-2 tuần)
+</aside>
 
-**Target:** MolRAG Reasoner (file lớn nhất, logic phức tạp nhất)
-**Method:** SFT QLoRA → GRPO fine-tuning
-**Base model:** Mistral-7B (best chemistry base per LlaSMol) hoặc BioMistral-7B[^16][^2]
-
-**Dataset construction:**
-1. Download SMolInstruct từ HuggingFace (`osunlp/SMolInstruct`) — lọc các tasks liên quan: property prediction, toxicity classification[^29]
-2. Download Tox21 dataset, format thành instruction pairs
-3. Augment với teacher-generated `mechanism_chain` explanations
-4. Total target: ~10K samples
-
-**GRPO reward functions:**
-- `toxicity_label_reward`: binary correct/incorrect label → reward ±1.0
-- `json_schema_reward`: schema coverage → reward 0.0-1.0
-- `mechanism_chain_quality`: chain length và keyword presence (SMARTS, assay names) → heuristic reward
-- `confidence_calibration`: penalize extreme confidence on low-similarity cases
-
-**Evaluation:** So sánh với baseline Gemini flash trên Tox21 test set và custom ToxAgent benchmarks.
-
-### 7.3 Phase 3: Nhóm C & D — Writer + QA Agents (3-5 ngày)
-
-**Target:** WriterAgent, EvidenceQAAgent, ReportChatAgent
-**Method:** SFT + ORPO (writer), SFT (QA)
-**Base model:** Qwen2.5-7B-Instruct (multilingual, long-context)[^21]
-
-**Dataset:**
-- WriterAgent: (screening_result + research_result) → expert_report pairs. Có thể generate với teacher LLM từ real ToxAgent outputs.
-- EvidenceQA/ReportChat: Multi-turn conversation datasets trên biomedical QA (BioASQ, MedQuAD) + custom toxicology QA pairs.
-
-**Key challenge:** WriterAgent cần maintain long coherent context (~8K tokens). Dùng Unsloth's extended context support (342K context cho Llama 3.1 8B).[^4]
-
-### 7.4 Evaluation Framework
-
-Dùng AgentBench framework để đánh giá toàn bộ pipeline sau khi fine-tune. AgentBench đánh giá LLM agents trên POMDP framework gồm reasoning, decision-making, và instruction following. Phát hiện từ AgentBench: "Improving instruction following and training on high quality multi-round alignment data could improve agent performance" — trực tiếp relevant với tất cả agents trong ToxAgent.[^30][^31]
-
-Custom eval metrics cho ToxAgent cụ thể:
-- **End-to-end accuracy:** SMILES in → correct toxicity verdict out
-- **JSON validity rate:** % responses passing `_safe_json_parse()`
-- **Tool call accuracy:** % correct tool selections và arguments
-- **Latency:** Time-to-first-token và total generation time
-
-***
-
-## 8. Self-Play & Multiagent Fine-tuning (Phương Pháp Nâng Cao)
-
-### 8.1 Multiagent Self-Improvement (ICLR 2025)
-
-Paper ICLR 2025 về "Multiagent Fine-tuning" đề xuất fine-tune mỗi agent trên data generated qua multiagent interactions. Applied vào ToxAgent: chạy pipeline với teacher model (Gemini) để generate trajectories, rồi fine-tune từng local agent trên sub-trajectories liên quan đến nó. Ưu điểm là **specialization và diversification** tự nhiên — mỗi agent học từ những interactions mà nó tham gia trực tiếp.[^32]
-
-### 8.2 SPA (Self-Play Agentic) Framework (ICLR 2026)
-
-SPA kết hợp self-play SFT (học world model từ environment interactions) với RL-based policy optimization. Áp dụng cho MolRAG Reasoner: "environment" là chemical space retrieval + SMARTS matching, "world model" là dự đoán outcome của reasoning path. SPA boost performance từ 25.6% → 59.8% trên Sokoban với Qwen2.5-1.5B — cho thấy tiềm năng lớn với reasoning agents nhỏ.[^33]
-
-### 8.3 Agent Data Protocol (ADP) — Unifying Training Datasets
-
-ADP (arXiv 2025) là "interlingua" giữa các agent datasets dạng khác nhau, cho phép train unified agent pipeline từ diverse sources. Với ToxAgent có 7 agents, ADP giúp chuẩn hóa format từ APIBench (Nhóm A) + SMolInstruct (Nhóm B) + BioASQ (Nhóm D) thành một training pipeline thống nhất.[^34]
-
-***
-
-## 9. Failure Modes & Mitigation
-
-### 9.1 Tool Calling Degradation sau Fine-tuning
-
-Một vấn đề được ghi nhận: fine-tuning có thể làm model quên tool-calling patterns nếu training data không include tool call examples. **Mitigation:** Always include 10-20% general tool-calling examples (từ BFCL dataset) trong mọi fine-tuning run, kể cả khi train cho domain-specific task. Đây là catastrophic forgetting prevention.[^35]
-
-### 9.2 SMILES Tokenization Issues
-
-Standard BPE tokenizer có thể tokenize SMILES không optimal, tách sai bonds. **Mitigation:** Test với canonical SMILES trước và sau fine-tuning. Nếu có regression, add SMILES-specific tokens vào vocabulary và retrain embedding layer.[^26]
-
-### 9.3 JSON Schema Hallucination
-
-Small local models (7B) có thể generate JSON với keys không đúng schema, đặc biệt với nested schemas như `_MOLRAG_RESPONSE_SCHEMA`. **Mitigation chính:** vLLM xgrammar constrained decoding. **Mitigation phụ:** Schema-aware loss masking trong training — only compute loss trên keys của schema, không phải arbitrary text.
-
-### 9.4 Chemical Hallucination
-
-Augmented LLM Prompts paper (J. Chem. Inf. Model. 2025) chỉ ra RAG + ML-optimized prompts giảm chemical hallucination từ 62.34 RMSE xuống 11.76 RMSE. **Mitigation:** Với ResearcherAgent và MolRAG, always pipe retrieved chemical evidence vào context; không để model "remember" chemistry facts từ pretraining.[^36]
-
-***
-
-## 10. Recommended Implementation Stack
-
-```
-Fine-tuning:
-  - Unsloth + TRL (SFT, DPO, ORPO, GRPO)
-  - PEFT (LoRA/QLoRA)
-  - HuggingFace Datasets (SMolInstruct, Tox21 formatted)
-  - Weights & Biases (tracking)
-
-Serving:
-  - vLLM (production) với xgrammar + hermes tool parser
-  - Ollama (dev/testing)
-  - OpenAI-compatible Python client (drop-in for google.genai)
-
-Domain Data:
-  - SMolInstruct (osunlp/SMolInstruct on HuggingFace)
-  - TDC Toxicity benchmarks (ClinTox, hERG, SIDER)
-  - BioMistral PubMed pretraining data
-  - Tox21 SMILES datasets
-
-Evaluation:
-  - AgentBench (agentic pipeline eval)
-  - BFCL v2 (function calling)
-  - Custom ToxAgent end-to-end benchmark
-  - Tox21 test split (domain accuracy)
-```
-
-***
-
-## 11. Kết Luận & Priority
-
-**Độ ưu tiên thực hiện:**
-
-1. **Ngay lập tức:** Setup vLLM server + `local_llm_runtime.py` adapter để swap Gemini API. Test với Qwen2.5-7B-Instruct chưa fine-tune — đây là baseline local model.
-2. **Week 1:** Fine-tune Nhóm A (Validator, Screener) với SFT QLoRA. Dataset nhỏ, kết quả nhanh.
-3. **Week 2-3:** Fine-tune Nhóm B (MolRAG) với SFT → GRPO. Đây là agent quan trọng nhất và phức tạp nhất.
-4. **Week 4:** Fine-tune Nhóm C/D (Writer, QA). Ít urgent hơn vì không cần structured output.
-5. **Ongoing:** Monitor với AgentBench + custom ToxAgent eval; iterate với GRPO reward shaping.
-
-Điểm mấu chốt: Nghiên cứu từ LlaSMol và SLM tool-calling paper (AAAI 2026) đều xác nhận **targeted fine-tuning của small models beats API-accessed large models** cho domain-specific tasks. ToxAgent với chemistry + toxicology domain hoàn toàn phù hợp với pattern này.[^37][^28][^11]
+- **Import tương đối của reward functions.** `finetune_group_b_grpo.py` dùng `from grpo_rewards import (...)` (không phải `from scripts.grpo_rewards`). Phải **chạy từ trong thư mục `scripts/`** (hoặc thêm `scripts/` vào `PYTHONPATH`), nếu không sẽ `ModuleNotFoundError`.
+- **Group C target lệch với hành vi Writer thật.** `finetune_group_c_d.py` train model xuất **toàn bộ report JSON** (`executive_summary`, `risk_level`, `sections`...). Nhưng trong agents/writer_agent.py, LLM **chỉ sinh phần `recommendations`** (JSON nhỏ), còn `risk_level` và phần khung report do Python tính (`_compute_risk_level`, `_default_recommendations`). → Nếu mục tiêu là cải thiện Writer trong pipeline hiện tại, nên train theo **schema `recommendations`** thật, không phải full report.
+- **Tên tool Group A.** Screening dùng tool thật là **`analyze_molecule`** (+ `validate_smiles`), không phải `predict_toxicity`. Dữ liệu tool-calling phải khớp tên + chữ ký thật, nếu không model học sai tool.
+- **`add_tokens` + `resize_token_embeddings` ở Group B.** `finetune_group_b_sft.py` thêm token SMILES rồi resize embedding. Khi **export GGUF và serve bằng vLLM**, tokenizer phục vụ phải đồng bộ các token mới này, nếu không inference sẽ lệch. Kiểm tra kỹ khâu này.
 
 ---
 
-## References
+## Phần 3 — Data cần thu thập & cách preprocess từng Group
 
-1. [SmileyLlama: Modifying Large Language Models for Directed ... - arXiv](https://arxiv.org/html/2409.02231v2) - Here we show that a Large Language Model (LLM) can serve as a foundation model for a Chemical Langua...
+Chiến lược chung: dùng **Tox21** làm nguồn SMILES + label, và **Gemini Flash** làm *teacher* để distill xuống model local.
 
-2. [LlaSMol: Advancing Large Language Models for Chemistry with a...](https://openreview.net/forum?id=lY6XTF9tPv) - This paper proposes SMolInstruct, a large-scale instruction-tuning dataset designed with over 3 mill...
+### Group A — `data/group_a_tool_calling.json` (SFT tool-calling, Qwen2.5-7B)
 
-3. [Fine-Tuning Large Language Models for Function Calling with LoRA](https://pub.aimind.so/fine-tuning-large-language-models-for-function-calling-with-lora-d26f22910043) - In this blog post, we'll explore how to fine-tune large language models (LLMs) for function calling ...
+**Mục đích**: dạy InputValidator + ScreeningAgent gọi đúng tool với đúng arguments từ input SMILES.
 
-4. [unsloth 2025.1.8 - PyPI](https://pypi.org/project/unsloth/2025.1.8/) - We tested Llama 3.1 (8B) Instruct and did 4bit QLoRA on all linear layers (Q, K, V, O, gate, up and ...
+**Schema mẫu (đã sửa tên tool theo code thật)**:
 
-5. [7GB VRAM is all you need to train your own reasoning model ...](https://www.facebook.com/0xSojalSec/posts/7gb-vram-is-all-you-need-to-train-your-own-reasoning-model-unsloth-made-some-gre/1360371072283959/) - Unsloth made some great points: - GRPO is now optimized to use 80% less VRAM - Qwen2.5(1.5B) can be ...
+```json
+{
+  "tools": [
+    {"name": "validate_smiles",
+     "description": "Verify SMILES validity and canonicalize.",
+     "parameters": {"type": "object", "properties": {"smiles": {"type": "string"}}}},
+    {"name": "analyze_molecule",
+     "description": "Run clinical + mechanism toxicity analysis on a canonical SMILES.",
+     "parameters": {"type": "object", "properties": {
+        "smiles": {"type": "string"},
+        "clinical_threshold": {"type": "number"},
+        "mechanism_threshold": {"type": "number"}}}}
+  ],
+  "query": "Analyze the toxicity of molecule CC(=O)Oc1ccccc1C(=O)O",
+  "response": {"name": "validate_smiles", "arguments": {"smiles": "CC(=O)Oc1ccccc1C(=O)O"}}
+}
+```
 
-6. [Learn Reinforcement Fine-Tuning with GRPO for LLMs - LinkedIn](https://www.linkedin.com/posts/andrewyng_new-course-reinforcement-fine-tuning-llms-activity-7330979772581269506-RQ3b) - Learn to use reinforcement learning to improve your LLM performance in this short course, built in c...
+**Target**: 1000–2000 samples. Muốn nhanh: 500 samples + `num_train_epochs=5`.
 
-7. [Reinforcement Fine-Tuning LLMs with GRPO - DeepLearning.AI](https://www.deeplearning.ai/alpha/short-courses/reinforcement-fine-tuning-llms-grpo) - Using RFT to adapt small, open-source models can lead to competitive performance on reasoning tasks,...
+### Group B Stage 1 — `data/group_b_stage1.json` (SFT mechanism_chain, Mistral-7B)
 
-8. [LLM Fine‑Tuning in 2025: A Hands‑On, Test‑Driven Blueprint](https://medium.com/@tabers77/llm-fine-tuning-in-2025-a-hands-on-test-driven-blueprint-dd1c7887bb99) - TL;DR: Most posts cover LoRA/QLoRA quickstarts. This article goes beyond: a practical decision tree ...
+**Mục đích**: dạy MolRAG sinh `mechanism_chain` (chuỗi lý luận cơ chế). Stage 1 tập trung mechanism, chưa cần full 11-field.
 
-9. [Introduction to Gorilla LLM](https://gorilla.cs.berkeley.edu/blogs/1_gorilla_intro.html)
+**Schema mẫu (khớp `format_prompts` trong `finetune_group_b_sft.py`)** — cần các field `smiles`, `baseline`, `contexts`, `response`:
 
-10. [Large Language Model Connected with Massive APIs](https://openreview.net/forum?id=tBRNC6YemY) - Large Language Models (LLMs) have seen an impressive wave of advances, with models now excelling in ...
+```json
+{
+  "smiles": "c1ccc(N)cc1",
+  "baseline": {"label": "Toxic", "score": 0.82},
+  "contexts": ["Aniline derivatives cause methemoglobinemia...",
+               "Primary aromatic amines undergo N-oxidation..."],
+  "response": {
+    "evidence_overview": "3 analogs retrieved, top similarity=0.87",
+    "longform_summary": "Aniline is a prototypical aromatic amine...",
+    "mechanism_chain": [
+      "SMARTS match: Primary Aromatic Amine — methemoglobin formation",
+      "Mechanism: N-oxidation → hydroxylamine → reactive intermediate",
+      "Analog vote: 2.1 toxic / 0.3 non-toxic → leans Toxic"],
+    "key_substructures": ["Primary aromatic amine", "Benzene ring"],
+    "confidence_rationale": "...",
+    "suggested_label": "Toxic",
+    "confidence": 0.85
+  }
+}
+```
 
-11. [LlaSMol](https://osu-nlp-group.github.io/LLM4Chem/) - LlaSMol is fine-tuned on SMolInstruct, an instruction dataset of 14 meticulously selected tasks. Lla...
+**Nguồn `contexts` tốt nhất**: tái dùng chính pipeline production. `screening_agent.py` gọi `retrieve_similar_molecules(...)` (từ `services`) để lấy analog + similarity, và `molrag_reasoner.py` gọi `retrieve_knowledge_context(...)`. Chạy hai hàm này trên mỗi SMILES Tox21 để sinh `contexts` đúng phân phối mà model sẽ gặp lúc inference. Bổ sung SMolInstruct (lọc các task toxicity) nếu cần thêm lượng.
 
-12. [No-Code Fine-tuning of Chemical Foundation Models with Prithvi](https://deepforestsci.com/blog/8) - The pretraining improvements in ChemBERTa-2 shows that scaling pre-training datasets can significant...
+### Group B Stage 2 — `data/group_b_stage2.json` (SFT full schema)
 
-13. [LLM Finetuning w/ SMILES-BERT - Stephen Z. Lu](https://thematrixmaster.github.io/blog/2023/finetuning-llm/) - I want to explore the alternative method of improving llm performance through finetuning on a downst...
+**Mục đích**: dạy model xuất **đủ schema** (xem lại Gap #2 để chốt 7 hay 11 field). Dùng Gemini Flash distill ra response đầy đủ. **Target**: 500–1000 samples (học trên nền Stage 1).
 
-14. [Saama's Medical-Domain LLMs Release](https://www.saama.com/openbiollm-llama3-saama-medical-llms/) - Introducing OpenBioLLM-Llama3-70B & 8B: Saama's AI Research Lab Released the Most Openly Available M...
+### Group B GRPO — `data/group_b_grpo.json`
 
-15. [Researchers Introduce OpenBioLLM-Llama3-70B & 8B - LinkedIn](https://www.linkedin.com/pulse/researchers-introduce-openbiollm-llama3-70b-8b-llms-ai-alchemist-jzj2c) - These new open-source LLMs set the bar for medical language models, outperforming commercial giants ...
+**Khác biệt**: GRPO **không cần** field `response`. Theo `finetune_group_b_grpo.py` và các reward, mỗi sample cần: `smiles`, `baseline`, `contexts`, và metadata cho reward: `label_targets`, `max_similarities`.
 
-16. [cniongolo/biomistral - Ollama](https://ollama.com/cniongolo/biomistral) - We introduce BioMistral, an open-source LLM tailored for the biomedical domain, utilizing Mistral as...
+```json
+{
+  "smiles": "O=C(O)c1ccccc1",
+  "baseline": {"label": "Non-toxic", "score": 0.15},
+  "contexts": ["Benzoic acid is a common food preservative..."],
+  "label_targets": "non-toxic",
+  "max_similarities": 0.91
+}
+```
 
-17. [AgentInstruct, a Framework for Generating Diverse Synthetic Data ...](https://www.deeplearning.ai/the-batch/researchers-increasingly-fine-tune-models-on-synthetic-data-but-generated-datasets-may-not-be-sufficiently-diverse-new-work-used-agentic-workflows-to-produce-diverse-synthetic-datasets) - Researchers increasingly fine-tune models on synthetic data, but generated datasets may not be suffi...
+`max_similarities` = Tanimoto similarity giữa SMILES và analog top-1, lấy từ `retrieve_similar_molecules(...)`. **Target**: 200–500 samples.
 
-18. [Gorilla](https://gorilla.cs.berkeley.edu)
+<aside>
+⚠️
 
-19. [Improving Large Language Models Function Calling and ... - arXiv](https://arxiv.org/html/2509.18076v1) - To address this, we introduce a curriculum-inspired framework that leverages structured reasoning te...
+`confidence_calibration` reward thực tế tính `reward = max(1.0 - abs(confidence - sim), 0.0)` — tức là phạt theo khoảng cách giữa `confidence` model xuất và `max_similarities`. Đây là **proxy calibration đơn giản**, chưa phải ECE đầy đủ. Bản nháp gọi là "ECE-based reward" là **gần đúng nhưng nói quá**; nếu định publish (Contribution 4) thì cần đo ECE/Brier riêng, đừng tuyên bố reward này = ECE.
 
-20. [[PDF] Improving Large Language Models Function Calling and ...](https://aclanthology.org/2025.emnlp-main.1242.pdf) - To address this, we introduce a curriculum-inspired framework that lever- ages structured reasoning ...
+</aside>
 
-21. [qwen2.5:7b-instruct - Ollama](https://ollama.com/library/qwen2.5:7b-instruct) - Qwen2.5 models are pretrained on Alibaba's latest large-scale dataset, encompassing up to 18 trillio...
+### Group C — `data/group_c_writer_preference.json` (ORPO, Qwen2.5-7B)
 
-22. [OpenAI-Compatible Server - vLLM](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/)
+**Schema khớp `format_prompts`**: cần `screening`, `research`, `language`, `chosen`, `rejected`.
 
-23. [vllm/examples/tool_calling/openai_responses_client_with_tools.py ...](https://github.com/vllm-project/vllm/blob/main/examples/tool_calling/openai_responses_client_with_tools.py) - A high-throughput and memory-efficient inference and serving engine for LLMs - vllm-project/vllm
+```json
+{
+  "screening": {"summary": "NR-AR: positive, NR-AhR: positive", "final_verdict": "TOXIC"},
+  "research": {"consensus_mechanisms": ["hERG blocking", "mitochondrial uncoupling"]},
+  "language": "vi",
+  "chosen": {"...báo cáo chi tiết, đúng cấu trúc..."},
+  "rejected": {"...báo cáo mơ hồ, thiếu section..."}
+}
+```
 
-24. [Ollama vs vLLM: Choosing the Right LLM Framework for 2025](https://www.linkedin.com/posts/om-umarvaishya_ai-llm-deeplearning-activity-7367215410724704256-nzRA) - Ollama vs vLLM: Choosing the Right Local LLM Framework in 2025 With the rise of local and edge large...
+**Cách tạo cặp**: cùng một molecule, sinh `chosen` (Gemini `temperature=0.1`, đầy đủ) vs `rejected` (`temperature=1.2` hoặc rule-based degradation: xóa field, thay text generic, sai `risk_level`).
 
-25. [MAIN-RAG: Multi-Agent Filtering Retrieval-Augmented Generation](https://aclanthology.org/2025.acl-long.131/) - Retrieval-Augmented Generation (RAG) addresses this issue by incorporating external, real-time infor...
+<aside>
+📌
 
-26. [A novel approach to unlocking the synergy of large language ...](https://www.sciencedirect.com/science/article/abs/pii/S1746809424014460) - This work explores the potential of using the pre-trained large language model Llama2 to address cha...
+Nhắc lại từ Phần 2: nếu mục tiêu là cải thiện Writer **đang chạy trong repo**, hãy cân nhắc đổi target sang schema `recommendations` (priority / action_type / action / rationale) — vì đó mới là phần LLM thật sự sinh ra trong `writer_agent.py`.
 
-27. [Gorilla APIBench benchmark | Tool use agent evaluation | Steel.dev](https://leaderboard.steel.dev/registry/benchmarks/gorilla-apibench/) - Gorilla APIBench is a public tool use benchmark. Compare its evaluation method, task count, top mode...
+</aside>
 
-28. [Paper page - Small Language Models for Efficient Agentic Tool Calling](https://huggingface.co/papers/2512.15943) - Small Language Models for Efficient Agentic Tool Calling: Outperforming Large Models with Targeted F...
+---
 
-29. [GitHub - OSU-NLP-Group/LLM4Chem: Official code repo for the ...](https://github.com/osu-nlp-group/llm4chem) - Official code repo for the paper "LlaSMol: Advancing Large Language Models for Chemistry with a Larg...
+## Phần 4 — Thứ tự train & hardware (RTX 3090 24GB)
 
-30. [AgentBench: Evaluating LLMs as Agents - alphaXiv](https://www.alphaxiv.org/overview/2308.03688v3) - View recent discussion. Abstract: The potential of Large Language Model (LLM) as agents has been wid...
+### Cấu hình đã xác nhận từ code
 
-31. [AgentBench: Evaluating LLMs as Agents](https://arxiv.org/abs/2308.03688) - The potential of Large Language Model (LLM) as agents has been widely acknowledged recently. Thus, t...
+| Script | Model | LoRA | seq len | epochs / lr |
+| --- | --- | --- | --- | --- |
+| `finetune_group_a.py` | Qwen2.5-7B-Instruct | r=32, alpha=16 | 4096 | 3 ep / 2e-4 |
+| `finetune_group_b_sft.py` | Mistral-7B-Instruct-v0.3 | r=64, alpha=32 | 8192 | S1: 3ep/1e-4 · S2: 2ep/5e-5 |
+| `finetune_group_b_grpo.py` | checkpoint SFT Group B | r=64, alpha=32 | 8192 | 1 ep / 2e-6 · num_generations=4 |
+| `finetune_group_c_d.py` | Qwen2.5-7B-Instruct | r=32, alpha=16 | 8192 | 2 ep / 5e-6 · beta=0.1 |
 
-32. [Published as a conference paper at ICLR 2025](https://openreview.net/pdf?id=JtGPIZpOrz)
+### Thứ tự chạy
 
-33. [Internalizing World Models via Self-Play Finetuning for Agentic RL](https://openreview.net/forum?id=K8wCGMzeuY) - This simple initialization outperforms the online world-modeling baseline and greatly boosts the RL-...
+```bash
+pip install unsloth trl transformers datasets accelerate bitsandbytes vllm
 
-34. [Unifying Datasets for Diverse, Effective Fine-tuning of LLM Agents](https://arxiv.org/html/2510.24702v1) - To this end, we introduce the agent data protocol (ADP), a light-weight representation language that...
+# 1) Group A (Qwen2.5-7B tool-calling)
+python scripts/finetune_group_a.py            # NHỚ sửa Bug #1 trước
 
-35. [Is there a way to retain tool calling ability after LLM fine-tuning?](https://www.reddit.com/r/AgentsOfAI/comments/1nm3p0o/is_there_a_way_to_retain_tool_calling_ability/) - One is to include tool call examples in your fine tuning data so the model continues to see the patt...
+# 2) Group B SFT (Stage 1 → Stage 2 tự động trong 1 script)
+python scripts/finetune_group_b_sft.py
 
-36. [Augmented and Programmatically Optimized LLM Prompts Reduce ...](https://pmc.ncbi.nlm.nih.gov/articles/PMC12076503/) - LLMs are opening new possibilities for leveraging natural language processing in chemistry and other...
+# 3) Group B GRPO — chạy SAU SFT, TỪ TRONG thư mục scripts/
+cd scripts && python finetune_group_b_grpo.py && cd ..
 
-37. [Small Language Models for Efficient Agentic Tool Calling - arXiv](https://arxiv.org/abs/2512.15943) - As organizations scale adoption of generative AI, model cost optimization and operational efficiency...
+# 4) Group C ORPO
+python scripts/finetune_group_c_d.py
+```
 
+<aside>
+⚠️
+
+**Rủi ro OOM trên 1 GPU.** `finetune_group_b_grpo.py` đặt `use_vllm=True`, `vllm_device="cuda:0"`, `vllm_gpu_memory_utilization=0.4`. Chạy đồng thời training model + vLLM inference trên cùng RTX 3090 24GB rất dễ OOM (model 7B 4-bit + KV cache + vLLM). Khuyến nghị: giảm `num_generations` từ 4 → 2, hoặc `use_vllm=False`, hoặc giảm `vllm_gpu_memory_utilization` xuống ~0.25. `max_prompt_length=4096` + `max_completion_length=4096` cũng rất nặng — cân nhắc hạ xuống 2048 nếu nội dung cho phép.
+
+</aside>
+
+---
+
+## Phần 5 — Serve model & nối dây local runtime
+
+Mỗi script export GGUF `q4_k_m` (qua `model.save_pretrained_gguf`). Serve bằng vLLM (OpenAI-compatible):
+
+```bash
+# Serve Group B GRPO (MolRAG reasoning)
+python -m vllm.entrypoints.openai.api_server \
+  --model ./outputs/mistral-7b-group-b-grpo-gguf --port 8000 --dtype bfloat16
+```
+
+Đặt env theo đúng tên biến trong `local_llm_runtime.py`:
+
+```bash
+export LLM_RUNTIME=local
+export LOCAL_LLM_BASE_URL=http://localhost:8000/v1
+export LOCAL_LLM_MODEL_FAST=qwen2.5-7b-group-a-sft
+export LOCAL_LLM_MODEL_PRO=mistral-7b-group-b-grpo
+```
+
+<aside>
+🚨
+
+**Điều kiện tiên quyết (Gap #3):** các env trên **chưa đủ**. Vì `build_genai_client_candidates()` không trả về `LocalLLMClient`, bạn **bắt buộc** phải sửa code nối dây `build_local_client()` (xem Gap #3) trước. Nếu không, `LLM_RUNTIME=local` sẽ bị bỏ qua và agent vẫn cố gọi Gemini (hoặc chỉ trả deterministic output). Đây là điểm khác biệt lớn nhất so với bản nháp gốc.
+
+</aside>
+
+Lưu ý mapping model trong `LocalLLMModels._resolve_model`: tên chứa `flash`/`fast` → `LOCAL_LLM_MODEL_FAST`; chứa `pro`/`reasoning`/`writer`/`molrag`/`mistral` → `LOCAL_LLM_MODEL_PRO`. Đặt tên model phục vụ cho khớp logic này.
+
+---
+
+## Phần 6 — Novelty contributions (có thể publish)
+
+| # | Contribution | Novelty | Đo lường |
+| --- | --- | --- | --- |
+| 1 | **Curriculum GRPO**: warm-start GRPO từ checkpoint SFT domain-specific (thay vì base model) cho molecular reasoning. | Cao | So sánh reward curves: (a) base Mistral, (b) SFT-S1, (c) SFT-S2. Tham chiếu DeepSeekMath. |
+| 2 | **Agent-Specific Evaluation Harness**: đo hành vi agent thay vì accuracy đơn lẻ. | Trung bình–Cao | Tool-calling fidelity (Group A), schema compliance (Group B, đủ field), report/recommendation quality win-rate (Group C). |
+| 3 | **Distillation-then-RL cho toxicology**: Gemini → QLoRA SFT → GRPO, so với chỉ-SFT và chỉ-GRPO. | Cao | Benchmark Tox21 (12 task, AUROC). |
+| 4 | **Confidence calibration reward trong GRPO**. | Hẹp nhưng publishable | So calibration (ECE, Brier) có/không reward. **Lưu ý: reward hiện tại là proxy `1 - |conf - sim|`, KHÔNG phải ECE** — cần đo ECE riêng. |
+
+<aside>
+💡
+
+Gợi ý khác biệt hóa mạnh hơn cho paper: tận dụng đặc điểm **MolRAG deterministic + LLM ghi đè** của repo để nghiên cứu "LLM-as-refiner over a deterministic evidence baseline" — so sánh chất lượng khi LLM ghi đè vs giữ deterministic. Đây là setup ít gặp và rất hợp với kiến trúc thực tế của bạn.
+
+</aside>
+
+---
+
+## Checklist thực thi (theo thứ tự, đã hiệu chỉnh)
+
+- [ ]  **Bug #1**: chuyển `import json` lên module-level trong `finetune_group_a.py`.
+- [ ]  **Gap #2**: chốt số field (7 hay 11) và đồng bộ `REQUIRED_KEYS` + `_MOLRAG_RESPONSE_SCHEMA` + dữ liệu; đổi `json_schema_reward` sang `partial * 1.5`.
+- [ ]  **Gap #3 (THẬT)**: nối dây `build_local_client()` vào `build_genai_client_candidates()` theo `LLM_RUNTIME`. (Bỏ qua "fix" `genai.types` trong bản nháp — không cần.)
+- [ ]  **Bổ sung**: chạy GRPO từ trong `scripts/` (import tương đối); kiểm tra target Group C khớp Writer; sửa tên tool Group A thành `analyze_molecule`; đồng bộ token SMILES khi serve.
+- [ ]  **DATA**: `group_a_tool_calling.json` (Tox21 + Gemini, tool đúng tên).
+- [ ]  **DATA**: `group_b_stage1.json` (dùng `retrieve_similar_molecules` + `retrieve_knowledge_context` để sinh `contexts`).
+- [ ]  **DATA**: `group_b_stage2.json` (full schema, distill Gemini).
+- [ ]  **DATA**: `group_b_grpo.json` (`label_targets`, `max_similarities`).
+- [ ]  **DATA**: `group_c_writer_preference.json` (chosen/rejected).
+- [ ]  **TRAIN**: Group A → B SFT → B GRPO (giảm `num_generations`/`use_vllm` nếu 1 GPU) → C ORPO.
+- [ ]  **SERVE**: vLLM + GGUF; set `LOCAL_LLM_*` env.
+- [ ]  **DEPLOY**: sau khi đã nối dây Gap #3 → `LLM_RUNTIME=local`, test end-to-end (nhớ bật `molrag_enabled=True` nếu muốn dùng nhánh LLM của MolRAG).

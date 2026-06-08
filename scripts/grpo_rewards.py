@@ -3,14 +3,19 @@ import json
 from typing import Any, Dict, List
 
 # Define the required keys based on _MOLRAG_RESPONSE_SCHEMA in molrag_reasoner.py
+# (Nếu sau này bạn chốt chỉ dùng 7 field cốt lõi thì rút gọn cả schema lẫn set này cho khớp.)
 REQUIRED_KEYS = {
     "evidence_overview",
     "longform_summary",
     "mechanism_chain",
     "key_substructures",
     "confidence_rationale",
+    "analogy_reasoning",
+    "risk_modifiers",
+    "knowledge_highlights",
+    "literature_highlights",
     "suggested_label",
-    "confidence"
+    "confidence",
 }
 
 def toxicity_label_reward(prompts: List[str], completions: List[str], **kwargs) -> List[float]:
@@ -40,35 +45,31 @@ def toxicity_label_reward(prompts: List[str], completions: List[str], **kwargs) 
     return rewards
 
 def json_schema_reward(prompts: List[str], completions: List[str], **kwargs) -> List[float]:
-    """Reward compliance with the strict _MOLRAG_RESPONSE_SCHEMA."""
+    """Reward compliance với _MOLRAG_RESPONSE_SCHEMA — partial credit, gradient mượt."""
     rewards = []
     for completion in completions:
         try:
             clean_text = completion.strip()
-            # Simple markdown block strip if needed
+            # Strip markdown code fence nếu có
             if clean_text.startswith("```"):
                 lines = clean_text.splitlines()
                 if lines[0].startswith("```"):
                     lines = lines[1:]
-                if lines[-1].strip().startswith("```"):
+                if lines and lines[-1].strip().startswith("```"):
                     lines = lines[:-1]
                 clean_text = "\n".join(lines).strip()
-                
+
             payload = json.loads(clean_text)
             present_keys = set(payload.keys())
-            
-            # Calculate key overlap fraction
             overlap = REQUIRED_KEYS.intersection(present_keys)
+
+            # Thưởng theo tỉ lệ field đúng, scale sao cho khớp hoàn toàn = 1.5.
+            # Không còn yêu cầu "không thừa không thiếu" nên model xuất đủ 11 field
+            # sẽ đạt 1.5 thay vì kẹt ở 7/11 như code cũ.
             score = len(overlap) / len(REQUIRED_KEYS)
-            
-            # Penalize extra keys slightly, reward perfect match
-            if len(overlap) == len(REQUIRED_KEYS) and len(present_keys) == len(REQUIRED_KEYS):
-                rewards.append(1.5)
-            else:
-                rewards.append(score)
+            rewards.append(score * 1.5)
         except Exception:
             rewards.append(-1.0)
-            
     return rewards
 
 def mechanism_chain_quality(prompts: List[str], completions: List[str], **kwargs) -> List[float]:

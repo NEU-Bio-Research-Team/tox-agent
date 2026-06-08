@@ -1,4 +1,5 @@
 import os
+import json  
 import torch
 from datasets import load_dataset
 from trl import SFTTrainer
@@ -127,5 +128,4 @@ Respond in strict JSON tool calling format.<|im_end|>
     print("Training and GGUF export complete.")
 
 if __name__ == "__main__":
-    import json
     main()

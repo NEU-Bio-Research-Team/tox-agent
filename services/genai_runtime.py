@@ -69,62 +69,66 @@ def ordered_vertex_locations(preferred: str | None = None) -> List[str]:
     return dedupe_strings([preferred_location, *configured])
 
 
-def build_genai_client_candidates(location_override: str | None = None) -> List[Tuple[Any, str]]:
-    llm_runtime = (os.getenv("LLM_RUNTIME") or "gemini").strip().lower()
-
-    if llm_runtime == "local":
-        try:
-            from services.local_llm_runtime import build_local_client
-            return [(build_local_client(), "local_llm")]
-        except Exception as exc:
-            LOG.error("Failed to import or build local client: %s", exc)
-            return []
-
-    local_candidates = []
-    if llm_runtime == "auto":
-        try:
-            from services.local_llm_runtime import build_local_client
-            local_candidates.append((build_local_client(), "local_llm"))
-        except Exception as exc:
-            LOG.warning("Failed to initialize local client for auto mode: %s", exc)
-
+def _build_gemini_client_candidates(location_override: str | None = None) -> List[Tuple[Any, str]]:
+    """Logic build Gemini/Vertex gốc (giữ nguyên hành vi cũ)."""
     if genai is None:
-        return local_candidates
+        return []
 
-    gemini_candidates = []
     api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     if api_key:
         try:
-            gemini_candidates.append((genai.Client(api_key=api_key), "api_key"))
+            return [(genai.Client(api_key=api_key), "api_key")]
         except Exception as exc:
             LOG.warning("GenAI API key client init failed: %s", exc)
 
-    if not gemini_candidates:
-        project_id = _resolve_project_id()
-        if project_id:
-            for location in ordered_vertex_locations(location_override):
-                try:
-                    gemini_candidates.append(
-                        (
-                            genai.Client(
-                                vertexai=True,
-                                project=project_id,
-                                location=location,
-                            ),
-                            f"vertex_adc:{location}",
-                        )
+    project_id = _resolve_project_id()
+    candidates: List[Tuple[Any, str]] = []
+    if project_id:
+        for location in ordered_vertex_locations(location_override):
+            try:
+                candidates.append(
+                    (
+                        genai.Client(
+                            vertexai=True,
+                            project=project_id,
+                            location=location,
+                        ),
+                        f"vertex_adc:{location}",
                     )
-                except Exception as exc:
-                    LOG.warning("GenAI Vertex client init failed for location=%s: %s", location, exc)
+                )
+            except Exception as exc:
+                LOG.warning("GenAI Vertex client init failed for location=%s: %s", location, exc)
 
-    if not gemini_candidates:
-        try:
-            gemini_candidates.append((genai.Client(), "default"))
+    if candidates:
+        return candidates
+
+    try:
+        return [(genai.Client(), "default")]
+    except Exception as exc:
+        LOG.warning("Fallback GenAI client init failed: %s", exc)
+        return []
+
+def build_genai_client_candidates(location_override: str | None = None) -> List[Tuple[Any,str]]:
+    """
+    Return client candidate list, regard env variable LLM_RUNTIME
+    - LLM_RUNTIME=local -> only local vLLM client
+    - LLM_RUNTIME=auto -> prior to local, fallback Gemini
+    - LLM_RUNTIME=gemini -> only Gemini/Vertex (Current Way) 
+    """
+    runtime = (os.getenv("LLM_RUNTIME") or "gemini").strip().lower()
+    local_candidates: List[Tuple[Any, str]] = []
+    if runtime in ("local", "auto"):
+        try: 
+            from services.local_llm_runtime import build_local_client
+            local_candidates = [(build_local_client(), "local_llm")]
         except Exception as exc:
-            LOG.warning("Fallback GenAI client init failed: %s", exc)
-
-    return local_candidates + gemini_candidates
-
+            LOG.warning("Local LLM client init failed:%s", exc)
+            local_candidates = []
+    # Local-only: googlegenai-free
+    if runtime == "local":
+        return local_candidates
+    # Gemini or auto -> Use Gemini/Vertex
+    return local_candidates + _build_gemini_client_candidates(location_override)
 
 def is_resource_exhausted_error(exc: Exception) -> bool:
     text = str(exc or "").lower()

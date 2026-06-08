@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(file)))
 import torch
 import json
 from datasets import load_dataset
