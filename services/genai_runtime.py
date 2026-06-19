@@ -11,6 +11,12 @@ try:
 except Exception:
     genai = None
 
+try:
+    from .local_llm_client import build_local_llm_client_from_env, is_local_llm_configured
+except Exception:
+    build_local_llm_client_from_env = None
+    is_local_llm_configured = None
+
 
 LOG = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -70,18 +76,30 @@ def ordered_vertex_locations(preferred: str | None = None) -> List[str]:
 
 
 def build_genai_client_candidates(location_override: str | None = None) -> List[Tuple[Any, str]]:
+    candidates: List[Tuple[Any, str]] = []
+    local_only = str(os.getenv("LOCAL_LLM_ONLY", "")).strip().lower() in {"1", "true", "yes"}
+
+    if build_local_llm_client_from_env is not None:
+        if is_local_llm_configured is None or is_local_llm_configured():
+            local_client = build_local_llm_client_from_env()
+            if local_client is not None:
+                provider = getattr(local_client, "provider", "local")
+                candidates.append((local_client, f"local:{provider}"))
+                if local_only:
+                    return candidates
+
     if genai is None:
-        return []
+        return candidates
 
     api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     if api_key:
         try:
-            return [(genai.Client(api_key=api_key), "api_key")]
+            candidates.append((genai.Client(api_key=api_key), "api_key"))
+            return candidates
         except Exception as exc:
             LOG.warning("GenAI API key client init failed: %s", exc)
 
     project_id = _resolve_project_id()
-    candidates: List[Tuple[Any, str]] = []
     if project_id:
         for location in ordered_vertex_locations(location_override):
             try:
@@ -102,10 +120,11 @@ def build_genai_client_candidates(location_override: str | None = None) -> List[
         return candidates
 
     try:
-        return [(genai.Client(), "default")]
+        candidates.append((genai.Client(), "default"))
+        return candidates
     except Exception as exc:
         LOG.warning("Fallback GenAI client init failed: %s", exc)
-        return []
+        return candidates
 
 
 def is_resource_exhausted_error(exc: Exception) -> bool:

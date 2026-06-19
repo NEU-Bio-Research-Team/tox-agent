@@ -211,6 +211,42 @@ Optional repo-level env files:
 
 If you use OCR or hosted AI features, those env files are the right place for runtime-specific secrets and toggles.
 
+Local LLM (7-8B) setup (optional, for offline use):
+
+Recommended models (7-8B):
+- Qwen2.5-7B-Instruct
+- Llama 3.1 8B Instruct
+- Mistral 7B Instruct v0.3
+
+Ollama example:
+
+```bash
+ollama pull qwen2.5:7b-instruct
+ollama serve
+```
+
+Env example:
+
+```bash
+export LOCAL_LLM_PROVIDER="ollama"
+export LOCAL_LLM_BASE_URL="http://127.0.0.1:11434"
+export LOCAL_LLM_MODEL="qwen2.5:7b-instruct"
+export AGENT_MODEL_FAST="$LOCAL_LLM_MODEL"
+export AGENT_MODEL_PRO="$LOCAL_LLM_MODEL"
+export TOX_AGENT_ANALYZE_RUNTIME="deterministic"
+export LOCAL_LLM_ONLY="1"
+```
+
+OpenAI-compatible servers (LM Studio, vLLM):
+
+```bash
+export LOCAL_LLM_PROVIDER="openai"
+export LOCAL_LLM_BASE_URL="http://127.0.0.1:1234"
+export LOCAL_LLM_MODEL="qwen2.5-7b-instruct"
+export AGENT_MODEL_FAST="$LOCAL_LLM_MODEL"
+export AGENT_MODEL_PRO="$LOCAL_LLM_MODEL"
+```
+
 ### 4. Start The Backend
 
 ```bash

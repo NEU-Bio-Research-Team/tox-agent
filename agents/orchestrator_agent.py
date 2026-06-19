@@ -10,6 +10,7 @@ from tools import validate_smiles
 
 from .adk_compat import LlmAgent, ParallelAgent, SequentialAgent
 from .language import choose_text, normalize_language
+from .planning_agent import AgentName, AgentPlan, run_planning
 from .researcher_agent import researcher_agent, run_research
 from .screening_agent import run_screening, screening_agent
 from .writer_agent import build_final_report, writer_agent
@@ -118,6 +119,9 @@ def run_orchestrator_flow(
     molrag_enabled: bool = False,
     molrag_top_k: int = 5,
     molrag_min_similarity: float = 0.15,
+    pubchem_enabled: bool = True,
+    pubmed_enabled: bool = True,
+    explain_enabled: bool = True,
 ) -> Dict[str, Any]:
     """Deterministic orchestration flow for local and CI smoke tests."""
     normalized_language = normalize_language(language)
@@ -170,6 +174,10 @@ def run_orchestrator_flow(
 
     canonical_smiles = validation.get("canonical_smiles") or smiles_input
 
+    effective_backend = inference_backend
+    if not explain_enabled and inference_backend == "xsmiles":
+        effective_backend = "chemberta"
+
     with ThreadPoolExecutor(max_workers=2) as executor:
         screening_future = executor.submit(
             run_screening,
@@ -177,7 +185,7 @@ def run_orchestrator_flow(
             normalized_language,
             float(clinical_threshold),
             float(mechanism_threshold),
-            str(inference_backend),
+            str(effective_backend),
             str(binary_tox_model),
             str(tox_type_model),
             bool(molrag_enabled),
@@ -193,6 +201,8 @@ def run_orchestrator_flow(
             canonical_smiles,
             max_literature_results,
             normalized_language,
+            bool(pubchem_enabled),
+            bool(pubmed_enabled),
         )
 
         screening_payload = screening_future.result()
@@ -200,6 +210,8 @@ def run_orchestrator_flow(
 
     state["screening_result"] = screening_payload.get("screening_result")
     if isinstance(state.get("screening_result"), dict):
+        if not explain_enabled:
+            state["screening_result"]["explanation"] = {}
         state["explanation_raw"] = state["screening_result"].get("explanation")
     state["screening_error"] = screening_payload.get("screening_error")
     state["research_result"] = research_payload.get("research_result")
@@ -228,6 +240,9 @@ def run_orchestrator_from_text(
     molrag_enabled: bool = False,
     molrag_top_k: int = 5,
     molrag_min_similarity: float = 0.15,
+    pubchem_enabled: bool = True,
+    pubmed_enabled: bool = True,
+    explain_enabled: bool = True,
 ) -> Dict[str, Any]:
     """Parse free text input and execute orchestration flow."""
 
@@ -270,7 +285,145 @@ def run_orchestrator_from_text(
         molrag_enabled=molrag_enabled,
         molrag_top_k=molrag_top_k,
         molrag_min_similarity=molrag_min_similarity,
+        pubchem_enabled=pubchem_enabled,
+        pubmed_enabled=pubmed_enabled,
+        explain_enabled=explain_enabled,
     )
+
+
+def run_plan_and_execute(
+    user_text: str,
+    max_literature_results: int = 5,
+    language: str = "vi",
+    clinical_threshold: float = 0.35,
+    mechanism_threshold: float = 0.5,
+    inference_backend: str = "xsmiles",
+    binary_tox_model: str = "pretrained_2head_herg_chemberta_model",
+    tox_type_model: str = "tox21_ensemble_3_best",
+    molrag_enabled: bool = False,
+    molrag_top_k: int = 5,
+    molrag_min_similarity: float = 0.15,
+) -> Dict[str, Any]:
+    """Plan-first entry point for ToxAgent.
+
+    Step 1 — Plan: run_planning() produces an AgentPlan (fast-path or LLM).
+    Step 2 — Execute: run_orchestrator_from_text() runs the existing pipeline.
+    Step 3 — Conditional EvidenceQA: if plan.complexity == 'HIGH', run
+             run_evidence_qa() on the research result before returning.
+
+    The plan is stored in state['plan'] for logging, audit, and UI display.
+    In v1 the plan does *not* drive execution — it is parallel metadata.
+    The DAG schema is forward-compatible with a future executor-driven mode.
+
+    Parameters
+    ----------
+    user_text : Free-text user request (may contain a compound name or SMILES).
+    All other kwargs are forwarded unchanged to run_orchestrator_from_text.
+    """
+    from .evidence_qa_agent import run_evidence_qa  # local import to avoid circular
+
+    normalized_language = normalize_language(language)
+
+    # --- Step 1: Planning ---
+    smiles_hint = extract_smiles_from_text(user_text)
+    plan: AgentPlan = run_planning(
+        user_request=user_text,
+        compound_hint=smiles_hint,
+    )
+
+    # --- Step 1.5: Tool Selection ---
+    from .tool_selection_agent import run_tool_selection
+    tool_manifest = run_tool_selection(
+        user_request=user_text,
+        plan_complexity=plan.complexity,
+    )
+
+    molrag_enabled_effective = molrag_enabled or tool_manifest.molrag_enabled
+
+    # --- Step 2: Execute existing orchestrator pipeline ---
+    state = run_orchestrator_from_text(
+        user_text=user_text,
+        max_literature_results=max_literature_results,
+        language=normalized_language,
+        clinical_threshold=clinical_threshold,
+        mechanism_threshold=mechanism_threshold,
+        inference_backend=inference_backend,
+        binary_tox_model=binary_tox_model,
+        tox_type_model=tox_type_model,
+        molrag_enabled=molrag_enabled_effective,
+        molrag_top_k=molrag_top_k,
+        molrag_min_similarity=molrag_min_similarity,
+        pubchem_enabled=tool_manifest.pubchem_enabled,
+        pubmed_enabled=tool_manifest.pubmed_enabled,
+        explain_enabled=tool_manifest.explain_enabled,
+    )
+
+    # Attach plan and tool manifest to state for logging / audit / UI
+    state["plan"] = plan.model_dump()
+    state["tool_manifest"] = tool_manifest.model_dump()
+
+    # --- Step 3: Conditional EvidenceQA (HIGH complexity only) ---
+    evidence_qa_tasks = [
+        t for t in plan.tasks if t.agent == AgentName.EvidenceQAAgent
+    ]
+    if evidence_qa_tasks and state.get("research_result"):
+        qa_payload = run_evidence_qa(
+            research_result=state["research_result"],
+        )
+        state["evidence_qa_result"] = qa_payload.get("evidence_qa_result")
+        state["evidence_qa_error"] = qa_payload.get("evidence_qa_error")
+
+        # Patch the final report's metadata with QA-derived confidence
+        qa_result = state.get("evidence_qa_result") or {}
+        sanitized_research = qa_result.get("research_result_sanitized")
+        if sanitized_research and isinstance(state.get("final_report"), dict):
+            report = state["final_report"]
+            if "report_metadata" in report:
+                report["report_metadata"]["evidence_confidence"] = qa_result.get(
+                    "evidence_confidence", "UNKNOWN"
+                )
+                report["report_metadata"]["curated_articles"] = qa_result.get(
+                    "total_articles_curated", 0
+                )
+    else:
+        state["evidence_qa_result"] = None
+        state["evidence_qa_error"] = None
+
+    # --- Step 4: Reflection (env-gated, complexity-aware) ---
+    # Runs when REFLECTION_ENABLED=1 and plan complexity is MEDIUM or HIGH.
+    # Flag-only in v1: needs_revision is surfaced but does NOT trigger a retry.
+    from .reflection_agent import run_reflection  # local import to avoid circular
+
+    reflection_tasks = [
+        t for t in plan.tasks if t.agent == AgentName.ReflectionAgent
+    ]
+    if reflection_tasks and isinstance(state.get("final_report"), dict):
+        try:
+            reflection = run_reflection(
+                final_report=state["final_report"],
+                screening_result=state.get("screening_result"),
+                research_result=state.get("research_result"),
+                evidence_qa_result=state.get("evidence_qa_result"),
+                plan_complexity=plan.complexity,
+            )
+            state["reflection_result"] = reflection.model_dump()
+
+            # Patch report metadata with reflection quality signals
+            report = state["final_report"]
+            if "report_metadata" in report:
+                report["report_metadata"]["reflection_score"] = reflection.score
+                report["report_metadata"]["needs_revision"] = reflection.needs_revision
+                report["report_metadata"]["reflection_source"] = reflection.reflection_source
+        except Exception as _exc:  # noqa: BLE001
+            import logging as _logging
+            _logging.getLogger(__name__).warning(
+                "run_plan_and_execute: reflection failed (%s); continuing", _exc
+            )
+            state["reflection_result"] = None
+    else:
+        state["reflection_result"] = None
+
+    return state
 
 
 def _build_input_validator_instruction() -> str:

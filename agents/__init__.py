@@ -7,8 +7,11 @@ from .orchestrator_agent import (
     run_input_validation,
     run_orchestrator_flow,
     run_orchestrator_from_text,
+    run_plan_and_execute,
 )
 from .evidence_qa_agent import evidence_qa_agent, run_evidence_qa
+from .planning_agent import AgentName, AgentPlan, PlanTask, planning_agent, run_planning
+from .reflection_agent import ReflectionResult, reflection_agent, run_reflection
 from .report_chat_agent import (
     build_report_context,
     chat_with_report,
@@ -27,10 +30,24 @@ from .report_chat_agent import (
 )
 from .researcher_agent import researcher_agent, run_research
 from .screening_agent import run_screening, screening_agent
+from .tool_selection_agent import (
+    ToolManifest,
+    ToolName,
+    ToolSelection,
+    run_tool_selection,
+    tool_selection_agent,
+)
 from .writer_agent import build_final_report, writer_agent
 
 __all__ = [
     "ADK_AVAILABLE",
+    "AgentName",
+    "AgentPlan",
+    "PlanTask",
+    "ReflectionResult",
+    "ToolManifest",
+    "ToolName",
+    "ToolSelection",
     "build_final_report",
     "build_report_context",
     "chat_with_report",
@@ -47,7 +64,9 @@ __all__ = [
     "input_validator",
     "lookup_structural_alerts",
     "orchestrator",
+    "planning_agent",
     "query_molrag_live",
+    "reflection_agent",
     "report_chat_agent",
     "researcher_agent",
     "root_agent",
@@ -56,8 +75,13 @@ __all__ = [
     "run_orchestrator_flow",
     "run_orchestrator_from_text",
     "run_evidence_qa",
+    "run_plan_and_execute",
+    "run_planning",
+    "run_reflection",
     "run_research",
     "run_screening",
+    "run_tool_selection",
     "screening_agent",
+    "tool_selection_agent",
     "writer_agent",
 ]

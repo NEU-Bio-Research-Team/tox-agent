@@ -1,0 +1,191 @@
+Tôi đã đọc kỹ toàn bộ agent layer. Dưới đây là bản outline hoàn thiện, đã bổ sung đầy đủ những phần mà outline trước còn thiếu so với thực tế trong repo:
+Những điểm QUAN TRỌNG bị thiếu ở outline trước
+Sau khi đọc lại code, tôi phát hiện 5 thành phần lớn bị bỏ sót :
+molrag_reasoner.py — MolRAG Reasoner là một module hoàn chỉnh, không chỉ là feature flag. Nó thực hiện deterministic reasoning dựa trên analog similarity voting + knowledge context + literature hits, với confidence scoring formula riêng
+evidence_qa_agent.py — Agent Q&A riêng biệt, chưa được đề cập
+report_chat_agent.py — Agent chat tương tác với báo cáo sau khi phân tích xong (35KB — agent lớn nhất)
+Pipeline architecture thực tế: SequentialAgent(InputValidator → ParallelAgent(ScreeningAgent ‖ ResearcherAgent) → WriterAgent) — đây là cấu trúc ADK chính xác, không phải loose orchestration
+extract_smiles_from_text() — NLP-based SMILES extraction từ free text, không chỉ nhận SMILES thuần túy
+📄 TECHNICAL REPORT OUTLINE — BẢN HOÀN THIỆN (12 trang)
+Trang 1 — Abstract + Executive Summary (0.5 trang)
+Trong quá trình phát triển thuốc, khoảng 30% số thuốc thử nghiệm bị loại bỏ do không phát hiện sớm độc tính, góp phần đẩy chi phí phát triển lên hơn 2,6 tỷ USD cho mỗi loại thuốc mới. Để giải quyết thách thức này, chúng tôi phát triển ToxAgent, một nền tảng AI đa tác tử tiên tiến tích hợp đường ống 5 tác tử cùng công nghệ MolRAG. Nền tảng này vận hành dựa trên mô hình học máy tập hợp hai đầu (dual-head ensemble GNN/Transformer) kết hợp công cụ GNNExplainer nhằm cung cấp các đánh giá minh bạch về cấu trúc phân tử. ToxAgent đạt hiệu suất dự đoán xuất sắc với chỉ số joint_auc_beta3 tốt nhất là 0,8467. Hệ thống hiện đã được triển khai trực tuyến (tox-agent.web.app) với khả năng xử lý đầu vào đa phương thức, cung cấp các báo cáo tổng hợp có cấu trúc giúp tích hợp liền mạch vào quy trình Nghiên cứu & Phát triển (R&D).
+Từ khóa: Phát triển thuốc, Độc tính phân tử, Trí tuệ nhân tạo đa tác tử, Học máy tập hợp, Khả năng giải thích.
+Trang 1–2 — Problem Statement & Motivation (1 trang)
+Drug development funnel: 10–15 năm, tỉ lệ thất bại Phase II 50–60%, toxicity là nguyên nhân top 1–2
+Existing tools chỉ cho điểm, thiếu: (a) explainability, (b) literature context, (c) analog reasoning, (d) interactive Q&A
+Market Gap bảng so sánh — đầy đủ hơn outline trước:
+Feature
+pkCSM
+SwissADME
+ADMETlab 3.0
+DeepTox
+ToxAgent
+ML Prediction
+✅
+Rule-based
+✅ DNN
+✅ DNN
+✅ GNN+Transformer
+Explainability
+❌
+❌
+Partial
+❌
+✅ GNNExplainer atom-level
+Analog Retrieval (RAG)
+❌
+❌
+❌
+❌
+✅ MolRAG
+Literature Context
+❌
+❌
+❌
+❌
+✅ PubChem/PubMed
+Interactive Q&A
+❌
+❌
+❌
+❌
+✅ ReportChatAgent
+Agentic Pipeline
+❌
+❌
+❌
+❌
+✅ 5-agent ADK
+Image OCR Input
+❌
+❌
+❌
+❌
+✅ MolScribe
+Free-text SMILES parsing
+❌
+❌
+❌
+❌
+✅ NLP extraction
+Bilingual Output
+❌
+❌
+❌
+❌
+✅ VI/EN
+Live Web App
+Web form
+Web form
+API
+Offline
+✅ Firebase + Cloud Run
+Trang 2–4 — System Architecture (2 trang)
+3a. 3-Layer Architecture Overview
+Layer 1: React/Vite Frontend (Firebase Hosting, Ketcher draw, image upload)
+Layer 2: Agent Orchestration (Google ADK — SequentialAgent + ParallelAgent)
+Layer 3: Model Server (FastAPI/uvicorn, Cloud Run) + Firestore (MolRAG store)
+3b. Agent Pipeline — Chính xác từ code
+text
+User Input
+│
+▼
+[InputValidator Agent]  ← validate_smiles tool, canonical SMILES extraction
+│ VALID / INVALID
+▼
+[ParallelAgent] ─────────────────────────────────────────────┐
+│                                                         │
+[ScreeningAgent]                                    [ResearcherAgent]
+├── analyze_molecule() → /analyze endpoint                ├── fetch_pubchem_data()
+├── MolRAG retrieval (optional)                           └── fetch_pubmed_abstracts()
+└── MolRAG Reasoner (similarity voting + confidence)
+│                                                         │
+└──────────────────────┬──────────────────────────────────┘
+▼
+[WriterAgent]  ← synthesizes final structured report
+│
+▼
+[ReportChatAgent]  ← interactive Q&A on report (post-analysis)
+│
+[EvidenceQAAgent]  ← evidence grounding & citation checking
+3c. SMILES Input Normalization — NLP layer
+extract_smiles_from_text(): regex token extraction → heuristic filter (_looks_like_smiles) → RDKit validation → canonical form
+Cho phép user gõ câu tự nhiên như "phân tích CCO có độc không?" — pipeline tự extract CCO
+Xử lý false positive: loại bỏ lowercase words, require ≥2 uppercase atoms hoặc chemistry symbols
+3d. MolRAG Module — Chi tiết kỹ thuật
+Retrieves structural analogs từ Firestore (sentence-transformers embedding)
+retrieve_knowledge_context(): knowledge_hits (mechanism DB) + literature_hits (PubMed)
+Confidence formula: min(0.95, 0.4 + similarity×0.4 + n_analogs×0.05 + n_knowledge×0.015 + n_lit×0.01)
+Deterministic reasoning: majority vote từ analog labels, override nếu high-risk mechanism detected
+Strategy flags: sim_cot (similarity chain-of-thought)
+Fallback: nếu không có analog → MolRAG acts as supporting context, keeps baseline
+3e. Model Architecture — Dual-Head (giữ nguyên từ outline trước)
+Trang 4–5 — Agent Deep Dives (1.5 trang)
+4a. ScreeningAgent
+Gọi /analyze endpoint với configurable params: clinical_threshold, mechanism_threshold, inference_backend, binary_tox_model, tox_type_model
+Parallel: ScreeningAgent + ResearcherAgent chạy đồng thời qua ThreadPoolExecutor(max_workers=2)
+Trả về: screening_result + explanation_raw (GNNExplainer output)
+4b. ResearcherAgent
+Fetch PubChem CID → compound metadata
+Fetch PubMed abstracts với SMILES-derived query
+Output enriches WriterAgent context
+4c. WriterAgent — build_final_report()
+Input: smiles_input + screening_result + research_result + explanation_raw + language
+Output schema: report_metadata, executive_summary, risk_level, sections{clinical_toxicity, mechanism_toxicity}
+Bilingual support: Vietnamese / English toggle
+4d. ReportChatAgent ← THIẾU HOÀN TOÀN Ở OUTLINE TRƯỚC
+35KB agent — lớn nhất trong codebase
+Interactive Q&A sau khi report được tạo xong
+Cho phép chemist hỏi "tại sao model dự đoán NR-AR positive?", "có analog nào safe hơn không?"
+Context-aware: có access vào full screening_result, research_result, MolRAG context
+Đây là feature differentiator lớn nhất so với tất cả competitive tools
+4e. EvidenceQAAgent ← THIẾU HOÀN TOÀN Ở OUTLINE TRƯỚC
+Grounding agent: kiểm tra lại evidence citations trong report
+Phân biệt claims có literature support vs. model-only claims
+Tăng scientific credibility của output report
+Trang 5–7 — Model & Training (2 trang) (cập nhật nhẹ từ outline trước)
+5a. Datasets & Training Setup
+5b. Model Zoo & Ensemble Results
+5c. Explainability: GNNExplainer
+5d. Inference Backends
+xsmiles (default): ChemBERTa-based
+Configurable per request: binary_tox_model và tox_type_model độc lập
+Quick vs Full mode (latency/accuracy trade-off)
+5e. OOD Detection
+Out-of-distribution flag trên prediction output
+Confidence score routing: nếu OOD → warning flag trong report
+Trang 7–8 — Experiments & Evaluation (1 trang)
+6a. Model Performance Table (từ README, best = 0.8467)
+6b. Ablation Study: Single model → ensemble gains
+6c. MolRAG Evaluation
+Precision của analog retrieval (top-K similarity)
+Confidence calibration của deterministic reasoning
+Cases where MolRAG overrides baseline (high-risk mechanism conflict)
+6d. Agent Pipeline Evaluation
+E2E latency: validate (50ms) → parallel(screening+research ~2–5s) → write (~1s) = ~3–6s total
+Error recovery: state repair when screening fails but research succeeds (partial report)
+Trang 8–9 — Deployment (1 trang) (giữ nguyên)
+Firebase Hosting + Cloud Run + Firestore
+CI/CD: cloudbuild.tox-agent.yaml
+Security: Firestore rules, input validation, MIME type check, 5MB limit
+Trang 9–10 — Innovation & Contributions (1 trang)
+7 Contributions thực sự (không phải 5 như outline cũ):
+SequentialAgent + ParallelAgent ADK pipeline: production-grade agent orchestration với Google ADK, không phải ad-hoc chaining
+NLP-based SMILES extraction: user không cần biết SMILES syntax — free text supported
+MolRAG Reasoner với confidence scoring: analog-based reasoning augments ML prediction, không chỉ retrieval
+Dual-head joint training: Binary tox + 12-endpoint mechanism in one forward pass
+GNNExplainer in production: atom-level attribution embedded vào deployment pipeline
+ReportChatAgent: interactive Q&A on toxicity report — chưa có tool nào trên thị trường
+Bilingual agentic output: VI/EN toggle toàn bộ pipeline từ agent instruction đến final report
+Trang 10–11 — Limitations & Roadmap (0.75 trang)
+Limitations thực tế (từ code):
+MolRAG LLM mode chưa active trong production (llm_not_invoked_in_prototype)
+molrag_enabled=False mặc định → analog reasoning là opt-in
+Tox21 dataset scope (small organic molecules, không có biologics)
+EvidenceQAAgent chưa được test end-to-end với BGK (internal stage)
+Roadmap:
+Enable MOLRAG_ENABLE_LLM với Gemini 2.5 Flash reasoning
+Batch SMILES input (bulk screening cho pharma pipeline)
+ADMET endpoint expansion
+Feedback loop: failed predictions → retraining registry
+Trang 11–12 — References & Appendix (0.75 trang)

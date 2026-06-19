@@ -549,8 +549,6 @@ def _maybe_llm_recommendations(
     enabled = str(os.getenv("WRITER_ENABLE_LLM_RECOMMENDATIONS", "1")).strip().lower()
     if enabled in {"0", "false", "no"}:
         return [], "llm_disabled_by_env"
-    if genai is None:
-        return [], "google_genai_not_available"
 
     client_candidates = build_genai_client_candidates()
     if not client_candidates:

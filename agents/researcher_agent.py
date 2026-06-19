@@ -15,33 +15,52 @@ from .adk_compat import LlmAgent
 RESEARCH_MODEL = os.getenv("AGENT_MODEL_PRO", "gemini-2.5-pro")
 
 
-def run_research(smiles_input: str, max_results: int = 5, language: str = "vi") -> Dict[str, Any]:
+def run_research(
+    smiles_input: str,
+    max_results: int = 5,
+    language: str = "vi",
+    pubchem_enabled: bool = True,
+    pubmed_enabled: bool = True,
+) -> Dict[str, Any]:
     """Deterministic research flow used for local tests and orchestration."""
-    compound_info = get_compound_info_pubchem(smiles_input)
+    if pubchem_enabled:
+        compound_info = get_compound_info_pubchem(smiles_input)
+    else:
+        compound_info = {
+            "cid": None,
+            "common_name": None,
+            "iupac_name": None,
+            "smiles": smiles_input,
+        }
 
     preferred_name = (
         compound_info.get("common_name")
         or compound_info.get("iupac_name")
         or smiles_input
     )
-    literature = search_toxicity_literature(
-        preferred_name,
-        max_results=max_results,
-        compound_smiles=smiles_input,
-    )
-    literature_synthesis = None
-    articles = literature.get("articles", []) if isinstance(literature, dict) else []
-    if isinstance(articles, list) and articles:
-        literature_synthesis = synthesize_literature(
-            articles=articles,
-            compound_name=preferred_name,
+
+    if pubmed_enabled:
+        literature = search_toxicity_literature(
+            preferred_name,
+            max_results=max_results,
             compound_smiles=smiles_input,
-            language=language,
         )
+        literature_synthesis = None
+        articles = literature.get("articles", []) if isinstance(literature, dict) else []
+        if isinstance(articles, list) and articles:
+            literature_synthesis = synthesize_literature(
+                articles=articles,
+                compound_name=preferred_name,
+                compound_smiles=smiles_input,
+                language=language,
+            )
+    else:
+        literature = {"articles": [], "total_results": 0}
+        literature_synthesis = None
 
     cid = compound_info.get("cid")
     bioassay_summary = None
-    if cid:
+    if cid and pubchem_enabled:
         bioassay_summary = get_pubchem_bioassay_data(cid)
 
     research_result = {
@@ -57,6 +76,7 @@ def run_research(smiles_input: str, max_results: int = 5, language: str = "vi") 
         "research_result": research_result,
         "research_error": None,
     }
+
 
 
 researcher_agent = LlmAgent(

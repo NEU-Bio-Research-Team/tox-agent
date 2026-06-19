@@ -97,6 +97,12 @@ except Exception:
     google_genai = None
 
 try:
+    from services.local_llm_client import build_local_llm_client_from_env, is_local_llm_configured
+except Exception:
+    build_local_llm_client_from_env = None
+    is_local_llm_configured = None
+
+try:
     from huggingface_hub import hf_hub_download
 except Exception:
     hf_hub_download = None
@@ -757,10 +763,20 @@ def _recover_final_report_from_state(state: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _resolve_report_chat_model() -> str:
+    local_model = (os.getenv("LOCAL_LLM_MODEL") or "").strip()
+    if local_model and is_local_llm_configured is not None and is_local_llm_configured():
+        return local_model
     return os.getenv("AGENT_MODEL_FAST", os.getenv("GEMINI_MODEL", "gemini-2.5-flash")).strip()
 
 
 def _build_report_chat_client(location_override: Optional[str] = None) -> Tuple[Optional[Any], str]:
+    if build_local_llm_client_from_env is not None:
+        if is_local_llm_configured is None or is_local_llm_configured():
+            local_client = build_local_llm_client_from_env()
+            if local_client is not None:
+                provider = getattr(local_client, "provider", "local")
+                return local_client, f"local:{provider}"
+
     if google_genai is None:
         return None, "google_genai_not_available"
 
