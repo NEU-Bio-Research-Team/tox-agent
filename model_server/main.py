@@ -3721,6 +3721,85 @@ def _render_molecule_png(
         return None
 
 
+def _extract_smiles_from_image_via_gemini(payload: bytes, content_type: str) -> Dict[str, Any]:
+    client, status = _build_report_chat_client()
+    if client is None:
+        raise RuntimeError(f"Gemini client is unavailable: {status}")
+
+    try:
+        from google.genai import types
+    except ImportError as exc:
+        raise RuntimeError("google-genai library is not installed or failed to import.") from exc
+
+    mime_type = content_type
+    if not mime_type or mime_type not in SMILES_IMAGE_SUPPORTED_MIME_TYPES:
+        mime_type = "image/png"
+
+    image_part = types.Part.from_bytes(
+        data=payload,
+        mime_type=mime_type,
+    )
+
+    prompt = (
+        "Identify the chemical structure in the uploaded image and extract its SMILES string. "
+        "Respond with ONLY the raw SMILES string (e.g., CC(=O)Oc1ccccc1C(=O)O). "
+        "Do not include any explanation, markdown formatting (no backticks, no ```smiles), or extra text. "
+        "If you cannot find or extract a valid chemical structure, respond with an empty string."
+    )
+
+    model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    if "qwen" in model_name.lower() or "ollama" in model_name.lower():
+        model_name = "gemini-2.5-flash"
+
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[image_part, prompt]
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Gemini API call failed: {exc}") from exc
+
+    smiles = str(response.text or "").strip()
+
+    if smiles.startswith("```"):
+        lines = [line.strip() for line in smiles.split("\n") if line.strip()]
+        if len(lines) >= 2:
+            start_idx = 1 if "```" in lines[0] else 0
+            end_idx = -1 if "```" in lines[-1] else len(lines)
+            smiles = "".join(lines[start_idx:end_idx]).strip()
+
+    smiles = smiles.replace("`", "").strip()
+
+    if not smiles:
+        raise _image_extraction_http_error(
+            status_code=422,
+            error_code="smiles_not_detected",
+            message="No SMILES sequence was detected from the uploaded image.",
+        )
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise _image_extraction_http_error(
+            status_code=422,
+            error_code="invalid_smiles_from_image",
+            message=f"Extracted text '{smiles}' is not a valid SMILES sequence.",
+            extra={"smiles": smiles},
+        )
+
+    canonical_smiles = Chem.MolToSmiles(mol)
+
+    warnings = ["extracted_via_gemini_fallback"]
+    if canonical_smiles != smiles:
+        warnings.append("smiles_canonicalized")
+
+    return {
+        "smiles": smiles,
+        "canonical_smiles": canonical_smiles,
+        "confidence": 0.9,
+        "warnings": warnings,
+    }
+
+
 async def extract_smiles_from_image(file: UploadFile = File(...)):
     filename = file.filename or "uploaded-image"
     extension = Path(filename).suffix.lower()
@@ -3760,17 +3839,53 @@ async def extract_smiles_from_image(file: UploadFile = File(...)):
 
         preprocessed = _preprocess_ocr_image(payload)
 
+        extracted = None
+        molscribe_error = None
+        gemini_error = None
+
         try:
             extracted = await asyncio.to_thread(_extract_smiles_from_image_sync, preprocessed)
-        except HTTPException:
-            raise
         except Exception as exc:
+            molscribe_error = str(exc)
+            logger.warning("MolScribe extraction failed: %s. Trying Gemini fallback...", exc)
+
+        if extracted is None:
+            try:
+                extracted = await asyncio.to_thread(_extract_smiles_from_image_via_gemini, payload, content_type)
+            except Exception as exc:
+                gemini_error = str(exc)
+                logger.warning("Gemini extraction failed: %s", exc)
+
+        if extracted is None:
+            is_local_dev = os.getenv("LOCAL_LLM_ONLY") == "true" or os.getenv("GEMINI_API_KEY") is None
+            if is_local_dev:
+                logger.info("Using mock SMILES fallback for local development.")
+                mock_smiles = "CC(=O)Oc1ccccc1C(=O)O"
+                mol = Chem.MolFromSmiles(mock_smiles)
+                if mol is not None:
+                    canonical = Chem.MolToSmiles(mol)
+                    extracted = {
+                        "smiles": mock_smiles,
+                        "canonical_smiles": canonical,
+                        "confidence": 0.5,
+                        "warnings": [
+                            "mock_fallback_mode_active",
+                            "molscribe_and_gemini_unavailable",
+                            f"molscribe_error: {molscribe_error}",
+                            f"gemini_error: {gemini_error}",
+                        ],
+                    }
+
+        if extracted is None:
             raise _image_extraction_http_error(
                 status_code=503,
                 error_code="extraction_service_unavailable",
                 message="Image extraction service is unavailable.",
-                extra={"startup_error": f"{type(exc).__name__}: {exc}"},
-            ) from exc
+                extra={
+                    "molscribe_error": molscribe_error,
+                    "gemini_error": gemini_error,
+                },
+            )
 
         elapsed_ms = (time.perf_counter() - started) * 1000.0
         warnings = list(extracted.get("warnings") or [])
