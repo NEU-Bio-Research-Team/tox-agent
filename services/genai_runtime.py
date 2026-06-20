@@ -70,42 +70,60 @@ def ordered_vertex_locations(preferred: str | None = None) -> List[str]:
 
 
 def build_genai_client_candidates(location_override: str | None = None) -> List[Tuple[Any, str]]:
-    if genai is None:
-        return []
+    llm_runtime = (os.getenv("LLM_RUNTIME") or "gemini").strip().lower()
 
+    if llm_runtime == "local":
+        try:
+            from services.local_llm_runtime import build_local_client
+            return [(build_local_client(), "local_llm")]
+        except Exception as exc:
+            LOG.error("Failed to import or build local client: %s", exc)
+            return []
+
+    local_candidates = []
+    if llm_runtime == "auto":
+        try:
+            from services.local_llm_runtime import build_local_client
+            local_candidates.append((build_local_client(), "local_llm"))
+        except Exception as exc:
+            LOG.warning("Failed to initialize local client for auto mode: %s", exc)
+
+    if genai is None:
+        return local_candidates
+
+    gemini_candidates = []
     api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     if api_key:
         try:
-            return [(genai.Client(api_key=api_key), "api_key")]
+            gemini_candidates.append((genai.Client(api_key=api_key), "api_key"))
         except Exception as exc:
             LOG.warning("GenAI API key client init failed: %s", exc)
 
-    project_id = _resolve_project_id()
-    candidates: List[Tuple[Any, str]] = []
-    if project_id:
-        for location in ordered_vertex_locations(location_override):
-            try:
-                candidates.append(
-                    (
-                        genai.Client(
-                            vertexai=True,
-                            project=project_id,
-                            location=location,
-                        ),
-                        f"vertex_adc:{location}",
+    if not gemini_candidates:
+        project_id = _resolve_project_id()
+        if project_id:
+            for location in ordered_vertex_locations(location_override):
+                try:
+                    gemini_candidates.append(
+                        (
+                            genai.Client(
+                                vertexai=True,
+                                project=project_id,
+                                location=location,
+                            ),
+                            f"vertex_adc:{location}",
+                        )
                     )
-                )
-            except Exception as exc:
-                LOG.warning("GenAI Vertex client init failed for location=%s: %s", location, exc)
+                except Exception as exc:
+                    LOG.warning("GenAI Vertex client init failed for location=%s: %s", location, exc)
 
-    if candidates:
-        return candidates
+    if not gemini_candidates:
+        try:
+            gemini_candidates.append((genai.Client(), "default"))
+        except Exception as exc:
+            LOG.warning("Fallback GenAI client init failed: %s", exc)
 
-    try:
-        return [(genai.Client(), "default")]
-    except Exception as exc:
-        LOG.warning("Fallback GenAI client init failed: %s", exc)
-        return []
+    return local_candidates + gemini_candidates
 
 
 def is_resource_exhausted_error(exc: Exception) -> bool:
