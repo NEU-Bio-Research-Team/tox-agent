@@ -163,13 +163,25 @@ class PretrainedMolDualHeadPredictor(nn.Module):
         cls_source: str = "last_hidden_state",
         herg_hidden_dim: Optional[int] = None,
         use_herg_mlp: bool = True,
+        base_config_dir: Optional[str] = None,
     ):
         super().__init__()
 
-        self.backbone = AutoModel.from_pretrained(
-            pretrained_model,
-            trust_remote_code=trust_remote_code,
-        )
+        if base_config_dir:
+            # Build the architecture from a vendored config instead of resolving
+            # the model id against Hugging Face. The checkpoint carries every
+            # backbone weight, so the config is all that is needed and serving
+            # then requires no network. Randomly initialised here and overwritten
+            # by load_state_dict; the computation is identical either way.
+            from transformers import AutoConfig
+
+            config = AutoConfig.from_pretrained(base_config_dir)
+            self.backbone = AutoModel.from_config(config)
+        else:
+            self.backbone = AutoModel.from_pretrained(
+                pretrained_model,
+                trust_remote_code=trust_remote_code,
+            )
         self.cls_source = str(cls_source)
         hidden_size = _resolve_hidden_size(self.backbone)
 
@@ -277,8 +289,14 @@ def create_pretrained_dual_head_model(
     dropout: float = 0.1,
     herg_hidden_dim: Optional[int] = None,
     use_herg_mlp: bool = True,
+    base_config_dir: Optional[str] = None,
 ) -> PretrainedMolDualHeadPredictor:
-    """Factory for shared-backbone dual-head model (hERG + Tox21)."""
+    """Factory for shared-backbone dual-head model (hERG + Tox21).
+
+    ``base_config_dir`` builds the backbone from a vendored config rather than
+    resolving ``pretrained_model`` against Hugging Face, so serving needs no
+    network. Training leaves it unset and keeps the original behaviour.
+    """
     defaults = get_checkpoint_defaults(pretrained_model)
     return PretrainedMolDualHeadPredictor(
         pretrained_model=pretrained_model,
@@ -288,4 +306,5 @@ def create_pretrained_dual_head_model(
         cls_source=str(defaults["cls_source"]),
         herg_hidden_dim=herg_hidden_dim,
         use_herg_mlp=bool(use_herg_mlp),
+        base_config_dir=base_config_dir,
     )

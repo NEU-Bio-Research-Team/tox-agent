@@ -96,6 +96,11 @@ loading and reports all problems at once.
 Weights are not in the image. `deploy/entrypoint.sh` fetches them from
 `MODEL_ARTIFACTS_URI` at container start; a request never triggers a download.
 
+Serving needs no network at all. The ChemBERTa checkpoint carries every backbone
+weight, and the architecture config is vendored from a pinned revision under the
+artifact, so the backbone is built from a local file rather than resolved against
+Hugging Face. The container runs with `HF_HUB_OFFLINE=1` and CI asserts it.
+
 ## Thresholds
 
 | Source | Meaning |

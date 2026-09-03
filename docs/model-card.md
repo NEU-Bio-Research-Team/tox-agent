@@ -28,7 +28,7 @@ safe. Nothing here substitutes for an assay.
 | | |
 |---|---|
 | Architecture | ChemBERTa backbone with two heads: one hERG logit, twelve Tox21 logits |
-| Base model | `DeepChem/ChemBERTa-77M-MTR` — **revision not pinned**, see section 6 |
+| Base model | `DeepChem/ChemBERTa-77M-MTR` @ `66b895cab8adebea0cb59a8effa66b2020f204ca`, config vendored |
 | Weights | Bundled in the checkpoint, including the backbone; the Hugging Face repo supplies only the architecture config |
 | Tokenizer | Shipped with the artifact, SHA-256 checked at load |
 | Max input | 128 tokens; longer SMILES are truncated and the response says so |
@@ -120,10 +120,11 @@ scoring surfaces as a failure rather than a slowly moving number.
 2. **The ClinTox threshold, if the endpoint returns, is not calibrated.** The
    checkpoint ships none; the manifest declares 0.35 and every response labels
    it `threshold_source: manifest_declared`. Recalibrate before trusting a label.
-3. **The base-model revision is not pinned.** The checkpoint carries its own
-   backbone weights, so predictions do not depend on a download, but the
-   architecture config is still fetched by identifier. Pin the revision and
-   vendor the config to close it.
+3. ~~The base-model revision is not pinned.~~ **Closed.** The architecture
+   config is vendored at `models/pretrained_2head_herg_chemberta_model/base_model/`
+   from pinned revision `66b895cab8adebea0cb59a8effa66b2020f204ca`, checksummed in
+   the manifest. With every backbone weight already in the checkpoint, the
+   service starts and serves with no network; a test asserts it.
 4. **Probabilities are not calibrated** (section 4).
 5. **Applicability is an element whitelist**, not a learned OOD detector. It can
    flag an unusual element; a status of `ok` is not evidence that a molecule

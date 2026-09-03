@@ -350,11 +350,11 @@ Cập nhật 2026-09-03 sau khi chốt: **chạy predictor-only trước, agent 
 | 8 | Golden probabilities trong tolerance | ✅ 2,4e-07 |
 | 9 | Benchmark có split/model/environment provenance | ✅ |
 | 10 | Missing model làm readiness fail, không silent fallback | ✅ |
-| 11 | Inference không cần internet sau provisioning | 🟡 base-model config vẫn fetch theo id |
+| 11 | Inference không cần internet sau provisioning | ✅ config đã vendor, revision đã ghim |
 | 12 | Source tree 80–120 file | ✅ **108** |
 | 13 | README, model card, benchmark protocol đúng khả năng và giới hạn | ✅ |
 
-**11/13 đạt, 2 còn dở** (ClinTox artifact, ghim base-model revision).
+**12/13 đạt, 1 còn dở** (ClinTox artifact).
 
 ### Sai lệch có chủ ý so với plan
 

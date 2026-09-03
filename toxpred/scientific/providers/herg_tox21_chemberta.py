@@ -42,6 +42,7 @@ class HergTox21ChembertaProvider:
         self._herg_threshold: float | None = None
         self._tox21_thresholds: dict[str, float] | None = None
         self._detail = "not loaded"
+        self._base_model_revision: str | None = None
 
     # -- artifact-declared thresholds -------------------------------------
     @property
@@ -85,6 +86,18 @@ class HergTox21ChembertaProvider:
                 f"checkpoint says {base_model!r}"
             )
 
+        # Prefer the vendored architecture config: the checkpoint carries every
+        # backbone weight, so with the config on disk nothing needs to reach
+        # Hugging Face and the service starts with no network at all.
+        base_config_dir = None
+        vendored = self._spec.root / "base_model"
+        if (vendored / "config.json").is_file():
+            base_config_dir = str(vendored)
+            self._base_model_revision = (
+                (vendored / "REVISION").read_text().strip()
+                if (vendored / "REVISION").is_file() else None
+            )
+
         model_config = dict(checkpoint.get("model_config") or {})
         model = create_pretrained_dual_head_model(
             pretrained_model=base_model,
@@ -92,6 +105,7 @@ class HergTox21ChembertaProvider:
             dropout=float(model_config.get("dropout", 0.1)),
             use_herg_mlp=bool(model_config.get("use_herg_mlp", True)),
             herg_hidden_dim=int(model_config.get("herg_hidden_dim", 192)),
+            base_config_dir=base_config_dir,
         )
         missing, unexpected = model.load_state_dict(
             checkpoint["model_state_dict"], strict=False
@@ -111,7 +125,8 @@ class HergTox21ChembertaProvider:
         )
         self._herg_threshold = self._read_herg_threshold()
         self._tox21_thresholds = self._read_tox21_thresholds()
-        self._detail = f"loaded from {ckpt_path.name}"
+        offline = " (offline, vendored config)" if base_config_dir else " (config fetched from Hugging Face)"
+        self._detail = f"loaded from {ckpt_path.name}{offline}"
 
     def _read_herg_threshold(self) -> float:
         import json

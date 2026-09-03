@@ -16,13 +16,15 @@ models:
     feature_schema_version: chemberta-smiles-v1
     base_model:
       id: DeepChem/ChemBERTa-77M-MTR
-      revision: null   # UNPINNED — see docs/refactor/PREDICTOR_ONLY_STATUS_VI.md
+      revision: 66b895cab8adebea0cb59a8effa66b2020f204ca
       weights_source: checkpoint
+      config_source: vendored
       note: >-
         The checkpoint carries the full backbone state dict (61 tensors including
-        backbone.embeddings.* and backbone.pooler.*), so the Hugging Face repo is
-        needed only for the architecture config, not for weights. Pinning the
-        revision and vendoring that config removes the last network dependency.
+        backbone.embeddings.* and backbone.pooler.*), and base_model/config.json
+        is the architecture config vendored from the pinned revision above. The
+        service therefore needs no network: it builds the architecture from the
+        local config and loads every weight from the checkpoint.
     files:
       - path: best_model.pt
         sha256: c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690
@@ -51,6 +53,12 @@ models:
       - path: tokenizer/special_tokens_map.json
         sha256: de1fff4a8d761b007a5f945da34ba52c65ebeff199060deda174fa7212a58306
         bytes: 965
+      - path: base_model/REVISION
+        sha256: d5e518cf8fdc2f63e70020268752ec952d7546305133b4bd24d7094c0705d123
+        bytes: 41
+      - path: base_model/config.json
+        sha256: 31b5a11cfab81146cb66677b0e27f92ad3e29715d5f9fcf41fc142de57296349
+        bytes: 17700
       - path: tokenizer/added_tokens.json
         sha256: 0c3ff4efa3a74a617a72582c8756d6ccc84e3f8793253c7202f7b1f708081fe8
         bytes: 32

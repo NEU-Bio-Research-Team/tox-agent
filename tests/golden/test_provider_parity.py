@@ -103,3 +103,17 @@ def test_known_blockers_score_above_known_safe_drugs(predictions):
     blockers = [v["herg_probability_blocker"] for k, v in actual.items() if k.startswith("herg_pos_")]
     safe = [v["herg_probability_blocker"] for k, v in actual.items() if k.startswith("safe_")]
     assert min(blockers) > max(safe), "hERG head no longer separates the control sets"
+
+
+def test_service_starts_with_no_network(predictions):
+    """The container sets HF_HUB_OFFLINE=1; the model must load anyway.
+
+    Before the architecture config was vendored, this failed: the checkpoint
+    carried every weight but the backbone was still constructed by resolving
+    the model id against Hugging Face, so a fresh container could not reach
+    readiness.
+    """
+    _, _, provider = predictions
+    assert "offline" in provider.health().detail, provider.health().detail
+    assert (REPO / "models" / "pretrained_2head_herg_chemberta_model"
+            / "base_model" / "config.json").is_file()
