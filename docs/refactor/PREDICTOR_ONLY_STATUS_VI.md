@@ -13,8 +13,16 @@
 minh trực tiếp trên code, không có điểm nào sai.
 
 **Nhưng phạm vi phải sửa ở một chỗ quan trọng:** plan giả định giữ **hai** model để
-serve. Trên thực tế chỉ **một** model serve được. Model ClinTox không load được và
-không thể phục hồi từ repo này. Chi tiết ở mục 3.
+serve. Trên thực tế chỉ **một** model serve được. Model ClinTox không load được vì thiếu
+tokenizer, và không thể phục hồi từ repo này. Chi tiết ở mục 3.
+
+**Quyết định đã chốt:** giữ nguyên toàn bộ checkpoint và logic model, kể cả ClinTox.
+Provider ClinTox đã viết xong và khai báo `required: false` — endpoint bật lại ngay khi
+có tokenizer, còn hiện tại thì báo lỗi typed thay vì trả nhầm model khác (mục 3.4).
+
+**Về consumer:** frontend **không** gọi `/predict` hay `/analyze`. Nó chỉ gọi `/agent/*`.
+`/analyze` có đúng một consumer là chính agent layer qua self-HTTP localhost. Bản đồ đầy
+đủ ở mục 8.
 
 Đây chính là stop condition mà plan tự đặt ra:
 
@@ -97,17 +105,80 @@ Nghĩa là con số "độc tính lâm sàng" trên UI **là xác suất chẹn 
 | Contract v1 có endpoint `clintox` (mục 4.3) | v1 chỉ có `herg` + `tox21`. Type `ClinToxPrediction` đã viết sẵn và có test, nhưng không đăng ký provider |
 | "Áp threshold được đóng gói cùng artifact" (mục 1, ý 4) | Đúng cho ChemBERTa. ClinTox **không** có threshold trong artifact — nếu khôi phục được model thì phải hiệu chuẩn lại và đóng gói threshold cùng nó |
 
-### 3.4 Lựa chọn cho ClinTox — cần anh/chị quyết
+### 3.4 Quyết định đã chốt (2026-09-03)
 
-1. **Huấn luyện lại** bằng `scripts/train_hybrid.py`, lần này commit cả tokenizer + threshold
-   vào artifact package. Tốn thời gian, nhưng lấy lại được endpoint `clintox`.
-2. **Tìm lại tokenizer.pkl** từ máy đã train hoặc backup ngoài Git. Nếu tìm được thì
-   phải verify: nạp vào và so raw probability với một baseline nào đó — hiện **không có**
-   baseline ClinTox nào để đối chiếu, nên độ tin cậy thấp.
-3. **Bỏ ClinTox khỏi phạm vi v1.** Predictor chỉ phục vụ hERG + Tox21, nói rõ trong
-   model card. Đây là phương án trung thực nhất với hiện trạng và không chặn tiến độ.
+> **Giữ nguyên toàn bộ model checkpoint và logic của nó, kể cả ClinTox.**
 
-Khuyến nghị: **(3) trước mắt, (1) song song** nếu đội vẫn cần tín hiệu clinical.
+Đã thực hiện theo đúng quyết định này:
+
+| Việc | Trạng thái |
+|---|---|
+| Toàn bộ 51 file trong `models/` | **Giữ nguyên**, không xoá file nào |
+| Code kiến trúc model trong `backend/` (`graph_models_hybrid`, `smiles_tokenizer`, `graph_data`, `pretrained_mol_model`) | **Giữ nguyên**, provider gọi vào chứ không viết lại |
+| Provider ClinTox (`toxpred/scientific/providers/clintox_smilesgnn.py`) | **Đã viết xong** — chạy được ngay khi có tokenizer |
+| Đăng ký trong manifest | `required: false` — khai báo đầy đủ, không chặn readiness |
+| Ma trận xoá của plan (mục 6.2, 6.3) | **Thu hẹp lại**: bỏ mọi mục liên quan tới model/checkpoint |
+
+Điều này thu hẹp phạm vi xoá so với plan gốc. Plan đề xuất bỏ
+`herg-tox21-xsmiles-baseline`, `tox21-gatv2-baseline` và các model thử nghiệm khỏi
+production image (mục 2.1), đồng thời không port `attentivefp_model.py`, `gps_model.py`,
+`graph_models.py`, `pretrained_gnn.py` (mục 6.3). **Những mục đó nay được giữ lại.**
+
+Manifest chỉ liệt kê những gì service **sẵn sàng serve**; mọi checkpoint khác vẫn nằm
+trên đĩa và vẫn dùng được cho training/benchmark.
+
+#### Provider ClinTox hoạt động thế nào khi chưa có tokenizer
+
+Không degrade âm thầm. `availability()` trả lý do cụ thể và hành động cần làm:
+
+```
+tokenizer missing: tokenizer.pkl. The checkpoint was trained with a 69-token
+vocabulary derived from the ClinTox corpus; without that vocabulary the token ids
+cannot be reproduced and the embedding weights are unusable. Restore it from the
+training run, or retrain with scripts/train_hybrid.py and commit the tokenizer
+alongside the weights.
+```
+
+Registry ghi nhận là *optional unavailable*, service vẫn `ready` cho hERG + Tox21,
+và `clintox` trả lỗi typed thay vì trả nhầm model khác:
+
+```
+endpoint 'clintox' is not served by this build (available: ['herg', 'tox21'])
+```
+
+#### Chốt tokenizer sai sẽ bị chặn
+
+Có test dựng sẵn tình huống: ghép tokenizer 80 token (`smilesgnn_multitask_model`) với
+checkpoint 69 token rồi load. Provider **fail loud**. Nếu không chặn, mọi token bị ánh xạ
+lại và model vẫn trả ra xác suất trông rất tự tin nhưng vô nghĩa.
+
+#### Threshold của ClinTox — phân biệt "hiệu chuẩn" với "chọn tay"
+
+Checkpoint ClinTox **không** kèm threshold nào, khác với ChemBERTa (0.4133 từ Youden-J,
+3-fold CV). Nên `ThresholdSource` có thêm giá trị thứ ba:
+
+| Nguồn | Nghĩa | Ví dụ |
+|---|---|---|
+| `artifact` | Hiệu chuẩn trên validation split, đóng gói cùng weight | hERG 0.4133 |
+| `manifest_declared` | **Chọn theo vận hành, chưa hiệu chuẩn** | ClinTox 0.35 |
+| `request_override` | Caller truyền vào cho riêng request đó | — |
+
+Gộp hai loại đầu vào một nhãn chính là cách con số 0.30 trông như thể đã được hiệu chuẩn.
+Khi khôi phục được ClinTox, **phải hiệu chuẩn lại threshold** rồi đóng gói cùng weight,
+lúc đó mới chuyển sang `artifact`.
+
+#### Còn lại để lấy lại endpoint `clintox`
+
+Chỉ cần **một** trong hai, code đã sẵn sàng cho cả hai:
+
+1. Tìm lại `tokenizer.pkl` (69 token) từ máy đã train hoặc backup ngoài Git → thả vào
+   `models/smilesgnn_model/`, thêm checksum vào manifest, đổi `required: true`.
+2. Train lại bằng `scripts/train_hybrid.py`, commit kèm tokenizer **và** threshold đã
+   hiệu chuẩn.
+
+Lưu ý cho cả hai: hiện **không có baseline ClinTox** để đối chiếu parity, vì model chưa
+từng chạy được. Sau khi khôi phục nên chạy `benchmarks/capture_baseline.py` để tạo baseline
+trước khi động tiếp vào code.
 
 ---
 
@@ -190,14 +261,23 @@ cho cả hai endpoint hERG + Tox21.
 `element_rules_v1`. Trạng thái `ok` **nói rõ** rằng nó không xác nhận được sự tương đồng
 phân bố — khác với `ood_risk: "LOW"` của bản cũ.
 
-### Test suite ✅ — 90/90 pass
+### Phase 3A — Provider ClinTox ✅ code, ⛔ artifact
+
+`toxpred/scientific/providers/clintox_smilesgnn.py` — gọi vào `backend.inference.load_model`
+chứ **không** viết lại phần khoa học. Hai điểm khác với code cũ: trả raw probability thay
+vì DataFrame đã threshold/sort/render label; và phân tử không featurise được thì **raise**
+thay vì thành dòng `"Parse error"` với `P(toxic) = None` (dễ bị đọc nhầm là điểm thấp).
+
+### Test suite ✅ — 114/114 pass
 
 ```
 tests/unit/test_endpoints.py            6   thứ tự task Tox21
-tests/unit/test_policy.py               9   threshold, biên >=, nguồn override
+tests/unit/test_policy.py              12   threshold, biên >=, artifact vs declared
 tests/unit/test_prediction_contract.py 14   hERG không thể thành clinical
-tests/unit/test_artifacts.py           13   checksum, file thiếu, thư mục rỗng
-tests/unit/test_import_boundaries.py   35   luật phụ thuộc theo AST
+tests/unit/test_artifacts.py           15   checksum, file thiếu, thư mục rỗng, optional
+tests/unit/test_registry.py             9   không fallback, optional không chặn readiness
+tests/unit/test_clintox_provider.py     8   availability + chặn tokenizer sai
+tests/unit/test_import_boundaries.py   36   luật phụ thuộc theo AST
 tests/unit/test_resolver.py            13   SMILES + applicability
 tests/golden/test_provider_parity.py    6   đối chiếu baseline (cần artifact thật)
 ```
@@ -213,8 +293,8 @@ FastAPI, yaml, `backend`; không module nào trong `toxpred/` được import `a
 
 | Phase | Trạng thái | Lý do |
 |---|---|---|
-| 3A — ClinTox provider | **Blocked** | Mục 3.1 |
-| 4 — FastAPI app + `/v1/*` | Chưa | Nên làm cùng lúc với quyết định về ClinTox, vì nó định hình danh sách endpoint |
+| 3A — ClinTox provider | **Code xong, artifact blocked** | Provider + test đã có; chờ tokenizer (mục 3.4) |
+| 4 — FastAPI app + `/v1/*` | Chưa | Danh sách endpoint nay đã chốt được (mục 9) |
 | 5 — Attribution | Chưa | Plan cho phép không chặn core |
 | 6 — Benchmark khoa học đầy đủ | Chưa | Cần frozen split manifest; `backend/data.py` vẫn có fallback đổi split (mục 2 #6) |
 | 7A — Cutover | Chưa | Cần Phase 4 |
@@ -238,34 +318,138 @@ sang layout `src/` nếu muốn — không ảnh hưởng gì đến code đã v
 
 ## 7. Về mục tiêu "80–120 file"
 
-Đạt được. Ước tính sau khi hoàn tất Phase 7B:
+Vẫn đạt, nhưng con số đổi vì quyết định giữ toàn bộ checkpoint.
 
 | Nhóm | File |
 |---|---|
-| `toxpred/` | ~22 |
-| `tests/` | ~12 |
+| `toxpred/` | ~24 |
+| `tests/` | ~14 |
 | `benchmarks/` | ~6 |
-| `artifacts/`, `configs/`, `deploy/`, `.github/` | ~8 |
+| `backend/` — chỉ phần model architecture còn được giữ | ~12 |
+| `models/` — **toàn bộ, theo quyết định** | 51 |
+| `config/` model config | ~20 |
+| `artifacts/`, `deploy/`, `.github/` | ~8 |
 | `docs/` + README + pyproject | ~8 |
-| **Tổng** | **~56** |
+| **Tổng** | **~143** |
 
-Thấp hơn cả khoảng plan dự kiến, vì chỉ còn một provider thay vì hai.
+Vượt khoảng 80–120 của plan, nhưng phần vượt **toàn bộ nằm ở `models/` và `config/`** —
+tức là artifact và metadata, không phải code runtime. Nếu tính riêng source tree thì
+khoảng **~72 file**, thấp hơn plan.
+
+Muốn về đúng khoảng của plan thì đưa weight ra artifact store (GCS) và Git chỉ giữ
+manifest — đúng như plan mục 2 đề xuất cho `models/`. Việc đó không xoá checkpoint nào,
+chỉ đổi chỗ lưu, nên vẫn khớp với quyết định đã chốt.
 
 ---
 
-## 8. Việc tiếp theo
+## 8. Ai đang gọi API? — bản đồ consumer
 
-**Cần quyết định (chặn Phase 4):**
+Câu hỏi: *"còn consumer nào ngoài FE gọi predict/analyze không?"*
 
-1. ClinTox: chọn phương án 1, 2 hay 3 ở mục 3.4?
-2. Có consumer nào ngoài frontend đang gọi `/predict`, `/analyze` không? Ảnh hưởng tới
-   độ dài deprecation window.
+Câu trả lời ngắn: **trong repo thì không** — nhưng bức tranh khác với dự đoán.
+**Frontend không hề gọi `/predict`, `/predict/batch`, `/explain` hay `/analyze`.**
+
+### 8.1 Bản đồ đầy đủ
+
+| Endpoint | Consumer trong repo | Ghi chú |
+|---|---|---|
+| `/agent/analyze` | **Frontend** — `frontend/src/lib/api.ts:541` | |
+| `/agent/analyze/stream` | **Frontend** — `api.ts:644` | |
+| `/agent/chat` | **Frontend** — `api.ts:706` | |
+| `/agent/chat/stream` | **Frontend** — `api.ts:803` | |
+| `/extract-smiles-from-image` | **Frontend** — `api.ts:850` | |
+| `/smiles/preview` | **Frontend** — `api.ts:900` | |
+| `/analyze` | **Chỉ chính agent layer**, qua self-HTTP localhost | Xem 8.2 |
+| `/health` | Docker `HEALTHCHECK` + `tools/tox_tools.py:371` | |
+| `/predict/batch` | **Chỉ** `scripts/sweep_clinical_threshold.py` | Script dev offline, mặc định `127.0.0.1:8000` |
+| `/predict` | **Không có consumer nào** | |
+| `/explain` | **Không có consumer nào** | Xem 8.3 |
+
+Đã quét: `frontend/src/**`, `agents/`, `services/`, `tools/`, `scripts/`, `tests/`,
+`benchmark/`, `model_server/`, cùng mọi `*.yaml|yml|json|md|sh|Dockerfile`.
+
+### 8.2 `/analyze` chỉ có một consumer, và đó là chính process này
+
+```
+POST /agent/analyze
+  └─ model_server/main.py:5047   run_orchestrator_flow
+      └─ agents/orchestrator_agent.py:175   run_screening
+          └─ agents/screening_agent.py:55   analyze_molecule
+              └─ tools/tox_tools.py:255     httpx.post("/analyze")
+                  └─ ...quay lại chính server này ở 127.0.0.1:8080
+```
+
+`deploy/cloudrun-env.yaml:26` đặt `MODEL_SERVER_URL: "http://127.0.0.1:8080"` — xác nhận
+đây là self-HTTP trong cùng container, đúng như plan mục 6.2 mô tả.
+
+Hệ quả tốt cho migration: khi làn A gọi application service **in-process**, vòng HTTP này
+biến mất và `/analyze` mất luôn consumer cuối cùng. Không cần deprecation window cho
+`/analyze` vì ngoài chính nó ra không ai gọi.
+
+### 8.3 `/explain` không có consumer, nhưng logic explain thì có
+
+Frontend đọc `heatmap_base64` và `explainer_note` (`api.ts:82`, `api.ts:86`) như **field
+bên trong response của `/agent/analyze`**, không gọi `/explain`. Nên endpoint bỏ được,
+còn logic explain thì phải giữ.
+
+### 8.4 Cảnh báo: repo không trả lời được câu hỏi này một cách trọn vẹn
+
+`firebase.json` rewrite các path sau tới Cloud Run `tox-agent-cpu` (asia-southeast1):
+
+```
+/health   /extract-smiles-from-image   /smiles/**   /predict   /predict/**
+/explain  /analyze                     /agent/**
+```
+
+Nghĩa là **toàn bộ API đang public trên chính domain của web app**, không chỉ trên URL
+Cloud Run. Ai đó có thể đã script trực tiếp vào `https://<domain>/predict` mà repo không
+hề biết. Trước khi xoá, nên kiểm tra ở nguồn duy nhất biết sự thật:
+
+```bash
+gcloud logging read \
+  'resource.type="cloud_run_revision"
+   AND resource.labels.service_name="tox-agent-cpu"
+   AND httpRequest.requestUrl:("/predict" OR "/analyze" OR "/explain")' \
+  --freshness=30d --limit=100 \
+  --format='value(httpRequest.requestUrl, httpRequest.userAgent)'
+```
+
+Nếu 30 ngày không có traffic nào ngoài health check, có thể xoá thẳng, không cần
+compatibility adapter. Ngoài ra `AIP_HEALTH_ROUTE` / `AIP_PREDICT_ROUTE`
+(`main.py:401-402`) là scaffolding cho Vertex AI custom container; Dockerfile đặt đúng
+giá trị mặc định `/health` và `/predict` nên **không** tạo thêm route nào.
+
+### 8.5 Kết luận cho deprecation window
+
+| Endpoint | Đề xuất |
+|---|---|
+| `/predict`, `/predict/batch`, `/explain` | Không consumer trong repo. Xoá được sau khi xác nhận log Cloud Run. `sweep_clinical_threshold.py` chuyển sang gọi application service in-process |
+| `/analyze` | Consumer duy nhất biến mất khi bỏ self-HTTP. Không cần window |
+| `/agent/*` | **Đây mới là thứ frontend thực sự dùng.** Cần adapter cho tới khi FE migrate xong |
+
+Thứ tự này ngược với giả định ban đầu: phần khó gỡ không phải scientific API, mà là
+`/agent/*`.
+
+---
+
+## 9. Việc tiếp theo
 
 **Làm được ngay, không cần chờ:**
 
-3. Ghim revision `DeepChem/ChemBERTa-77M-MTR` và vendor file config vào artifact —
+1. Kiểm tra log Cloud Run 30 ngày theo lệnh ở mục 8.4 → chốt có cần adapter cho
+   `/predict`, `/explain` không.
+2. Ghim revision `DeepChem/ChemBERTa-77M-MTR` và vendor file config vào artifact —
    checkpoint đã chứa đủ trọng số backbone (61 tensor gồm `backbone.embeddings.*` và
    `backbone.pooler.*`), nên chỉ còn thiếu config kiến trúc là startup hết phụ thuộc mạng.
+3. Sửa `backend/data.py` để fallback PyTDC **fail loud** thay vì âm thầm đổi sang random
+   split — rủi ro rò rỉ train/test đang tồn tại, độc lập với refactor.
 4. Bỏ `report_state` rehydration và tắt `mechanism_threshold` chung trong API cũ.
-5. Sửa `backend/data.py` để fallback PyTDC **fail loud** thay vì âm thầm đổi sang random
-   split — đây là rủi ro rò rỉ train/test đang tồn tại, độc lập với refactor.
+
+**Chặn bởi việc khôi phục ClinTox (không chặn phần còn lại):**
+
+5. Đưa `clintox` vào contract v1: cần tokenizer + threshold đã hiệu chuẩn (mục 3.4).
+
+**Phase tiếp theo:**
+
+6. Phase 4 — FastAPI app + `/v1/*`. Danh sách endpoint nay đã rõ: `herg` + `tox21` bắt
+   buộc, `clintox` khai báo sẵn và bật lên khi artifact đủ.

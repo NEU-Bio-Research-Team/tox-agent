@@ -54,6 +54,13 @@ class ArtifactSpec:
     base_model: Mapping[str, Any] = field(default_factory=dict)
     feature_schema_version: str = "unknown"
     notes: str = ""
+    model_config_path: Path | None = None
+    """Optional architecture config living outside the artifact directory."""
+    blocked_reason: str = ""
+    declared_thresholds: Mapping[str, float] = field(default_factory=dict)
+    """Operating points chosen in the manifest rather than calibrated with the
+    weights. Surfaced as ``threshold_source="manifest_declared"`` so a reader can
+    tell them from the artifact's own calibrated values."""
 
     def verify(self) -> None:
         """Check every declared file exists and matches its checksum.
@@ -135,6 +142,14 @@ def load_manifest(manifest_path: Path, models_root: Path | None = None) -> dict[
             base_model=entry.get("base_model") or {},
             feature_schema_version=str(entry.get("feature_schema_version", "unknown")),
             notes=str(entry.get("notes", "")),
+            model_config_path=(
+                (manifest_path.parent / entry["model_config"]).resolve()
+                if entry.get("model_config") else None
+            ),
+            blocked_reason=str(entry.get("blocked_reason", "")).strip(),
+            declared_thresholds={
+                str(k): float(v) for k, v in (entry.get("declared_thresholds") or {}).items()
+            },
         )
     if not specs:
         raise ArtifactError("manifest declares no models")

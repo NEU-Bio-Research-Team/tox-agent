@@ -55,20 +55,43 @@ models:
         sha256: 0c3ff4efa3a74a617a72582c8756d6ccc84e3f8793253c7202f7b1f708081fe8
         bytes: 32
 
+  # Declared but optional: the checkpoint is kept and the provider is written,
+  # so the endpoint comes back the moment the tokenizer is restored. Until then
+  # `required: false` keeps it out of readiness instead of blocking startup, and
+  # nothing else is served in its place.
+  - model_id: clintox-smilesgnn-v1
+    provider: clintox_smilesgnn
+    capabilities: [clintox]
+    artifact_dir: smilesgnn_model
+    required: false
+    feature_schema_version: smilesgnn-hybrid-v1
+    model_config: ../config/smilesgnn_config.yaml
+    declared_thresholds:
+      # NOT calibrated. This checkpoint ships no threshold of its own, unlike the
+      # ChemBERTa release whose 0.4133 comes from Youden-J over 3-fold CV. 0.35 is
+      # the balanced-policy value the previous code used as its constant; it is
+      # reported as threshold_source="manifest_declared" so it cannot be mistaken
+      # for a calibrated operating point. Recalibrate before relying on the label.
+      clintox: 0.35
+    blocked_reason: >-
+      models/smilesgnn_model/tokenizer.pkl is absent and was never committed
+      (*.pkl is excluded by .gitignore line 49). The checkpoint embedding is
+      (69, 96) — a 69-token vocabulary derived from the ClinTox training corpus.
+      The other two SMILES tokenizers in models/ have 80 tokens and do not fit,
+      so the token ids cannot be reproduced. Restore the tokenizer or retrain
+      with scripts/train_hybrid.py, committing the tokenizer and a calibrated
+      threshold alongside the weights.
+    files:
+      - path: best_model.pt
+        sha256: 404f0fa834d067b198d6351e85ca55ed6724d3c40c5457635c2ee4c83a4cb2f1
+        bytes: 1680373
+
 # ---------------------------------------------------------------------------
-# NOT REGISTERED — kept here so the gap is visible rather than rediscovered.
+# Every checkpoint under models/ is retained by decision; this manifest lists
+# only what the service is willing to serve. Anything absent from it stays on
+# disk and remains available to training and benchmark code.
 #
-# clintox-smilesgnn-v1
-#   artifact_dir: smilesgnn_model
-#   Blocked: the SMILES tokenizer this checkpoint requires
-#   (models/smilesgnn_model/tokenizer.pkl) is absent and was never committed —
-#   *.pkl is excluded by .gitignore line 49. The checkpoint's embedding matrix
-#   is (69, 96), i.e. a 69-token vocabulary derived from the ClinTox training
-#   corpus; the two other SMILES tokenizers in models/ have 80 tokens and do not
-#   fit. Without the vocabulary the token ids are unrecoverable, so the model
-#   cannot be served reproducibly. Recovery options are in the status document.
-#
-# tox21_ensemble_3_best
-#   The default in model_server/main.py:202 resolves to models/dualhead_ensemble3,
-#   which contains dualhead_metrics.json and no weights. Never registerable.
+# Explicitly never registerable:
+#   tox21_ensemble_3_best — the default at model_server/main.py:202 resolves to
+#   models/dualhead_ensemble3, which holds dualhead_metrics.json and no weights.
 # ---------------------------------------------------------------------------

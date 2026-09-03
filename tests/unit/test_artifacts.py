@@ -145,3 +145,29 @@ def test_real_manifest_verifies_against_real_artifacts():
     specs = load_manifest(repo / "artifacts" / "manifest.yaml")
     for spec in specs.values():
         spec.verify()
+
+
+# --- optional models and declared thresholds -------------------------------
+
+def test_declared_thresholds_are_parsed(tmp_path):
+    payload = base_manifest()
+    payload["models"][0]["declared_thresholds"] = {"clintox": 0.35}
+    payload["models"][0]["required"] = False
+    payload["models"][0]["blocked_reason"] = "tokenizer absent"
+    specs = load_manifest(write_manifest(tmp_path, payload))
+    spec = specs["m1"]
+    assert spec.declared_thresholds == {"clintox": 0.35}
+    assert spec.required is False
+    assert spec.blocked_reason == "tokenizer absent"
+
+
+def test_real_manifest_declares_clintox_as_optional():
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[2]
+    specs = load_manifest(repo / "artifacts" / "manifest.yaml")
+    clintox = specs["clintox-smilesgnn-v1"]
+    assert clintox.required is False
+    assert clintox.declared_thresholds["clintox"] == 0.35
+    assert "tokenizer.pkl" in clintox.blocked_reason
+    assert specs["herg-tox21-chemberta-v1"].required is True

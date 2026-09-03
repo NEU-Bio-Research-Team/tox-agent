@@ -23,7 +23,19 @@ from .endpoints import TOX21_TASKS
 
 class ThresholdSource(str, Enum):
     ARTIFACT = "artifact"
+    """Calibrated on a validation split and shipped inside the model release."""
+
+    MANIFEST_DECLARED = "manifest_declared"
+    """Chosen operationally and declared in the manifest — NOT calibrated.
+
+    Distinct from ARTIFACT on purpose. The ChemBERTa release ships a hERG
+    threshold fitted by Youden-J over 3-fold CV; the ClinTox checkpoint ships no
+    threshold at all, so any value used with it is a policy choice. Collapsing
+    the two under one label is how 0.30 came to look like a calibrated number.
+    """
+
     REQUEST_OVERRIDE = "request_override"
+    """Supplied by the caller for this request only."""
 
 
 POLICY_VERSION = "tox-policy-v1"
@@ -68,12 +80,18 @@ class PredictionPolicySnapshot:
         herg_threshold: float,
         tox21_thresholds: Mapping[str, float],
         clintox_threshold: float | None = None,
+        clintox_threshold_source: ThresholdSource = ThresholdSource.MANIFEST_DECLARED,
         herg_override: float | None = None,
         tox21_override: Mapping[str, float] | None = None,
+        clintox_override: float | None = None,
     ) -> "PredictionPolicySnapshot":
-        def resolve(artifact_value: float, override: float | None) -> ResolvedThreshold:
+        def resolve(
+            artifact_value: float,
+            override: float | None,
+            default_source: ThresholdSource = ThresholdSource.ARTIFACT,
+        ) -> ResolvedThreshold:
             if override is None:
-                return ResolvedThreshold(float(artifact_value), ThresholdSource.ARTIFACT)
+                return ResolvedThreshold(float(artifact_value), default_source)
             return ResolvedThreshold(float(override), ThresholdSource.REQUEST_OVERRIDE)
 
         overrides = dict(tox21_override or {})
@@ -95,7 +113,7 @@ class PredictionPolicySnapshot:
             tox21_thresholds=MappingProxyType(tox21),
             clintox_threshold=(
                 None if clintox_threshold is None
-                else ResolvedThreshold(float(clintox_threshold), ThresholdSource.ARTIFACT)
+                else resolve(clintox_threshold, clintox_override, clintox_threshold_source)
             ),
         )
 

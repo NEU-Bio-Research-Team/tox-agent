@@ -71,3 +71,38 @@ def test_snapshot_thresholds_are_not_mutable():
     policy = make()
     with pytest.raises(TypeError):
         policy.tox21_thresholds["NR-AR"] = ResolvedThreshold(0.1, ThresholdSource.ARTIFACT)
+
+
+# --- calibrated vs declared operating points -------------------------------
+
+def test_artifact_and_declared_thresholds_are_distinguishable():
+    """A number someone chose must not look like a calibrated one.
+
+    hERG ships 0.4133 fitted by Youden-J over 3-fold CV; ClinTox ships nothing,
+    so its 0.35 is a policy choice and is labelled as such.
+    """
+    policy = PredictionPolicySnapshot.from_artifact(
+        herg_threshold=ARTIFACT_HERG,
+        tox21_thresholds=TOX21,
+        clintox_threshold=0.35,
+    )
+    assert policy.herg_threshold.source is ThresholdSource.ARTIFACT
+    assert policy.clintox_threshold.source is ThresholdSource.MANIFEST_DECLARED
+
+
+def test_clintox_override_is_labelled_as_an_override():
+    policy = PredictionPolicySnapshot.from_artifact(
+        herg_threshold=ARTIFACT_HERG,
+        tox21_thresholds=TOX21,
+        clintox_threshold=0.35,
+        clintox_override=0.5,
+    )
+    assert policy.clintox_threshold.value == 0.5
+    assert policy.clintox_threshold.source is ThresholdSource.REQUEST_OVERRIDE
+
+
+def test_absent_clintox_threshold_stays_absent():
+    policy = PredictionPolicySnapshot.from_artifact(
+        herg_threshold=ARTIFACT_HERG, tox21_thresholds=TOX21
+    )
+    assert policy.clintox_threshold is None

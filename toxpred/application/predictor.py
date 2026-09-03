@@ -20,6 +20,7 @@ from ..domain.endpoints import TOX21_TASK_ORDER_VERSION, TOX21_TASKS, Endpoint
 from ..domain.molecule import InvalidSmilesError, Molecule
 from ..domain.policy import PredictionPolicySnapshot
 from ..domain.prediction import (
+    ClinToxPrediction,
     HergPrediction,
     PredictionResult,
     Tox21AssayPrediction,
@@ -49,24 +50,48 @@ class ToxicityPredictor:
     # -- policy ------------------------------------------------------------
     def _policy(
         self,
-        provider: Any,
+        providers: Mapping[Endpoint, Any],
         herg_override: float | None,
         tox21_override: Mapping[str, float] | None,
+        clintox_override: float | None,
     ) -> PredictionPolicySnapshot:
+        dual = providers.get(Endpoint.HERG) or providers.get(Endpoint.TOX21)
+        if dual is None:
+            raise ArtifactError(
+                "this build resolves hERG and Tox21 thresholds from the dual-head artifact; "
+                "neither endpoint is available"
+            )
+
+        clintox_threshold = None
+        if Endpoint.CLINTOX in providers:
+            declared = self._registry.spec(
+                providers[Endpoint.CLINTOX].model_id
+            ).declared_thresholds
+            clintox_threshold = declared.get("clintox")
+            if clintox_threshold is None:
+                raise ArtifactError(
+                    "clintox is served but no threshold is declared for it; refusing to "
+                    "invent an operating point"
+                )
+
         return PredictionPolicySnapshot.from_artifact(
-            herg_threshold=provider.artifact_herg_threshold,
-            tox21_thresholds=provider.artifact_tox21_thresholds,
+            herg_threshold=dual.artifact_herg_threshold,
+            tox21_thresholds=dual.artifact_tox21_thresholds,
+            clintox_threshold=clintox_threshold,
             herg_override=herg_override,
             tox21_override=tox21_override,
+            clintox_override=clintox_override,
         )
 
-    def _provenance(self, provider: Any, policy: PredictionPolicySnapshot) -> dict[str, Any]:
+    def _provenance(
+        self, providers: Mapping[Endpoint, Any], policy: PredictionPolicySnapshot
+    ) -> dict[str, Any]:
         return {
             "request_id": str(uuid.uuid4()),
             "predictor_version": __version__,
             "policy_version": policy.policy_version,
             "tox21_task_order_version": TOX21_TASK_ORDER_VERSION,
-            "models": [provider.model_id],
+            "models": sorted({p.model_id for p in providers.values()}),
         }
 
     # -- prediction --------------------------------------------------------
@@ -77,12 +102,14 @@ class ToxicityPredictor:
         *,
         herg_threshold_override: float | None = None,
         tox21_threshold_overrides: Mapping[str, float] | None = None,
+        clintox_threshold_override: float | None = None,
     ) -> PredictionResult:
         results, errors = self.predict_batch(
             [smiles],
             endpoints,
             herg_threshold_override=herg_threshold_override,
             tox21_threshold_overrides=tox21_threshold_overrides,
+            clintox_threshold_override=clintox_threshold_override,
         )
         if errors:
             raise InvalidSmilesError(smiles, errors[0].detail)
@@ -95,6 +122,7 @@ class ToxicityPredictor:
         *,
         herg_threshold_override: float | None = None,
         tox21_threshold_overrides: Mapping[str, float] | None = None,
+        clintox_threshold_override: float | None = None,
     ) -> tuple[list[PredictionResult], list[BatchItemError]]:
         """Predict for a batch. Output order matches input order.
 
@@ -107,14 +135,7 @@ class ToxicityPredictor:
             )
 
         requested = self._resolve_endpoints(endpoints)
-        provider = self._registry.for_capability(Endpoint.HERG.value)
-        for endpoint in requested:
-            other = self._registry.for_capability(endpoint.value)
-            if other.model_id != provider.model_id:
-                raise ArtifactError(
-                    "this predictor build serves all requested endpoints from one provider; "
-                    f"{endpoint.value} resolves to {other.model_id}"
-                )
+        providers = {e: self._registry.for_capability(e.value) for e in requested}
 
         molecules: list[Molecule | None] = []
         errors: list[BatchItemError] = []
@@ -133,21 +154,42 @@ class ToxicityPredictor:
                 )
 
         valid = [(i, m) for i, m in enumerate(molecules) if m is not None]
-        policy = self._policy(provider, herg_threshold_override, tox21_threshold_overrides)
-        provenance = self._provenance(provider, policy)
+        policy = self._policy(
+            providers,
+            herg_threshold_override,
+            tox21_threshold_overrides,
+            clintox_threshold_override,
+        )
+        provenance = self._provenance(providers, policy)
 
-        raw_rows: dict[int, dict[str, Any]] = {}
+        # One call per distinct provider, not per endpoint: the dual-head model
+        # returns hERG and Tox21 together, so asking for both must not run the
+        # backbone twice.
+        raw_rows: dict[int, dict[str, Any]] = {index: {} for index, _ in valid}
         if valid:
-            outputs = provider.predict([m.canonical_smiles for _, m in valid])
-            for (index, _), row in zip(valid, outputs):
-                raw_rows[index] = row
+            canonical = [m.canonical_smiles for _, m in valid]
+            for provider in {p.model_id: p for p in providers.values()}.values():
+                outputs = provider.predict(canonical)
+                if len(outputs) != len(valid):
+                    raise ArtifactError(
+                        f"[{provider.model_id}] returned {len(outputs)} rows for "
+                        f"{len(valid)} molecules"
+                    )
+                for (index, _), row in zip(valid, outputs):
+                    raw_rows[index].update(row)
 
         results: list[PredictionResult] = []
         for index, molecule in enumerate(molecules):
             if molecule is None:
                 continue
             row = raw_rows[index]
-            herg = tox21 = None
+            clintox = herg = tox21 = None
+            if Endpoint.CLINTOX in requested:
+                clintox = ClinToxPrediction(
+                    probability_clinical_toxicity=row["clintox_probability_toxicity"],
+                    threshold=policy.clintox_threshold,
+                    model_id=providers[Endpoint.CLINTOX].model_id,
+                )
             if Endpoint.HERG in requested:
                 herg = HergPrediction(
                     probability_blocker=row["herg_probability_blocker"],
@@ -174,6 +216,7 @@ class ToxicityPredictor:
                     canonical_smiles=molecule.canonical_smiles,
                     applicability=assess(molecule),
                     provenance=item_provenance,
+                    clintox=clintox,
                     herg=herg,
                     tox21=tox21,
                 )

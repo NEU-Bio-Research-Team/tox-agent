@@ -47,6 +47,7 @@ class ModelRegistry:
         self._providers: dict[str, ModelProvider] = {}
         self._specs: dict[str, ArtifactSpec] = {}
         self._errors: dict[str, str] = {}
+        self._required: dict[str, bool] = {}
 
     # -- construction ------------------------------------------------------
     @classmethod
@@ -61,6 +62,7 @@ class ModelRegistry:
         registry = cls()
         specs = load_manifest(Path(manifest_path), models_root)
         for model_id, spec in specs.items():
+            registry._required[model_id] = spec.required
             factory = factories.get(spec.provider)
             if factory is None:
                 msg = f"no provider factory registered for {spec.provider!r}"
@@ -109,6 +111,12 @@ class ModelRegistry:
             )
         return matches[0]
 
+    def spec(self, model_id: str) -> ArtifactSpec:
+        try:
+            return self._specs[model_id]
+        except KeyError:
+            raise ArtifactError(f"no manifest entry for {model_id!r}") from None
+
     def describe_capabilities(self) -> dict[str, list[str]]:
         out: dict[str, list[str]] = {}
         for provider in self._providers.values():
@@ -121,6 +129,13 @@ class ModelRegistry:
     def errors(self) -> dict[str, str]:
         return dict(self._errors)
 
+    def unavailable(self) -> dict[str, dict[str, Any]]:
+        """Declared models that did not load, and whether that blocks readiness."""
+        return {
+            model_id: {"required": self._required.get(model_id, True), "reason": reason}
+            for model_id, reason in self._errors.items()
+        }
+
     def health(self) -> list[ModelHealth]:
         healths = [p.health() for p in self._providers.values()]
         healths.extend(
@@ -130,7 +145,18 @@ class ModelRegistry:
         return healths
 
     def is_ready(self, required_capabilities: Iterable[str] = ()) -> tuple[bool, list[str]]:
-        reasons = [f"{mid}: {err}" for mid, err in self._errors.items()]
+        """Readiness for the given capabilities.
+
+        A declared-but-optional model that failed to load does not make the
+        service unready — it only removes the capabilities it would have
+        provided, which the capability check below catches if they were asked
+        for. Only a required model failing is a startup failure.
+        """
+        reasons = [
+            f"{mid}: {err}"
+            for mid, err in self._errors.items()
+            if self._required.get(mid, True)
+        ]
         reasons += [
             f"{h.model_id}: not loaded ({h.detail})"
             for h in (p.health() for p in self._providers.values())
