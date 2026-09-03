@@ -318,21 +318,53 @@ FastAPI, yaml, `backend`; không module nào trong `toxpred/` được import `a
 
 ---
 
-## 5. Chưa làm — và vì sao
+## 5. Trạng thái theo từng phase
 
-| Phase | Trạng thái | Lý do |
+Cập nhật 2026-09-03 sau khi chốt: **chạy predictor-only trước, agent để giai đoạn sau.**
+
+| Phase | Trạng thái | Ghi chú |
 |---|---|---|
-| 3A — ClinTox provider | **Code xong, artifact blocked** | Provider + test đã có; chờ tokenizer (mục 3.4) |
-| 4 — FastAPI app + `/v1/*` | Chưa | Danh sách endpoint nay đã chốt được (mục 9) |
-| 5 — Attribution | Chưa | Plan cho phép không chặn core |
-| 6 — Benchmark khoa học đầy đủ | Chưa | Cần frozen split manifest; `backend/data.py` vẫn có fallback đổi split (mục 2 #6) |
-| 7A — Cutover | Chưa | Cần Phase 4 |
-| **7B — Xoá legacy** | **Cố ý chưa làm** | Plan cấm xoá trước cutover; stop condition đang bật |
-| 8 — Slim deps/Docker/CI | Chưa | Sau 7B |
+| 0 — Baseline | ✅ | Tag `archive/agent-layer-165319beede5` + OpenAPI snapshot 11 path |
+| 1 — Semantic contract | ✅ | |
+| 2 — Package + registry | ✅ | |
+| 3A — ClinTox provider | 🟡 | Code + 8 test xong; chờ tokenizer |
+| 3B — ChemBERTa provider | ✅ | Parity 2,4e-07 |
+| 4 — Application + API | ✅ | 6 endpoint `/v1/*`, 21 contract test |
+| 5 — Applicability + attribution | ✅ | `element_rules_v1` + `grad_x_embedding_l2_v1` |
+| 6 — Benchmark khoa học | ✅ | Split đóng băng, reproduction check PASS |
+| 7A — Cutover | ✅ | Không cần adapter: `/predict` và `/explain` không có consumer |
+| 7B — Xoá legacy | ✅ | 352 file, −55.518 dòng |
+| 8 — Deps / image / CI / docs | ✅ | Workflow cần scope `workflow` để push |
 
-**Không có file nào bị xoá trong lần thực thi này.**
+### Definition of Done (§11 của plan)
 
----
+| # | Điều kiện | |
+|---|---|---|
+| 1 | Repo chỉ còn predictor runtime + regression suite + deployment | ✅ |
+| 2 | Không LLM/agent/research/chat/Firebase/frontend/OCR dependency | ✅ `check_no_agent_deps.py` |
+| 3 | `model_server/main.py` không còn; entrypoint API vài trăm dòng | ✅ `toxpred/api/` 396 dòng |
+| 4 | Một package canonical, không `backend/`–`src/` re-export kép | ✅ `src/` đã xoá |
+| 5 | Model load qua manifest có SHA-256 | ✅ |
+| 6 | hERG/ClinTox/Tox21 tách schema và semantics | ✅ |
+| 7 | Threshold từ artifact/policy snapshot, có trong response | ✅ |
+| 8 | Golden probabilities trong tolerance | ✅ 2,4e-07 |
+| 9 | Benchmark có split/model/environment provenance | ✅ |
+| 10 | Missing model làm readiness fail, không silent fallback | ✅ |
+| 11 | Inference không cần internet sau provisioning | 🟡 base-model config vẫn fetch theo id |
+| 12 | Source tree 80–120 file | ✅ **108** |
+| 13 | README, model card, benchmark protocol đúng khả năng và giới hạn | ✅ |
+
+**11/13 đạt, 2 còn dở** (ClinTox artifact, ghim base-model revision).
+
+### Sai lệch có chủ ý so với plan
+
+| Plan | Thực tế | Vì sao |
+|---|---|---|
+| Xoá baseline/experimental checkpoint khỏi image | Giữ toàn bộ `models/` | Quyết định của anh/chị |
+| Không port training pipeline | Giữ `scripts/` training | `train_hybrid.py` là đường khôi phục ClinTox |
+| Bỏ `config/workspace_mode.yaml` | Giữ, rút gọn còn switch dataset | Training script vẫn đọc; service thì không |
+| Harness design docs không nằm trong predictor branch | Giữ `docs/spec/` | Là đầu vào cho giai đoạn agent sắp tới |
+| Package ở `src/toxpred/` | `toxpred/` | `src/` từng là package thật; nay đã xoá, layout phẳng giữ nguyên |
 
 ## 6. Một sai lệch có chủ ý so với plan
 
