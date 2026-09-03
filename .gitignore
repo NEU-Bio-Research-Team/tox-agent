@@ -30,6 +30,7 @@ yarn-error.log*
 # Local environment and secrets
 .env
 .env.*
+!.env.example
 serviceAccountKey.json
 gha-creds-*.json
 
@@ -37,6 +38,11 @@ gha-creds-*.json
 .firebase/
 firestore-debug.log
 ui-debug.log
+
+# Per-developer and per-environment frontend config (untracked 2026-09-03;
+# the previous copies held only VITE_API_BASE_URL, no credentials).
+frontend/.env.local
+frontend/.env.production
 
 # Workspace-generated artifacts
 results/
@@ -77,6 +83,7 @@ models/**/*.txt
 !models/pretrained_2head_herg_chemberta_model/**
 
 /.agents/skills
+skills-lock.json
 
 # Generated model artifacts
 models/**/*.pt
@@ -84,8 +91,20 @@ models/**/*.pth
 models/**/*.npy
 models/**/*.npz
 
+# Checkpoints and calibration metadata kept on purpose (decision 2026-09-03:
+# retain every model checkpoint and its logic). Declared explicitly so the
+# ignore rules above no longer contradict what is actually tracked.
+!models/pretrained_2head_herg_chemberta_model/**
+!models/smilesgnn_model/best_model.pt
+!models/smilesgnn_model/smilesgnn_model_metrics.txt
+!models/smilesgnn_herg_exp_model/**
+!models/tox21_gatv2_model/best_model.pt
+!models/tox21_gatv2_model/*.json
+!models/tox21_gatv2_model/*.txt
+
 # Generated figures
 assets/*.png
+benchmark/**/*.png
 
 # Experiment outputs
 results/
