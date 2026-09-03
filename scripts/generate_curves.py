@@ -19,19 +19,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, precision_recall_curve, auc
 
-from src.data import load_clintox
-from src.train import evaluate_model
-from src.pipelines import load_mlp_model, load_gnn_model
-from src.utils import set_seed
-from src.workspace_mode import assert_clintox_enabled
+from backend.data import load_clintox
+from backend.train import evaluate_model
+from backend.pipelines import load_mlp_model, load_gnn_model
+from backend.utils import set_seed
+from backend.workspace_mode import assert_clintox_enabled
 
 # Try to load PyG models
 try:
     import torch
     from torch.utils.data import DataLoader
     from torch_geometric.data import Batch
-    from src.graph_data import smiles_list_to_pyg_dataset
-    from src.graph_train import evaluate_model as evaluate_graph_model
+    from backend.graph_data import smiles_list_to_pyg_dataset
+    from backend.graph_train import evaluate_model as evaluate_graph_model
     PYG_AVAILABLE = True
 except ImportError:
     PYG_AVAILABLE = False
@@ -63,10 +63,10 @@ def load_predictions(model_name, test_df, device='cpu'):
             model_path = models_dir / "baseline_mlp_model.pt"
             if not model_path.exists():
                 return None, None
-            from src.utils import get_default_config
+            from backend.utils import get_default_config
             config = get_default_config()
             model = load_mlp_model(model_path, config)
-            from src.featurization import featurize_batch
+            from backend.featurization import featurize_batch
             test_fps = featurize_batch(test_smiles, mode='fingerprint')
             test_labels_2d = test_labels.reshape(-1, 1)
             
@@ -122,7 +122,7 @@ def load_predictions(model_name, test_df, device='cpu'):
             if model is None:
                 return None, None
             
-            from src.train import predict_with_torch_molecule_model
+            from backend.train import predict_with_torch_molecule_model
             probs = predict_with_torch_molecule_model(model, test_smiles)
             if isinstance(probs, np.ndarray):
                 if len(probs.shape) == 2:
@@ -181,8 +181,8 @@ def load_predictions(model_name, test_df, device='cpu'):
         try:
             if 'GATv2' in model_name:
                 model_path = project_root / "models" / "gatv2_model" / "best_model.pt"
-                from src.graph_models import GATv2MolecularPredictor, create_gatv2_model
-                from src.graph_data import get_feature_dims
+                from backend.graph_models import GATv2MolecularPredictor, create_gatv2_model
+                from backend.graph_data import get_feature_dims
                 num_node_features, num_edge_features = get_feature_dims()
                 
                 checkpoint = torch.load(model_path, map_location=device)
@@ -216,8 +216,8 @@ def load_predictions(model_name, test_df, device='cpu'):
                 
             elif 'GIN' in model_name:
                 model_path = project_root / "models" / "gin_model" / "best_model.pt"
-                from src.graph_models_gin import GINMolecularPredictor, create_gin_model
-                from src.graph_data import get_feature_dims
+                from backend.graph_models_gin import GINMolecularPredictor, create_gin_model
+                from backend.graph_data import get_feature_dims
                 num_node_features, num_edge_features = get_feature_dims()
                 
                 checkpoint = torch.load(model_path, map_location=device)
@@ -247,9 +247,9 @@ def load_predictions(model_name, test_df, device='cpu'):
                 
             elif 'SMILESGNN' in model_name:
                 model_path = project_root / "models" / "smilesgnn_model" / "best_model.pt"
-                from src.graph_models_hybrid import create_hybrid_model
-                from src.graph_data import get_feature_dims
-                from src.smiles_tokenizer import create_tokenizer_from_smiles
+                from backend.graph_models_hybrid import create_hybrid_model
+                from backend.graph_data import get_feature_dims
+                from backend.smiles_tokenizer import create_tokenizer_from_smiles
                 import pickle
                 
                 num_node_features, num_edge_features = get_feature_dims()

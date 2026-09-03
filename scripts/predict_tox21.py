@@ -18,8 +18,8 @@ import torch
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.inference import load_tox21_gatv2_model, predict_tox21_batch
-from src.workspace_mode import assert_tox21_enabled
+from backend.inference import load_tox21_gatv2_model, predict_tox21_batch
+from backend.workspace_mode import assert_tox21_enabled
 
 
 def _parse_txt_input(path: Path) -> Tuple[List[str], List[str]]:

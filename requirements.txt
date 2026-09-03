@@ -1,43 +1,12 @@
-# SMILESGNN — Clinical Toxicity Prediction
-# Install in this order on Linux/CUDA:
+# Development and research environment.
 #
-#   pip install torch==2.4.0 --index-url https://download.pytorch.org/whl/cu121
-#   pip install torch-scatter torch-geometric -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
-#   pip install -r requirements.txt
-#
-# For CPU-only:
-#   pip install torch==2.4.0
-#   pip install torch-scatter torch-geometric
-#   pip install -r requirements.txt
-#
-# For conda (recommended), use environment.yml instead.
+# The prediction service does NOT install this file — see deploy/requirements.txt
+# for the runtime set. This one adds what training, benchmarking and the
+# evaluation-split builder need on top of it.
+-r deploy/requirements-dev.txt
 
-numpy<2.0
-pandas
-httpx
-requests
-google-adk>=0.4.0
-google-genai>=0.8.0
-scikit-learn
-matplotlib
-transformers>=4.20.0
-pillow
-
-# Dataset loading
-deepchem
-pytdc
-
-# MolRAG Firestore seeding + retrieval
-firebase-admin
-sentence-transformers
-
-# torch-molecule (BFGNN, GRIN, SMILESTransformer baselines)
-scipy>=1.14.1
-huggingface_hub>=0.22.2
+# Model training and experimentation (scripts/)
 torch-molecule
-
-# MolScribe — Image-to-SMILES OCR for molecule structure recognition
-# Install with: pip install molscribe --no-deps
-# (molscribe pins torch<2.0 but works with newer PyTorch versions)
-molscribe>=1.1.0
-
+xgboost
+scipy>=1.14.1
+matplotlib

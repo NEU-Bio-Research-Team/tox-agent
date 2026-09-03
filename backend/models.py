@@ -7,7 +7,7 @@ This module defines two distinct types of models:
    - Framework: Pure PyTorch
    - Input: Fixed-length fingerprint vectors (Morgan fingerprints)
    - Architecture: Custom multi-layer perceptron
-   - Training: Custom training loop (see src.train.train_baseline_model)
+   - Training: Custom training loop (see backend.train.train_baseline_model)
    - Usage: Fingerprint-based molecular property prediction
    
 2. **Imported torch-molecule Models**:

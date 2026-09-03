@@ -1,33 +1,33 @@
-# Paste your runtime keys here, then run:
-#   ./scripts/apply_cloudrun_env.sh
+# Runtime environment for the prediction service on Cloud Run.
 #
-# These variables are applied to Cloud Run service tox-agent-cpu by default.
-# Optional. Leave empty to use Vertex AI ADC via Cloud Run service account.
-GOOGLE_API_KEY: ""
-PUBMED_API_KEY: ""
-# Optional model overrides. Keep defaults unless you need different models.
-AGENT_MODEL_FAST: "gemini-2.5-flash"
-AGENT_MODEL_PRO: "gemini-2.5-pro"
-GEMINI_MODEL: "gemini-2.5-flash"
-# Default path: Vertex AI billing via service-account auth (ADC).
-# Ensure the Cloud Run service account has roles/aiplatform.user.
-GOOGLE_GENAI_USE_VERTEXAI: "true"
-GOOGLE_CLOUD_PROJECT: "tox-agent"
-GOOGLE_CLOUD_LOCATION: "global"
-GEMINI_LOCATION: "global"
-AGENT_APP_NAME: "tox-agent"
-TOX_AGENT_ANALYZE_RUNTIME: "deterministic"
+# Apply with:
+#   gcloud run deploy toxpred --env-vars-file=deploy/cloudrun-env.yaml ...
+#
+# There are no API keys here and no model identifiers: this service calls no
+# external model provider. Everything it needs is the artifact bundle and where
+# to fetch it from.
+
+# Where the entrypoint installs artifacts, and where the registry looks for them.
 MODELS_ROOT: "/app/models"
+
+# Object-storage prefix holding the model bundle. Downloaded once at container
+# start by deploy/download_model_artifacts.py — never during a request.
 MODEL_ARTIFACTS_URI: "gs://tox-agent-models/models"
-MODEL_SERVER_TIMEOUT: "240"
-# When agent and model endpoints run in the same Cloud Run container,
-# route model-server calls over localhost to avoid self-HTTP loops via
-# the public service URL, extra instance spin-up, and 600s request stalls.
-MODEL_SERVER_URL: "http://127.0.0.1:8080"
-DEFAULT_INFERENCE_BACKEND: "chemberta"
-# Database thật đang tồn tại trong project tox-agent là (default)
-FIRESTORE_DATABASE_ID: "(default)"
-# LLM feature flags for orchestrator pipeline.
-# Set to "0" to disable (deterministic fallback) or "1" to enable LLM synthesis/recommendations.
-RESEARCH_ENABLE_LLM_SYNTHESIS: "1"
-WRITER_ENABLE_LLM_RECOMMENDATIONS: "1"
+
+# Declares which artifacts may be served and their checksums.
+TOXPRED_MANIFEST: "/app/artifacts/manifest.yaml"
+
+# Inference device and request limits.
+TOXPRED_DEVICE: "cpu"
+TOXPRED_MAX_BATCH_SIZE: "256"
+
+# Load every required model during startup so readiness is honest: the service
+# reports ready only once it can actually answer.
+TOXPRED_EAGER_LOAD: "1"
+
+# The ChemBERTa checkpoint carries its own backbone weights and a bundled
+# tokenizer, so nothing needs to reach Hugging Face at run time. Kept strict so
+# a missing local file fails loudly instead of silently downloading.
+HF_HUB_OFFLINE: "1"
+
+GOOGLE_CLOUD_PROJECT: "tox-agent"

@@ -34,7 +34,7 @@ sys.path.insert(0, str(project_root / "scripts"))
 from backend.data import get_task_names, load_tox21
 from backend.inference import load_pretrained_dual_head_bundle
 from backend.utils import ensure_dir, set_seed
-from src.datasets import get_task_config
+from backend.datasets import get_task_config
 
 import ensemble5_tox21 as ens5
 import ensemble6_tox21 as ens6

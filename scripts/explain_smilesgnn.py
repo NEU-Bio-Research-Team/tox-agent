@@ -33,17 +33,17 @@ sys.path.insert(0, str(project_root))
 import torch
 import yaml
 
-from src.data import load_clintox
-from src.graph_data import smiles_list_to_pyg_dataset, get_feature_dims, smiles_to_pyg_data
-from src.graph_models_hybrid import create_hybrid_model
-from src.gnn_explainer import (
+from backend.data import load_clintox
+from backend.graph_data import smiles_list_to_pyg_dataset, get_feature_dims, smiles_to_pyg_data
+from backend.graph_models_hybrid import create_hybrid_model
+from backend.gnn_explainer import (
     explain_molecule,
     visualize_explanation,
     batch_explain,
     aggregate_atom_importance,
     plot_element_importance,
 )
-from src.workspace_mode import assert_clintox_enabled
+from backend.workspace_mode import assert_clintox_enabled
 
 
 # ─────────────────────────────────────────────────────────────────────────────

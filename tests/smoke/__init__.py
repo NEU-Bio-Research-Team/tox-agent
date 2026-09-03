@@ -1,1 +1,0 @@
-"""Manual smoke checks for the ToxAgent workspace."""

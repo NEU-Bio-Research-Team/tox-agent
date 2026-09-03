@@ -24,12 +24,12 @@ warnings.filterwarnings('ignore')
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.data import load_clintox
-from src.graph_data import get_feature_dims, smiles_list_to_pyg_dataset
-from src.graph_models import create_gatv2_model
-from src.graph_train import create_balanced_sampler, evaluate_model, train_gatv2_model
-from src.utils import save_metrics, set_seed
-from src.workspace_mode import assert_clintox_enabled
+from backend.data import load_clintox
+from backend.graph_data import get_feature_dims, smiles_list_to_pyg_dataset
+from backend.graph_models import create_gatv2_model
+from backend.graph_train import create_balanced_sampler, evaluate_model, train_gatv2_model
+from backend.utils import save_metrics, set_seed
+from backend.workspace_mode import assert_clintox_enabled
 
 
 def collate_fn(batch):

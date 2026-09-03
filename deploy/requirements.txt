@@ -1,0 +1,25 @@
+# Runtime dependencies for the prediction service.
+#
+# torch and torch-geometric wheels are installed separately in the Dockerfile
+# because they need a platform-specific index.
+#
+# Deliberately absent, and why:
+#   pandas, scikit-learn   only the benchmark needs them (see requirements-dev.txt)
+#   deepchem, pytdc        dataset loaders; nothing in the request path
+#   matplotlib, pillow     the API returns numbers, never a rendered image
+#   google-adk, google-genai, firebase-admin, sentence-transformers
+#                          the agent layer this service replaced
+#   molscribe, opencv, timm, albumentations, SmilesPE
+#                          image-to-SMILES OCR, not part of prediction
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0
+PyYAML
+numpy<2.0
+rdkit
+transformers==4.56.2
+
+# Artifact provisioning at container start (deploy/download_model_artifacts.py)
+google-cloud-storage>=2.16.0
+boto3>=1.34.0
+huggingface_hub>=0.22.2

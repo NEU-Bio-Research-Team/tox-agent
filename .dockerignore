@@ -13,8 +13,16 @@ serviceAccountKey.json
 
 # Node / frontend
 node_modules/
+**/node_modules/
+**/dist/
+# frontend/ was removed from the repository by the predictor-only refactor, but
+# an untracked node_modules and dist may still sit on a developer's disk. Keep
+# them out of the build context.
 frontend/
+# Untracked local leftovers that must never enter the image.
 legacy/
+notebooks/
+.pytest_cache/
 tests/
 
 # Python caches
@@ -28,7 +36,6 @@ __pycache__/
 tox_env/
 
 # Not needed for backend runtime
-notebooks/
 docs/
 outputs/
 results/

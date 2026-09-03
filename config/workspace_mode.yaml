@@ -1,9 +1,13 @@
+# Training-time workspace switches.
+#
+# The prediction service does NOT read this file. It used to: thresholds were
+# resolved from `threshold_policy` here, which is how an uncalibrated 0.30 came
+# to be applied to a model calibrated at 0.4133. Thresholds now come from the
+# artifact via toxpred/domain/policy.py, and this file only gates which datasets
+# the training and evaluation scripts under scripts/ are allowed to touch.
 workspace:
   mode: full
   primary_dataset: tox21
   clintox_enabled: true
   tox21_enabled: true
-  threshold_policy: safety_first
-  # Optional explicit override. If set, this wins over threshold_policy.
-  # clinical_threshold: 0.35
-  message: "Full workspace mode with dual-head pretrained binary models enabled."
+  message: "Full workspace mode: ClinTox and Tox21 training workflows enabled."

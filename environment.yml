@@ -1,34 +1,30 @@
-name: drug-tox-env
+# Local development environment.
+#
+# Mirrors the container: Python 3.10 and torch 2.6, so a golden-parity number
+# measured here means the same thing as one measured in production. The previous
+# file pinned Python 3.11 against a 3.10 image, which is how a local baseline
+# could disagree with the deployed model for no visible reason.
+#
+# The service's own runtime set lives in deploy/requirements.txt.
+name: toxpred
 channels:
   - conda-forge
-  - defaults
 dependencies:
-  - python=3.11
+  - python=3.10
   - rdkit
   - numpy<2.0
-  - pandas
-  - httpx
-  - scikit-learn
-  - matplotlib
-  - seaborn
-  - umap-learn
-  - jupyter
-  - ipykernel
   - pip
   - pip:
-    - google-adk>=0.4.0
-    - google-genai>=0.8.0
-    - transformers>=4.20.0
-    - networkx
-    - matplotlib-venn
-    - pillow
-    - scipy>=1.14.1
-    - huggingface_hub>=0.22.2
-    - optuna>=4.0.0
-    - deepchem
-    - pytdc
-    - torch-molecule
-    - requests
-    - firebase-admin
-    - sentence-transformers
-    - molscribe>=1.1.0
+      # runtime
+      - -r deploy/requirements.txt
+      # tests, benchmark and the evaluation-split builder
+      - pytest>=8
+      - httpx
+      - pandas
+      - scikit-learn
+      - deepchem
+      - pytdc
+      # training scripts
+      - torch-molecule
+      - xgboost
+      - matplotlib
