@@ -42,7 +42,7 @@ Nên phần đã thực thi dừng đúng trước bước xoá, theo thứ tự
 | — | Phân bố thư mục (benchmark 183, frontend 152, .agents 84, models 51, agents 13, model_server 8, backend 27, src 25) | **Đúng toàn bộ** | `git ls-files \| awk -F/ '{print $1}' \| sort \| uniq -c` |
 | — | `model_server/main.py` ~6.279 dòng | **Đúng** (6.278) | `wc -l` |
 | 1 | `predict_pretrained_dual_head_outputs` ánh xạ hERG logit thành `clinical.p_toxic` | **Đúng** | `backend/inference.py:851-853`: `p_toxic = float(herg_probs[local_idx])` rồi `is_toxic = p_toxic >= clinical_threshold`, xuất dưới key `"clinical"` |
-| 2 | API threshold default 0.35 vs artifact 0.413345 | **Đúng, và nặng hơn plan mô tả** | Artifact: `herg_threshold.json` = `0.4133453071117401`. Hằng số code = 0.35, nhưng `config/workspace_mode.yaml` đặt `threshold_policy: safety_first` → giá trị **thực tế đang chạy là 0.30** |
+| 2 | API threshold default 0.35 vs artifact 0.413345 | **Đúng, và nặng hơn plan mô tả** | Có **năm** nguồn threshold cùng tồn tại — xem 2.1 |
 | 3 | Tox21 có 12 threshold riêng nhưng API dùng `mechanism_threshold` chung | **Đúng** | `tox21_task_thresholds.json` có 12 giá trị (0.35–0.94); `model_server/schemas.py:121` chỉ có một `mechanism_threshold` |
 | 4 | `DEFAULT_TOX_TYPE_MODEL_KEY=tox21_ensemble_3_best` trỏ ensemble không tái lập được | **Đúng** | `main.py:202` → `main.py:321` map sang `models/dualhead_ensemble3/`, thư mục này chỉ chứa `dualhead_metrics.json`, **không có file weight nào** |
 | 5 | Requirements/Dockerfile không đồng nhất | **Đúng** | `requirements.txt` hướng dẫn `torch==2.4.0`; `model_server/Dockerfile:52` cài `torch==2.6.0`; base image `python:3.10-slim`; môi trường dev hiện tại là torch 2.11.0 + numpy 2.2.6 trong khi requirements ghim `numpy<2.0` |
@@ -51,6 +51,35 @@ Nên phần đã thực thi dừng đúng trước bước xoá, theo thứ tự
 | 8 | Backend workflow chỉ deploy `agent_test`, chưa có CI | **Đúng** | `.github/workflows/backend-autodeploy.yml:6-8` |
 
 **Kết luận mục 2: plan không cần sửa phần chẩn đoán.**
+
+### 2.1 Threshold: năm nguồn, không nguồn nào là artifact
+
+Đo bằng cách chạy server thật rồi gọi `POST /predict` (2026-09-03):
+
+| Nguồn | Giá trị | Vị trí |
+|---|---|---|
+| `workspace_mode.yaml` → `safety_first` | 0,30 | `backend/workspace_mode.py:26` |
+| `model_server.schemas` | 0,30 | `schemas.py:23` (đọc từ workspace_mode) |
+| `backend.inference` | **0,35** | `inference.py:51` |
+| `analyze_molecule_sync` hardcode | 0,35 | `main.py:4874` |
+| **Artifact đã hiệu chuẩn** | **0,4133** | `herg_threshold.json` |
+| **`/predict` thực tế áp dụng** | **0,35** | đo trực tiếp |
+
+Hai điểm cần đính chính so với những gì tôi nói ở lượt trước:
+
+1. Giá trị **thực tế đang chạy là 0,35**, không phải 0,30. Schema resolve ra 0,30 nhưng
+   `backend/inference.py:51` mới là nơi quyết định, và nó có hằng số 0,35 riêng.
+2. `/predict` nhận field tên **`threshold`**, không phải `clinical_threshold`. Pydantic
+   mặc định bỏ qua field lạ, nên gửi `{"clinical_threshold": 0.3}` **im lặng không có tác
+   dụng** — caller tưởng đã đặt điểm vận hành nhưng vẫn nhận giá trị mặc định:
+
+   ```
+   {"smiles":"CCO","clinical_threshold":0.3}  ->  threshold_used: 0.35   (bị bỏ qua)
+   {"smiles":"CCO","threshold":0.3}           ->  threshold_used: 0.3
+   ```
+
+Không thay đổi kết luận nào của plan — chỉ làm luận điểm "artifact phải là nguồn mặc
+định duy nhất" mạnh thêm.
 
 ---
 
@@ -91,7 +120,7 @@ Ghép ba sự thật ở trên lại:
 |---|---|
 | Model ClinTox | Không load được → không chạy |
 | Cái gì điền vào field `clinical`? | Output head hERG của ChemBERTa (`inference.py:851`) |
-| Threshold áp lên nó | 0.30 (`safety_first`), thay vì 0.4133 mà model được hiệu chuẩn |
+| Threshold áp lên nó | 0,35 (đo thực tế), thay vì 0,4133 mà model được hiệu chuẩn — xem 2.1 |
 
 Nghĩa là con số "độc tính lâm sàng" trên UI **là xác suất chẹn kênh hERG, đọc ở sai
 điểm vận hành**. Đây không phải lỗi đặt tên — nó là một khẳng định khoa học sai, và
