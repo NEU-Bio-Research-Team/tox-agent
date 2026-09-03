@@ -1,0 +1,1709 @@
+{
+  "components": {
+    "schemas": {
+      "AgentAnalyzeRequest": {
+        "properties": {
+          "binary_tox_model": {
+            "default": "pretrained_2head_herg_chemberta_model",
+            "description": "Model key for binary toxicity prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, pretrained_2head_herg_chemberta_model)",
+            "title": "Binary Tox Model",
+            "type": "string"
+          },
+          "clinical_threshold": {
+            "default": 0.35,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Clinical Threshold",
+            "type": "number"
+          },
+          "include_agent_events": {
+            "default": true,
+            "description": "Include agent/tool calling event trace for debugging",
+            "title": "Include Agent Events",
+            "type": "boolean"
+          },
+          "inference_backend": {
+            "default": "xsmiles",
+            "description": "Inference backend for screening: xsmiles, chemberta, pubchem, or molformer",
+            "title": "Inference Backend",
+            "type": "string"
+          },
+          "language": {
+            "default": "vi",
+            "description": "Report language: vi or en",
+            "title": "Language",
+            "type": "string"
+          },
+          "max_literature_results": {
+            "default": 5,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Literature Results",
+            "type": "integer"
+          },
+          "mechanism_threshold": {
+            "default": 0.5,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Mechanism Threshold",
+            "type": "number"
+          },
+          "molrag_enabled": {
+            "default": false,
+            "description": "Enable MolRAG retrieval + reasoning augmentation in screening output.",
+            "title": "Molrag Enabled",
+            "type": "boolean"
+          },
+          "molrag_min_similarity": {
+            "default": 0.15,
+            "description": "Minimum Tanimoto similarity threshold for MolRAG retrieval.",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Molrag Min Similarity",
+            "type": "number"
+          },
+          "molrag_top_k": {
+            "default": 5,
+            "description": "Top-k similar molecules retrieved for MolRAG evidence.",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Molrag Top K",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional session id. If omitted, a new one is generated.",
+            "title": "Session Id"
+          },
+          "smiles": {
+            "description": "SMILES string",
+            "title": "Smiles",
+            "type": "string"
+          },
+          "tox_type_model": {
+            "default": "tox21_ensemble_3_best",
+            "description": "Model key for toxicity-type prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, tox21_pretrained_gin_model, tox21_gatv2_model)",
+            "title": "Tox Type Model",
+            "type": "string"
+          },
+          "user_id": {
+            "default": "default_user",
+            "description": "Logical user id",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "smiles"
+        ],
+        "title": "AgentAnalyzeRequest",
+        "type": "object"
+      },
+      "AgentAnalyzeResponse": {
+        "properties": {
+          "adk_available": {
+            "title": "Adk Available",
+            "type": "boolean"
+          },
+          "agent_events": {
+            "items": {
+              "$ref": "#/components/schemas/AgentEventRecord"
+            },
+            "title": "Agent Events",
+            "type": "array"
+          },
+          "chat_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Report-chat session id used by /agent/chat for follow-up QA.",
+            "title": "Chat Session Id"
+          },
+          "evidence_qa_result": {
+            "additionalProperties": true,
+            "description": "Evidence quality payload used by report chat for confidence calibration.",
+            "title": "Evidence Qa Result",
+            "type": "object"
+          },
+          "final_report": {
+            "additionalProperties": true,
+            "title": "Final Report",
+            "type": "object"
+          },
+          "final_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Text"
+          },
+          "runtime_mode": {
+            "default": "adk",
+            "description": "Runtime path used by /agent/analyze: adk or deterministic_fallback",
+            "title": "Runtime Mode",
+            "type": "string"
+          },
+          "runtime_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional note describing fallback cause when runtime_mode is deterministic_fallback",
+            "title": "Runtime Note"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "state_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "State Keys",
+            "type": "array"
+          },
+          "validation_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Status"
+          }
+        },
+        "required": [
+          "session_id",
+          "adk_available"
+        ],
+        "title": "AgentAnalyzeResponse",
+        "type": "object"
+      },
+      "AgentChatRequest": {
+        "properties": {
+          "analysis_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fallback analyze session id to resolve chat session mapping on server.",
+            "title": "Analysis Session Id"
+          },
+          "chat_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Session id returned by /agent/analyze as chat_session_id.",
+            "title": "Chat Session Id"
+          },
+          "message": {
+            "description": "User message for report-level QA chat.",
+            "title": "Message",
+            "type": "string"
+          },
+          "report_state": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional report grounding payload used to rehydrate a chat session when the runtime is load-balanced across stateless instances.",
+            "title": "Report State"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "AgentChatRequest",
+        "type": "object"
+      },
+      "AgentChatResponse": {
+        "properties": {
+          "chat_session_id": {
+            "title": "Chat Session Id",
+            "type": "string"
+          },
+          "response": {
+            "title": "Response",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chat_session_id",
+          "response"
+        ],
+        "title": "AgentChatResponse",
+        "type": "object"
+      },
+      "AgentEventRecord": {
+        "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "function_calls": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Function Calls",
+            "type": "array"
+          },
+          "function_responses": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Function Responses",
+            "type": "array"
+          },
+          "is_final": {
+            "default": false,
+            "title": "Is Final",
+            "type": "boolean"
+          },
+          "text_preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Preview"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          }
+        },
+        "title": "AgentEventRecord",
+        "type": "object"
+      },
+      "AnalyzeRequest": {
+        "properties": {
+          "binary_tox_model": {
+            "default": "pretrained_2head_herg_chemberta_model",
+            "description": "Model key for binary toxicity prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, pretrained_2head_herg_chemberta_model)",
+            "title": "Binary Tox Model",
+            "type": "string"
+          },
+          "clinical_threshold": {
+            "default": 0.35,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Clinical Threshold",
+            "type": "number"
+          },
+          "explain_only_if_alert": {
+            "default": true,
+            "title": "Explain Only If Alert",
+            "type": "boolean"
+          },
+          "explainer_epochs": {
+            "default": 200,
+            "maximum": 500.0,
+            "minimum": 50.0,
+            "title": "Explainer Epochs",
+            "type": "integer"
+          },
+          "explainer_timeout_ms": {
+            "default": 30000,
+            "maximum": 300000.0,
+            "minimum": 1000.0,
+            "title": "Explainer Timeout Ms",
+            "type": "integer"
+          },
+          "inference_backend": {
+            "default": "xsmiles",
+            "description": "Inference backend: xsmiles, chemberta, pubchem, or molformer",
+            "title": "Inference Backend",
+            "type": "string"
+          },
+          "mechanism_threshold": {
+            "default": 0.5,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Mechanism Threshold",
+            "type": "number"
+          },
+          "return_all_scores": {
+            "default": true,
+            "title": "Return All Scores",
+            "type": "boolean"
+          },
+          "smiles": {
+            "description": "SMILES string",
+            "title": "Smiles",
+            "type": "string"
+          },
+          "target_task": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Task"
+          },
+          "tox_type_model": {
+            "default": "tox21_ensemble_3_best",
+            "description": "Model key for toxicity-type prediction (e.g. dualhead_ensemble6_simple, dualhead_ensemble3_weighted, dualhead_ensemble3_simple, dualhead_ensemble5_simple, tox21_pretrained_gin_model, tox21_gatv2_model)",
+            "title": "Tox Type Model",
+            "type": "string"
+          }
+        },
+        "required": [
+          "smiles"
+        ],
+        "title": "AnalyzeRequest",
+        "type": "object"
+      },
+      "AnalyzeResponse": {
+        "properties": {
+          "canonical_smiles": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Smiles"
+          },
+          "clinical": {
+            "$ref": "#/components/schemas/ClinicalToxicityOutput"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToxicityExplanationOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "final_verdict": {
+            "title": "Final Verdict",
+            "type": "string"
+          },
+          "inference_context": {
+            "$ref": "#/components/schemas/InferenceContextOutput"
+          },
+          "mechanism": {
+            "$ref": "#/components/schemas/MechanismToxicityOutput"
+          },
+          "ood_assessment": {
+            "$ref": "#/components/schemas/OodAssessmentOutput"
+          },
+          "reliability_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reliability Warning"
+          },
+          "smiles": {
+            "title": "Smiles",
+            "type": "string"
+          }
+        },
+        "required": [
+          "smiles",
+          "canonical_smiles",
+          "clinical",
+          "mechanism",
+          "explanation",
+          "ood_assessment",
+          "inference_context",
+          "final_verdict"
+        ],
+        "title": "AnalyzeResponse",
+        "type": "object"
+      },
+      "AtomImportance": {
+        "properties": {
+          "atom_idx": {
+            "title": "Atom Idx",
+            "type": "integer"
+          },
+          "element": {
+            "title": "Element",
+            "type": "string"
+          },
+          "importance": {
+            "title": "Importance",
+            "type": "number"
+          },
+          "is_aromatic": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Aromatic"
+          },
+          "is_in_ring": {
+            "title": "Is In Ring",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "atom_idx",
+          "element",
+          "importance",
+          "is_in_ring"
+        ],
+        "title": "AtomImportance",
+        "type": "object"
+      },
+      "BatchPredictRequest": {
+        "properties": {
+          "inference_backend": {
+            "default": "xsmiles",
+            "description": "Inference backend: xsmiles, chemberta, pubchem, or molformer",
+            "title": "Inference Backend",
+            "type": "string"
+          },
+          "smiles_list": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Smiles List",
+            "type": "array"
+          },
+          "threshold": {
+            "default": 0.35,
+            "title": "Threshold",
+            "type": "number"
+          }
+        },
+        "required": [
+          "smiles_list"
+        ],
+        "title": "BatchPredictRequest",
+        "type": "object"
+      },
+      "BatchPredictResponse": {
+        "properties": {
+          "n_errors": {
+            "title": "N Errors",
+            "type": "integer"
+          },
+          "n_non_toxic": {
+            "title": "N Non Toxic",
+            "type": "integer"
+          },
+          "n_toxic": {
+            "title": "N Toxic",
+            "type": "integer"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/PredictResponse"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "results",
+          "total",
+          "n_toxic",
+          "n_non_toxic",
+          "n_errors"
+        ],
+        "title": "BatchPredictResponse",
+        "type": "object"
+      },
+      "Body_extract_smiles_from_image_extract_smiles_from_image_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_smiles_from_image_extract_smiles_from_image_post",
+        "type": "object"
+      },
+      "BondImportance": {
+        "properties": {
+          "atom_pair": {
+            "title": "Atom Pair",
+            "type": "string"
+          },
+          "bond_idx": {
+            "title": "Bond Idx",
+            "type": "integer"
+          },
+          "bond_type": {
+            "title": "Bond Type",
+            "type": "string"
+          },
+          "importance": {
+            "title": "Importance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "bond_idx",
+          "atom_pair",
+          "bond_type",
+          "importance"
+        ],
+        "title": "BondImportance",
+        "type": "object"
+      },
+      "ClinicalToxicityOutput": {
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "is_toxic": {
+            "title": "Is Toxic",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "p_toxic": {
+            "title": "P Toxic",
+            "type": "number"
+          },
+          "threshold_used": {
+            "title": "Threshold Used",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "is_toxic",
+          "confidence",
+          "p_toxic",
+          "threshold_used"
+        ],
+        "title": "ClinicalToxicityOutput",
+        "type": "object"
+      },
+      "ExplainRequest": {
+        "properties": {
+          "epochs": {
+            "default": 200,
+            "maximum": 500.0,
+            "minimum": 50.0,
+            "title": "Epochs",
+            "type": "integer"
+          },
+          "explainer_timeout_ms": {
+            "default": 30000,
+            "maximum": 300000.0,
+            "minimum": 1000.0,
+            "title": "Explainer Timeout Ms",
+            "type": "integer"
+          },
+          "smiles": {
+            "title": "Smiles",
+            "type": "string"
+          },
+          "target_class": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Class"
+          }
+        },
+        "required": [
+          "smiles"
+        ],
+        "title": "ExplainRequest",
+        "type": "object"
+      },
+      "ExplainResponse": {
+        "properties": {
+          "chemical_interpretation": {
+            "title": "Chemical Interpretation",
+            "type": "string"
+          },
+          "explainer_note": {
+            "title": "Explainer Note",
+            "type": "string"
+          },
+          "heatmap_base64": {
+            "title": "Heatmap Base64",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "molecule_png_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Molecule Png Base64"
+          },
+          "p_toxic": {
+            "title": "P Toxic",
+            "type": "number"
+          },
+          "smiles": {
+            "title": "Smiles",
+            "type": "string"
+          },
+          "top_atoms": {
+            "items": {
+              "$ref": "#/components/schemas/AtomImportance"
+            },
+            "title": "Top Atoms",
+            "type": "array"
+          },
+          "top_bonds": {
+            "items": {
+              "$ref": "#/components/schemas/BondImportance"
+            },
+            "title": "Top Bonds",
+            "type": "array"
+          }
+        },
+        "required": [
+          "smiles",
+          "p_toxic",
+          "label",
+          "top_atoms",
+          "top_bonds",
+          "heatmap_base64",
+          "chemical_interpretation",
+          "explainer_note"
+        ],
+        "title": "ExplainResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InferenceContextOutput": {
+        "properties": {
+          "clinical_model_loaded": {
+            "title": "Clinical Model Loaded",
+            "type": "boolean"
+          },
+          "clinical_reference_metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Clinical Reference Metrics",
+            "type": "object"
+          },
+          "clinical_threshold_applied": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clinical Threshold Applied"
+          },
+          "explainer_used": {
+            "title": "Explainer Used",
+            "type": "boolean"
+          },
+          "explanation_available": {
+            "title": "Explanation Available",
+            "type": "boolean"
+          },
+          "inference_backend": {
+            "default": "xsmiles",
+            "title": "Inference Backend",
+            "type": "string"
+          },
+          "inference_backend_loaded": {
+            "default": false,
+            "title": "Inference Backend Loaded",
+            "type": "boolean"
+          },
+          "threshold_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold Policy"
+          },
+          "tox21_model_loaded": {
+            "title": "Tox21 Model Loaded",
+            "type": "boolean"
+          },
+          "tox21_threshold_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tox21 Threshold Source"
+          },
+          "workspace_mode": {
+            "title": "Workspace Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_mode",
+          "clinical_model_loaded",
+          "tox21_model_loaded",
+          "explainer_used",
+          "explanation_available"
+        ],
+        "title": "InferenceContextOutput",
+        "type": "object"
+      },
+      "MechanismToxicityOutput": {
+        "properties": {
+          "active_tasks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Tasks",
+            "type": "array"
+          },
+          "assay_hits": {
+            "title": "Assay Hits",
+            "type": "integer"
+          },
+          "highest_risk_score": {
+            "title": "Highest Risk Score",
+            "type": "number"
+          },
+          "highest_risk_task": {
+            "title": "Highest Risk Task",
+            "type": "string"
+          },
+          "task_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Task Scores",
+            "type": "object"
+          },
+          "task_thresholds": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Task Thresholds",
+            "type": "object"
+          },
+          "threshold_used": {
+            "title": "Threshold Used",
+            "type": "number"
+          }
+        },
+        "required": [
+          "task_scores",
+          "active_tasks",
+          "highest_risk_task",
+          "highest_risk_score",
+          "assay_hits",
+          "threshold_used",
+          "task_thresholds"
+        ],
+        "title": "MechanismToxicityOutput",
+        "type": "object"
+      },
+      "OodAssessmentOutput": {
+        "properties": {
+          "flag": {
+            "title": "Flag",
+            "type": "boolean"
+          },
+          "high_risk_elements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "High Risk Elements",
+            "type": "array"
+          },
+          "ood_risk": {
+            "title": "Ood Risk",
+            "type": "string"
+          },
+          "rare_elements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Rare Elements",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recommendation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation"
+          }
+        },
+        "required": [
+          "ood_risk",
+          "flag",
+          "reason"
+        ],
+        "title": "OodAssessmentOutput",
+        "type": "object"
+      },
+      "PredictRequest": {
+        "properties": {
+          "inference_backend": {
+            "default": "xsmiles",
+            "description": "Inference backend: xsmiles, chemberta, pubchem, or molformer",
+            "title": "Inference Backend",
+            "type": "string"
+          },
+          "smiles": {
+            "description": "SMILES string",
+            "title": "Smiles",
+            "type": "string"
+          },
+          "threshold": {
+            "default": 0.35,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Threshold",
+            "type": "number"
+          }
+        },
+        "required": [
+          "smiles"
+        ],
+        "title": "PredictRequest",
+        "type": "object"
+      },
+      "PredictResponse": {
+        "properties": {
+          "canonical_smiles": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Smiles"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "p_toxic": {
+            "title": "P Toxic",
+            "type": "number"
+          },
+          "smiles": {
+            "title": "Smiles",
+            "type": "string"
+          },
+          "threshold_used": {
+            "title": "Threshold Used",
+            "type": "number"
+          }
+        },
+        "required": [
+          "smiles",
+          "canonical_smiles",
+          "p_toxic",
+          "label",
+          "confidence",
+          "threshold_used"
+        ],
+        "title": "PredictResponse",
+        "type": "object"
+      },
+      "SmilesImageExtractionResponse": {
+        "properties": {
+          "canonical_smiles": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Canonical SMILES validated by RDKit.",
+            "title": "Canonical Smiles"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Model confidence for image-to-SMILES extraction when available.",
+            "title": "Confidence"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Machine-readable error code for frontend error handling.",
+            "title": "Error Code"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "smiles": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "SMILES extracted from uploaded image before canonicalization.",
+            "title": "Smiles"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "title": "SmilesImageExtractionResponse",
+        "type": "object"
+      },
+      "SmilesPreviewRequest": {
+        "properties": {
+          "height": {
+            "default": 420,
+            "description": "Requested image height in pixels.",
+            "maximum": 2000.0,
+            "minimum": 100.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "smiles": {
+            "description": "SMILES string to validate, canonicalize, and render into an RDKit depiction.",
+            "title": "Smiles",
+            "type": "string"
+          },
+          "width": {
+            "default": 800,
+            "description": "Requested image width in pixels.",
+            "maximum": 2000.0,
+            "minimum": 100.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "smiles"
+        ],
+        "title": "SmilesPreviewRequest",
+        "type": "object"
+      },
+      "SmilesPreviewResponse": {
+        "properties": {
+          "canonical_smiles": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Canonical SMILES validated by RDKit.",
+            "title": "Canonical Smiles"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Machine-readable error code for frontend error handling.",
+            "title": "Error Code"
+          },
+          "input_smiles": {
+            "description": "Original SMILES provided by the caller.",
+            "title": "Input Smiles",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "molecule_png_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Base64-encoded PNG depiction of the molecule.",
+            "title": "Molecule Png Base64"
+          }
+        },
+        "required": [
+          "input_smiles"
+        ],
+        "title": "SmilesPreviewResponse",
+        "type": "object"
+      },
+      "ToxicityExplanationOutput": {
+        "properties": {
+          "explainer_note": {
+            "title": "Explainer Note",
+            "type": "string"
+          },
+          "heatmap_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heatmap Base64"
+          },
+          "molecule_png_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Molecule Png Base64"
+          },
+          "target_task": {
+            "title": "Target Task",
+            "type": "string"
+          },
+          "target_task_score": {
+            "title": "Target Task Score",
+            "type": "number"
+          },
+          "top_atoms": {
+            "items": {
+              "$ref": "#/components/schemas/AtomImportance"
+            },
+            "title": "Top Atoms",
+            "type": "array"
+          },
+          "top_bonds": {
+            "items": {
+              "$ref": "#/components/schemas/BondImportance"
+            },
+            "title": "Top Bonds",
+            "type": "array"
+          }
+        },
+        "required": [
+          "target_task",
+          "target_task_score",
+          "top_atoms",
+          "top_bonds",
+          "explainer_note"
+        ],
+        "title": "ToxicityExplanationOutput",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "SMILESGNN toxicity prediction API for ToxAgent agentic system",
+    "title": "ToxAgent Model Server",
+    "version": "0.0.6"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/agent/analyze": {
+      "post": {
+        "description": "Execute the ADK agent runtime and return final report + tool-calling traces.",
+        "operationId": "agent_analyze_agent_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentAnalyzeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Agent Analyze"
+      }
+    },
+    "/agent/analyze/stream": {
+      "post": {
+        "description": "Stream deterministic analyze progress over SSE and finish with full payload.",
+        "operationId": "agent_analyze_stream_agent_analyze_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Agent Analyze Stream"
+      }
+    },
+    "/agent/chat": {
+      "post": {
+        "description": "Handle follow-up QA against a frozen per-report chat session.",
+        "operationId": "agent_chat_agent_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentChatResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Agent Chat"
+      }
+    },
+    "/agent/chat/stream": {
+      "post": {
+        "description": "Stream report-chat reasoning/tool events and tokens as Server-Sent Events.",
+        "operationId": "agent_chat_stream_agent_chat_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Agent Chat Stream"
+      }
+    },
+    "/analyze": {
+      "post": {
+        "description": "Unified production endpoint with three outputs for one SMILES:\n  1) Toxic / Non-toxic from XSmiles (clinical)\n  2) Type of toxicity from GATv2 (Tox21 tasks)\n  3) Toxicity explainer from GNNExplainer (task-specific)",
+        "operationId": "analyze_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Analyze"
+      }
+    },
+    "/explain": {
+      "post": {
+        "description": "Generate GNNExplainer atom/bond attribution for a molecule.\n\nNOTE: GNNExplainer atom/bond attribution for a molecule.\n(P(toxic) from explainer \u2260 P(toxic) from /predict). \nThis is a known limitation documented in XSmiles README. \nUse /predict for final label; use /explain only for structural attribution.",
+        "operationId": "explain_explain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplainResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Explain"
+      }
+    },
+    "/extract-smiles-from-image": {
+      "post": {
+        "operationId": "extract_smiles_from_image_extract_smiles_from_image_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_smiles_from_image_extract_smiles_from_image_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmilesImageExtractionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extract Smiles From Image"
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/predict": {
+      "post": {
+        "description": "Predict clinical toxicity for a single SMILES molecule",
+        "operationId": "predict_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Predict"
+      }
+    },
+    "/predict/batch": {
+      "post": {
+        "description": "Predict clinical toxicity for a list of SMILES molecules.",
+        "operationId": "predict_batch_endpoint_predict_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchPredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchPredictResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Predict Batch Endpoint"
+      }
+    },
+    "/smiles/preview": {
+      "post": {
+        "operationId": "preview_smiles_smiles_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmilesPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SmilesPreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Smiles"
+      }
+    }
+  }
+}

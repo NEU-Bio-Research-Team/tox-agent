@@ -86,12 +86,39 @@ class ToxicityPredictor:
     def _provenance(
         self, providers: Mapping[Endpoint, Any], policy: PredictionPolicySnapshot
     ) -> dict[str, Any]:
+        """Everything needed to reproduce this answer later.
+
+        Plan section 4.4 requires model_id, artifact SHA-256, base-model
+        revision, tokenizer revision and policy version to be present on every
+        response — so a number in a report can be traced to the exact weights
+        that produced it.
+        """
+        artifacts = []
+        for model_id in sorted({p.model_id for p in providers.values()}):
+            spec = self._registry.spec(model_id)
+            weights = next(
+                (f for f in spec.files if f.relative_path.endswith((".pt", ".safetensors"))),
+                None,
+            )
+            tokenizer = next(
+                (f for f in spec.files if f.relative_path.endswith("tokenizer.json")), None
+            )
+            artifacts.append(
+                {
+                    "model_id": model_id,
+                    "weights_sha256": weights.sha256 if weights else None,
+                    "tokenizer_sha256": tokenizer.sha256 if tokenizer else None,
+                    "feature_schema_version": spec.feature_schema_version,
+                    "base_model": dict(spec.base_model) or None,
+                }
+            )
         return {
             "request_id": str(uuid.uuid4()),
             "predictor_version": __version__,
             "policy_version": policy.policy_version,
             "tox21_task_order_version": TOX21_TASK_ORDER_VERSION,
             "models": sorted({p.model_id for p in providers.values()}),
+            "artifacts": artifacts,
         }
 
     # -- prediction --------------------------------------------------------

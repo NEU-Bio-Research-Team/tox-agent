@@ -195,5 +195,69 @@ class HergTox21ChembertaProvider:
         return results
 
 
+    # -- attribution -------------------------------------------------------
+    ATTRIBUTION_METHOD = "grad_x_embedding_l2_v1"
+
+    def token_attribution(
+        self, canonical_smiles: str, *, head: str, task_index: int | None = None
+    ) -> dict[str, Any]:
+        """Gradient x input-embedding norm, per token, for one head.
+
+        Deterministic: a single backward pass with no sampling and no dropout,
+        so repeated calls on the same input give identical scores. Returns
+        numbers only — rendering is not this layer's business.
+        """
+        import torch
+
+        if self._model is None or self._tokenizer is None:
+            raise ArtifactError(f"[{self.model_id}] token_attribution() called before load()")
+        if head not in {"herg", "tox21"}:
+            raise ValueError(f"unknown head {head!r}")
+        if head == "tox21" and task_index is None:
+            raise ValueError("task_index is required when attributing the tox21 head")
+
+        enc = self._tokenizer(
+            [canonical_smiles], padding=True, truncation=True,
+            max_length=self._max_length, return_tensors="pt",
+        )
+        input_ids = enc["input_ids"].to(self._device)
+        attention_mask = enc["attention_mask"].to(self._device)
+
+        embedding_layer = self._model.backbone.get_input_embeddings()
+        embeddings = embedding_layer(input_ids).detach().clone().requires_grad_(True)
+
+        self._model.zero_grad(set_to_none=True)
+        backbone_out = self._model.backbone(
+            inputs_embeds=embeddings, attention_mask=attention_mask
+        )
+        cls = backbone_out.last_hidden_state[:, 0, :]
+        logits = (
+            self._model.herg_head(cls) if head == "herg" else self._model.tox21_head(cls)
+        )
+        target = logits.reshape(-1)[0 if head == "herg" else int(task_index)]
+        target.backward()
+
+        if embeddings.grad is None:
+            raise ArtifactError(f"[{self.model_id}] attribution produced no gradient")
+        scores = (embeddings.grad * embeddings).norm(dim=-1).detach().cpu().numpy().reshape(-1)
+        tokens = self._tokenizer.convert_ids_to_tokens(input_ids[0].tolist())
+        mask = attention_mask[0].cpu().numpy().reshape(-1)
+
+        kept = [
+            {"token": tok, "position": i, "importance": float(scores[i])}
+            for i, tok in enumerate(tokens)
+            if mask[i] == 1
+        ]
+        total = sum(t["importance"] for t in kept) or 1.0
+        for t in kept:
+            t["relative_importance"] = t["importance"] / total
+        return {
+            "method": self.ATTRIBUTION_METHOD,
+            "model_id": self.model_id,
+            "probability": float(torch.sigmoid(target.detach()).item()),
+            "tokens": kept,
+        }
+
+
 def factory(spec: ArtifactSpec) -> HergTox21ChembertaProvider:
     return HergTox21ChembertaProvider(spec)

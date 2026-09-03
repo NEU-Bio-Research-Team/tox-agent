@@ -63,6 +63,9 @@ class ModelRegistry:
         specs = load_manifest(Path(manifest_path), models_root)
         for model_id, spec in specs.items():
             registry._required[model_id] = spec.required
+            # Keep the spec even if registration fails, so /v1/models can report
+            # what a blocked model is and why rather than guessing.
+            registry._specs[model_id] = spec
             factory = factories.get(spec.provider)
             if factory is None:
                 msg = f"no provider factory registered for {spec.provider!r}"
@@ -85,7 +88,6 @@ class ModelRegistry:
                 if spec.required:
                     raise
                 continue
-            registry._specs[model_id] = spec
             registry._providers[model_id] = provider
         return registry
 
