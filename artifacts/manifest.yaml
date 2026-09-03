@@ -1,0 +1,74 @@
+# ToxAgent predictor artifact manifest.
+#
+# The registry loads only what is declared here, and only after every file's
+# SHA-256 matches. A directory that merely exists is not an artifact.
+#
+# Regenerate checksums with:  python benchmarks/capture_baseline.py
+schema_version: 1
+models_root: ../models
+
+models:
+  - model_id: herg-tox21-chemberta-v1
+    provider: herg_tox21_chemberta
+    capabilities: [herg, tox21]
+    artifact_dir: pretrained_2head_herg_chemberta_model
+    required: true
+    feature_schema_version: chemberta-smiles-v1
+    base_model:
+      id: DeepChem/ChemBERTa-77M-MTR
+      revision: null   # UNPINNED — see docs/refactor/PREDICTOR_ONLY_STATUS_VI.md
+      weights_source: checkpoint
+      note: >-
+        The checkpoint carries the full backbone state dict (61 tensors including
+        backbone.embeddings.* and backbone.pooler.*), so the Hugging Face repo is
+        needed only for the architecture config, not for weights. Pinning the
+        revision and vendoring that config removes the last network dependency.
+    files:
+      - path: best_model.pt
+        sha256: c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690
+        bytes: 14050530
+      - path: config.yaml
+        sha256: d747c3a2c7eda504eccc7b1e2daa5ce2b40d5f342e0195ad1080544424241b7d
+        bytes: 2013
+      - path: herg_threshold.json
+        sha256: 80e9a19de26e7828d2201525dceb20da67f4048657ece67789e665b9f93569a1
+        bytes: 430
+      - path: tox21_task_thresholds.json
+        sha256: cc1bbe37a8eb617382c2e276ad34352829418df4b17e28003903731ef9b88386
+        bytes: 4026
+      - path: tokenizer/tokenizer.json
+        sha256: ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785
+        bytes: 14028
+      - path: tokenizer/tokenizer_config.json
+        sha256: 546a1c6da0c2a47e67d8ef88d7181bb05d617228ebccb955fb6e269dbd1e4d44
+        bytes: 1608
+      - path: tokenizer/vocab.json
+        sha256: 0c9afbd534ab59fa51718c998027da0e7932293c9a51de03317d4c83d3fe48f6
+        bytes: 6963
+      - path: tokenizer/merges.txt
+        sha256: 215a6aba00d27bcd42b8ad1dccc4b4d23f40decc150bdbf0d5ce6bb2410708df
+        bytes: 14
+      - path: tokenizer/special_tokens_map.json
+        sha256: de1fff4a8d761b007a5f945da34ba52c65ebeff199060deda174fa7212a58306
+        bytes: 965
+      - path: tokenizer/added_tokens.json
+        sha256: 0c3ff4efa3a74a617a72582c8756d6ccc84e3f8793253c7202f7b1f708081fe8
+        bytes: 32
+
+# ---------------------------------------------------------------------------
+# NOT REGISTERED — kept here so the gap is visible rather than rediscovered.
+#
+# clintox-smilesgnn-v1
+#   artifact_dir: smilesgnn_model
+#   Blocked: the SMILES tokenizer this checkpoint requires
+#   (models/smilesgnn_model/tokenizer.pkl) is absent and was never committed —
+#   *.pkl is excluded by .gitignore line 49. The checkpoint's embedding matrix
+#   is (69, 96), i.e. a 69-token vocabulary derived from the ClinTox training
+#   corpus; the two other SMILES tokenizers in models/ have 80 tokens and do not
+#   fit. Without the vocabulary the token ids are unrecoverable, so the model
+#   cannot be served reproducibly. Recovery options are in the status document.
+#
+# tox21_ensemble_3_best
+#   The default in model_server/main.py:202 resolves to models/dualhead_ensemble3,
+#   which contains dualhead_metrics.json and no weights. Never registerable.
+# ---------------------------------------------------------------------------
