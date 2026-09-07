@@ -36,6 +36,31 @@ Run `./bin/toxagent doctor` before a long build if a machine has changed. The
 default stack deliberately has no external LLM dependency. An approved
 OpenCode runtime is optional and documented in [configuration](docs/CONFIGURATION.md).
 
+### Local ports
+
+Use the launcher rather than killing processes by port: it preserves the
+PostgreSQL volume and also stops the private OpenCode bridge when applicable.
+
+```bash
+# Start / stop the standard local stack (frontend at http://localhost:8088).
+./bin/toxagent up
+./bin/toxagent down
+
+# Start / stop the agent-enabled stack.
+./bin/toxagent up --agent
+./bin/toxagent down --agent
+
+# Inspect ports and service state.
+./bin/toxagent status
+./bin/toxagent status --agent
+ss -ltnp | rg ':(8088|8000|4096)\b'
+```
+
+`FRONTEND_PORT` in `.env` controls the browser port (default `8088`). The
+control-plane port `8000` and OpenCode port `4096` are loopback-only; OpenCode
+is additionally reachable from the Docker bridge only through the local
+agent launcher, never from the LAN.
+
 ## Agent runtime (local BYOC)
 
 Each local user connects their own provider. Credentials are stored only in
