@@ -46,6 +46,9 @@ sessions = Table(
     Column("status", String(32), nullable=False),
     Column("preferred_language", String(8), nullable=False),
     Column("title", Text),
+    Column("title_source", String(24)),
+    Column("title_status", String(24), nullable=False, server_default="pending"),
+    Column("title_updated_at", _TS),
     Column("active_analysis_id", _ID),
     Column("context_epoch", Integer, nullable=False, server_default="0"),
     # The ordering authority for the change feed. Bumped in the same

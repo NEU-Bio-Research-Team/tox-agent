@@ -36,6 +36,30 @@ Run `./bin/toxagent doctor` before a long build if a machine has changed. The
 default stack deliberately has no external LLM dependency. An approved
 OpenCode runtime is optional and documented in [configuration](docs/CONFIGURATION.md).
 
+## Agent runtime (local BYOC)
+
+Each local user connects their own provider. Credentials are stored only in
+the ignored, mode-0700 `.data/opencode-auth/` directory; the ToxAgent database,
+events, logs, and `.env` receive only the non-secret provider/model IDs.
+
+```bash
+# Opens the provider login in an isolated ToxAgent auth store.
+./bin/toxagent setup --agent --auth login --provider openai --model gpt-5.6-luna
+
+# Or import an auth file that you own, once.
+./bin/toxagent setup --agent --auth existing --auth-file /path/to/auth.json \
+  --provider openai --model gpt-5.6-luna
+
+# Starts OpenCode, its Docker-private bridge, and the agent-enabled stack.
+./bin/toxagent up --agent
+./bin/toxagent status --agent
+./bin/toxagent logs --agent
+./bin/toxagent down --agent
+```
+
+Use `opencode models` to choose a provider/model pair available to your own
+account. Provider requests consume that account's quota.
+
 ## Documentation
 
 - [Getting started](docs/GETTING_STARTED.md)

@@ -4,11 +4,16 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-COMPOSE=(docker compose --project-name toxagent)
+COMPOSE=(docker compose)
+AGENT_COMPOSE=(docker compose -f compose.yaml -f infra/compose/local-opencode-host.yaml)
 CHECKPOINT_DIR=".artifacts/toxocr"
 CHECKPOINT="$CHECKPOINT_DIR/swin_base_char_aux_1m.pth"
 CHECKPOINT_URL="https://huggingface.co/yujieq/MolScribe/resolve/main/swin_base_char_aux_1m.pth"
 CHECKPOINT_SHA256="64f4443d6f5a2bc594d5f0b5acdd48b8e1d13d699d08e2456b54b352ffe99fce"
+OPENCODE_PIN="1.17.11"
+OPENCODE_AUTH_ROOT=".data/opencode-auth"
+OPENCODE_WORKSPACE_ROOT=".data/opencode-workspaces"
+OPENCODE_RUNTIME="$ROOT/scripts/opencode_local_runtime.sh"
 
 fail() { printf 'toxagent: %s\n' "$*" >&2; exit 1; }
 random() { openssl rand -hex 32 2>/dev/null || python3 -c 'import secrets; print(secrets.token_hex(32))'; }
@@ -22,7 +27,7 @@ set_env() {
 }
 env_value() { grep -E "^${1}=" .env 2>/dev/null | head -n1 | cut -d= -f2-; }
 
-setup() {
+bootstrap_env() {
   if [[ ! -f .env ]]; then cp .env.example .env; fi
   [[ -n "$(env_value POSTGRES_PASSWORD)" ]] || set_env POSTGRES_PASSWORD "$(random)"
   [[ -n "$(env_value TOXAGENT_CAPABILITY_SECRET)" ]] || set_env TOXAGENT_CAPABILITY_SECRET "$(random)"
@@ -34,24 +39,95 @@ setup() {
   else
     token="${token%%:*}"
   fi
-  mkdir -p "$CHECKPOINT_DIR"
-  if [[ ! -f "$CHECKPOINT" ]]; then
+}
+
+setup() {
+  bootstrap_env
+  local token checkpoint_dir checkpoint checksum
+  token="$(env_value TOXAGENT_STATIC_TOKENS)"
+  token="${token%%:*}"
+  checkpoint_dir="$(env_value TOXOCR_CHECKPOINT_HOST_PATH)"
+  checkpoint_dir="${checkpoint_dir:-$CHECKPOINT_DIR}"
+  checkpoint="$checkpoint_dir/swin_base_char_aux_1m.pth"
+  checksum="$(env_value TOXOCR_CHECKPOINT_SHA256)"
+  checksum="${checksum:-$CHECKPOINT_SHA256}"
+  mkdir -p "$checkpoint_dir"
+  if [[ ! -f "$checkpoint" ]]; then
     command -v curl >/dev/null || fail "curl is required to provision the OCR checkpoint"
     printf 'Downloading the pinned MolScribe checkpoint (about 1.1 GB; this happens once)...\n'
-    curl --fail --location --retry 3 --output "${CHECKPOINT}.partial" "$CHECKPOINT_URL"
-    mv "${CHECKPOINT}.partial" "$CHECKPOINT"
+    curl --fail --location --retry 3 --output "${checkpoint}.partial" "$CHECKPOINT_URL"
+    mv "${checkpoint}.partial" "$checkpoint"
   fi
-  printf '%s  %s\n' "$CHECKPOINT_SHA256" "$CHECKPOINT" | sha256sum --check --status \
+  printf '%s  %s\n' "$checksum" "$checkpoint" | sha256sum --check --status \
     || fail "OCR checkpoint checksum mismatch; delete $CHECKPOINT and run setup again"
   printf '\nSetup complete. Open http://localhost:%s and enter this access token:\n%s\n' "$(env_value FRONTEND_PORT)" "$token"
 }
+
+setup_agent() {
+  local auth_mode="login" provider="" model="" source=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --auth) auth_mode="${2:-}"; shift 2 ;;
+      --provider) provider="${2:-}"; shift 2 ;;
+      --model) model="${2:-}"; shift 2 ;;
+      --auth-file) source="${2:-}"; shift 2 ;;
+      *) fail "usage: ./bin/toxagent setup --agent [--auth login|existing] [--auth-file PATH] [--provider ID] [--model ID]" ;;
+    esac
+  done
+  [[ "$auth_mode" == "login" || "$auth_mode" == "existing" ]] || fail "--auth must be login or existing"
+  bootstrap_env
+  command -v opencode >/dev/null || fail "install OpenCode ${OPENCODE_PIN} and make 'opencode' available in PATH"
+  local actual
+  actual="$(opencode --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)"
+  [[ "$actual" == "$OPENCODE_PIN" ]] || fail "OpenCode ${OPENCODE_PIN} is required; found ${actual:-unknown}"
+  install -d -m 700 "$OPENCODE_AUTH_ROOT/home" "$OPENCODE_AUTH_ROOT/data/opencode" "$OPENCODE_WORKSPACE_ROOT"
+
+  if [[ "$auth_mode" == "existing" ]]; then
+    [[ -n "$source" && -f "$source" ]] || fail "--auth existing requires --auth-file PATH to a file you own"
+    install -m 600 "$source" "$OPENCODE_AUTH_ROOT/data/opencode/auth.json"
+  else
+    printf 'Opening OpenCode provider authentication in the isolated ToxAgent auth store…\n'
+    HOME="$ROOT/$OPENCODE_AUTH_ROOT/home" XDG_DATA_HOME="$ROOT/$OPENCODE_AUTH_ROOT/data" \
+      XDG_CONFIG_HOME="$ROOT/$OPENCODE_AUTH_ROOT/config" opencode auth login
+  fi
+  HOME="$ROOT/$OPENCODE_AUTH_ROOT/home" XDG_DATA_HOME="$ROOT/$OPENCODE_AUTH_ROOT/data" \
+    XDG_CONFIG_HOME="$ROOT/$OPENCODE_AUTH_ROOT/config" opencode auth list || fail "OpenCode did not report a connected provider"
+
+  # Provider/model identifiers are configuration, not credentials. Auth state
+  # remains in the 0700 directory above and is ignored by git.
+  [[ -n "$provider" ]] && set_env TOXAGENT_PROVIDER_ID "$provider"
+  [[ -n "$model" ]] && set_env TOXAGENT_MODEL_ID "$model"
+  set_env TOXAGENT_OPENCODE_VERSION "$OPENCODE_PIN"
+  printf 'Agent setup complete. Auth is isolated in %s; provider/model are non-secret .env settings. Start with ./bin/toxagent up --agent.\n' "$OPENCODE_AUTH_ROOT"
+}
+
+agent_up() {
+  "$OPENCODE_RUNTIME" start
+  if ! "${AGENT_COMPOSE[@]}" up --detach --no-build --wait --wait-timeout 180; then
+    "$OPENCODE_RUNTIME" stop
+    fail "agent stack did not become ready"
+  fi
+  local port
+  port="$(env_value FRONTEND_PORT)"
+  printf 'Agent stack ready: http://localhost:%s\n' "${port:-8088}"
+}
+
+agent_down() { "${AGENT_COMPOSE[@]}" down; "$OPENCODE_RUNTIME" stop; }
+agent_status() { "$OPENCODE_RUNTIME" status; "${AGENT_COMPOSE[@]}" ps; }
+agent_logs() { "$OPENCODE_RUNTIME" logs; "${AGENT_COMPOSE[@]}" logs --tail=200 toxagent-control; }
 
 doctor() {
   command -v docker >/dev/null || fail "install Docker Engine, then retry"
   docker compose version >/dev/null || fail "install Docker Compose v2, then retry"
   [[ -f .env ]] || fail "run ./bin/toxagent setup first"
-  [[ -f "$CHECKPOINT" ]] || fail "OCR checkpoint missing; run ./bin/toxagent setup"
-  printf '%s  %s\n' "$CHECKPOINT_SHA256" "$CHECKPOINT" | sha256sum --check --status \
+  local checkpoint_dir checkpoint checksum
+  checkpoint_dir="$(env_value TOXOCR_CHECKPOINT_HOST_PATH)"
+  checkpoint_dir="${checkpoint_dir:-$CHECKPOINT_DIR}"
+  checkpoint="$checkpoint_dir/swin_base_char_aux_1m.pth"
+  checksum="$(env_value TOXOCR_CHECKPOINT_SHA256)"
+  checksum="${checksum:-$CHECKPOINT_SHA256}"
+  [[ -f "$checkpoint" ]] || fail "OCR checkpoint missing; run ./bin/toxagent setup"
+  printf '%s  %s\n' "$checksum" "$checkpoint" | sha256sum --check --status \
     || fail "OCR checkpoint checksum mismatch; rerun setup"
   local port; port="$(env_value FRONTEND_PORT)"
   if command -v ss >/dev/null && ss -ltn "sport = :$port" | grep -q LISTEN; then
@@ -61,7 +137,10 @@ doctor() {
   printf 'doctor: Docker, Compose, configuration and pinned OCR artifact are ready.\n'
 }
 
-up() { doctor; "${COMPOSE[@]}" up --build --detach --wait --wait-timeout 600; printf 'Ready: http://localhost:%s\n' "$(env_value FRONTEND_PORT)"; }
+up() {
+  if [[ "${1:-}" == "--agent" ]]; then agent_up; return; fi
+  doctor; "${COMPOSE[@]}" up --build --detach --wait --wait-timeout 600; printf 'Ready: http://localhost:%s\n' "$(env_value FRONTEND_PORT)";
+}
 down() { "${COMPOSE[@]}" down; }
 status() { "${COMPOSE[@]}" ps; }
 logs() { "${COMPOSE[@]}" logs --tail=200 "${@:2}"; }
@@ -76,8 +155,17 @@ smoke() {
 backup() { mkdir -p backups; "${COMPOSE[@]}" exec -T postgres pg_dump -U toxagent toxagent | gzip > "backups/toxagent-$(date +%Y%m%d%H%M%S).sql.gz"; }
 restore() { [[ $# -eq 2 && -f "$2" ]] || fail "usage: toxagent restore backups/file.sql.gz"; printf 'Restoring replaces the current database. Type RESTORE: '; read -r answer; [[ "$answer" == RESTORE ]] || fail "restore cancelled"; gzip -dc "$2" | "${COMPOSE[@]}" exec -T postgres psql -U toxagent -d toxagent; }
 
-case "${1:-}" in
-  setup) setup ;; doctor) doctor ;; up) up ;; down) down ;; status) status ;;
-  logs) logs "$@" ;; smoke) smoke ;; backup) backup ;; restore) restore "$@" ;;
-  *) printf 'Usage: %s {setup|doctor|up|down|status|logs|smoke|backup|restore}\n' "$0" >&2; exit 2 ;;
+command="${1:-}"
+shift || true
+case "$command" in
+  setup)
+    if [[ "${1:-}" == "--agent" ]]; then shift; setup_agent "$@"; else setup; fi
+    ;;
+  doctor) doctor ;;
+  up) up "$@" ;;
+  down) [[ "${1:-}" == "--agent" ]] && agent_down || down ;;
+  status) [[ "${1:-}" == "--agent" ]] && agent_status || status ;;
+  logs) [[ "${1:-}" == "--agent" ]] && agent_logs || logs "$@" ;;
+  smoke) smoke ;; backup) backup ;; restore) restore "$@" ;;
+  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent],down [--agent],status [--agent],logs [--agent],smoke,backup,restore}\n' "$0" >&2; exit 2 ;;
 esac

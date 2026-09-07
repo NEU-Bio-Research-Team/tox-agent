@@ -29,17 +29,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ARG TORCH_VARIANT=cpu
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install torch==2.6.0+${TORCH_VARIANT} \
+    pip install --timeout 600 --retries 5 torch==2.6.0+${TORCH_VARIANT} \
       --extra-index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
 
 # torch-geometric is required only by the ClinTox graph model. It is kept so
 # that endpoint returns the moment its tokenizer is restored.
 RUN --mount=type=cache,target=/root/.cache/pip \
-      pip install torch-scatter torch-sparse torch-geometric \
+      pip install --timeout 600 --retries 5 torch-scatter torch-sparse torch-geometric \
       -f https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html
 
 COPY deploy/requirements.txt /app/deploy/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /app/deploy/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --timeout 600 --retries 5 -r /app/deploy/requirements.txt
 
 COPY . /app/
 

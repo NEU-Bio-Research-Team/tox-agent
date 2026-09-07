@@ -1,18 +1,8 @@
-import type { ComponentType } from 'react';
 import { Hash, ImageUp, PenTool } from 'lucide-react';
-import logoImage from '../../assets/logo-tox.png';
-import { useRotatingText } from '../../hooks/useRotatingText';
-
-const TAGLINES = [
-  'Đưa một SMILES, nhận về bằng chứng — không phải một con số duy nhất.',
-  'hERG, Tox21, ClinTox — luôn tách biệt, luôn kèm nguồn và ngưỡng.',
-  'Mọi claim trong câu trả lời đều trỏ về đúng một observation kiểm chứng được.',
-  'Vẽ cấu trúc hoặc dán SMILES — bắt đầu phân tích trong vài giây.',
-] as const;
 
 interface InputOption {
   key: 'smiles' | 'image' | 'draw';
-  icon: ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  icon: typeof Hash;
   title: string;
   description: string;
   badge?: string;
@@ -30,7 +20,6 @@ const OPTIONS: InputOption[] = [
     icon: ImageUp,
     title: 'Tải ảnh cấu trúc',
     description: 'Tải ảnh cấu trúc hoá học lên để nhận diện.',
-    badge: 'Sắp ra mắt',
   },
   {
     key: 'draw',
@@ -49,8 +38,6 @@ export function EmptyStateHero({
   onPickImage: () => void;
   onPickDraw: () => void;
 }) {
-  const { text, index } = useRotatingText(TAGLINES, 4500);
-
   const handlers: Record<InputOption['key'], () => void> = {
     smiles: onPickSmiles,
     image: onPickImage,
@@ -58,51 +45,33 @@ export function EmptyStateHero({
   };
 
   return (
-    <div className="flex h-full min-h-[520px] flex-col items-center justify-center gap-10 px-4 py-10 text-center">
-      <div className="flex flex-col items-center gap-4">
-        <img src={logoImage} alt="" className="h-16 w-16" />
-        <h1 className="text-4xl font-bold tracking-tight md:text-5xl" style={{ color: 'var(--text)' }}>
-          ToxAgent
+    <div className="flex min-h-[420px] flex-col items-center justify-center gap-7 px-4 py-10 text-center">
+      <div className="flex max-w-xl flex-col items-center gap-3">
+        <h1 className="text-[32px] font-semibold tracking-tight" style={{ color: 'var(--ink)' }}>
+          Bạn muốn phân tích gì?
         </h1>
-        <p
-          key={index}
-          className="animate-in fade-in slide-in-from-bottom-1 max-w-lg text-sm duration-500 md:text-base"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          {text}
+        <p className="text-sm md:text-base" style={{ color: 'var(--ink-secondary)' }}>
+          Dán SMILES, tải ảnh cấu trúc hoặc vẽ phân tử để bắt đầu một phân tích có thể kiểm tra.
         </p>
       </div>
 
-      <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-3">
+      <div className="flex w-full max-w-xl flex-wrap justify-center gap-2">
         {OPTIONS.map((option) => (
           <button
             key={option.key}
             type="button"
             onClick={handlers[option.key]}
-            className="group flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-colors hover:shadow-sm"
-            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-            onMouseEnter={(event) => (event.currentTarget.style.borderColor = 'var(--accent-blue)')}
-            onMouseLeave={(event) => (event.currentTarget.style.borderColor = 'var(--border)')}
+            className="group flex items-center gap-2 rounded-full border px-4 py-2.5 text-left transition-colors hover:bg-[var(--purple-50)]"
+            style={{ backgroundColor: 'var(--surface-solid)', borderColor: 'var(--line)' }}
           >
             <span
-              className="flex h-12 w-12 items-center justify-center rounded-full"
-              style={{ backgroundColor: 'var(--accent-blue-muted)' }}
+              className="flex h-7 w-7 items-center justify-center rounded-full"
+              style={{ backgroundColor: 'var(--purple-100)' }}
             >
-              <option.icon className="h-6 w-6" style={{ color: 'var(--accent-blue)' }} />
+              <option.icon className="h-4 w-4" style={{ color: 'var(--purple-600)' }} />
             </span>
-            <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--text)' }}>
+            <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: 'var(--ink)' }}>
               {option.title}
-              {option.badge && (
-                <span
-                  className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                  style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-faint)' }}
-                >
-                  {option.badge}
-                </span>
-              )}
-            </span>
-            <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
-              {option.description}
             </span>
           </button>
         ))}

@@ -23,6 +23,11 @@ class CreateSessionRequest(_Request):
     client_session_id: str | None = Field(default=None, max_length=255)
 
 
+class UpdateSessionRequest(_Request):
+    title: str = Field(min_length=1, max_length=120)
+    expected_version: int = Field(ge=1)
+
+
 class SessionResponse(BaseModel):
     session_id: str
     status: str
@@ -30,6 +35,8 @@ class SessionResponse(BaseModel):
     title: str | None = None
     created_at: str
     version: int
+    title_source: str | None = None
+    title_status: str = "pending"
 
 
 class TextPart(_Request):
@@ -59,6 +66,30 @@ class AnalysisOptions(_Request):
     endpoints: list[Literal["clintox", "herg", "tox21"]] | None = None
     threshold_overrides: dict[str, Any] | None = None
     include_attribution: bool = False
+    explanation_mode: Literal["required", "on_demand", "none"] = "on_demand"
+    explanation_targets: list["ExplanationTarget"] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _explanation_rules(self) -> "AnalysisOptions":
+        targets = {(target.endpoint, target.task) for target in self.explanation_targets}
+        if len(targets) != len(self.explanation_targets):
+            raise ValueError("explanation targets must be unique")
+        if self.explanation_mode == "required" and "tox21" in (self.endpoints or []) and not any(t.endpoint == "tox21" for t in self.explanation_targets):
+            raise ValueError("required Tox21 explanations need one explicitly selected assay")
+        return self
+
+
+class ExplanationTarget(_Request):
+    endpoint: Literal["herg", "tox21"]
+    task: str | None = None
+
+    @model_validator(mode="after")
+    def _task_rules(self) -> "ExplanationTarget":
+        if self.endpoint == "tox21" and self.task not in TOX21_TASKS:
+            raise ValueError("a Tox21 explanation target requires a known assay")
+        if self.endpoint == "herg" and self.task is not None:
+            raise ValueError("task is only meaningful for Tox21")
+        return self
 
 
 class SendMessageRequest(_Request):
@@ -91,6 +122,8 @@ class PredictRequest(_Request):
     #: attributions. The UI should prefer the explicit ``POST /v1/predict/explain``
     #: call. Tox21 is skipped here because it needs a named assay.
     include_attribution: bool = False
+    explanation_mode: Literal["required", "on_demand", "none"] = "on_demand"
+    explanation_targets: list[ExplanationTarget] = Field(default_factory=list)
 
 
 class PredictBatchRequest(_Request):
@@ -100,6 +133,8 @@ class PredictBatchRequest(_Request):
     smiles: list[str] = Field(min_length=1)
     endpoints: list[Literal["clintox", "herg", "tox21"]] | None = None
     threshold_overrides: dict[str, Any] | None = None
+    explanation_mode: Literal["required", "on_demand", "none"] = "none"
+    explanation_targets: list[ExplanationTarget] = Field(default_factory=list)
 
 
 class ExplainRequest(_Request):

@@ -78,7 +78,8 @@ def authorise_threshold_overrides(
 
 
 def policy_snapshot(
-    *, endpoints: tuple[str, ...], overrides: Mapping[str, Any] | None, actor: Actor
+    *, endpoints: tuple[str, ...], overrides: Mapping[str, Any] | None, actor: Actor,
+    explanation_mode: str = "on_demand", explanation_targets: tuple[tuple[str, str | None], ...] = (),
 ) -> dict[str, Any]:
     """What is recorded alongside the numbers so a reader can reproduce them.
 
@@ -90,6 +91,8 @@ def policy_snapshot(
         "threshold_overrides": dict(overrides) if overrides else None,
         "threshold_override_source": "request_override" if overrides else "model_default",
         "authorised_roles": sorted(actor.roles),
+        "explanation_mode": explanation_mode,
+        "explanation_targets": [{"endpoint": endpoint, "task": task} for endpoint, task in explanation_targets],
     }
 
 

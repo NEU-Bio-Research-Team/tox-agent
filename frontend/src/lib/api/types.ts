@@ -47,6 +47,8 @@ export interface SessionResponse {
   title: string | null;
   created_at: string;
   version: number;
+  title_source?: 'deterministic' | 'model' | 'manual' | null;
+  title_status?: 'pending' | 'ready' | 'failed';
 }
 
 export interface RunSummary {
@@ -65,6 +67,7 @@ export interface SessionListRow {
   active_run: RunSummary | null;
   run_count: number;
   last_message_preview: string | null;
+  title_source?: 'deterministic' | 'model' | 'manual' | null;
 }
 
 export interface SessionListResponse {
@@ -163,6 +166,8 @@ export interface QuickPredictRequest {
   endpoints?: Endpoint[];
   threshold_overrides?: Record<string, number | Record<string, number>> | null;
   include_attribution?: boolean;
+  explanation_mode?: 'required' | 'on_demand' | 'none';
+  explanation_targets?: ExplanationTarget[];
 }
 
 /** `POST /v1/predict` returns the same `AnalysisProjection` shape the session
@@ -177,6 +182,8 @@ export interface QuickPredictBatchRequest {
   smiles: string[];
   endpoints?: Endpoint[];
   threshold_overrides?: Record<string, number | Record<string, number>> | null;
+  explanation_mode?: 'required' | 'on_demand' | 'none';
+  explanation_targets?: ExplanationTarget[];
 }
 
 export interface QuickPredictBatchResult {
@@ -194,9 +201,28 @@ export interface PredictModelInfo {
   blocked_reason: string | null;
 }
 
+export interface PredictEndpointCapability {
+  id: Endpoint;
+  display_name: string;
+  enabled: boolean;
+  model_id: string | null;
+  supports_explanation: boolean;
+  explanation_target_required: boolean;
+  tasks: string[];
+  blocked_reason: string | null;
+}
+
+export interface ExplanationTarget {
+  endpoint: 'herg' | 'tox21';
+  task?: string;
+}
+
 /** `GET /v1/predict/capabilities`. */
 export interface PredictCapabilities {
+  capability_version?: 'predict-capabilities-v2';
+  default_endpoints?: Endpoint[];
   served_endpoints: Endpoint[];
+  endpoints?: PredictEndpointCapability[];
   models: PredictModelInfo[];
   predictor_id: string;
   ocr_available: boolean;
@@ -224,6 +250,17 @@ export interface AtomImportance {
   relative_importance: number;
 }
 
+export interface BondImportance {
+  bond_index: number;
+  begin_atom_index: number;
+  end_atom_index: number;
+  bond_type: string;
+  importance: number;
+  relative_importance: number;
+  display_importance?: number;
+  source: 'explicit_token' | 'adjacent_atom_derived';
+}
+
 export interface ExplainToken {
   token: string;
   position?: number;
@@ -244,6 +281,10 @@ export interface AtomAttribution {
   atom_order_version: string | null;
   probability: number | null;
   atoms: AtomImportance[];
+  bonds?: BondImportance[];
+  structure_order_version?: string | null;
+  depiction_svg?: string | null;
+  depiction?: { numeric_content_sha256: string; renderer_version: string; palette_version: string } | null;
   /** Normalised fraction of importance that landed on bonds/topology, not atoms. */
   unmapped_importance: number | null;
   tokens: ExplainToken[];

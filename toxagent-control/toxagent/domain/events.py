@@ -17,6 +17,7 @@ from .ids import EVENT, SESSION, new_id, require_id
 
 class EventType(str, Enum):
     SESSION_CREATED = "session.created"
+    SESSION_TITLE_UPDATED = "session.title_updated"
     MESSAGE_CREATED = "message.created"
     RUN_QUEUED = "run.queued"
     RUN_STARTED = "run.started"

@@ -66,6 +66,8 @@ class CreateAnalysis:
         smiles: str,
         endpoints: tuple[str, ...] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
+        explanation_mode: str = "on_demand",
+        explanation_targets: tuple[tuple[str, str | None], ...] = (),
         owns_run: bool = True,
     ) -> AnalysisResult:
         """``owns_run`` is False when this runs as a tool inside a larger run.
@@ -77,7 +79,10 @@ class CreateAnalysis:
         """
         endpoints = resolve_endpoints(endpoints, self._settings)
         overrides = authorise_threshold_overrides(threshold_overrides, actor, self._settings)
-        policy = policy_snapshot(endpoints=endpoints, overrides=overrides, actor=actor)
+        policy = policy_snapshot(
+            endpoints=endpoints, overrides=overrides, actor=actor,
+            explanation_mode=explanation_mode, explanation_targets=explanation_targets,
+        )
 
         async with self._db.unit_of_work() as uow:
             session = await uow.sessions.get(session_id, owner_id=actor.subject_id)
@@ -92,6 +97,19 @@ class CreateAnalysis:
             smiles, endpoints, threshold_overrides=overrides
         )
         provenance = self._predictor.provenance_of(response)
+        explanations: list[dict[str, Any]] = []
+        if explanation_mode == "required":
+            for endpoint, task in explanation_targets:
+                try:
+                    explanation = await self._predictor.explain(response.canonical_smiles, endpoint, task)
+                    explanations.append(explanation.model_dump(mode="json"))
+                except Exception as exc:  # terminal failure artifact; never fabricate XAI
+                    explanations.append({
+                        "status": "failed", "endpoint": endpoint, "task": task,
+                        "input_smiles": smiles, "canonical_smiles": response.canonical_smiles,
+                        "atoms": [], "bonds": [], "tokens": [], "method": "unavailable",
+                        "metadata": {"error": type(exc).__name__},
+                    })
 
         # Idempotency is checked after the call rather than before it: the key
         # is defined over the *canonical* SMILES, which only the predictor can
@@ -136,6 +154,14 @@ class CreateAnalysis:
                 entity_type="observation", entity_id=observation.id, run_id=run_id,
                 payload={"kind": observation.kind.value},
             )
+            for explanation in explanations:
+                explanation_observation = self._explanation_observation(snapshot, run_id, explanation)
+                await uow.observations.add(explanation_observation, analysis_id=snapshot.id)
+                uow.emit(
+                    session_id=session_id, type=EventType.OBSERVATION_CREATED,
+                    entity_type="observation", entity_id=explanation_observation.id, run_id=run_id,
+                    payload={"kind": "attribution", "endpoint": explanation.get("endpoint"), "task": explanation.get("task"), "status": explanation.get("status")},
+                )
             await self._complete(uow, session, run_id, snapshot, reused=False, owns_run=owns_run)
             await uow.commit()
 
@@ -166,6 +192,24 @@ class CreateAnalysis:
             },
             now=snapshot.created_at,
             required_limitations=projections.required_limitations(snapshot),
+        )
+
+    @staticmethod
+    def _explanation_observation(snapshot: AnalysisSnapshot, run_id: str, payload: dict[str, Any]) -> Observation:
+        tokens = list(payload.get("tokens") or [])
+        return Observation.create(
+            session_id=snapshot.session_id, run_id=run_id,
+            producer=Producer.ATTRIBUTION, kind=ObservationKind.ATTRIBUTION,
+            schema_version="toxpred-explanation-v2", canonical_payload=payload,
+            model_projection={
+                "analysis_id": snapshot.id, "endpoint": payload.get("endpoint"), "task": payload.get("task"),
+                "status": payload.get("status"), "method": payload.get("method"),
+                "model_id": (payload.get("metadata") or {}).get("model_id"),
+                "top_tokens": sorted(tokens, key=lambda token: abs(float(token.get("importance", token.get("score", 0)))), reverse=True)[:12],
+                "required_limitations": ["attribution_not_causality"],
+            },
+            provenance={**snapshot.provenance.to_dict(), "analysis_id": snapshot.id, "target": {"endpoint": payload.get("endpoint"), "task": payload.get("task")}},
+            now=_now(), required_limitations=("attribution_not_causality",),
         )
 
     @staticmethod

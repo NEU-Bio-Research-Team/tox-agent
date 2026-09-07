@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Hash, ImageUp, PenTool, Send, Settings2, X } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { Input } from '../ui/input';
@@ -9,8 +10,8 @@ import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { ImageUploadDialog, type StagedImage } from './ImageUploadDialog';
 import type { Endpoint, IntentHint } from '../../lib/api/types';
-import type { SendMessageInput } from '../../lib/api/endpoints';
-import { getDraft, getExpertModeEnabled, setDraft } from '../../lib/preferences';
+import { quickPredictCapabilities, type SendMessageInput } from '../../lib/api/endpoints';
+import { getDraft, getEndpointSelection, getExpertModeEnabled, setDraft, setEndpointSelection } from '../../lib/preferences';
 
 // react-ocl pulls the large openchemlib editor bundle. The ordinary text/
 // SMILES composer must not download it until the user explicitly opens the
@@ -34,14 +35,9 @@ const INTENT_OPTIONS: Array<{ value: IntentHint; label: string }> = [
   { value: 'auto', label: 'Tự động (router quyết định)' },
   { value: 'analyze', label: 'Phân tích phân tử' },
   { value: 'ask_report', label: 'Hỏi về báo cáo hiện tại' },
-  // 'research_evidence' is intentionally not offered: no evidence-search
-  // tool is wired into any deployment yet (rebuild plan Phase 5, not
-  // started), so picking it always ends in "chưa hỗ trợ" — see
-  // application/submit_message.py's evidence_research_available gate.
+  { value: 'research_evidence', label: 'Tìm bằng chứng khoa học' },
   { value: 'request_attribution', label: 'Attribution' },
 ];
-
-const ALL_ENDPOINTS: Endpoint[] = ['herg', 'tox21', 'clintox'];
 
 //: A bare, whitespace-free token made only of characters SMILES notation
 // actually uses. Best-effort UX only — the predictor is the real validator.
@@ -103,7 +99,8 @@ export function MessageComposer({
   const [text, setTextState] = useState(() => getDraft(sessionId));
   const [smiles, setSmiles] = useState('');
   const [intentHint, setIntentHint] = useState<IntentHint>('auto');
-  const [endpoints, setEndpoints] = useState<Endpoint[]>(['herg', 'tox21']);
+  const [endpoints, setEndpoints] = useState<Endpoint[]>(() => getEndpointSelection() ?? ['herg', 'tox21']);
+  const [tox21Tasks, setTox21Tasks] = useState<string[]>([]);
   const [thresholdHerg, setThresholdHerg] = useState('');
   const [clientMessageId, setClientMessageId] = useState(() => crypto.randomUUID());
   const [drawDialogOpen, setDrawDialogOpen] = useState(false);
@@ -111,6 +108,21 @@ export function MessageComposer({
   const [stagedImage, setStagedImage] = useState<StagedImage | null>(null);
   const expertMode = getExpertModeEnabled();
   const smilesInputRef = useRef<HTMLInputElement>(null);
+  const capabilities = useQuery({ queryKey: ['predict-capabilities'], queryFn: quickPredictCapabilities, staleTime: 5 * 60_000 });
+  const endpointCapabilities = capabilities.data?.endpoints ?? [];
+
+  useEffect(() => {
+    if (!capabilities.data) return;
+    const enabled = new Set(capabilities.data.endpoints?.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.id) ?? capabilities.data.served_endpoints);
+    setEndpoints((current) => {
+      const compatible = current.filter((endpoint) => enabled.has(endpoint));
+      const fallback = capabilities.data!.default_endpoints?.filter((endpoint) => enabled.has(endpoint)) ?? [];
+      const next = compatible.length ? compatible : fallback;
+      return next.length ? next : compatible;
+    });
+  }, [capabilities.data]);
+
+  useEffect(() => { setEndpointSelection(endpoints); }, [endpoints]);
 
   const setText = (next: string) => {
     setTextState(next);
@@ -149,7 +161,9 @@ export function MessageComposer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stagedImage]);
 
-  const canSend = !disabled && (text.trim().length > 0 || smiles.trim().length > 0 || stagedImage !== null);
+  const wantsFreshSmiles = smiles.trim().length > 0 || looksLikeSmiles(text.trim());
+  const needsTox21Target = wantsFreshSmiles && endpoints.includes('tox21') && tox21Tasks.length === 0;
+  const canSend = !disabled && !needsTox21Target && (text.trim().length > 0 || smiles.trim().length > 0 || stagedImage !== null);
 
   const clearStagedImage = () => {
     if (stagedImage) URL.revokeObjectURL(stagedImage.previewUrl);
@@ -177,6 +191,13 @@ export function MessageComposer({
             endpoints,
             threshold_overrides:
               expertMode && thresholdHerg.trim() ? { herg: Number(thresholdHerg) } : null,
+            explanation_mode: effectiveSmiles ? 'required' : 'on_demand',
+            explanation_targets: effectiveSmiles
+              ? [
+                  ...(endpoints.includes('herg') ? [{ endpoint: 'herg' as const }] : []),
+                  ...tox21Tasks.map((task) => ({ endpoint: 'tox21' as const, task })),
+                ]
+              : [],
           }
         : undefined,
       // A new molecule in the same send always wins — the chip targets a
@@ -200,7 +221,7 @@ export function MessageComposer({
   };
 
   return (
-    <div className="rounded-xl border p-3" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+    <div className="ta-glass rounded-[var(--radius-floating)] border p-3 shadow-[var(--shadow-float)] transition-shadow focus-within:shadow-[0_0_0_3px_var(--purple-glow),var(--shadow-float)]" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line-strong)' }}>
       {analysisContext && (
         <div
           className="mb-2 flex items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-xs font-medium"
@@ -249,9 +270,9 @@ export function MessageComposer({
           }
         }}
         rows={2}
-        className="resize-none border-0 shadow-none focus-visible:ring-0"
+        className="min-h-12 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
       />
-      <div className="flex flex-wrap items-center gap-1.5 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
+      <div className="flex flex-wrap items-center gap-1.5 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
         <Button
           type="button"
           variant="ghost"
@@ -311,23 +332,41 @@ export function MessageComposer({
               <Settings2 className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-64 space-y-3">
+          <PopoverContent className="w-72 space-y-3">
             <div>
               <p className="mb-1.5 text-xs font-medium" style={{ color: 'var(--text)' }}>
                 Endpoint (khi có SMILES mới)
               </p>
-              {ALL_ENDPOINTS.map((endpoint) => (
-                <label key={endpoint} className="flex items-center gap-2 py-0.5 text-xs">
+              {endpointCapabilities.map((endpoint) => (
+                <label key={endpoint.id} className="flex items-center gap-2 py-1 text-xs" title={endpoint.blocked_reason ?? undefined}>
                   <Checkbox
-                    checked={endpoints.includes(endpoint)}
+                    checked={endpoints.includes(endpoint.id)}
+                    disabled={!endpoint.enabled}
                     onCheckedChange={(checked) =>
-                      setEndpoints((prev) => (checked ? [...prev, endpoint] : prev.filter((e) => e !== endpoint)))
+                      setEndpoints((prev) => {
+                        const next = checked ? [...prev, endpoint.id] : prev.filter((item) => item !== endpoint.id);
+                        return next.length ? next : prev;
+                      })
                     }
                   />
-                  {endpoint}
+                  <span className={endpoint.enabled ? '' : 'text-muted-foreground'}>{endpoint.display_name}</span>
+                  {!endpoint.enabled && <span className="text-[10px] text-muted-foreground">không khả dụng</span>}
                 </label>
               ))}
             </div>
+            {endpoints.includes('tox21') && endpointCapabilities.find((endpoint) => endpoint.id === 'tox21')?.tasks.length ? (
+              <div>
+                <p className="mb-1 text-xs font-medium">Assay Tox21 để giải thích <span className="font-normal text-muted-foreground">(chọn ít nhất một)</span></p>
+                <div className="grid grid-cols-2 gap-x-2">
+                  {endpointCapabilities.find((endpoint) => endpoint.id === 'tox21')!.tasks.map((task) => (
+                    <label key={task} className="flex items-center gap-1.5 py-0.5 text-xs">
+                      <Checkbox checked={tox21Tasks.includes(task)} onCheckedChange={(checked) => setTox21Tasks((current) => checked ? [...current, task] : current.filter((item) => item !== task))} />
+                      {task}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             {expertMode && (
               <div>
                 <Label htmlFor="herg-threshold" className="text-xs">
@@ -345,9 +384,8 @@ export function MessageComposer({
           </PopoverContent>
         </Popover>
 
-        <Button onClick={() => void handleSend()} disabled={!canSend} size="sm" className="ml-auto gap-1.5">
+        <Button onClick={() => void handleSend()} disabled={!canSend} variant="primary-gloss" size="icon-circle" className="ml-auto" aria-label="Gửi">
           <Send className="h-3.5 w-3.5" />
-          Gửi
         </Button>
       </div>
 

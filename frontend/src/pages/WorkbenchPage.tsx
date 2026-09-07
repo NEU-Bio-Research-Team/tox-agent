@@ -16,6 +16,7 @@ import {
   getSession,
   listAllMessages,
   listEventsThroughSnapshot,
+  renameSession,
   sendMessage,
 } from '../lib/api/endpoints';
 import { errorMessageVi } from '../lib/labels';
@@ -179,6 +180,14 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
     },
   });
 
+  const renameMutation = useMutation({
+    mutationFn: (title: string) => renameSession(sessionId, { title, expected_version: session.version }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['session', sessionId], (current: SessionProjection | undefined) => current ? { ...current, title: updated.title, version: updated.version } : current);
+      void queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    },
+  });
+
   const runs = [...session.recent_runs];
   if (session.active_run && !runs.some((r) => r.run_id === session.active_run!.run_id)) {
     runs.push(session.active_run);
@@ -226,7 +235,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   const artifactsButton = (
     <Button variant="outline" size="sm" className="relative gap-1.5" onClick={toggleArtifacts} aria-expanded={panelVisible} aria-controls="artifacts-panel">
       <PanelRight className="h-4 w-4" />
-      Artifacts
+      Kết quả
       {hasUnseenArtifact && (
         <span
           className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full"
@@ -240,13 +249,14 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   const chatColumn = (
     <div className="relative flex h-full min-w-0 flex-col">
       <WorkspaceHeader
-        title={session.title ?? session.session_id}
-        subtitle={session.session_id}
+        title={session.title ?? 'Phiên mới'}
+        sessionId={session.session_id}
         status={status}
         actions={artifactsButton}
+        onRename={async (title) => { await renameMutation.mutateAsync(title); }}
       />
-      <div ref={transcriptRef} className="flex-1 overflow-y-auto px-4 py-4 md:px-6">
-        <div className="mx-auto max-w-[800px]">
+      <div ref={transcriptRef} className="flex-1 overflow-y-auto px-4 pb-48 pt-4 md:px-6">
+        <div className="mx-auto max-w-[760px]">
           {messagesQuery.isLoading && (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
               Đang tải hội thoại…
@@ -288,9 +298,10 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
           </Button>
         </div>
       )}
-      <div className="border-t px-4 py-3 md:px-6" style={{ borderColor: 'var(--border)' }}>
-        <div className="mx-auto max-w-[800px]">
-          <MessageComposer
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--canvas)] via-[var(--canvas)]/95 to-transparent px-4 pb-3 pt-10 md:px-6">
+        <div className="mx-auto max-w-[820px]">
+          <div className="pointer-events-auto">
+            <MessageComposer
             sessionId={sessionId}
             hasActiveAnalysis={Boolean(session.active_analysis)}
             disabled={sendMutation.isPending || activeRunBusy}
@@ -313,7 +324,8 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
                 return false;
               }
             }}
-          />
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -242,13 +242,24 @@ class SqlOutboxReader:
 class Database:
     """Owns the engine. One instance per process, created in the app factory."""
 
-    def __init__(self, url: str, *, echo: bool = False, on_commit: CommitHook | None = None) -> None:
+    def __init__(self, url: str, *, echo: bool = False, on_commit: CommitHook | None = None, pool_size: int | None = None, max_overflow: int | None = None, pool_timeout: float | None = None, pool_recycle: int | None = None, command_timeout: float | None = None) -> None:
         connect_args: dict[str, Any] = {}
         if url.startswith("sqlite"):
             # SQLite serialises writers; a short wait beats a spurious "database
             # is locked" under the concurrent-run tests.
             connect_args["timeout"] = 15
-        self._engine = create_async_engine(url, echo=echo, future=True, connect_args=connect_args)
+        engine_options: dict[str, Any] = {"echo": echo, "future": True, "connect_args": connect_args}
+        if not url.startswith("sqlite"):
+            engine_options.update(
+                pool_pre_ping=True,
+                pool_size=pool_size if pool_size is not None else 8,
+                max_overflow=max_overflow if max_overflow is not None else 8,
+                pool_timeout=pool_timeout if pool_timeout is not None else 30.0,
+                pool_recycle=pool_recycle if pool_recycle is not None else 1800,
+            )
+            if command_timeout is not None:
+                connect_args["command_timeout"] = command_timeout
+        self._engine = create_async_engine(url, **engine_options)
         self._on_commit = on_commit
         self._outbox = SqlOutboxReader(self._engine)
 

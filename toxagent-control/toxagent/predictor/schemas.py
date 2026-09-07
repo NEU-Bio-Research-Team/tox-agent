@@ -204,8 +204,12 @@ class ExplanationResponse(_Base):
     input_smiles: str
     canonical_smiles: str | None = None
     atom_order_version: str | None = None
+    structure_order_version: str | None = None
     probability: float | None = None
     atoms: list[dict[str, Any]] = []
+    bonds: list[dict[str, Any]] = []
+    depiction_svg: str | None = None
+    depiction: dict[str, Any] | None = None
     unmapped_importance: float | None = None
     tokens: list[dict[str, Any]] = []
     method: str | None = None

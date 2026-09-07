@@ -15,7 +15,7 @@ function statusDotColor(row: SessionListRow): string {
 export function SessionSidebarRow({ row }: { row: SessionListRow }) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={row.title ?? row.session_id}>
+      <SidebarMenuButton asChild tooltip={row.title ?? 'Phiên mới'}>
         <NavLink to={`/s/${row.session_id}`}>
           {({ isActive }) => (
             <>
@@ -24,7 +24,7 @@ export function SessionSidebarRow({ row }: { row: SessionListRow }) {
                 style={{ backgroundColor: statusDotColor(row) }}
               />
               <span className="truncate" style={{ fontWeight: isActive ? 600 : 400 }}>
-                {row.title ?? row.session_id}
+                {row.title ?? 'Phiên mới'}
               </span>
             </>
           )}
@@ -50,7 +50,7 @@ export function SessionCardRow({ row, onOpen }: { row: SessionListRow; onOpen: (
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: statusDotColor(row) }} />
             <p className="truncate text-sm font-medium" style={{ color: 'var(--text)' }}>
-              {row.title ?? row.session_id}
+              {row.title ?? 'Phiên mới'}
             </p>
           </div>
           {row.last_message_preview && (
@@ -59,7 +59,7 @@ export function SessionCardRow({ row, onOpen }: { row: SessionListRow; onOpen: (
             </p>
           )}
           <p className="mt-1.5 text-xs" style={{ color: 'var(--text-faint)' }}>
-            {row.session_id} · {row.run_count} run · cập nhật {relativeTimeVi(row.updated_at)}
+            {row.run_count} run · cập nhật {relativeTimeVi(row.updated_at)}
           </p>
         </div>
         {row.active_run && (

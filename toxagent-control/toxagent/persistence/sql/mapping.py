@@ -32,7 +32,7 @@ from ...domain.observation import Observation, ObservationKind, Producer
 from ...domain.run import Intent, Lane, Run, RunStatus
 from ...domain.runtime import BindingStatus, RuntimeBinding, RuntimeCapabilities, RuntimeKind
 from ...domain.usage import RuntimeUsageEvent
-from ...domain.session import Language, Session, SessionStatus
+from ...domain.session import Language, Session, SessionStatus, TitleSource
 
 
 def utc(value: datetime | None) -> datetime | None:
@@ -56,6 +56,9 @@ def session_to_row(session: Session, client_session_id: str | None = None) -> di
         "status": session.status.value,
         "preferred_language": session.preferred_language.value,
         "title": session.title,
+        "title_source": session.title_source.value if session.title_source else None,
+        "title_status": session.title_status,
+        "title_updated_at": session.title_updated_at,
         "active_analysis_id": session.active_analysis_id,
         "context_epoch": session.context_epoch,
         "event_sequence": session.event_sequence,
@@ -73,6 +76,9 @@ def row_to_session(row: Mapping[str, Any]) -> Session:
         status=SessionStatus(row["status"]),
         preferred_language=Language(row["preferred_language"]),
         title=row["title"],
+        title_source=TitleSource(row["title_source"]) if row.get("title_source") else None,
+        title_status=row.get("title_status") or "pending",
+        title_updated_at=utc(row.get("title_updated_at")),
         active_analysis_id=row["active_analysis_id"],
         context_epoch=row["context_epoch"],
         event_sequence=row["event_sequence"],

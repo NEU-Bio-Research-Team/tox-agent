@@ -71,6 +71,21 @@ class AttributionInput(_Input):
     )
 
 
+class BundleInput(_Input):
+    analysis_id: str
+    include: list[Literal["prediction_summary", "explanation_summary", "provenance"]] = Field(
+        default_factory=lambda: ["prediction_summary", "explanation_summary", "provenance"]
+    )
+
+
+class ExplanationSliceInput(_Input):
+    analysis_id: str
+    endpoint: Endpoint
+    task: str | None = None
+    fields: list[Literal["atoms", "bonds", "tokens", "metadata", "method", "status"]] | None = None
+    top_k: int = Field(default=12, ge=1, le=50)
+
+
 def _require_own_session(context: ToolContext, claimed: str) -> None:
     if claimed != context.session_id:
         raise ToolDenied(
@@ -174,7 +189,7 @@ def build(
                         provenance={**existing.provenance, "cached": True},
                     )
 
-        response = await predictor.attribution(
+        response = await predictor.explain(
             snapshot.canonical_smiles, payload.endpoint, payload.task
         )
         if response.status == "failed":
@@ -194,7 +209,7 @@ def build(
             # Top contributions only. The full token list is unbounded and the
             # tail is noise a model would spend budget reading.
             "top_tokens": sorted(
-                response.tokens, key=lambda t: abs(float(t.get("score", 0.0))), reverse=True
+                response.tokens, key=lambda t: abs(float(t.get("importance", t.get("score", 0.0)))), reverse=True
             )[:12],
             "required_limitations": ["attribution_not_causality"],
         }
@@ -203,7 +218,7 @@ def build(
             run_id=context.run_id,
             producer=Producer.ATTRIBUTION,
             kind=ObservationKind.ATTRIBUTION,
-            schema_version="toxpred-attribution-v1",
+            schema_version="toxpred-explanation-v2",
             canonical_payload=canonical,
             model_projection=model_view,
             provenance={
@@ -228,6 +243,65 @@ def build(
         return ToolOutput(
             canonical=canonical, model_view=observation.model_projection, ui_view=canonical,
             observation_ids=(observation.id,), provenance=observation.provenance,
+        )
+
+    async def analysis_bundle(context: ToolContext, payload: BundleInput) -> ToolOutput:
+        snapshot = await _load(database, context, payload.analysis_id)
+        async with database.unit_of_work() as uow:
+            observations = await uow.observations.list_for_analysis(snapshot.id)
+        prediction = next((item for item in observations if item.kind is ObservationKind.PREDICTION), None)
+        if prediction is None:
+            raise AnalysisNotFound("this analysis has no stored prediction observation", analysis_id=snapshot.id)
+        attributions = [item for item in observations if item.kind is ObservationKind.ATTRIBUTION]
+        include = set(payload.include)
+        view: dict[str, Any] = {"analysis_id": snapshot.id, "canonical_smiles": snapshot.canonical_smiles}
+        if "prediction_summary" in include:
+            view["prediction_summary"] = projections.model_projection(snapshot)
+            view["prediction_observation_id"] = prediction.id
+        if "explanation_summary" in include:
+            view["explanation_summary"] = [
+                {
+                    "observation_id": item.id, "endpoint": item.model_projection.get("endpoint"),
+                    "task": item.model_projection.get("task"), "status": item.model_projection.get("status"),
+                    "method": item.model_projection.get("method"),
+                    "required_limitations": list(item.required_limitations),
+                }
+                for item in attributions
+            ]
+        if "provenance" in include:
+            view["provenance"] = {**snapshot.provenance.to_dict(), "content_sha256": snapshot.content_sha256}
+        return ToolOutput(
+            canonical=view, model_view=view, ui_view=view,
+            observation_ids=tuple(item.id for item in [prediction, *attributions]),
+            provenance={"analysis_id": snapshot.id, "content_sha256": snapshot.content_sha256},
+        )
+
+    async def explanation_slice(context: ToolContext, payload: ExplanationSliceInput) -> ToolOutput:
+        snapshot = await _load(database, context, payload.analysis_id)
+        async with database.unit_of_work() as uow:
+            observations = await uow.observations.list_for_analysis(snapshot.id)
+        matching = [
+            item for item in observations
+            if item.kind is ObservationKind.ATTRIBUTION
+            and item.model_projection.get("endpoint") == payload.endpoint
+            and item.model_projection.get("task") == payload.task
+        ]
+        if not matching:
+            raise AnalysisNotFound("no persisted explanation for this target", analysis_id=snapshot.id)
+        item = matching[-1]
+        allowed = set(payload.fields or ["atoms", "bonds", "tokens", "metadata", "method", "status"])
+        canonical: dict[str, Any] = {
+            "analysis_id": snapshot.id, "observation_id": item.id, "endpoint": payload.endpoint,
+            "task": payload.task, "required_limitations": list(item.required_limitations),
+        }
+        for name in allowed:
+            value = item.canonical_payload.get(name)
+            if isinstance(value, list):
+                value = sorted(value, key=lambda entry: abs(float(entry.get("relative_importance", entry.get("importance", entry.get("score", 0))))), reverse=True)[:payload.top_k]
+            canonical[name] = value
+        return ToolOutput(
+            canonical=canonical, model_view=canonical, ui_view=canonical,
+            observation_ids=(item.id,), provenance=item.provenance,
         )
 
     return [
@@ -273,5 +347,21 @@ def build(
             profiles=frozenset({"report_qa"}),
             soft_timeout_s=90.0,
             hard_timeout_s=180.0,
+        ),
+        ToolDefinition(
+            name="get_analysis_bundle",
+            title="Read an analysis bundle",
+            description="Read prediction, persisted explanation summaries and provenance for one analysis without reconstructing values from multiple calls.",
+            input_model=BundleInput, handler=analysis_bundle,
+            profiles=frozenset({"analysis", "report_qa", "evidence_research", "audit_readonly"}),
+            soft_timeout_s=2.0, hard_timeout_s=5.0,
+        ),
+        ToolDefinition(
+            name="get_explanation_slice",
+            title="Read a persisted explanation slice",
+            description="Read numeric atom, bond or token attribution from a persisted endpoint/assay explanation. Attribution is not causality.",
+            input_model=ExplanationSliceInput, handler=explanation_slice,
+            profiles=frozenset({"report_qa", "evidence_research", "audit_readonly"}),
+            soft_timeout_s=2.0, hard_timeout_s=5.0,
         ),
     ]

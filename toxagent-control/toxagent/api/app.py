@@ -81,7 +81,12 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         notifier = EventNotifier()
-        db = database or Database(settings.database_url)
+        db = database or Database(
+            settings.database_url, echo=settings.database.echo,
+            pool_size=settings.database.pool_size, max_overflow=settings.database.max_overflow,
+            pool_timeout=settings.database.pool_timeout_s, pool_recycle=settings.database.pool_recycle_s,
+            command_timeout=settings.database.command_timeout_s,
+        )
         db.set_commit_hook(lambda session_ids: notifier.notify(session_ids))
         if create_schema:
             await db.create_schema()
@@ -121,6 +126,8 @@ def create_app(
                 actor=context.actor, session_id=context.session_id, run_id=context.run_id,
                 smiles=context.smiles, endpoints=context.endpoints,
                 threshold_overrides=context.threshold_overrides,
+                explanation_mode=context.explanation_mode,
+                explanation_targets=context.explanation_targets,
             )
 
         async def run_batch(context: RunContext) -> None:

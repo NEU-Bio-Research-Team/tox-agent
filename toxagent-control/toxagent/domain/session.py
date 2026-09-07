@@ -25,6 +25,12 @@ class Language(str, Enum):
     EN = "en"
 
 
+class TitleSource(str, Enum):
+    DETERMINISTIC = "deterministic"
+    MODEL = "model"
+    MANUAL = "manual"
+
+
 @dataclass(frozen=True, slots=True)
 class Session:
     id: str
@@ -38,6 +44,9 @@ class Session:
     active_analysis_id: str | None = None
     context_epoch: int = 0
     event_sequence: int = 0
+    title_source: TitleSource | None = None
+    title_status: str = "pending"
+    title_updated_at: datetime | None = None
 
     def __post_init__(self) -> None:
         require_id(self.id, SESSION, field="session.id")
@@ -78,6 +87,15 @@ class Session:
             active_analysis_id=analysis_id,
             updated_at=now,
             version=self.version + 1,
+        )
+
+    def with_title(self, title: str, *, source: TitleSource, now: datetime) -> "Session":
+        normalized = " ".join(title.split())
+        if not normalized or len(normalized) > 120 or any(ord(char) < 32 for char in normalized):
+            raise ValueError("session title must be 1–120 printable characters")
+        return replace(
+            self, title=normalized, title_source=source, title_status="ready",
+            title_updated_at=now, updated_at=now, version=self.version + 1,
         )
 
     def archived(self, *, now: datetime) -> "Session":

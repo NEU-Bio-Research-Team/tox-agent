@@ -38,6 +38,10 @@ export function createSession(input: CreateSessionInput = {}): Promise<SessionRe
   return apiRequest('/v1/sessions', { method: 'POST', body: input });
 }
 
+export function renameSession(sessionId: string, input: { title: string; expected_version: number }): Promise<SessionResponse> {
+  return apiRequest(`/v1/sessions/${sessionId}`, { method: 'PATCH', body: input });
+}
+
 export function listSessions(params: { limit?: number; offset?: number } = {}): Promise<SessionListResponse> {
   return apiRequest('/v1/sessions', { query: params });
 }
@@ -78,6 +82,8 @@ export interface SendMessageInput {
     endpoints?: Array<'clintox' | 'herg' | 'tox21'>;
     threshold_overrides?: Record<string, number> | null;
     include_attribution?: boolean;
+    explanation_mode?: 'required' | 'on_demand' | 'none';
+    explanation_targets?: Array<{ endpoint: 'herg' | 'tox21'; task?: string }>;
   };
   analysis_id?: string;
 }

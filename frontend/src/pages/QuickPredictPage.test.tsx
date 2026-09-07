@@ -26,8 +26,8 @@ vi.mock('../lib/api/endpoints', () => ({
   explainPrediction,
 }));
 
-const { getExpertModeEnabled } = vi.hoisted(() => ({ getExpertModeEnabled: vi.fn() }));
-vi.mock('../lib/preferences', () => ({ getExpertModeEnabled }));
+const { getEndpointSelection, getExpertModeEnabled, setEndpointSelection } = vi.hoisted(() => ({ getEndpointSelection: vi.fn(), getExpertModeEnabled: vi.fn(), setEndpointSelection: vi.fn() }));
+vi.mock('../lib/preferences', () => ({ getEndpointSelection, getExpertModeEnabled, setEndpointSelection }));
 
 import { QuickPredictPage } from './QuickPredictPage';
 
@@ -55,6 +55,18 @@ const FIXTURE: AnalysisProjection = {
   created_at: '2026-09-06T00:00:00Z',
 };
 
+const CAPS = {
+  capability_version: 'predict-capabilities-v2' as const,
+  default_endpoints: ['herg', 'tox21'] as const,
+  served_endpoints: ['herg', 'tox21'] as const,
+  endpoints: [
+    { id: 'herg' as const, display_name: 'hERG blockade', enabled: true, model_id: 'm', supports_explanation: true, explanation_target_required: false, tasks: [], blocked_reason: null },
+    { id: 'tox21' as const, display_name: 'Tox21 assays', enabled: true, model_id: 'm', supports_explanation: true, explanation_target_required: true, tasks: ['SR-p53'], blocked_reason: null },
+    { id: 'clintox' as const, display_name: 'Clinical toxicity', enabled: false, model_id: null, supports_explanation: false, explanation_target_required: false, tasks: [], blocked_reason: 'Unavailable' },
+  ],
+  models: [], predictor_id: 'toxpred-local', ocr_available: false,
+};
+
 function renderPage() {
   return render(
     <MemoryRouter>
@@ -70,12 +82,7 @@ describe('QuickPredictPage', () => {
 
   it('renders the analysis panel from the quickPredict result', async () => {
     getExpertModeEnabled.mockReturnValue(false);
-    quickPredictCapabilities.mockResolvedValue({
-      served_endpoints: ['herg', 'tox21'],
-      models: [],
-      predictor_id: 'toxpred-local',
-      ocr_available: false,
-    });
+    quickPredictCapabilities.mockResolvedValue(CAPS);
     quickPredict.mockResolvedValue({ ...FIXTURE, analysis_id: null, persisted: false });
 
     renderPage();
@@ -87,29 +94,19 @@ describe('QuickPredictPage', () => {
     expect(await screen.findByText('hERG')).toBeInTheDocument();
   });
 
-  it('disables the clintox checkbox when the predictor does not serve it', async () => {
+  it('disables an unavailable endpoint from the capability inventory', async () => {
     getExpertModeEnabled.mockReturnValue(false);
-    quickPredictCapabilities.mockResolvedValue({
-      served_endpoints: ['herg', 'tox21'],
-      models: [],
-      predictor_id: 'toxpred-local',
-      ocr_available: false,
-    });
+    quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
     await waitFor(() => expect(quickPredictCapabilities).toHaveBeenCalled());
-    const clintox = screen.getByRole('checkbox', { name: /clintox/i });
+    const clintox = screen.getByRole('button', { name: /clinical toxicity/i });
     await waitFor(() => expect(clintox).toBeDisabled());
   });
 
   it('hides the threshold override field for a non-expert', async () => {
     getExpertModeEnabled.mockReturnValue(false);
-    quickPredictCapabilities.mockResolvedValue({
-      served_endpoints: ['herg', 'tox21'],
-      models: [],
-      predictor_id: 'toxpred-local',
-      ocr_available: false,
-    });
+    quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
     expect(screen.queryByLabelText(/threshold override/i)).not.toBeInTheDocument();
@@ -117,12 +114,7 @@ describe('QuickPredictPage', () => {
 
   it('runs a batch and renders one panel per result plus the error list', async () => {
     getExpertModeEnabled.mockReturnValue(false);
-    quickPredictCapabilities.mockResolvedValue({
-      served_endpoints: ['herg', 'tox21'],
-      models: [],
-      predictor_id: 'toxpred-local',
-      ocr_available: false,
-    });
+    quickPredictCapabilities.mockResolvedValue(CAPS);
     quickPredictBatch.mockResolvedValue({
       count: 3,
       results: [
@@ -133,8 +125,10 @@ describe('QuickPredictPage', () => {
     });
 
     renderPage();
-    fireEvent.click(screen.getByRole('checkbox', { name: /Nhiều phân tử/ }));
-    fireEvent.change(screen.getByLabelText('Danh sách SMILES'), {
+    const batchToggle = screen.getByRole('button', { name: 'Hàng loạt' });
+    fireEvent.click(batchToggle);
+    await waitFor(() => expect(batchToggle).toHaveAttribute('aria-pressed', 'true'));
+    fireEvent.change(await screen.findByLabelText('Danh sách SMILES'), {
       target: { value: 'CCO\nnope\nCCN' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Phân tích' }));
@@ -147,12 +141,7 @@ describe('QuickPredictPage', () => {
 
   it('shows the threshold override field for an expert', async () => {
     getExpertModeEnabled.mockReturnValue(true);
-    quickPredictCapabilities.mockResolvedValue({
-      served_endpoints: ['herg', 'tox21'],
-      models: [],
-      predictor_id: 'toxpred-local',
-      ocr_available: false,
-    });
+    quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
     expect(screen.getByLabelText(/threshold override/i)).toBeInTheDocument();

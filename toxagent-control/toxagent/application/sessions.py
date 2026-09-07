@@ -12,7 +12,7 @@ from typing import Any
 
 from ..domain.errors import SessionNotFound
 from ..domain.events import EventType
-from ..domain.session import Language, Session
+from ..domain.session import Language, Session, TitleSource
 from .policy import Actor
 from .projections import display_projection
 
@@ -53,6 +53,22 @@ class SessionService:
             await uow.commit()
         return session
 
+    async def rename(self, actor: Actor, session_id: str, *, title: str, expected_version: int) -> Session:
+        async with self.database.unit_of_work() as uow:
+            session = await uow.sessions.get(session_id, owner_id=actor.subject_id)
+            if session is None:
+                raise SessionNotFound("no such session", session_id=session_id)
+            updated = session.with_title(title, source=TitleSource.MANUAL, now=_now())
+            await uow.sessions.update(updated, expected_version=expected_version)
+            uow.emit(
+                session_id=session_id, type=EventType.SESSION_TITLE_UPDATED,
+                entity_type="session", entity_id=session_id,
+                entity_version=updated.version,
+                payload={"title": updated.title, "title_source": updated.title_source.value},
+            )
+            await uow.commit()
+        return updated
+
     async def get(self, actor: Actor, session_id: str) -> Session:
         async with self.database.unit_of_work() as uow:
             session = await uow.sessions.get(session_id, owner_id=actor.subject_id)
@@ -81,6 +97,8 @@ class SessionService:
             "status": session.status.value,
             "preferred_language": session.preferred_language.value,
             "title": session.title,
+            "title_source": session.title_source.value if session.title_source else None,
+            "title_status": session.title_status,
             "version": session.version,
             "created_at": session.created_at.isoformat(),
             "updated_at": session.updated_at.isoformat(),
@@ -124,6 +142,7 @@ class SessionService:
                     {
                         "session_id": session.id,
                         "title": session.title,
+                        "title_source": session.title_source.value if session.title_source else None,
                         "status": session.status.value,
                         "preferred_language": session.preferred_language.value,
                         "created_at": session.created_at.isoformat(),

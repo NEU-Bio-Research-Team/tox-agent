@@ -1,6 +1,7 @@
 const EXPERT_MODE_KEY = 'toxagent.expert_mode';
 const DRAFT_KEY_PREFIX = 'toxagent.draft.';
 const LAYOUT_KEY = 'toxagent.layout.v1';
+const ENDPOINT_SELECTION_KEY = 'toxagent.endpoint_selection.v1';
 
 /** Section 7.6: only presentation preferences persist, versioned so a future
  * shape change can migrate or drop the key instead of crashing on old JSON.
@@ -99,4 +100,17 @@ export function setDraft(sessionId: string, text: string): void {
   } catch {
     // best effort
   }
+}
+
+export function getEndpointSelection(): Array<'herg' | 'tox21' | 'clintox'> | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(ENDPOINT_SELECTION_KEY) ?? 'null');
+    return Array.isArray(value)
+      ? value.filter((item): item is 'herg' | 'tox21' | 'clintox' => item === 'herg' || item === 'tox21' || item === 'clintox')
+      : null;
+  } catch { return null; }
+}
+
+export function setEndpointSelection(endpoints: Array<'herg' | 'tox21' | 'clintox'>): void {
+  try { localStorage.setItem(ENDPOINT_SELECTION_KEY, JSON.stringify(endpoints)); } catch { /* best effort */ }
 }

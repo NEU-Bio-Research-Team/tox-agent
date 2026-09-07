@@ -1,12 +1,11 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { FlaskConical, ImageUp, Pencil } from 'lucide-react';
+import { ImageUp, Pencil, Sparkles } from 'lucide-react';
 import { Navbar } from '../components/shell/Navbar';
 import { Footer } from '../components/shell/Footer';
 import { AnalysisPanel } from '../components/workbench/AnalysisPanel';
 import { ImageUploadDialog, type StagedImage } from '../components/workbench/ImageUploadDialog';
 import { looksLikeSmiles } from '../components/workbench/MessageComposer';
 import { Button } from '../components/ui/button';
-import { Checkbox } from '../components/ui/checkbox';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
@@ -25,19 +24,17 @@ import type {
   RecognizedStructure,
 } from '../lib/api/types';
 import { errorMessageVi } from '../lib/labels';
-import { getExpertModeEnabled } from '../lib/preferences';
+import { getEndpointSelection, getExpertModeEnabled, setEndpointSelection } from '../lib/preferences';
 
 const StructureEditorDialog = lazy(() =>
   import('../components/workbench/StructureEditorDialog').then((m) => ({ default: m.StructureEditorDialog })),
 );
 
-const SELECTABLE: Endpoint[] = ['herg', 'tox21', 'clintox'];
-
 export function QuickPredictPage() {
   const [smiles, setSmiles] = useState('');
   const [batchMode, setBatchMode] = useState(false);
   const [batchText, setBatchText] = useState('');
-  const [endpoints, setEndpoints] = useState<Endpoint[]>(['herg', 'tox21']);
+  const [endpoints, setEndpoints] = useState<Endpoint[]>(() => getEndpointSelection() ?? ['herg', 'tox21']);
   const [thresholdHerg, setThresholdHerg] = useState('');
   const [drawOpen, setDrawOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
@@ -61,13 +58,25 @@ export function QuickPredictPage() {
   }, []);
 
   useEffect(() => {
+    if (!caps) return;
+    const enabled = new Set((caps.endpoints ?? []).filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.id));
+    setEndpoints((current) => {
+      const compatible = current.filter((endpoint) => enabled.has(endpoint));
+      const fallback = (caps.default_endpoints ?? caps.served_endpoints).filter((endpoint) => enabled.has(endpoint));
+      return compatible.length ? compatible : fallback;
+    });
+  }, [caps]);
+
+  useEffect(() => { setEndpointSelection(endpoints); }, [endpoints]);
+
+  useEffect(() => {
     return () => {
       if (recognized) URL.revokeObjectURL(recognized.previewUrl);
     };
   }, [recognized]);
 
-  const clintoxServed = caps?.served_endpoints.includes('clintox') ?? false;
   const ocrAvailable = caps?.ocr_available ?? false;
+  const endpointCapabilities = caps?.endpoints ?? [];
 
   const overrides =
     expertMode && thresholdHerg.trim() ? { herg: Number(thresholdHerg) } : null;
@@ -147,43 +156,37 @@ export function QuickPredictPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--canvas-subtle)' }}>
       <Navbar />
-      <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-        <header className="mb-6">
-          <h1 className="flex items-center gap-2 text-xl font-bold" style={{ color: 'var(--text)' }}>
-            <FlaskConical className="h-5 w-5" style={{ color: 'var(--accent-blue)' }} />
-            Phân tích nhanh
+      <main className="mx-auto max-w-[1240px] px-4 py-8 md:px-6 md:py-14">
+        <header className="mx-auto mb-8 max-w-3xl text-center">
+          <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--purple-100)] px-3 py-1 text-xs font-medium text-[var(--purple-700)]"><Sparkles className="h-3.5 w-3.5" /> Phân tích nhanh, không lưu phiên</p>
+          <h1 className="text-3xl font-semibold tracking-tight md:text-[40px]" style={{ color: 'var(--ink)' }}>
+            Dự đoán độc tính trong vài giây
           </h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
-            SMILES vào, số ra. Không tạo session, không lưu vào lịch sử — cần bản ghi có
-            audit trail thì dùng workbench.
+          <p className="mt-2 text-sm md:text-base" style={{ color: 'var(--ink-secondary)' }}>
+            Nhập SMILES, tải ảnh hoặc vẽ cấu trúc. Kết quả chỉ là screening và không được lưu vào lịch sử.
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="mx-auto max-w-[920px]">
           <div
-            className="space-y-4 rounded-xl border p-4"
-            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+            className="ta-glass space-y-5 rounded-[var(--radius-floating)] border p-4 shadow-[var(--shadow-float)] md:p-6"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line-strong)' }}
           >
-            <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-              <Checkbox
-                checked={batchMode}
-                onCheckedChange={(checked) => {
-                  setBatchMode(Boolean(checked));
-                  setError(null);
-                }}
-              />
-              Nhiều phân tử (mỗi dòng một SMILES)
-            </label>
+            <div className="inline-flex rounded-xl bg-[var(--surface-muted)] p-1" role="group" aria-label="Chế độ dự đoán">
+              <Button type="button" aria-pressed={!batchMode} variant={batchMode ? 'ghost' : 'secondary'} size="sm" onClick={() => { setBatchMode(false); setError(null); }}>Một phân tử</Button>
+              <Button type="button" aria-pressed={batchMode} variant={batchMode ? 'secondary' : 'ghost'} size="sm" onClick={() => { setBatchMode(true); setError(null); }}>Hàng loạt</Button>
+            </div>
 
             {batchMode ? (
               <div>
                 <Label htmlFor="qp-batch" className="text-xs">
-                  Danh sách SMILES
+                  Danh sách SMILES <span className="font-normal text-muted-foreground">· {batchText.split('\n').filter((line) => line.trim()).length} phân tử</span>
                 </Label>
                 <Textarea
                   id="qp-batch"
+                  aria-label="Danh sách SMILES"
                   rows={6}
                   className="mt-1 font-mono text-sm"
                   placeholder={'CCO\nCC(=O)Oc1ccccc1C(=O)O'}
@@ -260,33 +263,19 @@ export function QuickPredictPage() {
             )}
 
             <fieldset>
-              <legend className="mb-1 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                Endpoint
+              <legend className="mb-2 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                Phạm vi dự đoán
               </legend>
-              <div className="flex flex-col gap-1">
-                {SELECTABLE.map((endpoint) => {
-                  const disabled = endpoint === 'clintox' && !clintoxServed;
+              <div className="flex flex-wrap gap-2">
+                {endpointCapabilities.map((endpoint) => {
+                  const selected = endpoints.includes(endpoint.id);
                   return (
-                    <label
-                      key={endpoint}
-                      className="flex items-center gap-2 text-xs"
-                      style={{ color: disabled ? 'var(--text-faint)' : 'var(--text)' }}
-                      title={
-                        disabled ? 'Bản predictor này không phục vụ ClinTox (thiếu artifact).' : undefined
-                      }
-                    >
-                      <Checkbox
-                        checked={endpoints.includes(endpoint)}
-                        disabled={disabled}
-                        onCheckedChange={(checked) =>
-                          setEndpoints((prev) =>
-                            checked ? [...prev, endpoint] : prev.filter((e) => e !== endpoint),
-                          )
-                        }
-                      />
-                      {endpoint}
-                      {disabled && ' — không khả dụng'}
-                    </label>
+                    <button key={endpoint.id} type="button" disabled={!endpoint.enabled} title={endpoint.blocked_reason ?? undefined}
+                      onClick={() => setEndpoints((current) => selected ? (current.length > 1 ? current.filter((item) => item !== endpoint.id) : current) : [...current, endpoint.id])}
+                      className="rounded-xl border px-3 py-2 text-left text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{ borderColor: selected ? 'var(--purple-500)' : 'var(--line)', backgroundColor: selected ? 'var(--purple-50)' : 'var(--surface-solid)', color: 'var(--ink)' }}>
+                      <span className="font-medium">{endpoint.display_name}</span>{!endpoint.enabled && <span className="ml-1 text-[10px] text-[var(--ink-tertiary)]">không khả dụng</span>}
+                    </button>
                   );
                 })}
               </div>
@@ -321,16 +310,17 @@ export function QuickPredictPage() {
             <Button
               onClick={() => void analyse()}
               disabled={loading || endpoints.length === 0}
+              variant="primary-gloss"
               className="w-full gap-1.5"
             >
               {loading ? 'Đang phân tích…' : 'Phân tích'}
             </Button>
             <p className="text-center text-xs" style={{ color: 'var(--text-faint)' }}>
-              Phân tích nhanh (không lưu vào session)
+              Kết quả này không được lưu. Cần audit trail? <a className="text-[var(--purple-700)] underline" href="/sessions">Mở Session</a>.
             </p>
           </div>
 
-          <div className="space-y-4">
+          <section aria-live="polite" className="mt-8 space-y-4">
             {batchResult ? (
               <>
                 {batchResult.errors.length > 0 && (
@@ -355,7 +345,7 @@ export function QuickPredictPage() {
             ) : (
               <AnalysisPanel analysis={result} />
             )}
-          </div>
+          </section>
         </div>
       </main>
       <Footer />

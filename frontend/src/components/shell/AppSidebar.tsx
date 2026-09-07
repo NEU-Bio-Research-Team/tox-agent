@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Info, Loader2, Plus, Search, Settings } from 'lucide-react';
+import { FlaskConical, Info, Loader2, Plus, Search, Settings } from 'lucide-react';
 import logoImage from '../../assets/logo-tox.png';
 import {
   Sidebar,
@@ -110,8 +110,8 @@ export function AppSidebar() {
                   <SidebarMenuItem key={row.session_id}>
                     <SidebarMenuButton asChild tooltip={`${row.title ?? row.session_id} — ${RUN_STATUS_LABEL_VI[row.active_run!.status]}`}>
                       <Link to={`/s/${row.session_id}`}>
-                        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full" style={{ backgroundColor: 'var(--accent-blue)' }} />
-                        <span className="truncate">{row.title ?? row.session_id}</span>
+                        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full" style={{ backgroundColor: 'var(--purple-500)' }} />
+                        <span className="truncate">{row.title ?? 'Phiên mới'}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -167,6 +167,14 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Phân tích nhanh">
+              <Link to="/predict">
+                <FlaskConical />
+                <span>Phân tích nhanh</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Tất cả sessions">
               <Link to="/sessions">

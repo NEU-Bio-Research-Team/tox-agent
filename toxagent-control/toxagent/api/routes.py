@@ -30,6 +30,7 @@ from ..domain.evidence import EvidenceStatus
 from ..domain.observation import ObservationKind
 from ..domain.run import Intent
 from ..predictor.ocr_client import OcrError, OcrUnavailable
+from ..predictor.contract import ENDPOINTS, TOX21_TASKS
 from ..streaming.sse import event_stream
 from ._image import decode_declared_image, matches_declared_image_type
 from .schemas import (
@@ -43,6 +44,7 @@ from .schemas import (
     RecognizeRequest,
     SendMessageRequest,
     SessionResponse,
+    UpdateSessionRequest,
 )
 
 router = APIRouter(prefix="/v1", tags=["toxagent"])
@@ -208,9 +210,32 @@ async def predict_capabilities(request: Request, principal: Actor = Depends(acto
     reason rather than guessing."""
     services = _services(request)
     models = await services.predictor.models()
+    model_rows = [model.model_dump(mode="json") for model in models.models]
+    served = set(models.served_endpoints)
+    display_names = {
+        "herg": "hERG blockade", "tox21": "Tox21 assays", "clintox": "Clinical toxicity",
+    }
+    endpoints = []
+    for endpoint in ENDPOINTS:
+        matching = [model for model in model_rows if endpoint in model.get("capabilities", [])]
+        model = next((candidate for candidate in matching if candidate.get("loaded")), matching[0] if matching else None)
+        enabled = endpoint in served
+        endpoints.append({
+            "id": endpoint,
+            "display_name": display_names[endpoint],
+            "enabled": enabled,
+            "model_id": model.get("model_id") if model else None,
+            "supports_explanation": enabled and endpoint in {"herg", "tox21"},
+            "explanation_target_required": endpoint == "tox21",
+            "tasks": list(TOX21_TASKS) if endpoint == "tox21" else [],
+            "blocked_reason": None if enabled else (model.get("blocked_reason") if model else "No reproducible model artifact is available for this endpoint."),
+        })
     return {
+        "capability_version": "predict-capabilities-v2",
+        "default_endpoints": [endpoint for endpoint in services.settings.policy.default_endpoints if endpoint in served],
         "served_endpoints": list(models.served_endpoints),
-        "models": [model.model_dump(mode="json") for model in models.models],
+        "endpoints": endpoints,
+        "models": model_rows,
         "predictor_id": services.predictor.base_url_id,
         "ocr_available": services.ocr is not None,
     }
@@ -300,6 +325,24 @@ async def create_session(
         title=session.title,
         created_at=session.created_at.isoformat(),
         version=session.version,
+        title_source=session.title_source.value if session.title_source else None,
+        title_status=session.title_status,
+    )
+
+
+@router.patch("/sessions/{session_id}", response_model=SessionResponse)
+async def update_session(
+    request: Request, session_id: str, body: UpdateSessionRequest, principal: Actor = Depends(actor)
+):
+    session = await _services(request).sessions.rename(
+        principal, session_id, title=body.title, expected_version=body.expected_version
+    )
+    return SessionResponse(
+        session_id=session.id, status=session.status.value,
+        preferred_language=session.preferred_language.value, title=session.title,
+        created_at=session.created_at.isoformat(), version=session.version,
+        title_source=session.title_source.value if session.title_source else None,
+        title_status=session.title_status,
     )
 
 
@@ -357,6 +400,8 @@ async def send_message(
             endpoints=tuple(options.endpoints) if options and options.endpoints else None,
             threshold_overrides=options.threshold_overrides if options else None,
             include_attribution=options.include_attribution if options else False,
+            explanation_mode=options.explanation_mode if options else "on_demand",
+            explanation_targets=tuple((target.endpoint, target.task) for target in (options.explanation_targets if options else [])),
             analysis_id=body.analysis_id,
             image_mime_type=image_mime_type,
             image_size_bytes=image_size_bytes,

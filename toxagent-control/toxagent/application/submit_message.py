@@ -27,7 +27,7 @@ from ..domain.errors import (
 from ..domain.events import EventType
 from ..domain.message import Message, PartType, Role
 from ..domain.run import Intent, Lane, Run, RunStatus
-from ..domain.session import Session
+from ..domain.session import Session, TitleSource
 from ..persistence.object_store import ObjectStore
 from .policy import Actor
 from .router import Clarification, RouteRequest, route
@@ -36,6 +36,25 @@ from .run_scheduler import RunContext, RunScheduler
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _deterministic_title(submission: "MessageSubmission") -> str | None:
+    """A useful title immediately, without waiting for a model or an analysis.
+
+    This intentionally uses only the durable first-message input. A later model
+    refinement may improve it, but it must compare-and-set and never overwrite
+    a manual title.
+    """
+    if submission.batch_smiles:
+        return f"Phân tích batch · {len(submission.batch_smiles)} phân tử"
+    if submission.image_mime_type:
+        return "Phân tích cấu trúc từ ảnh"
+    if submission.smiles:
+        endpoints = " + ".join(endpoint.upper() if endpoint == "herg" else endpoint.title() for endpoint in (submission.endpoints or ("herg", "tox21")))
+        short_smiles = " ".join(submission.smiles.split())[:36]
+        return f"Phân tích {endpoints} · {short_smiles}"
+    text = " ".join(submission.text.split())
+    return text[:80] if text else None
 
 
 #: One `capability_unavailable` answer per gated intent. Keyed by `Intent`
@@ -63,6 +82,8 @@ class MessageSubmission:
     endpoints: tuple[str, ...] | None = None
     threshold_overrides: Mapping[str, Any] | None = None
     include_attribution: bool = False
+    explanation_mode: str = "on_demand"
+    explanation_targets: tuple[tuple[str, str | None], ...] = ()
     analysis_id: str | None = None
     #: Set by the API layer, which decodes and size-checks the upload before
     #: this dataclass is built. `SubmitMessage.execute` persists these bytes
@@ -241,6 +262,24 @@ class SubmitMessage:
                 payload={"role": "user", "sequence": sequence},
             )
 
+            # A title is a session convenience, not model output. Set it in
+            # the same transaction as the first durable user message so a
+            # reload never exposes a raw id between accepted-message and
+            # title-update states. `title is None` also protects a title sent
+            # at session creation and any manual rename from this auto path.
+            if session.title is None:
+                title = _deterministic_title(submission)
+                if title:
+                    titled_session = session.with_title(title, source=TitleSource.DETERMINISTIC, now=_now())
+                    await uow.sessions.update(titled_session, expected_version=session.version)
+                    session = titled_session
+                    uow.emit(
+                        session_id=session_id, type=EventType.SESSION_TITLE_UPDATED,
+                        entity_type="session", entity_id=session_id,
+                        entity_version=session.version,
+                        payload={"title": session.title, "title_source": session.title_source.value},
+                    )
+
             # Measured ~1-2s per image on CPU (toxocr/), so this would already
             # fit run_deadline_s — the separate, larger deadline exists only
             # as a margin against a cold model load or a contended host.
@@ -299,6 +338,8 @@ class SubmitMessage:
                 batch_smiles=submission.batch_smiles,
                 endpoints=submission.endpoints,
                 threshold_overrides=submission.threshold_overrides,
+                explanation_mode=submission.explanation_mode,
+                explanation_targets=submission.explanation_targets,
                 analysis_id=target_analysis_id,
                 needs_snapshot_first=decision.needs_snapshot_first,
                 language=session.preferred_language.value,

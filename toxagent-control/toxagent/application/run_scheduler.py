@@ -43,6 +43,8 @@ class RunContext:
     batch_smiles: tuple[str, ...] = ()
     endpoints: tuple[str, ...] | None = None
     threshold_overrides: Mapping[str, Any] | None = None
+    explanation_mode: str = "on_demand"
+    explanation_targets: tuple[tuple[str, str | None], ...] = ()
     analysis_id: str | None = None
     needs_snapshot_first: bool = False
     language: str = "en"
@@ -197,6 +199,8 @@ class RunScheduler:
                     batch_smiles=context.batch_smiles,
                     endpoints=context.endpoints,
                     threshold_overrides=context.threshold_overrides,
+                    explanation_mode=context.explanation_mode,
+                    explanation_targets=context.explanation_targets,
                     analysis_id=context.analysis_id,
                     # Any deterministic snapshot/observation work completed
                     # before the loss remains product-owned.  A recovery must

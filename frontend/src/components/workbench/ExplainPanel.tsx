@@ -141,11 +141,19 @@ function ExplainResult({ data }: { data: AtomAttribution }) {
         smiles={data.canonical_smiles ?? data.input_smiles}
         atomOrderVersion={data.atom_order_version}
         atoms={data.atoms}
+        bonds={data.bonds}
+        depictionSvg={data.depiction_svg}
       />
 
       {unmappedPct != null && (
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
           {unmappedPct}% trọng số nằm ở liên kết/tô-pô, không gán được cho nguyên tử.
+        </p>
+      )}
+
+      {data.bonds?.some((bond) => bond.source === 'adjacent_atom_derived') && (
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          Màu của liên kết không có token trực tiếp được suy ra từ hai nguyên tử kề; đây là hỗ trợ đọc hình, không phải attribution trực tiếp.
         </p>
       )}
 

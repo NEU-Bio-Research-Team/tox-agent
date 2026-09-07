@@ -16,11 +16,15 @@ from typing import Any
 
 from ..scientific.featurization.token_atom_align import (
     ATOM_ORDER_VERSION,
-    align_tokens_to_atoms,
 )
+from ..scientific.featurization.token_structure_align import (
+    STRUCTURE_ORDER_VERSION,
+    align_tokens_to_structure,
+)
+from .depiction import xai_svg
 from .attribution import AttributionService
 
-TOKEN_ALIGN_METHOD = "token_atom_align_v1"
+TOKEN_ALIGN_METHOD = "token_structure_align_v2"
 
 
 @dataclass(frozen=True)
@@ -42,8 +46,12 @@ class ExplainService:
                 "input_smiles": raw.get("input_smiles", smiles),
                 "canonical_smiles": raw.get("canonical_smiles"),
                 "atom_order_version": ATOM_ORDER_VERSION,
+                "structure_order_version": STRUCTURE_ORDER_VERSION,
                 "probability": None,
                 "atoms": [],
+                "bonds": [],
+                "depiction_svg": None,
+                "depiction": None,
                 "unmapped_importance": None,
                 "tokens": raw.get("tokens", []),
                 "method": f"{TOKEN_ALIGN_METHOD}",
@@ -57,22 +65,26 @@ class ExplainService:
 
         tokens = raw["tokens"]
         canonical = raw["canonical_smiles"]
-        alignment = align_tokens_to_atoms(
+        alignment = align_tokens_to_structure(
             canonical, [tuple(token["offsets"]) for token in tokens]
         )
 
-        atom_importance = [0.0] * len(alignment.atom_spans)
+        atom_importance = [0.0] * len(alignment.atoms.atom_spans)
+        bond_importance = [0.0] * len(alignment.bonds)
         unmapped = 0.0
-        for token, atom_indices in zip(tokens, alignment.token_atoms):
+        for token, atom_indices, bond_indices in zip(tokens, alignment.atoms.token_atoms, alignment.token_bonds):
             importance = float(token["importance"])
-            if atom_indices:
-                share = importance / len(atom_indices)
+            targets = len(atom_indices) + len(bond_indices)
+            if targets:
+                share = importance / targets
                 for atom_index in atom_indices:
                     atom_importance[atom_index] += share
+                for bond_index in bond_indices:
+                    bond_importance[bond_index] += share
             else:
                 unmapped += importance
 
-        total = sum(atom_importance) + unmapped
+        total = sum(atom_importance) + sum(bond_importance) + unmapped
         denominator = total or 1.0
         atoms = [
             {
@@ -81,8 +93,26 @@ class ExplainService:
                 "importance": atom_importance[span.atom_index],
                 "relative_importance": atom_importance[span.atom_index] / denominator,
             }
-            for span in alignment.atom_spans
+            for span in alignment.atoms.atom_spans
         ]
+        bonds = []
+        for span in alignment.bonds:
+            direct = bond_importance[span.bond_index]
+            adjacent = (atom_importance[span.begin_atom_index] + atom_importance[span.end_atom_index]) / 2
+            bonds.append({
+                "bond_index": span.bond_index,
+                "begin_atom_index": span.begin_atom_index,
+                "end_atom_index": span.end_atom_index,
+                "bond_type": span.bond_type,
+                "importance": direct,
+                "relative_importance": direct / denominator,
+                "display_importance": (direct if direct else adjacent) / denominator,
+                "source": "explicit_token" if direct else "adjacent_atom_derived",
+            })
+        try:
+            depiction_svg, depiction = xai_svg(canonical, atoms, bonds)
+        except Exception as exc:  # a numeric artifact remains complete without a drawable SVG
+            depiction_svg, depiction = None, {"error": type(exc).__name__}
 
         metadata = raw.get("metadata", {})
         return {
@@ -92,8 +122,12 @@ class ExplainService:
             "input_smiles": raw["input_smiles"],
             "canonical_smiles": canonical,
             "atom_order_version": ATOM_ORDER_VERSION,
+            "structure_order_version": STRUCTURE_ORDER_VERSION,
             "probability": raw["probability"],
             "atoms": atoms,
+            "bonds": bonds,
+            "depiction_svg": depiction_svg,
+            "depiction": depiction,
             "unmapped_importance": unmapped / denominator,
             "tokens": tokens,
             "method": f"{metadata.get('method', 'unknown')}+{TOKEN_ALIGN_METHOD}",

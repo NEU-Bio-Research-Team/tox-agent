@@ -15,6 +15,15 @@ export interface AtomHighlightAtom {
   relative_importance: number;
 }
 
+export interface AtomHighlightBond {
+  bond_index: number;
+  begin_atom_index: number;
+  end_atom_index: number;
+  relative_importance: number;
+  display_importance?: number;
+  source: 'explicit_token' | 'adjacent_atom_derived';
+}
+
 /**
  * PR-C3 spike outcome: `smiles-drawer`'s `highlight_atoms` keys off SMILES
  * atom-map classes (`[C:1]`), not positional atom index, so it cannot align to
@@ -28,6 +37,8 @@ export function AtomHighlightDepiction({
   smiles,
   atomOrderVersion,
   atoms,
+  bonds = [],
+  depictionSvg,
   size = 220,
   topK = 8,
 }: {
@@ -35,6 +46,9 @@ export function AtomHighlightDepiction({
   smiles: string;
   atomOrderVersion: string | null;
   atoms: AtomHighlightAtom[];
+  bonds?: AtomHighlightBond[];
+  /** Sanitized server-rendered RDKit SVG. Numeric atoms/bonds remain source of truth. */
+  depictionSvg?: string | null;
   size?: number;
   topK?: number;
 }) {
@@ -46,8 +60,10 @@ export function AtomHighlightDepiction({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-center">
-        <MoleculeDepiction smiles={smiles} size={size} />
+      <div className="flex justify-center rounded-xl bg-white p-2">
+        {depictionSvg ? (
+          <img className="max-w-full" style={{ width: size, height: Math.round(size * .68) }} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(depictionSvg)}`} alt={`Cấu trúc ${smiles} với atom và bond attribution`} />
+        ) : <MoleculeDepiction smiles={smiles} size={size} />}
       </div>
 
       {!aligned ? (
@@ -56,8 +72,9 @@ export function AtomHighlightDepiction({
           này ({atomOrderVersion ?? 'không rõ'}); chỉ hiển thị cấu trúc và danh sách token.
         </p>
       ) : (
-        <ul className="space-y-1">
-          {ranked.map((atom) => (
+        <>
+          <ul className="space-y-1">
+            {ranked.map((atom) => (
             <li key={atom.atom_index} className="flex items-center gap-2 text-xs">
               <span
                 className="w-14 shrink-0 font-mono"
@@ -80,8 +97,12 @@ export function AtomHighlightDepiction({
                 {(atom.relative_importance * 100).toFixed(1)}%
               </span>
             </li>
-          ))}
-        </ul>
+            ))}
+          </ul>
+          {bonds.length > 0 && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Liên kết: {bonds.filter((bond) => bond.source === 'explicit_token').length} gán trực tiếp từ token; các liên kết còn lại dùng màu hiển thị suy ra từ atom kề.
+          </p>}
+        </>
       )}
     </div>
   );

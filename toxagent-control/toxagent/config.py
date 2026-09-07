@@ -414,6 +414,7 @@ class Settings:
     #: is injected explicitly (tests always inject one; api/app.py's real
     #: default construction is what reads this).
     object_store_dir: Path = PROJECT_ROOT / ".data" / "attachments"
+    database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -430,4 +431,38 @@ class Settings:
             object_store_dir=Path(
                 _env("TOXAGENT_OBJECT_STORE_DIR") or PROJECT_ROOT / ".data" / "attachments"
             ),
+            database=DatabaseSettings.from_env(),
         )
+
+
+@dataclass(frozen=True)
+class DatabaseSettings:
+    """Bounded pool and statement settings for production PostgreSQL.
+
+    SQLite ignores pool sizing; keeping the values here still makes one
+    deployment's connection budget explicit and testable.
+    """
+    pool_size: int = 8
+    max_overflow: int = 8
+    pool_timeout_s: float = 30.0
+    pool_recycle_s: int = 1800
+    command_timeout_s: float = 60.0
+    statement_timeout_ms: int = 60_000
+    lock_timeout_ms: int = 5_000
+    echo: bool = False
+
+    @classmethod
+    def from_env(cls) -> "DatabaseSettings":
+        settings = cls(
+            pool_size=_int("TOXAGENT_DB_POOL_SIZE", cls.pool_size),
+            max_overflow=_int("TOXAGENT_DB_MAX_OVERFLOW", cls.max_overflow),
+            pool_timeout_s=_float("TOXAGENT_DB_POOL_TIMEOUT_S", cls.pool_timeout_s),
+            pool_recycle_s=_int("TOXAGENT_DB_POOL_RECYCLE_S", cls.pool_recycle_s),
+            command_timeout_s=_float("TOXAGENT_DB_COMMAND_TIMEOUT_S", cls.command_timeout_s),
+            statement_timeout_ms=_int("TOXAGENT_DB_STATEMENT_TIMEOUT_MS", cls.statement_timeout_ms),
+            lock_timeout_ms=_int("TOXAGENT_DB_LOCK_TIMEOUT_MS", cls.lock_timeout_ms),
+            echo=_bool("TOXAGENT_DB_ECHO", cls.echo),
+        )
+        if settings.pool_size < 1 or settings.max_overflow < 0 or settings.pool_timeout_s <= 0:
+            raise ValueError("database pool settings must be positive (max overflow may be zero)")
+        return settings
