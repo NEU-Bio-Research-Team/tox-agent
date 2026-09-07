@@ -1,0 +1,190 @@
+{
+  "fixture_version": "eval-fixture-v1",
+  "content_sha256": "6edf867d1427efaf923f6828b953b40148ea5e92f932bf387da4677ecc9cb189",
+  "name": "evidence-herg",
+  "description": "Aspirin base prediction plus three hERG-related literature records for evidence synthesis and citation-support grading.",
+  "predictor": {
+    "served_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "predictions": {
+      "CC(=O)Oc1ccccc1C(=O)O": {
+        "input_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "predictions": {
+          "herg": {
+            "probability_blocker": 0.281,
+            "label": "non_blocker",
+            "threshold": 0.5,
+            "threshold_source": "model_default",
+            "model_id": "pretrained_2head_herg_chemberta"
+          },
+          "tox21": {
+            "task_order_version": "tox21-12task-v1",
+            "assays": {
+              "NR-AR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AR-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AhR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-Aromatase": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-PPAR-gamma": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ARE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ATAD5": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-HSE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-MMP": {
+                "probability_activity": 0.83,
+                "active": true,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-p53": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              }
+            },
+            "model_id": "pretrained_2head_herg_chemberta"
+          }
+        },
+        "applicability": {
+          "status": "ok",
+          "method": "element_rules_v1",
+          "reasons": []
+        },
+        "provenance": {
+          "git_commit": "562b988de9714106fd842bb503072cfe8cd2852a",
+          "service_version": "0.1.0.dev0",
+          "artifact_hashes": [
+            "herg-chemberta:sha256-aaa",
+            "tox21-chemberta:sha256-bbb"
+          ]
+        }
+      }
+    }
+  },
+  "evidence": {
+    "search": {
+      "herg": [
+        "EVID-HERG-1",
+        "EVID-HERG-2",
+        "EVID-HERG-3"
+      ]
+    },
+    "records": {
+      "EVID-HERG-1": {
+        "provider_record_id": "EVID-HERG-1",
+        "source_type": "article",
+        "title": "hERG channel inhibition assays: a practical review",
+        "authors": [
+          "Frozen A",
+          "Frozen B"
+        ],
+        "published_at": "2018-03-01",
+        "canonical_url": "https://europepmc.org/abstract/MED/30000001",
+        "identifier": {
+          "doi": "10.1000/frozen.herg.1",
+          "pmid": "30000001"
+        },
+        "abstract_or_excerpt": "Patch-clamp remains the reference method for hERG block. IC50 values below 1 uM indicate potent block; aspirin is not a reported hERG blocker.",
+        "normalized_facts": {
+          "assay": "patch_clamp",
+          "aspirin_reported_blocker": false
+        },
+        "source_quality_tier": "authoritative_secondary"
+      },
+      "EVID-HERG-2": {
+        "provider_record_id": "EVID-HERG-2",
+        "source_type": "article",
+        "title": "In silico hERG models and their applicability domain",
+        "authors": [
+          "Frozen A",
+          "Frozen B"
+        ],
+        "published_at": "2020-03-01",
+        "canonical_url": "https://europepmc.org/abstract/MED/30000002",
+        "identifier": {
+          "doi": "10.1000/frozen.herg.2",
+          "pmid": "30000002"
+        },
+        "abstract_or_excerpt": "Machine-learning hERG classifiers report AUROC around 0.85 on external sets; probabilities are rankings, not calibrated clinical risk.",
+        "normalized_facts": {
+          "metric": "auroc",
+          "value": 0.85
+        },
+        "source_quality_tier": "authoritative_secondary"
+      },
+      "EVID-HERG-3": {
+        "provider_record_id": "EVID-HERG-3",
+        "source_type": "article",
+        "title": "QT prolongation and ion-channel liability in drug development",
+        "authors": [
+          "Frozen A",
+          "Frozen B"
+        ],
+        "published_at": "2016-03-01",
+        "canonical_url": "https://europepmc.org/abstract/MED/30000003",
+        "identifier": {
+          "pmid": "30000003"
+        },
+        "abstract_or_excerpt": "hERG block is one contributor to QT prolongation; clinical risk also depends on exposure, off-target effects and patient factors.",
+        "normalized_facts": {
+          "relationship": "herg_block_is_one_of_several_factors"
+        },
+        "source_quality_tier": "primary"
+      }
+    }
+  }
+}

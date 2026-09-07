@@ -35,7 +35,7 @@ class Settings:
     def from_env(cls) -> "Settings":
         return cls(
             manifest_path=Path(
-                os.getenv("TOXPRED_MANIFEST") or REPO_ROOT / "artifacts" / "manifest.yaml"
+                os.getenv("TOXPRED_MANIFEST") or REPO_ROOT / "artifacts" / "predictor-manifest.yaml"
             ),
             device=os.getenv("TOXPRED_DEVICE", "cpu").strip() or "cpu",
             max_batch_size=_int("TOXPRED_MAX_BATCH_SIZE", 256),

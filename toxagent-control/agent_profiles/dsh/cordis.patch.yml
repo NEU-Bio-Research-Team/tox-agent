@@ -1,0 +1,68 @@
+# ToxAgent custom profile patch (W7-05 spike): deny-all except MCP, same
+# discipline as agent_profiles/opencode/toxagent.json.
+
+# Add the ToxAgent MCP server as the only tool source.
+- insert:
+    - id: mcp-client
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        transport: streamable-http
+        serverName: toxagent
+        url: http://127.0.0.1:8000/internal/mcp
+        headers:
+          Authorization: 'Bearer spike-placeholder-token'
+        failOnStartupError: false
+
+# Deny mutating/coding tools this product never authorizes a model to use
+# (mirrors OpenCode's captured-surface deny list: bash/shell, file read/edit/
+# glob/grep/list, subagent, skill, webfetch/websearch, execute).
+- id: tool-bash
+  disabled: true
+- id: tool-pwsh
+  disabled: true
+- id: tool-fs
+  disabled: true
+- id: tool-fs-search
+  disabled: true
+- id: tool-str-replace-editor
+  disabled: true
+- id: tool-subagent
+  disabled: true
+- id: tool-subagent-fork
+  disabled: true
+- id: tool-subagent-control
+  disabled: true
+- id: tool-subagent-list-agents
+  disabled: true
+- id: tool-skill
+  disabled: true
+- id: skill
+  disabled: true
+- id: skill-filesystem
+  disabled: true
+- id: tool-web
+  disabled: true
+- id: web-search-deepseek
+  disabled: true
+- id: web-fetch-http
+  disabled: true
+- id: tool-workflow
+  disabled: true
+- id: tool-jobs
+  disabled: true
+- id: tool-ralph
+  disabled: true
+- id: tool-goal
+  disabled: true
+- id: plan-mode
+  disabled: true
+
+# Force read-only sandbox regardless of DSH_PERMISSION_MODE — deny-all should
+# be a config fact, not an environment-variable default someone forgot to set.
+- id: sandbox-policy
+  config:
+    mode: read-only
+    workspaceRoot: /nonexistent-toxagent-denies-fs-access
+- id: approval
+  config:
+    policy: ask

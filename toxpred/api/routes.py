@@ -11,6 +11,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 
 from ..application.attribution import AttributionService
+from ..application.explain import ExplainService
 from ..application.predictor import ToxicityPredictor
 from ..scientific.artifacts import ArtifactError
 from ..scientific.registry import ModelRegistry
@@ -18,6 +19,7 @@ from .schemas import (
     AttributionRequest,
     BatchPredictionRequest,
     BatchPredictionResponse,
+    ExplainRequest,
     ModelInfo,
     ModelsResponse,
     PredictionRequest,
@@ -60,7 +62,7 @@ def ready(request: Request):
     registry = _registry(request)
     served = sorted(registry.describe_capabilities())
     is_ready, reasons = registry.is_ready()
-    return ReadinessResponse(ready=is_ready, reasons=reasons, served_endpoints=served)
+    return ReadinessResponse(ready=is_ready, reasons=reasons, served_endpoints=served, device=request.app.state.settings.device)
 
 
 # --- inventory -------------------------------------------------------------
@@ -126,3 +128,13 @@ def predict_batch(request: Request, body: BatchPredictionRequest):
 def attributions(request: Request, body: AttributionRequest) -> dict[str, Any]:
     service: AttributionService = request.app.state.attribution
     return service.attribute(body.smiles, body.endpoint, body.task)
+
+
+# --- explanation ---------------------------------------------------------------
+
+@v1_router.post("/explanations")
+def explanations(request: Request, body: ExplainRequest) -> dict[str, Any]:
+    """Token attribution projected onto heavy-atom indices. ``/v1/attributions``
+    stays as the token-only endpoint for backward compatibility."""
+    service: ExplainService = request.app.state.explain
+    return service.explain(body.smiles, body.endpoint, body.task)

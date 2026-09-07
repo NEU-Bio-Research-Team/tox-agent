@@ -175,8 +175,8 @@ class ClinToxSmilesGnnProvider:
         ]
 
 
-def make_factory(config_path: Path):
+def make_factory(config_path: Path, device: str = "cpu"):
     def factory(spec: ArtifactSpec) -> ClinToxSmilesGnnProvider:
-        return ClinToxSmilesGnnProvider(spec, config_path=config_path)
+        return ClinToxSmilesGnnProvider(spec, config_path=config_path, device=device)
 
     return factory

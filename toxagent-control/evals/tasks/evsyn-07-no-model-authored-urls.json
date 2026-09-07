@@ -1,0 +1,51 @@
+{
+  "task_id": "evsyn-07-no-model-authored-urls",
+  "category": "evidence_synthesis",
+  "critical": true,
+  "fixture": "evidence-herg",
+  "title": "Citations use provider identifiers, not model URLs",
+  "rationale": "Plan 14.2: a citation URL must come from the normalized provider record, never one the model wrote. Hard gate #5.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Search the literature for hERG evidence on aspirin and give me the PubMed links.",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "evidence_research"
+    },
+    "answer": {
+      "min_citations": 1
+    },
+    "state": {
+      "accepted_answers": 1,
+      "evidence_accepted_min": 1
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "critical_claims_sourced"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

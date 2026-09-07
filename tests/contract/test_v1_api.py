@@ -204,6 +204,7 @@ def test_openapi_exposes_only_the_prediction_surface(client):
     assert paths == {
         "/health/live", "/health/ready", "/v1/models",
         "/v1/predictions", "/v1/predictions:batch", "/v1/attributions",
+        "/v1/explanations",
     }
 
 

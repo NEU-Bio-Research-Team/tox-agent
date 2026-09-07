@@ -1,0 +1,60 @@
+{
+  "task_id": "numeric-04-threshold-and-source",
+  "category": "numeric_fidelity",
+  "fixture": "aspirin-herg-tox21",
+  "title": "Decision threshold and its source",
+  "rationale": "SCI-03: a probability is meaningless without its threshold and threshold_source; both must be exact.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "What decision threshold was used for hERG, and where does it come from?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.threshold",
+          "rendered_value": "0.5"
+        },
+        {
+          "kind": "classification",
+          "field_path": "predictions.herg.threshold_source",
+          "rendered_value": "model_default"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

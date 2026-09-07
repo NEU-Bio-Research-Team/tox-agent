@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "toxagent-control"
+version = "0.1.0.dev0"
+description = "ToxAgent control plane: evidence-and-decision-support over a versioned ToxPred contract."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "httpx>=0.27",
+    "sse-starlette>=2.1",
+    # The low-level Server decorator API used by tools/mcp_server.py is the
+    # MCP 1.x contract. MCP 2.x removed list_tools()/call_tool() and otherwise
+    # installs successfully under an open lower bound, leaving /internal/mcp
+    # to fail only when the first runtime connects.
+    "mcp>=1.9,<2",
+    "pyjwt>=2.8",
+    "anyio>=4.2",
+]
+
+[project.optional-dependencies]
+# The production store. Dev and CI run the same SQLAlchemy layer on SQLite.
+# The application talks to PostgreSQL asynchronously. Alembic is deliberately
+# synchronous, so the migration environment needs psycopg as well; without it
+# a PostgreSQL migration job would silently be impossible to run.
+postgres = ["asyncpg>=0.29", "psycopg[binary]>=3.1"]
+dev = ["pytest>=8", "aiosqlite>=0.20", "trio>=0.25"]
+
+[tool.setuptools.packages.find]
+include = ["toxagent*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# ``scripts/`` holds operational helpers (contract snapshotters, the OpenCode
+# surface assertion) whose pure logic is unit-tested; ``.`` makes ``evals`` (the
+# task set, graders and runner) importable. Both are outside the ``toxagent``
+# package on purpose — they are not shipped.
+pythonpath = ["scripts", "."]
+markers = [
+    "live_predictor: needs a reachable ToxPred instance",
+    "live_runtime: needs a pinned OpenCode or DSH binary",
+    "live_evidence: needs outbound network to a research provider",
+    "postgres: needs a PostgreSQL database that was prepared by Alembic",
+]

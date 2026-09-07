@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..domain.endpoints import TOX21_TASKS
 
@@ -76,6 +76,33 @@ class AttributionRequest(BaseModel):
         return value
 
 
+class ExplainRequest(BaseModel):
+    """``POST /v1/explanations`` (plan section 5.1).
+
+    One assay per call: ``endpoint='tox21'`` requires ``task``. Running all 12
+    is 12 backward passes and a combined tox21 attribution is meaningless.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    smiles: str = Field(..., min_length=1)
+    endpoint: Literal["herg", "tox21"]
+    task: str | None = None
+
+    @model_validator(mode="after")
+    def _task_rules(self) -> "ExplainRequest":
+        if self.endpoint == "tox21" and not self.task:
+            raise ValueError(
+                "attributing the tox21 endpoint requires a task; the twelve assays "
+                "are independent and a combined attribution would not mean anything"
+            )
+        if self.endpoint != "tox21" and self.task is not None:
+            raise ValueError(f"task is only meaningful for tox21, not {self.endpoint}")
+        if self.task is not None and self.task not in TOX21_TASKS:
+            raise ValueError(f"unknown Tox21 task: {self.task!r}")
+        return self
+
+
 # --- responses -------------------------------------------------------------
 # Kept as plain dicts rather than mirrored models: the domain layer already
 # owns the payload shape and its invariants, and a second definition here would
@@ -99,6 +126,7 @@ class ReadinessResponse(BaseModel):
     ready: bool
     reasons: list[str] = []
     served_endpoints: list[str] = []
+    device: str = "cpu"
 
 
 class BatchItemErrorOut(BaseModel):

@@ -1,0 +1,39 @@
+{
+  "task_id": "fail-03-invalid-smiles",
+  "category": "failure_recovery",
+  "fixture": "aspirin-herg-tox21",
+  "title": "An unparseable SMILES is a typed validation error",
+  "rationale": "SCI-08: 'not-a-molecule' returns invalid_smiles, never a zero-risk snapshot.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "not a molecule"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "failed",
+      "intent": "analysis",
+      "lane": "deterministic"
+    },
+    "error_code": "invalid_smiles",
+    "state": {
+      "analysis_snapshots": 0
+    }
+  },
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

@@ -1,0 +1,55 @@
+{
+  "task_id": "numeric-05-tox21-assay-probability",
+  "category": "numeric_fidelity",
+  "fixture": "aspirin-herg-tox21",
+  "title": "One Tox21 assay's activity probability",
+  "rationale": "A per-assay probability is a real field; the answer must cite that exact path.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "What is the predicted activity probability for the SR-MMP assay?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.tox21.assays.SR-MMP.probability_activity"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_hitcount_severity"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

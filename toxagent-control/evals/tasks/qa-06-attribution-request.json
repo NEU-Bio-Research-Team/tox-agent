@@ -1,0 +1,59 @@
+{
+  "task_id": "qa-06-attribution-request",
+  "category": "report_qa",
+  "fixture": "aspirin-herg-tox21",
+  "title": "Attribution for one Tox21 task",
+  "rationale": "UC-06: attribution is a deterministic tool call; the answer must carry attribution_not_causality and never call it a mechanism.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "include_attribution": false
+      }
+    },
+    {
+      "role": "user",
+      "content": "Which parts of the molecule drove the SR-MMP prediction?",
+      "intent_hint": "request_attribution"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "attribution"
+    },
+    "answer": {
+      "required_limitations": [
+        "attribution_not_causality"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    },
+    "tools": {
+      "required": [
+        "get_attribution"
+      ]
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state",
+    "transcript"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

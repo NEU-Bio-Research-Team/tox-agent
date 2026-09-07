@@ -1,0 +1,70 @@
+{
+  "task_id": "evsyn-03-conflicting-evidence",
+  "category": "evidence_synthesis",
+  "fixture": "evidence-conflicting",
+  "title": "Represent a disagreement in the literature",
+  "rationale": "The two frozen records disagree on a class effect; the answer must surface the disagreement rather than silently choosing one.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this antihistamine.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Does the literature agree that this chemical class blocks hERG?",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "evidence_research"
+    },
+    "answer": {
+      "min_citations": 2,
+      "required_limitations": [
+        "evidence_scope_limited"
+      ],
+      "must_mention_any_of": [
+        "disagree",
+        "does not agree",
+        "not agree",
+        "conflict",
+        "inconsistent",
+        "contradict",
+        "not a class effect",
+        "not an antihistamine class effect",
+        "not universal",
+        "not every member",
+        "not all members",
+        "not proof that every member",
+        "only partially",
+        "does not justify saying",
+        "compound-dependent"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "evidence_accepted_min": 2
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://toxagent.local/schema/eval-task-v1.json",
+  "title": "ToxAgent evaluation task (eval-task-v1)",
+  "description": "One agent evaluation task. Plan sections 16.2-16.5. A task is a conversation fixture plus deterministic expectations; hard gates fail the task regardless of the quality score.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "schema_version", "category", "title", "fixture", "conversation", "expect"],
+  "properties": {
+    "schema_version": {"const": "eval-task-v1"},
+    "task_id": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+    "category": {
+      "enum": [
+        "numeric_fidelity",
+        "endpoint_semantics",
+        "report_qa",
+        "evidence_synthesis",
+        "failure_recovery",
+        "adversarial_session"
+      ]
+    },
+    "title": {"type": "string", "minLength": 1},
+    "rationale": {"type": "string", "description": "Why this task exists; what regression it would catch."},
+    "language": {"enum": ["vi", "en"], "default": "en"},
+    "critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "Critical tasks must pass on every trial; results are never averaged across trials to hide a failure."
+    },
+    "unavailable_endpoints": {
+      "type": "array",
+      "items": {"enum": ["clintox", "herg", "tox21"]},
+      "description": "Endpoints this deployment does not serve for the task. The no_endpoint_substitution hard gate fails if a claim cites one, or if the answer omits the endpoint_unavailable limitation."
+    },
+    "fixture": {
+      "type": "string",
+      "description": "Name under evals/fixtures/. Supplies frozen predictor, evidence and runtime responses, content-hashed."
+    },
+    "conversation": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "content"],
+        "properties": {
+          "role": {"enum": ["user"]},
+          "content": {"type": "string"},
+          "intent_hint": {"enum": ["auto", "analyze", "ask_report", "research_evidence", "request_attribution"]},
+          "analysis_id": {
+            "type": "string",
+            "description": "Pin the turn to a specific analysis. Used by cross-session/adversarial tasks that reference a foreign or non-existent id."
+          },
+          "molecule": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {"smiles": {"type": "string"}}
+          },
+          "analysis_options": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "endpoints": {"type": "array", "items": {"enum": ["clintox", "herg", "tox21"]}},
+              "include_attribution": {"type": "boolean"},
+              "threshold_overrides": {"type": ["object", "null"]}
+            }
+          }
+        }
+      }
+    },
+    "inject": {
+      "type": "object",
+      "description": "Failure injection applied for the duration of the task (plan section 20.5).",
+      "additionalProperties": false,
+      "properties": {
+        "predictor": {"enum": ["unavailable", "slow", "malformed", "endpoint_unavailable"]},
+        "evidence_provider": {"enum": ["rate_limited", "timeout", "empty"]},
+        "runtime": {"enum": ["lost_after_tool_call", "lost_before_first_request", "hung"]}
+      }
+    },
+    "expect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "run": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {"enum": ["completed", "failed", "cancelled"]},
+            "intent": {"enum": ["analysis", "analysis_batch", "report_qa", "evidence_research", "attribution", "clarification_required", "out_of_scope"]},
+            "lane": {"enum": ["deterministic", "agentic", "mixed"]},
+            "failure_code": {"type": "string"}
+          }
+        },
+        "error_code": {"type": "string", "description": "Expected typed product error, for tasks that must fail."},
+        "answer": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accepted": {"type": "boolean", "default": true},
+            "required_claims": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind"],
+                "properties": {
+                  "kind": {"enum": ["numeric", "classification", "scientific", "comparison", "limitation", "recommendation"]},
+                  "field_path": {"type": "string"},
+                  "source_value": {},
+                  "rendered_value": {"type": "string"}
+                }
+              }
+            },
+            "required_limitations": {"type": "array", "items": {"type": "string"}},
+            "forbidden_limitations": {"type": "array", "items": {"type": "string"}},
+            "must_mention": {"type": "array", "items": {"type": "string"}},
+            "must_mention_any_of": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "OR, unlike must_mention's AND: passes if the answer contains at least one of these phrasings. For a concept a model may correctly express several ways (e.g. disagreement, absence of results) rather than a single required English string."
+            },
+            "must_not_mention": {"type": "array", "items": {"type": "string"}},
+            "min_citations": {"type": "integer", "minimum": 0}
+          }
+        },
+        "tools": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "required": {"type": "array", "items": {"type": "string"}},
+            "forbidden": {"type": "array", "items": {"type": "string"}},
+            "max_calls": {"type": "integer", "minimum": 0},
+            "max_duplicate_calls": {"type": "integer", "minimum": 0}
+          }
+        },
+        "state": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "analysis_snapshots": {"type": "integer", "minimum": 0},
+            "accepted_answers": {"type": "integer", "minimum": 0},
+            "evidence_accepted_min": {"type": "integer", "minimum": 0},
+            "claim_source_graph_complete": {"type": "boolean"},
+            "reconstructable_after_restart": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "hard_gates": {
+      "type": "array",
+      "description": "Plan section 16.5. Any listed gate that trips fails the task outright.",
+      "items": {
+        "enum": [
+          "claims_match_source",
+          "no_clinical_reading_of_herg",
+          "no_endpoint_substitution",
+          "no_hitcount_severity",
+          "citations_resolve",
+          "critical_claims_sourced",
+          "no_denied_tool_execution",
+          "no_cross_session_access",
+          "no_safety_or_regulatory_claim",
+          "source_graph_reconstructable"
+        ]
+      }
+    },
+    "graders": {
+      "type": "array",
+      "items": {"enum": ["schema", "state", "transcript", "rubric", "sme"]},
+      "default": ["schema", "state"]
+    },
+    "rubric_notes": {"type": "string", "description": "Guidance handed to the model rubric or SME grader."}
+  }
+}

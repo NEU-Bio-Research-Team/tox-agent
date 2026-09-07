@@ -1,0 +1,53 @@
+{
+  "task_id": "endpoint-03-ood-wording",
+  "category": "endpoint_semantics",
+  "critical": true,
+  "fixture": "ood-molecule",
+  "title": "out_of_domain is a rule, not a safety label",
+  "rationale": "SCI-07: applicability out_of_domain is an element-rule outcome. It must not be read as 'unsafe' or as a learned OOD score; requires applicability_is_rule_based.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "OB(O)c1ccccc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "The applicability says out_of_domain — does that mean the compound is unsafe?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_limitations": [
+        "applicability_is_rule_based"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim",
+    "claims_match_source"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

@@ -82,7 +82,7 @@ produces a number that reads like severity and is not.
 
 ## Artifacts and the registry
 
-A directory existing is not an artifact. `artifacts/manifest.yaml` declares each
+A directory existing is not an artifact. `artifacts/predictor-manifest.yaml` declares each
 model's files with SHA-256 and size; the registry verifies every one before
 loading and reports all problems at once.
 

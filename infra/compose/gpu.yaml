@@ -1,0 +1,38 @@
+# Opt-in GPU overlay. Run only after `docker run --rm --gpus all ... nvidia-smi`
+# succeeds on this host:
+#   ./bin/toxagent doctor
+#   docker compose -f compose.yaml -f infra/compose/gpu.yaml up
+# Images are prebuilt under toxagent/toxpred:gpu and toxagent/toxocr:gpu;
+# do not append --build during normal GPU startup.
+services:
+  toxpred:
+    image: toxagent/toxpred:gpu
+    environment:
+      TOXAGENT_ACCELERATOR: gpu
+      TOXPRED_DEVICE: cuda
+    gpus: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  toxocr:
+    image: toxagent/toxocr:gpu
+    environment:
+      TOXAGENT_ACCELERATOR: gpu
+      TOXOCR_DEVICE: cuda
+      TOXOCR_CHECKPOINT_PATH: /checkpoint/swin_base_char_aux_1m.pth
+      TOXOCR_CHECKPOINT_SHA256: ${TOXOCR_CHECKPOINT_SHA256:?set the provisioned checkpoint SHA-256}
+      TOXOCR_ALLOW_CHECKPOINT_DOWNLOAD: "false"
+    volumes:
+      - ${TOXOCR_CHECKPOINT_HOST_PATH:?set the host checkpoint directory}:/checkpoint:ro
+    gpus: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

@@ -1,0 +1,180 @@
+{
+  "fixture_version": "eval-fixture-v1",
+  "content_sha256": "c8bbb7a83558b3f68c327ae65fac09e805522a13d29c0eafe680ceddc7aabe63",
+  "name": "aspirin-herg-tox21",
+  "description": "Aspirin, hERG + Tox21 served, applicability ok. hERG non_blocker (0.281), one active Tox21 assay (SR-MMP). Base case for report Q&A and numeric fidelity.",
+  "predictor": {
+    "served_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "predictions": {
+      "CC(=O)Oc1ccccc1C(=O)O": {
+        "input_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "predictions": {
+          "herg": {
+            "probability_blocker": 0.281,
+            "label": "non_blocker",
+            "threshold": 0.5,
+            "threshold_source": "model_default",
+            "model_id": "pretrained_2head_herg_chemberta"
+          },
+          "tox21": {
+            "task_order_version": "tox21-12task-v1",
+            "assays": {
+              "NR-AR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AR-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AhR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-Aromatase": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-PPAR-gamma": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ARE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ATAD5": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-HSE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-MMP": {
+                "probability_activity": 0.83,
+                "active": true,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-p53": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              }
+            },
+            "model_id": "pretrained_2head_herg_chemberta"
+          }
+        },
+        "applicability": {
+          "status": "ok",
+          "method": "element_rules_v1",
+          "reasons": []
+        },
+        "provenance": {
+          "git_commit": "562b988de9714106fd842bb503072cfe8cd2852a",
+          "service_version": "0.1.0.dev0",
+          "artifact_hashes": [
+            "herg-chemberta:sha256-aaa",
+            "tox21-chemberta:sha256-bbb"
+          ]
+        }
+      }
+    },
+    "attributions": {
+      "CC(=O)Oc1ccccc1C(=O)O|tox21|SR-MMP": {
+        "status": "completed",
+        "input_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "endpoint": "tox21",
+        "task": "SR-MMP",
+        "probability": 0.83,
+        "tokens": [
+          {
+            "token": "c1ccccc1",
+            "score": 0.41
+          },
+          {
+            "token": "C(=O)O",
+            "score": 0.12
+          },
+          {
+            "token": "OC(C)=O",
+            "score": -0.05
+          }
+        ],
+        "metadata": {
+          "method": "integrated_gradients_v1",
+          "model_id": "pretrained_2head_herg_chemberta",
+          "deterministic": true,
+          "duration_ms": 740.0,
+          "timeout_ms": 30000,
+          "note": null
+        }
+      },
+      "CC(=O)Oc1ccccc1C(=O)O|herg|": {
+        "status": "completed",
+        "input_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+        "endpoint": "herg",
+        "task": null,
+        "probability": 0.281,
+        "tokens": [
+          {
+            "token": "c1ccccc1",
+            "score": 0.41
+          },
+          {
+            "token": "C(=O)O",
+            "score": 0.12
+          },
+          {
+            "token": "OC(C)=O",
+            "score": -0.05
+          }
+        ],
+        "metadata": {
+          "method": "integrated_gradients_v1",
+          "model_id": "pretrained_2head_herg_chemberta",
+          "deterministic": true,
+          "duration_ms": 740.0,
+          "timeout_ms": 30000,
+          "note": null
+        }
+      }
+    }
+  }
+}

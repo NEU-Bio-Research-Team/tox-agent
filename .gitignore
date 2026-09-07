@@ -22,7 +22,10 @@ tox_env/
 node_modules/
 **/node_modules/
 frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
 legacy/**/dist/
+*.tsbuildinfo
 npm-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
@@ -31,6 +34,19 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+.artifacts/
+backups/
+.data/
+.cache/
+
+# Eval runner output (the task set, fixtures and graders are tracked; runs are not)
+toxagent-control/evals/manifests/manifest-*.json
+toxagent-control/evals/manifests/results-*.json
+toxagent-control/evals/manifests/_work/
+# Captured from a running pinned OpenCode binary by snapshot_opencode_contract.py;
+# commit it deliberately once captured (it is the pinned contract), so it is not
+# ignored — listed here only as a reminder of where it lands.
+# toxagent-control/toxagent/harness/adapters/opencode_v1_contract.json
 serviceAccountKey.json
 gha-creds-*.json
 

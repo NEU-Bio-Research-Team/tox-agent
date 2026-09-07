@@ -12,6 +12,7 @@ from fastapi import FastAPI
 
 from .. import __version__
 from ..application.attribution import AttributionService
+from ..application.explain import ExplainService
 from ..application.predictor import ToxicityPredictor
 from ..domain.molecule import InvalidSmilesError
 from ..scientific.artifacts import ArtifactError
@@ -35,13 +36,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        registry = build_registry(settings.manifest_path, eager_load=settings.eager_load)
+        if settings.device not in {"cpu", "cuda"}:
+            raise RuntimeError("TOXPRED_DEVICE must be exactly 'cpu' or 'cuda'")
+        if settings.device == "cuda":
+            import torch
+            if not torch.cuda.is_available():
+                raise RuntimeError("TOXPRED_DEVICE=cuda was requested but CUDA is unavailable")
+        registry = build_registry(settings.manifest_path, eager_load=settings.eager_load, device=settings.device)
         app.state.settings = settings
         app.state.registry = registry
         app.state.predictor = ToxicityPredictor(
             registry, max_batch_size=settings.max_batch_size
         )
         app.state.attribution = AttributionService(registry)
+        app.state.explain = ExplainService(app.state.attribution)
         yield
 
     app = FastAPI(

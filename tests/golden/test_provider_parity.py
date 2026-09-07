@@ -13,7 +13,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 GOLDEN = REPO / "benchmarks" / "golden" / "baseline_predictions.json"
-MANIFEST = REPO / "artifacts" / "manifest.yaml"
+MANIFEST = REPO / "artifacts" / "predictor-manifest.yaml"
 TOLERANCE = 1e-6
 
 pytestmark = pytest.mark.golden

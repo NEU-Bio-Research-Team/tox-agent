@@ -1,0 +1,103 @@
+# Full local/container topology. It deliberately gives the browser only the
+# frontend port; predictor, OCR, PostgreSQL and control-plane stay private.
+#
+# The supported default is a self-contained CPU evaluation stack. Run
+# `./bin/toxagent setup` once; it creates credentials and provisions the
+# checksum-pinned OCR checkpoint. OpenCode is an explicit advanced overlay.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: toxagent
+      POSTGRES_USER: toxagent
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toxagent -d toxagent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - toxagent-postgres:/var/lib/postgresql/data
+
+  toxpred:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+      args:
+        TORCH_VARIANT: ${TOXPRED_TORCH_VARIANT:-cpu}
+    environment:
+      PORT: 8080
+      MODEL_ARTIFACTS_URI: ${MODEL_ARTIFACTS_URI:-}
+      TOXPRED_DEVICE: ${TOXPRED_DEVICE:-cpu}
+      TOXAGENT_ACCELERATOR: ${TOXAGENT_ACCELERATOR:-cpu}
+    volumes:
+      # Useful for an air-gapped/local smoke. Production should supply the
+      # immutable object-store URI above instead of a host-path mount.
+      - ${TOXPRED_MODELS_HOST_PATH:-./models}:/app/models:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  toxocr:
+    build:
+      context: ./toxocr
+      dockerfile: deploy/Dockerfile
+      args:
+        TORCH_VARIANT: ${TOXOCR_TORCH_VARIANT:-cpu}
+    environment:
+      PORT: 8090
+      TOXOCR_CHECKPOINT_PATH: /checkpoint/swin_base_char_aux_1m.pth
+      TOXOCR_CHECKPOINT_SHA256: ${TOXOCR_CHECKPOINT_SHA256:?run ./bin/toxagent setup first}
+      TOXOCR_ALLOW_CHECKPOINT_DOWNLOAD: "false"
+      TOXOCR_DEVICE: ${TOXOCR_DEVICE:-cpu}
+      TOXAGENT_ACCELERATOR: ${TOXAGENT_ACCELERATOR:-cpu}
+    volumes:
+      - ${TOXOCR_CHECKPOINT_HOST_PATH:-./.artifacts/toxocr}:/checkpoint:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8090/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  toxagent-control:
+    build:
+      context: ./toxagent-control
+      dockerfile: deploy/Dockerfile
+    environment:
+      PORT: 8000
+      TOXAGENT_ENV: ${TOXAGENT_ENV:-development}
+      TOXAGENT_DATABASE_URL: postgresql+asyncpg://toxagent:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/toxagent
+      TOXAGENT_PREDICTOR_URL: http://toxpred:8080
+      TOXAGENT_OCR_URL: http://toxocr:8090
+      # The default serves prediction/OCR without a provider. External
+      # OpenCode is enabled only by infra/compose/external-opencode.yaml.
+      TOXAGENT_RUNTIME_KIND: scripted
+      # A report-Q&A normally needs one or a few slices. Keep the production
+      # default bounded; evidence-heavy deployments may explicitly raise this
+      # to 24 after measuring latency/cost.
+      TOXAGENT_MAX_TOOL_CALLS: ${TOXAGENT_MAX_TOOL_CALLS:-12}
+      TOXAGENT_CAPABILITY_SECRET: ${TOXAGENT_CAPABILITY_SECRET:?run ./bin/toxagent setup first}
+      TOXAGENT_STATIC_TOKENS: ${TOXAGENT_STATIC_TOKENS:?run ./bin/toxagent setup first}
+      TOXAGENT_CORS_ALLOW_ORIGINS: ${TOXAGENT_CORS_ALLOW_ORIGINS:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      toxpred:
+        condition: service_healthy
+      toxocr:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-8088}:8080"
+    depends_on:
+      toxagent-control:
+        condition: service_started
+
+volumes:
+  toxagent-postgres:

@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Thin operational facade for the supported Docker Compose topology.
+set -Eeuo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+COMPOSE=(docker compose --project-name toxagent)
+CHECKPOINT_DIR=".artifacts/toxocr"
+CHECKPOINT="$CHECKPOINT_DIR/swin_base_char_aux_1m.pth"
+CHECKPOINT_URL="https://huggingface.co/yujieq/MolScribe/resolve/main/swin_base_char_aux_1m.pth"
+CHECKPOINT_SHA256="64f4443d6f5a2bc594d5f0b5acdd48b8e1d13d699d08e2456b54b352ffe99fce"
+
+fail() { printf 'toxagent: %s\n' "$*" >&2; exit 1; }
+random() { openssl rand -hex 32 2>/dev/null || python3 -c 'import secrets; print(secrets.token_hex(32))'; }
+set_env() {
+  local key="$1" value="$2"
+  if grep -q "^${key}=" .env; then
+    sed -i "s|^${key}=.*|${key}=${value}|" .env
+  else
+    printf '%s=%s\n' "$key" "$value" >> .env
+  fi
+}
+env_value() { grep -E "^${1}=" .env 2>/dev/null | head -n1 | cut -d= -f2-; }
+
+setup() {
+  if [[ ! -f .env ]]; then cp .env.example .env; fi
+  [[ -n "$(env_value POSTGRES_PASSWORD)" ]] || set_env POSTGRES_PASSWORD "$(random)"
+  [[ -n "$(env_value TOXAGENT_CAPABILITY_SECRET)" ]] || set_env TOXAGENT_CAPABILITY_SECRET "$(random)"
+  local token
+  token="$(env_value TOXAGENT_STATIC_TOKENS)"
+  if [[ -z "$token" ]]; then
+    token="$(random)"
+    set_env TOXAGENT_STATIC_TOKENS "${token}:local-operator:operator|expert"
+  else
+    token="${token%%:*}"
+  fi
+  mkdir -p "$CHECKPOINT_DIR"
+  if [[ ! -f "$CHECKPOINT" ]]; then
+    command -v curl >/dev/null || fail "curl is required to provision the OCR checkpoint"
+    printf 'Downloading the pinned MolScribe checkpoint (about 1.1 GB; this happens once)...\n'
+    curl --fail --location --retry 3 --output "${CHECKPOINT}.partial" "$CHECKPOINT_URL"
+    mv "${CHECKPOINT}.partial" "$CHECKPOINT"
+  fi
+  printf '%s  %s\n' "$CHECKPOINT_SHA256" "$CHECKPOINT" | sha256sum --check --status \
+    || fail "OCR checkpoint checksum mismatch; delete $CHECKPOINT and run setup again"
+  printf '\nSetup complete. Open http://localhost:%s and enter this access token:\n%s\n' "$(env_value FRONTEND_PORT)" "$token"
+}
+
+doctor() {
+  command -v docker >/dev/null || fail "install Docker Engine, then retry"
+  docker compose version >/dev/null || fail "install Docker Compose v2, then retry"
+  [[ -f .env ]] || fail "run ./bin/toxagent setup first"
+  [[ -f "$CHECKPOINT" ]] || fail "OCR checkpoint missing; run ./bin/toxagent setup"
+  printf '%s  %s\n' "$CHECKPOINT_SHA256" "$CHECKPOINT" | sha256sum --check --status \
+    || fail "OCR checkpoint checksum mismatch; rerun setup"
+  local port; port="$(env_value FRONTEND_PORT)"
+  if command -v ss >/dev/null && ss -ltn "sport = :$port" | grep -q LISTEN; then
+    fail "port $port is already in use; change FRONTEND_PORT in .env"
+  fi
+  "${COMPOSE[@]}" config --quiet || fail "Compose configuration is invalid; review .env"
+  printf 'doctor: Docker, Compose, configuration and pinned OCR artifact are ready.\n'
+}
+
+up() { doctor; "${COMPOSE[@]}" up --build --detach --wait --wait-timeout 600; printf 'Ready: http://localhost:%s\n' "$(env_value FRONTEND_PORT)"; }
+down() { "${COMPOSE[@]}" down; }
+status() { "${COMPOSE[@]}" ps; }
+logs() { "${COMPOSE[@]}" logs --tail=200 "${@:2}"; }
+smoke() {
+  local port token
+  port="$(env_value FRONTEND_PORT)"; token="$(env_value TOXAGENT_STATIC_TOKENS)"; token="${token%%:*}"
+  curl --fail --silent "http://localhost:${port}/health/ready" >/dev/null || fail "frontend/control readiness failed; run ./bin/toxagent logs"
+  curl --fail --silent -X POST "http://localhost:${port}/v1/predict" -H "Authorization: Bearer $token" -H 'Content-Type: application/json' -d '{"smiles":"CCO"}' >/dev/null \
+    || fail "prediction smoke failed; run ./bin/toxagent logs toxagent-control toxpred"
+  printf 'smoke: frontend, control plane and predictor are responding.\n'
+}
+backup() { mkdir -p backups; "${COMPOSE[@]}" exec -T postgres pg_dump -U toxagent toxagent | gzip > "backups/toxagent-$(date +%Y%m%d%H%M%S).sql.gz"; }
+restore() { [[ $# -eq 2 && -f "$2" ]] || fail "usage: toxagent restore backups/file.sql.gz"; printf 'Restoring replaces the current database. Type RESTORE: '; read -r answer; [[ "$answer" == RESTORE ]] || fail "restore cancelled"; gzip -dc "$2" | "${COMPOSE[@]}" exec -T postgres psql -U toxagent -d toxagent; }
+
+case "${1:-}" in
+  setup) setup ;; doctor) doctor ;; up) up ;; down) down ;; status) status ;;
+  logs) logs "$@" ;; smoke) smoke ;; backup) backup ;; restore) restore "$@" ;;
+  *) printf 'Usage: %s {setup|doctor|up|down|status|logs|smoke|backup|restore}\n' "$0" >&2; exit 2 ;;
+esac

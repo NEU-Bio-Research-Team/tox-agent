@@ -234,9 +234,14 @@ class HergTox21ChembertaProvider:
         enc = self._tokenizer(
             [canonical_smiles], padding=True, truncation=True,
             max_length=self._max_length, return_tensors="pt",
+            return_offsets_mapping=True,
         )
         input_ids = enc["input_ids"].to(self._device)
         attention_mask = enc["attention_mask"].to(self._device)
+        # Char spans into ``canonical_smiles`` for each token, so a downstream
+        # explainer can project token importances onto atom indices without
+        # re-tokenising. Fast tokenisers only; ChemBERTa's is one.
+        offsets = enc["offset_mapping"][0].tolist()
 
         embedding_layer = self._model.backbone.get_input_embeddings()
         embeddings = embedding_layer(input_ids).detach().clone().requires_grad_(True)
@@ -259,7 +264,12 @@ class HergTox21ChembertaProvider:
         mask = attention_mask[0].cpu().numpy().reshape(-1)
 
         kept = [
-            {"token": tok, "position": i, "importance": float(scores[i])}
+            {
+                "token": tok,
+                "position": i,
+                "importance": float(scores[i]),
+                "offsets": [int(offsets[i][0]), int(offsets[i][1])],
+            }
             for i, tok in enumerate(tokens)
             if mask[i] == 1
         ]
@@ -274,5 +284,5 @@ class HergTox21ChembertaProvider:
         }
 
 
-def factory(spec: ArtifactSpec) -> HergTox21ChembertaProvider:
-    return HergTox21ChembertaProvider(spec)
+def factory(spec: ArtifactSpec, device: str = "cpu") -> HergTox21ChembertaProvider:
+    return HergTox21ChembertaProvider(spec, device=device)

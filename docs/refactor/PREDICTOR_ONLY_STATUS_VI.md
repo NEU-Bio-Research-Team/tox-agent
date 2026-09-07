@@ -258,7 +258,7 @@ Latency CPU p50 3,0 ms / p95 4,5 ms. Ca trùng lặp cho kết quả **giống h
 |---|---|
 | `toxpred/scientific/artifacts.py` | Manifest schema + verify SHA-256 + size; báo **tất cả** lỗi trong một lần |
 | `toxpred/scientific/registry.py` | `ModelProvider` protocol, `ModelRegistry`, tách liveness/readiness, **không fallback** |
-| `artifacts/manifest.yaml` | Khai báo `herg-tox21-chemberta-v1` với checksum thật của 10 file |
+| `artifacts/predictor-manifest.yaml` | Khai báo `herg-tox21-chemberta-v1` với checksum thật của 10 file |
 
 Manifest ghi rõ hai artifact **không** đăng ký (ClinTox và `dualhead_ensemble3`) kèm lý do,
 để lần sau không phải phát hiện lại.

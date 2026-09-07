@@ -142,7 +142,7 @@ def test_real_manifest_verifies_against_real_artifacts():
     from pathlib import Path
 
     repo = Path(__file__).resolve().parents[2]
-    specs = load_manifest(repo / "artifacts" / "manifest.yaml")
+    specs = load_manifest(repo / "artifacts" / "predictor-manifest.yaml")
     for spec in specs.values():
         spec.verify()
 
@@ -165,7 +165,7 @@ def test_real_manifest_declares_clintox_as_optional():
     from pathlib import Path
 
     repo = Path(__file__).resolve().parents[2]
-    specs = load_manifest(repo / "artifacts" / "manifest.yaml")
+    specs = load_manifest(repo / "artifacts" / "predictor-manifest.yaml")
     clintox = specs["clintox-smilesgnn-v1"]
     assert clintox.required is False
     assert clintox.declared_thresholds["clintox"] == 0.35

@@ -1,0 +1,681 @@
+{
+  "captured_at_commit": "3c58bc691f4955c005eabefb0f92de405454ecc2",
+  "openapi": {
+    "components": {
+      "schemas": {
+        "AttributionRequest": {
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "description": "Attribution is always for one endpoint; it is never aggregated.",
+              "enum": [
+                "clintox",
+                "herg",
+                "tox21"
+              ],
+              "title": "Endpoint",
+              "type": "string"
+            },
+            "smiles": {
+              "minLength": 1,
+              "title": "Smiles",
+              "type": "string"
+            },
+            "task": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Required when endpoint is 'tox21': which of the 12 assays to attribute.",
+              "title": "Task"
+            }
+          },
+          "required": [
+            "smiles",
+            "endpoint"
+          ],
+          "title": "AttributionRequest",
+          "type": "object"
+        },
+        "BatchItemErrorOut": {
+          "properties": {
+            "detail": {
+              "title": "Detail",
+              "type": "string"
+            },
+            "error": {
+              "title": "Error",
+              "type": "string"
+            },
+            "index": {
+              "title": "Index",
+              "type": "integer"
+            },
+            "input_smiles": {
+              "title": "Input Smiles",
+              "type": "string"
+            }
+          },
+          "required": [
+            "index",
+            "input_smiles",
+            "error",
+            "detail"
+          ],
+          "title": "BatchItemErrorOut",
+          "type": "object"
+        },
+        "BatchPredictionRequest": {
+          "additionalProperties": false,
+          "properties": {
+            "endpoints": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "clintox",
+                      "herg",
+                      "tox21"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Endpoints"
+            },
+            "smiles": {
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "title": "Smiles",
+              "type": "array"
+            },
+            "threshold_overrides": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ThresholdOverrides"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "smiles"
+          ],
+          "title": "BatchPredictionRequest",
+          "type": "object"
+        },
+        "BatchPredictionResponse": {
+          "properties": {
+            "count": {
+              "title": "Count",
+              "type": "integer"
+            },
+            "errors": {
+              "items": {
+                "$ref": "#/components/schemas/BatchItemErrorOut"
+              },
+              "title": "Errors",
+              "type": "array"
+            },
+            "results": {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "title": "Results",
+              "type": "array"
+            }
+          },
+          "required": [
+            "results",
+            "errors",
+            "count"
+          ],
+          "title": "BatchPredictionResponse",
+          "type": "object"
+        },
+        "ExplainRequest": {
+          "additionalProperties": false,
+          "description": "``POST /v1/explanations`` (plan section 5.1).\n\nOne assay per call: ``endpoint='tox21'`` requires ``task``. Running all 12\nis 12 backward passes and a combined tox21 attribution is meaningless.",
+          "properties": {
+            "endpoint": {
+              "enum": [
+                "herg",
+                "tox21"
+              ],
+              "title": "Endpoint",
+              "type": "string"
+            },
+            "smiles": {
+              "minLength": 1,
+              "title": "Smiles",
+              "type": "string"
+            },
+            "task": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task"
+            }
+          },
+          "required": [
+            "smiles",
+            "endpoint"
+          ],
+          "title": "ExplainRequest",
+          "type": "object"
+        },
+        "HTTPValidationError": {
+          "properties": {
+            "detail": {
+              "items": {
+                "$ref": "#/components/schemas/ValidationError"
+              },
+              "title": "Detail",
+              "type": "array"
+            }
+          },
+          "title": "HTTPValidationError",
+          "type": "object"
+        },
+        "ModelInfo": {
+          "properties": {
+            "blocked_reason": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Blocked Reason"
+            },
+            "capabilities": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Capabilities",
+              "type": "array"
+            },
+            "detail": {
+              "default": "",
+              "title": "Detail",
+              "type": "string"
+            },
+            "loaded": {
+              "title": "Loaded",
+              "type": "boolean"
+            },
+            "model_id": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "required": {
+              "title": "Required",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "model_id",
+            "capabilities",
+            "loaded",
+            "required"
+          ],
+          "title": "ModelInfo",
+          "type": "object"
+        },
+        "ModelsResponse": {
+          "properties": {
+            "models": {
+              "items": {
+                "$ref": "#/components/schemas/ModelInfo"
+              },
+              "title": "Models",
+              "type": "array"
+            },
+            "served_endpoints": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Served Endpoints",
+              "type": "array"
+            }
+          },
+          "required": [
+            "models",
+            "served_endpoints"
+          ],
+          "title": "ModelsResponse",
+          "type": "object"
+        },
+        "PredictionRequest": {
+          "additionalProperties": false,
+          "properties": {
+            "endpoints": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "clintox",
+                      "herg",
+                      "tox21"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Endpoints to evaluate. Defaults to every endpoint this build serves.",
+              "title": "Endpoints"
+            },
+            "smiles": {
+              "description": "A single SMILES string.",
+              "minLength": 1,
+              "title": "Smiles",
+              "type": "string"
+            },
+            "threshold_overrides": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ThresholdOverrides"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "smiles"
+          ],
+          "title": "PredictionRequest",
+          "type": "object"
+        },
+        "ReadinessResponse": {
+          "properties": {
+            "ready": {
+              "title": "Ready",
+              "type": "boolean"
+            },
+            "reasons": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Reasons",
+              "type": "array"
+            },
+            "served_endpoints": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Served Endpoints",
+              "type": "array"
+            }
+          },
+          "required": [
+            "ready"
+          ],
+          "title": "ReadinessResponse",
+          "type": "object"
+        },
+        "ThresholdOverrides": {
+          "additionalProperties": false,
+          "properties": {
+            "clintox": {
+              "anyOf": [
+                {
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Clintox"
+            },
+            "herg": {
+              "anyOf": [
+                {
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Herg"
+            },
+            "tox21": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tox21"
+            }
+          },
+          "title": "ThresholdOverrides",
+          "type": "object"
+        },
+        "ValidationError": {
+          "properties": {
+            "ctx": {
+              "title": "Context",
+              "type": "object"
+            },
+            "input": {
+              "title": "Input"
+            },
+            "loc": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "title": "Location",
+              "type": "array"
+            },
+            "msg": {
+              "title": "Message",
+              "type": "string"
+            },
+            "type": {
+              "title": "Error Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "loc",
+            "msg",
+            "type"
+          ],
+          "title": "ValidationError",
+          "type": "object"
+        }
+      }
+    },
+    "info": {
+      "description": "Headless toxicity prediction.\n\nThree endpoints with distinct meanings, never combined into one verdict:\nhERG channel blockade, twelve Tox21 assay activities, and ClinTox clinical-trial\ntoxicity. Every probability carries the threshold that labelled it, where that\nthreshold came from, and the artifact that produced it.\n",
+      "title": "ToxPred",
+      "version": "0.1.0.dev0"
+    },
+    "openapi": "3.1.0",
+    "paths": {
+      "/health/live": {
+        "get": {
+          "description": "Process liveness only. Deliberately says nothing about the models.",
+          "operationId": "live_health_live_get",
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "title": "Response Live Health Live Get",
+                    "type": "object"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            }
+          },
+          "summary": "Live",
+          "tags": [
+            "health"
+          ]
+        }
+      },
+      "/health/ready": {
+        "get": {
+          "operationId": "ready_health_ready_get",
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ReadinessResponse"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            }
+          },
+          "summary": "Ready",
+          "tags": [
+            "health"
+          ]
+        }
+      },
+      "/v1/attributions": {
+        "post": {
+          "operationId": "attributions_v1_attributions_post",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributionRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "additionalProperties": true,
+                    "title": "Response Attributions V1 Attributions Post",
+                    "type": "object"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            },
+            "422": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/HTTPValidationError"
+                  }
+                }
+              },
+              "description": "Validation Error"
+            }
+          },
+          "summary": "Attributions",
+          "tags": [
+            "prediction"
+          ]
+        }
+      },
+      "/v1/explanations": {
+        "post": {
+          "description": "Token attribution projected onto heavy-atom indices. ``/v1/attributions``\nstays as the token-only endpoint for backward compatibility.",
+          "operationId": "explanations_v1_explanations_post",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplainRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "additionalProperties": true,
+                    "title": "Response Explanations V1 Explanations Post",
+                    "type": "object"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            },
+            "422": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/HTTPValidationError"
+                  }
+                }
+              },
+              "description": "Validation Error"
+            }
+          },
+          "summary": "Explanations",
+          "tags": [
+            "prediction"
+          ]
+        }
+      },
+      "/v1/models": {
+        "get": {
+          "operationId": "models_v1_models_get",
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ModelsResponse"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            }
+          },
+          "summary": "Models",
+          "tags": [
+            "prediction"
+          ]
+        }
+      },
+      "/v1/predictions": {
+        "post": {
+          "operationId": "predict_v1_predictions_post",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictionRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "additionalProperties": true,
+                    "title": "Response Predict V1 Predictions Post",
+                    "type": "object"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            },
+            "422": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/HTTPValidationError"
+                  }
+                }
+              },
+              "description": "Validation Error"
+            }
+          },
+          "summary": "Predict",
+          "tags": [
+            "prediction"
+          ]
+        }
+      },
+      "/v1/predictions:batch": {
+        "post": {
+          "operationId": "predict_batch_v1_predictions_batch_post",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchPredictionRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/BatchPredictionResponse"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            },
+            "422": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/HTTPValidationError"
+                  }
+                }
+              },
+              "description": "Validation Error"
+            }
+          },
+          "summary": "Predict Batch",
+          "tags": [
+            "prediction"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "task_id": "numeric-12-threshold-render-vi",
+  "category": "numeric_fidelity",
+  "language": "vi",
+  "fixture": "aspirin-herg-tox21",
+  "title": "Threshold and derived label, Vietnamese",
+  "rationale": "Threshold 0.5 renders '0,5'; the label is read from the source, not derived by the model in prose without citing predictions.herg.label.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ngưỡng quyết định hERG là bao nhiêu và nhãn kết quả là gì?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.threshold",
+          "rendered_value": "0,5"
+        },
+        {
+          "kind": "classification",
+          "field_path": "predictions.herg.label",
+          "rendered_value": "non_blocker"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1"
+}

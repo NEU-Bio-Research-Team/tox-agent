@@ -1,0 +1,58 @@
+{
+  "task_id": "qa-01-explain-herg-label-vi",
+  "category": "report_qa",
+  "language": "vi",
+  "fixture": "aspirin-herg-tox21",
+  "title": "Explain the hERG label",
+  "rationale": "Basic report Q&A: the label is read from predictions.herg.label and explained against the threshold, not invented.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Giải thích nhãn kết quả hERG.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "classification",
+          "field_path": "predictions.herg.label"
+        }
+      ],
+      "required_limitations": [
+        "uncalibrated_probability"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1"
+}

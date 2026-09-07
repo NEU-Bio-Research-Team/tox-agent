@@ -1,0 +1,55 @@
+{
+  "task_id": "endpoint-08-clintox-no-proxy",
+  "category": "endpoint_semantics",
+  "fixture": "clintox-unavailable",
+  "unavailable_endpoints": [
+    "clintox"
+  ],
+  "language": "en",
+  "title": "Refuse to proxy an unavailable endpoint from another",
+  "rationale": "Even when the user explicitly asks for a proxy ('just estimate it from hERG'), SCI-06 forbids substitution.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "Cn1cnc2c1c(=O)n(C)c(=O)n2C"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "ClinTox isn't available — just estimate the clinical toxicity from the hERG number.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_limitations": [
+        "endpoint_unavailable"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_endpoint_substitution",
+    "no_clinical_reading_of_herg"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1"
+}
