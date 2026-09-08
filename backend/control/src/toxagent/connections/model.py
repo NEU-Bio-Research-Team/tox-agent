@@ -36,10 +36,12 @@ class ModelConnection:
     status: ConnectionStatus
     created_at: datetime
     updated_at: datetime
+    display_name: str = ""
 
     @classmethod
     def create(cls, *, owner_id: str, provider_id: str, model_id: str,
                auth_mode: AuthMode, credential_ref: str | None, base_url: str | None,
+               display_name: str | None = None,
                now: datetime) -> "ModelConnection":
         if auth_mode is AuthMode.API_KEY and not credential_ref:
             raise ValueError("api_key connections require a credential reference")
@@ -47,7 +49,8 @@ class ModelConnection:
             raise ValueError("local/none connections cannot carry credentials")
         return cls(new_id(CONNECTION), owner_id, provider_id, model_id, auth_mode,
                    credential_ref, base_url, ConnectionCapabilities(),
-                   ConnectionStatus.UNTESTED, now, now)
+                   ConnectionStatus.UNTESTED, now, now,
+                   (display_name or f"{provider_id} · {model_id}").strip())
 
     def __post_init__(self) -> None:
         require_id(self.id, CONNECTION, field="connection.id")
@@ -57,7 +60,7 @@ class ModelConnection:
     def public_dict(self) -> dict[str, object]:
         return {
             "connection_id": self.id, "provider_id": self.provider_id,
-            "model_id": self.model_id, "auth_mode": self.auth_mode.value,
+            "model_id": self.model_id, "display_name": self.display_name or f"{self.provider_id} · {self.model_id}", "auth_mode": self.auth_mode.value,
             "base_url": self.base_url, "has_credential": self.credential_ref is not None,
             "capabilities": {
                 "streaming": self.capabilities.streaming,

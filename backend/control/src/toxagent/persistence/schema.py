@@ -221,6 +221,7 @@ model_connections = Table(
     Column("owner_id", String(255), nullable=False),
     Column("provider_id", String(128), nullable=False),
     Column("model_id", String(128), nullable=False),
+    Column("display_name", String(160), nullable=False, server_default=""),
     Column("base_url", Text),
     Column("auth_mode", String(32), nullable=False),
     Column("credential_ref", String(255)),

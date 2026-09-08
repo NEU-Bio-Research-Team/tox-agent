@@ -208,6 +208,7 @@ class CancelResponse(BaseModel):
 class CreateModelConnectionRequest(_Request):
     provider_id: str = Field(min_length=1, max_length=128)
     model_id: str = Field(min_length=1, max_length=128)
+    display_name: str | None = Field(default=None, max_length=160)
     auth_mode: Literal["chatgpt_subscription", "api_key", "local", "none"]
     base_url: str | None = Field(default=None, max_length=2048)
     credential: str | None = Field(default=None, min_length=1, max_length=16_384)

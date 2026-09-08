@@ -235,6 +235,7 @@ export interface ModelConnection {
   connection_id: string;
   provider_id: string;
   model_id: string;
+  display_name: string;
   auth_mode: 'chatgpt_subscription' | 'api_key' | 'local' | 'none';
   base_url: string | null;
   has_credential: boolean;

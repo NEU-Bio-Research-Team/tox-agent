@@ -62,7 +62,8 @@ class ModelConnectionService:
         self._probe = probe or OpenAICompatibleProbe()
 
     async def create(self, *, owner_id: str, provider_id: str, model_id: str,
-                     auth_mode: AuthMode, base_url: str | None, credential: str | None) -> ModelConnection:
+                     auth_mode: AuthMode, base_url: str | None, credential: str | None,
+                     display_name: str | None = None) -> ModelConnection:
         ref = None
         if credential:
             ref = self._secrets.put(owner_id, credential)
@@ -70,6 +71,7 @@ class ModelConnectionService:
             connection = ModelConnection.create(
                 owner_id=owner_id, provider_id=provider_id, model_id=model_id,
                 auth_mode=auth_mode, credential_ref=ref, base_url=base_url,
+                display_name=display_name,
                 now=datetime.now(timezone.utc),
             )
             async with self._db.unit_of_work() as uow:

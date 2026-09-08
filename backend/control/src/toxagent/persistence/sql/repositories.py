@@ -302,7 +302,7 @@ class SqlModelConnectionStore:
     async def add(self, connection: ModelConnection) -> None:
         await self._conn.execute(insert(model_connections).values(
             id=connection.id, owner_id=connection.owner_id, provider_id=connection.provider_id,
-            model_id=connection.model_id, base_url=connection.base_url,
+            model_id=connection.model_id, display_name=connection.display_name, base_url=connection.base_url,
             auth_mode=connection.auth_mode.value, credential_ref=connection.credential_ref,
             capabilities={
                 "streaming": connection.capabilities.streaming,
@@ -330,7 +330,7 @@ class SqlModelConnectionStore:
                 structured_output=bool(caps.get("structured_output")),
                 context_size=caps.get("context_size"),
             ), status=ConnectionStatus(row["status"]), created_at=m.utc(row["created_at"]),
-            updated_at=m.utc(row["updated_at"]),
+            updated_at=m.utc(row["updated_at"]), display_name=row.get("display_name") or "",
         )
 
     async def list(self, *, owner_id: str) -> Sequence[ModelConnection]:

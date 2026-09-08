@@ -130,7 +130,7 @@ export function listModelConnections(): Promise<{ connections: ModelConnection[]
 }
 
 export function createModelConnection(input: {
-  provider_id: string; model_id: string; auth_mode: ModelConnection['auth_mode'];
+  provider_id: string; model_id: string; display_name?: string; auth_mode: ModelConnection['auth_mode'];
   base_url?: string; credential?: string;
 }): Promise<ModelConnection> {
   return apiRequest('/v1/model-connections', { method: 'POST', body: input });

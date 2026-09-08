@@ -312,6 +312,7 @@ async def create_model_connection(
     item = await _services(request).connections.create(
         owner_id=principal.subject_id, provider_id=body.provider_id, model_id=body.model_id,
         auth_mode=AuthMode(body.auth_mode), base_url=body.base_url, credential=body.credential,
+        display_name=body.display_name,
     )
     return item.public_dict()
 
