@@ -1,7 +1,7 @@
 # Opt-in GPU overlay. Run only after `docker run --rm --gpus all ... nvidia-smi`
 # succeeds on this host:
 #   ./bin/toxagent doctor
-#   docker compose -f compose.yaml -f devops/compose/gpu.yaml up
+#   docker compose --project-directory . -f devops/compose/compose.yaml -f devops/compose/gpu.yaml up
 # Images are prebuilt under toxagent/toxpred:gpu and toxagent/toxocr:gpu;
 # do not append --build during normal GPU startup.
 services:
