@@ -13,7 +13,7 @@ the normal path and preserves all existing values.
 | `TOXOCR_CHECKPOINT_HOST_PATH` | yes | `.artifacts/toxocr` | no | yes |
 | `TOXAGENT_ACCELERATOR` | no | `cpu` | no | yes |
 
-For GPU, use `docker compose -f compose.yaml -f infra/compose/gpu.yaml up` only
+For GPU, use `docker compose --project-directory . -f devops/compose/compose.yaml -f devops/compose/gpu.yaml up` only
 after the host NVIDIA runtime has been verified. For an external, pinned
 OpenCode deployment, use `infra/compose/external-opencode.yaml` and set its URL,
 runtime-owned directory, MCP URL, provider and model ID. This is an advanced

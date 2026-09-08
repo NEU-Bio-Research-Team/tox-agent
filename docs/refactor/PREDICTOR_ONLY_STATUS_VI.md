@@ -422,7 +422,7 @@ Câu trả lời ngắn: **trong repo thì không** — nhưng bức tranh khác
 | `/smiles/preview` | **Frontend** — `api.ts:900` | |
 | `/analyze` | **Chỉ chính agent layer**, qua self-HTTP localhost | Xem 8.2 |
 | `/health` | Docker `HEALTHCHECK` + `tools/tox_tools.py:371` | |
-| `/predict/batch` | **Chỉ** `scripts/sweep_clinical_threshold.py` | Script dev offline, mặc định `127.0.0.1:8000` |
+| `/predict/batch` | **Chỉ** `backend/predictor/evals/scripts/sweep_clinical_threshold.py` | Script dev offline, mặc định `127.0.0.1:8000` |
 | `/predict` | **Không có consumer nào** | |
 | `/explain` | **Không có consumer nào** | Xem 8.3 |
 
