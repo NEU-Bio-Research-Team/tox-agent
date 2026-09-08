@@ -7,6 +7,11 @@ const ONE_PIXEL_PNG = Buffer.from(
 
 const CAPABILITIES = {
   served_endpoints: ['herg', 'tox21'],
+  default_endpoints: ['herg', 'tox21'],
+  endpoints: [
+    { id: 'herg', display_name: 'hERG', enabled: true, models: [{ model_id: 'm', display_name: 'Model m' }] },
+    { id: 'tox21', display_name: 'Tox21', enabled: true, models: [{ model_id: 'm', display_name: 'Model m' }] },
+  ],
   models: [{ model_id: 'm', capabilities: ['herg', 'tox21'], loaded: true, required: true, detail: '', blocked_reason: null }],
   predictor_id: 'toxpred-local',
   ocr_available: true,
@@ -127,7 +132,7 @@ test('runs a multi-SMILES batch with a per-item error', async ({ page }) => {
   await installApi(page);
   await page.goto('/predict');
 
-  await page.getByRole('checkbox', { name: /Nhiều phân tử/ }).click();
+  await page.getByRole('button', { name: 'Hàng loạt', exact: true }).click();
   await page.getByLabel('Danh sách SMILES').fill('CCO\nnope\nCCN');
   await page.getByRole('button', { name: 'Phân tích' }).click();
 

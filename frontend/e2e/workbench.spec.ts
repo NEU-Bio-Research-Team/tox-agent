@@ -50,6 +50,15 @@ async function installApi(page: Page): Promise<AcceptedMessage[]> {
     if (url.pathname === '/v1/health/ready') {
       return respond({ ready: true, capabilities: { structure_recognition: true } });
     }
+    if (url.pathname === '/v1/predict/capabilities') {
+      return respond({
+        served_endpoints: ['herg'], default_endpoints: ['herg'], ocr_available: true,
+        endpoints: [
+          { id: 'herg', display_name: 'hERG', enabled: true, models: [{ model_id: 'm', display_name: 'Model m' }] },
+        ],
+        tox21_tasks: ['SR-MMP'],
+      });
+    }
     if (url.pathname === `/v1/sessions/${SESSION_ID}/messages` && request.method() === 'POST') {
       accepted.push({ body: request.postDataJSON() as Record<string, unknown> });
       return respond({
@@ -100,7 +109,7 @@ test('stages a safe PNG preview and sends an image envelope', async ({ page }) =
 
 test('opens the keyboard-accessible structure drawing dialog and survives reload', async ({ page }) => {
   await openWorkbench(page);
-  await page.getByRole('button', { name: 'Vẽ cấu trúc', exact: true }).click();
+  await page.getByRole('button', { name: 'Vẽ cấu trúc', exact: true }).first().click();
   await expect(page.getByRole('dialog', { name: 'Vẽ cấu trúc phân tử' })).toBeVisible();
   await page.getByRole('button', { name: 'Đóng hộp thoại' }).click();
   await page.reload();

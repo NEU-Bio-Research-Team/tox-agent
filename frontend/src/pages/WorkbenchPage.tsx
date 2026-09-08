@@ -193,7 +193,11 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   if (session.active_run && !runs.some((r) => r.run_id === session.active_run!.run_id)) {
     runs.push(session.active_run);
   }
-  const activeRunBusy = session.active_run !== null;
+  // A partially reconstructed session projection may omit active_run while
+  // the event stream reconnects. Only an actual run object may lock the
+  // composer; treating undefined as busy left an otherwise healthy session
+  // unable to send its first message.
+  const activeRunBusy = Boolean(session.active_run);
 
   const handleClarificationAction = (action: string) => {
     if (action === 'submit_smiles') setFocusSmilesSignal((n) => (n ?? 0) + 1);
