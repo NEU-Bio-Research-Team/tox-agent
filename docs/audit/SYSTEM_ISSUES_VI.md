@@ -417,7 +417,7 @@ Logs cục bộ ở `/tmp/toxagent-audit-20260908/`: `frontend-build.log`, `brow
 
 ## I30 — Workflow deploy vẫn trỏ topology cũ và đích live từ agent_test
 
-**P1 · Nguồn · K12.** Nguồn: [.github/workflows/backend-autodeploy.yml](../../.github/workflows/backend-autodeploy.yml), [.github/workflows/frontend-autodeploy.yml](../../.github/workflows/frontend-autodeploy.yml).
+**P1 · Nguồn · K12.** Nguồn: `backend-autodeploy.yml` và `frontend-autodeploy.yml` tại thời điểm audit; hai file đã được thay bằng [.github/workflows/deploy.yml](../../.github/workflows/deploy.yml) và [devops/scripts/deploy_target.py](../../devops/scripts/deploy_target.py).
 
 **Bằng chứng và điều kiện:** Backend build model_server/Dockerfile và deploy/cloudrun-env.yaml đã di chuyển; frontend deploy hosting live với URL hardcode, trong khi runbook yêu cầu preview/test service.
 

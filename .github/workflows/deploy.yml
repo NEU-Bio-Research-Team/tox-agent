@@ -1,0 +1,230 @@
+name: Deploy
+
+# I30: this replaces backend-autodeploy.yml and frontend-autodeploy.yml.
+#
+# Those built `model_server/Dockerfile` and passed `deploy/cloudrun-env.yaml`,
+# neither of which the relocation left in the tree, and ran `firebase deploy`
+# with no `firebase.json` or `.firebaserc` anywhere in the repository — so both
+# would fail. The reason to replace rather than repair them is what they would
+# have done if the paths had resolved: both triggered on pushes to `agent_test`
+# and both deployed to the single live target, so a test branch published
+# straight to production.
+#
+# What this workflow does differently:
+#
+#   - It resolves its target through devops/scripts/deploy_target.py, which is
+#     asserted in devops/tests without a cloud project. A ref with no target
+#     stops the job rather than falling back to a default.
+#   - `agent_test` deploys to staging services; `main` promotes the digest
+#     staging already ran, so production gets the artifact that was gated
+#     rather than a rebuild of the same source.
+#   - Each job declares a GitHub `environment`, which is where required
+#     reviewers and environment secrets are configured. Production is not a
+#     branch push away from being different.
+#
+# Not established by this file: no deployment has been run from it, no staging
+# smoke covering auth/SSE/research has been executed, and no rollback to a
+# previous digest has been attempted. Those need the cloud project and are
+# K12 in docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md.
+
+'on':
+  push:
+    branches:
+      - agent_test
+      - main
+    paths:
+      - backend/**
+      - frontend/**
+      - devops/**
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  # Per environment, not per ref: two pushes to the same branch must not deploy
+  # over each other, and staging must not be cancelled by a production run.
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # Nothing is deployed until the same gates a pull request has to pass have
+  # passed on this commit. A deploy that runs before its tests is a deploy
+  # whose tests are decorative.
+  gates:
+    uses: ./.github/workflows/unified-ci.yml
+
+  resolve:
+    needs: gates
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.target.outputs.environment }}
+      builds: ${{ steps.target.outputs.builds }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Resolve the deployment target for this ref
+        id: target
+        run: |
+          python devops/scripts/deploy_target.py \
+            --ref "${GITHUB_REF}" --service control --github-output
+
+  staging:
+    needs: resolve
+    if: needs.resolve.outputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: staging
+    strategy:
+      # One service at a time: a half-deployed stack is harder to reason about
+      # than a slow one, and the control plane must not reach a predictor
+      # image its contract snapshot does not describe.
+      max-parallel: 1
+      matrix:
+        service: [predictor, ocr, control, frontend]
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION }}
+      REPO: ${{ vars.GCP_ARTIFACT_REGISTRY_REPO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Resolve this service's target
+        id: target
+        run: |
+          python devops/scripts/deploy_target.py \
+            --ref "${GITHUB_REF}" --service "${{ matrix.service }}" --github-output
+
+      - name: Fail fast when the project is not configured
+        run: |
+          # Defaulting these to a literal project id is how a repository ends
+          # up deploying into somebody's account by accident. Absent means stop.
+          for name in PROJECT_ID REGION REPO; do
+            if [[ -z "${!name}" ]]; then
+              echo "vars.GCP_${name} is not set for this environment"
+              exit 1
+            fi
+          done
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push
+        id: image
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${{ matrix.service }}:${GITHUB_SHA::12}"
+          docker build -f "${{ steps.target.outputs.dockerfile }}" -t "${IMAGE}" \
+            "${{ steps.target.outputs.context }}"
+          docker push "${IMAGE}"
+          # The digest, not the tag: promotion to production must name the
+          # exact artifact this job gated, and a tag can be moved.
+          DIGEST="$(gcloud artifacts docker images describe "${IMAGE}" --format='value(image_summary.digest)')"
+          echo "digest=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${{ matrix.service }}@${DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to the staging service
+        run: |
+          gcloud run deploy "${{ steps.target.outputs.cloud_run_service }}" \
+            --image="${{ steps.image.outputs.digest }}" \
+            --region="${REGION}" --project="${PROJECT_ID}" \
+            --platform=managed --quiet
+
+      - name: Record the digest for promotion
+        run: |
+          mkdir -p digests
+          echo "${{ steps.image.outputs.digest }}" > "digests/${{ matrix.service }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.service }}
+          path: digests/${{ matrix.service }}
+
+  production:
+    needs: resolve
+    if: needs.resolve.outputs.environment == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Required reviewers and production-only secrets live on this environment.
+    environment: production
+    strategy:
+      max-parallel: 1
+      matrix:
+        service: [predictor, ocr, control, frontend]
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION }}
+      REPO: ${{ vars.GCP_ARTIFACT_REGISTRY_REPO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Resolve this service's target
+        id: target
+        run: |
+          python devops/scripts/deploy_target.py \
+            --ref "${GITHUB_REF}" --service "${{ matrix.service }}" --github-output
+
+      - name: Refuse to build in production
+        if: steps.target.outputs.builds != 'false'
+        run: |
+          echo "production must promote a gated digest, not build one"
+          exit 1
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Find the digest staging is running
+        id: promote
+        run: |
+          DIGEST="$(gcloud run services describe \
+            "${{ steps.target.outputs.cloud_run_service }}-staging" \
+            --region="${REGION}" --project="${PROJECT_ID}" \
+            --format='value(spec.template.spec.containers[0].image)')"
+          if [[ "${DIGEST}" != *"@sha256:"* ]]; then
+            echo "staging is running ${DIGEST}, which is not a digest; refusing to promote a tag"
+            exit 1
+          fi
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Record what production is running now, for rollback
+        run: |
+          gcloud run services describe "${{ steps.target.outputs.cloud_run_service }}" \
+            --region="${REGION}" --project="${PROJECT_ID}" \
+            --format='value(spec.template.spec.containers[0].image)' \
+            > "previous-${{ matrix.service }}.txt" || echo "(no current revision)" > "previous-${{ matrix.service }}.txt"
+          cat "previous-${{ matrix.service }}.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rollback-target-${{ matrix.service }}
+          path: previous-${{ matrix.service }}.txt
+
+      - name: Promote the staged digest
+        run: |
+          gcloud run deploy "${{ steps.target.outputs.cloud_run_service }}" \
+            --image="${{ steps.promote.outputs.digest }}" \
+            --region="${REGION}" --project="${PROJECT_ID}" \
+            --platform=managed --quiet

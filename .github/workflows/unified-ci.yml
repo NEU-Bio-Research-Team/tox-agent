@@ -5,6 +5,9 @@ name: Unified quality gates
   push:
     branches: [main]
   workflow_dispatch:
+  # Called by .github/workflows/deploy.yml, so nothing is deployed until the
+  # gates a pull request has to pass have passed on that same commit (I30).
+  workflow_call:
   schedule:
     - cron: '17 3 * * 1'
 
