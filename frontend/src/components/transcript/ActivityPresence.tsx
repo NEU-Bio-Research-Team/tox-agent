@@ -3,6 +3,8 @@ import { Link } from 'react-router';
 import { getDeveloperModeEnabled } from '../../lib/preferences';
 import type { ActivityLive } from '../../lib/api/types';
 import type { ToolCallLive } from '../../hooks/useSessionEvents';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Button } from '../ui/button';
 
 const LABELS: Record<string, string> = {
   'activity.searching_literature': 'Đang tìm các nghiên cứu liên quan…',
@@ -23,6 +25,38 @@ function fallback(tools: ToolCallLive[]): string {
   return LABELS['activity.processing'];
 }
 
+function ActivityHistory({ activities }: { activities: ActivityLive[] }) {
+  const grouped = new Map<string, { label: string; count: number; failed: boolean }>();
+  for (const activity of activities) {
+    const label = LABELS[activity.label_key] ?? LABELS['activity.processing'];
+    const current = grouped.get(label) ?? { label, count: 0, failed: false };
+    current.count += 1;
+    current.failed ||= activity.status === 'failed';
+    grouped.set(label, current);
+  }
+  if (grouped.size === 0) return null;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-auto px-1.5 py-0 text-xs" style={{ color: 'var(--text-faint)' }}>
+          {activities.length} hoạt động
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 space-y-2">
+        <p className="text-sm font-medium">Tiến trình đã thực hiện</p>
+        <ul className="space-y-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          {[...grouped.values()].map((item) => (
+            <li key={item.label} className="flex items-start gap-2">
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: item.failed ? 'var(--accent-red)' : 'var(--accent-green)' }} />
+              <span>{item.label}{item.count > 1 ? ` × ${item.count}` : ''}</span>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 /** A product activity line. Raw trace remains available in the run inspector. */
 export function ActivityPresence({ activities, tools, status, sessionId, runId }: {
   activities: ActivityLive[];
@@ -40,10 +74,10 @@ export function ActivityPresence({ activities, tools, status, sessionId, runId }
   if (label && (status === 'queued' || status === 'running' || status === 'validating')) {
     return <div className="my-2 flex items-center gap-2 text-sm motion-reduce:transition-none" role="status" aria-live="polite" style={{ color: 'var(--text-muted)' }}>
       <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--purple-600)' }} />
-      <span>{label}</span>{details}
+      <span>{label}</span><ActivityHistory activities={activities} />{details}
     </div>;
   }
-  if (completed && status === 'completed') return <div className="my-2 flex items-center gap-2 text-xs" style={{ color: 'var(--text-faint)' }}><Check className="h-3.5 w-3.5" />Đã hoàn tất</div>;
+  if (completed && status === 'completed') return <div className="my-2 flex items-center gap-2 text-xs" style={{ color: 'var(--text-faint)' }}><Check className="h-3.5 w-3.5" />Đã hoàn tất<ActivityHistory activities={activities} /></div>;
   if (status === 'queued') return <div className="my-2 flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}><RotateCcw className="h-4 w-4 animate-spin motion-reduce:animate-none" />Đang phân tích yêu cầu…</div>;
   return null;
 }
