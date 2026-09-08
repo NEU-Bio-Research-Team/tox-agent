@@ -12,7 +12,8 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+PREDICTOR_SOURCE = ROOT / "backend" / "predictor" / "src"
+sys.path.insert(0, str(PREDICTOR_SOURCE))
 
 from toxpred.scientific.artifacts import ArtifactError, load_manifest, sha256_file
 from toxpred.scientific.bootstrap import build_registry
@@ -45,11 +46,31 @@ def inspect(path: Path) -> int:
     return 0
 
 
-def scan(root: Path) -> int:
+def scan(root: Path, manifest: Path) -> int:
     rows = checkpoints(root)
     print(f"Found {len(rows)} checkpoints under {root}")
+    try:
+        specs = load_manifest(manifest, models_root=root)
+    except ArtifactError as exc:
+        print(f"Manifest unavailable: {exc}", file=sys.stderr)
+        return 1
+    declared = {
+        (spec.root / entry.relative_path).resolve(): spec
+        for spec in specs.values()
+        for entry in spec.files
+    }
     for path in rows:
-        print(f"- {path.relative_to(root)} ({path.stat().st_size} bytes)")
+        spec = declared.get(path.resolve())
+        if spec is None:
+            state = "discovered"
+        elif spec.blocked_reason:
+            state = "blocked"
+        elif spec.required:
+            state = "admitted"
+        else:
+            state = "declared"
+        suffix = f" — {spec.model_id}" if spec else ""
+        print(f"[{state}] {path.relative_to(root)} ({path.stat().st_size} bytes){suffix}")
     return 0
 
 
@@ -87,7 +108,7 @@ def admit(manifest: Path, model_id: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(prog="toxagent models")
     parser.add_argument("--models-root", type=Path, default=ROOT / "models")
-    parser.add_argument("--manifest", type=Path, default=ROOT / "artifacts" / "predictor-manifest.yaml")
+    parser.add_argument("--manifest", type=Path, default=ROOT / "backend" / "predictor" / "registry" / "predictor-manifest.yaml")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("scan")
     inspect_parser = sub.add_parser("inspect")
@@ -97,7 +118,7 @@ def main() -> int:
     admit_parser = sub.add_parser("admit")
     admit_parser.add_argument("model_id")
     args = parser.parse_args()
-    if args.command == "scan": return scan(args.models_root)
+    if args.command == "scan": return scan(args.models_root, args.manifest)
     if args.command == "inspect": return inspect(args.path)
     if args.command == "validate": return validate(args.manifest, args.model_id)
     return admit(args.manifest, args.model_id)
