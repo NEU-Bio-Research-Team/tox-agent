@@ -11,7 +11,28 @@ models:
     declared_thresholds:
       clintox: 0.35
     blocked_reason: >-
-      The exact tokenizer.pkl with the 69-token vocabulary is absent. Restore and hash-verify it, or
-      retrain as a complete v2 release before this endpoint can be served.
+      The exact tokenizer.pkl with the 69-token vocabulary is absent, and its identity was never
+      recorded, so a restored file could not be told from a different tokenizer of the same size.
+      Record the hashes below from the training run, or retrain as a complete v2 release with its
+      own tokenizer, calibration and evaluation, before this endpoint can be served.
+    # I07: the admission criteria, in the manifest rather than in prose.
+    #
+    # `vocab_size` is checkable against the checkpoint that is here today —
+    # `smiles_encoder.token_embedding.weight` is (69, 96), and a tokenizer of
+    # any other size cannot be the one these weights were trained with.
+    #
+    # `sha256` and `vocab_sha256` are what would prove a *particular* file is
+    # the training artifact rather than a coincidentally 69-token tokenizer.
+    # They are null because the training run did not record them and this
+    # repository has never held the file. While they are null nothing is
+    # admitted: that is the same outcome as before, with the difference that
+    # supplying them is a manifest change rather than a code change, and the
+    # reason a deployment is given names which one is missing.
+    tokenizer:
+      path: tokenizer.pkl
+      vocab_size: 69
+      checkpoint_embedding_key: smiles_encoder.token_embedding.weight
+      sha256: null
+      vocab_sha256: null
     files:
       - {path: best_model.pt, sha256: 404f0fa834d067b198d6351e85ca55ed6724d3c40c5457635c2ee4c83a4cb2f1, bytes: 1680373}

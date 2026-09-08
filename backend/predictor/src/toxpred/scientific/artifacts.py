@@ -44,6 +44,42 @@ class ArtifactFile:
 
 
 @dataclass(frozen=True)
+class TokenizerRequirement:
+    """The identity a model's tokenizer must have to be admitted.
+
+    I07: the ClinTox v1 checkpoint's embedding matrix is (69, 96) — a 69-token
+    vocabulary derived from its training corpus, which the 80-token SMILES
+    tokenizers on disk do not match. The requirement lived in a prose
+    `blocked_reason` and in a provider docstring, so "is this the right
+    tokenizer?" was a question only a person reading two files could answer,
+    and the only safe implementation was to refuse every tokenizer including a
+    correct one.
+
+    Declaring it makes admission a check. `vocab_size` can be verified against
+    the checkpoint that is here today. `sha256` and `vocab_sha256` are what
+    proves a *particular* file is the training artifact rather than a
+    different tokenizer of the same size; until they are recorded from the
+    training run, no tokenizer can be admitted, and the reason a deployment is
+    given says exactly which of these is missing rather than "restore it".
+    """
+
+    relative_path: str
+    vocab_size: int | None = None
+    #: sha256 of the tokenizer file itself.
+    sha256: str | None = None
+    #: sha256 over the canonical token-to-id mapping, so a tokenizer
+    #: re-serialised by a different library version is still recognisable.
+    vocab_sha256: str | None = None
+    #: Where in the checkpoint the vocabulary size can be read back.
+    checkpoint_embedding_key: str | None = None
+
+    @property
+    def identity_recorded(self) -> bool:
+        """Whether the manifest can tell one tokenizer of this size from another."""
+        return bool(self.sha256 or self.vocab_sha256)
+
+
+@dataclass(frozen=True)
 class ArtifactSpec:
     model_id: str
     provider: str
@@ -57,6 +93,8 @@ class ArtifactSpec:
     model_config_path: Path | None = None
     """Optional architecture config living outside the artifact directory."""
     blocked_reason: str = ""
+    tokenizer: "TokenizerRequirement | None" = None
+    """Set when the model needs a tokenizer whose identity has to be proved."""
     declared_thresholds: Mapping[str, float] = field(default_factory=dict)
     """Operating points chosen in the manifest rather than calibrated with the
     weights. Surfaced as ``threshold_source="manifest_declared"`` so a reader can
@@ -164,6 +202,21 @@ def load_manifest(manifest_path: Path, models_root: Path | None = None) -> dict[
                 if entry.get("model_config") else None
             ),
             blocked_reason=str(entry.get("blocked_reason", "")).strip(),
+            tokenizer=(
+                TokenizerRequirement(
+                    relative_path=str(entry["tokenizer"]["path"]),
+                    vocab_size=(
+                        int(entry["tokenizer"]["vocab_size"])
+                        if entry["tokenizer"].get("vocab_size") is not None else None
+                    ),
+                    sha256=entry["tokenizer"].get("sha256") or None,
+                    vocab_sha256=entry["tokenizer"].get("vocab_sha256") or None,
+                    checkpoint_embedding_key=(
+                        entry["tokenizer"].get("checkpoint_embedding_key") or None
+                    ),
+                )
+                if entry.get("tokenizer") else None
+            ),
             declared_thresholds={
                 str(k): float(v) for k, v in (entry.get("declared_thresholds") or {}).items()
             },
