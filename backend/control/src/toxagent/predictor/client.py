@@ -147,11 +147,21 @@ class PredictorClient:
         return result
 
     async def attribution(
-        self, smiles: str, endpoint: str, task: str | None = None
+        self, smiles: str, endpoint: str, task: str | None = None,
+        model_id: str | None = None,
     ) -> AttributionResponse:
+        """``model_id`` pins which admitted model attributes this endpoint.
+
+        Omitting it asks the predictor to auto-resolve, which is only safe
+        while an endpoint has exactly one admitted model — and produced an
+        attribution from a different model than the prediction the moment it
+        had two (I11).
+        """
         body: dict[str, Any] = {"smiles": smiles, "endpoint": endpoint}
         if task is not None:
             body["task"] = task
+        if model_id is not None:
+            body["model_id"] = model_id
         response = await self._request(
             "POST", "/v1/attributions", json=body,
             timeout=httpx.Timeout(
@@ -162,14 +172,20 @@ class PredictorClient:
         return self._parse(AttributionResponse, response)
 
     async def explain(
-        self, smiles: str, endpoint: str, task: str | None = None
+        self, smiles: str, endpoint: str, task: str | None = None,
+        model_id: str | None = None,
     ) -> ExplanationResponse:
         """Atom-level explanation via ToxPred ``POST /v1/explanations``. Same
         generous read budget as ``attribution`` — it is the same backward pass
-        plus a deterministic token->atom walk."""
+        plus a deterministic token->atom walk.
+
+        ``model_id`` pins the model, for the reason given on ``attribution``.
+        """
         body: dict[str, Any] = {"smiles": smiles, "endpoint": endpoint}
         if task is not None:
             body["task"] = task
+        if model_id is not None:
+            body["model_id"] = model_id
         response = await self._request(
             "POST", "/v1/explanations", json=body,
             timeout=httpx.Timeout(

@@ -97,6 +97,22 @@ class AnalysisSnapshot:
     def served_endpoints(self) -> tuple[str, ...]:
         return tuple(sorted(self.predictor_response.get("predictions", {})))
 
+    def model_for(self, endpoint: str) -> str | None:
+        """Which model produced this snapshot's numbers for one endpoint.
+
+        The snapshot is the record of what actually ran, so this — not a
+        session setting read later, and not the predictor's own default — is
+        what a follow-up explanation or attribution has to be computed with
+        (I10/I11). ``None`` for an endpoint this snapshot does not serve, or
+        for a legacy snapshot written before the predictor reported model ids;
+        the caller must then decline to assume rather than pick one.
+        """
+        section = self.predictor_response.get("predictions", {}).get(endpoint)
+        if not isinstance(section, dict):
+            return None
+        model_id = section.get("model_id")
+        return model_id if isinstance(model_id, str) and model_id else None
+
     @property
     def unavailable_endpoints(self) -> tuple[str, ...]:
         """Requested but absent. SCI-06 forbids filling these from elsewhere."""

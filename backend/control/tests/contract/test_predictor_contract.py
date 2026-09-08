@@ -82,7 +82,10 @@ def test_prediction_request_forbids_unknown_fields(document):
 def test_attribution_is_single_endpoint(document):
     """SCI-09: attribution explains one endpoint/task, never an aggregate."""
     schema = document["components"]["schemas"]["AttributionRequest"]
-    assert set(schema["properties"]) == {"smiles", "endpoint", "task", "method"}
+    # `model_id` pins *which* admitted model attributes the one endpoint
+    # (I10/I11); it does not make attribution multi-endpoint, which is what
+    # the absence of `endpoints` below still enforces.
+    assert set(schema["properties"]) == {"smiles", "endpoint", "task", "method", "model_id"}
     assert "endpoints" not in schema["properties"]
     assert schema["properties"]["method"]["enum"] == [
         "grad_x_input",

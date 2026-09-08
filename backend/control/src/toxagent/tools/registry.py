@@ -70,6 +70,13 @@ class ToolContext:
     #: presentation context only; tool authorization remains ``profile``.
     intent: str = ""
     call_id: str = ""
+    #: The run's resolved predictor binding: endpoint -> admitted model id.
+    #: Injected by the server from the run configuration, exactly like
+    #: session_id and run_id, and for the same reason — a tool argument that
+    #: let a model choose its own provider would put scientific model
+    #: selection in the hands of the thing being explained (I10). No tool
+    #: input schema exposes a model field; this is the only way one arrives.
+    model_selection: Mapping[str, str] | None = None
 
 
 @dataclass(frozen=True)

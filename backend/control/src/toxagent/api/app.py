@@ -149,10 +149,15 @@ def create_app(
 
             async def run_recognize_structure(context: RunContext) -> None:
                 assert context.attachment_id is not None
+                # The whole run configuration, as for any other input (I09).
                 await recognize_structure.execute(
                     actor=context.actor, session_id=context.session_id, run_id=context.run_id,
                     attachment_id=context.attachment_id,
-                    endpoints=context.endpoints, threshold_overrides=context.threshold_overrides,
+                    endpoints=context.endpoints,
+                    model_selection=context.model_selection,
+                    threshold_overrides=context.threshold_overrides,
+                    explanation_mode=context.explanation_mode,
+                    explanation_targets=context.explanation_targets,
                 )
 
             scheduler.register(Intent.STRUCTURE_RECOGNITION, run_recognize_structure)
@@ -221,7 +226,7 @@ def create_app(
             app.state.capability_tokens = capability_tokens
             app.mount(
                 settings.security.mcp_path,
-                mcp_asgi_app(capability_tokens, registry, runner),
+                mcp_asgi_app(capability_tokens, registry, runner, db),
             )
         else:
             app.state.capability_tokens = None

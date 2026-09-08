@@ -33,12 +33,11 @@ class ExplainService:
 
     def explain(
         self, smiles: str, endpoint: str, task: str | None = None,
-        method: str = "grad_x_input",
+        method: str = "grad_x_input", model_id: str | None = None,
     ) -> dict[str, Any]:
-        raw = (
-            self.attribution.attribute(smiles, endpoint, task)
-            if method == "grad_x_input"
-            else self.attribution.attribute(smiles, endpoint, task, method=method)
+        """``model_id`` pins the model, exactly as in AttributionService (I11)."""
+        raw = self.attribution.attribute(
+            smiles, endpoint, task, method=method, model_id=model_id
         )
 
         if raw.get("status") == "failed":

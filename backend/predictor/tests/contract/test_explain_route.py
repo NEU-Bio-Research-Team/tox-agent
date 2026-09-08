@@ -19,7 +19,7 @@ ASPIRIN = "CC(=O)Oc1ccccc1C(=O)O"
 
 
 class _StubExplain:
-    def explain(self, smiles, endpoint, task=None):
+    def explain(self, smiles, endpoint, task=None, method="grad_x_input", model_id=None):
         return {
             "status": "completed",
             "endpoint": endpoint,

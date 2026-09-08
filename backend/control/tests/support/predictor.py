@@ -43,17 +43,23 @@ PROVENANCE = {
 }
 
 
-def herg_section(probability: float = 0.73064, threshold: float = 0.5) -> dict[str, Any]:
+def herg_section(
+    probability: float = 0.73064, threshold: float = 0.5,
+    model_id: str = "pretrained_2head_herg_chemberta",
+) -> dict[str, Any]:
     return {
         "probability_blocker": probability,
         "label": "blocker" if probability >= threshold else "non_blocker",
         "threshold": threshold,
         "threshold_source": "model_default",
-        "model_id": "pretrained_2head_herg_chemberta",
+        "model_id": model_id,
     }
 
 
-def tox21_section(active_tasks: tuple[str, ...] = ("SR-MMP",)) -> dict[str, Any]:
+def tox21_section(
+    active_tasks: tuple[str, ...] = ("SR-MMP",),
+    model_id: str = "pretrained_2head_herg_chemberta",
+) -> dict[str, Any]:
     return {
         "task_order_version": "tox21-12task-v1",
         "assays": {
@@ -65,7 +71,7 @@ def tox21_section(active_tasks: tuple[str, ...] = ("SR-MMP",)) -> dict[str, Any]
             }
             for task in TOX21_TASKS
         },
-        "model_id": "pretrained_2head_herg_chemberta",
+        "model_id": model_id,
     }
 
 
@@ -75,12 +81,24 @@ def prediction(
     endpoints: tuple[str, ...] = ("herg", "tox21"),
     probability: float = 0.73064,
     applicability_status: str = "ok",
+    model_selection: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    """``model_selection`` makes the stub answer *as* the requested model.
+
+    Without it every endpoint reported the same hardcoded model id, so a test
+    could not tell "asked for B and got B" from "asked for B and silently got
+    A" — which is the whole of I08/I09/I10/I11.
+    """
+    selected = model_selection or {}
     predictions: dict[str, Any] = {}
     if "herg" in endpoints:
-        predictions["herg"] = herg_section(probability)
+        predictions["herg"] = herg_section(
+            probability, model_id=selected.get("herg", "pretrained_2head_herg_chemberta")
+        )
     if "tox21" in endpoints:
-        predictions["tox21"] = tox21_section()
+        predictions["tox21"] = tox21_section(
+            model_id=selected.get("tox21", "pretrained_2head_herg_chemberta")
+        )
     if "clintox" in endpoints:
         predictions["clintox"] = {
             "probability_clinical_toxicity": 0.21,
@@ -189,6 +207,7 @@ class StubPredictor:
                     smiles,
                     endpoints=tuple(e for e in requested if e in self.served),
                     probability=self.probability,
+                    model_selection=body.get("model_selection"),
                 ),
             )
 
@@ -203,7 +222,10 @@ class StubPredictor:
                         }
                     )
                 else:
-                    results.append(prediction(smiles, endpoints=self.served))
+                    results.append(prediction(
+                        smiles, endpoints=self.served,
+                        model_selection=body.get("model_selection"),
+                    ))
             return httpx.Response(
                 200,
                 json={"results": results, "errors": errors, "count": len(body.get("smiles", []))},
@@ -230,7 +252,10 @@ class StubPredictor:
                     ],
                     "metadata": {
                         "method": "integrated_gradients_v1",
-                        "model_id": "pretrained_2head_herg_chemberta",
+                        # Echo what was asked for, so a test can tell "asked
+                        # for B and got B" from "asked for B, got A" (I11).
+                        "model_id": body.get("model_id")
+                        or "pretrained_2head_herg_chemberta",
                         "deterministic": True, "duration_ms": 812.0,
                         "timeout_ms": 30000, "note": None,
                     },
@@ -272,7 +297,9 @@ class StubPredictor:
                     ],
                     "method": "grad_x_input_v2+token_atom_align_v1",
                     "metadata": {
-                        "model_id": "pretrained_2head_herg_chemberta",
+                        # Echo, as in /v1/attributions above (I11).
+                        "model_id": body.get("model_id")
+                        or "pretrained_2head_herg_chemberta",
                         "deterministic": True, "duration_ms": 900.0, "note": note,
                     },
                 },

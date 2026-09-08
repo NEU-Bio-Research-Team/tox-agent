@@ -13,7 +13,7 @@ class _StubAttribution:
         self.result = result
         self.calls: list[tuple] = []
 
-    def attribute(self, smiles, endpoint, task=None):
+    def attribute(self, smiles, endpoint, task=None, method="grad_x_input", model_id=None):
         self.calls.append((smiles, endpoint, task))
         return self.result
 

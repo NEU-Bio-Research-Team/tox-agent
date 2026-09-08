@@ -32,8 +32,16 @@ class AttributionService:
 
     def attribute(
         self, smiles: str, endpoint: str, task: str | None = None,
-        method: str = "grad_x_input",
+        method: str = "grad_x_input", model_id: str | None = None,
     ) -> dict[str, Any]:
+        """``model_id`` pins which admitted model explains this endpoint.
+
+        Without it the caller got whichever model `for_capability` happened to
+        resolve, so a prediction made by model B could be handed an
+        explanation computed by model A the moment an endpoint had two
+        admitted models (I11). The registry already refuses an ambiguous
+        capability; this is how a caller answers it.
+        """
         endpoint_enum = Endpoint(endpoint)
         if endpoint_enum is Endpoint.TOX21 and task is None:
             raise ValueError(
@@ -44,7 +52,7 @@ class AttributionService:
             raise ValueError(f"task is only meaningful for tox21, not {endpoint}")
 
         molecule = resolve(smiles)
-        provider = self.registry.for_capability(endpoint_enum.value)
+        provider = self.registry.resolve(capability=endpoint_enum.value, model_id=model_id)
         attribute = getattr(provider, "token_attribution", None)
         if attribute is None:
             raise ArtifactError(

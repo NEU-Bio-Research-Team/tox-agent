@@ -54,8 +54,19 @@ class RecognizeStructure:
         run_id: str,
         attachment_id: str,
         endpoints: tuple[str, ...] | None,
-        threshold_overrides: Mapping[str, Any] | None,
+        model_selection: Mapping[str, str] | None = None,
+        threshold_overrides: Mapping[str, Any] | None = None,
+        explanation_mode: str = "on_demand",
+        explanation_targets: tuple[tuple[str, str | None], ...] = (),
     ) -> None:
+        """I09: an image is an input, not a different product.
+
+        Only endpoints and threshold overrides used to survive OCR, so the one
+        input a user cannot type — a photograph — silently fell back to the
+        default model and the default explanation settings, ignoring what the
+        session had saved. Recognition turns an image into a molecule; it does
+        not reset the run's configuration.
+        """
         try:
             image_bytes, image_mime_type = await self._read_attachment(actor, attachment_id)
         except AttachmentNotFound:
@@ -104,7 +115,12 @@ class RecognizeStructure:
         # provenance).
         await self._create_analysis.execute(
             actor=actor, session_id=session_id, run_id=run_id,
-            smiles=result.smiles, endpoints=endpoints, threshold_overrides=threshold_overrides,
+            smiles=result.smiles,
+            endpoints=endpoints,
+            model_selection=model_selection,
+            threshold_overrides=threshold_overrides,
+            explanation_mode=explanation_mode,
+            explanation_targets=explanation_targets,
         )
 
     async def _read_attachment(self, actor: Actor, attachment_id: str) -> tuple[bytes, str]:

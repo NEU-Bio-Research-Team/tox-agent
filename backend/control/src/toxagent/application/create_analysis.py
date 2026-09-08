@@ -57,6 +57,23 @@ class CreateAnalysis:
         self._predictor = predictor
         self._settings = settings
 
+    @staticmethod
+    def _resolved_model(response, endpoint: str, requested: Mapping[str, str] | None) -> str | None:
+        """The model that actually produced this endpoint's probability.
+
+        Prefer the response over the request: `model_selection` says what was
+        asked for, `predictions.<endpoint>.model_id` says what answered, and
+        an explanation has to be about the latter. Falls back to the request
+        only when the predictor reported none, and to None when neither knows
+        — at which point the predictor auto-resolves, and refuses outright if
+        the endpoint has more than one admitted model.
+        """
+        prediction = getattr(response.predictions, endpoint, None)
+        resolved = getattr(prediction, "model_id", None) if prediction is not None else None
+        if resolved:
+            return resolved
+        return (requested or {}).get(endpoint)
+
     async def execute(
         self,
         *,
@@ -102,7 +119,15 @@ class CreateAnalysis:
         if explanation_mode == "required":
             for endpoint, task in explanation_targets:
                 try:
-                    explanation = await self._predictor.explain(response.canonical_smiles, endpoint, task)
+                    # I11: the same model that produced the probability, not
+                    # whichever one the predictor would auto-resolve. With one
+                    # admitted model per endpoint these agree; with two they
+                    # did not, and the bundle paired B's number with A's
+                    # attribution while claiming both were about B.
+                    explanation = await self._predictor.explain(
+                        response.canonical_smiles, endpoint, task,
+                        model_id=self._resolved_model(response, endpoint, model_selection),
+                    )
                     explanations.append(explanation.model_dump(mode="json"))
                 except Exception as exc:  # terminal failure artifact; never fabricate XAI
                     explanations.append({

@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Mapping
 
 import mcp.types as types
 from mcp.server.lowlevel import Server
@@ -37,8 +37,19 @@ log = logging.getLogger("toxagent.mcp")
 SERVER_NAME = "toxagent"
 
 
-def build_server(registry: ToolRegistry, runner: ToolRunner, claims: CapabilityClaims) -> Server:
-    """One MCP server instance, closed over one run's capability claims."""
+def build_server(
+    registry: ToolRegistry,
+    runner: ToolRunner,
+    claims: CapabilityClaims,
+    model_selection: Mapping[str, str] | None = None,
+) -> Server:
+    """One MCP server instance, closed over one run's capability claims.
+
+    ``model_selection`` is the run's persisted predictor binding, read from
+    ``run_configuration_snapshots`` before this server is built. It reaches
+    tools the same way ``session_id`` does — from the server, never from a
+    tool argument (I10).
+    """
 
     server: Server = Server(name=SERVER_NAME, version=__version__)
     allowed = frozenset(claims.allowed_tools) & frozenset(
@@ -75,6 +86,7 @@ def build_server(registry: ToolRegistry, runner: ToolRunner, claims: CapabilityC
                 deadline_at=claims.expires_at,
                 language=claims.language,
                 intent=claims.intent,
+                model_selection=model_selection,
             )
             result = await runner.call(context, name, arguments)
 
@@ -98,7 +110,10 @@ def _bearer_token(scope: dict[str, Any]) -> str:
 
 
 def mcp_asgi_app(
-    capability_tokens: CapabilityTokenService, registry: ToolRegistry, runner: ToolRunner
+    capability_tokens: CapabilityTokenService,
+    registry: ToolRegistry,
+    runner: ToolRunner,
+    database: Any = None,
 ) -> Callable[[dict, Callable, Callable], Awaitable[None]]:
     """An ASGI callable, mountable under the control plane app.
 
@@ -131,7 +146,17 @@ def mcp_asgi_app(
             await _reject(send, 401, "unauthenticated", "capability token has expired")
             return
 
-        server = build_server(registry, runner, claims)
+        # The run's binding comes from what was persisted when the run was
+        # admitted, not from a session setting read now: changing the session
+        # mid-run must not change the run already in flight (I10, K04).
+        model_selection: Mapping[str, str] | None = None
+        if database is not None:
+            async with database.unit_of_work() as uow:
+                configuration = await uow.run_configuration_snapshots.get(claims.run_id)
+            if configuration:
+                model_selection = configuration.get("predictor_bindings") or None
+
+        server = build_server(registry, runner, claims, model_selection)
         # Stateless: one transport per HTTP request. A run's tool traffic is a
         # handful of short-lived calls, not a long-lived session worth pooling.
         manager = StreamableHTTPSessionManager(app=server, json_response=True, stateless=True)

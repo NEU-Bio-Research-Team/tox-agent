@@ -73,6 +73,14 @@ class AttributionRequest(BaseModel):
         description="Required when endpoint is 'tox21': which of the 12 assays to attribute.",
     )
     method: Literal["grad_x_input", "integrated_gradients"] = "grad_x_input"
+    model_id: str | None = Field(
+        default=None,
+        description=(
+            "Which admitted model explains this endpoint. Omit only when the "
+            "endpoint has exactly one; the registry refuses an ambiguous "
+            "capability rather than choosing."
+        ),
+    )
 
     @field_validator("task")
     @classmethod
@@ -95,6 +103,14 @@ class ExplainRequest(BaseModel):
     endpoint: Literal["herg", "tox21"]
     task: str | None = None
     method: Literal["grad_x_input", "integrated_gradients"] = "grad_x_input"
+    model_id: str | None = Field(
+        default=None,
+        description=(
+            "Which admitted model explains this endpoint. Omit only when the "
+            "endpoint has exactly one; the registry refuses an ambiguous "
+            "capability rather than choosing."
+        ),
+    )
 
     @model_validator(mode="after")
     def _task_rules(self) -> "ExplainRequest":

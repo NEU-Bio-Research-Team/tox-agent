@@ -117,6 +117,11 @@ def build(
             run_id=context.run_id,
             smiles=payload.smiles,
             endpoints=tuple(payload.endpoints) if payload.endpoints else None,
+            # From the run, never from the payload (I10). CreateSnapshotInput
+            # deliberately has no model field: a tool that let the model pick
+            # its own predictor would hand scientific model selection to the
+            # thing whose output is being explained.
+            model_selection=context.model_selection,
             threshold_overrides=payload.threshold_overrides,
             # The run belongs to the turn that called this tool, not to the
             # snapshot; the answer still has to be written and validated.
@@ -171,8 +176,15 @@ def build(
                 served=list(snapshot.served_endpoints),
             )
 
+        # The model that produced this snapshot's numbers for this endpoint —
+        # the only one an attribution about them can be computed with (I10).
+        model_id = snapshot.model_for(payload.endpoint)
+        # `model_id` is part of the key: without it, an attribution cached for
+        # model A would be served for a request about model B, since every
+        # other component of the key is identical (I11).
         cache_key = idempotency_key(
             "attribution", snapshot.canonical_smiles, payload.endpoint, payload.task,
+            model_id or "unknown-model",
             sorted(snapshot.provenance.artifact_hashes),
         )
         async with database.unit_of_work() as uow:
@@ -190,7 +202,7 @@ def build(
                     )
 
         response = await predictor.attribution(
-            snapshot.canonical_smiles, payload.endpoint, payload.task
+            snapshot.canonical_smiles, payload.endpoint, payload.task, model_id=model_id
         )
         if response.status == "failed":
             raise InvalidRequest(

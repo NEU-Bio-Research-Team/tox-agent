@@ -228,7 +228,10 @@ export function MessageComposer({
       intent_hint: intentHint,
       content: effectiveText ? [{ type: 'text', text: effectiveText }] : undefined,
       molecule: effectiveSmiles ? { smiles: effectiveSmiles } : undefined,
-      analysis_options: effectiveSmiles
+      // Sent for an image too (I09). An image is an input, not a different
+      // product: without this the one input a user cannot type fell back to
+      // the server defaults for endpoints, model and explanation.
+      analysis_options: effectiveSmiles || stagedImage
         ? {
             endpoints,
             threshold_overrides:

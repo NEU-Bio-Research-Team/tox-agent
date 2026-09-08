@@ -1,5 +1,5 @@
 {
-  "captured_at_commit": "4067707e60f6924cb26c6e76392d21f3e6cb8a13",
+  "captured_at_commit": "6e469decf8537a16856600cf6862db4813f86a34",
   "openapi": {
     "components": {
       "schemas": {
@@ -24,6 +24,18 @@
               ],
               "title": "Method",
               "type": "string"
+            },
+            "model_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which admitted model explains this endpoint. Omit only when the endpoint has exactly one; the registry refuses an ambiguous capability rather than choosing.",
+              "title": "Model Id"
             },
             "smiles": {
               "minLength": 1,
@@ -196,6 +208,18 @@
               ],
               "title": "Method",
               "type": "string"
+            },
+            "model_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which admitted model explains this endpoint. Omit only when the endpoint has exactly one; the registry refuses an ambiguous capability rather than choosing.",
+              "title": "Model Id"
             },
             "smiles": {
               "minLength": 1,

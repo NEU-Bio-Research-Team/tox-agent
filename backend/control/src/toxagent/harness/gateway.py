@@ -131,6 +131,10 @@ class AgentRuntimeGateway:
             deadline_at=deadline,
             language=context.language,
             intent=context.intent.value,
+            # Server-injected, alongside session_id and run_id and for the
+            # same reason: a tool must inherit the run's predictor binding
+            # rather than let the model choose one (I10).
+            model_selection=context.model_selection,
         )
         spec = RuntimeSessionSpec(
             session_id=context.session_id,
@@ -249,13 +253,21 @@ class AgentRuntimeGateway:
             raise RuntimeProtocolError(
                 "a mixed run asked for a snapshot but no analysis service or SMILES was supplied"
             )
+        # Every field of the run's resolved configuration, not a subset (I08).
+        # This dropped model_selection and the explanation settings, so a
+        # session that had chosen model B could snapshot with the default A
+        # the moment the question happened to arrive with a molecule attached
+        # — and the run's own config and its result then disagreed.
         await self._create_analysis.execute(
             actor=context.actor,
             session_id=context.session_id,
             run_id=context.run_id,
             smiles=context.smiles,
             endpoints=context.endpoints,
+            model_selection=context.model_selection,
             threshold_overrides=context.threshold_overrides,
+            explanation_mode=context.explanation_mode,
+            explanation_targets=context.explanation_targets,
             owns_run=False,
         )
 
