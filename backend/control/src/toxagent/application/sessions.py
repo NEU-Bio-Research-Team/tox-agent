@@ -154,22 +154,19 @@ class SessionService:
             has_more = len(sessions_page) > limit
             sessions_page = sessions_page[:limit]
 
+            # I20: three aggregate queries for the whole page, not two per
+            # session. The old loop was N+1 in the number of sessions listed,
+            # and both values it computed were wrong past a page boundary:
+            # the preview came from the fiftieth message rather than the last,
+            # and the count from a run page capped at ten.
+            session_ids = [session.id for session in sessions_page]
+            active_runs = await uow.runs.active_by_session(session_ids)
+            run_counts = await uow.runs.count_by_session(session_ids)
+            previews = await uow.messages.latest_previews(session_ids)
+
             rows: list[dict[str, Any]] = []
             for session in sessions_page:
-                runs = await uow.runs.list_for_session(session.id, limit=10)
-                active_run = next((r for r in runs if not r.is_terminal), None)
-                messages = await uow.messages.list_for_session(session.id, limit=50)
-                last_message_preview = None
-                if messages:
-                    last = messages[-1]
-                    text_part = next(
-                        (p for p in last.parts if p.type.value == "text"), None
-                    )
-                    if text_part is not None:
-                        text = str(text_part.content.get("text", "")).strip()
-                        last_message_preview = (
-                            text if len(text) <= 160 else f"{text[:160]}…"
-                        )
+                active_run = active_runs.get(session.id)
                 rows.append(
                     {
                         "session_id": session.id,
@@ -184,8 +181,8 @@ class SessionService:
                              "intent": active_run.intent.value}
                             if active_run else None
                         ),
-                        "run_count": len(runs),
-                        "last_message_preview": last_message_preview,
+                        "run_count": run_counts.get(session.id, 0),
+                        "last_message_preview": previews.get(session.id),
                     }
                 )
         return {

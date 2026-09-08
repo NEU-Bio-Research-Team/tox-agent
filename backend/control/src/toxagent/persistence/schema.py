@@ -432,6 +432,22 @@ run_jobs = Table(
     Index("ix_run_jobs_claimable", "lease_expires_at"),
 )
 
+explanation_checkpoints = Table(
+    "explanation_checkpoints", metadata,
+    # sha256 over canonical SMILES, endpoint, task and the model that produced
+    # the probability. Two runs asking for the same explanation of the same
+    # molecule from the same model are asking for the same artifact.
+    Column("key", String(72), primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("endpoint", String(32), nullable=False),
+    Column("task", String(64)),
+    Column("model_id", String(128)),
+    Column("canonical_smiles", Text, nullable=False),
+    Column("payload", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_explanation_checkpoints_session", "session_id", "created_at"),
+)
+
 event_outbox = Table(
     "event_outbox", metadata,
     Column("event_id", _ID, primary_key=True),

@@ -42,6 +42,7 @@ from ..schema import (
     claim_sources,
     claims,
     evidence_records,
+    explanation_checkpoints,
     investigation_plans,
     investigation_steps,
     kernel_transitions,
@@ -427,6 +428,59 @@ class SqlMessageStore:
             by_message[p["message_id"]].append(p)
         return [m.row_to_message(r, by_message[r["id"]]) for r in rows]
 
+    async def latest_previews(
+        self, session_ids: Sequence[str], *, max_length: int = 160
+    ) -> dict[str, str]:
+        """The newest message's text, per session, in two queries for the page.
+
+        I20: the session list used to read the first 50 messages of each
+        session ordered by ascending sequence and take the last of them, which
+        is the newest message only while a session has 50 or fewer. Past that
+        the preview froze on message 50 — and it cost one message query plus
+        one parts query per session in the page.
+        """
+        if not session_ids:
+            return {}
+        newest = (
+            select(messages.c.session_id, func.max(messages.c.sequence).label("sequence"))
+            .where(messages.c.session_id.in_(session_ids))
+            .group_by(messages.c.session_id)
+            .subquery()
+        )
+        rows = (
+            await self._conn.execute(
+                select(messages.c.id, messages.c.session_id).join(
+                    newest,
+                    and_(
+                        messages.c.session_id == newest.c.session_id,
+                        messages.c.sequence == newest.c.sequence,
+                    ),
+                )
+            )
+        ).mappings().all()
+        if not rows:
+            return {}
+        session_by_message = {row["id"]: row["session_id"] for row in rows}
+        part_rows = (
+            await self._conn.execute(
+                select(message_parts)
+                .where(and_(
+                    message_parts.c.message_id.in_(list(session_by_message)),
+                    message_parts.c.type == "text",
+                ))
+                .order_by(message_parts.c.index)
+            )
+        ).mappings().all()
+        previews: dict[str, str] = {}
+        for part in part_rows:
+            session_id = session_by_message[part["message_id"]]
+            if session_id in previews:
+                continue  # first text part of that message, matching the old read
+            text = str((part["content"] or {}).get("text", "")).strip()
+            if text:
+                previews[session_id] = text if len(text) <= max_length else f"{text[:max_length]}…"
+        return previews
+
     async def next_sequence(self, session_id: str) -> int:
         current = (
             await self._conn.execute(
@@ -482,6 +536,47 @@ class SqlRunStore:
             )
         ).mappings().all()
         return [m.row_to_run(r) for r in rows]
+
+    async def count_by_session(self, session_ids: Sequence[str]) -> dict[str, int]:
+        """How many runs each session actually has.
+
+        I20: the session list reported `len(runs)` from a page capped at ten,
+        so any session past its tenth run reported ten forever. A count is a
+        count; if a cap were wanted the field would have to say so.
+        """
+        if not session_ids:
+            return {}
+        rows = (
+            await self._conn.execute(
+                select(runs.c.session_id, func.count().label("n"))
+                .where(runs.c.session_id.in_(session_ids))
+                .group_by(runs.c.session_id)
+            )
+        ).mappings().all()
+        return {row["session_id"]: int(row["n"]) for row in rows}
+
+    async def active_by_session(self, session_ids: Sequence[str]) -> dict[str, Run]:
+        """The non-terminal run of each session, where there is one.
+
+        At most one per session by the admission cap, so a newest-first read
+        with no per-session limit is a single query over an indexed column.
+        """
+        if not session_ids:
+            return {}
+        rows = (
+            await self._conn.execute(
+                select(runs)
+                .where(and_(
+                    runs.c.session_id.in_(session_ids),
+                    runs.c.status.in_(("queued", "running", "validating")),
+                ))
+                .order_by(runs.c.created_at.desc())
+            )
+        ).mappings().all()
+        active: dict[str, Run] = {}
+        for row in rows:
+            active.setdefault(row["session_id"], m.row_to_run(row))
+        return active
 
     async def list_non_terminal(self, *, limit: int = 1000) -> Sequence[Run]:
         """Every run still ``queued``/``running``/``validating``, across every
@@ -747,6 +842,70 @@ class SqlObservationStore:
             )
         ).mappings().all()
         return [m.row_to_observation(r) for r in rows]
+
+
+class SqlExplanationCheckpointStore:
+    """Explanations that have already been computed and committed.
+
+    I19: a bundle ran predict and every requested explanation before writing
+    anything, so a crash after the fifth of eight targets discarded all five,
+    and the retry paid for them again. Each target is committed as it lands
+    here instead, addressed by what it is an explanation *of* — the canonical
+    molecule, the endpoint, the task and the model that produced the
+    probability. A retry looks the completed ones up and does only what is
+    left.
+
+    Written once and read back; there is no update path, because an
+    explanation of a fixed input by a fixed model does not change.
+    """
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def get_many(self, keys: Sequence[str]) -> dict[str, dict[str, Any]]:
+        if not keys:
+            return {}
+        rows = (
+            await self._conn.execute(
+                select(explanation_checkpoints.c.key, explanation_checkpoints.c.payload)
+                .where(explanation_checkpoints.c.key.in_(list(keys)))
+            )
+        ).mappings().all()
+        return {row["key"]: row["payload"] for row in rows}
+
+    async def put(
+        self,
+        key: str,
+        *,
+        session_id: str,
+        endpoint: str,
+        task: str | None,
+        model_id: str | None,
+        canonical_smiles: str,
+        payload: dict[str, Any],
+        now: datetime,
+    ) -> None:
+        """Record one completed explanation.
+
+        A duplicate key means another attempt committed the same artifact
+        first; that is the checkpoint working, not a conflict, so the insert
+        is skipped rather than raised.
+        """
+        existing = (
+            await self._conn.execute(
+                select(explanation_checkpoints.c.key)
+                .where(explanation_checkpoints.c.key == key)
+            )
+        ).scalar()
+        if existing is not None:
+            return
+        await self._conn.execute(
+            insert(explanation_checkpoints).values(
+                key=key, session_id=session_id, endpoint=endpoint, task=task,
+                model_id=model_id, canonical_smiles=canonical_smiles, payload=payload,
+                created_at=now,
+            )
+        )
 
 
 class SqlEvidenceStore:

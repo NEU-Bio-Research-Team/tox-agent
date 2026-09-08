@@ -11,6 +11,10 @@ in the session for the duration; the write that follows is short and atomic.
 """
 from __future__ import annotations
 
+import asyncio
+import hashlib
+import logging
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping
@@ -32,8 +36,42 @@ from .policy import Actor, authorise_threshold_overrides, policy_snapshot, resol
 from .runs import advance
 
 
+log = logging.getLogger("toxagent.analysis")
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def explanation_checkpoint_key(
+    *, canonical_smiles: str, endpoint: str, task: str | None, model_id: str | None
+) -> str:
+    """Identity of one explanation: what it explains, and what produced it.
+
+    The model id is part of it deliberately (I11): the same molecule explained
+    by a different admitted model is a different artifact, and reusing one for
+    the other is exactly the mismatch the bundle used to permit.
+    """
+    material = "\u001f".join(
+        (canonical_smiles, endpoint, task or "", model_id or "")
+    )
+    return f"sha256:{hashlib.sha256(material.encode('utf-8')).hexdigest()}"
+
+
+def _failed_explanation(
+    *, endpoint: str, task: str | None, smiles: str, canonical_smiles: str, reason: str
+) -> dict[str, Any]:
+    """A terminal artifact saying an explanation was not produced.
+
+    Never approximate data, never a silent omission: a missing target reads as
+    "not requested", and an unlabelled one as "here is the attribution".
+    """
+    return {
+        "status": "failed", "endpoint": endpoint, "task": task,
+        "input_smiles": smiles, "canonical_smiles": canonical_smiles,
+        "atoms": [], "bonds": [], "tokens": [], "method": "unavailable",
+        "metadata": {"error": reason},
+    }
 
 
 @dataclass(frozen=True)
@@ -117,25 +155,13 @@ class CreateAnalysis:
         provenance = self._predictor.provenance_of(response)
         explanations: list[dict[str, Any]] = []
         if explanation_mode == "required":
-            for endpoint, task in explanation_targets:
-                try:
-                    # I11: the same model that produced the probability, not
-                    # whichever one the predictor would auto-resolve. With one
-                    # admitted model per endpoint these agree; with two they
-                    # did not, and the bundle paired B's number with A's
-                    # attribution while claiming both were about B.
-                    explanation = await self._predictor.explain(
-                        response.canonical_smiles, endpoint, task,
-                        model_id=self._resolved_model(response, endpoint, model_selection),
-                    )
-                    explanations.append(explanation.model_dump(mode="json"))
-                except Exception as exc:  # terminal failure artifact; never fabricate XAI
-                    explanations.append({
-                        "status": "failed", "endpoint": endpoint, "task": task,
-                        "input_smiles": smiles, "canonical_smiles": response.canonical_smiles,
-                        "atoms": [], "bonds": [], "tokens": [], "method": "unavailable",
-                        "metadata": {"error": type(exc).__name__},
-                    })
+            explanations = await self._explain_targets(
+                session_id=session_id,
+                smiles=smiles,
+                response=response,
+                model_selection=model_selection,
+                targets=explanation_targets,
+            )
 
         # Idempotency is checked after the call rather than before it: the key
         # is defined over the *canonical* SMILES, which only the predictor can
@@ -192,6 +218,117 @@ class CreateAnalysis:
             await uow.commit()
 
         return AnalysisResult(snapshot, observation, reused=False)
+
+    async def _explain_targets(
+        self,
+        *,
+        session_id: str,
+        smiles: str,
+        response,
+        model_selection: Mapping[str, str] | None,
+        targets: tuple[tuple[str, str | None], ...],
+    ) -> list[dict[str, Any]]:
+        """Compute each requested explanation, committing them as they land.
+
+        I19: this used to be a loop that computed every target and then wrote
+        the lot at the end, with no bound on how long the loop took. Two
+        consequences, both invisible until something went wrong:
+
+        - A crash after the fifth of eight targets discarded all five. The
+          retry recomputed them, at the same cost, having learnt nothing.
+        - Each request had the predictor client's own timeout, and nothing had
+          a timeout for the sequence. Eight healthy-looking calls could
+          together outlast the run deadline they were supposed to fit inside.
+
+        Now each target is checkpointed the moment it succeeds, keyed by what
+        it explains rather than by which run asked, so a retry — or another
+        run asking the same question of the same molecule and model — reuses
+        it. And the whole sequence runs under one budget: a target not reached
+        inside it is recorded as failed with that reason, which is a true
+        statement about what happened, unlike an absent target or an
+        unlabelled approximation.
+        """
+        keys = {
+            (endpoint, task): explanation_checkpoint_key(
+                canonical_smiles=response.canonical_smiles,
+                endpoint=endpoint, task=task,
+                # I11: the same model that produced the probability, not
+                # whichever one the predictor would auto-resolve. With one
+                # admitted model per endpoint these agree; with two they did
+                # not, and the bundle paired B's number with A's attribution
+                # while claiming both were about B.
+                model_id=self._resolved_model(response, endpoint, model_selection),
+            )
+            for endpoint, task in targets
+        }
+        async with self._db.unit_of_work() as uow:
+            done = await uow.explanation_checkpoints.get_many(list(keys.values()))
+
+        deadline = time.monotonic() + self._settings.explanation_budget_s
+        explanations: list[dict[str, Any]] = []
+        for endpoint, task in targets:
+            key = keys[(endpoint, task)]
+            committed = done.get(key)
+            if committed is not None:
+                # Already paid for, by an earlier attempt at this run or by
+                # another run asking the same question.
+                explanations.append(committed)
+                continue
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                explanations.append(_failed_explanation(
+                    endpoint=endpoint, task=task, smiles=smiles,
+                    canonical_smiles=response.canonical_smiles,
+                    reason="explanation_budget_exceeded",
+                ))
+                continue
+            model_id = self._resolved_model(response, endpoint, model_selection)
+            try:
+                explanation = await asyncio.wait_for(
+                    self._predictor.explain(
+                        response.canonical_smiles, endpoint, task, model_id=model_id,
+                    ),
+                    timeout=remaining,
+                )
+                payload = explanation.model_dump(mode="json")
+            except asyncio.TimeoutError:
+                explanations.append(_failed_explanation(
+                    endpoint=endpoint, task=task, smiles=smiles,
+                    canonical_smiles=response.canonical_smiles,
+                    reason="explanation_budget_exceeded",
+                ))
+                continue
+            except asyncio.CancelledError:
+                # The run itself is being cancelled. Whatever has been
+                # checkpointed stays checkpointed; nothing here should turn a
+                # cancellation into a fabricated failure artifact.
+                raise
+            except Exception as exc:  # terminal failure artifact; never fabricate XAI
+                explanations.append(_failed_explanation(
+                    endpoint=endpoint, task=task, smiles=smiles,
+                    canonical_smiles=response.canonical_smiles,
+                    reason=type(exc).__name__,
+                ))
+                continue
+
+            explanations.append(payload)
+            # Committed on its own, immediately: a checkpoint written in the
+            # same transaction as the snapshot would be lost by exactly the
+            # crash it exists to survive. A failure to record it costs a
+            # recomputation later, which is why it does not fail the analysis.
+            try:
+                async with self._db.unit_of_work() as uow:
+                    await uow.explanation_checkpoints.put(
+                        key, session_id=session_id, endpoint=endpoint, task=task,
+                        model_id=model_id, canonical_smiles=response.canonical_smiles,
+                        payload=payload, now=_now(),
+                    )
+                    await uow.commit()
+            except Exception:  # noqa: BLE001
+                log.exception(
+                    "could not checkpoint the %s explanation for session %s", endpoint, session_id
+                )
+        return explanations
 
     # --- helpers -----------------------------------------------------------
 

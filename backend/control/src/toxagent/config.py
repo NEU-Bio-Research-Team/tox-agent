@@ -155,6 +155,14 @@ class PolicySettings:
     #: against a cold model load or a contended host, not because the model
     #: itself is normally slow.
     structure_recognition_deadline_s: int = 1200
+    #: Total wall clock for the explanations of one analysis, across every
+    #: requested target (I19). The predictor's own per-request timeout bounds
+    #: a single call; nothing bounded eight of them in a row, so a bundle
+    #: could run far past the run deadline while every individual request
+    #: looked healthy. A target not reached inside this budget is recorded as
+    #: a failed explanation with that reason — never as a missing one, and
+    #: never as an approximate one.
+    explanation_budget_s: float = 120.0
 
     @classmethod
     def from_env(cls) -> "PolicySettings":
@@ -182,6 +190,9 @@ class PolicySettings:
             run_deadline_s=_int("TOXAGENT_RUN_DEADLINE_S", cls.run_deadline_s),
             structure_recognition_deadline_s=_int(
                 "TOXAGENT_STRUCTURE_RECOGNITION_DEADLINE_S", cls.structure_recognition_deadline_s
+            ),
+            explanation_budget_s=float(
+                _int("TOXAGENT_EXPLANATION_BUDGET_S", int(cls.explanation_budget_s))
             ),
         )
 
