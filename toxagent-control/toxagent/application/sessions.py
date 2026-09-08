@@ -76,6 +76,31 @@ class SessionService:
             raise SessionNotFound("no such session", session_id=session_id)
         return session
 
+    async def settings(self, actor: Actor, session_id: str) -> dict[str, Any]:
+        async with self.database.unit_of_work() as uow:
+            session = await uow.sessions.get(session_id, owner_id=actor.subject_id)
+            if session is None:
+                raise SessionNotFound("no such session", session_id=session_id)
+            return await uow.session_settings.get(session_id)
+
+    async def update_settings(self, actor: Actor, session_id: str, *, ai_profile_id: str | None,
+                              predictor_bindings: dict[str, str]) -> dict[str, Any]:
+        async with self.database.unit_of_work() as uow:
+            session = await uow.sessions.get(session_id, owner_id=actor.subject_id)
+            if session is None:
+                raise SessionNotFound("no such session", session_id=session_id)
+            if ai_profile_id is not None:
+                connection = await uow.model_connections.get(ai_profile_id, owner_id=actor.subject_id)
+                if connection is None:
+                    raise SessionNotFound("no such AI provider profile", profile_id=ai_profile_id)
+            await uow.session_settings.put(session_id, ai_profile_id=ai_profile_id,
+                                           predictor_bindings=predictor_bindings, now=_now())
+            uow.emit(session_id=session_id, type=EventType.SESSION_SETTINGS_UPDATED,
+                     entity_type="session_settings", entity_id=session_id,
+                     payload={"ai_profile_id": ai_profile_id, "predictor_bindings": predictor_bindings})
+            await uow.commit()
+        return {"ai_profile_id": ai_profile_id, "predictor_bindings": predictor_bindings}
+
     async def projection(self, actor: Actor, session_id: str) -> dict[str, Any]:
         async with self.database.unit_of_work() as uow:
             session = await uow.sessions.get(session_id, owner_id=actor.subject_id)

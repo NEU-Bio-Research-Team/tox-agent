@@ -50,11 +50,60 @@ from ..schema import (
     messages,
     observations,
     runs,
+    run_configuration_snapshots,
+    session_settings,
     runtime_bindings,
     runtime_usage_events,
     sessions,
     tool_calls,
 )
+
+
+class SqlSessionSettingsStore:
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def get(self, session_id: str) -> dict[str, Any]:
+        row = (await self._conn.execute(select(session_settings).where(
+            session_settings.c.session_id == session_id
+        ))).mappings().first()
+        if row is None:
+            return {"ai_profile_id": None, "predictor_bindings": {}}
+        return {"ai_profile_id": row["ai_profile_id"], "predictor_bindings": dict(row["predictor_bindings"] or {})}
+
+    async def put(self, session_id: str, *, ai_profile_id: str | None,
+                  predictor_bindings: dict[str, str], now: datetime) -> None:
+        values = {"session_id": session_id, "ai_profile_id": ai_profile_id,
+                  "predictor_bindings": dict(predictor_bindings), "updated_at": now}
+        existing = await self._conn.execute(select(session_settings.c.session_id).where(
+            session_settings.c.session_id == session_id
+        ))
+        if existing.scalar() is None:
+            await self._conn.execute(insert(session_settings).values(**values))
+        else:
+            await self._conn.execute(update(session_settings).where(
+                session_settings.c.session_id == session_id
+            ).values(**{k: v for k, v in values.items() if k != "session_id"}))
+
+
+class SqlRunConfigurationSnapshotStore:
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def add(self, run_id: str, *, ai_profile_id: str | None,
+                  predictor_bindings: dict[str, str], now: datetime) -> None:
+        await self._conn.execute(insert(run_configuration_snapshots).values(
+            run_id=run_id, ai_profile_id=ai_profile_id,
+            predictor_bindings=dict(predictor_bindings), created_at=now,
+        ))
+
+    async def get(self, run_id: str) -> dict[str, Any] | None:
+        row = (await self._conn.execute(select(run_configuration_snapshots).where(
+            run_configuration_snapshots.c.run_id == run_id
+        ))).mappings().first()
+        if row is None:
+            return None
+        return {"ai_profile_id": row["ai_profile_id"], "predictor_bindings": dict(row["predictor_bindings"] or {}), "created_at": row["created_at"]}
 from . import mapping as m
 
 

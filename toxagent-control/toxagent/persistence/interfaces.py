@@ -193,6 +193,8 @@ class UnitOfWork(Protocol):
     attachments: AttachmentStore
     investigations: Any
     model_connections: Any
+    session_settings: Any
+    run_configuration_snapshots: Any
 
     def emit(
         self, *, session_id: str, type: EventType, entity_type: str, entity_id: str,

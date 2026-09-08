@@ -62,6 +62,25 @@ sessions = Table(
     Index("ix_sessions_owner", "owner_id", "created_at"),
 )
 
+# Product configuration is deliberately separate from a runtime binding: users
+# choose a provider/profile and scientific predictors for a session; a runtime
+# may then create many ephemeral bindings while the selection remains stable.
+session_settings = Table(
+    "session_settings", metadata,
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), primary_key=True),
+    Column("ai_profile_id", _ID, nullable=True),
+    Column("predictor_bindings", Json, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+)
+
+run_configuration_snapshots = Table(
+    "run_configuration_snapshots", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    Column("ai_profile_id", _ID, nullable=True),
+    Column("predictor_bindings", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+)
+
 messages = Table(
     "messages", metadata,
     Column("id", _ID, primary_key=True),

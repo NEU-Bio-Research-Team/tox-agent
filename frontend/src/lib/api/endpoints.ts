@@ -39,6 +39,19 @@ export function createSession(input: CreateSessionInput = {}): Promise<SessionRe
   return apiRequest('/v1/sessions', { method: 'POST', body: input });
 }
 
+export interface SessionSettings {
+  ai_profile_id: string | null;
+  predictor_bindings: Partial<Record<'clintox' | 'herg' | 'tox21', string>>;
+}
+
+export function getSessionSettings(sessionId: string): Promise<SessionSettings> {
+  return apiRequest(`/v1/sessions/${sessionId}/settings`);
+}
+
+export function updateSessionSettings(sessionId: string, input: SessionSettings): Promise<SessionSettings> {
+  return apiRequest(`/v1/sessions/${sessionId}/settings`, { method: 'PATCH', body: input });
+}
+
 export function renameSession(sessionId: string, input: { title: string; expected_version: number }): Promise<SessionResponse> {
   return apiRequest(`/v1/sessions/${sessionId}`, { method: 'PATCH', body: input });
 }

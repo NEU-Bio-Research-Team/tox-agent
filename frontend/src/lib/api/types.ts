@@ -89,6 +89,11 @@ export interface RunProjection {
   created_at: string;
   started_at: string | null;
   ended_at: string | null;
+  configuration_snapshot?: {
+    ai_profile_id: string | null;
+    predictor_bindings: Partial<Record<Endpoint, string>>;
+    created_at: string;
+  } | null;
 }
 
 // -- analysis -------------------------------------------------------------

@@ -37,6 +37,8 @@ from .repositories import (
     SqlModelConnectionStore,
     SqlObservationStore,
     SqlRunStore,
+    SqlRunConfigurationSnapshotStore,
+    SqlSessionSettingsStore,
     SqlRuntimeBindingStore,
     SqlRuntimeUsageStore,
     SqlSessionStore,
@@ -91,6 +93,8 @@ class SqlUnitOfWork:
         self._on_commit = on_commit
         self._pending: list[dict[str, Any]] = []
         self.sessions = SqlSessionStore(conn)
+        self.session_settings = SqlSessionSettingsStore(conn)
+        self.run_configuration_snapshots = SqlRunConfigurationSnapshotStore(conn)
         self.messages = SqlMessageStore(conn)
         self.runs = SqlRunStore(conn)
         self.analyses = SqlAnalysisStore(conn)

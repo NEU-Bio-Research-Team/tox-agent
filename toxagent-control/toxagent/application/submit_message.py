@@ -191,6 +191,17 @@ class SubmitMessage:
             if not session.is_writable:
                 raise Conflict(f"session is {session.status.value}", session_id=session_id)
 
+            # The user may override predictor bindings for one submitted run,
+            # but an omitted binding always comes from durable session settings.
+            # This is read before run creation and copied into an immutable run
+            # snapshot below; historical runs never query settings again.
+            saved_settings = await uow.session_settings.get(session_id)
+            resolved_model_selection = {
+                **dict(saved_settings.get("predictor_bindings") or {}),
+                **dict(submission.model_selection or {}),
+            }
+            ai_profile_id = saved_settings.get("ai_profile_id")
+
             if submission.client_message_id:
                 existing = await uow.messages.find_by_client_id(
                     session_id, submission.client_message_id
@@ -294,6 +305,10 @@ class SubmitMessage:
                 deadline=timedelta(seconds=deadline_s),
             )
             await uow.runs.add(run)
+            await uow.run_configuration_snapshots.add(
+                run.id, ai_profile_id=ai_profile_id,
+                predictor_bindings=resolved_model_selection, now=_now(),
+            )
             uow.emit(
                 session_id=session_id, type=EventType.RUN_QUEUED, entity_type="run",
                 entity_id=run.id, run_id=run.id,
@@ -338,7 +353,8 @@ class SubmitMessage:
                 smiles=submission.smiles,
                 batch_smiles=submission.batch_smiles,
                 endpoints=submission.endpoints,
-                model_selection=submission.model_selection,
+                model_selection=resolved_model_selection,
+                ai_profile_id=ai_profile_id,
                 threshold_overrides=submission.threshold_overrides,
                 explanation_mode=submission.explanation_mode,
                 explanation_targets=submission.explanation_targets,

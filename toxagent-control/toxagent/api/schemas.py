@@ -28,6 +28,11 @@ class UpdateSessionRequest(_Request):
     expected_version: int = Field(ge=1)
 
 
+class SessionSettingsRequest(_Request):
+    ai_profile_id: str | None = Field(default=None, max_length=40)
+    predictor_bindings: dict[Literal["clintox", "herg", "tox21"], str] = Field(default_factory=dict)
+
+
 class SessionResponse(BaseModel):
     session_id: str
     status: str

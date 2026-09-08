@@ -47,6 +47,7 @@ from .schemas import (
     SendMessageRequest,
     SessionResponse,
     CreateModelConnectionRequest,
+    SessionSettingsRequest,
     UpdateSessionRequest,
 )
 
@@ -406,6 +407,20 @@ async def get_session(request: Request, session_id: str, principal: Actor = Depe
     return await _services(request).sessions.projection(principal, session_id)
 
 
+@router.get("/sessions/{session_id}/settings")
+async def get_session_settings(request: Request, session_id: str, principal: Actor = Depends(actor)):
+    return await _services(request).sessions.settings(principal, session_id)
+
+
+@router.patch("/sessions/{session_id}/settings")
+async def update_session_settings(request: Request, session_id: str, body: SessionSettingsRequest,
+                                  principal: Actor = Depends(actor)):
+    return await _services(request).sessions.update_settings(
+        principal, session_id, ai_profile_id=body.ai_profile_id,
+        predictor_bindings=dict(body.predictor_bindings),
+    )
+
+
 @router.get("/sessions/{session_id}/messages")
 async def list_messages(
     request: Request,
@@ -485,8 +500,10 @@ async def get_run(
         )
         tool_calls = await uow.tool_calls.list_for_run(run_id)
         usage_events = await uow.runtime_usage.list_for_run(run_id)
+        configuration_snapshot = await uow.run_configuration_snapshots.get(run_id)
     projection = run_projection(run)
     projection["runtime"] = binding.manifest() if binding else None
+    projection["configuration_snapshot"] = configuration_snapshot
     projection["usage"] = {
         # No runtime event is different from an explicit event containing
         # input=0/output=0. Consumers must not turn unavailable into zero.

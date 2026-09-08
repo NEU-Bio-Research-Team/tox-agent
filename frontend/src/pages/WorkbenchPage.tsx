@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../components/ui/resizable';
 import { MessageComposer, type AnalysisContext, type SmilesPrefill } from '../components/workbench/MessageComposer';
 import { EmptyStateHero } from '../components/workbench/EmptyStateHero';
+import { SessionConfigPopover } from '../components/workbench/SessionConfigPopover';
 import { Transcript } from '../components/transcript/Transcript';
 import {
   getHealthReady,
@@ -252,7 +253,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
         title={session.title ?? 'Phiên mới'}
         sessionId={session.session_id}
         status={status}
-        actions={artifactsButton}
+        actions={<><SessionConfigPopover sessionId={sessionId} />{artifactsButton}</>}
         onRename={async (title) => { await renameMutation.mutateAsync(title); }}
       />
       <div ref={transcriptRef} className="flex-1 overflow-y-auto px-4 pb-48 pt-4 md:px-6">
