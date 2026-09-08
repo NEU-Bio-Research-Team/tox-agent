@@ -229,7 +229,13 @@ class HergTox21ChembertaProvider:
         self, canonical_smiles: str, *, head: str, task_index: int | None = None,
         method: str = "grad_x_input", ig_steps: int = 32,
     ) -> dict[str, Any]:
-        """Gradient x input-embedding norm, per token, for one head.
+        """Signed gradient x input-embedding, per token, targeting one head's logit.
+
+        The method id says ``grad_x_input_v2`` because that is what this
+        computes: contributions are summed over embedding dimensions with
+        their sign kept, and ``magnitude`` is reported alongside rather than
+        instead. The v1 name (``grad_x_embedding_l2_v1``) described an
+        unsigned L2 norm and survived only in test doubles.
 
         Deterministic: a single backward pass with no sampling and no dropout,
         so repeated calls on the same input give identical scores. Returns

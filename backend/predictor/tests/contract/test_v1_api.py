@@ -166,7 +166,7 @@ def test_attribution_returns_numbers_not_an_image(client):
         "/v1/attributions", json={"smiles": ASPIRIN, "endpoint": "herg"}
     ).json()
     assert body["status"] == "completed"
-    assert body["metadata"]["method"] == "grad_x_embedding_l2_v1"
+    assert body["metadata"]["method"] == "grad_x_input_v2"
     assert body["metadata"]["deterministic"] is True
     assert body["tokens"] and "importance" in body["tokens"][0]
     assert "heatmap_base64" not in json.dumps(body)

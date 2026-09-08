@@ -43,11 +43,30 @@ def provider_factories(device: str) -> dict[str, object]:
     }
 
 
+def resolve_manifest(manifest_path: Path | None = None) -> Path:
+    """The manifest this install will actually read, or a usable error.
+
+    A missing manifest used to surface as a bare ``FileNotFoundError`` naming
+    a path the operator had never configured, which is how I23 stayed hidden:
+    the wrong default looked like a missing artifact. Say which path was
+    resolved, how it was chosen, and what would change it.
+    """
+    resolved = Path(manifest_path) if manifest_path else DEFAULT_MANIFEST
+    if not resolved.is_file():
+        source = "TOXPRED_MANIFEST" if manifest_path else "this install's registry directory"
+        raise FileNotFoundError(
+            f"predictor manifest not found at {resolved} (chosen from {source}). "
+            "Provision the model registry, or set TOXPRED_MANIFEST to an "
+            "existing manifest."
+        )
+    return resolved
+
+
 def build_registry(
     manifest_path: Path | None = None, *, eager_load: bool = True, device: str = "cpu"
 ) -> ModelRegistry:
     return ModelRegistry.from_manifest(
-        manifest_path or DEFAULT_MANIFEST,
+        resolve_manifest(manifest_path),
         provider_factories(device),
         models_root=Path(os.environ["MODELS_ROOT"]) if os.environ.get("MODELS_ROOT") else None,
         eager_load=eager_load,

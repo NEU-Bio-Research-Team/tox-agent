@@ -33,7 +33,7 @@ class _StubExplain:
             ],
             "unmapped_importance": 0.5,
             "tokens": [{"token": "C", "importance": 1.0, "offsets": [0, 1]}],
-            "method": "grad_x_embedding_l2_v1+token_atom_align_v1",
+            "method": "grad_x_input_v2+token_atom_align_v1",
             "metadata": {"model_id": "m", "deterministic": True, "duration_ms": 3.0, "note": None},
         }
 

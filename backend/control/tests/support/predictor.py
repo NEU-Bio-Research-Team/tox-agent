@@ -270,7 +270,7 @@ class StubPredictor:
                     "tokens": [
                         {"token": "C", "position": 1, "importance": 0.5, "offsets": [0, 1]},
                     ],
-                    "method": "grad_x_embedding_l2_v1+token_atom_align_v1",
+                    "method": "grad_x_input_v2+token_atom_align_v1",
                     "metadata": {
                         "model_id": "pretrained_2head_herg_chemberta",
                         "deterministic": True, "duration_ms": 900.0, "note": note,

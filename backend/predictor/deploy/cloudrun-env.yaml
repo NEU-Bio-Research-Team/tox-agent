@@ -14,8 +14,10 @@ MODELS_ROOT: "/app/models"
 # start by deploy/download_model_artifacts.py — never during a request.
 MODEL_ARTIFACTS_URI: "gs://tox-agent-models/models"
 
-# Declares which artifacts may be served and their checksums.
-TOXPRED_MANIFEST: "/app/artifacts/predictor-manifest.yaml"
+# Declares which artifacts may be served and their checksums. Must match where
+# deploy/Dockerfile copies the registry — these two disagreed (I23), and the
+# only symptom was a startup failure naming a path nobody had configured.
+TOXPRED_MANIFEST: "/app/registry/predictor-manifest.yaml"
 
 # Inference device and request limits.
 TOXPRED_DEVICE: "cpu"
