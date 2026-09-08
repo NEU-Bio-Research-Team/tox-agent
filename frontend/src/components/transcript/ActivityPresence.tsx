@@ -1,4 +1,6 @@
 import { Check, Loader2, RotateCcw } from 'lucide-react';
+import { Link } from 'react-router';
+import { getDeveloperModeEnabled } from '../../lib/preferences';
 import type { ActivityLive } from '../../lib/api/types';
 import type { ToolCallLive } from '../../hooks/useSessionEvents';
 
@@ -21,20 +23,23 @@ function fallback(tools: ToolCallLive[]): string {
 }
 
 /** A product activity line. Raw trace remains available in the run inspector. */
-export function ActivityPresence({ activities, tools, status }: {
+export function ActivityPresence({ activities, tools, status, sessionId, runId }: {
   activities: ActivityLive[];
   tools: ToolCallLive[];
   status: string;
+  sessionId?: string;
+  runId?: string;
 }) {
   const active = [...activities].reverse().find((item) => item.status === 'started' || item.status === 'progress');
   const completed = [...activities].reverse().find((item) => item.status === 'completed');
   const label = active ? LABELS[active.label_key] ?? LABELS['activity.processing'] : tools.length ? fallback(tools) : null;
-  if (status === 'failed') return <p className="my-2 text-sm" style={{ color: 'var(--accent-red)' }}>Không thể tiếp tục phản hồi. Hãy thử lại hoặc xem chi tiết run.</p>;
+  const details = getDeveloperModeEnabled() && sessionId && runId ? <Link className="ml-2 text-xs underline" to={`/s/${sessionId}/runs/${runId}`}>Run details</Link> : null;
+  if (status === 'failed') return <p className="my-2 text-sm" style={{ color: 'var(--accent-red)' }}>Không thể tiếp tục phản hồi. Hãy thử lại.{details}</p>;
   if (status === 'cancelled') return <p className="my-2 text-sm" style={{ color: 'var(--text-muted)' }}>Đã dừng theo yêu cầu.</p>;
   if (label && (status === 'queued' || status === 'running' || status === 'validating')) {
     return <div className="my-2 flex items-center gap-2 text-sm motion-reduce:transition-none" role="status" aria-live="polite" style={{ color: 'var(--text-muted)' }}>
       <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--purple-600)' }} />
-      <span>{label}</span>
+      <span>{label}</span>{details}
     </div>;
   }
   if (completed && status === 'completed') return <div className="my-2 flex items-center gap-2 text-xs" style={{ color: 'var(--text-faint)' }}><Check className="h-3.5 w-3.5" />Đã hoàn tất</div>;

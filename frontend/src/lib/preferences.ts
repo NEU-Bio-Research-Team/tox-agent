@@ -1,4 +1,5 @@
 const EXPERT_MODE_KEY = 'toxagent.expert_mode';
+const DEVELOPER_MODE_KEY = 'toxagent.developer_mode';
 const DRAFT_KEY_PREFIX = 'toxagent.draft.';
 const LAYOUT_KEY = 'toxagent.layout.v1';
 const ENDPOINT_SELECTION_KEY = 'toxagent.endpoint_selection.v1';
@@ -83,6 +84,14 @@ export function setExpertModeEnabled(enabled: boolean): void {
   } catch {
     // best effort
   }
+}
+
+export function getDeveloperModeEnabled(): boolean {
+  try { return localStorage.getItem(DEVELOPER_MODE_KEY) === '1'; } catch { return false; }
+}
+
+export function setDeveloperModeEnabled(enabled: boolean): void {
+  try { if (enabled) localStorage.setItem(DEVELOPER_MODE_KEY, '1'); else localStorage.removeItem(DEVELOPER_MODE_KEY); } catch { /* best effort */ }
 }
 
 export function getDraft(sessionId: string): string {

@@ -7,13 +7,14 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { Button } from '../components/ui/button';
 import { getToken, setToken, API_BASE_URL } from '../lib/api/client';
-import { getExpertModeEnabled, setExpertModeEnabled } from '../lib/preferences';
+import { getDeveloperModeEnabled, getExpertModeEnabled, setDeveloperModeEnabled, setExpertModeEnabled } from '../lib/preferences';
 import { createModelConnection, deleteModelConnection, listModelConnections, testModelConnection } from '../lib/api/endpoints';
 import type { ModelConnection } from '../lib/api/types';
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const [expertMode, setExpertMode] = useState(getExpertModeEnabled());
+  const [developerMode, setDeveloperMode] = useState(getDeveloperModeEnabled());
   const [connections, setConnections] = useState<ModelConnection[]>([]);
   const [provider, setProvider] = useState('openai');
   const [model, setModel] = useState('');
@@ -61,6 +62,13 @@ export function SettingsPage() {
             >
               Ngắt kết nối
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <CardHeader><CardTitle className="text-base">Developer diagnostics</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-4"><div><Label htmlFor="developer-mode">Hiện Run Details</Label><p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>Hiện liên kết trace, runtime, usage và raw event trong từng run. Không đưa tool trace vào transcript thông thường.</p></div><Switch id="developer-mode" checked={developerMode} onCheckedChange={(checked) => { setDeveloperMode(checked); setDeveloperModeEnabled(checked); }} /></div>
           </CardContent>
         </Card>
 

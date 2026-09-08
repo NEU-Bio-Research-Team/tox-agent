@@ -136,6 +136,8 @@ export function Transcript({
                       activities={liveActivities[run.run_id] ?? []}
                       tools={liveToolCalls[run.run_id] ?? []}
                       status={run.status}
+                      sessionId={sessionId}
+                      runId={run.run_id}
                     />
                   )}
                   {(bannersByOriginalRun.get(run.run_id) ?? []).map((banner) => (
