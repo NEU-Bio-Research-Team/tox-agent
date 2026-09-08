@@ -36,6 +36,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY backend/predictor/src/toxpred /app/toxpred
 COPY backend/predictor/registry /app/registry
+COPY backend/predictor/configs /app/configs
 COPY models/pretrained_2head_herg_chemberta_model /app/models/pretrained_2head_herg_chemberta_model
 COPY backend/predictor/deploy/entrypoint.sh /app/deploy/entrypoint.sh
 
