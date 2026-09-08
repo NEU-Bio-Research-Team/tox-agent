@@ -1,14 +1,40 @@
 # Getting started
 
-From a clean clone, run the five commands in the root README. `setup` creates
-`.env`, generates local credentials, downloads the pinned OCR checkpoint into
-the ignored `.artifacts/` directory and verifies its SHA-256. It is the only
-network download initiated by the wrapper outside Docker image builds.
+The ordered procedure lives in the root [README](../README.md#setup-in-order):
+prerequisites, the model weights a clean clone has to be given, then `setup`,
+`doctor`, `up`, `smoke` and the browser. This page is the background to those
+steps, not a second copy of them.
 
-`up` waits for Compose health checks. If it fails, run `./bin/toxagent logs`
-and use the named service in the error. A successful `smoke` proves the browser
-route, control plane and predictor route are connected. It intentionally uses
-a small SMILES request and does not invoke a model-heavy benchmark.
+## What setup actually does
 
-The token printed by setup is a development-only local token. Paste it into the
-frontend gate; do not send it to other users or deploy it to a public host.
+It creates `.env` from `.env.example`, generates the PostgreSQL password, the
+capability secret and a local access token, and provisions two separate sets of
+model artifacts:
+
+- The pinned MolScribe OCR checkpoint, downloaded into the ignored
+  `.artifacts/` directory and checked against its SHA-256.
+- The predictor artifacts. These are downloaded only when `MODEL_ARTIFACTS_URI`
+  names a bundle this deployment may use; otherwise they must already be under
+  `.data/models` (or `TOXPRED_MODELS_HOST_PATH`). Either way every file is
+  verified against `backend/predictor/registry/models/`.
+
+Those two are the wrapper's only network downloads outside Docker image builds.
+The predictor check runs even when nothing is downloaded, because a stack whose
+weights are missing builds every image and then never becomes ready — failing
+in `setup`, by name, is the point.
+
+Nothing here overwrites an existing secret or an artifact that is already
+present, so re-running `setup` is safe.
+
+## When up or smoke fails
+
+`up` waits for Compose health checks. When it fails, run `./bin/toxagent logs`
+and use the service named in the error. A successful `smoke` proves the browser
+route, control plane and predictor route are connected; it sends one small
+SMILES request on purpose and is not a model-heavy benchmark.
+
+## About the token
+
+The token printed by `setup` is a development-only local credential. Paste it
+into the frontend gate; do not send it to other users and do not deploy this
+stack to a public host with it.

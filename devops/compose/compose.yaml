@@ -89,6 +89,13 @@ services:
       TOXAGENT_CAPABILITY_SECRET: ${TOXAGENT_CAPABILITY_SECRET:?run ./bin/toxagent setup first}
       TOXAGENT_STATIC_TOKENS: ${TOXAGENT_STATIC_TOKENS:?run ./bin/toxagent setup first}
       TOXAGENT_CORS_ALLOW_ORIGINS: ${TOXAGENT_CORS_ALLOW_ORIGINS:-}
+      # Where the control plane may send a model endpoint URL a user typed
+      # into Settings (I15). `local` is right for this stack — a self-hosted
+      # Ollama or vLLM is on loopback or the LAN — and a multi-user
+      # deployment must set `hosted`, where a private address is never a
+      # legitimate endpoint. Passed through from .env so setting it there
+      # actually reaches the process.
+      TOXAGENT_EGRESS_POLICY: ${TOXAGENT_EGRESS_POLICY:-local}
       # I16: uploaded attachments and AI profile credentials are files, and
       # they had no volume — only PostgreSQL did. `docker compose up` after a
       # rebuild therefore destroyed every stored key and every uploaded image
