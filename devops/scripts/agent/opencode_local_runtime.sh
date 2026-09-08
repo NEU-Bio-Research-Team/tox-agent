@@ -2,7 +2,7 @@
 # Supervisor for the local, user-owned OpenCode runtime used by `toxagent up --agent`.
 set -Eeuo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 OPENCODE_BIN="${OPENCODE_BIN:-$HOME/.opencode/bin/opencode}"
 PIN="1.17.11"
 AUTH_ROOT="$ROOT/.data/opencode-auth"
@@ -52,7 +52,7 @@ start() {
   gateway="$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}')"
   if ! running "$BRIDGE_PID"; then
     rm -f "$BRIDGE_PID"
-    setsid python3 "$ROOT/scripts/opencode_docker_bridge.py" --bind "$gateway" >"$BRIDGE_LOG" 2>&1 < /dev/null &
+    setsid python3 "$ROOT/devops/scripts/agent/opencode_docker_bridge.py" --bind "$gateway" >"$BRIDGE_LOG" 2>&1 < /dev/null &
     echo $! > "$BRIDGE_PID"
   fi
   sleep 1

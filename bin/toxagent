@@ -13,7 +13,7 @@ CHECKPOINT_SHA256="64f4443d6f5a2bc594d5f0b5acdd48b8e1d13d699d08e2456b54b352ffe99
 OPENCODE_PIN="1.17.11"
 OPENCODE_AUTH_ROOT=".data/opencode-auth"
 OPENCODE_WORKSPACE_ROOT=".data/opencode-workspaces"
-OPENCODE_RUNTIME="$ROOT/scripts/opencode_local_runtime.sh"
+OPENCODE_RUNTIME="$ROOT/devops/scripts/agent/opencode_local_runtime.sh"
 
 fail() { printf 'toxagent: %s\n' "$*" >&2; exit 1; }
 random() { openssl rand -hex 32 2>/dev/null || python3 -c 'import secrets; print(secrets.token_hex(32))'; }
@@ -158,7 +158,7 @@ restore() { [[ $# -eq 2 && -f "$2" ]] || fail "usage: toxagent restore backups/f
 command="${1:-}"
 shift || true
 case "$command" in
-  models) python3 "$ROOT/tools/model_admission.py" "$@" ;;
+  models) python3 "$ROOT/backend/predictor/scripts/model_admission.py" "$@" ;;
   setup)
     if [[ "${1:-}" == "--agent" ]]; then shift; setup_agent "$@"; else setup; fi
     ;;
