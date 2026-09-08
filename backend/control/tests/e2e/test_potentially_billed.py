@@ -40,6 +40,8 @@ async def _install_scripted_runtime(client, script) -> None:
 
     for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
         app.state.scheduler.register(intent, run_agentic)
+    # api/app.py binds both — see test_scripted_runtime.py's note (I01/I05).
+    app.state.runtime_gateway = gateway
 
 
 async def _install_unhealthy_runtime(client) -> None:
@@ -70,6 +72,8 @@ async def _install_unhealthy_runtime(client) -> None:
 
     for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
         app.state.scheduler.register(intent, run_agentic)
+    # api/app.py binds both — see test_scripted_runtime.py's note (I01/I05).
+    app.state.runtime_gateway = gateway
 
 
 async def _new_session(client) -> str:

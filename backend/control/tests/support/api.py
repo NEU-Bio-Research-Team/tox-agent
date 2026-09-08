@@ -39,7 +39,13 @@ def settings(**overrides) -> Settings:
         predictor=PredictorSettings(base_url="http://predictor.test"),
         policy=policy,
         predict=overrides.pop("predict", None) or PredictSettings(),
-        runtime=overrides.pop("runtime", None) or RuntimeSettings(),
+        # `scripted`, not the production default `none`: almost every suite
+        # here injects the in-process scripted provider, and the gateway
+        # refuses a provider whose kind disagrees with the configured one —
+        # which is the guard that catches I01's class of mismatch. Declaring
+        # it here keeps the harness an honest deployment rather than one whose
+        # config says one thing and whose wiring does another.
+        runtime=overrides.pop("runtime", None) or RuntimeSettings(kind="scripted"),
         research=overrides.pop("research", None) or ResearchSettings(),
         ocr=overrides.pop("ocr", None) or OcrSettings(),
         security=overrides.pop("security", None)

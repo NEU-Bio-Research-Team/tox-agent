@@ -29,6 +29,7 @@ from ..domain.message import Message, PartType, Role
 from ..domain.run import Intent, Lane, Run, RunStatus
 from ..domain.session import Session, TitleSource
 from ..persistence.object_store import ObjectStore
+from .capabilities import CapabilityResolver
 from .policy import Actor
 from .router import Clarification, RouteRequest, route
 from .run_scheduler import RunContext, RunScheduler
@@ -68,6 +69,16 @@ _CAPABILITY_UNAVAILABLE_MESSAGE: dict[Intent, str] = {
     Intent.STRUCTURE_RECOGNITION: (
         "This deployment does not yet support recognising a chemical structure from an "
         "image. Submit a SMILES string directly, or draw the structure instead."
+    ),
+    # I02: these two were ungated. A predictor-only stack accepted them,
+    # created a run, and failed it inside the scheduler.
+    Intent.REPORT_QA: (
+        "This deployment runs predictions only and has no agent to answer questions "
+        "about an analysis. The prediction results and their provenance are on screen."
+    ),
+    Intent.ATTRIBUTION: (
+        "This deployment runs predictions only and cannot compute an attribution "
+        "explanation. Prediction and batch prediction remain available."
     ),
 }
 
@@ -132,6 +143,7 @@ class SubmitMessage:
         settings: PolicySettings,
         scheduler: RunScheduler,
         *,
+        capabilities: CapabilityResolver | None = None,
         evidence_research_available: bool = False,
         structure_recognition_available: bool = False,
         object_store: ObjectStore | None = None,
@@ -139,6 +151,13 @@ class SubmitMessage:
         self._db = database
         self._settings = settings
         self._scheduler = scheduler
+        # I02: the shared resolver. The two booleans below remain for tests
+        # that construct this directly with no deployment around them; when a
+        # resolver is present it decides, because it is the only thing that
+        # also knows whether a *handler* exists. Gating on "a research
+        # provider object exists" admitted requests into a scheduler with
+        # nothing registered, which created a run and then failed it.
+        self._capabilities = capabilities
         # Only ever needed when an image is actually about to be queued for a
         # real STRUCTURE_RECOGNITION run (never in the capability_unavailable
         # branch below — nothing would ever read it back) — but the object
@@ -240,15 +259,7 @@ class SubmitMessage:
             # commit in this one database transaction.  A database rollback
             # after a successful object write can leave a transient orphan;
             # W4-10's idempotent TTL cleanup owns that recoverable case.
-            evidence_research_unavailable = (
-                decision.intent is Intent.EVIDENCE_RESEARCH
-                and not self._evidence_research_available
-            )
-            structure_recognition_unavailable = (
-                decision.intent is Intent.STRUCTURE_RECOGNITION
-                and not self._structure_recognition_available
-            )
-            capability_unavailable = evidence_research_unavailable or structure_recognition_unavailable
+            capability_unavailable = self._unavailable(decision.intent)
 
             attachment_id: str | None = None
             if submission.image_bytes is not None and not capability_unavailable:
@@ -469,6 +480,27 @@ class SubmitMessage:
             existing.id, run.id, run.status, run.intent, run.lane,
             self._events_url(session.id), duplicate_of=existing.id,
         )
+
+    def _unavailable(self, intent: Intent) -> bool:
+        """Would this intent reach a handler that can actually fulfil it?
+
+        I02: `report_qa` and `attribution` were never gated at all. In a
+        predictor-only stack they passed admission, created a message and a
+        run, and the scheduler then failed the run with "no handler is
+        registered" — a request the deployment could have refused before
+        touching the database.
+        """
+        if intent not in _CAPABILITY_UNAVAILABLE_MESSAGE:
+            return False
+        if self._capabilities is not None:
+            return not self._capabilities.available(intent)
+        if intent is Intent.EVIDENCE_RESEARCH:
+            return not self._evidence_research_available
+        if intent is Intent.STRUCTURE_RECOGNITION:
+            return not self._structure_recognition_available
+        # No resolver injected: only the scheduler can answer for the
+        # conversational intents, and it is always present.
+        return not self._scheduler.handles(intent)
 
     async def _answer_without_a_runtime(
         self, uow, session: Session, run: Run, decision, *, capability_unavailable: bool = False

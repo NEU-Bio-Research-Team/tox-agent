@@ -47,6 +47,11 @@ async def _install_scripted_runtime(client, script) -> None:
 
     for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
         app.state.scheduler.register(intent, run_agentic)
+    # api/app.py binds both — a registered handler and the gateway behind it.
+    # Registering only the handler is what let a deployment claim a capability
+    # it could not serve (I01/I05); a harness that models half the seam cannot
+    # catch that, so it models both.
+    app.state.runtime_gateway = gateway
 
 
 async def _new_session(client) -> str:

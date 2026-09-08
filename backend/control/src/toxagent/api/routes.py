@@ -10,12 +10,14 @@ from __future__ import annotations
 import base64
 import binascii
 import asyncio
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
+from ..application.capabilities import CapabilityResolver
 from ..application.policy import Actor
 from ..application.sessions import run_projection
 from ..application.submit_message import MessageSubmission
@@ -91,47 +93,64 @@ async def live() -> dict[str, str]:
 
 @health.get("/health/ready")
 async def ready(request: Request) -> JSONResponse:
-    """Readiness of this control plane and, separately, of what it depends on.
+    """Can this deployment serve what it was assembled to serve?
 
-    The predictor's readiness is reported, never merged into one boolean: a
-    control plane that can serve sessions and reads while the predictor is down
-    is in a different state from one that cannot start at all.
+    Three separate questions, deliberately not merged into one boolean (I05):
 
-    A deployment with no report_qa handler registered used to still answer
-    `ready=true` here, since this endpoint only ever probed the predictor and
-    named the configured runtime *kind* — never whether a conversational
-    intent could actually run. `capabilities` reports what
-    `RunScheduler.handles()` actually has registered, and, when a runtime
-    gateway is configured, its live health is probed the same way a real turn
-    would probe it.
+    - **Core readiness** decides the HTTP status. It covers the dependencies
+      every mode needs: the database and the predictor. Nothing else can make
+      this endpoint return 503.
+    - **Capability availability** reports each intent with a reason. A
+      predictor-only stack reports `report_qa` unavailable *and stays ready*:
+      the runtime was deliberately not installed, and a monitor that pages on
+      an absent optional feature is a monitor nobody keeps.
+    - **`mode`** says which of those two products this is, derived from what
+      is actually wired rather than from `TOXAGENT_RUNTIME_KIND` — which
+      Compose set to a value the app never constructs a provider for (I01).
+
+    The database was previously not probed at all, so a control plane whose
+    database was unreachable could answer `ready: true` and take traffic.
     """
     services = _services(request)
+    resolver: CapabilityResolver = request.app.state.capabilities
     dependencies: dict[str, Any] = {}
+    checked_at = datetime.now(timezone.utc).isoformat()
     ok = True
+
+    try:
+        await services.database.check()
+        dependencies["database"] = {"ready": True, "checked_at": checked_at}
+    except Exception as exc:  # noqa: BLE001 — reported as a dependency state
+        dependencies["database"] = {
+            "ready": False, "reason": type(exc).__name__, "checked_at": checked_at
+        }
+        ok = False
+
     try:
         readiness = await services.predictor.ready()
         dependencies["predictor"] = {
-            "ready": readiness.ready, "served_endpoints": readiness.served_endpoints
+            "ready": readiness.ready,
+            "served_endpoints": readiness.served_endpoints,
+            "checked_at": checked_at,
         }
         ok = ok and readiness.ready
     except Exception as exc:  # noqa: BLE001 — reported as a dependency state
-        dependencies["predictor"] = {"ready": False, "reason": type(exc).__name__}
+        dependencies["predictor"] = {
+            "ready": False, "reason": type(exc).__name__, "checked_at": checked_at
+        }
         ok = False
 
+    # `configured` is what this deployment declared; `available` is what a
+    # request would actually meet. Keeping both is the point — they disagreed.
     capabilities = {
-        "analysis": services.scheduler.handles(Intent.ANALYSIS),
-        "report_qa": services.scheduler.handles(Intent.REPORT_QA),
-        "attribution": services.scheduler.handles(Intent.ATTRIBUTION),
-        "evidence_research": services.scheduler.handles(Intent.EVIDENCE_RESEARCH),
-        # No runtime gateway involved — a plain deterministic handler, same as
-        # "analysis" — so it is reported here but left out of
-        # conversational_registered below.
-        "structure_recognition": services.scheduler.handles(Intent.STRUCTURE_RECOGNITION),
+        name: capability.to_dict() for name, capability in resolver.snapshot().items()
     }
-    conversational_registered = any(
-        capabilities[name] for name in ("report_qa", "attribution", "evidence_research")
-    )
-    runtime_info: dict[str, Any] = {"kind": services.settings.runtime.kind}
+
+    runtime_info: dict[str, Any] = {
+        "configured_kind": services.settings.runtime.kind,
+        "bound": services.runtime_gateway is not None,
+        "checked_at": checked_at,
+    }
     gateway = services.runtime_gateway
     if gateway is not None:
         try:
@@ -139,15 +158,25 @@ async def ready(request: Request) -> JSONResponse:
         except Exception as exc:  # noqa: BLE001 — reported as a dependency state
             runtime_info["healthy"] = False
             runtime_info["reason"] = type(exc).__name__
+        # An agent-enabled deployment whose runtime is down is not ready: it
+        # advertises intents it cannot currently serve.
         ok = ok and runtime_info["healthy"]
-    elif conversational_registered:
-        # A conversational intent is registered with no runtime gateway
-        # behind it — should not happen, but readiness must not lie if it does.
+
+    # Declared-but-unservable is incoherent wiring, not a deployment mode, and
+    # is the one capability condition that can fail readiness. A predictor-only
+    # stack declares nothing conversational and stays ready.
+    broken = resolver.misconfigured()
+    if broken:
         runtime_info["healthy"] = False
+        runtime_info["misconfigured"] = sorted(c.name for c in broken)
         ok = False
+
     dependencies["runtime"] = runtime_info
     dependencies["capabilities"] = capabilities
-    return JSONResponse(status_code=200 if ok else 503, content={"ready": ok, **dependencies})
+    return JSONResponse(
+        status_code=200 if ok else 503,
+        content={"ready": ok, "mode": resolver.mode.value, **dependencies},
+    )
 
 
 # --- quick predict (stateless, no session) --------------------------------

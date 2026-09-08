@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Awaitable, Callable, Coroutine, Sequence, TypeVar
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 
 log = logging.getLogger("toxagent.persistence")
@@ -290,6 +290,22 @@ class Database:
 
     def outbox(self) -> SqlOutboxReader:
         return self._outbox
+
+    async def check(self, *, timeout_s: float = 3.0) -> None:
+        """Raise unless a connection can be taken from the pool and used.
+
+        I05: readiness reported on the predictor and the runtime but never on
+        the database, so a control plane whose database was unreachable
+        answered `ready: true` and took traffic it could not persist. Bounded
+        so a hung database makes readiness *fail* rather than hang — a probe
+        that never returns is read as an outage by every load balancer, but
+        only after its own, much longer, timeout.
+        """
+        async def _probe() -> None:
+            async with self._engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+
+        await asyncio.wait_for(_probe(), timeout=timeout_s)
 
     async def create_schema(self) -> None:
         async with self._engine.begin() as conn:

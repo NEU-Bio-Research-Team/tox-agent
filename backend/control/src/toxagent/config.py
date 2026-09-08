@@ -188,10 +188,25 @@ class PolicySettings:
 
 @dataclass(frozen=True)
 class RuntimeSettings:
-    """Which agent runtime this deployment binds. ``scripted`` is the
-    deterministic in-process runtime; it makes no provider request."""
+    """Which agent runtime this deployment binds.
 
-    kind: str = "scripted"
+    Four values, and only one of them causes a provider to be built:
+
+    - ``none`` — predictor-only. No agent; the conversational intents report
+      themselves unavailable with a reason rather than queuing runs nothing
+      can serve.
+    - ``opencode`` — the supported agent runtime. ``api/app.py`` constructs
+      the V1 provider for this value and no other.
+    - ``scripted`` — the deterministic in-process runtime, **injection-only**.
+      Setting it here builds nothing; tests pass a provider in directly. It
+      is not a way to run an agent stack, and Compose used to set it (I01),
+      which made a predictor-only deployment look agent-enabled.
+    - ``dsh`` — no adapter exists; see ADR 0004/0007.
+    """
+
+    #: `none`, not `scripted`: a default that names a runtime is a default
+    #: that lies about what this process will start.
+    kind: str = "none"
     opencode_base_url: str = "http://127.0.0.1:4096"
     opencode_version: str = "1.17.11"
     #: Deployment-owned *base* directory for OpenCode runtime projects.  The

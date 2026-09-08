@@ -71,9 +71,17 @@ services:
       TOXAGENT_DATABASE_URL: postgresql+asyncpg://toxagent:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/toxagent
       TOXAGENT_PREDICTOR_URL: http://toxpred:8080
       TOXAGENT_OCR_URL: http://toxocr:8090
-      # The default serves prediction/OCR without a provider. External
-      # OpenCode is enabled only by devops/compose/external-opencode.yaml.
-      TOXAGENT_RUNTIME_KIND: scripted
+      # This stack is predictor-only: prediction, batch and OCR, no agent.
+      #
+      # It said `scripted` (I01), which reads as "a runtime is configured" and
+      # is not: api/app.py only ever constructs a provider for `opencode`, and
+      # `scripted` is injection-only for tests. The stack therefore advertised
+      # a runtime it would never start, and a Session asking for research,
+      # report Q&A or attribution reached a scheduler with no handler.
+      # `none` is the honest value, and /health/ready now reports
+      # mode=predictor_only with a reason per unavailable capability.
+      # devops/compose/external-opencode.yaml sets `opencode` for agent mode.
+      TOXAGENT_RUNTIME_KIND: none
       # A report-Q&A normally needs one or a few slices. Keep the production
       # default bounded; evidence-heavy deployments may explicitly raise this
       # to 24 after measuring latency/cost.

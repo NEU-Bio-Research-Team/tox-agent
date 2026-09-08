@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import __version__
+from ..application.capabilities import CapabilityResolver
 from ..application.create_analysis import CreateAnalysis, CreateAnalysisBatch
 from ..application.quick_predict import QuickPredict
 from ..application.recognize_structure import RecognizeStructure
@@ -176,8 +177,22 @@ def create_app(
         # deployment actually has a way to fulfil it (Phase 5) — otherwise
         # submit_message answers capability_unavailable without spending a
         # runtime turn no tool exists for.
+        # I01/I02/I05: one resolver, consulted by admission and by readiness,
+        # so a request cannot be admitted for work no handler can do and
+        # readiness cannot report a runtime that was never constructed. It
+        # reads the gateway through a getter because the gateway is bound
+        # further down, after this object exists.
+        capabilities = CapabilityResolver(
+            scheduler=scheduler,
+            runtime_kind=settings.runtime.kind,
+            research_provider=research_provider,
+            ocr_client=ocr,
+            runtime_gateway_getter=lambda: app.state.runtime_gateway,
+        )
+        app.state.capabilities = capabilities
         app.state.submit_message = SubmitMessage(
             db, settings.policy, scheduler,
+            capabilities=capabilities,
             evidence_research_available=research_provider is not None,
             structure_recognition_available=ocr is not None,
             object_store=objects,
