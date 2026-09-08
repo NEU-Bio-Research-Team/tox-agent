@@ -30,6 +30,24 @@ Logs cục bộ ở `/tmp/toxagent-audit-20260908/`: `frontend-build.log`, `brow
 
 **Đính chính qua kiểm chứng:** đường dẫn golden dùng `parents[4]` là đúng và bộ golden thực tế pass. Không đưa nghi ngờ đó thành bug. CI vẫn cần provision artifact và fail khi unexpected skip; đây là vấn đề khác. Các con số benchmark/gate lịch sử trong progress không được cộng với kết quả phiên này.
 
+## Trạng thái xử lý — cập nhật tại `f830e3b`
+
+Bảng này ghi việc đã làm sau audit; nó không thay nội dung mô tả issue bên dưới, vốn mô tả trạng thái tại `ce49f5d`. Số đo đi kèm ở [K02_MEASURED_AFTER_FIXES.md](K02_MEASURED_AFTER_FIXES.md).
+
+**Đã sửa và có test tái hiện trigger:** I01–I06, I08–I11 (các commit trước tài liệu này); I12–I15 (`b4c79fa`), I16 (`f06f027`), I17–I18 (`f2f2050`), I19–I20 (`c22a08f`), I21–I29 và I32–I34 (các commit K01), I30 (`a3b4f76`), I31 (`aca1319`).
+
+**Còn mở, và vì sao:**
+
+| Mã | Phần đã đóng | Phần còn lại và điều kiện |
+|---|---|---|
+| I07 | Tiêu chí admission chuyển thành dữ liệu trong manifest; vocab size được kiểm chứng với checkpoint; substitution guard có test | Khôi phục tokenizer gốc kèm hash, hoặc quyết định retrain `clintox-smilesgnn-v2`. Đây là quyết định của owner về dữ liệu/ngân sách, không phải việc code. Endpoint tiếp tục fail closed |
+| I16 | Volume bền vững cho attachment và secret trong Compose; `secrets_dir` thành setting rõ ràng | Diễn tập recreate container và restore sang instance mới. Cần chạy stack thật; phiên này không khởi động container nào |
+| I17/I18 | Lease/fencing/adoption/cancel xuyên replica, có test hai worker | Chạy trên PostgreSQL hai replica thật (marker `postgres`), và failure-injection orchestrator của W2-09 |
+| I30 | Target resolution tách staging/prod, có dry-run assertions; workflow cũ đã thay | Staging smoke đủ auth/SSE/research và rollback về digest cũ. Cần cloud project; phiên này không deploy |
+| I31 | Budget/coverage/stop reason/admission và resume từ case bền vững, có 8 test | Paired baseline variance so với gateway hiện tại trước cutover (K09/K13) |
+
+Các hạng mục gate lớn hơn — K06 benchmark khoa học, K11 evidence mở rộng, K12 release/hosted security, K13 alpha/production — vẫn theo [kế hoạch còn lại](REMAINING_IMPLEMENTATION_PLAN_VI.md) và không được coi là đã đóng bởi các commit trên.
+
 ## Danh mục issue
 
 | ID | Mức | Căn cứ | Vấn đề | Gói sửa |
