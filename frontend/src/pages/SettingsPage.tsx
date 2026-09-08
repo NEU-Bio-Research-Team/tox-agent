@@ -11,6 +11,14 @@ import { getDeveloperModeEnabled, getExpertModeEnabled, setDeveloperModeEnabled,
 import { createModelConnection, deleteModelConnection, listModelConnections, testModelConnection } from '../lib/api/endpoints';
 import type { ModelConnection } from '../lib/api/types';
 
+const PROVIDERS = [
+  { id: 'openai', label: 'OpenAI', baseUrl: '' },
+  { id: 'anthropic', label: 'Anthropic', baseUrl: '' },
+  { id: 'gemini', label: 'Google Gemini', baseUrl: '' },
+  { id: 'openrouter', label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1' },
+  { id: 'openai_compatible', label: 'OpenAI-compatible / local', baseUrl: '' },
+] as const;
+
 export function SettingsPage() {
   const navigate = useNavigate();
   const [expertMode, setExpertMode] = useState(getExpertModeEnabled());
@@ -19,6 +27,7 @@ export function SettingsPage() {
   const [provider, setProvider] = useState('openai');
   const [model, setModel] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
+  const [authMode, setAuthMode] = useState<ModelConnection['auth_mode']>('api_key');
   const [credential, setCredential] = useState('');
   const [providerError, setProviderError] = useState<string | null>(null);
 
@@ -26,9 +35,11 @@ export function SettingsPage() {
   useEffect(() => { void refreshConnections(); }, []);
 
   const addProvider = async () => {
-    if (!provider.trim() || !model.trim() || !credential.trim()) { setProviderError('Nhập provider, model và API key.'); return; }
+    if (!provider.trim() || !model.trim()) { setProviderError('Chọn provider và nhập model.'); return; }
+    if (authMode === 'api_key' && !credential.trim()) { setProviderError('Nhập API key để tạo kết nối này.'); return; }
+    if (provider === 'openai_compatible' && !baseUrl.trim()) { setProviderError('OpenAI-compatible cần Base URL.'); return; }
     try {
-      await createModelConnection({ provider_id: provider.trim(), model_id: model.trim(), auth_mode: 'api_key', base_url: baseUrl.trim() || undefined, credential });
+      await createModelConnection({ provider_id: provider.trim(), model_id: model.trim(), auth_mode: authMode, base_url: baseUrl.trim() || undefined, credential: authMode === 'api_key' ? credential : undefined });
       setCredential(''); setModel(''); setProviderError(null); await refreshConnections();
     } catch { setProviderError('Không thể lưu provider. Kiểm tra endpoint và quyền truy cập.'); }
   };
@@ -82,10 +93,13 @@ export function SettingsPage() {
               </div>
             ))}
             <div className="grid gap-2 sm:grid-cols-2">
-              <input aria-label="AI provider" value={provider} onChange={(e) => setProvider(e.target.value)} placeholder="Provider (openai)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
+              <select aria-label="AI provider" value={provider} onChange={(e) => { const next = e.target.value; setProvider(next); setBaseUrl(PROVIDERS.find((item) => item.id === next)?.baseUrl ?? ''); }} className="h-9 rounded-md border bg-transparent px-3 text-sm">
+                {PROVIDERS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
               <input aria-label="AI model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model (gpt-...)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
-              <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="Base URL (optional)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
-              <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder="API key" className="h-9 rounded-md border bg-transparent px-3 text-sm" autoComplete="new-password" />
+              <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={provider === 'openai_compatible' ? 'Base URL (required)' : 'Base URL (optional)'} className="h-9 rounded-md border bg-transparent px-3 text-sm" />
+              <select aria-label="AI authentication" value={authMode} onChange={(e) => setAuthMode(e.target.value as ModelConnection['auth_mode'])} className="h-9 rounded-md border bg-transparent px-3 text-sm"><option value="api_key">API key</option><option value="local">Local / no credential</option><option value="none">No authentication</option></select>
+              {authMode === 'api_key' && <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder="API key" className="h-9 rounded-md border bg-transparent px-3 text-sm" autoComplete="new-password" />}
             </div>
             {providerError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>{providerError}</p>}
             <Button size="sm" onClick={() => void addProvider()}>Add provider</Button>
