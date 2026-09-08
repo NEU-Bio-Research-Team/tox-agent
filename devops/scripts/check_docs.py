@@ -49,6 +49,7 @@ RETIRED = {
 }
 
 LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.\-]*:")
 FENCE = re.compile(r"^```", re.MULTILINE)
 
 
@@ -72,7 +73,12 @@ def check_links(path: Path, rel: str) -> list[str]:
     problems = []
     for target in LINK.findall(_strip_code_fences(path.read_text(encoding="utf-8"))):
         target = target.split("#", 1)[0].strip()
-        if not target or "://" in target or target.startswith("mailto:"):
+        if not target:
+            continue
+        # Any URI scheme, not just the ones with an authority: `http://`,
+        # `mailto:`, and product-internal ones like `claim:` that appear in
+        # the audit records. None of them name a file in this repository.
+        if SCHEME.match(target):
             continue
         # An absolute path is a machine-local file reference someone pasted
         # (`/home/.../routes.py:42`), not a link into this repository. It
