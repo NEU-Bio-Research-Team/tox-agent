@@ -13,9 +13,16 @@ from pathlib import Path
 
 import pytest
 
-SNAPSHOT_PATH = (
-    Path(__file__).resolve().parents[2] / "toxagent" / "predictor" / "contract_snapshot.json"
-)
+import toxagent.predictor
+
+# Locate the snapshot through the package that owns it, not by counting
+# directories up from this file: the src-layout move (I24) broke the count and
+# the whole contract suite stopped at fixture setup instead of checking
+# anything. Importing the package works in a checkout, a wheel and the image.
+SNAPSHOT_PATH = Path(toxagent.predictor.__file__).resolve().parent / "contract_snapshot.json"
+#: backend/control/src/toxagent/predictor/… → repository root.
+_REPO_ROOT = SNAPSHOT_PATH.parents[5]
+PREDICTOR_SRC = _REPO_ROOT / "backend" / "predictor" / "src"
 
 # Every path the control plane calls. Anything not here is not depended upon.
 REQUIRED_PATHS = {
@@ -55,7 +62,21 @@ def test_prediction_request_forbids_unknown_fields(document):
     """An override the predictor silently drops is a wrong operating point."""
     schema = document["components"]["schemas"]["PredictionRequest"]
     assert schema.get("additionalProperties") is False
-    assert set(schema["properties"]) == {"smiles", "endpoints", "threshold_overrides"}
+    # ``model_selection`` was added by the predictor and only became visible
+    # here once I24's path bug stopped skipping the regeneration check. It is
+    # the field K04's binding travels in — an admitted model id per endpoint,
+    # not a free-form provider hint.
+    assert set(schema["properties"]) == {
+        "smiles",
+        "endpoints",
+        "threshold_overrides",
+        "model_selection",
+    }
+    assert schema["properties"]["model_selection"]["anyOf"][0]["propertyNames"]["enum"] == [
+        "clintox",
+        "herg",
+        "tox21",
+    ]
 
 
 def test_attribution_is_single_endpoint(document):
@@ -79,19 +100,27 @@ def test_snapshot_matches_the_predictor_source():
     import subprocess
     import sys
 
-    repo_root = SNAPSHOT_PATH.parents[3]
+    # Only the monorepo has the predictor source. Skip when the directory is
+    # absent (a wheel install, the control image); never skip because an
+    # import merely failed — that is the contract drift this test exists to
+    # catch, and swallowing it is how the suite came to prove nothing.
+    if not PREDICTOR_SRC.is_dir():
+        pytest.skip(f"predictor source not in this install: {PREDICTOR_SRC}")
+
     code = (
         "import json,sys; sys.path.insert(0, %r); "
         "from toxpred.api.app import create_app; "
-        "print(json.dumps(create_app().openapi(), sort_keys=True))" % str(repo_root)
+        "print(json.dumps(create_app().openapi(), sort_keys=True))" % str(PREDICTOR_SRC)
     )
     proc = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
-    if proc.returncode != 0:
-        pytest.skip("predictor not importable from here; snapshot checked structurally only")
+    assert proc.returncode == 0, (
+        "the predictor source is present but its app would not build, so the "
+        "pinned contract cannot be verified:\n" + proc.stderr[-4000:]
+    )
 
     live = json.loads(proc.stdout)
     pinned = json.loads(SNAPSHOT_PATH.read_text())["openapi"]
     assert live == pinned, (
         "ToxPred's OpenAPI document changed. Review the diff, then re-pin with\n"
-        "  python toxagent-control/scripts/snapshot_predictor_contract.py"
+        "  python backend/control/scripts/snapshot_predictor_contract.py"
     )

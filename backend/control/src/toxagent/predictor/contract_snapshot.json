@@ -1,5 +1,5 @@
 {
-  "captured_at_commit": "3c58bc691f4955c005eabefb0f92de405454ecc2",
+  "captured_at_commit": "4067707e60f6924cb26c6e76392d21f3e6cb8a13",
   "openapi": {
     "components": {
       "schemas": {
@@ -99,6 +99,27 @@
                 }
               ],
               "title": "Endpoints"
+            },
+            "model_selection": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "clintox",
+                      "herg",
+                      "tox21"
+                    ]
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Model Selection"
             },
             "smiles": {
               "items": {
@@ -307,6 +328,28 @@
               "description": "Endpoints to evaluate. Defaults to every endpoint this build serves.",
               "title": "Endpoints"
             },
+            "model_selection": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "clintox",
+                      "herg",
+                      "tox21"
+                    ]
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional explicit admitted model id for each requested endpoint.",
+              "title": "Model Selection"
+            },
             "smiles": {
               "description": "A single SMILES string.",
               "minLength": 1,
@@ -413,6 +456,13 @@
         },
         "ValidationError": {
           "properties": {
+            "ctx": {
+              "title": "Context",
+              "type": "object"
+            },
+            "input": {
+              "title": "Input"
+            },
             "loc": {
               "items": {
                 "anyOf": [
