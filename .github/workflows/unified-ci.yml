@@ -12,7 +12,55 @@ permissions:
   contents: read
 
 jobs:
+  # One job per service, each running from its own directory (I25).
+  #
+  # Collecting both services in a single pytest invocation cannot work: each
+  # has a `tests` package, the second to be imported shadows the first, and
+  # the run ended in 18 collection errors before a single assertion — so a
+  # green history here proved nothing. Per-service rootdirs collect 183 + 400
+  # tests cleanly. Keep them separate; do not "simplify" back into one command.
   fast-pr:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: predictor
+            dir: backend/predictor
+          - service: control
+            dir: backend/control
+    name: fast-pr (${{ matrix.service }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -e './${{ matrix.dir }}[dev]'
+      - if: matrix.service == 'predictor'
+        run: python backend/predictor/scripts/check_no_agent_deps.py
+      - run: python -m pytest -q tests/unit tests/contract --junitxml=junit-${{ matrix.service }}.xml
+        working-directory: ${{ matrix.dir }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.service }}
+          path: ${{ matrix.dir }}/junit-${{ matrix.service }}.xml
+
+  pinned-artifacts:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git diff --exit-code -- backend/predictor/evals/benchmark/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
+
+  # The only environment where both packages are installed, so the only one
+  # that can regenerate the predictor's OpenAPI and compare it to the pin.
+  # TOXAGENT_REQUIRE_PREDICTOR_CONTRACT makes that comparison mandatory here:
+  # the check used to skip itself whenever the import failed, which is how the
+  # snapshot drifted unnoticed (I24).
+  predictor-contract:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
@@ -22,9 +70,10 @@ jobs:
           python-version: '3.10'
           cache: pip
       - run: pip install -e './backend/predictor[dev]' -e './backend/control[dev]'
-      - run: python backend/predictor/scripts/check_no_agent_deps.py
-      - run: python -m pytest -q backend/predictor/tests/unit backend/predictor/tests/contract backend/control/tests/unit backend/control/tests/contract
-      - run: git diff --exit-code -- backend/predictor/evals/benchmark/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
+      - run: python -m pytest -q tests/contract/test_predictor_contract.py -rs
+        working-directory: backend/control
+        env:
+          TOXAGENT_REQUIRE_PREDICTOR_CONTRACT: '1'
 
   packaging:
     runs-on: ubuntu-latest
