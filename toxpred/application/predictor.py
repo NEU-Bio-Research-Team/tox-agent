@@ -30,6 +30,11 @@ from ..scientific.applicability import assess
 from ..scientific.artifacts import ArtifactError
 from ..scientific.featurization.rdkit_resolver import resolve
 from ..scientific.registry import ModelRegistry
+from ..scientific.providers.contracts import (
+    ClinToxRawOutput,
+    HergTox21RawOutput,
+    ProviderBatchResult,
+)
 
 MAX_BATCH_SIZE = 256
 
@@ -43,9 +48,15 @@ class BatchItemError:
 
 
 class ToxicityPredictor:
-    def __init__(self, registry: ModelRegistry, *, max_batch_size: int = MAX_BATCH_SIZE) -> None:
+    def __init__(self, registry: ModelRegistry, *, max_batch_size: int = MAX_BATCH_SIZE,
+                 calibrators: Mapping[str, Any] | None = None) -> None:
         self._registry = registry
         self._max_batch_size = int(max_batch_size)
+        self._calibrators = dict(calibrators or {})
+
+    def _calibrated(self, endpoint: str, probability: float, *, task: str | None = None) -> float | None:
+        calibrator = self._calibrators.get(endpoint)
+        return None if calibrator is None else float(calibrator.calibrate(probability, task=task))
 
     # -- policy ------------------------------------------------------------
     def _policy(
@@ -56,6 +67,14 @@ class ToxicityPredictor:
         clintox_override: float | None,
     ) -> PredictionPolicySnapshot:
         dual = providers.get(Endpoint.HERG) or providers.get(Endpoint.TOX21)
+        if dual is None:
+            # The v1 policy snapshot carries all endpoint operating points.
+            # Resolve the dual-head policy owner without executing it so a
+            # ClinTox-only request does not depend on flattened provider rows.
+            try:
+                dual = self._registry.for_capability(Endpoint.HERG.value)
+            except ArtifactError:
+                dual = None
         if dual is None:
             raise ArtifactError(
                 "this build resolves hERG and Tox21 thresholds from the dual-head artifact; "
@@ -181,6 +200,7 @@ class ToxicityPredictor:
                 )
 
         valid = [(i, m) for i, m in enumerate(molecules) if m is not None]
+        valid_positions = {source_index: position for position, (source_index, _) in enumerate(valid)}
         policy = self._policy(
             providers,
             herg_threshold_override,
@@ -192,7 +212,7 @@ class ToxicityPredictor:
         # One call per distinct provider, not per endpoint: the dual-head model
         # returns hERG and Tox21 together, so asking for both must not run the
         # backbone twice.
-        raw_rows: dict[int, dict[str, Any]] = {index: {} for index, _ in valid}
+        provider_outputs: dict[str, Sequence[Any]] = {}
         if valid:
             canonical = [m.canonical_smiles for _, m in valid]
             for provider in {p.model_id: p for p in providers.values()}.values():
@@ -202,41 +222,69 @@ class ToxicityPredictor:
                         f"[{provider.model_id}] returned {len(outputs)} rows for "
                         f"{len(valid)} molecules"
                     )
-                for (index, _), row in zip(valid, outputs):
-                    raw_rows[index].update(row)
+                if provider.model_id in provider_outputs:
+                    raise ArtifactError(f"duplicate provider output for {provider.model_id!r}")
+                provider_outputs[provider.model_id] = outputs
 
         results: list[PredictionResult] = []
         for index, molecule in enumerate(molecules):
             if molecule is None:
                 continue
-            row = raw_rows[index]
+            valid_index = valid_positions[index]
             clintox = herg = tox21 = None
             if Endpoint.CLINTOX in requested:
+                owner = providers[Endpoint.CLINTOX]
+                row = provider_outputs[owner.model_id][valid_index]
+                if not isinstance(row, ClinToxRawOutput):
+                    raise ArtifactError(f"[{owner.model_id}] returned wrong typed output")
                 clintox = ClinToxPrediction(
-                    probability_clinical_toxicity=row["clintox_probability_toxicity"],
+                    probability_clinical_toxicity=row.clintox_probability_toxicity,
                     threshold=policy.clintox_threshold,
-                    model_id=providers[Endpoint.CLINTOX].model_id,
+                    model_id=owner.model_id,
+                    calibrated_probability_clinical_toxicity=self._calibrated(
+                        "clintox", row.clintox_probability_toxicity
+                    ),
                 )
             if Endpoint.HERG in requested:
+                owner = providers[Endpoint.HERG]
+                row = provider_outputs[owner.model_id][valid_index]
+                if not isinstance(row, HergTox21RawOutput):
+                    raise ArtifactError(f"[{owner.model_id}] returned wrong typed output")
                 herg = HergPrediction(
-                    probability_blocker=row["herg_probability_blocker"],
+                    probability_blocker=row.herg_probability_blocker,
                     threshold=policy.herg_threshold,
-                    model_id=row["model_id"],
+                    model_id=owner.model_id,
+                    calibrated_probability_blocker=self._calibrated(
+                        "herg", row.herg_probability_blocker
+                    ),
                 )
             if Endpoint.TOX21 in requested:
+                owner = providers[Endpoint.TOX21]
+                row = provider_outputs[owner.model_id][valid_index]
+                if not isinstance(row, HergTox21RawOutput):
+                    raise ArtifactError(f"[{owner.model_id}] returned wrong typed output")
                 tox21 = Tox21Prediction(
                     assays=tuple(
                         Tox21AssayPrediction(
                             task=task,
-                            probability_activity=row["tox21_probability_activity"][task],
+                            probability_activity=row.tox21_probability_activity[task],
                             threshold=policy.tox21_thresholds[task],
+                            calibrated_probability_activity=self._calibrated(
+                                "tox21", row.tox21_probability_activity[task], task=task
+                            ),
                         )
                         for task in TOX21_TASKS
                     ),
-                    model_id=row["model_id"],
+                    model_id=owner.model_id,
                 )
             item_provenance = dict(provenance)
-            item_provenance["truncated_input"] = bool(row.get("truncated", False))
+            item_provenance["schema_version"] = "toxpred-provenance-v2"
+            token_owner = providers.get(Endpoint.HERG) or providers.get(Endpoint.TOX21)
+            if token_owner is not None:
+                token_row = provider_outputs[token_owner.model_id][valid_index]
+                if isinstance(token_row, HergTox21RawOutput):
+                    item_provenance["tokenization"] = token_row.tokenization.to_dict()
+                    item_provenance["truncated_input"] = token_row.tokenization.truncated
             results.append(
                 PredictionResult(
                     input_smiles=molecule.input_smiles,

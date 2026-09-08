@@ -22,6 +22,13 @@ class RuntimeKind(str, Enum):
     SCRIPTED = "scripted"
 
 
+class AuthMode(str, Enum):
+    CHATGPT_SUBSCRIPTION = "chatgpt_subscription"
+    API_KEY = "api_key"
+    LOCAL = "local"
+    NONE = "none"
+
+
 class BindingStatus(str, Enum):
     ACTIVE = "active"
     LOST = "lost"
@@ -63,12 +70,14 @@ class RuntimeBinding:
     runtime_session_id: str
     provider_id: str
     model_id: str
-    profile_hash: str
-    tool_schema_hash: str
-    system_prompt_hash: str
-    capabilities: RuntimeCapabilities
-    status: BindingStatus
-    created_at: datetime
+    auth_mode: AuthMode = AuthMode.NONE
+    connection_id: str | None = None
+    profile_hash: str = ""
+    tool_schema_hash: str = ""
+    system_prompt_hash: str = ""
+    capabilities: RuntimeCapabilities = field(default_factory=RuntimeCapabilities)
+    status: BindingStatus = BindingStatus.ACTIVE
+    created_at: datetime = field(default_factory=datetime.now)
     closed_at: datetime | None = None
     selection_reason: str = ""
 
@@ -86,6 +95,8 @@ class RuntimeBinding:
         runtime_session_id: str,
         provider_id: str,
         model_id: str,
+        auth_mode: AuthMode = AuthMode.NONE,
+        connection_id: str | None = None,
         profile_hash: str,
         tool_schema_hash: str,
         system_prompt_hash: str,
@@ -101,6 +112,8 @@ class RuntimeBinding:
             runtime_session_id=runtime_session_id,
             provider_id=provider_id,
             model_id=model_id,
+            auth_mode=auth_mode,
+            connection_id=connection_id,
             profile_hash=profile_hash,
             tool_schema_hash=tool_schema_hash,
             system_prompt_hash=system_prompt_hash,
@@ -124,6 +137,8 @@ class RuntimeBinding:
             "runtime_version": self.runtime_version,
             "provider_id": self.provider_id,
             "model_id": self.model_id,
+            "auth_mode": self.auth_mode.value,
+            "connection_id": self.connection_id,
             "profile_hash": self.profile_hash,
             "tool_schema_hash": self.tool_schema_hash,
             "system_prompt_hash": self.system_prompt_hash,

@@ -23,14 +23,29 @@ from ...domain.run import Run
 from ...domain.runtime import RuntimeBinding
 from ...domain.usage import RuntimeUsageEvent
 from ...domain.session import Session
+from ...connections.model import (
+    ConnectionCapabilities, ConnectionStatus, ModelConnection,
+)
+from ...domain.runtime import AuthMode
+from ...agent.kernel import KernelTransition
+from ...domain.investigation import (
+    CaseState, ConflictStatus, Coverage, EvidenceConflict, EvidenceGap, GapSeverity,
+    GoalType, InvestigationPlan, InvestigationStep, StepStatus,
+)
 from ..schema import (
     analysis_snapshots,
     answers,
     attachments,
     capability_tokens,
+    case_revisions,
+    cases,
     claim_sources,
     claims,
     evidence_records,
+    investigation_plans,
+    investigation_steps,
+    kernel_transitions,
+    model_connections,
     message_parts,
     messages,
     observations,
@@ -136,6 +151,167 @@ class SqlSessionStore:
             )
         ).mappings().all()
         return [m.row_to_session(r) for r in rows]
+
+
+class SqlInvestigationStore:
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def save_case(self, case: CaseState, *, expected_revision: int | None) -> None:
+        state = case.to_dict()
+        row = {
+            "id": case.id, "session_id": case.session_id, "goal": case.goal.value,
+            "subject": dict(case.subject), "active_analysis_id": case.active_analysis_id,
+            "active_plan_id": case.plan_id, "state": state, "revision": case.revision,
+            "revision_reason": case.revision_reason, "created_at": case.created_at,
+            "updated_at": case.updated_at,
+        }
+        if expected_revision is None:
+            await self._conn.execute(insert(cases).values(row))
+        else:
+            values = dict(row)
+            values.pop("id")
+            values.pop("session_id")
+            values.pop("created_at")
+            result = await self._conn.execute(
+                update(cases).where(and_(cases.c.id == case.id, cases.c.revision == expected_revision)).values(**values)
+            )
+            if result.rowcount == 0:
+                raise Conflict("case changed underneath this write", case_id=case.id)
+        await self._conn.execute(insert(case_revisions).values(
+            case_id=case.id, revision=case.revision, reason=case.revision_reason,
+            state=state, created_at=case.updated_at,
+        ))
+
+    async def get_case(self, case_id: str, *, session_id: str) -> CaseState | None:
+        row = (await self._conn.execute(select(cases).where(and_(
+            cases.c.id == case_id, cases.c.session_id == session_id,
+        )))).mappings().first()
+        if row is None:
+            return None
+        state = row["state"]
+        conflicts = tuple(EvidenceConflict(
+            item["id"], item["proposition"], tuple(item["claim_ids"]),
+            ConflictStatus(item["status"]), item.get("resolution_reason"),
+        ) for item in state.get("conflicts", ()))
+        gaps = tuple(EvidenceGap(
+            item["id"], item["question"], GapSeverity(item["severity"]), item["reason"],
+        ) for item in state.get("gaps", ()))
+        coverage = state.get("coverage", {})
+        return CaseState(
+            id=row["id"], session_id=row["session_id"], subject=row["subject"],
+            goal=GoalType(row["goal"]), active_analysis_id=row["active_analysis_id"],
+            questions=tuple(state.get("questions", ())),
+            hypothesis_refs=tuple(state.get("hypothesis_refs", ())),
+            claim_refs=tuple(state.get("claim_refs", ())), conflicts=conflicts, gaps=gaps,
+            plan_id=row["active_plan_id"], coverage=Coverage(
+                tuple(coverage.get("required_questions", ())),
+                tuple(coverage.get("answered_questions", ())),
+                tuple(coverage.get("unresolved_conflict_ids", ())),
+                tuple(coverage.get("blocking_gap_ids", ())),
+            ), action_refs=tuple(state.get("action_refs", ())), revision=row["revision"],
+            revision_reason=row["revision_reason"], created_at=m.utc(row["created_at"]),
+            updated_at=m.utc(row["updated_at"]),
+        )
+
+    async def save_plan(self, plan: InvestigationPlan) -> None:
+        await self._conn.execute(insert(investigation_plans).values(
+            id=plan.id, case_id=plan.case_id, revision=plan.revision,
+            reason=plan.reason, created_at=plan.created_at,
+        ))
+        await self._conn.execute(insert(investigation_steps), [
+            {
+                "id": step.id, "plan_id": plan.id, "position": position,
+                "question": step.question, "capability": step.capability,
+                "input_refs": list(step.input_refs), "expected_output": step.expected_output,
+                "success_condition": step.success_condition, "case_revision": step.case_revision,
+                "status": step.status.value, "output_refs": list(step.output_refs),
+                "failure_reason": step.failure_reason,
+            }
+            for position, step in enumerate(plan.steps)
+        ])
+
+    async def save_step(self, plan_id: str, step: InvestigationStep) -> None:
+        result = await self._conn.execute(update(investigation_steps).where(and_(
+            investigation_steps.c.id == step.id, investigation_steps.c.plan_id == plan_id,
+        )).values(status=step.status.value, output_refs=list(step.output_refs),
+                  failure_reason=step.failure_reason))
+        if result.rowcount == 0:
+            raise Conflict("investigation step does not exist", step_id=step.id)
+
+    async def append_transition(self, case_id: str, transition: KernelTransition) -> None:
+        await self._conn.execute(insert(kernel_transitions).values(
+            case_id=case_id, state=transition.state.value, detail=transition.detail,
+            occurred_at=transition.occurred_at,
+        ))
+
+
+class SqlModelConnectionStore:
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def add(self, connection: ModelConnection) -> None:
+        await self._conn.execute(insert(model_connections).values(
+            id=connection.id, owner_id=connection.owner_id, provider_id=connection.provider_id,
+            model_id=connection.model_id, base_url=connection.base_url,
+            auth_mode=connection.auth_mode.value, credential_ref=connection.credential_ref,
+            capabilities={
+                "streaming": connection.capabilities.streaming,
+                "tool_calls": connection.capabilities.tool_calls,
+                "structured_output": connection.capabilities.structured_output,
+                "context_size": connection.capabilities.context_size,
+            }, status=connection.status.value, created_at=connection.created_at,
+            updated_at=connection.updated_at,
+        ))
+
+    async def get(self, connection_id: str, *, owner_id: str) -> ModelConnection | None:
+        row = (await self._conn.execute(select(model_connections).where(and_(
+            model_connections.c.id == connection_id,
+            model_connections.c.owner_id == owner_id,
+        )))).mappings().first()
+        if row is None:
+            return None
+        caps = row["capabilities"] or {}
+        return ModelConnection(
+            id=row["id"], owner_id=row["owner_id"], provider_id=row["provider_id"],
+            model_id=row["model_id"], auth_mode=AuthMode(row["auth_mode"]),
+            credential_ref=row["credential_ref"], base_url=row["base_url"],
+            capabilities=ConnectionCapabilities(
+                streaming=bool(caps.get("streaming")), tool_calls=bool(caps.get("tool_calls")),
+                structured_output=bool(caps.get("structured_output")),
+                context_size=caps.get("context_size"),
+            ), status=ConnectionStatus(row["status"]), created_at=m.utc(row["created_at"]),
+            updated_at=m.utc(row["updated_at"]),
+        )
+
+    async def list(self, *, owner_id: str) -> Sequence[ModelConnection]:
+        ids = (await self._conn.execute(select(model_connections.c.id).where(
+            model_connections.c.owner_id == owner_id
+        ).order_by(model_connections.c.created_at))).scalars().all()
+        items = [await self.get(item, owner_id=owner_id) for item in ids]
+        return [item for item in items if item is not None]
+
+    async def update_probe(self, connection: ModelConnection) -> None:
+        result = await self._conn.execute(update(model_connections).where(and_(
+            model_connections.c.id == connection.id,
+            model_connections.c.owner_id == connection.owner_id,
+        )).values(
+            capabilities={
+                "streaming": connection.capabilities.streaming,
+                "tool_calls": connection.capabilities.tool_calls,
+                "structured_output": connection.capabilities.structured_output,
+                "context_size": connection.capabilities.context_size,
+            }, status=connection.status.value, updated_at=connection.updated_at,
+        ))
+        if result.rowcount == 0:
+            raise Conflict("model connection does not exist", connection_id=connection.id)
+
+    async def delete(self, connection_id: str, *, owner_id: str) -> bool:
+        result = await self._conn.execute(delete(model_connections).where(and_(
+            model_connections.c.id == connection_id,
+            model_connections.c.owner_id == owner_id,
+        )))
+        return result.rowcount > 0
 
 
 class SqlMessageStore:

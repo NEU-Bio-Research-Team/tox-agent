@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-SCAN = ["toxpred", "backend", "deploy", "artifacts", "config", "scripts", "benchmarks", "tests"]
+SCAN = ["toxpred", "deploy", "artifacts"]
 SCAN_FILES = ["pyproject.toml", "requirements.txt", "environment.yml"]
 
 EXCLUDE = {

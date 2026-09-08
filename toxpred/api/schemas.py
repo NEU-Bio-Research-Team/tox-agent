@@ -67,6 +67,7 @@ class AttributionRequest(BaseModel):
         default=None,
         description="Required when endpoint is 'tox21': which of the 12 assays to attribute.",
     )
+    method: Literal["grad_x_input", "integrated_gradients"] = "grad_x_input"
 
     @field_validator("task")
     @classmethod
@@ -88,6 +89,7 @@ class ExplainRequest(BaseModel):
     smiles: str = Field(..., min_length=1)
     endpoint: Literal["herg", "tox21"]
     task: str | None = None
+    method: Literal["grad_x_input", "integrated_gradients"] = "grad_x_input"
 
     @model_validator(mode="after")
     def _task_rules(self) -> "ExplainRequest":

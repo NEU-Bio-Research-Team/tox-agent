@@ -27,6 +27,8 @@ from ..domain.run import Run
 from ..domain.runtime import RuntimeBinding
 from ..domain.usage import RuntimeUsageEvent
 from ..domain.session import Session
+from ..agent.kernel import KernelTransition
+from ..domain.investigation import CaseState, InvestigationPlan, InvestigationStep
 
 
 @runtime_checkable
@@ -189,6 +191,8 @@ class UnitOfWork(Protocol):
     tool_calls: ToolCallStore
     capability_tokens: CapabilityTokenStore
     attachments: AttachmentStore
+    investigations: Any
+    model_connections: Any
 
     def emit(
         self, *, session_id: str, type: EventType, entity_type: str, entity_id: str,

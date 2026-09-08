@@ -1,9 +1,9 @@
-"""ClinTox SMILES-GNN provider: clinical-trial toxicity.
+"""ClinTox SMILES-GNN legacy artifact admission guard.
 
-The scientific code is NOT reimplemented here. The architecture, the graph
-featurisation and the state-dict load all stay in ``backend/`` and are called
-through ``backend.inference.load_model``; this class only supplies the artifact
-boundary, the raw-probability contract and typed unavailability.
+The v1 checkpoint lacks its exact tokenizer and is therefore never admitted.
+The old backend-dependent inference path is intentionally not part of the
+standalone wheel. A reproducible retrain must ship as ``clintox-smilesgnn-v2``
+with its own provider, tokenizer, manifest, calibrator and evaluation.
 
 Two things differ from the code path it wraps:
 
@@ -30,6 +30,7 @@ from typing import Any
 
 from ..artifacts import ArtifactError, ArtifactSpec
 from ..registry import ModelHealth
+from .contracts import ClinToxRawOutput, ProviderBatchResult
 
 MODEL_ID = "clintox-smilesgnn-v1"
 CAPABILITIES = frozenset({"clintox"})
@@ -87,29 +88,12 @@ class ClinToxSmilesGnnProvider:
             self._detail = reason
             raise ArtifactError(f"[{self.model_id}] {reason}")
 
-        self._spec.verify()
-
-        from backend.inference import load_model
-
-        model, tokenizer, wrapped = load_model(
-            self._spec.root,
-            self._config_path,
-            device=self._device,
-            enforce_workspace_mode=False,
+        raise ArtifactError(
+            f"[{self.model_id}] legacy v1 admission is disabled: even a file named "
+            f"{TOKENIZER_FILENAME!r} is not sufficient proof that its vocabulary mapping "
+            "matches the missing training artifact. Restore and hash-verify the exact "
+            "69-token vocabulary, or retrain and release clintox-smilesgnn-v2."
         )
-        vocab_size = len(tokenizer.token_to_id)
-        embedding = model.state_dict().get("smiles_encoder.token_embedding.weight")
-        if embedding is not None and embedding.shape[0] != vocab_size:
-            raise ArtifactError(
-                f"[{self.model_id}] tokenizer vocabulary ({vocab_size}) does not match the "
-                f"checkpoint embedding ({embedding.shape[0]}). This tokenizer belongs to a "
-                "different training run; using it would silently remap every token."
-            )
-
-        self._model = model
-        self._tokenizer = tokenizer
-        self._wrapped = wrapped
-        self._detail = f"loaded (vocab {vocab_size})"
 
     def health(self) -> ModelHealth:
         if self._model is None:
@@ -119,60 +103,8 @@ class ClinToxSmilesGnnProvider:
         return ModelHealth(self.model_id, True, self.capabilities, self._detail)
 
     # -- inference ---------------------------------------------------------
-    def predict(self, canonical_smiles: list[str]) -> list[dict[str, Any]]:
-        import torch
-
-        if self._wrapped is None or self._tokenizer is None:
-            raise ArtifactError(f"[{self.model_id}] predict() called before load()")
-        if not canonical_smiles:
-            return []
-
-        from torch.utils.data import DataLoader
-
-        from backend.graph_data import smiles_to_pyg_data
-        from backend.inference import _collate, _HybridDataset
-
-        graphs = []
-        for smiles in canonical_smiles:
-            try:
-                data = smiles_to_pyg_data(smiles, label=0)
-            except Exception as exc:  # noqa: BLE001
-                raise ArtifactError(
-                    f"[{self.model_id}] cannot featurise {smiles!r}: {exc}"
-                ) from exc
-            if data is None:
-                raise ArtifactError(
-                    f"[{self.model_id}] cannot featurise {smiles!r}: RDKit produced no graph"
-                )
-            graphs.append(data)
-
-        dataset = _HybridDataset(graphs, list(canonical_smiles), self._tokenizer)
-        loader = DataLoader(
-            dataset, batch_size=self._batch_size, shuffle=False, collate_fn=_collate
-        )
-
-        probabilities: list[float] = []
-        with torch.inference_mode():
-            for batch in loader:
-                batch = batch.to(self._device)
-                logits = self._wrapped(batch).squeeze(-1)
-                probs = torch.sigmoid(logits).cpu().numpy()
-                probabilities.extend(
-                    probs.tolist() if probs.ndim > 0 else [float(probs)]
-                )
-
-        if len(probabilities) != len(canonical_smiles):
-            raise ArtifactError(
-                f"[{self.model_id}] produced {len(probabilities)} scores for "
-                f"{len(canonical_smiles)} inputs"
-            )
-        return [
-            {
-                "model_id": self.model_id,
-                "clintox_probability_toxicity": float(p),
-            }
-            for p in probabilities
-        ]
+    def predict(self, canonical_smiles: list[str]) -> ProviderBatchResult[ClinToxRawOutput]:
+        raise ArtifactError(f"[{self.model_id}] predict() called before load()")
 
 
 def make_factory(config_path: Path, device: str = "cpu"):

@@ -66,6 +66,7 @@ def point_metrics(y_true: np.ndarray, p: np.ndarray, threshold: float) -> dict:
         f1_score,
         matthews_corrcoef,
         roc_auc_score,
+        log_loss,
     )
 
     pred = (p >= threshold).astype(int)
@@ -88,6 +89,7 @@ def point_metrics(y_true: np.ndarray, p: np.ndarray, threshold: float) -> dict:
         "sensitivity": tp / (tp + fn) if (tp + fn) else None,
         "specificity": tn / (tn + fp) if (tn + fp) else None,
         "brier": float(brier_score_loss(y_true, p)),
+        "nll": float(log_loss(y_true, p, labels=[0, 1])),
         "ece_10bin": ece(y_true, p),
         "confusion": {"tp": tp, "fp": fp, "tn": tn, "fn": fn},
     }

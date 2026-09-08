@@ -61,8 +61,12 @@ def test_prediction_request_forbids_unknown_fields(document):
 def test_attribution_is_single_endpoint(document):
     """SCI-09: attribution explains one endpoint/task, never an aggregate."""
     schema = document["components"]["schemas"]["AttributionRequest"]
-    assert set(schema["properties"]) == {"smiles", "endpoint", "task"}
+    assert set(schema["properties"]) == {"smiles", "endpoint", "task", "method"}
     assert "endpoints" not in schema["properties"]
+    assert schema["properties"]["method"]["enum"] == [
+        "grad_x_input",
+        "integrated_gradients",
+    ]
 
 
 def test_batch_limit_is_documented(document):

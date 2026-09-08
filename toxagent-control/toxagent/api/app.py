@@ -36,6 +36,8 @@ from ..tools.bootstrap import build_registry
 from ..tools.capability import CapabilityTokenService
 from ..tools.mcp_server import mcp_asgi_app
 from ..tools.runner import ToolRunner
+from ..connections.secrets import FilesystemSecretStore
+from ..connections.service import ModelConnectionService
 from . import errors
 from .auth import build_auth
 from .predict_limits import PredictLimiter
@@ -167,6 +169,9 @@ def create_app(
         app.state.scheduler = scheduler
         app.state.auth = build_auth(settings.security)
         app.state.sessions = SessionService(db)
+        app.state.connections = ModelConnectionService(
+            db, FilesystemSecretStore(settings.object_store_dir.parent / "model-secrets")
+        )
         # Intent.EVIDENCE_RESEARCH only reaches a runtime turn when this
         # deployment actually has a way to fulfil it (Phase 5) — otherwise
         # submit_message answers capability_unavailable without spending a

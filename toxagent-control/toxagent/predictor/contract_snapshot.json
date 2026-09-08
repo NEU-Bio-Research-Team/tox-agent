@@ -16,6 +16,15 @@
               "title": "Endpoint",
               "type": "string"
             },
+            "method": {
+              "default": "grad_x_input",
+              "enum": [
+                "grad_x_input",
+                "integrated_gradients"
+              ],
+              "title": "Method",
+              "type": "string"
+            },
             "smiles": {
               "minLength": 1,
               "title": "Smiles",
@@ -156,6 +165,15 @@
                 "tox21"
               ],
               "title": "Endpoint",
+              "type": "string"
+            },
+            "method": {
+              "default": "grad_x_input",
+              "enum": [
+                "grad_x_input",
+                "integrated_gradients"
+              ],
+              "title": "Method",
               "type": "string"
             },
             "smiles": {
@@ -314,6 +332,11 @@
         },
         "ReadinessResponse": {
           "properties": {
+            "device": {
+              "default": "cpu",
+              "title": "Device",
+              "type": "string"
+            },
             "ready": {
               "title": "Ready",
               "type": "boolean"
@@ -390,13 +413,6 @@
         },
         "ValidationError": {
           "properties": {
-            "ctx": {
-              "title": "Context",
-              "type": "object"
-            },
-            "input": {
-              "title": "Input"
-            },
             "loc": {
               "items": {
                 "anyOf": [

@@ -54,7 +54,7 @@ def test_token_importances_are_projected_onto_atoms_and_normalised():
     rel_sum = sum(a["relative_importance"] for a in result["atoms"])
     assert rel_sum + result["unmapped_importance"] == pytest.approx(1.0)
     assert result["atom_order_version"] == "rdkit-output-order-v1"
-    assert result["method"] == "grad_x_embedding_l2_v1+token_atom_align_v1"
+    assert result["method"] == "grad_x_embedding_l2_v1+token_structure_align_v2"
 
 
 def test_a_token_over_multiple_atoms_splits_its_importance_equally():

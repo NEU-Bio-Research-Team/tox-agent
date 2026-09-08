@@ -26,19 +26,19 @@ from ..domain.provenance import content_sha256
 PROFILES: Final[dict[str, frozenset[str]]] = {
     "analysis": frozenset(
         {
-            "create_analysis_snapshot", "get_analysis_slice", "get_analysis_bundle",
+            "create_analysis_snapshot", "get_analysis_slice",
             "submit_grounded_answer",
         }
     ),
     "report_qa": frozenset(
         {
-            "get_analysis_slice", "get_analysis_bundle", "get_explanation_slice",
+            "get_analysis_slice",
             "get_attribution", "submit_grounded_answer",
         }
     ),
     "evidence_research": frozenset(
         {
-            "get_analysis_slice", "get_analysis_bundle", "get_explanation_slice",
+            "get_analysis_slice",
             "search_toxicology_evidence", "get_evidence_record",
             "submit_grounded_answer",
         }
@@ -46,7 +46,7 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
     #: Read-only audit. Deliberately without submit_grounded_answer: an auditor
     #: inspects answers, it does not author them.
     "audit_readonly": frozenset(
-        {"get_analysis_slice", "get_analysis_bundle", "get_explanation_slice", "get_evidence_record"}
+        {"get_analysis_slice", "get_evidence_record"}
     ),
 }
 

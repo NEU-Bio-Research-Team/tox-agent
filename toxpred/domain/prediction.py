@@ -31,12 +31,19 @@ class ClinToxPrediction:
     probability_clinical_toxicity: float
     threshold: ResolvedThreshold
     model_id: str
+    calibrated_probability_clinical_toxicity: float | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
             self, "probability_clinical_toxicity",
             _probability(self.probability_clinical_toxicity, "probability_clinical_toxicity"),
         )
+        if self.calibrated_probability_clinical_toxicity is not None:
+            object.__setattr__(
+                self, "calibrated_probability_clinical_toxicity",
+                _probability(self.calibrated_probability_clinical_toxicity,
+                             "calibrated_probability_clinical_toxicity"),
+            )
 
     @property
     def label(self) -> str:
@@ -46,6 +53,8 @@ class ClinToxPrediction:
     def to_dict(self) -> dict[str, Any]:
         return {
             "probability_clinical_toxicity": self.probability_clinical_toxicity,
+            "raw_probability_clinical_toxicity": self.probability_clinical_toxicity,
+            "calibrated_probability_clinical_toxicity": self.calibrated_probability_clinical_toxicity,
             "label": self.label,
             "threshold": self.threshold.value,
             "threshold_source": self.threshold.source.value,
@@ -60,12 +69,18 @@ class HergPrediction:
     probability_blocker: float
     threshold: ResolvedThreshold
     model_id: str
+    calibrated_probability_blocker: float | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
             self, "probability_blocker",
             _probability(self.probability_blocker, "probability_blocker"),
         )
+        if self.calibrated_probability_blocker is not None:
+            object.__setattr__(
+                self, "calibrated_probability_blocker",
+                _probability(self.calibrated_probability_blocker, "calibrated_probability_blocker"),
+            )
 
     @property
     def label(self) -> str:
@@ -75,6 +90,8 @@ class HergPrediction:
     def to_dict(self) -> dict[str, Any]:
         return {
             "probability_blocker": self.probability_blocker,
+            "raw_probability_blocker": self.probability_blocker,
+            "calibrated_probability_blocker": self.calibrated_probability_blocker,
             "label": self.label,
             "threshold": self.threshold.value,
             "threshold_source": self.threshold.source.value,
@@ -87,6 +104,7 @@ class Tox21AssayPrediction:
     task: str
     probability_activity: float
     threshold: ResolvedThreshold
+    calibrated_probability_activity: float | None = None
 
     def __post_init__(self) -> None:
         if self.task not in TOX21_TASKS:
@@ -95,6 +113,11 @@ class Tox21AssayPrediction:
             self, "probability_activity",
             _probability(self.probability_activity, "probability_activity"),
         )
+        if self.calibrated_probability_activity is not None:
+            object.__setattr__(
+                self, "calibrated_probability_activity",
+                _probability(self.calibrated_probability_activity, "calibrated_probability_activity"),
+            )
 
     @property
     def active(self) -> bool:
@@ -103,6 +126,8 @@ class Tox21AssayPrediction:
     def to_dict(self) -> dict[str, Any]:
         return {
             "probability_activity": self.probability_activity,
+            "raw_probability_activity": self.probability_activity,
+            "calibrated_probability_activity": self.calibrated_probability_activity,
             "active": self.active,
             "threshold": self.threshold.value,
             "threshold_source": self.threshold.source.value,
@@ -177,10 +202,16 @@ class PredictionResult:
             predictions[Endpoint.HERG.value] = self.herg.to_dict()
         if self.tox21 is not None:
             predictions[Endpoint.TOX21.value] = self.tox21.to_dict()
+        chemical_guard = self.applicability.to_dict()
         return {
             "input_smiles": self.input_smiles,
             "canonical_smiles": self.canonical_smiles,
             "predictions": predictions,
-            "applicability": self.applicability.to_dict(),
+            "applicability": {
+                **chemical_guard,
+                "chemical_guard": chemical_guard,
+                "similarity_domain": None,
+            },
+            "uncertainty": None,
             "provenance": dict(self.provenance),
         }

@@ -1,0 +1,46 @@
+{
+  "schema_version": "toxagent-operational-baseline-v1",
+  "status": "partial",
+  "environment": {
+    "description": "local release-container CPU baseline",
+    "image": "toxpred-unified-v2:test",
+    "image_id": "sha256:b5d88da2df73df34d1dd09f7314b368c6ed95372b6ebad8a4785edeffb7aa79d",
+    "os": "linux",
+    "architecture": "amd64",
+    "network_mode": "none"
+  },
+  "prediction": {
+    "herg_n": 2690,
+    "herg_total_seconds": 7.1,
+    "herg_per_molecule_ms": 2.64,
+    "tox21_total_seconds": 3.08,
+    "tox21_per_molecule_ms": 3.93
+  },
+  "container": {
+    "cold_start_ms": 3981,
+    "model_load_ms": 2707.513,
+    "image_size_bytes": 386819506,
+    "peak_cgroup_memory_bytes": 295526400,
+    "peak_vram_bytes": 0,
+    "peak_vram_note": "not applicable for the CPU image"
+  },
+  "offline_batch_latency": {
+    "1": {"total_ms": 10.353, "per_sample_ms": 10.353},
+    "8": {"total_ms": 8.466, "per_sample_ms": 1.058},
+    "32": {"total_ms": 16.527, "per_sample_ms": 0.516},
+    "128": {"total_ms": 62.476, "per_sample_ms": 0.488},
+    "256": {"total_ms": 116.029, "per_sample_ms": 0.453}
+  },
+  "offline_smoke": {
+    "ready": true,
+    "served_endpoints": ["herg", "tox21"],
+    "model_id": "herg-tox21-chemberta-v1",
+    "provenance_schema": "toxpred-provenance-v2",
+    "ethanol_probability_blocker": 0.10860548913478851
+  },
+  "batch_sizes_required": [1, 8, 32, 128, 256],
+  "pending_measurements": [
+    "runtime_start_cancel_cleanup"
+  ],
+  "gate_rule": "pending measurements must be filled by release CI on the target image; null values are never interpreted as passing"
+}

@@ -119,6 +119,8 @@ runtime_bindings = Table(
     Column("runtime_session_id", String(255), nullable=False),
     Column("provider_id", String(128), nullable=False),
     Column("model_id", String(128), nullable=False),
+    Column("auth_mode", String(32), nullable=False, server_default="none"),
+    Column("connection_id", _ID),
     Column("profile_hash", String(64), nullable=False),
     Column("tool_schema_hash", String(64), nullable=False),
     Column("system_prompt_hash", String(64), nullable=False),
@@ -127,6 +129,87 @@ runtime_bindings = Table(
     Column("selection_reason", Text, nullable=False, server_default=""),
     Column("created_at", _TS, nullable=False),
     Column("closed_at", _TS),
+)
+
+# Product-owned investigation state.  The current row is the fast read model;
+# every accepted update is also appended to case_revisions for audit/recovery.
+cases = Table(
+    "cases", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("goal", String(64), nullable=False),
+    Column("subject", Json, nullable=False),
+    Column("active_analysis_id", _ID, ForeignKey("analysis_snapshots.id")),
+    Column("active_plan_id", _ID),
+    Column("state", Json, nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("revision_reason", Text, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    UniqueConstraint("session_id", "id", name="uq_cases_session_id"),
+    Index("ix_cases_session_updated", "session_id", "updated_at"),
+)
+
+case_revisions = Table(
+    "case_revisions", metadata,
+    Column("case_id", _ID, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True),
+    Column("revision", Integer, primary_key=True),
+    Column("reason", Text, nullable=False),
+    Column("state", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+)
+
+investigation_plans = Table(
+    "investigation_plans", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("case_id", _ID, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("reason", Text, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    UniqueConstraint("case_id", "revision", name="uq_plan_case_revision"),
+)
+
+investigation_steps = Table(
+    "investigation_steps", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("plan_id", _ID, ForeignKey("investigation_plans.id", ondelete="CASCADE"), nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("question", Text, nullable=False),
+    Column("capability", String(64), nullable=False),
+    Column("input_refs", Json, nullable=False),
+    Column("expected_output", Text, nullable=False),
+    Column("success_condition", Text, nullable=False),
+    Column("case_revision", Integer, nullable=False),
+    Column("status", String(24), nullable=False),
+    Column("output_refs", Json, nullable=False),
+    Column("failure_reason", Text),
+    UniqueConstraint("plan_id", "position", name="uq_plan_step_position"),
+)
+
+kernel_transitions = Table(
+    "kernel_transitions", metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("case_id", _ID, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False),
+    Column("state", String(32), nullable=False),
+    Column("detail", Text, nullable=False, server_default=""),
+    Column("occurred_at", _TS, nullable=False),
+    Index("ix_kernel_transition_case", "case_id", "id"),
+)
+
+model_connections = Table(
+    "model_connections", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("owner_id", String(255), nullable=False),
+    Column("provider_id", String(128), nullable=False),
+    Column("model_id", String(128), nullable=False),
+    Column("base_url", Text),
+    Column("auth_mode", String(32), nullable=False),
+    Column("credential_ref", String(255)),
+    Column("capabilities", Json, nullable=False),
+    Column("status", String(24), nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    Index("ix_model_connections_owner", "owner_id", "created_at"),
 )
 
 # W2-13/14: provider reports are immutable events. Nullable numeric fields
@@ -328,5 +411,6 @@ event_outbox = Table(
 
 #: Written once, never updated. Repositories expose no update path for these.
 IMMUTABLE_TABLES = frozenset(
-    {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox"}
+    {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox",
+     "case_revisions", "investigation_plans", "kernel_transitions"}
 )

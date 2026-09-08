@@ -21,6 +21,7 @@ from typing import Any
 from ...domain.endpoints import TOX21_TASKS, validate_task_order
 from ..artifacts import ArtifactError, ArtifactSpec
 from ..registry import ModelHealth
+from .contracts import HergTox21RawOutput, ProviderBatchResult, TokenizationProvenance
 
 MODEL_ID = "herg-tox21-chemberta-v1"
 CAPABILITIES = frozenset({"herg", "tox21"})
@@ -62,7 +63,7 @@ class HergTox21ChembertaProvider:
         import torch
         from transformers import AutoTokenizer
 
-        from backend.pretrained_mol_model import create_pretrained_dual_head_model
+        from ..models.chemberta_dual_head import create_chemberta_dual_head_model
 
         self._spec.verify()
 
@@ -99,7 +100,7 @@ class HergTox21ChembertaProvider:
             )
 
         model_config = dict(checkpoint.get("model_config") or {})
-        model = create_pretrained_dual_head_model(
+        model = create_chemberta_dual_head_model(
             pretrained_model=base_model,
             num_tox21_tasks=len(TOX21_TASKS),
             dropout=float(model_config.get("dropout", 0.1)),
@@ -160,16 +161,16 @@ class HergTox21ChembertaProvider:
         )
 
     # -- inference ---------------------------------------------------------
-    def predict(self, canonical_smiles: list[str]) -> list[dict[str, Any]]:
+    def predict(self, canonical_smiles: list[str]) -> ProviderBatchResult[HergTox21RawOutput]:
         """Raw sigmoid outputs per molecule. Input must already be canonical."""
         import torch
 
         if self._model is None or self._tokenizer is None:
             raise ArtifactError(f"[{self.model_id}] predict() called before load()")
         if not canonical_smiles:
-            return []
+            return ProviderBatchResult(self.model_id, ())
 
-        results: list[dict[str, Any]] = []
+        results: list[HergTox21RawOutput] = []
         for start in range(0, len(canonical_smiles), self._batch_size):
             chunk = canonical_smiles[start : start + self._batch_size]
             enc = self._tokenizer(
@@ -178,6 +179,12 @@ class HergTox21ChembertaProvider:
                 truncation=True,
                 max_length=self._max_length,
                 return_tensors="pt",
+            )
+            untruncated = self._tokenizer(
+                chunk,
+                padding=False,
+                truncation=False,
+                add_special_tokens=True,
             )
             input_ids = enc["input_ids"].to(self._device)
             attention_mask = enc["attention_mask"].to(self._device)
@@ -188,7 +195,6 @@ class HergTox21ChembertaProvider:
                 herg = torch.sigmoid(heads["herg_logits"]).cpu().numpy().reshape(-1)
                 tox21 = torch.sigmoid(heads["tox21_logits"]).cpu().numpy()
 
-            n_tokens = int(input_ids.shape[1])
             for i in range(len(chunk)):
                 row = tox21[i].reshape(-1)
                 if row.shape[0] != len(TOX21_TASKS):
@@ -196,25 +202,32 @@ class HergTox21ChembertaProvider:
                         f"[{self.model_id}] Tox21 head produced {row.shape[0]} outputs, "
                         f"expected {len(TOX21_TASKS)}"
                     )
+                input_token_count = len(untruncated["input_ids"][i])
+                encoded_token_count = int(attention_mask[i].sum().item())
                 results.append(
-                    {
-                        "model_id": self.model_id,
-                        "herg_probability_blocker": float(herg[i]),
-                        "tox21_probability_activity": {
+                    HergTox21RawOutput(
+                        model_id=self.model_id,
+                        herg_probability_blocker=float(herg[i]),
+                        tox21_probability_activity={
                             task: float(row[j]) for j, task in enumerate(TOX21_TASKS)
                         },
-                        "n_tokens": n_tokens,
-                        "truncated": n_tokens >= self._max_length,
-                    }
+                        tokenization=TokenizationProvenance(
+                            input_token_count=input_token_count,
+                            encoded_token_count=encoded_token_count,
+                            max_length=self._max_length,
+                            truncated=input_token_count > self._max_length,
+                        ),
+                    )
                 )
-        return results
+        return ProviderBatchResult(self.model_id, tuple(results))
 
 
     # -- attribution -------------------------------------------------------
-    ATTRIBUTION_METHOD = "grad_x_embedding_l2_v1"
+    ATTRIBUTION_METHOD = "grad_x_input_v2"
 
     def token_attribution(
-        self, canonical_smiles: str, *, head: str, task_index: int | None = None
+        self, canonical_smiles: str, *, head: str, task_index: int | None = None,
+        method: str = "grad_x_input", ig_steps: int = 32,
     ) -> dict[str, Any]:
         """Gradient x input-embedding norm, per token, for one head.
 
@@ -230,6 +243,10 @@ class HergTox21ChembertaProvider:
             raise ValueError(f"unknown head {head!r}")
         if head == "tox21" and task_index is None:
             raise ValueError("task_index is required when attributing the tox21 head")
+        if method not in {"grad_x_input", "integrated_gradients"}:
+            raise ValueError(f"unknown attribution method {method!r}")
+        if method == "integrated_gradients" and not 8 <= ig_steps <= 256:
+            raise ValueError("integrated gradients steps must be in [8, 256]")
 
         enc = self._tokenizer(
             [canonical_smiles], padding=True, truncation=True,
@@ -244,22 +261,46 @@ class HergTox21ChembertaProvider:
         offsets = enc["offset_mapping"][0].tolist()
 
         embedding_layer = self._model.backbone.get_input_embeddings()
-        embeddings = embedding_layer(input_ids).detach().clone().requires_grad_(True)
+        actual_embeddings = embedding_layer(input_ids).detach()
 
-        self._model.zero_grad(set_to_none=True)
-        backbone_out = self._model.backbone(
-            inputs_embeds=embeddings, attention_mask=attention_mask
-        )
-        cls = backbone_out.last_hidden_state[:, 0, :]
-        logits = (
-            self._model.herg_head(cls) if head == "herg" else self._model.tox21_head(cls)
-        )
-        target = logits.reshape(-1)[0 if head == "herg" else int(task_index)]
-        target.backward()
+        def target_for(embeddings):
+            backbone_out = self._model.backbone(
+                inputs_embeds=embeddings, attention_mask=attention_mask
+            )
+            cls = backbone_out.last_hidden_state[:, 0, :]
+            logits = (
+                self._model.herg_head(cls) if head == "herg" else self._model.tox21_head(cls)
+            )
+            return logits.reshape(-1)[0 if head == "herg" else int(task_index)]
 
-        if embeddings.grad is None:
-            raise ArtifactError(f"[{self.model_id}] attribution produced no gradient")
-        scores = (embeddings.grad * embeddings).norm(dim=-1).detach().cpu().numpy().reshape(-1)
+        if method == "grad_x_input":
+            embeddings = actual_embeddings.clone().requires_grad_(True)
+            self._model.zero_grad(set_to_none=True)
+            target = target_for(embeddings)
+            target.backward()
+            if embeddings.grad is None:
+                raise ArtifactError(f"[{self.model_id}] attribution produced no gradient")
+            contributions = embeddings.grad * embeddings
+        else:
+            baseline = torch.zeros_like(actual_embeddings)
+            accumulated = torch.zeros_like(actual_embeddings)
+            target = target_for(actual_embeddings)
+            for alpha in torch.linspace(0.0, 1.0, ig_steps, device=actual_embeddings.device):
+                interpolated = (
+                    baseline + alpha * (actual_embeddings - baseline)
+                ).detach().requires_grad_(True)
+                self._model.zero_grad(set_to_none=True)
+                current = target_for(interpolated)
+                current.backward()
+                if interpolated.grad is None:
+                    raise ArtifactError(
+                        f"[{self.model_id}] integrated gradients produced no gradient"
+                    )
+                accumulated += interpolated.grad.detach()
+            contributions = (actual_embeddings - baseline) * accumulated / float(ig_steps)
+
+        signed = contributions.sum(dim=-1).detach().cpu().numpy().reshape(-1)
+        magnitudes = contributions.abs().sum(dim=-1).detach().cpu().numpy().reshape(-1)
         tokens = self._tokenizer.convert_ids_to_tokens(input_ids[0].tolist())
         mask = attention_mask[0].cpu().numpy().reshape(-1)
 
@@ -267,17 +308,25 @@ class HergTox21ChembertaProvider:
             {
                 "token": tok,
                 "position": i,
-                "importance": float(scores[i]),
+                "signed_contribution": float(signed[i]),
+                "magnitude": float(magnitudes[i]),
+                "importance": float(magnitudes[i]),
                 "offsets": [int(offsets[i][0]), int(offsets[i][1])],
             }
             for i, tok in enumerate(tokens)
             if mask[i] == 1
         ]
-        total = sum(t["importance"] for t in kept) or 1.0
+        total = sum(t["magnitude"] for t in kept) or 1.0
         for t in kept:
-            t["relative_importance"] = t["importance"] / total
+            t["relative_importance"] = t["magnitude"] / total
         return {
-            "method": self.ATTRIBUTION_METHOD,
+            "method": (
+                "integrated_gradients_v1"
+                if method == "integrated_gradients"
+                else self.ATTRIBUTION_METHOD
+            ),
+            "target": "logit",
+            "mapping_version": "token-offset-v2",
             "model_id": self.model_id,
             "probability": float(torch.sigmoid(target.detach()).item()),
             "tokens": kept,

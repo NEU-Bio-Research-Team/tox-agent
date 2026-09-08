@@ -32,9 +32,14 @@ class ExplainService:
     attribution: AttributionService
 
     def explain(
-        self, smiles: str, endpoint: str, task: str | None = None
+        self, smiles: str, endpoint: str, task: str | None = None,
+        method: str = "grad_x_input",
     ) -> dict[str, Any]:
-        raw = self.attribution.attribute(smiles, endpoint, task)
+        raw = (
+            self.attribution.attribute(smiles, endpoint, task)
+            if method == "grad_x_input"
+            else self.attribution.attribute(smiles, endpoint, task, method=method)
+        )
 
         if raw.get("status") == "failed":
             # No tokens, no probability — pass the failure through unchanged
@@ -71,18 +76,26 @@ class ExplainService:
 
         atom_importance = [0.0] * len(alignment.atoms.atom_spans)
         bond_importance = [0.0] * len(alignment.bonds)
+        atom_signed = [0.0] * len(alignment.atoms.atom_spans)
+        bond_signed = [0.0] * len(alignment.bonds)
         unmapped = 0.0
+        unmapped_signed = 0.0
         for token, atom_indices, bond_indices in zip(tokens, alignment.atoms.token_atoms, alignment.token_bonds):
             importance = float(token["importance"])
+            signed_contribution = float(token.get("signed_contribution", importance))
             targets = len(atom_indices) + len(bond_indices)
             if targets:
                 share = importance / targets
+                signed_share = signed_contribution / targets
                 for atom_index in atom_indices:
                     atom_importance[atom_index] += share
+                    atom_signed[atom_index] += signed_share
                 for bond_index in bond_indices:
                     bond_importance[bond_index] += share
+                    bond_signed[bond_index] += signed_share
             else:
                 unmapped += importance
+                unmapped_signed += signed_contribution
 
         total = sum(atom_importance) + sum(bond_importance) + unmapped
         denominator = total or 1.0
@@ -91,6 +104,8 @@ class ExplainService:
                 "atom_index": span.atom_index,
                 "symbol": span.symbol,
                 "importance": atom_importance[span.atom_index],
+                "magnitude": atom_importance[span.atom_index],
+                "signed_contribution": atom_signed[span.atom_index],
                 "relative_importance": atom_importance[span.atom_index] / denominator,
             }
             for span in alignment.atoms.atom_spans
@@ -105,6 +120,8 @@ class ExplainService:
                 "end_atom_index": span.end_atom_index,
                 "bond_type": span.bond_type,
                 "importance": direct,
+                "magnitude": direct,
+                "signed_contribution": bond_signed[span.bond_index],
                 "relative_importance": direct / denominator,
                 "display_importance": (direct if direct else adjacent) / denominator,
                 "source": "explicit_token" if direct else "adjacent_atom_derived",
@@ -129,10 +146,14 @@ class ExplainService:
             "depiction_svg": depiction_svg,
             "depiction": depiction,
             "unmapped_importance": unmapped / denominator,
+            "unmapped_signed_contribution": unmapped_signed,
+            "signed_contribution_total": sum(atom_signed) + sum(bond_signed) + unmapped_signed,
             "tokens": tokens,
             "method": f"{metadata.get('method', 'unknown')}+{TOKEN_ALIGN_METHOD}",
             "metadata": {
                 "model_id": metadata.get("model_id"),
+                "target": metadata.get("target", "logit"),
+                "mapping_version": metadata.get("mapping_version"),
                 "deterministic": True,
                 "duration_ms": metadata.get("duration_ms"),
                 "note": metadata.get("note"),

@@ -4,15 +4,14 @@
 # Build CPU:  docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cpu -t toxpred .
 # Build GPU:  docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cu124 -t toxpred .
 #
-# The image carries no model weights: .dockerignore excludes models/, and
-# deploy/entrypoint.sh fetches them from MODEL_ARTIFACTS_URI at container start.
+# The release image carries its hash-pinned active artifact. Runtime model
+# downloads are forbidden; a missing/corrupt required artifact fails startup.
 ARG TORCH_VARIANT=cpu
 
 FROM python:3.10-slim
 
 ENV PORT=8080 \
     MODELS_ROOT=/app/models \
-    MODEL_ARTIFACTS_URI="" \
     TOXPRED_MANIFEST=/app/artifacts/predictor-manifest.yaml \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -32,17 +31,22 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --timeout 600 --retries 5 torch==2.6.0+${TORCH_VARIANT} \
       --extra-index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
 
-# torch-geometric is required only by the ClinTox graph model. It is kept so
-# that endpoint returns the moment its tokenizer is restored.
-RUN --mount=type=cache,target=/root/.cache/pip \
-      pip install --timeout 600 --retries 5 torch-scatter torch-sparse torch-geometric \
-      -f https://data.pyg.org/whl/torch-2.6.0+${TORCH_VARIANT}.html
-
 COPY deploy/requirements.txt /app/deploy/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --timeout 600 --retries 5 -r /app/deploy/requirements.txt
 
-COPY . /app/
+COPY toxpred /app/toxpred
+COPY artifacts /app/artifacts
+COPY models/pretrained_2head_herg_chemberta_model /app/models/pretrained_2head_herg_chemberta_model
+COPY deploy/entrypoint.sh /app/deploy/entrypoint.sh
+
+RUN python - <<'PY'
+from pathlib import Path
+from toxpred.scientific.artifacts import load_manifest
+for spec in load_manifest(Path('/app/artifacts/predictor-manifest.yaml')).values():
+    if spec.required:
+        spec.verify()
+PY
 
 # Fail the build rather than the first request if the package cannot import.
 RUN python -c "import toxpred; from toxpred.api.app import create_app; print('import OK')"

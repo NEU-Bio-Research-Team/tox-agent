@@ -29,6 +29,8 @@ from ..domain.errors import (
 from ..domain.evidence import EvidenceStatus
 from ..domain.observation import ObservationKind
 from ..domain.run import Intent
+from ..domain.runtime import AuthMode
+from ..connections.service import ConnectionNotFound
 from ..predictor.ocr_client import OcrError, OcrUnavailable
 from ..predictor.contract import ENDPOINTS, TOX21_TASKS
 from ..streaming.sse import event_stream
@@ -44,6 +46,7 @@ from .schemas import (
     RecognizeRequest,
     SendMessageRequest,
     SessionResponse,
+    CreateModelConnectionRequest,
     UpdateSessionRequest,
 )
 
@@ -297,6 +300,55 @@ async def quick_explain(
 
 
 # --- sessions --------------------------------------------------------------
+
+@router.post("/model-connections", status_code=201)
+async def create_model_connection(
+    request: Request, body: CreateModelConnectionRequest, principal: Actor = Depends(actor)
+):
+    item = await _services(request).connections.create(
+        owner_id=principal.subject_id, provider_id=body.provider_id, model_id=body.model_id,
+        auth_mode=AuthMode(body.auth_mode), base_url=body.base_url, credential=body.credential,
+    )
+    return item.public_dict()
+
+
+@router.get("/model-connections")
+async def list_model_connections(request: Request, principal: Actor = Depends(actor)):
+    items = await _services(request).connections.list(owner_id=principal.subject_id)
+    return {"connections": [item.public_dict() for item in items]}
+
+
+@router.get("/model-connections/{connection_id}")
+async def get_model_connection(
+    request: Request, connection_id: str, principal: Actor = Depends(actor)
+):
+    try:
+        item = await _services(request).connections.get(connection_id, owner_id=principal.subject_id)
+    except ConnectionNotFound as exc:
+        raise NotFound("model connection not found") from exc
+    return item.public_dict()
+
+
+@router.post("/model-connections/{connection_id}:test")
+async def test_model_connection(
+    request: Request, connection_id: str, principal: Actor = Depends(actor)
+):
+    try:
+        item = await _services(request).connections.test(connection_id, owner_id=principal.subject_id)
+    except ConnectionNotFound as exc:
+        raise NotFound("model connection not found") from exc
+    return item.public_dict()
+
+
+@router.delete("/model-connections/{connection_id}", status_code=204)
+async def delete_model_connection(
+    request: Request, connection_id: str, principal: Actor = Depends(actor)
+):
+    try:
+        await _services(request).connections.delete(connection_id, owner_id=principal.subject_id)
+    except ConnectionNotFound as exc:
+        raise NotFound("model connection not found") from exc
+    return None
 
 @router.get("/sessions")
 async def list_sessions(

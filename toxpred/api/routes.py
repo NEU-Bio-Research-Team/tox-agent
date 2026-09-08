@@ -127,7 +127,11 @@ def predict_batch(request: Request, body: BatchPredictionRequest):
 @v1_router.post("/attributions")
 def attributions(request: Request, body: AttributionRequest) -> dict[str, Any]:
     service: AttributionService = request.app.state.attribution
-    return service.attribute(body.smiles, body.endpoint, body.task)
+    return (
+        service.attribute(body.smiles, body.endpoint, body.task)
+        if body.method == "grad_x_input"
+        else service.attribute(body.smiles, body.endpoint, body.task, method=body.method)
+    )
 
 
 # --- explanation ---------------------------------------------------------------
@@ -137,4 +141,8 @@ def explanations(request: Request, body: ExplainRequest) -> dict[str, Any]:
     """Token attribution projected onto heavy-atom indices. ``/v1/attributions``
     stays as the token-only endpoint for backward compatibility."""
     service: ExplainService = request.app.state.explain
-    return service.explain(body.smiles, body.endpoint, body.task)
+    return (
+        service.explain(body.smiles, body.endpoint, body.task)
+        if body.method == "grad_x_input"
+        else service.explain(body.smiles, body.endpoint, body.task, method=body.method)
+    )

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable, Protocol, runtime_checkable
+from typing import Any, Callable, Iterable, Protocol, Sequence, runtime_checkable
 
 from .artifacts import ArtifactError, ArtifactSpec, load_manifest
 
@@ -36,7 +36,7 @@ class ModelProvider(Protocol):
 
     def load(self) -> None: ...
     def health(self) -> ModelHealth: ...
-    def predict(self, canonical_smiles: list[str]) -> list[dict[str, Any]]: ...
+    def predict(self, canonical_smiles: list[str]) -> Sequence[Any]: ...
 
 
 ProviderFactory = Callable[[ArtifactSpec], ModelProvider]

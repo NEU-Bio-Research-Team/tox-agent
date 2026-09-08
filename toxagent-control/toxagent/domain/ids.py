@@ -31,15 +31,22 @@ ATTACHMENT: Final = "att"
 TOOL_CALL: Final = "call"
 CAPABILITY: Final = "cap"
 RUNTIME_USAGE: Final = "use"
+CASE: Final = "case"
+PLAN: Final = "plan"
+STEP: Final = "step"
+CONFLICT: Final = "con"
+GAP: Final = "gap"
+CONNECTION: Final = "conn"
 
 PREFIXES: Final[frozenset[str]] = frozenset(
     {
         SESSION, MESSAGE, PART, RUN, ANALYSIS, OBSERVATION, EVIDENCE, ANSWER,
         CLAIM, EVENT, RUNTIME_BINDING, ATTACHMENT, TOOL_CALL, CAPABILITY, RUNTIME_USAGE,
+        CASE, PLAN, STEP, CONFLICT, GAP, CONNECTION,
     }
 )
 
-_PATTERN: Final = re.compile(r"^([a-z]{3,4})_([0-9a-f]{32})$")
+_PATTERN: Final = re.compile(r"^([a-z]{3,5})_([0-9a-f]{32})$")
 
 
 def new_id(prefix: str) -> str:

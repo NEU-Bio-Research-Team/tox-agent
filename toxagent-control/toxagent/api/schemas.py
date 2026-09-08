@@ -195,3 +195,19 @@ class CancelResponse(BaseModel):
     requested: bool
     runtime_cancel_supported: bool
     action: str
+
+
+class CreateModelConnectionRequest(_Request):
+    provider_id: str = Field(min_length=1, max_length=128)
+    model_id: str = Field(min_length=1, max_length=128)
+    auth_mode: Literal["chatgpt_subscription", "api_key", "local", "none"]
+    base_url: str | None = Field(default=None, max_length=2048)
+    credential: str | None = Field(default=None, min_length=1, max_length=16_384)
+
+    @model_validator(mode="after")
+    def _credential_rules(self) -> "CreateModelConnectionRequest":
+        if self.auth_mode == "api_key" and not self.credential:
+            raise ValueError("api_key auth requires credential")
+        if self.auth_mode in {"local", "none"} and self.credential:
+            raise ValueError("local/none auth cannot include credential")
+        return self

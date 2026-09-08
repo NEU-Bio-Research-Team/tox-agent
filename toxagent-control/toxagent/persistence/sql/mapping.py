@@ -30,7 +30,7 @@ from ...domain.events import Event, EventType
 from ...domain.message import Message, MessagePart, PartType, Role
 from ...domain.observation import Observation, ObservationKind, Producer
 from ...domain.run import Intent, Lane, Run, RunStatus
-from ...domain.runtime import BindingStatus, RuntimeBinding, RuntimeCapabilities, RuntimeKind
+from ...domain.runtime import AuthMode, BindingStatus, RuntimeBinding, RuntimeCapabilities, RuntimeKind
 from ...domain.usage import RuntimeUsageEvent
 from ...domain.session import Language, Session, SessionStatus, TitleSource
 
@@ -395,6 +395,8 @@ def binding_to_row(binding: RuntimeBinding) -> dict[str, Any]:
         "runtime_session_id": binding.runtime_session_id,
         "provider_id": binding.provider_id,
         "model_id": binding.model_id,
+        "auth_mode": binding.auth_mode.value,
+        "connection_id": binding.connection_id,
         "profile_hash": binding.profile_hash,
         "tool_schema_hash": binding.tool_schema_hash,
         "system_prompt_hash": binding.system_prompt_hash,
@@ -416,6 +418,8 @@ def row_to_binding(row: Mapping[str, Any]) -> RuntimeBinding:
         runtime_session_id=row["runtime_session_id"],
         provider_id=row["provider_id"],
         model_id=row["model_id"],
+        auth_mode=AuthMode(row.get("auth_mode") or "none"),
+        connection_id=row.get("connection_id"),
         profile_hash=row["profile_hash"],
         tool_schema_hash=row["tool_schema_hash"],
         system_prompt_hash=row["system_prompt_hash"],

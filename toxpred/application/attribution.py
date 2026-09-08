@@ -31,7 +31,8 @@ class AttributionService:
     timeout_ms: int = DEFAULT_TIMEOUT_MS
 
     def attribute(
-        self, smiles: str, endpoint: str, task: str | None = None
+        self, smiles: str, endpoint: str, task: str | None = None,
+        method: str = "grad_x_input",
     ) -> dict[str, Any]:
         endpoint_enum = Endpoint(endpoint)
         if endpoint_enum is Endpoint.TOX21 and task is None:
@@ -56,6 +57,7 @@ class AttributionService:
                 molecule.canonical_smiles,
                 head=endpoint_enum.value,
                 task_index=TOX21_TASK_INDEX[task] if task else None,
+                method=method,
             )
         except Exception as exc:  # noqa: BLE001 — reported, never silently dropped
             return {
@@ -89,6 +91,8 @@ class AttributionService:
             "tokens": raw["tokens"],
             "metadata": {
                 "method": raw["method"],
+                "target": raw.get("target", "logit"),
+                "mapping_version": raw.get("mapping_version"),
                 "model_id": raw["model_id"],
                 "deterministic": True,
                 "duration_ms": round(duration_ms, 2),

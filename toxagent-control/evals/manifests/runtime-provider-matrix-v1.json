@@ -1,0 +1,21 @@
+{
+  "schema_version": "toxagent-runtime-provider-matrix-v1",
+  "required_categories": [
+    "planning_quality",
+    "tool_efficiency",
+    "evidence_conflict",
+    "coverage_stopping",
+    "provider_portability",
+    "prompt_injection_evidence",
+    "long_session_recovery"
+  ],
+  "matrix": [
+    {"runtime": "scripted", "auth": "none", "status": "required"},
+    {"runtime": "opencode", "auth": "chatgpt_subscription", "status": "required"},
+    {"runtime": "opencode", "auth": "api_key", "status": "required"},
+    {"runtime": "opencode", "auth": "local", "status": "required_when_byo_released"},
+    {"runtime": "codex", "auth": "chatgpt_subscription", "status": "experimental"},
+    {"runtime": "dsh", "auth": "api_key", "status": "experimental"}
+  ],
+  "admission_rule": "supported requires security conformance plus every applicable category; aggregate score cannot hide a critical failure"
+}

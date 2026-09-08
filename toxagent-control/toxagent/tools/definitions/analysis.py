@@ -189,7 +189,7 @@ def build(
                         provenance={**existing.provenance, "cached": True},
                     )
 
-        response = await predictor.explain(
+        response = await predictor.attribution(
             snapshot.canonical_smiles, payload.endpoint, payload.task
         )
         if response.status == "failed":
@@ -218,7 +218,7 @@ def build(
             run_id=context.run_id,
             producer=Producer.ATTRIBUTION,
             kind=ObservationKind.ATTRIBUTION,
-            schema_version="toxpred-explanation-v2",
+            schema_version="toxpred-attribution-v1",
             canonical_payload=canonical,
             model_projection=model_view,
             provenance={
@@ -347,21 +347,5 @@ def build(
             profiles=frozenset({"report_qa"}),
             soft_timeout_s=90.0,
             hard_timeout_s=180.0,
-        ),
-        ToolDefinition(
-            name="get_analysis_bundle",
-            title="Read an analysis bundle",
-            description="Read prediction, persisted explanation summaries and provenance for one analysis without reconstructing values from multiple calls.",
-            input_model=BundleInput, handler=analysis_bundle,
-            profiles=frozenset({"analysis", "report_qa", "evidence_research", "audit_readonly"}),
-            soft_timeout_s=2.0, hard_timeout_s=5.0,
-        ),
-        ToolDefinition(
-            name="get_explanation_slice",
-            title="Read a persisted explanation slice",
-            description="Read numeric atom, bond or token attribution from a persisted endpoint/assay explanation. Attribution is not causality.",
-            input_model=ExplanationSliceInput, handler=explanation_slice,
-            profiles=frozenset({"report_qa", "evidence_research", "audit_readonly"}),
-            soft_timeout_s=2.0, hard_timeout_s=5.0,
         ),
     ]
