@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import json
 
-from toxagent.config import PROJECT_ROOT
+from toxagent.config import PACKAGE_ROOT
 
 
 def test_toxagent_opencode_profile_exposes_only_its_own_mcp_namespace():
-    profile = json.loads((PROJECT_ROOT / "agent_profiles/opencode/toxagent.json").read_text())
+    profile = json.loads((PACKAGE_ROOT / "agent_profiles/opencode/toxagent.json").read_text())
     agent = profile["agent"]["toxagent"]
     assert agent["mode"] == "primary"
     # 32, not the plan's initial 4 (progress log §4.6, then 8, then this):
@@ -35,7 +35,7 @@ def test_toxagent_opencode_profile_exposes_only_its_own_mcp_namespace():
 
 def test_remote_mcp_template_uses_an_environment_capability_not_a_checked_in_secret():
     template = json.loads(
-        (PROJECT_ROOT / "agent_profiles/opencode/toxagent-mcp.remote.json.template").read_text()
+        (PACKAGE_ROOT / "agent_profiles/opencode/toxagent-mcp.remote.json.template").read_text()
     )
     remote = template["mcp"]["toxagent"]
     assert remote["type"] == "remote"

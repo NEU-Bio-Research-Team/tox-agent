@@ -36,6 +36,15 @@ dev = ["pytest>=8", "aiosqlite>=0.20", "trio>=0.25"]
 where = ["src"]
 include = ["toxagent*"]
 
+# Files the code reads at runtime must travel with the code. Without this a
+# non-editable install imports fine and then fails on the first agent run,
+# because config.py's profiles_dir resolves inside the installed package.
+[tool.setuptools.package-data]
+toxagent = [
+    "agent_profiles/**/*",
+    "predictor/contract_snapshot.json",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # ``scripts/`` holds operational helpers (contract snapshotters, the OpenCode

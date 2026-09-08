@@ -14,7 +14,16 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+#: The installed ``toxagent`` package. Anything shipped *with* the code —
+#: agent profiles, prompts, the predictor contract snapshot — resolves from
+#: here, so a source checkout, a wheel and the image all find one copy at one
+#: path. The predecessor derived these from the repository layout, which made
+#: ``pip install .`` a different program from ``pip install -e .``.
+PACKAGE_ROOT = Path(__file__).resolve().parent
+#: The service directory (``backend/control`` in a checkout, ``/app`` in the
+#: image): where *mutable* state lives. Never use it to find shipped files —
+#: a non-editable install has no service directory at all.
+SERVICE_ROOT = PACKAGE_ROOT.parent.parent
 
 
 def _env(name: str, default: str = "") -> str:
@@ -406,14 +415,14 @@ class Settings:
     research: ResearchSettings
     ocr: OcrSettings
     security: SecuritySettings
-    profiles_dir: Path = PROJECT_ROOT / "agent_profiles"
+    profiles_dir: Path = PACKAGE_ROOT / "agent_profiles"
     #: remaining-plan W4-07: where a FilesystemObjectStore (the only
     #: implementation this deployment has today — see
     #: persistence/object_store.py's module docstring on why there is no GCS
     #: adapter yet) persists uploaded attachment bytes when no object_store
     #: is injected explicitly (tests always inject one; api/app.py's real
     #: default construction is what reads this).
-    object_store_dir: Path = PROJECT_ROOT / ".data" / "attachments"
+    object_store_dir: Path = SERVICE_ROOT / ".data" / "attachments"
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
 
     @classmethod
@@ -427,9 +436,9 @@ class Settings:
             research=ResearchSettings.from_env(),
             ocr=OcrSettings.from_env(),
             security=SecuritySettings.from_env(),
-            profiles_dir=Path(_env("TOXAGENT_PROFILES_DIR") or PROJECT_ROOT / "agent_profiles"),
+            profiles_dir=Path(_env("TOXAGENT_PROFILES_DIR") or PACKAGE_ROOT / "agent_profiles"),
             object_store_dir=Path(
-                _env("TOXAGENT_OBJECT_STORE_DIR") or PROJECT_ROOT / ".data" / "attachments"
+                _env("TOXAGENT_OBJECT_STORE_DIR") or SERVICE_ROOT / ".data" / "attachments"
             ),
             database=DatabaseSettings.from_env(),
         )

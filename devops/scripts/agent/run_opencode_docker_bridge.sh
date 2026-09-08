@@ -9,7 +9,7 @@ opencode_bin="${OPENCODE_BIN:-$HOME/.opencode/bin/opencode}"
 auth_file="${OPENCODE_AUTH_FILE:-$HOME/.local/share/opencode/auth.json}"
 runtime_home="$repo_root/.data/opencode-home"
 run_directory="$repo_root/.data/opencode-runs"
-profile="$repo_root/backend/control/agent_profiles/opencode/toxagent.json"
+profile="$repo_root/backend/control/src/toxagent/agent_profiles/opencode/toxagent.json"
 gateway="${TOXAGENT_OPENCODE_BRIDGE_HOST:-$(docker network inspect tox-agent_default --format '{{(index .IPAM.Config 0).Gateway}}')}"
 
 test -x "$opencode_bin"

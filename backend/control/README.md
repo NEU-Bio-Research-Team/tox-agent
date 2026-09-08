@@ -27,9 +27,13 @@ src/toxagent/
   persistence/   store interfaces and the SQLAlchemy implementation
   streaming/     transactional outbox and SSE dispatch
   telemetry/     traces and metrics
-agent_profiles/  pinned OpenCode / DSH agent configuration and prompts
+  agent_profiles/ pinned OpenCode / DSH agent configuration and prompts
 evals/           task set, frozen fixtures, graders, manifests, runner
 ```
+
+`agent_profiles/` sits inside the package, not beside it, because the running
+code reads it: shipping it as package data is what makes `pip install .`,
+`pip install -e .` and the image resolve the same profile.
 
 ## What is enforced, not merely intended
 
@@ -43,8 +47,8 @@ evals/           task set, frozen fixtures, graders, manifests, runner
 ## Running the tests
 
 ```
-pip install -e 'toxagent-control[dev]'
-python -m pytest toxagent-control/tests -q
+pip install -e 'backend/control[dev]'
+python -m pytest backend/control/tests -q
 ```
 
 Suites marked `live_predictor`, `live_runtime` or `live_evidence` need a real
@@ -54,7 +58,7 @@ dependency and are deselected by default.
 
 The only supported app-facing runtime is the pinned OpenCode V1 `1.17.11`
 adapter.  Run its management API on loopback/private networking only, with
-[`agent_profiles/opencode/toxagent.json`](agent_profiles/opencode/toxagent.json)
+[`src/toxagent/agent_profiles/opencode/toxagent.json`](src/toxagent/agent_profiles/opencode/toxagent.json)
 as its configuration.  The profile is deny-all and only enables the ToxAgent
 MCP namespace.
 
