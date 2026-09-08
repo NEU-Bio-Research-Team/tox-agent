@@ -36,7 +36,7 @@ from PIL import Image
 # ---------------------------------------------------------------------------
 # Project setup
 # ---------------------------------------------------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 BENCHMARK_DIR = PROJECT_ROOT / "benchmark"
@@ -319,7 +319,7 @@ def _explain_tox21_gatv2(samples):
 
     model, task_names = load_tox21_gatv2_model(
         model_dir=PROJECT_ROOT / "models" / "tox21_gatv2_model",
-        config_path=PROJECT_ROOT / "config" / "tox21_gatv2_config.yaml",
+        config_path=PROJECT_ROOT / "backend" / "predictor" / "configs" / "tox21_gatv2_config.yaml",
         device=DEVICE,
     )
     print(f"  Loaded tox21_gatv2_model ({len(task_names)} tasks)")

@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(project_root))
 
 from backend.utils import load_metrics
@@ -163,4 +163,3 @@ with open(md_path, 'w') as f:
                 f"{row['F1 Score']} | {row['AUPRC']} |\n")
     f.write("\n")
 print(f"\nMarkdown table saved to: {md_path}")
-

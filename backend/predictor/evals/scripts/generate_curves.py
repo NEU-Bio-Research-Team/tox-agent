@@ -11,7 +11,7 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(project_root))
 
 import numpy as np
@@ -465,4 +465,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

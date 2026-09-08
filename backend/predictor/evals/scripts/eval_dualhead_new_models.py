@@ -27,7 +27,7 @@ import torch
 from rdkit import Chem
 from sklearn.metrics import accuracy_score, average_precision_score, f1_score, roc_auc_score
 
-project_root = Path(__file__).resolve().parent.parent
+project_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "scripts"))
 
