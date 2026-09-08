@@ -32,4 +32,7 @@ include = ["toxpred*"]
 [tool.pytest.ini_options]
 testpaths = ["tests/unit", "tests/contract", "tests/golden"]
 pythonpath = ["src"]
+# See backend/control/pyproject.toml: an empty parameter set is a test that
+# asserted nothing, not a legitimate skip.
+empty_parameter_set_mark = "fail_at_collect"
 markers = ["golden: regression against captured model outputs; needs real artifacts"]

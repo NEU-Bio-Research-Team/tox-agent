@@ -17,7 +17,15 @@ from pathlib import Path
 
 import pytest
 
-PACKAGE = Path(__file__).resolve().parents[2] / "toxagent"
+import toxagent
+
+# Through the package, not by counting directories up from this file. The
+# src-layout move left the old count pointing at backend/control/toxagent,
+# which does not exist, so every rglob below returned nothing, every
+# parametrize was empty, and the four tests that enforce ADR 0001 reported
+# "skipped" while asserting against zero files. pyproject.toml now sets
+# empty_parameter_set_mark = fail_at_collect so a repeat is a red build.
+PACKAGE = Path(toxagent.__file__).resolve().parent
 
 # The predictor lives behind an HTTP contract. Importing it here would make the
 # control plane un-deployable without model artifacts and would let scientific

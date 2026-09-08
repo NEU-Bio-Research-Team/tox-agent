@@ -52,6 +52,11 @@ testpaths = ["tests"]
 # task set, graders and runner) importable. Both are outside the ``toxagent``
 # package on purpose — they are not shipped.
 pythonpath = ["src", "scripts", "."]
+# A parametrized test whose parameter source is empty is not a skip, it is a
+# test that asserted nothing. test_boundaries.py sat in exactly that state
+# after the src-layout move: four ADR 0001 guards reporting "skipped" while
+# checking zero files.
+empty_parameter_set_mark = "fail_at_collect"
 markers = [
     "live_predictor: needs a reachable ToxPred instance",
     "live_runtime: needs a pinned OpenCode or DSH binary",
