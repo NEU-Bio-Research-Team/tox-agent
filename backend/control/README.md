@@ -15,7 +15,7 @@ recognition) — see
 ## Layout
 
 ```
-toxagent/
+src/toxagent/
   api/           product HTTP API, SSE, error envelope
   domain/        session, run, analysis, observation, evidence, answer
   application/   the workflows: analyse, answer, research, submit, cancel

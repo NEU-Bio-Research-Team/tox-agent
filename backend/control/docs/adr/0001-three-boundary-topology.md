@@ -36,7 +36,7 @@ no import crosses the directory boundary in either direction.
 ## Consequences
 
 - Predictor releases and control-plane releases version independently; the
-  pinned OpenAPI snapshot in `toxagent/predictor/contract_snapshot.json` is the
+  pinned OpenAPI snapshot in `src/toxagent/predictor/contract_snapshot.json` is the
   compatibility gate between them.
 - A predictor outage degrades to typed `predictor_not_ready` /
   `endpoint_unavailable` errors, never to a substituted answer.

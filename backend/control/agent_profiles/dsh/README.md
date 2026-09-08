@@ -2,7 +2,7 @@
 
 **This is not wired to any adapter.** `RuntimeKind.DSH` has no registered
 `AgentRuntimeProvider` (see `harness/adapters/` — only `scripted.py` and
-`opencode_v1.py` exist). Nothing in `toxagent/` reads this directory. It is
+`opencode_v1.py` exist). Nothing in `src/toxagent/` reads this directory. It is
 checked in only so the next DSH spike or adapter attempt does not have to
 re-derive the Cordis patch syntax from scratch — see progress log §46 and
 ADR 0007 for how it was produced and verified.

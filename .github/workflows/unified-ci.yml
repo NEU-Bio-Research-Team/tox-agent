@@ -24,7 +24,7 @@ jobs:
       - run: pip install -e '.[dev]' -e './backend/control[dev]'
       - run: python scripts/check_no_agent_deps.py
       - run: python -m pytest -q tests/unit tests/contract backend/control/tests/unit backend/control/tests/contract
-      - run: git diff --exit-code -- benchmarks/manifests backend/control/toxagent/predictor/contract_snapshot.json
+      - run: git diff --exit-code -- benchmarks/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
 
   packaging:
     runs-on: ubuntu-latest

@@ -22,13 +22,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml /app/pyproject.toml
+COPY . /app/
 # The production image talks to PostgreSQL only (asyncpg/psycopg) — the
 # aiosqlite dev path exists for local/CI convenience, not for a deployable
 # image (pyproject.toml's own comment on the `postgres` extra).
 RUN pip install --no-cache-dir -e '.[postgres]'
-
-COPY . /app/
 
 # Fail the build rather than the first request if the package cannot import.
 RUN python -c "from toxagent.api.app import create_app; print('import OK')"

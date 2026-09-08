@@ -33,6 +33,7 @@ postgres = ["asyncpg>=0.29", "psycopg[binary]>=3.1"]
 dev = ["pytest>=8", "aiosqlite>=0.20", "trio>=0.25"]
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["toxagent*"]
 
 [tool.pytest.ini_options]
@@ -41,7 +42,7 @@ testpaths = ["tests"]
 # surface assertion) whose pure logic is unit-tested; ``.`` makes ``evals`` (the
 # task set, graders and runner) importable. Both are outside the ``toxagent``
 # package on purpose — they are not shipped.
-pythonpath = ["scripts", "."]
+pythonpath = ["src", "scripts", "."]
 markers = [
     "live_predictor: needs a reachable ToxPred instance",
     "live_runtime: needs a pinned OpenCode or DSH binary",

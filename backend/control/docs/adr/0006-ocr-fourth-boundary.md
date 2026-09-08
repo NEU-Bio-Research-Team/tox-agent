@@ -33,7 +33,7 @@ A fourth independent deployment boundary, `toxocr`, alongside the three ADR
 | `agent-runtime-host` | pinned OpenCode or DSH | model-tool loop, provider requests |
 
 `toxagent-control` reaches `toxocr` only over `POST /v1/structure-recognition`
-(`toxagent/predictor/ocr_client.py`). It never imports MolScribe, torchvision,
+(`src/toxagent/predictor/ocr_client.py`). It never imports MolScribe, torchvision,
 or any vision model code — the same discipline ADR 0001 already applies to
 `toxpred`, extended to a second external prediction-shaped service.
 
@@ -57,7 +57,7 @@ answer, never a queued run that later fails.
 ## Consequences
 
 - `toxagent`'s own import-boundary test still holds unmodified: nothing in
-  `toxpred/` or `toxagent-control/toxagent/` imports MolScribe. `toxocr/` is a
+  `toxpred/` or `backend/control/src/toxagent/` imports MolScribe. `toxocr/` is a
   sibling package, not a dependency of either.
 - A `toxocr` outage degrades the same way a `toxpred` outage does: a typed,
   non-substituted answer (`structure_recognition_failed`), never a guess at
