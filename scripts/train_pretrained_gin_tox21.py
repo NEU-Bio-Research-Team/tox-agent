@@ -4,7 +4,7 @@ Train Hu et al. pretrained GIN for Tox21 multi-task prediction.
 
 Usage:
   /home/minhquang/miniconda3/envs/drug-tox-env/bin/python scripts/train_pretrained_gin_tox21.py \
-      --config config/tox21_pretrained_gin_config.yaml --device cuda
+      --config backend/predictor/configs/tox21_pretrained_gin_config.yaml --device cuda
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ def save_training_curves(history: Dict[str, List[float]], output_path: Path) -> 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config/tox21_pretrained_gin_config.yaml")
+    parser.add_argument("--config", type=str, default="backend/predictor/configs/tox21_pretrained_gin_config.yaml")
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 

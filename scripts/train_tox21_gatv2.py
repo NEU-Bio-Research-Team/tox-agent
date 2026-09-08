@@ -3,7 +3,7 @@
 Main training script for Tox21 multi-task GATv2 molecular property prediction.
 
 Usage:
-    python scripts/train_tox21_gatv2.py [--config config/tox21_gatv2_config.yaml]
+    python scripts/train_tox21_gatv2.py [--config backend/predictor/configs/tox21_gatv2_config.yaml]
 """
 
 import sys
@@ -176,7 +176,7 @@ def main():
     parser.add_argument(
         '--config',
         type=str,
-        default='config/tox21_gatv2_config.yaml',
+        default='backend/predictor/configs/tox21_gatv2_config.yaml',
         help='Path to configuration file',
     )
     parser.add_argument(

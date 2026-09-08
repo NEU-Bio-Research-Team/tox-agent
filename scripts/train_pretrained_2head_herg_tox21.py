@@ -1109,7 +1109,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="config/pretrained_2head_herg_chemberta_config.yaml",
+        default="backend/predictor/configs/pretrained_2head_herg_chemberta_config.yaml",
         help="Path to YAML config",
     )
     parser.add_argument("--device", type=str, default="cpu", help="cpu or cuda")

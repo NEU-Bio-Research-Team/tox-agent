@@ -1059,7 +1059,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="config/xsmiles_herg_exp_config.yaml",
+        default="backend/predictor/configs/xsmiles_herg_exp_config.yaml",
         help="Path to YAML config",
     )
     parser.add_argument(

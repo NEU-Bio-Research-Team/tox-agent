@@ -5,7 +5,7 @@ Train AttentiveFP on the Tox21 multi-task toxicity benchmark.
 Usage:
     conda activate drug-tox-env
     python scripts/train_attentivefp_tox21.py \
-        --config config/tox21_attentivefp_config.yaml --device cuda
+        --config backend/predictor/configs/tox21_attentivefp_config.yaml --device cuda
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ def prepare_dataset(df, task_names):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config/tox21_attentivefp_config.yaml")
+    parser.add_argument("--config", type=str, default="backend/predictor/configs/tox21_attentivefp_config.yaml")
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 

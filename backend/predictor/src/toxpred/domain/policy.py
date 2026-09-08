@@ -1,7 +1,7 @@
 """Threshold policy.
 
 The repository this replaces resolved a clinical threshold from three parallel
-sources — ``CLINICAL_THRESHOLD`` env var, ``config/workspace_mode.yaml`` and a
+sources — ``CLINICAL_THRESHOLD`` env var, ``backend/predictor/configs/workspace_mode.yaml`` and a
 per-request default — and never consulted the value the model was actually
 calibrated at. The dual-head ChemBERTa artifact ships a hERG threshold of
 0.4133 (Youden-J, 3-fold CV) and twelve per-task Tox21 thresholds; the running

@@ -89,7 +89,7 @@ def main() -> None:
 
     parser.add_argument("--name", type=str, default=None, help="Optional name for --smiles mode")
     parser.add_argument("--model-dir", type=str, default="models/tox21_gatv2_model")
-    parser.add_argument("--config", type=str, default="config/tox21_gatv2_config.yaml")
+    parser.add_argument("--config", type=str, default="backend/predictor/configs/tox21_gatv2_config.yaml")
     parser.add_argument("--device", type=str, default="cpu", help="cpu or cuda")
     parser.add_argument("--threshold", type=float, default=0.5, help="Default assay threshold")
     parser.add_argument("--batch-size", type=int, default=64)

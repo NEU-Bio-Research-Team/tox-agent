@@ -5,7 +5,7 @@ Main training script for SMILESGNN molecular property prediction model.
 Combines sequence-based (SMILES Transformer) and graph-based (GNN) representations.
 
 Usage:
-    python scripts/train_hybrid.py [--config config/hybrid_config.yaml]
+    python scripts/train_hybrid.py [--config backend/predictor/configs/smilesgnn_config.yaml]
 """
 
 import sys
@@ -90,7 +90,7 @@ def main():
     parser.add_argument(
         '--config',
         type=str,
-        default='config/smilesgnn_config.yaml',
+        default='backend/predictor/configs/smilesgnn_config.yaml',
         help='Path to configuration file'
     )
     parser.add_argument(

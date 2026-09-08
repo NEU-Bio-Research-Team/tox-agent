@@ -5,7 +5,7 @@ Fine-tune ChemBERTa-2 (DeepChem/ChemBERTa-77M-MTR) on Tox21.
 Usage:
     conda activate drug-tox-env
     python scripts/train_chemberta_tox21.py \
-        --config config/tox21_chemberta_config.yaml --device cuda
+        --config backend/predictor/configs/tox21_chemberta_config.yaml --device cuda
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ def evaluate_smiles_model(model, loader, device, criterion, task_names):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config/tox21_chemberta_config.yaml")
+    parser.add_argument("--config", type=str, default="backend/predictor/configs/tox21_chemberta_config.yaml")
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 

@@ -8,7 +8,7 @@ with trust_remote_code=True and pooler_output.
 Usage:
     conda activate drug-tox-env
     python scripts/train_molformer_tox21.py \
-        --config config/tox21_molformer_config.yaml --device cuda
+        --config backend/predictor/configs/tox21_molformer_config.yaml --device cuda
 """
 
 from __future__ import annotations
@@ -97,7 +97,7 @@ def evaluate_smiles_model(model, loader, device, criterion, task_names):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config/tox21_molformer_config.yaml")
+    parser.add_argument("--config", type=str, default="backend/predictor/configs/tox21_molformer_config.yaml")
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 

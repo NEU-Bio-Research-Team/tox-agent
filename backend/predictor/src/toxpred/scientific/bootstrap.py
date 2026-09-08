@@ -21,7 +21,7 @@ SOURCE_ROOT = Path(__file__).resolve().parents[2]
 PREDICTOR_ROOT = SOURCE_ROOT.parent if SOURCE_ROOT.name == "src" else SOURCE_ROOT
 WORKSPACE_ROOT = PREDICTOR_ROOT.parents[1] if PREDICTOR_ROOT.parent.name == "backend" else PREDICTOR_ROOT
 DEFAULT_MANIFEST = PREDICTOR_ROOT / "registry" / "predictor-manifest.yaml"
-DEFAULT_CLINTOX_CONFIG = WORKSPACE_ROOT / "config" / "smilesgnn_config.yaml"
+DEFAULT_CLINTOX_CONFIG = PREDICTOR_ROOT / "configs" / "smilesgnn_config.yaml"
 
 
 def _clintox(spec: ArtifactSpec, *, device: str = "cpu"):

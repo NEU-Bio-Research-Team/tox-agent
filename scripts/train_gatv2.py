@@ -3,7 +3,7 @@
 Main training script for GATv2 molecular property prediction model.
 
 Usage:
-    python scripts/train_gatv2.py [--config config/gatv2_config.yaml]
+    python scripts/train_gatv2.py [--config backend/predictor/configs/gatv2_config.yaml]
 """
 
 import sys
@@ -50,7 +50,7 @@ def main():
     parser.add_argument(
         '--config',
         type=str,
-        default='config/gatv2_config.yaml',
+        default='backend/predictor/configs/gatv2_config.yaml',
         help='Path to configuration file'
     )
     parser.add_argument(
@@ -346,4 +346,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

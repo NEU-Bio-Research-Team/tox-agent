@@ -3,7 +3,7 @@
 Train a ClinTox GATv2 model initialized from a pretrained Tox21 checkpoint.
 
 Usage:
-    python scripts/train_gatv2_transfer.py [--config config/gatv2_transfer_config.yaml]
+    python scripts/train_gatv2_transfer.py [--config backend/predictor/configs/gatv2_transfer_config.yaml]
 """
 
 import sys
@@ -104,7 +104,7 @@ def main():
     parser.add_argument(
         '--config',
         type=str,
-        default='config/gatv2_transfer_config.yaml',
+        default='backend/predictor/configs/gatv2_transfer_config.yaml',
         help='Path to configuration file',
     )
     parser.add_argument(

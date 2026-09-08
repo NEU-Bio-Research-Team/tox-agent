@@ -9,7 +9,7 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-WORKSPACE_MODE_PATH = PROJECT_ROOT / "config" / "workspace_mode.yaml"
+WORKSPACE_MODE_PATH = PROJECT_ROOT / "backend" / "predictor" / "configs" / "workspace_mode.yaml"
 
 _DEFAULT_MODE = {
     "mode": "tox21_only",
@@ -39,7 +39,7 @@ def _safe_float(value: object) -> float | None:
 
 @lru_cache(maxsize=1)
 def get_workspace_mode() -> Dict[str, object]:
-    """Load workspace mode settings from config/workspace_mode.yaml."""
+    """Load workspace mode settings from backend/predictor/configs."""
     mode = dict(_DEFAULT_MODE)
 
     if WORKSPACE_MODE_PATH.exists():
