@@ -16,8 +16,9 @@ const LABELS: Record<string, string> = {
 
 function fallback(tools: ToolCallLive[]): string {
   const name = tools.at(-1)?.tool_name ?? '';
-  if (name.includes('search')) return LABELS['activity.searching_literature'];
-  if (name.includes('evidence')) return LABELS['activity.reading_sources'];
+  const repeated = tools.filter((tool) => tool.tool_name === name).length;
+  if (name.includes('search')) return repeated > 1 ? `Đang tìm kiếm trên nhiều nguồn… (${repeated})` : LABELS['activity.searching_literature'];
+  if (name.includes('evidence')) return repeated > 1 ? `Đang đọc các nghiên cứu phù hợp… (${repeated})` : LABELS['activity.reading_sources'];
   if (name.includes('predict')) return LABELS['activity.running_predictor'];
   return LABELS['activity.processing'];
 }
