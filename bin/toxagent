@@ -5,7 +5,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 COMPOSE=(docker compose)
-AGENT_COMPOSE=(docker compose -f compose.yaml -f infra/compose/local-opencode-host.yaml)
+AGENT_COMPOSE=(docker compose -f compose.yaml -f devops/compose/local-opencode-host.yaml)
 CHECKPOINT_DIR=".artifacts/toxocr"
 CHECKPOINT="$CHECKPOINT_DIR/swin_base_char_aux_1m.pth"
 CHECKPOINT_URL="https://huggingface.co/yujieq/MolScribe/resolve/main/swin_base_char_aux_1m.pth"
