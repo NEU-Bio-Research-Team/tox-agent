@@ -66,6 +66,28 @@ async def test_a_snapshot_tool_call_returns_a_citable_projection(db):
     assert "0.73064" not in str(result["model_view"])
 
 
+async def test_tool_lifecycle_projects_semantic_activity_events(db):
+    """The product stream gets stable activity semantics without dropping the
+    raw audit lifecycle required by the run inspector."""
+    runner, context, session, _ = await scenario(db, StubPredictor())
+    result = await runner.call(
+        context, "create_analysis_snapshot",
+        {"session_id": session.id, "smiles": ASPIRIN, "endpoints": ["herg"]},
+    )
+    assert result["status"] == "completed"
+    events = await db.outbox().read_after(session.id, 0)
+    event_types = [event.type for event in events if event.run_id == context.run_id]
+    assert EventType.TOOL_STARTED in event_types
+    assert EventType.TOOL_COMPLETED in event_types
+    assert EventType.ACTIVITY_STARTED in event_types
+    assert EventType.ACTIVITY_COMPLETED in event_types
+    activity = next(event for event in events if event.type is EventType.ACTIVITY_STARTED)
+    assert activity.payload == {
+        "phase": "analysis", "kind": "cross_check", "status": "started",
+        "label_key": "activity.processing", "visibility": "user",
+    }
+
+
 async def test_a_tool_outside_the_profile_is_denied_identically_to_a_missing_one(db):
     runner, context, _, _ = await scenario(db, StubPredictor(), profile="analysis")
     denied = await runner.call(context, "get_attribution", {"analysis_id": "ana_x", "endpoint": "herg"})
