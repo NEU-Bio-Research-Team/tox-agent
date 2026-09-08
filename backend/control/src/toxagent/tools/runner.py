@@ -172,7 +172,7 @@ class ToolRunner:
                         session_id=context.session_id, type=EventType.ACTIVITY_STARTED,
                         entity_type="activity", entity_id=context.call_id,
                         run_id=context.run_id,
-                        payload=activity_for_tool(tool_name, status="started"),
+                        payload=activity_for_tool(tool_name, status="started", intent=context.intent),
                     )
                     await uow.commit()
                     return
@@ -231,7 +231,7 @@ class ToolRunner:
             uow.emit(
                 session_id=context.session_id, type=EventType.ACTIVITY_COMPLETED,
                 entity_type="activity", entity_id=context.call_id, run_id=context.run_id,
-                payload=activity_for_tool(tool_name, status="completed"),
+                payload=activity_for_tool(tool_name, status="completed", intent=context.intent),
             )
             await uow.commit()
 
@@ -261,7 +261,7 @@ class ToolRunner:
             uow.emit(
                 session_id=context.session_id, type=EventType.ACTIVITY_FAILED,
                 entity_type="activity", entity_id=context.call_id, run_id=context.run_id,
-                payload=activity_for_tool(tool_name, status="failed"),
+                payload=activity_for_tool(tool_name, status="failed", intent=context.intent),
             )
             await uow.commit()
         return envelope.failed(

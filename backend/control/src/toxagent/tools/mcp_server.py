@@ -74,6 +74,7 @@ def build_server(registry: ToolRegistry, runner: ToolRunner, claims: CapabilityC
                 profile=claims.profile,
                 deadline_at=claims.expires_at,
                 language=claims.language,
+                intent=claims.intent,
             )
             result = await runner.call(context, name, arguments)
 

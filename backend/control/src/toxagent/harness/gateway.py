@@ -130,6 +130,7 @@ class AgentRuntimeGateway:
             profile=profile,
             deadline_at=deadline,
             language=context.language,
+            intent=context.intent.value,
         )
         spec = RuntimeSessionSpec(
             session_id=context.session_id,
@@ -186,6 +187,7 @@ class AgentRuntimeGateway:
                 runtime_binding_id=binding.id,
                 deadline_at=deadline,
                 language=context.language,
+                intent=context.intent.value,
             )
             receipt = await self._provider.send(
                 runtime_session,

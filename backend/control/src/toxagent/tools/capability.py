@@ -44,6 +44,7 @@ class CapabilityClaims:
     expires_at: datetime
     runtime_binding_id: str | None = None
     language: str = "en"
+    intent: str = ""
 
     def allows(self, tool_name: str) -> bool:
         return tool_name in self.allowed_tools
@@ -69,6 +70,7 @@ class CapabilityTokenService:
         runtime_binding_id: str | None = None,
         deadline_at: datetime | None = None,
         language: str = "en",
+        intent: str = "",
     ) -> str:
         allowed = PROFILES.get(profile)
         if allowed is None:
@@ -92,6 +94,7 @@ class CapabilityTokenService:
             "prof": profile,
             "tools": sorted(allowed),
             "lang": language,
+            "intent": intent,
             "iat": int(_now().timestamp()),
             "exp": int(expires_at.timestamp()),
         }
@@ -133,6 +136,7 @@ class CapabilityTokenService:
                 payload["sub"] if not str(payload["sub"]).startswith("local:") else None
             ),
             language=payload.get("lang", "en"),
+            intent=payload.get("intent", ""),
         )
 
     async def revoke(self, jti: str) -> None:

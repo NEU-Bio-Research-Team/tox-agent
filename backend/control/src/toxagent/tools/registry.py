@@ -66,6 +66,9 @@ class ToolContext:
     profile: str
     deadline_at: datetime
     language: str = "en"
+    #: Immutable run intent carried by the signed capability token. It is
+    #: presentation context only; tool authorization remains ``profile``.
+    intent: str = ""
     call_id: str = ""
 
 

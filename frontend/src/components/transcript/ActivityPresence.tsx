@@ -12,6 +12,7 @@ const LABELS: Record<string, string> = {
   'activity.running_predictor': 'Đang chạy mô hình dự đoán độc tính…',
   'activity.recognizing_structure': 'Đang nhận diện cấu trúc…',
   'activity.reviewing_results': 'Đang kiểm tra kết quả…',
+  'activity.inspecting_factors': 'Đang xem xét các yếu tố ảnh hưởng…',
   'activity.synthesizing': 'Đang tổng hợp bằng chứng…',
   'activity.processing': 'Đang xử lý yêu cầu…',
 };

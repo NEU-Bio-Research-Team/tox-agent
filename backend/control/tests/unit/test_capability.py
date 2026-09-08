@@ -37,6 +37,15 @@ async def test_a_token_carries_exactly_the_allowlist_of_its_profile(db):
     assert not claims.allows("search_toxicology_evidence")
 
 
+async def test_a_token_preserves_run_intent_as_presentation_context(db):
+    service = a_service(db)
+    token = await service.issue(
+        session_id=new_id("ses"), run_id=new_id("run"), profile="report_qa",
+        owner_id="user-1", intent="attribution",
+    )
+    assert (await service.verify(token)).intent == "attribution"
+
+
 async def test_an_unknown_profile_cannot_be_issued(db):
     service = a_service(db)
     with pytest.raises(ValueError, match="unknown capability profile"):
