@@ -39,6 +39,9 @@ COPY backend/predictor/src/toxpred /app/toxpred
 COPY backend/predictor/registry /app/registry
 COPY backend/predictor/configs /app/configs
 COPY backend/predictor/deploy/entrypoint.sh /app/deploy/entrypoint.sh
+# Without this the image declared MODEL_ARTIFACTS_URI and had no way to act on
+# it: the entrypoint verified artifacts it could never fetch (I27).
+COPY backend/predictor/deploy/download_model_artifacts.py /app/deploy/download_model_artifacts.py
 
 # Fail the build rather than the first request if the package cannot import.
 RUN python -c "import toxpred; from toxpred.api.app import create_app; print('import OK')"

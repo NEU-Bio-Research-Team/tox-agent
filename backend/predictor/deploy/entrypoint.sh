@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
-# Container entrypoint: verify immutable, image-bundled artifacts, then serve.
+# Container entrypoint: fetch artifacts if this deployment names a source,
+# verify them, then serve.
 set -euo pipefail
+
+# MODEL_ARTIFACTS_URI was passed through Compose and Cloud Run config but
+# nothing ever executed it, so a deployment that supplied a bundle URI still
+# started with no weights and failed verification below with a message about
+# a missing directory (I27). Fetching happens here, once, before the port is
+# bound — never during a request.
+if [[ -n "${MODEL_ARTIFACTS_URI:-}" ]]; then
+  MODELS_ROOT="${MODELS_ROOT:-/app/models}" python /app/deploy/download_model_artifacts.py
+fi
 
 python - <<'PY'
 from pathlib import Path

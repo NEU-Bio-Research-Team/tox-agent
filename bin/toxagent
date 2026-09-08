@@ -60,7 +60,72 @@ setup() {
   fi
   printf '%s  %s\n' "$checksum" "$checkpoint" | sha256sum --check --status \
     || fail "OCR checkpoint checksum mismatch; delete $CHECKPOINT and run setup again"
+  provision_predictor_artifacts
   printf '\nSetup complete. Open http://localhost:%s and enter this access token:\n%s\n' "$(env_value FRONTEND_PORT)" "$token"
+}
+
+# setup provisioned only the OCR checkpoint, so on a clean clone `up` built
+# every image and then sat at readiness forever because the predictor had no
+# weights (I27). Fetch them when the deployment names a source; when it does
+# not, say exactly what is missing here rather than at container startup.
+predictor_models_dir() {
+  local dir; dir="$(env_value TOXPRED_MODELS_HOST_PATH)"
+  printf '%s' "${dir:-$ROOT/.data/models}"
+}
+
+verify_predictor_artifacts() {
+  # Reuses the manifest the predictor itself verifies at startup, so this
+  # cannot drift from what the service requires. Prints the offending model
+  # and file; the manifest carries a sha256 for each.
+  python3 - "$(predictor_models_dir)" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "backend/predictor/src")
+from toxpred.scientific.artifacts import ArtifactError, load_manifest
+
+manifest = Path("backend/predictor/registry/predictor-manifest.yaml")
+try:
+    specs = load_manifest(manifest, Path(sys.argv[1]))
+except FileNotFoundError as exc:
+    raise SystemExit(f"predictor manifest not readable: {exc}")
+missing = []
+for spec in specs.values():
+    if not spec.required:
+        continue
+    try:
+        spec.verify()
+    except ArtifactError as exc:
+        missing.append(str(exc))
+if missing:
+    raise SystemExit("\n".join(missing))
+print("required predictor artifacts verified")
+PY
+}
+
+provision_predictor_artifacts() {
+  local models_dir uri
+  models_dir="$(predictor_models_dir)"
+  uri="$(env_value MODEL_ARTIFACTS_URI)"
+  mkdir -p "$models_dir"
+  if [[ -n "$uri" ]]; then
+    printf 'Provisioning predictor artifacts from %s...\n' "$uri"
+    MODELS_ROOT="$models_dir" MODEL_ARTIFACTS_URI="$uri" \
+      python3 "$ROOT/backend/predictor/deploy/download_model_artifacts.py" \
+      || fail "could not provision predictor artifacts from $uri"
+  fi
+  verify_predictor_artifacts || fail "$(cat <<EOF
+predictor model artifacts are missing or do not match the manifest, so the
+stack would build every image and then never become ready.
+
+Provide them in one of two ways, then run setup again:
+  * set MODEL_ARTIFACTS_URI in .env to the bundle this deployment may use, or
+  * place the files under $models_dir (or set TOXPRED_MODELS_HOST_PATH).
+
+Required files and their checksums are listed in
+backend/predictor/registry/models/.
+EOF
+)"
 }
 
 setup_agent() {
@@ -146,6 +211,10 @@ doctor() {
   [[ -f "$checkpoint" ]] || fail "OCR checkpoint missing; run ./bin/toxagent setup"
   printf '%s  %s\n' "$checksum" "$checkpoint" | sha256sum --check --status \
     || fail "OCR checkpoint checksum mismatch; rerun setup"
+  # doctor checked the OCR artifact and not the predictor's, so it passed on a
+  # clone that could never reach readiness (I27).
+  verify_predictor_artifacts >/dev/null \
+    || fail "predictor model artifacts are missing or do not match the manifest; run ./bin/toxagent setup"
   local port; port="$(env_value FRONTEND_PORT)"; port="${port:-8088}"
   # A listening port is only a problem when something *else* owns it. This
   # used to fail on the stack's own frontend, so `up` was not idempotent and
@@ -157,7 +226,7 @@ doctor() {
     fi
   fi
   "${COMPOSE[@]}" config --quiet || fail "Compose configuration is invalid; review .env"
-  printf 'doctor: Docker, Compose, configuration and pinned OCR artifact are ready.\n'
+  printf 'doctor: Docker, Compose, configuration and the pinned OCR and predictor artifacts are ready.\n'
 }
 
 up() {
