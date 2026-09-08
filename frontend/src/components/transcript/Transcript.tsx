@@ -6,7 +6,6 @@ import { MessageBubble } from './MessageBubble';
 import { ClarificationCard } from './ClarificationCard';
 import { StructureRecognitionCard } from './StructureRecognitionCard';
 import { AnswerBlock } from './AnswerBlock';
-import { RunBlock } from './RunBlock';
 import { ActivityPresence } from './ActivityPresence';
 import type { ActivityLive } from '../../lib/api/types';
 import { AnalysisSystemCard } from './AnalysisSystemCard';
@@ -19,7 +18,8 @@ import type { PendingUserSend } from '../../lib/store/pendingSends';
 // so it renders exactly like a typed-SMILES analysis — molecule card, hERG/
 // Tox21 sections, the lot. A run that never reached recognition (capability
 // unavailable, no structure found) falls through to the generic RunBlock
-// below since no Analysis exists for it to link to.
+// below since no Analysis exists for it to link to; it receives the compact
+// ActivityPresence status rather than a raw runtime trace.
 const ANALYSIS_INTENTS = new Set(['analysis', 'analysis_batch', 'structure_recognition']);
 const SILENT_INTENTS = new Set(['clarification_required', 'out_of_scope']);
 
