@@ -60,6 +60,10 @@ jobs:
       # Links resolve, and no current document names a path the relocation
       # removed. Historical records are exempt by name, not by accident (I32).
       - run: python devops/scripts/check_docs.py
+      - run: pip install pytest
+      # bin/toxagent against recorded docker/ss argv. Two subcommands were
+      # dropping an argument (I28/I29) in ways no unit of the script shows.
+      - run: python -m pytest devops/tests -q
 
   # The only environment where both packages are installed, so the only one
   # that can regenerate the predictor's OpenAPI and compare it to the pin.

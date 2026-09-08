@@ -103,13 +103,30 @@ setup_agent() {
 
 agent_up() {
   "$OPENCODE_RUNTIME" start
-  if ! "${AGENT_COMPOSE[@]}" up --detach --no-build --wait --wait-timeout 180; then
+  # `--no-build` assumed images already existed, so on a fresh clone the agent
+  # stack failed with Compose's own missing-image error rather than building
+  # (I29). Build explicitly; it is a no-op once the layers are cached.
+  if ! "${AGENT_COMPOSE[@]}" up --build --detach --wait --wait-timeout 300; then
     "$OPENCODE_RUNTIME" stop
-    fail "agent stack did not become ready"
+    fail "agent stack did not become ready; run ./bin/toxagent logs --agent"
   fi
   local port
-  port="$(env_value FRONTEND_PORT)"
-  printf 'Agent stack ready: http://localhost:%s\n' "${port:-8088}"
+  port="$(env_value FRONTEND_PORT)"; port="${port:-8088}"
+  # "Ready" is claimed only after the capabilities are confirmed, not after
+  # Compose reports its containers healthy: an agent stack whose runtime is
+  # unbound answers /health/ready with mode=predictor_only (I01/I05), and
+  # printing a ready banner over that is how the stack came to look agent
+  # enabled when it was not.
+  local mode
+  mode="$(curl --fail --silent "http://localhost:${port}/health/ready" \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin).get("mode",""))' 2>/dev/null || true)"
+  case "$mode" in
+    agent_enabled) printf 'Agent stack ready: http://localhost:%s\n' "$port" ;;
+    predictor_only)
+      fail "stack started but no agent runtime is bound (mode=predictor_only); run ./bin/toxagent logs --agent" ;;
+    *)
+      fail "stack started but /health/ready did not report a mode; run ./bin/toxagent logs --agent" ;;
+  esac
 }
 
 agent_down() { "${AGENT_COMPOSE[@]}" down; "$OPENCODE_RUNTIME" stop; }
@@ -129,9 +146,15 @@ doctor() {
   [[ -f "$checkpoint" ]] || fail "OCR checkpoint missing; run ./bin/toxagent setup"
   printf '%s  %s\n' "$checksum" "$checkpoint" | sha256sum --check --status \
     || fail "OCR checkpoint checksum mismatch; rerun setup"
-  local port; port="$(env_value FRONTEND_PORT)"
+  local port; port="$(env_value FRONTEND_PORT)"; port="${port:-8088}"
+  # A listening port is only a problem when something *else* owns it. This
+  # used to fail on the stack's own frontend, so `up` was not idempotent and
+  # `doctor` could not be run against a running deployment at all (I29).
   if command -v ss >/dev/null && ss -ltn "sport = :$port" | grep -q LISTEN; then
-    fail "port $port is already in use; change FRONTEND_PORT in .env"
+    if ! "${COMPOSE[@]}" ps --status running --format '{{.Publishers}}' 2>/dev/null \
+        | grep -q ":$port->"; then
+      fail "port $port is already in use by another process; change FRONTEND_PORT in .env"
+    fi
   fi
   "${COMPOSE[@]}" config --quiet || fail "Compose configuration is invalid; review .env"
   printf 'doctor: Docker, Compose, configuration and pinned OCR artifact are ready.\n'
@@ -143,7 +166,10 @@ up() {
 }
 down() { "${COMPOSE[@]}" down; }
 status() { "${COMPOSE[@]}" ps; }
-logs() { "${COMPOSE[@]}" logs --tail=200 "${@:2}"; }
+# "$@", not "${@:2}": the dispatcher already consumed the command name, so
+# ${@:2} dropped the first service asked for — `toxagent logs toxpred` showed
+# every service, and `logs toxagent-control toxpred` showed only toxpred (I29).
+logs() { "${COMPOSE[@]}" logs --tail=200 "$@"; }
 smoke() {
   local port token
   port="$(env_value FRONTEND_PORT)"; token="$(env_value TOXAGENT_STATIC_TOKENS)"; token="${token%%:*}"
@@ -153,7 +179,26 @@ smoke() {
   printf 'smoke: frontend, control plane and predictor are responding.\n'
 }
 backup() { mkdir -p backups; "${COMPOSE[@]}" exec -T postgres pg_dump -U toxagent toxagent | gzip > "backups/toxagent-$(date +%Y%m%d%H%M%S).sql.gz"; }
-restore() { [[ $# -eq 2 && -f "$2" ]] || fail "usage: toxagent restore backups/file.sql.gz"; printf 'Restoring replaces the current database. Type RESTORE: '; read -r answer; [[ "$answer" == RESTORE ]] || fail "restore cancelled"; gzip -dc "$2" | "${COMPOSE[@]}" exec -T postgres psql -U toxagent -d toxagent; }
+# $1, not $2: the dispatcher already consumed the command name, so
+# `toxagent restore backups/file.sql.gz` printed usage and exited 1 without
+# ever reaching the database — the documented recovery procedure could not be
+# run (I28).
+restore() {
+  [[ $# -eq 1 && -f "$1" ]] || fail "usage: toxagent restore backups/file.sql.gz"
+  gzip -t "$1" || fail "$1 is not a readable gzip archive"
+  printf 'Restoring replaces the current database. Type RESTORE: '
+  read -r answer
+  [[ "$answer" == RESTORE ]] || fail "restore cancelled"
+  # ON_ERROR_STOP=1 and the pipe status check together are what make this
+  # report failure. Without them psql prints errors, exits 0, and the wrapper
+  # announced a restore that had partially or wholly failed.
+  set -o pipefail
+  gzip -dc "$1" | "${COMPOSE[@]}" exec -T postgres \
+    psql -v ON_ERROR_STOP=1 -U toxagent -d toxagent \
+    || fail "restore failed; the database may be partially written — do not start the stack against it"
+  set +o pipefail
+  printf 'restore: completed from %s\n' "$1"
+}
 
 command="${1:-}"
 shift || true
