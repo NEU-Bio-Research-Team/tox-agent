@@ -38,6 +38,18 @@ class BudgetUsage:
         return replace(self, **{kind: getattr(self, kind) + amount})
 
 
+class BudgetExhausted(RuntimeError):
+    """No budget remains for a call the kernel must make to proceed.
+
+    Distinct from `StopReason.BUDGET_EXHAUSTED`, which describes an
+    investigation that ran and then stopped: this one cannot start.
+    """
+
+    def __init__(self, message: str, **context: object) -> None:
+        super().__init__(message)
+        self.context = context
+
+
 class StopReason(str, Enum):
     COVERAGE_COMPLETE = "coverage_complete"
     BUDGET_EXHAUSTED = "budget_exhausted"

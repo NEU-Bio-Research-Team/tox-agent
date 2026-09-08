@@ -130,7 +130,21 @@ class Coverage:
 
     @property
     def sufficient(self) -> bool:
-        return self.ratio == 1.0 and not self.blocking_gap_ids
+        """Whether the investigation has answered what it set out to answer.
+
+        I31: `ratio` is 1.0 for an empty required set, so a case that had asked
+        nothing reported complete coverage before doing any work — and an
+        unresolved conflict, which is precisely a reason the evidence does not
+        yet settle the question, did not count against it. Both are required
+        here: coverage is a claim about questions answered, and there has to be
+        a question.
+        """
+        return (
+            bool(self.required_questions)
+            and self.ratio == 1.0
+            and not self.blocking_gap_ids
+            and not self.unresolved_conflict_ids
+        )
 
 
 @dataclass(frozen=True, slots=True)

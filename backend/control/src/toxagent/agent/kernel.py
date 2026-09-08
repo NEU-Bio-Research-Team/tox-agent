@@ -15,7 +15,9 @@ from ..answer.compiler import AnswerCompiler, SemanticAnswerDraft
 from ..capabilities.registry import CapabilityRegistry
 from ..domain.investigation import CaseState, Coverage, InvestigationPlan, InvestigationStep, StepStatus
 from ..domain.observation import Observation
-from .budget import BudgetLimits, BudgetUsage, StopReason, can_consume, stop_reason
+from .budget import (
+    BudgetExhausted, BudgetLimits, BudgetUsage, StopReason, can_consume, stop_reason,
+)
 
 
 class KernelState(str, Enum):
@@ -43,6 +45,8 @@ class CaseRepository(Protocol):
     async def save_plan(self, plan: InvestigationPlan) -> None: ...
     async def save_step(self, plan_id: str, step: InvestigationStep) -> None: ...
     async def append_transition(self, case_id: str, transition: KernelTransition) -> None: ...
+    async def get_plan(self, plan_id: str) -> InvestigationPlan | None: ...
+    async def load_observations(self, ids: Sequence[str]) -> tuple[Observation, ...]: ...
 
 
 class Planner(Protocol):
@@ -80,9 +84,39 @@ class ScientificAgentKernel:
     async def run(self, case: CaseState, *, supported_endpoints: frozenset[str],
                   limits: BudgetLimits, elapsed: Callable[[], float]) -> KernelOutcome:
         await self._transition(case.id, KernelState.LOADING)
+        # I31: a control plane that restarted mid-investigation could only
+        # plan again — a fresh model turn, and every completed step's
+        # predictor call or evidence retrieval paid for a second time, with a
+        # different plan to run them under. A case that already committed one
+        # resumes it: the plan and its steps are durable, and the observations
+        # a completed step produced are immutable and product-owned, so they
+        # are read rather than recomputed.
+        resumed = await self._repository.get_plan(case.plan_id) if case.plan_id else None
+        if resumed is not None:
+            # Re-validated against *this* deployment: the plan was admissible
+            # when it was written, and an endpoint or capability may have gone
+            # away since. A resumed plan is not exempt from the check a fresh
+            # one has to pass.
+            await self._transition(case.id, KernelState.VALIDATING_PLAN, "resumed")
+            self._capabilities.validate_plan(
+                resumed, goal=case.goal, supported_endpoints=supported_endpoints,
+                max_replans=limits.replans,
+            )
+            return await self._continue(case, resumed, limits=limits, elapsed=elapsed)
         await self._transition(case.id, KernelState.PLANNING)
+        usage = BudgetUsage()
+        # I31: the plan call used to happen first and the turn was recorded
+        # afterwards, so a limit of one model turn produced two calls — the
+        # plan, then compose. Reserving before the call is what makes the
+        # limit a limit: the usage says a turn is spent whether or not the
+        # call comes back.
+        if not can_consume(limits, usage, model_turns=1):
+            raise BudgetExhausted(
+                "the model-turn budget does not allow planning this investigation",
+                limit=limits.model_turns,
+            )
+        usage = usage.consume("model_turns")
         plan = await self._planner.plan(case, list(self._capabilities.planner_view()))
-        usage = BudgetUsage(model_turns=1)
         await self._transition(case.id, KernelState.VALIDATING_PLAN)
         self._capabilities.validate_plan(plan, goal=case.goal, supported_endpoints=supported_endpoints,
                                          max_replans=limits.replans)
@@ -90,22 +124,71 @@ class ScientificAgentKernel:
         previous_revision = case.revision
         case = case.revise(reason="plan_committed", now=self._clock(), plan_id=plan.id)
         await self._repository.save_case(case, expected_revision=previous_revision)
+        return await self._continue(case, plan, limits=limits, elapsed=elapsed, usage=usage)
 
+    @staticmethod
+    def _step_costs(tools: Sequence[str]) -> dict[str, int]:
+        return {
+            "tool_calls": len(tools),
+            "searches": sum(name.startswith("search_") for name in tools),
+            "reads": sum(name == "get_evidence_record" for name in tools),
+            "attributions": sum(
+                name in {"get_attribution", "get_explanation_slice"} for name in tools
+            ),
+        }
+
+    def _usage_already_spent(self, plan: InvestigationPlan) -> BudgetUsage:
+        """What a resumed investigation has already cost.
+
+        The plan that exists cost a model turn, and every step that ran cost
+        its capability's tools. Starting a resumed run from zero would let a
+        restart loop reset the budget — the crash would become a way to buy
+        more of it.
+        """
+        usage = BudgetUsage(model_turns=1)
+        for step in plan.steps:
+            if step.status in (StepStatus.PENDING, StepStatus.RUNNING):
+                continue
+            costs = self._step_costs(self._capabilities.get(step.capability).tool_sequence)
+            for field, amount in costs.items():
+                usage = usage.consume(field, amount)
+        return usage
+
+    async def _continue(
+        self, case: CaseState, plan: InvestigationPlan, *, limits: BudgetLimits,
+        elapsed: Callable[[], float], usage: BudgetUsage | None = None,
+    ) -> KernelOutcome:
+        """Execute the plan's outstanding steps and compose.
+
+        Shared by a fresh run and a resumed one; the only difference is where
+        the plan and the already-spent budget came from.
+        """
+        if usage is None:
+            usage = self._usage_already_spent(plan)
         observations: list[Observation] = []
+        # The reason the loop stopped, once it has one. Recomputing it after
+        # the loop is what let a terminal `budget_exhausted` be overwritten by
+        # a later `continue` or `coverage_complete` (I31) — the kernel then
+        # reported the investigation as having finished on its own terms.
         reason = StopReason.CONTINUE
         for step in plan.steps:
+            if step.status is StepStatus.COMPLETED:
+                # Already done, and its observations are immutable: read them
+                # back instead of paying the predictor or the evidence
+                # provider again for an answer this case already holds.
+                observations.extend(await self._repository.load_observations(step.output_refs))
+                continue
+            if step.status is StepStatus.FAILED:
+                # It ran and did not satisfy its capability. Re-running it
+                # here would be a retry loop nothing asked for; replanning is
+                # the deliberate path, under `limits.replans`.
+                continue
             reason = stop_reason(limits, usage, coverage_sufficient=case.coverage.sufficient,
                                  elapsed_s=elapsed())
             if reason is not StopReason.CONTINUE:
                 break
             definition = self._capabilities.get(step.capability)
-            tools = definition.tool_sequence
-            costs = {
-                "tool_calls": len(tools),
-                "searches": sum(name.startswith("search_") for name in tools),
-                "reads": sum(name == "get_evidence_record" for name in tools),
-                "attributions": sum(name in {"get_attribution", "get_explanation_slice"} for name in tools),
-            }
+            costs = self._step_costs(definition.tool_sequence)
             if not can_consume(limits, usage, **costs):
                 reason = StopReason.BUDGET_EXHAUSTED
                 break
@@ -127,12 +210,26 @@ class ScientificAgentKernel:
             for field, amount in costs.items():
                 usage = usage.consume(field, amount)
             observations.extend(produced)
-            completed = InvestigationStep(
+            # I31: a step that returned nothing used to be marked completed
+            # and its question marked answered, so coverage read as sufficient
+            # on no evidence at all. `satisfied_by` is a floor — at least one
+            # observation of a kind this capability declares it produces — but
+            # it is a check, which is what the free-text success condition
+            # never was.
+            satisfied = definition.satisfied_by(produced)
+            await self._repository.save_step(plan.id, InvestigationStep(
                 step.id, step.question, step.capability, step.input_refs, step.expected_output,
-                step.success_condition, step.case_revision, StepStatus.COMPLETED,
-                tuple(observation.id for observation in produced), None,
-            )
-            await self._repository.save_step(plan.id, completed)
+                step.success_condition, step.case_revision,
+                StepStatus.COMPLETED if satisfied else StepStatus.FAILED,
+                tuple(observation.id for observation in produced),
+                None if satisfied else "success_condition_unmet",
+            ))
+            if not satisfied:
+                # The step ran and cost its budget; the question it was for is
+                # still open, and saying so is what keeps a later
+                # `coverage_complete` honest.
+                await self._transition(case.id, KernelState.CHECKING_COVERAGE, step.id)
+                continue
             answered = tuple(dict.fromkeys((*case.coverage.answered_questions, step.question)))
             previous_revision = case.revision
             case = case.revise(
@@ -145,14 +242,44 @@ class ScientificAgentKernel:
             await self._repository.save_case(case, expected_revision=previous_revision)
             await self._transition(case.id, KernelState.CHECKING_COVERAGE, step.id)
 
-        reason = stop_reason(limits, usage, coverage_sufficient=case.coverage.sufficient,
-                             elapsed_s=elapsed())
+        if reason is StopReason.CONTINUE:
+            # The loop ran out of steps rather than out of anything else.
+            reason = stop_reason(limits, usage, coverage_sufficient=case.coverage.sufficient,
+                                 elapsed_s=elapsed())
+
+        # Composing is a model call like planning was, and needs a turn
+        # reserved the same way (I31). Without one there is no answer to
+        # return, and returning a candidate anyway would mean the budget only
+        # ever applied to work nobody was watching.
+        if not can_consume(limits, usage, model_turns=1):
+            await self._transition(
+                case.id, KernelState.COMPOSING, StopReason.BUDGET_EXHAUSTED.value
+            )
+            return KernelOutcome(
+                case, plan, tuple(observations), None, StopReason.BUDGET_EXHAUSTED, usage
+            )
+        usage = usage.consume("model_turns")
         await self._transition(case.id, KernelState.COMPOSING, reason.value)
         draft = await self._planner.compose(case, observations)
-        usage = usage.consume("model_turns")
         candidate = self._compiler.compile(draft, observations={item.id: item for item in observations})
+        # The kernel stops here. Admission belongs to the deterministic answer
+        # validators, and the kernel used to write COMPLETED before they had
+        # run — a terminal state asserting an outcome nothing had decided.
+        # `record_admission` writes that transition, from whoever knows.
         await self._transition(case.id, KernelState.VALIDATING_ANSWER)
-        # Existing deterministic answer validators own the actual admission;
-        # the kernel returns their canonical wire candidate, never commits text.
-        await self._transition(case.id, KernelState.COMPLETED, reason.value)
         return KernelOutcome(case, plan, tuple(observations), candidate, reason, usage)
+
+    async def record_admission(
+        self, case: CaseState, *, admitted: bool, stop_reason: StopReason, detail: str = ""
+    ) -> None:
+        """Write the terminal transition, once the validators have decided.
+
+        Split out of `run` because the kernel does not validate answers and
+        must not claim one was accepted (I31). A rejected candidate is a
+        failed investigation, not a completed one with an unused answer.
+        """
+        await self._transition(
+            case.id,
+            KernelState.COMPLETED if admitted else KernelState.FAILED,
+            detail or stop_reason.value,
+        )

@@ -290,6 +290,60 @@ class SqlInvestigationStore:
         if result.rowcount == 0:
             raise Conflict("investigation step does not exist", step_id=step.id)
 
+    async def get_plan(self, plan_id: str) -> InvestigationPlan | None:
+        """The committed plan and its steps, in order, with their outcomes.
+
+        I31: the kernel could only ever plan afresh, so a control plane that
+        restarted mid-investigation started over — a new plan, a new model
+        turn, and every completed step's work paid for again. Reading the plan
+        back is what makes resuming possible.
+        """
+        row = (
+            await self._conn.execute(
+                select(investigation_plans).where(investigation_plans.c.id == plan_id)
+            )
+        ).mappings().first()
+        if row is None:
+            return None
+        step_rows = (
+            await self._conn.execute(
+                select(investigation_steps)
+                .where(investigation_steps.c.plan_id == plan_id)
+                .order_by(investigation_steps.c.position)
+            )
+        ).mappings().all()
+        steps = tuple(
+            InvestigationStep(
+                step["id"], step["question"], step["capability"],
+                tuple(step["input_refs"] or ()), step["expected_output"],
+                step["success_condition"], step["case_revision"],
+                StepStatus(step["status"]), tuple(step["output_refs"] or ()),
+                step["failure_reason"],
+            )
+            for step in step_rows
+        )
+        return InvestigationPlan(
+            id=row["id"], case_id=row["case_id"], revision=row["revision"],
+            steps=steps, reason=row["reason"], created_at=m.utc(row["created_at"]),
+        )
+
+    async def load_observations(self, ids: Sequence[str]) -> tuple[Observation, ...]:
+        """Observations a completed step already produced, in the given order.
+
+        Committed observations are immutable and product-owned, so a resumed
+        investigation reads them rather than calling the predictor or the
+        evidence provider again for answers it already has.
+        """
+        if not ids:
+            return ()
+        rows = (
+            await self._conn.execute(
+                select(observations).where(observations.c.id.in_(list(ids)))
+            )
+        ).mappings().all()
+        by_id = {row["id"]: m.row_to_observation(row) for row in rows}
+        return tuple(by_id[i] for i in ids if i in by_id)
+
     async def append_transition(self, case_id: str, transition: KernelTransition) -> None:
         await self._conn.execute(insert(kernel_transitions).values(
             case_id=case_id, state=transition.state.value, detail=transition.detail,

@@ -11,6 +11,20 @@ from typing import Mapping
 from ..domain.investigation import GoalType, InvestigationPlan
 
 
+#: Which observation kind each declared capability output arrives as.
+#:
+#: I31: a step's `success_condition` was free text that nothing evaluated, so
+#: a step that produced nothing at all was marked completed and its question
+#: marked answered. Coverage then read as sufficient on no evidence. A
+#: capability already declares what it produces; this makes that declaration
+#: checkable without asking a model to grade itself.
+OUTPUT_OBSERVATION_KINDS: Mapping[str, str] = {
+    "prediction_observation": "prediction",
+    "attribution_observation": "attribution",
+    "evidence_record": "evidence_record",
+}
+
+
 @dataclass(frozen=True, slots=True)
 class CapabilityDefinition:
     name: str
@@ -20,6 +34,31 @@ class CapabilityDefinition:
     allowed_goals: frozenset[GoalType]
     estimated_cost: int
     risk: str = "low"
+
+    @property
+    def expected_observation_kinds(self) -> frozenset[str]:
+        return frozenset(
+            OUTPUT_OBSERVATION_KINDS[name]
+            for name in self.outputs
+            if name in OUTPUT_OBSERVATION_KINDS
+        )
+
+    def satisfied_by(self, observations) -> bool:
+        """Did this step actually produce what the capability promises?
+
+        Deliberately a floor, not a grade: at least one observation of a kind
+        this capability declares it outputs. It cannot judge whether an answer
+        is good, and does not pretend to — what it rules out is the case the
+        kernel used to accept, where nothing came back and the question was
+        recorded as answered anyway.
+        """
+        expected = self.expected_observation_kinds
+        if not expected:
+            # A capability whose outputs are not observation-shaped: fall back
+            # to "it produced something", which is still stronger than the
+            # unconditional completion this replaces.
+            return bool(observations)
+        return any(observation.kind.value in expected for observation in observations)
 
 
 class PlanViolation(ValueError):
