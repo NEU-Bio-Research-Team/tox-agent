@@ -22,7 +22,7 @@ services:
   toxpred:
     build:
       context: .
-      dockerfile: deploy/Dockerfile
+      dockerfile: backend/predictor/deploy/Dockerfile
       args:
         TORCH_VARIANT: ${TOXPRED_TORCH_VARIANT:-cpu}
     environment:

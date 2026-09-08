@@ -101,7 +101,7 @@ else
   echo "If the model call needs one, run 'opencode auth login' or set OPENCODE_AUTH_FILE." >&2
 fi
 
-export TOXPRED_MANIFEST="${TOXPRED_MANIFEST:-$REPO_ROOT/artifacts/predictor-manifest.yaml}"
+export TOXPRED_MANIFEST="${TOXPRED_MANIFEST:-$REPO_ROOT/backend/predictor/registry/predictor-manifest.yaml}"
 export TOXPRED_DEVICE="${TOXPRED_DEVICE:-cpu}"
 export TOXAGENT_DATABASE_URL="${TOXAGENT_DATABASE_URL:-sqlite+aiosqlite:///$LOCAL_DATA_DIR/toxagent-local.db}"
 export TOXAGENT_PREDICTOR_URL="${TOXAGENT_PREDICTOR_URL:-http://127.0.0.1:8080}"

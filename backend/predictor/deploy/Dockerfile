@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # ToxPred prediction service.
 #
-# Build CPU:  docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cpu -t toxpred .
-# Build GPU:  docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cu124 -t toxpred .
+# Build CPU: docker build -f backend/predictor/deploy/Dockerfile --build-arg TORCH_VARIANT=cpu -t toxpred .
 #
 # The release image carries its hash-pinned active artifact. Runtime model
 # downloads are forbidden; a missing/corrupt required artifact fails startup.
@@ -12,7 +11,7 @@ FROM python:3.10-slim
 
 ENV PORT=8080 \
     MODELS_ROOT=/app/models \
-    TOXPRED_MANIFEST=/app/artifacts/predictor-manifest.yaml \
+    TOXPRED_MANIFEST=/app/registry/predictor-manifest.yaml \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     HF_HUB_OFFLINE=1 \
@@ -31,19 +30,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --timeout 600 --retries 5 torch==2.6.0+${TORCH_VARIANT} \
       --extra-index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
 
-COPY deploy/requirements.txt /app/deploy/requirements.txt
+COPY backend/predictor/deploy/requirements.txt /app/deploy/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --timeout 600 --retries 5 -r /app/deploy/requirements.txt
 
-COPY toxpred /app/toxpred
-COPY artifacts /app/artifacts
+COPY backend/predictor/src/toxpred /app/toxpred
+COPY backend/predictor/registry /app/registry
 COPY models/pretrained_2head_herg_chemberta_model /app/models/pretrained_2head_herg_chemberta_model
-COPY deploy/entrypoint.sh /app/deploy/entrypoint.sh
+COPY backend/predictor/deploy/entrypoint.sh /app/deploy/entrypoint.sh
 
 RUN python - <<'PY'
 from pathlib import Path
 from toxpred.scientific.artifacts import load_manifest
-for spec in load_manifest(Path('/app/artifacts/predictor-manifest.yaml')).values():
+for spec in load_manifest(Path('/app/registry/predictor-manifest.yaml')).values():
     if spec.required:
         spec.verify()
 PY

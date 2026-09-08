@@ -6,7 +6,7 @@ python - <<'PY'
 from pathlib import Path
 from toxpred.scientific.artifacts import load_manifest
 
-manifest = Path("/app/artifacts/predictor-manifest.yaml")
+manifest = Path("/app/registry/predictor-manifest.yaml")
 for specification in load_manifest(manifest).values():
     if specification.required:
         specification.verify()
