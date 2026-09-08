@@ -19,6 +19,8 @@ import type {
   PreferredLanguage,
   QuickPredictBatchRequest,
   QuickPredictBatchResult,
+  QuickPredictCompareRequest,
+  QuickPredictCompareResult,
   QuickPredictRequest,
   QuickPredictResult,
   RecognizedStructure,
@@ -119,6 +121,11 @@ export function quickPredictBatch(
   input: QuickPredictBatchRequest,
 ): Promise<QuickPredictBatchResult> {
   return apiRequest('/v1/predict:batch', { method: 'POST', body: input });
+}
+
+/** Explicit multi-model comparison; results stay separate, never ensembled. */
+export function quickPredictCompare(input: QuickPredictCompareRequest): Promise<QuickPredictCompareResult> {
+  return apiRequest('/v1/predict:compare', { method: 'POST', body: input });
 }
 
 export function quickPredictCapabilities(): Promise<PredictCapabilities> {

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -41,6 +42,7 @@ from .schemas import (
     CreateSessionRequest,
     ExplainRequest,
     PredictBatchRequest,
+    PredictCompareRequest,
     PredictRequest,
     RecognizedStructure,
     RecognizeRequest,
@@ -207,6 +209,45 @@ async def quick_predict_batch(
             model_selection=body.model_selection,
             threshold_overrides=body.threshold_overrides,
         )
+
+
+@router.post("/predict:compare")
+async def quick_predict_compare(
+    request: Request, body: PredictCompareRequest, principal: Actor = Depends(actor)
+):
+    """Run explicitly selected admitted models side-by-side.
+
+    Each item is independently projected through ``QuickPredict``.  There is
+    no aggregate verdict and no cross-model averaging: models can differ in
+    calibration and their numbers must remain attributable to that model.
+    """
+    services = _services(request)
+    selections = [
+        (endpoint, model_id)
+        for endpoint, model_ids in body.model_selection.items()
+        for model_id in dict.fromkeys(model_ids)
+    ]
+    async with services.predict_limits.slot(principal.subject_id):
+        results = await asyncio.gather(
+            *(
+                services.quick_predict.execute(
+                    actor=principal,
+                    smiles=body.smiles,
+                    endpoints=(endpoint,),
+                    model_selection={endpoint: model_id},
+                    threshold_overrides=body.threshold_overrides,
+                )
+                for endpoint, model_id in selections
+            )
+        )
+    return {
+        "persisted": False,
+        "input_smiles": body.smiles,
+        "comparisons": [
+            {"endpoint": endpoint, "model_id": model_id, "result": result}
+            for (endpoint, model_id), result in zip(selections, results)
+        ],
+    }
 
 
 @router.get("/predict/capabilities")

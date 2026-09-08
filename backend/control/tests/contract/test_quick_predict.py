@@ -158,6 +158,43 @@ async def test_batch_writes_no_rows(db):
     assert before == after == 0
 
 
+async def test_compare_keeps_each_explicit_endpoint_model_result_separate(db):
+    """Compare is not an ensemble and must never lose the selected model id."""
+    stub = StubPredictor()
+    async with api_client(db, stub) as client:
+        response = await client.post(
+            "/v1/predict:compare",
+            json={
+                "smiles": ASPIRIN,
+                "model_selection": {
+                    "herg": ["model-a"],
+                    "tox21": ["model-b"],
+                },
+            },
+            headers=AUTH,
+        )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["persisted"] is False
+    assert [(item["endpoint"], item["model_id"]) for item in body["comparisons"]] == [
+        ("herg", "model-a"), ("tox21", "model-b"),
+    ]
+    assert all(item["result"]["analysis_id"] is None for item in body["comparisons"])
+    assert [item["body"]["model_selection"] for item in stub.requests if item["path"] == "/v1/predictions"] == [
+        {"herg": "model-a"}, {"tox21": "model-b"},
+    ]
+
+
+async def test_compare_refuses_a_single_selection(db):
+    async with api_client(db, StubPredictor()) as client:
+        response = await client.post(
+            "/v1/predict:compare",
+            json={"smiles": ASPIRIN, "model_selection": {"herg": ["model-a"]}},
+            headers=AUTH,
+        )
+    assert response.status_code == 400
+
+
 async def test_capabilities_proxies_what_the_predictor_serves(db):
     async with api_client(db, StubPredictor(served=("herg", "tox21"))) as client:
         response = await client.get("/v1/predict/capabilities", headers=AUTH)

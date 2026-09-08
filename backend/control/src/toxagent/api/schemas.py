@@ -145,6 +145,32 @@ class PredictBatchRequest(_Request):
     explanation_targets: list[ExplanationTarget] = Field(default_factory=list)
 
 
+class PredictCompareRequest(_Request):
+    """Stateless, explicit multi-model prediction.
+
+    A comparison is intentionally a collection of ordinary single-model
+    predictions, rather than an ensemble or a silently selected fallback.
+    This keeps the model id and provenance on every returned column.
+    """
+
+    smiles: str = Field(min_length=1, max_length=4000)
+    model_selection: dict[Literal["clintox", "herg", "tox21"], list[str]] = Field(
+        min_length=1
+    )
+    threshold_overrides: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def _at_least_two_models(self) -> "PredictCompareRequest":
+        count = sum(len(set(models)) for models in self.model_selection.values())
+        if count < 2:
+            raise ValueError("comparison requires at least two distinct endpoint/model selections")
+        if count > 12:
+            raise ValueError("comparison is limited to 12 endpoint/model selections")
+        if any(not models for models in self.model_selection.values()):
+            raise ValueError("each compared endpoint needs at least one model")
+        return self
+
+
 class ExplainRequest(_Request):
     """Body for ``POST /v1/predict/explain`` (plan section 5.2).
 

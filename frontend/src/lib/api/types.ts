@@ -200,6 +200,19 @@ export interface QuickPredictBatchResult {
   count: number;
 }
 
+export interface QuickPredictCompareRequest {
+  smiles: string;
+  /** Endpoint -> every explicitly selected admitted model to compare. */
+  model_selection: Partial<Record<Endpoint, string[]>>;
+  threshold_overrides?: Record<string, number | Record<string, number>> | null;
+}
+
+export interface QuickPredictCompareResult {
+  persisted: false;
+  input_smiles: string;
+  comparisons: Array<{ endpoint: Endpoint; model_id: string; result: QuickPredictResult }>;
+}
+
 export interface PredictModelInfo {
   model_id: string;
   capabilities: string[];

@@ -12,6 +12,7 @@ import { Textarea } from '../components/ui/textarea';
 import {
   quickPredict,
   quickPredictBatch,
+  quickPredictCompare,
   quickPredictCapabilities,
   recognizeStructure,
 } from '../lib/api/endpoints';
@@ -20,6 +21,7 @@ import type {
   Endpoint,
   PredictCapabilities,
   QuickPredictBatchResult,
+  QuickPredictCompareResult,
   QuickPredictResult,
   RecognizedStructure,
 } from '../lib/api/types';
@@ -36,6 +38,8 @@ export function QuickPredictPage() {
   const [batchText, setBatchText] = useState('');
   const [endpoints, setEndpoints] = useState<Endpoint[]>(() => getEndpointSelection() ?? ['herg', 'tox21']);
   const [modelSelection, setModelSelection] = useState<Partial<Record<Endpoint, string>>>({});
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSelection, setCompareSelection] = useState<Partial<Record<Endpoint, string[]>>>({});
   const [thresholdHerg, setThresholdHerg] = useState('');
   const [drawOpen, setDrawOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
@@ -43,6 +47,7 @@ export function QuickPredictPage() {
   const [caps, setCaps] = useState<PredictCapabilities | null>(null);
   const [result, setResult] = useState<QuickPredictResult | null>(null);
   const [batchResult, setBatchResult] = useState<QuickPredictBatchResult | null>(null);
+  const [compareResult, setCompareResult] = useState<QuickPredictCompareResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ field?: boolean; message: string } | null>(null);
 
@@ -108,10 +113,21 @@ export function QuickPredictPage() {
     setLoading(true);
     setError(null);
     setBatchResult(null);
+    setCompareResult(null);
     try {
-      setResult(
-        await quickPredict({ smiles: trimmed, endpoints, model_selection: modelSelection, threshold_overrides: overrides }),
-      );
+      if (compareMode) {
+        const selected = Object.fromEntries(Object.entries(compareSelection)
+          .filter(([endpoint, models]) => endpoints.includes(endpoint as Endpoint) && models && models.length));
+        const count = Object.values(selected).reduce((total, models) => total + models.length, 0);
+        if (count < 2) {
+          setError({ message: 'Chọn ít nhất hai cặp endpoint/mô hình để so sánh.' });
+          return;
+        }
+        setResult(null);
+        setCompareResult(await quickPredictCompare({ smiles: trimmed, model_selection: selected, threshold_overrides: overrides }));
+      } else {
+        setResult(await quickPredict({ smiles: trimmed, endpoints, model_selection: modelSelection, threshold_overrides: overrides }));
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError({
@@ -193,6 +209,13 @@ export function QuickPredictPage() {
               <Button type="button" aria-pressed={!batchMode} variant={batchMode ? 'ghost' : 'secondary'} size="sm" onClick={() => { setBatchMode(false); setError(null); }}>Một phân tử</Button>
               <Button type="button" aria-pressed={batchMode} variant={batchMode ? 'secondary' : 'ghost'} size="sm" onClick={() => { setBatchMode(true); setError(null); }}>Hàng loạt</Button>
             </div>
+
+            {!batchMode && (
+              <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--ink-secondary)' }}>
+                <input type="checkbox" checked={compareMode} onChange={(event) => setCompareMode(event.target.checked)} />
+                So sánh mô hình (kết quả giữ riêng theo từng model)
+              </label>
+            )}
 
             {batchMode ? (
               <div>
@@ -299,17 +322,24 @@ export function QuickPredictPage() {
                   const models = endpoint.models ?? [];
                   if (!endpoint.enabled) return null;
                   return (
-                    <label key={`${endpoint.id}-model`} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs" style={{ borderColor: 'var(--line)', backgroundColor: 'var(--surface-solid)' }}>
-                      <span className="font-medium" style={{ color: 'var(--ink)' }}>{endpoint.display_name}</span>
-                      <select
-                        aria-label={`Mô hình ${endpoint.display_name}`}
-                        value={modelSelection[endpoint.id] ?? ''}
-                        onChange={(event) => setModelSelection((current) => ({ ...current, [endpoint.id]: event.target.value }))}
-                        className="max-w-[220px] bg-transparent text-xs outline-none"
-                      >
-                        {models.map((model) => <option key={model.model_id} value={model.model_id}>{model.model_id}</option>)}
-                      </select>
-                    </label>
+                    <div key={`${endpoint.id}-model`} className="rounded-lg border px-3 py-2 text-xs" style={{ borderColor: 'var(--line)', backgroundColor: 'var(--surface-solid)' }}>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium" style={{ color: 'var(--ink)' }}>{endpoint.display_name}</span>
+                        {!compareMode && <select aria-label={`Mô hình ${endpoint.display_name}`} value={modelSelection[endpoint.id] ?? ''} onChange={(event) => setModelSelection((current) => ({ ...current, [endpoint.id]: event.target.value }))} className="max-w-[220px] bg-transparent text-xs outline-none">
+                          {models.map((model) => <option key={model.model_id} value={model.model_id}>{model.model_id}</option>)}
+                        </select>}
+                      </div>
+                      {compareMode && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                        {models.map((model) => {
+                          const checked = (compareSelection[endpoint.id] ?? []).includes(model.model_id);
+                          return <label key={model.model_id} className="flex items-center gap-1.5"><input type="checkbox" checked={checked} onChange={() => setCompareSelection((current) => {
+                            const existing = current[endpoint.id] ?? [];
+                            const next = checked ? existing.filter((id) => id !== model.model_id) : [...existing, model.model_id];
+                            return { ...current, [endpoint.id]: next };
+                          })} />{model.model_id}</label>;
+                        })}
+                      </div>}
+                    </div>
                   );
                 })}
               </div>
@@ -358,7 +388,17 @@ export function QuickPredictPage() {
           </div>
 
           <section aria-live="polite" className="mt-8 space-y-4">
-            {batchResult ? (
+            {compareResult ? (
+              <div>
+                <p className="mb-3 text-sm font-medium" style={{ color: 'var(--ink)' }}>So sánh theo model</p>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {compareResult.comparisons.map((comparison) => <div key={`${comparison.endpoint}:${comparison.model_id}`} className="min-w-0 rounded-xl border p-3" style={{ borderColor: 'var(--line)' }}>
+                    <p className="mb-2 font-mono text-xs" style={{ color: 'var(--purple-700)' }}>{comparison.endpoint} · {comparison.model_id}</p>
+                    <AnalysisPanel analysis={comparison.result} />
+                  </div>)}
+                </div>
+              </div>
+            ) : batchResult ? (
               <>
                 {batchResult.errors.length > 0 && (
                   <div
