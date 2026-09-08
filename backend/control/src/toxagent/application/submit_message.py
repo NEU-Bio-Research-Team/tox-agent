@@ -339,23 +339,21 @@ class SubmitMessage:
                     self._events_url(session_id), decision.clarification,
                 )
 
-            await uow.commit()
+            # An explicit analysis_id always wins. Otherwise, when this request
+            # is about to snapshot a *new* molecule, leave the target
+            # unresolved here — session.active_analysis_id still names the
+            # *old* one until that snapshot commits, and pinning it now would
+            # answer against the molecule this run is about to replace. The
+            # gateway resolves the eventual target itself once the snapshot (if
+            # any) has landed.
+            if submission.analysis_id:
+                target_analysis_id: str | None = submission.analysis_id
+            elif decision.needs_snapshot_first:
+                target_analysis_id = None
+            else:
+                target_analysis_id = session.active_analysis_id
 
-        # An explicit analysis_id always wins. Otherwise, when this request is
-        # about to snapshot a *new* molecule, leave the target unresolved
-        # here — session.active_analysis_id still names the *old* one until
-        # that snapshot commits, and pinning it now would answer against the
-        # molecule this run is about to replace. The gateway resolves
-        # the eventual target itself once the snapshot (if any) has landed.
-        if submission.analysis_id:
-            target_analysis_id: str | None = submission.analysis_id
-        elif decision.needs_snapshot_first:
-            target_analysis_id = None
-        else:
-            target_analysis_id = session.active_analysis_id
-
-        self._scheduler.submit(
-            RunContext(
+            context = RunContext(
                 actor=actor,
                 session_id=session_id,
                 run_id=run.id,
@@ -374,7 +372,17 @@ class SubmitMessage:
                 language=session.preferred_language.value,
                 attachment_id=attachment_id,
             )
-        )
+            # I18: the run row and the record of what the run is *for* commit
+            # together. Accepting a request and then holding its only copy in
+            # this process's memory is what made a `kill -9` unrecoverable —
+            # there was a run id and nothing to execute it with.
+            epoch = await self._enqueue(uow, context)
+            await uow.commit()
+
+        if epoch is None:
+            self._scheduler.submit(context)
+        else:
+            self._scheduler.submit(context, epoch=epoch)
         return Accepted(
             message.id, run.id, RunStatus.QUEUED, decision.intent, decision.lane,
             self._events_url(session_id),
@@ -554,6 +562,20 @@ class SubmitMessage:
             session_id=session.id, type=EventType.RUN_COMPLETED, entity_type="run",
             entity_id=run.id, run_id=run.id, payload={"intent": run.intent.value},
         )
+
+    async def _enqueue(self, uow, context: RunContext) -> int | None:
+        """Ask the scheduler to record this run durably, if it can.
+
+        A scheduler without `enqueue` is a test double or an embedded worker
+        that owns its own execution; such a run still executes and still
+        reaches a terminal state, it just cannot be adopted by another worker
+        if this process dies. Returning None says so rather than pretending an
+        epoch exists.
+        """
+        enqueue = getattr(self._scheduler, "enqueue", None)
+        if enqueue is None:
+            return None
+        return await enqueue(uow, context)
 
     @staticmethod
     def _events_url(session_id: str) -> str:

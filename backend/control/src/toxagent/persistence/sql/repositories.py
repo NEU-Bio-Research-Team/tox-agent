@@ -51,6 +51,7 @@ from ..schema import (
     observations,
     runs,
     run_configuration_snapshots,
+    run_jobs,
     session_settings,
     runtime_bindings,
     runtime_usage_events,
@@ -515,6 +516,145 @@ class SqlRunStore:
                 )
             ).scalar()
         )
+
+
+class SqlRunJobStore:
+    """The durable execution record for a run, and who owns executing it.
+
+    Ownership is a lease, not a lock: a worker that stops renewing loses the
+    run to whoever claims it next, which is the only way a `kill -9` can be
+    told from a worker that is merely busy (I17/I18). Every state change is a
+    single conditional UPDATE — the condition *is* the concurrency control, so
+    two workers racing produce one winner and one rowcount of zero rather than
+    two owners.
+    """
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def enqueue(
+        self,
+        run_id: str,
+        envelope: dict[str, Any],
+        *,
+        worker_id: str,
+        lease_expires_at: datetime,
+        now: datetime,
+    ) -> int:
+        """Record the run's execution input, claimed by this worker.
+
+        Written in the transaction that creates the run, so there is no window
+        in which an accepted run exists with no way to execute it. Returns the
+        fencing epoch the caller must present for every later write.
+        """
+        await self._conn.execute(
+            insert(run_jobs).values(
+                run_id=run_id, envelope=envelope, worker_id=worker_id,
+                lease_expires_at=lease_expires_at, lease_epoch=1, attempts=1,
+                created_at=now, updated_at=now,
+            )
+        )
+        return 1
+
+    async def renew(
+        self, run_id: str, *, worker_id: str, epoch: int, lease_expires_at: datetime,
+        now: datetime,
+    ) -> bool:
+        """Extend this worker's lease. False means it no longer holds it.
+
+        A false here is the fencing signal: something else claimed the run
+        because this worker looked dead. The caller must stop working on it —
+        continuing would mean two workers executing one run.
+        """
+        result = await self._conn.execute(
+            update(run_jobs)
+            .where(and_(
+                run_jobs.c.run_id == run_id,
+                run_jobs.c.worker_id == worker_id,
+                run_jobs.c.lease_epoch == epoch,
+            ))
+            .values(lease_expires_at=lease_expires_at, updated_at=now)
+        )
+        return result.rowcount > 0
+
+    async def release(self, run_id: str, *, worker_id: str, epoch: int) -> bool:
+        """Drop the job once its run is terminal.
+
+        Conditional on still holding the lease so a fenced worker finishing
+        late cannot delete the row the new owner is working under.
+        """
+        result = await self._conn.execute(
+            delete(run_jobs).where(and_(
+                run_jobs.c.run_id == run_id,
+                run_jobs.c.worker_id == worker_id,
+                run_jobs.c.lease_epoch == epoch,
+            ))
+        )
+        return result.rowcount > 0
+
+    async def discard(self, run_id: str) -> None:
+        """Remove the job regardless of owner — for a run reconciled to a
+        terminal state, where there is nothing left for any worker to own."""
+        await self._conn.execute(delete(run_jobs).where(run_jobs.c.run_id == run_id))
+
+    async def claimable(self, *, now: datetime, limit: int = 100) -> Sequence[dict[str, Any]]:
+        """Jobs whose lease has expired, oldest first.
+
+        A live lease is deliberately not returned: another replica is running
+        that job right now, and the whole point of I17 is that starting a new
+        process must not disturb it.
+        """
+        rows = (
+            await self._conn.execute(
+                select(run_jobs)
+                .where(run_jobs.c.lease_expires_at <= now)
+                .order_by(run_jobs.c.created_at)
+                .limit(limit)
+            )
+        ).mappings().all()
+        return [dict(row) for row in rows]
+
+    async def claim(
+        self, run_id: str, *, worker_id: str, expected_epoch: int,
+        lease_expires_at: datetime, now: datetime,
+    ) -> int | None:
+        """Take over an expired lease. Returns the new epoch, or None if lost.
+
+        `expected_epoch` is the epoch this worker read when it decided the job
+        was claimable. If another worker claimed it in between, the epoch has
+        moved and this returns None — one winner, no coordination needed
+        beyond the row itself.
+        """
+        result = await self._conn.execute(
+            update(run_jobs)
+            .where(and_(
+                run_jobs.c.run_id == run_id,
+                run_jobs.c.lease_epoch == expected_epoch,
+                run_jobs.c.lease_expires_at <= now,
+            ))
+            .values(
+                worker_id=worker_id, lease_expires_at=lease_expires_at,
+                lease_epoch=expected_epoch + 1, attempts=run_jobs.c.attempts + 1,
+                updated_at=now,
+            )
+        )
+        return expected_epoch + 1 if result.rowcount > 0 else None
+
+    async def get(self, run_id: str) -> dict[str, Any] | None:
+        row = (
+            await self._conn.execute(select(run_jobs).where(run_jobs.c.run_id == run_id))
+        ).mappings().first()
+        return dict(row) if row else None
+
+    async def held_by(self, worker_id: str) -> Sequence[str]:
+        """Run ids this worker currently leases — the set it must watch for a
+        cancellation requested through some other replica."""
+        rows = (
+            await self._conn.execute(
+                select(run_jobs.c.run_id).where(run_jobs.c.worker_id == worker_id)
+            )
+        ).scalars().all()
+        return list(rows)
 
 
 class SqlAnalysisStore:

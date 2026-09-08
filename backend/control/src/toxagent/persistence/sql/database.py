@@ -36,6 +36,7 @@ from .repositories import (
     SqlMessageStore,
     SqlModelConnectionStore,
     SqlObservationStore,
+    SqlRunJobStore,
     SqlRunStore,
     SqlRunConfigurationSnapshotStore,
     SqlSessionSettingsStore,
@@ -97,6 +98,7 @@ class SqlUnitOfWork:
         self.run_configuration_snapshots = SqlRunConfigurationSnapshotStore(conn)
         self.messages = SqlMessageStore(conn)
         self.runs = SqlRunStore(conn)
+        self.run_jobs = SqlRunJobStore(conn)
         self.analyses = SqlAnalysisStore(conn)
         self.observations = SqlObservationStore(conn)
         self.evidence = SqlEvidenceStore(conn)

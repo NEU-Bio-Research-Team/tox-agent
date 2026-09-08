@@ -7,8 +7,9 @@ touching a single line of workflow code.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,6 +59,31 @@ aggregate toxicity or safety verdict.
 """
 
 
+#: How often to look for runs whose owner stopped renewing. A full lease TTL
+#: has to pass before anything is claimable at all, so sweeping much faster
+#: only costs queries; sweeping much slower leaves accepted work waiting.
+ADOPTION_SWEEP_S = 15.0
+
+
+async def _adoption_sweep(scheduler) -> None:
+    """Keep taking over runs abandoned by workers that died.
+
+    Runs for the life of the process. A failure here must not end the loop —
+    a database blip would otherwise leave this replica permanently unable to
+    recover anyone's work, including its own after the next restart.
+    """
+    while True:
+        try:
+            await asyncio.sleep(ADOPTION_SWEEP_S)
+            adopted = await scheduler.adopt()
+            if adopted:
+                log.warning("adopted %d abandoned run(s)", adopted)
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001
+            log.exception("run adoption sweep failed; retrying at the next interval")
+
+
 def create_app(
     settings: Settings | None = None,
     *,
@@ -95,13 +121,13 @@ def create_app(
         db.set_commit_hook(lambda session_ids: notifier.notify(session_ids))
         if create_schema:
             await db.create_schema()
-        # RunScheduler starts with no in-process tasks, so any run this
-        # database still has non-terminal was left there by a process that no
-        # longer exists (a clean shutdown drains every task first) — fail
-        # those honestly before serving any request that could touch them.
+        # Only runs that no worker holds a lease on and that carry no durable
+        # envelope — the ones nothing in this deployment could execute (I17).
+        # A run under a live lease belongs to another replica; an adoptable one
+        # is picked up by the sweep started below, not failed here.
         reconciled = await reconcile_orphaned_runs(db)
         if reconciled:
-            log.warning("startup reconciliation failed %d orphaned run(s)", reconciled)
+            log.warning("startup reconciliation failed %d unexecutable run(s)", reconciled)
         client = predictor or PredictorClient(settings.predictor)
         # A deployment fact, like research_provider: an unset TOXAGENT_OCR_URL
         # means no OCR service exists here, and STRUCTURE_RECOGNITION never
@@ -272,9 +298,21 @@ def create_app(
                 scheduler.register(intent, run_agentic)
             app.state.runtime_gateway = gateway
 
+        # Runs accepted by a process that has since died. The first pass runs
+        # before serving, so a restart resumes its own work; the loop then
+        # keeps watching, because the replica that dies next may not be this
+        # one and nobody restarts to notice (I18).
+        adopted = await scheduler.adopt()
+        if adopted:
+            log.warning("adopted %d run(s) from a worker that stopped renewing", adopted)
+        adoption = asyncio.create_task(_adoption_sweep(scheduler), name="run-adoption")
+
         try:
             yield
         finally:
+            adoption.cancel()
+            with suppress(asyncio.CancelledError):
+                await adoption
             await scheduler.drain()
             close_runtime = getattr(runtime_provider, "aclose", None)
             if close_runtime is not None:

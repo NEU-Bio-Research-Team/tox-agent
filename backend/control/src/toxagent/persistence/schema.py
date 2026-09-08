@@ -412,6 +412,26 @@ tool_calls = Table(
     Index("ix_tool_calls_run", "run_id", "started_at"),
 )
 
+run_jobs = Table(
+    "run_jobs", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    # Everything needed to execute this run again in a process that has never
+    # seen it. Without it a restart can only close the run out (I18).
+    Column("envelope", Json, nullable=False),
+    # Who currently owns execution, until when. NULL/expired means unowned:
+    # the previous owner died, or nobody has claimed it yet.
+    Column("worker_id", String(64)),
+    Column("lease_expires_at", _TS),
+    # The fencing token. Every claim increments it, so a worker that was
+    # slow rather than dead finds its own writes refused by the epoch it
+    # still holds, instead of racing the new owner (I17).
+    Column("lease_epoch", Integer, nullable=False, server_default="0"),
+    Column("attempts", Integer, nullable=False, server_default="0"),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    Index("ix_run_jobs_claimable", "lease_expires_at"),
+)
+
 event_outbox = Table(
     "event_outbox", metadata,
     Column("event_id", _ID, primary_key=True),

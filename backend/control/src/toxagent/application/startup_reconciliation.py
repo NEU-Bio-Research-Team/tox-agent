@@ -1,19 +1,31 @@
-"""Startup reconciliation for runs orphaned by a crash or a `kill -9`.
+"""What a starting process may do about runs it did not start.
 
-``RunScheduler._tasks`` lives only in process memory, so the instant a new
-process starts, it is empty — meaning every run this database still has
-sitting in ``queued``/``running``/``validating`` was left there by a process
-that is now gone. A clean shutdown already drains every in-flight task via
-``RunScheduler.drain()`` (each task's own cancellation path marks it
-``cancelled`` honestly), so a non-terminal run found here can only mean an
-unclean exit: nothing else in this process could have created one.
+The original answer was "fail all of them", and it rested on an assumption
+stated in its own docstring: `RunScheduler._tasks` is empty at startup, so a
+non-terminal run must have been left by a process that no longer exists. That
+is true of exactly one deployment — a single process that owns the whole
+database — and false of every rolling deploy and every scale-out, where the
+new replica starts while the old one is still executing runs. There it did not
+reconcile orphans; it killed live work, and marked it `potentially_billed`
+while the provider turn it was describing was still in flight (I17).
 
-Left alone, such a run blocks its session forever under the one-active-run
-cap and makes ``cancel()`` a permanent no-op (there is no worker left to act
-on the flag). Replaying the original request would need the actor, text and
-SMILES it was submitted with, none of which this table retains — so this
-reconciliation does not attempt automatic recovery. It closes the run out
-honestly instead, the same way any other unrecoverable runtime loss does.
+Liveness cannot be inferred from "this process does not know about it". It has
+to be asserted by the process doing the work, which is what the lease in
+`run_jobs` is: renewed every few seconds while a worker executes a run, and
+carrying a fencing epoch so a worker that was slow rather than dead cannot
+write over its successor. This module therefore only ever considers runs whose
+lease has expired or that never had one.
+
+Two kinds of unowned run, with different honest answers:
+
+- **It has a durable envelope.** The request is still on record, so the run can
+  be executed, and `RunScheduler.adopt()` does that. Nothing here needs to
+  close it out — a rolling restart should finish accepted work, not fail it.
+- **It has none.** Runs from before this schema, and runs whose submitter has
+  not been migrated to `enqueue`. There is no record of what the run was for,
+  so it is closed out exactly as before: a run that cannot be executed and
+  cannot be cancelled is worse left open, because it holds its session under
+  the one-active-run cap forever.
 """
 from __future__ import annotations
 
@@ -32,17 +44,42 @@ def _now() -> datetime:
 
 
 async def reconcile_orphaned_runs(db) -> int:
-    """Fail every non-terminal run left behind by a previous process. Returns
-    how many were reconciled."""
+    """Close out non-terminal runs that no worker owns and none could execute.
+
+    Returns how many were reconciled. A run under a live lease, and a run whose
+    durable envelope makes it adoptable, are both left alone — the first
+    belongs to another replica, the second to `RunScheduler.adopt()`.
+    """
     reconciled = 0
+    now = _now()
     async with db.unit_of_work() as uow:
         orphans = await uow.runs.list_non_terminal()
         for run in orphans:
+            job = await uow.run_jobs.get(run.id)
+            if job is not None:
+                lease_expires_at = job.get("lease_expires_at")
+                if lease_expires_at is not None and _as_utc(lease_expires_at) > now:
+                    # Another worker is executing this right now.
+                    continue
+                # Expired lease, but the envelope survives: adoptable, and
+                # failing it here would throw away work this deployment can
+                # still finish.
+                continue
             reconciled += 1
             await _fail_orphan(uow, run)
         if reconciled:
             await uow.commit()
     return reconciled
+
+
+def _as_utc(value: datetime) -> datetime:
+    """SQLite hands back naive datetimes for a timezone-aware column.
+
+    Comparing one of those against an aware `now` raises, which would turn a
+    reconciliation sweep into a failed startup. Naive values from this column
+    were written as UTC.
+    """
+    return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
 async def _fail_orphan(uow, run: Run) -> None:
