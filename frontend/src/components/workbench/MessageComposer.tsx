@@ -12,6 +12,9 @@ import { ImageUploadDialog, type StagedImage } from './ImageUploadDialog';
 import type { Endpoint, IntentHint } from '../../lib/api/types';
 import { quickPredictCapabilities, type SendMessageInput } from '../../lib/api/endpoints';
 import { getDraft, getEndpointSelection, getExpertModeEnabled, setDraft, setEndpointSelection } from '../../lib/preferences';
+import { looksLikeSmiles, suggestMolecule } from '../../lib/smiles';
+
+export { looksLikeSmiles };
 
 // react-ocl pulls the large openchemlib editor bundle. The ordinary text/
 // SMILES composer must not download it until the user explicitly opens the
@@ -39,13 +42,21 @@ const INTENT_OPTIONS: Array<{ value: IntentHint; label: string }> = [
   { value: 'request_attribution', label: 'Attribution' },
 ];
 
-//: A bare, whitespace-free token made only of characters SMILES notation
-// actually uses. Best-effort UX only — the predictor is the real validator.
-const SMILES_LIKE = /^[A-Za-z0-9@+\-=#$:()[\]\\/%.]+$/;
+/** Explanation is a separate choice from prediction (I03).
+ *
+ * The composer used to hardcode `required` whenever a SMILES was present,
+ * which made the Tox21 assay list a precondition for *any* prediction: typing
+ * `CCO` on the default endpoints could not be sent at all, and the reason was
+ * buried in an advanced popover. Prediction is the product; an explanation is
+ * something the user asks for.
+ */
+type ExplanationMode = 'none' | 'on_demand' | 'required';
 
-export function looksLikeSmiles(text: string): boolean {
-  return text.length > 0 && !/\s/.test(text) && /[A-Za-z]/.test(text) && SMILES_LIKE.test(text);
-}
+const EXPLANATION_OPTIONS: Array<{ value: ExplanationMode; label: string }> = [
+  { value: 'on_demand', label: 'Giải thích khi cần' },
+  { value: 'none', label: 'Chỉ dự đoán' },
+  { value: 'required', label: 'Bắt buộc kèm giải thích' },
+];
 
 export interface AnalysisContext {
   analysisId: string;
@@ -101,6 +112,12 @@ export function MessageComposer({
   const [intentHint, setIntentHint] = useState<IntentHint>('auto');
   const [endpoints, setEndpoints] = useState<Endpoint[]>(() => getEndpointSelection() ?? ['herg', 'tox21']);
   const [tox21Tasks, setTox21Tasks] = useState<string[]>([]);
+  // `on_demand`, not `required`: a prediction is the product and an
+  // explanation is something the user asks for (I03).
+  const [explanationMode, setExplanationMode] = useState<ExplanationMode>('on_demand');
+  // Some input methods use Enter to accept a candidate. Without this the
+  // composer submitted a half-typed draft mid-composition (I21).
+  const [composing, setComposing] = useState(false);
   const [thresholdHerg, setThresholdHerg] = useState('');
   const [clientMessageId, setClientMessageId] = useState(() => crypto.randomUUID());
   const [drawDialogOpen, setDrawDialogOpen] = useState(false);
@@ -161,9 +178,35 @@ export function MessageComposer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stagedImage]);
 
-  const wantsFreshSmiles = smiles.trim().length > 0 || looksLikeSmiles(text.trim());
-  const needsTox21Target = wantsFreshSmiles && endpoints.includes('tox21') && tox21Tasks.length === 0;
-  const canSend = !disabled && !needsTox21Target && (text.trim().length > 0 || smiles.trim().length > 0 || stagedImage !== null);
+  // The molecule the composer will send, and the text it will keep alongside
+  // it. Both, always (I04): replacing a question with the molecule it mentions
+  // is what produced `research_subject_missing` and silent text loss.
+  const suggestion = suggestMolecule(text);
+  const trimmedSmilesField = smiles.trim();
+  const effectiveSmiles = trimmedSmilesField || suggestion.smiles || '';
+  const wantsFreshSmiles = effectiveSmiles.length > 0;
+  // Ambiguity is a question for the user, not a coin flip. The SMILES field
+  // is the answer, so the block clears as soon as it is filled in.
+  const ambiguousMolecule = !trimmedSmilesField && suggestion.candidates.length > 1;
+
+  // Only an explicitly required explanation needs an assay, and only for
+  // Tox21 (I03). `on_demand` — the default — sends without one.
+  const needsTox21Target =
+    wantsFreshSmiles &&
+    explanationMode === 'required' &&
+    endpoints.includes('tox21') &&
+    tox21Tasks.length === 0;
+
+  const hasSomethingToSend =
+    text.trim().length > 0 || trimmedSmilesField.length > 0 || stagedImage !== null;
+  const canSend = !disabled && !needsTox21Target && !ambiguousMolecule && hasSomethingToSend;
+
+  /** Shown next to the send button, never hidden in the popover. */
+  const blockedReason = needsTox21Target
+    ? 'Chọn ít nhất một assay Tox21 trong Tuỳ chọn nâng cao, hoặc đổi sang “Giải thích khi cần”.'
+    : ambiguousMolecule
+      ? `Câu này có ${suggestion.candidates.length} chuỗi giống SMILES. Nhập chuỗi bạn muốn phân tích vào ô SMILES.`
+      : null;
 
   const clearStagedImage = () => {
     if (stagedImage) URL.revokeObjectURL(stagedImage.previewUrl);
@@ -173,13 +216,12 @@ export function MessageComposer({
   const handleSend = async () => {
     if (!canSend) return;
     const trimmedText = text.trim();
-    const trimmedSmiles = smiles.trim();
-    // The main box's placeholder has always invited a bare SMILES; this is
-    // what actually makes that true instead of it being routed as a chat
-    // question the backend then can't find a molecule in.
-    const autoDetectedSmiles = !trimmedSmiles && looksLikeSmiles(trimmedText);
-    const effectiveSmiles = trimmedSmiles || (autoDetectedSmiles ? trimmedText : '');
-    const effectiveText = autoDetectedSmiles ? '' : trimmedText;
+    // The question survives the molecule. Only a message that is *nothing but*
+    // a bare SMILES has no question left to keep — a sentence that mentions
+    // one keeps both, which is what `research_subject_missing` needed and what
+    // stops `hello` from silently becoming a molecule (I04).
+    const effectiveText =
+      !trimmedSmilesField && suggestion.isBareMolecule ? '' : trimmedText;
 
     const input: SendMessageInput = {
       client_message_id: clientMessageId,
@@ -191,13 +233,15 @@ export function MessageComposer({
             endpoints,
             threshold_overrides:
               expertMode && thresholdHerg.trim() ? { herg: Number(thresholdHerg) } : null,
-            explanation_mode: effectiveSmiles ? 'required' : 'on_demand',
-            explanation_targets: effectiveSmiles
-              ? [
-                  ...(endpoints.includes('herg') ? [{ endpoint: 'herg' as const }] : []),
-                  ...tox21Tasks.map((task) => ({ endpoint: 'tox21' as const, task })),
-                ]
-              : [],
+            explanation_mode: explanationMode,
+            // Targets only mean something when an explanation was asked for.
+            explanation_targets:
+              explanationMode === 'none'
+                ? []
+                : [
+                    ...(endpoints.includes('herg') ? [{ endpoint: 'herg' as const }] : []),
+                    ...tox21Tasks.map((task) => ({ endpoint: 'tox21' as const, task })),
+                  ],
           }
         : undefined,
       // A new molecule in the same send always wins — the chip targets a
@@ -263,7 +307,13 @@ export function MessageComposer({
         placeholder={hasActiveAnalysis ? 'Hỏi về kết quả này…' : 'Nhập SMILES hoặc mô tả yêu cầu…'}
         value={text}
         onChange={(event) => setText(event.target.value)}
+        onCompositionStart={() => setComposing(true)}
+        onCompositionEnd={() => setComposing(false)}
         onKeyDown={(event) => {
+          // `nativeEvent.isComposing` covers browsers that fire keydown during
+          // composition; the state flag covers those that do not set it. Enter
+          // while composing belongs to the input method, not to us (I21).
+          if (composing || event.nativeEvent.isComposing) return;
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             void handleSend();
@@ -326,6 +376,41 @@ export function MessageComposer({
           </SelectContent>
         </Select>
 
+        {/* Explanation is its own choice, in the main bar rather than behind
+            the advanced popover: it decides whether an assay is required, so
+            hiding it is what made the block unexplainable (I03).
+
+            Native radios rather than a listbox — three short, mutually
+            exclusive options that are worth seeing at a glance, and they come
+            with keyboard and screen-reader behaviour for free. */}
+        <fieldset
+          className="flex items-center gap-0.5 rounded-md border p-0.5"
+          style={{ borderColor: 'var(--line)' }}
+        >
+          <legend className="sr-only">Chế độ giải thích</legend>
+          {EXPLANATION_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className="cursor-pointer rounded px-2 py-1 text-[11px] leading-none transition-colors"
+              style={
+                explanationMode === option.value
+                  ? { backgroundColor: 'var(--accent-blue-muted)', color: 'var(--accent-blue)' }
+                  : { color: 'var(--text-muted)' }
+              }
+            >
+              <input
+                type="radio"
+                name="explanation-mode"
+                className="sr-only"
+                value={option.value}
+                checked={explanationMode === option.value}
+                onChange={() => setExplanationMode(option.value)}
+              />
+              {option.label}
+            </label>
+          ))}
+        </fieldset>
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Tuỳ chọn nâng cao">
@@ -356,7 +441,14 @@ export function MessageComposer({
             </div>
             {endpoints.includes('tox21') && endpointCapabilities.find((endpoint) => endpoint.id === 'tox21')?.tasks.length ? (
               <div>
-                <p className="mb-1 text-xs font-medium">Assay Tox21 để giải thích <span className="font-normal text-muted-foreground">(chọn ít nhất một)</span></p>
+                <p className="mb-1 text-xs font-medium">
+                  Assay Tox21 để giải thích{' '}
+                  <span className="font-normal text-muted-foreground">
+                    {explanationMode === 'required'
+                      ? '(bắt buộc chọn ít nhất một)'
+                      : '(tuỳ chọn — chỉ bắt buộc khi “Bắt buộc kèm giải thích”)'}
+                  </span>
+                </p>
                 <div className="grid grid-cols-2 gap-x-2">
                   {endpointCapabilities.find((endpoint) => endpoint.id === 'tox21')!.tasks.map((task) => (
                     <label key={task} className="flex items-center gap-1.5 py-0.5 text-xs">
@@ -384,7 +476,25 @@ export function MessageComposer({
           </PopoverContent>
         </Popover>
 
-        <Button onClick={() => void handleSend()} disabled={!canSend} variant="primary-gloss" size="icon-circle" className="ml-auto" aria-label="Gửi">
+        {/* Next to the action it blocks, not inside the popover the user
+            would have to already suspect (I03). */}
+        {blockedReason && (
+          <p
+            role="status"
+            className="ml-auto max-w-[320px] text-right text-[11px] leading-snug"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {blockedReason}
+          </p>
+        )}
+        <Button
+          onClick={() => void handleSend()}
+          disabled={!canSend}
+          variant="primary-gloss"
+          size="icon-circle"
+          className={blockedReason ? '' : 'ml-auto'}
+          aria-label="Gửi"
+        >
           <Send className="h-3.5 w-3.5" />
         </Button>
       </div>
