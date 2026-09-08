@@ -25,7 +25,7 @@ references below do not change with the orchestrator.
 2. Migrate first, deploy second — `TOXAGENT_DATABASE_MIGRATION_RUNBOOK.md`'s
    full procedure, including its backup/restore-drill precondition. Never
    let a new binary's first replica run `alembic upgrade head` as a side
-   effect of starting (`toxagent-control/deploy/entrypoint.sh` does this by
+   effect of starting (`backend/control/deploy/entrypoint.sh` does this by
    default; set `TOXAGENT_SKIP_MIGRATIONS=1` on every replica once a
    dedicated migration step has already run it once, so N replicas don't
    race the same revision).

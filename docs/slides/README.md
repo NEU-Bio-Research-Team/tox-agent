@@ -24,7 +24,10 @@ bảng màu của template. Font dùng Times New Roman, giống template.
 
 ## Nguồn nội dung
 
-Deck bám theo [`docs/spec/TOXAGENT_HARNESS_MASTER_PLAN_VI.md`](../spec/TOXAGENT_HARNESS_MASTER_PLAN_VI.md).
+Deck từng bám theo `docs/spec/TOXAGENT_HARNESS_MASTER_PLAN_VI.md`, đã bị xoá ở
+commit `b79036d` khi rút gọn workspace bàn giao. Nguồn nội dung hiện hành là
+[`docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md`](../audit/REMAINING_IMPLEMENTATION_PLAN_VI.md);
+deck chưa được dựng lại theo nguồn đó, nên coi các `.pptx` hiện có là lịch sử.
 Khi sửa doc, sửa `build_deck.py` tương ứng rồi build lại — không chỉnh trực tiếp file `.pptx`,
 vì lần build sau sẽ ghi đè.
 

@@ -873,7 +873,7 @@ sửa. Chưa chạy lại **toàn bộ** 35 task sau cùng một lượt (chỉ 
 ### 4.1 Validator số không đọc được định dạng thập phân tiếng Việt — **ĐÃ XỬ LÝ (2026-09-04 lần 2)**
 
 Quyết định: **ràng buộc canonical** (không nới parser). Ghi ở
-[ADR 0005](../../toxagent-control/docs/adr/0005-canonical-rendered-value.md).
+[ADR 0005](../../backend/control/docs/adr/0005-canonical-rendered-value.md).
 
 - `validation/numeric.py`: `parse_rendered_number` giờ chỉ nhận
   `^-?\d+(?:[.,]\d+)?%?$` — một số duy nhất, dấu chấm **hoặc** phẩy tiếng Việt,
@@ -1248,7 +1248,7 @@ sequenceDiagram
 
 #### 7.2.2 Điểm cốt lõi: gateway **không** chạy agent loop
 
-Đây là chỗ dễ hiểu nhầm nhất. [gateway.py](../../toxagent-control/toxagent/harness/gateway.py)
+Đây là chỗ dễ hiểu nhầm nhất. [gateway.py](../../backend/control/src/toxagent/harness/gateway.py)
 không có vòng `while` nào gọi model. Phân chia trách nhiệm:
 
 | Việc | Ai làm |
@@ -1479,7 +1479,7 @@ Toàn bộ event chi tiết (kể cả `answer.rejected` kèm violations) nằm 
 
 ### 7.7 Luồng đã chạy được — `structure_recognition` (ảnh → SMILES), 2026-09-05
 
-Xem [ADR 0006](../../toxagent-control/docs/adr/0006-ocr-fourth-boundary.md)
+Xem [ADR 0006](../../backend/control/docs/adr/0006-ocr-fourth-boundary.md)
 cho quyết định kiến trúc; đây chỉ nói đường đi của request. Chi tiết đầy đủ
 việc dựng `toxocr/` và các bug tìm được ở §9 dưới (lần 7).
 
@@ -1683,7 +1683,7 @@ rebuild chạy, không phải một capability chưa từng tồn tại.
 ### 9.3 Backend mới — `toxocr/`, boundary triển khai thứ tư
 
 Quyết định kiến trúc đầy đủ ở
-[ADR 0006](../../toxagent-control/docs/adr/0006-ocr-fourth-boundary.md).
+[ADR 0006](../../backend/control/docs/adr/0006-ocr-fourth-boundary.md).
 Tóm tắt việc đã làm:
 
 **Vì sao cần env riêng:** `MolScribe`'s `setup.py` pin `torch>=1.11.0,<2.0`;

@@ -154,7 +154,7 @@ Khi một nhà nghiên cứu có SMILES hoặc một analysis snapshot, họ c�
 - Compound-name resolution qua provider có ambiguity handling.
 - ~~Image-to-SMILES qua service riêng và explicit confirmation.~~ **Xong,
   2026-09-05** — `toxocr/` (MolScribe), boundary thứ tư theo đúng hình dạng đề
-  xuất ở đây. Xem [ADR 0006](../../toxagent-control/docs/adr/0006-ocr-fourth-boundary.md)
+  xuất ở đây. Xem [ADR 0006](../../backend/control/docs/adr/0006-ocr-fourth-boundary.md)
   và PROGRESS §8/§9.
 - Molecule comparison trên nhiều immutable snapshots.
 - Similarity/read-across khi có provider và eval riêng.

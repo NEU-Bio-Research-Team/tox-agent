@@ -54,6 +54,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: git diff --exit-code -- backend/predictor/evals/benchmark/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      # Links resolve, and no current document names a path the relocation
+      # removed. Historical records are exempt by name, not by accident (I32).
+      - run: python devops/scripts/check_docs.py
 
   # The only environment where both packages are installed, so the only one
   # that can regenerate the predictor's OpenAPI and compare it to the pin.

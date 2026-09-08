@@ -1,11 +1,25 @@
 # Tox-Agent End-to-End Deployment Runbook (Docker + Cloud Run + Firebase Hosting)
 
+> **SUPERSEDED — do not follow this runbook.** It describes the pre-refactor
+> monolith: `/predict` and `/analyze` endpoints, `scripts/train_hybrid.py`,
+> `config/workspace_mode.yaml` and `models/tox21_gatv2_model/` no longer exist,
+> and the aggregate-verdict design it smoke-tests was removed by ADR 0002. Two
+> path references were corrected so the file is readable as a record, not
+> because the procedure works.
+>
+> A replacement covering the current four-service topology, staging/production
+> separation and digest promotion is package **K12** in
+> [`docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md`](../audit/REMAINING_IMPLEMENTATION_PLAN_VI.md)
+> and is tracked as issue #22. Until it lands, deploy from
+> [`DOCKER_TEST_RUNBOOK.md`](DOCKER_TEST_RUNBOOK.md) and
+> [`TOXAGENT_OPERATIONS_RUNBOOK.md`](TOXAGENT_OPERATIONS_RUNBOOK.md).
+
 This guide is written so a new contributor can clone the repo and deploy successfully.
 
 ## 1) Scope
 
 This runbook deploys:
-- Backend API container to Google Cloud Run (`model_server`)
+- Backend API container to Google Cloud Run (`backend/predictor`)
 - Frontend app to Firebase Hosting (`tox-agent.web.app`)
 - Hosting rewrites `/health`, `/predict`, `/predict/**`, `/explain`, `/analyze` to Cloud Run
 
@@ -165,7 +179,7 @@ gcloud artifacts repositories create "$REPO" \
 ## 8) Build Backend Docker Image with Cloud Build
 
 Important:
-- `model_server/Dockerfile` copies repo into `/app`
+- `backend/predictor/deploy/Dockerfile` copies the repo into `/app`
 - Ensure `models/` is present locally before this step
 - `.gcloudignore` must not exclude `models/`
 
@@ -175,7 +189,7 @@ Create temporary Cloud Build config:
 cat > /tmp/cloudbuild-tox-agent.yaml <<'YAML'
 steps:
   - name: gcr.io/cloud-builders/docker
-    args: ["build", "-f", "model_server/Dockerfile", "-t", "${_IMAGE}", "."]
+    args: ["build", "-f", "backend/predictor/deploy/Dockerfile", "-t", "${_IMAGE}", "."]
 images:
   - "${_IMAGE}"
 YAML

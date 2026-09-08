@@ -4,17 +4,17 @@
 
 This runbook builds and smoke-tests **ToxPred**, the predictor service, in
 Docker. It replaces an earlier version of this file (remaining-plan W6-17)
-that documented `model_server/main.py`'s `/analyze` endpoint and a
+that documented the previous monolith's `/analyze` endpoint and a
 `final_verdict` field — both removed by the predictor-only rebuild
 (`docs/refactor/PREDICTOR_ONLY_STATUS_VI.md`; ADR 0002 in
-`toxagent-control/docs/adr/` is the standing rule that no layer computes an
+`backend/control/docs/adr/` is the standing rule that no layer computes an
 aggregate toxicity/safety verdict). Every command and response shape below
 was run against this repository's real, current service before being written
 down, not carried over from the old version.
 
 Three other deployables now have their own Dockerfiles and CI smoke jobs
-(remaining-plan W6-10): `toxagent-control/deploy/Dockerfile` +
-`control-plane-container`, `toxocr/deploy/Dockerfile` + `toxocr-container`,
+(remaining-plan W6-10): `backend/control/deploy/Dockerfile` +
+`control-plane-container`, `backend/ocr/deploy/Dockerfile` + `toxocr-container`,
 and `frontend/deploy/Dockerfile` + `frontend-container`. They deliberately
 have different build contexts, dependencies, readiness semantics and smoke
 criteria. This runbook remains intentionally scoped to ToxPred; do not
@@ -28,7 +28,7 @@ assumed.
 
 - Docker installed and running.
 - Model artifacts. Two ways to get them into the container:
-  - **Mounted** (fastest for local iteration): `models/` already populated in
+  - **Mounted** (fastest for local iteration): `.data/models/` already populated in
     your checkout, mounted read-only at `/app/models`.
   - **Fetched at startup**: set `MODEL_ARTIFACTS_URI` to a source
     `deploy/entrypoint.sh` can pull from; the image itself carries no
@@ -42,10 +42,10 @@ From the repository root:
 
 ```bash
 # CPU
-docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cpu -t toxpred:cpu .
+docker build -f backend/predictor/deploy/Dockerfile --build-arg TORCH_VARIANT=cpu -t toxpred:cpu .
 
 # GPU (CUDA 12.1 wheels)
-docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cu121 -t toxpred:cu121 .
+docker build -f backend/predictor/deploy/Dockerfile --build-arg TORCH_VARIANT=cu121 -t toxpred:cu121 .
 ```
 
 ## 4) Run the container
@@ -54,12 +54,12 @@ docker build -f deploy/Dockerfile --build-arg TORCH_VARIANT=cu121 -t toxpred:cu1
 # CPU, model artifacts mounted from the checkout
 docker run --rm -p 8080:8080 --name toxpred-cpu \
   -e MODEL_ARTIFACTS_URI="" \
-  -v "$PWD/models:/app/models:ro" \
+  -v "$PWD/.data/models:/app/models:ro" \
   toxpred:cpu
 
 # GPU
 docker run --rm --gpus all -p 8080:8080 --name toxpred-gpu \
-  -v "$PWD/models:/app/models:ro" \
+  -v "$PWD/.data/models:/app/models:ro" \
   toxpred:cu121
 ```
 
@@ -92,7 +92,7 @@ A real `/health/ready` response, artifacts loaded:
 
 `served_endpoints` lists exactly what this build can answer for — never
 assume `clintox` is present; check this field. `reasons` is non-empty (and
-`ready` is `false`) when something declared in `artifacts/predictor-manifest.yaml`
+`ready` is `false`) when something declared in `backend/predictor/registry/predictor-manifest.yaml`
 failed to load; the message names which one.
 
 ## 6) API smoke tests
@@ -218,7 +218,7 @@ docker logs -f toxpred-cpu   # or toxpred-gpu
 ```
 
 - `/health/ready` with `ready: false`: read `reasons` — it names the exact
-  artifact `artifacts/predictor-manifest.yaml` declares and could not load.
+  artifact `backend/predictor/registry/predictor-manifest.yaml` declares and could not load.
 - GPU run failing: test the CPU image first, to separate an infrastructure
   problem (driver, toolkit) from a model-loading problem.
 
@@ -235,7 +235,7 @@ docker image rm toxpred:cpu toxpred:cu121
 - Entrypoint (artifact fetch/startup): `deploy/entrypoint.sh`
 - API server: `toxpred/api/app.py`, routes in `toxpred/api/routes.py`
 - Request/response schemas: `toxpred/api/schemas.py`
-- Artifact manifest: `artifacts/predictor-manifest.yaml`
+- Artifact manifest: `backend/predictor/registry/predictor-manifest.yaml`
 - The same build → run → health → predict → batch sequence runs in CI:
   `.github/workflows/ci.yml`'s `container` job. Its sibling
   `control-plane-container`, `toxocr-container`, and `frontend-container`

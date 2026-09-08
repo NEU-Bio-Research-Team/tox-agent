@@ -3,7 +3,7 @@
 - Capabilities: hERG blockade and twelve independent Tox21 assay activities.
 - Weights: `models/pretrained_2head_herg_chemberta_model/best_model.pt`, SHA-256
   `c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690`.
-- Tokenizer: vendored and hash-pinned in `artifacts/predictor-manifest.yaml`.
+- Tokenizer: vendored and hash-pinned in `backend/predictor/registry/predictor-manifest.yaml`.
 - Backbone configuration: vendored; serving performs no model download.
 - Policy: hERG and per-assay thresholds are artifact-owned policy-v1 values.
 - Calibration: no separately admitted calibration artifact; served must not
