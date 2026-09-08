@@ -9,7 +9,7 @@ AUTH_ROOT="$ROOT/.data/opencode-auth"
 RUNTIME_ROOT="$ROOT/.data/opencode-runtime"
 WORKSPACES="$ROOT/.data/opencode-workspaces"
 LOG_DIR="$ROOT/.data/logs"
-PROFILE="$ROOT/toxagent-control/agent_profiles/opencode/toxagent.json"
+PROFILE="$ROOT/backend/control/agent_profiles/opencode/toxagent.json"
 SERVER_PID="$RUNTIME_ROOT/server.pid"
 BRIDGE_PID="$RUNTIME_ROOT/bridge.pid"
 SERVER_LOG="$LOG_DIR/opencode-runtime.log"
@@ -45,7 +45,7 @@ start() {
     running "$SERVER_PID" || { tail -80 "$SERVER_LOG" >&2 || true; fail "OpenCode exited during startup"; }
     sleep 1
   done
-  python3 "$ROOT/toxagent-control/scripts/assert_opencode_surface.py" \
+  python3 "$ROOT/backend/control/scripts/assert_opencode_surface.py" \
     --url http://127.0.0.1:4096 --agent toxagent --directory "$WORKSPACES"
 
   local gateway

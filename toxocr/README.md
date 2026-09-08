@@ -3,8 +3,8 @@
 Optical chemical structure recognition: an image of a 2D structure in, a
 SMILES string out. One endpoint, one job.
 
-A **separate deployable** from both `toxpred` and `toxagent-control` — see
-[`toxagent-control/docs/adr/0006-ocr-fourth-boundary.md`](../toxagent-control/docs/adr/0006-ocr-fourth-boundary.md)
+A **separate deployable** from both `toxpred` and `backend/control` — see
+[`backend/control/docs/adr/0006-ocr-fourth-boundary.md`](../backend/control/docs/adr/0006-ocr-fourth-boundary.md)
 for why. It imports [MolScribe](https://github.com/thomas0809/MolScribe) and
 nothing else knows that dependency exists.
 
@@ -18,7 +18,7 @@ toxocr/
 
 ## Why its own environment
 
-MolScribe pins `torch>=1.11.0,<2.0`. Neither `toxpred` nor `toxagent-control`
+MolScribe pins `torch>=1.11.0,<2.0`. Neither `toxpred` nor `backend/control`
 can host that constraint (the live predictor runs a current torch). Verified
 working setup, CPU only:
 
@@ -41,7 +41,7 @@ PYTHONPATH=/path/to/tox-agent \
 
 First request (or startup, since `TOXOCR_EAGER_LOAD` defaults on) downloads
 the checkpoint from `yujieq/MolScribe` on HuggingFace to the local HF cache —
-a few hundred MB, one-time. Point `toxagent-control` at it with
+a few hundred MB, one-time. Point `backend/control` at it with
 `TOXAGENT_OCR_URL=http://127.0.0.1:8090`; leaving it unset is a supported,
 tested state (`capability_unavailable`, see ADR 0006), not a missing feature.
 

@@ -39,7 +39,7 @@ fi
 cd "$REPO_ROOT"
 
 run "toxpred (root package)" "$DRUG_TOX_PY" -m pytest tests -q
-run "toxagent-control" "$DRUG_TOX_PY" -m pytest toxagent-control/tests -q
+run "toxagent-control" "$DRUG_TOX_PY" -m pytest backend/control/tests -q
 PYTHONPATH="$REPO_ROOT" run "toxocr" "$TOXOCR_PY" -m pytest toxocr/tests -q
 
 if command -v npm >/dev/null 2>&1; then

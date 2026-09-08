@@ -21,10 +21,10 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      - run: pip install -e '.[dev]' -e './toxagent-control[dev]'
+      - run: pip install -e '.[dev]' -e './backend/control[dev]'
       - run: python scripts/check_no_agent_deps.py
-      - run: python -m pytest -q tests/unit tests/contract toxagent-control/tests/unit toxagent-control/tests/contract
-      - run: git diff --exit-code -- benchmarks/manifests toxagent-control/toxagent/predictor/contract_snapshot.json
+      - run: python -m pytest -q tests/unit tests/contract backend/control/tests/unit backend/control/tests/contract
+      - run: git diff --exit-code -- benchmarks/manifests backend/control/toxagent/predictor/contract_snapshot.json
 
   packaging:
     runs-on: ubuntu-latest
@@ -67,10 +67,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install -e './toxagent-control[dev]'
-      - run: cd toxagent-control && python -m pytest -q tests/e2e/test_scripted_runtime.py tests/unit/test_runtime_recovery.py tests/unit/test_opencode_surface_assertion.py
+      - run: pip install -e './backend/control[dev]'
+      - run: cd backend/control && python -m pytest -q tests/e2e/test_scripted_runtime.py tests/unit/test_runtime_recovery.py tests/unit/test_opencode_surface_assertion.py
       - name: Credentialed OpenCode matrix
         if: env.TOXAGENT_LIVE_RUNTIME == '1'
-        run: cd toxagent-control && python -m evals.runner --runtime opencode --trials 3
+        run: cd backend/control && python -m evals.runner --runtime opencode --trials 3
         env:
           TOXAGENT_LIVE_RUNTIME: ${{ secrets.TOXAGENT_LIVE_RUNTIME }}

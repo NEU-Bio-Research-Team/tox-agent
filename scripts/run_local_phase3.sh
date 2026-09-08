@@ -6,7 +6,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONTROL_DIR="$REPO_ROOT/toxagent-control"
+CONTROL_DIR="$REPO_ROOT/backend/control"
 LOCAL_DATA_DIR="$REPO_ROOT/.data"
 LOG_DIR="$LOCAL_DATA_DIR/logs"
 PYTHON_BIN="${TOXAGENT_PYTHON:-$(command -v python)}"
