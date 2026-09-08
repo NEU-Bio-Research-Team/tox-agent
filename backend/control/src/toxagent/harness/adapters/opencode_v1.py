@@ -191,6 +191,27 @@ class OpenCodeV1Provider:
         )
 
     async def create_session(self, spec: RuntimeSessionSpec) -> RuntimeSession:
+        # I12: OpenCode V1's session and prompt APIs take `{providerID,
+        # modelID}` and nothing else — the credential comes from the auth
+        # store on the runtime host. There is therefore no way, at this
+        # version, to make a turn use *this owner's* key.
+        #
+        # Refusing is the only honest option. Proceeding would run the turn
+        # under whichever account the host happens to have configured: the
+        # wrong cost boundary, possibly a different organisation's data
+        # retention terms, and a "Test connection" that proved nothing about
+        # what a run would actually do. Per-owner credential injection needs
+        # either an isolated runtime per owner or a V1 auth API this adapter
+        # can call, and neither has been built and verified against the real
+        # server — see K05 in docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md.
+        if spec.provider_credential:
+            raise RuntimeUnavailable(
+                "this runtime cannot be given the credential from the selected AI "
+                "profile, and will not fall back to its own; remove the profile "
+                "from the session, or run an OpenCode host authenticated for it",
+                profile_id=spec.connection_id,
+                runtime="opencode",
+            )
         directory = self._directory_for_spec(spec)
         self._create_local_directory(directory)
         try:

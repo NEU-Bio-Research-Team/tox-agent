@@ -1,14 +1,21 @@
-"""Connection CRUD and explicit capability probing."""
+"""Connection CRUD and explicit capability probing.
+
+The probe itself lives in `probe.py`, the destination policy in `network.py`
+and the list of providers with a working adapter in `providers.py`. Keeping
+them apart is what makes each one testable: I14 was a probe that reported
+capabilities it never checked, and it was written inline here where nothing
+looked at it on its own.
+"""
 from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timezone
 from typing import Protocol
 
-import httpx
-
 from ..domain.runtime import AuthMode
-from .model import ConnectionCapabilities, ConnectionStatus, ModelConnection
+from . import providers
+from .model import ConnectionStatus, ModelConnection
+from .probe import OpenAICompatibleProbe, ProbeError, ProbeResult
 from .secrets import SecretStore
 
 
@@ -17,43 +24,7 @@ class ConnectionNotFound(LookupError):
 
 
 class ModelProbe(Protocol):
-    async def probe(self, connection: ModelConnection, credential: str | None) -> ConnectionCapabilities: ...
-
-
-class OpenAICompatibleProbe:
-    """Probe declared protocol features with a real, minimal streamed turn."""
-
-    async def probe(self, connection: ModelConnection, credential: str | None) -> ConnectionCapabilities:
-        if not connection.base_url:
-            raise ValueError("capability probing requires an explicit base_url")
-        headers = {"Authorization": f"Bearer {credential}"} if credential else {}
-        payload = {
-            "model": connection.model_id,
-            "messages": [{"role": "user", "content": "Return JSON: {\"ok\":true}"}],
-            "stream": True,
-            "stream_options": {"include_usage": True},
-            "response_format": {"type": "json_object"},
-            "tools": [{
-                "type": "function",
-                "function": {"name": "probe_noop", "description": "Protocol probe only",
-                             "parameters": {"type": "object", "properties": {}}},
-            }],
-        }
-        async with httpx.AsyncClient(timeout=30) as client:
-            async with client.stream(
-                "POST", connection.base_url.rstrip("/") + "/chat/completions",
-                headers=headers, json=payload,
-            ) as response:
-                response.raise_for_status()
-                saw_chunk = False
-                async for line in response.aiter_lines():
-                    saw_chunk = saw_chunk or line.startswith("data:")
-        # These booleans record acceptance by the live endpoint, not a guess
-        # based on provider_id. Context size remains unknown unless an adapter
-        # can measure or retrieve it explicitly.
-        return ConnectionCapabilities(
-            streaming=saw_chunk, tool_calls=True, structured_output=True, context_size=None,
-        )
+    async def probe(self, connection: ModelConnection, credential: str | None) -> ProbeResult: ...
 
 
 class ModelConnectionService:
@@ -64,6 +35,22 @@ class ModelConnectionService:
     async def create(self, *, owner_id: str, provider_id: str, model_id: str,
                      auth_mode: AuthMode, base_url: str | None, credential: str | None,
                      display_name: str | None = None) -> ModelConnection:
+        # Refuse a provider with no adapter here, with the reason, rather than
+        # accepting the connection and failing every probe afterwards (I13).
+        # `providers.get` raises UnsupportedProvider, which the API maps to a
+        # 400 carrying the explanation.
+        spec = providers.get(provider_id)
+        # A provider with a known endpoint fills it in, so the field really is
+        # optional for those and really is required for a self-hosted one.
+        base_url = spec.resolve_base_url(base_url)
+        if base_url is None:
+            raise ValueError(
+                f"{spec.display_name} has no default endpoint; supply a base URL"
+            )
+        if auth_mode not in spec.auth_modes:
+            raise ValueError(
+                f"{spec.display_name} does not support {auth_mode.value} authentication"
+            )
         ref = None
         if credential:
             ref = self._secrets.put(owner_id, credential)
@@ -99,9 +86,14 @@ class ModelConnectionService:
         credential = self._secrets.get(item.credential_ref) if item.credential_ref else None
         now = datetime.now(timezone.utc)
         try:
-            capabilities = await self._probe.probe(item, credential)
-            updated = replace(item, capabilities=capabilities, status=ConnectionStatus.READY, updated_at=now)
+            result = await self._probe.probe(item, credential)
+            updated = replace(
+                item, capabilities=result.to_capabilities(),
+                status=ConnectionStatus.READY, updated_at=now,
+            )
         except Exception:
+            # The failed status is written whether the probe was refused, timed
+            # out or answered wrongly; the caller re-raises to report which.
             updated = replace(item, status=ConnectionStatus.FAILED, updated_at=now)
             async with self._db.unit_of_work() as uow:
                 await uow.model_connections.update_probe(updated)

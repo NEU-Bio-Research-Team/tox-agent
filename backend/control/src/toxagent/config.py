@@ -397,6 +397,20 @@ class SecuritySettings:
     #: forgets to set this fails closed (no browser client works) rather
     #: than open (every origin works).
     cors_allow_origins: tuple[str, ...] = ()
+    #: Where the server may send a user-supplied model endpoint URL (I15).
+    #:
+    #: ``local`` — self-hosted, single user: a private address is the normal
+    #: case (Ollama on loopback, vLLM on the LAN) and there is no boundary to
+    #: cross, because the user already has this machine.
+    #:
+    #: ``hosted`` — multi-tenant: a private address is never a legitimate
+    #: model endpoint, and a request to one is forgery using the control
+    #: plane's network position.
+    #:
+    #: The default is ``local`` because that is what this stack ships as. A
+    #: hosted deployment must say so; it is also refused below unless it does,
+    #: when ``environment`` is production.
+    egress_policy: str = "local"
 
     @classmethod
     def from_env(cls) -> "SecuritySettings":
@@ -409,13 +423,28 @@ class SecuritySettings:
             mcp_path=_env("TOXAGENT_MCP_PATH", cls.mcp_path),
             mcp_runtime_url=_env("TOXAGENT_MCP_RUNTIME_URL").rstrip("/"),
             cors_allow_origins=_list("TOXAGENT_CORS_ALLOW_ORIGINS", cls.cors_allow_origins),
+            egress_policy=_env("TOXAGENT_EGRESS_POLICY", cls.egress_policy).lower(),
         )
+        if settings.egress_policy not in {"local", "hosted"}:
+            raise ValueError(
+                f"TOXAGENT_EGRESS_POLICY must be 'local' or 'hosted', got "
+                f"{settings.egress_policy!r}"
+            )
         if settings.environment == "production":
             if not settings.capability_secret:
                 raise ValueError("TOXAGENT_CAPABILITY_SECRET is required in production")
             if settings.static_tokens:
                 raise ValueError(
                     "TOXAGENT_STATIC_TOKENS is a development shim and must be empty in production"
+                )
+            if settings.egress_policy != "hosted":
+                # A multi-user deployment that kept the self-hosting default
+                # would let any user who can create a connection make the
+                # control plane call its own private network (I15).
+                raise ValueError(
+                    "TOXAGENT_EGRESS_POLICY must be 'hosted' in production; 'local' "
+                    "permits requests to private addresses and is only correct for "
+                    "single-user self-hosting"
                 )
         return settings
 

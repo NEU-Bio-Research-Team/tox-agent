@@ -136,6 +136,29 @@ export function listModelConnections(): Promise<{ connections: ModelConnection[]
   return apiRequest('/v1/model-connections');
 }
 
+/** One provider this control plane has a working adapter for. */
+export interface SupportedProvider {
+  provider_id: string;
+  display_name: string;
+  protocol: string;
+  /** Prefilled into the form; null when the deployment must supply one. */
+  default_base_url: string | null;
+  base_url_required: boolean;
+  auth_modes: string[];
+  note: string;
+}
+
+/**
+ * The provider list, from the code that decides it.
+ *
+ * The page used to carry its own, which included providers whose wire format
+ * nothing here speaks and whose default base URL was blank — so the form could
+ * be filled in correctly and still fail every probe (I13).
+ */
+export function listSupportedProviders(): Promise<{ providers: SupportedProvider[] }> {
+  return apiRequest('/v1/model-connections:providers');
+}
+
 export function createModelConnection(input: {
   provider_id: string; model_id: string; display_name?: string; auth_mode: ModelConnection['auth_mode'];
   base_url?: string; credential?: string;

@@ -8,23 +8,22 @@ import { Switch } from '../components/ui/switch';
 import { Button } from '../components/ui/button';
 import { getToken, setToken, API_BASE_URL } from '../lib/api/client';
 import { getDeveloperModeEnabled, getExpertModeEnabled, setDeveloperModeEnabled, setExpertModeEnabled } from '../lib/preferences';
-import { createModelConnection, deleteModelConnection, listModelConnections, testModelConnection } from '../lib/api/endpoints';
-import type { ModelConnection } from '../lib/api/types';
+import { createModelConnection, deleteModelConnection, listModelConnections, listSupportedProviders, testModelConnection, type SupportedProvider } from '../lib/api/endpoints';
+import { ApiError, type ModelConnection } from '../lib/api/types';
 
-const PROVIDERS = [
-  { id: 'openai', label: 'OpenAI', baseUrl: '' },
-  { id: 'anthropic', label: 'Anthropic', baseUrl: '' },
-  { id: 'gemini', label: 'Google Gemini', baseUrl: '' },
-  { id: 'openrouter', label: 'OpenRouter', baseUrl: 'https://openrouter.ai/api/v1' },
-  { id: 'openai_compatible', label: 'OpenAI-compatible / local', baseUrl: '' },
-] as const;
+// The provider list comes from the server (I13). The hardcoded one here
+// offered Anthropic and Google Gemini, whose wire formats this control plane
+// has no adapter for, with a blank default base URL — so the form could be
+// filled in correctly, save, and then fail every capability probe with
+// "capability probing requires an explicit base_url".
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const [expertMode, setExpertMode] = useState(getExpertModeEnabled());
   const [developerMode, setDeveloperMode] = useState(getDeveloperModeEnabled());
   const [connections, setConnections] = useState<ModelConnection[]>([]);
-  const [provider, setProvider] = useState('openai');
+  const [providers, setProviders] = useState<SupportedProvider[]>([]);
+  const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
@@ -34,15 +33,31 @@ export function SettingsPage() {
 
   const refreshConnections = () => listModelConnections().then((result) => setConnections(result.connections)).catch(() => setProviderError('Không tải được danh sách AI provider.'));
   useEffect(() => { void refreshConnections(); }, []);
+  useEffect(() => {
+    void listSupportedProviders()
+      .then((result) => {
+        setProviders(result.providers);
+        const first = result.providers[0];
+        if (first) { setProvider(first.provider_id); setBaseUrl(first.default_base_url ?? ''); }
+      })
+      .catch(() => setProviderError('Không tải được danh sách provider được hỗ trợ.'));
+  }, []);
+
+  const selected = providers.find((item) => item.provider_id === provider) ?? null;
 
   const addProvider = async () => {
     if (!provider.trim() || !model.trim()) { setProviderError('Chọn provider và nhập model.'); return; }
     if (authMode === 'api_key' && !credential.trim()) { setProviderError('Nhập API key để tạo kết nối này.'); return; }
-    if (provider === 'openai_compatible' && !baseUrl.trim()) { setProviderError('OpenAI-compatible cần Base URL.'); return; }
+    if (selected?.base_url_required && !baseUrl.trim()) { setProviderError(`${selected.display_name} cần Base URL.`); return; }
     try {
       await createModelConnection({ provider_id: provider.trim(), model_id: model.trim(), display_name: displayName.trim() || undefined, auth_mode: authMode, base_url: baseUrl.trim() || undefined, credential: authMode === 'api_key' ? credential : undefined });
       setCredential(''); setModel(''); setDisplayName(''); setProviderError(null); await refreshConnections();
-    } catch { setProviderError('Không thể lưu provider. Kiểm tra endpoint và quyền truy cập.'); }
+    } catch (error) {
+      // The server's message says what is wrong and often what to pick
+      // instead; replacing it with one generic sentence is what left a user
+      // with a form that failed and no way to know why.
+      setProviderError(error instanceof ApiError ? error.message : 'Không thể lưu provider.');
+    }
   };
 
   return (
@@ -94,12 +109,12 @@ export function SettingsPage() {
               </div>
             ))}
             <div className="grid gap-2 sm:grid-cols-2">
-              <select aria-label="AI provider" value={provider} onChange={(e) => { const next = e.target.value; setProvider(next); setBaseUrl(PROVIDERS.find((item) => item.id === next)?.baseUrl ?? ''); }} className="h-9 rounded-md border bg-transparent px-3 text-sm">
-                {PROVIDERS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+              <select aria-label="AI provider" value={provider} onChange={(e) => { const next = e.target.value; setProvider(next); setBaseUrl(providers.find((item) => item.provider_id === next)?.default_base_url ?? ''); }} className="h-9 rounded-md border bg-transparent px-3 text-sm">
+                {providers.map((item) => <option key={item.provider_id} value={item.provider_id}>{item.display_name}</option>)}
               </select>
               <input aria-label="AI model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model (gpt-...)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
               <input aria-label="AI profile name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Tên profile (optional)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
-              <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={provider === 'openai_compatible' ? 'Base URL (required)' : 'Base URL (optional)'} className="h-9 rounded-md border bg-transparent px-3 text-sm" />
+              <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={selected?.base_url_required ? 'Base URL (bắt buộc)' : 'Base URL (để trống dùng mặc định)'} className="h-9 rounded-md border bg-transparent px-3 text-sm" />
               <select aria-label="AI authentication" value={authMode} onChange={(e) => setAuthMode(e.target.value as ModelConnection['auth_mode'])} className="h-9 rounded-md border bg-transparent px-3 text-sm"><option value="api_key">API key</option><option value="local">Local / no credential</option><option value="none">No authentication</option></select>
               {authMode === 'api_key' && <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder="API key" className="h-9 rounded-md border bg-transparent px-3 text-sm" autoComplete="new-password" />}
             </div>

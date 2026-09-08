@@ -14,10 +14,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from ..application.create_analysis import CreateAnalysis
 from ..application.run_scheduler import RunContext
 from ..connections.model import ConnectionStatus
+from ..connections.secrets import SecretStore
+from ..domain.runtime import AuthMode
 from ..application.runs import advance
 from ..config import RuntimeSettings
 from ..domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
@@ -44,6 +47,23 @@ from .provider import (
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+@dataclass(frozen=True)
+class ResolvedProfile:
+    """Everything a run's AI profile actually configured.
+
+    A tuple of (provider, model, connection_id) was what the gateway used to
+    resolve, which is why the endpoint and the credential never reached the
+    runtime (I12).
+    """
+
+    provider_id: str
+    model_id: str
+    connection_id: str | None
+    base_url: str | None
+    credential: str | None
+    auth_mode: AuthMode
 
 
 log = logging.getLogger("toxagent.gateway")
@@ -78,6 +98,7 @@ class AgentRuntimeGateway:
         *,
         create_analysis: CreateAnalysis | None = None,
         mcp_url: str = "",
+        secrets: SecretStore | None = None,
     ) -> None:
         self._db = database
         self._registry = registry
@@ -86,6 +107,11 @@ class AgentRuntimeGateway:
         self._settings = settings
         self._create_analysis = create_analysis
         self._mcp_url = mcp_url
+        # Reading a stored credential is what makes a chosen AI profile
+        # actually take effect (I12). A gateway without one refuses any run
+        # whose profile has a credential, rather than dispatching it under the
+        # runtime host's own authentication.
+        self._secrets = secrets
 
     async def execute(self, context: RunContext) -> None:
         """Drive an admitted agentic/mixed run until product completion.
@@ -114,7 +140,7 @@ class AgentRuntimeGateway:
         kind = self._runtime_kind()
 
         system_prompt, profile, deadline = await self._prepare_context(context)
-        provider_id, model_id, connection_id = await self._resolve_ai_profile(context)
+        resolved = await self._resolve_ai_profile(context)
         tool_schema = tuple(self._registry.descriptors(profile))
         tool_schema_hash = self._registry.schema_hash(profile)
         profile_hash = content_sha256(
@@ -139,8 +165,8 @@ class AgentRuntimeGateway:
         spec = RuntimeSessionSpec(
             session_id=context.session_id,
             run_id=context.run_id,
-            provider_id=provider_id,
-            model_id=model_id,
+            provider_id=resolved.provider_id,
+            model_id=resolved.model_id,
             profile=profile,
             system_prompt=system_prompt,
             system_prompt_hash=content_sha256(system_prompt),
@@ -149,7 +175,10 @@ class AgentRuntimeGateway:
             mcp_url=self._mcp_url,
             max_steps=self._max_steps(context.intent),
             deadline_at=deadline,
-            connection_id=connection_id,
+            connection_id=resolved.connection_id,
+            provider_base_url=resolved.base_url,
+            provider_credential=resolved.credential,
+            auth_mode=resolved.auth_mode.value,
             local_tool_context=local_context,
         )
 
@@ -169,7 +198,7 @@ class AgentRuntimeGateway:
                 runtime_session_id=runtime_session.runtime_session_id,
                 provider_id=runtime_session.provider_id,
                 model_id=runtime_session.model_id,
-                connection_id=connection_id,
+                connection_id=resolved.connection_id,
                 profile_hash=profile_hash,
                 tool_schema_hash=tool_schema_hash,
                 system_prompt_hash=spec.system_prompt_hash,
@@ -271,16 +300,31 @@ class AgentRuntimeGateway:
             owns_run=False,
         )
 
-    async def _resolve_ai_profile(self, context: RunContext) -> tuple[str, str, str | None]:
+    async def _resolve_ai_profile(self, context: RunContext) -> ResolvedProfile:
         """Resolve the run-pinned AI profile immediately before dispatch.
 
         A session stores just an opaque profile id. Resolving it here keeps a
         browser from supplying a provider/model pair directly to the runtime,
         proves ownership again at the execution boundary, and writes the
         chosen connection into the immutable runtime binding.
+
+        I12: this used to return the provider/model pair and stop, leaving the
+        endpoint and the credential in the database. The runtime then used
+        whatever authentication its host happened to have, so a profile that
+        passed its connection test proved nothing about which account a run
+        would bill or which server it would reach. The credential is read here,
+        at the trust boundary that has already re-proved ownership, and handed
+        to the adapter for this turn only.
         """
         if context.ai_profile_id is None:
-            return self._settings.provider_id, self._settings.model_id, None
+            return ResolvedProfile(
+                provider_id=self._settings.provider_id,
+                model_id=self._settings.model_id,
+                connection_id=None,
+                base_url=None,
+                credential=None,
+                auth_mode=AuthMode.NONE,
+            )
         async with self._db.unit_of_work() as uow:
             connection = await uow.model_connections.get(
                 context.ai_profile_id, owner_id=context.actor.subject_id
@@ -293,7 +337,25 @@ class AgentRuntimeGateway:
                 profile_id=connection.id,
                 status=connection.status.value,
             )
-        return connection.provider_id, connection.model_id, connection.id
+        credential = None
+        if connection.credential_ref:
+            if self._secrets is None:
+                # Never proceed without it: the run would silently use the
+                # runtime host's own credentials instead of this owner's.
+                raise RuntimeUnavailable(
+                    "this deployment cannot read the credential for the selected AI "
+                    "profile, so the run would use the runtime's own authentication",
+                    profile_id=connection.id,
+                )
+            credential = self._secrets.get(connection.credential_ref)
+        return ResolvedProfile(
+            provider_id=connection.provider_id,
+            model_id=connection.model_id,
+            connection_id=connection.id,
+            base_url=connection.base_url,
+            credential=credential,
+            auth_mode=connection.auth_mode,
+        )
 
     async def health(self) -> bool:
         """Public readiness probe (used by ``GET /health/ready``) — the same

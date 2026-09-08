@@ -38,6 +38,8 @@ from ..tools.capability import CapabilityTokenService
 from ..tools.mcp_server import mcp_asgi_app
 from ..tools.runner import ToolRunner
 from ..connections.secrets import FilesystemSecretStore
+from ..connections.network import EgressPolicy
+from ..connections.probe import OpenAICompatibleProbe
 from ..connections.service import ModelConnectionService
 from . import errors
 from .auth import build_auth
@@ -176,7 +178,12 @@ def create_app(
         app.state.auth = build_auth(settings.security)
         app.state.sessions = SessionService(db)
         app.state.connections = ModelConnectionService(
-            db, FilesystemSecretStore(settings.object_store_dir.parent / "model-secrets")
+            db,
+            FilesystemSecretStore(settings.object_store_dir.parent / "model-secrets"),
+            # The probe calls a URL the user supplied, from inside this
+            # process. Which destinations that may reach is a deployment
+            # decision, not a default (I15) — see SecuritySettings.egress_policy.
+            OpenAICompatibleProbe(egress=EgressPolicy(settings.security.egress_policy)),
         )
         # Intent.EVIDENCE_RESEARCH only reaches a runtime turn when this
         # deployment actually has a way to fulfil it (Phase 5) — otherwise
@@ -250,6 +257,12 @@ def create_app(
                 settings.runtime,
                 create_analysis=analysis,
                 mcp_url=settings.security.mcp_runtime_url,
+                # The same store the connection service writes into: without
+                # it a run silently used the runtime host's own credentials
+                # rather than the profile the user chose (I12).
+                secrets=FilesystemSecretStore(
+                    settings.object_store_dir.parent / "model-secrets"
+                ),
             )
 
             async def run_agentic(context: RunContext) -> None:

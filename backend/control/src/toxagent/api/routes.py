@@ -33,6 +33,8 @@ from ..domain.evidence import EvidenceStatus
 from ..domain.observation import ObservationKind
 from ..domain.run import Intent
 from ..domain.runtime import AuthMode
+from ..connections import providers
+from ..connections.probe import ProbeError
 from ..connections.service import ConnectionNotFound
 from ..predictor.ocr_client import OcrError, OcrUnavailable
 from ..predictor.contract import ENDPOINTS, TOX21_TASKS
@@ -375,15 +377,33 @@ async def quick_explain(
 
 # --- sessions --------------------------------------------------------------
 
+@router.get("/model-connections:providers")
+async def list_supported_providers() -> dict[str, Any]:
+    """Providers this control plane has an adapter for, and their defaults.
+
+    The UI used to carry its own list, which included providers whose wire
+    format nothing here speaks and whose base URL default was blank — so the
+    form could be filled in correctly and still fail every probe (I13). One
+    list, served by the code that decides.
+    """
+    return {"providers": providers.catalogue()}
+
+
 @router.post("/model-connections", status_code=201)
 async def create_model_connection(
     request: Request, body: CreateModelConnectionRequest, principal: Actor = Depends(actor)
 ):
-    item = await _services(request).connections.create(
-        owner_id=principal.subject_id, provider_id=body.provider_id, model_id=body.model_id,
-        auth_mode=AuthMode(body.auth_mode), base_url=body.base_url, credential=body.credential,
-        display_name=body.display_name,
-    )
+    try:
+        item = await _services(request).connections.create(
+            owner_id=principal.subject_id, provider_id=body.provider_id, model_id=body.model_id,
+            auth_mode=AuthMode(body.auth_mode), base_url=body.base_url, credential=body.credential,
+            display_name=body.display_name,
+        )
+    except providers.UnsupportedProvider as exc:
+        # The reason is the useful part: it says what to pick instead.
+        raise InvalidRequest(exc.reason, provider_id=exc.provider_id) from exc
+    except ValueError as exc:
+        raise InvalidRequest(str(exc)) from exc
     return item.public_dict()
 
 
@@ -412,6 +432,11 @@ async def test_model_connection(
         item = await _services(request).connections.test(connection_id, owner_id=principal.subject_id)
     except ConnectionNotFound as exc:
         raise NotFound("model connection not found") from exc
+    except ProbeError as exc:
+        # Typed and already redacted (connections/probe.py): unreachable,
+        # unauthorized, blocked and protocol_error are different problems with
+        # different fixes, and the connection has been marked failed.
+        raise InvalidRequest(str(exc), probe_failure=exc.kind.value) from exc
     return item.public_dict()
 
 

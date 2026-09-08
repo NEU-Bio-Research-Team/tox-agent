@@ -72,10 +72,38 @@ class RuntimeSessionSpec:
     max_steps: int
     deadline_at: datetime
     #: Product-owned AI provider profile selected for this run.  This is an
-    #: opaque connection id, never a credential; adapters receive only the
-    #: resolved provider/model pair above.
+    #: opaque connection id, never a credential; it identifies which profile
+    #: the audit row should record.
     connection_id: str | None = None
+    #: The endpoint and credential that profile actually configured (I12).
+    #:
+    #: These used to stop at the database: `_resolve_ai_profile` returned only
+    #: the provider/model pair, so a run dispatched with whatever credential
+    #: the runtime host happened to have configured. A successful "Test
+    #: connection" therefore proved nothing about which account a run would
+    #: bill, or whether it would reach the endpoint the user chose at all.
+    #:
+    #: An adapter that cannot give its runtime *these* values must refuse the
+    #: turn rather than fall back to the runtime's ambient authentication —
+    #: silently using someone else's credentials is worse than not running.
+    provider_base_url: str | None = None
+    provider_credential: str | None = None
+    auth_mode: str = "none"
     local_tool_context: Any = None
+
+    def credential_fingerprint(self) -> str:
+        """A stable, non-reversible id for *which* credential this was.
+
+        Recorded on the binding so an audit can say two runs used the same
+        key, or different ones, without the key being stored anywhere it
+        could be read back.
+        """
+        import hashlib
+
+        if not self.provider_credential:
+            return ""
+        digest = hashlib.sha256(self.provider_credential.encode("utf-8")).hexdigest()
+        return f"sha256:{digest[:16]}"
 
 
 @dataclass(frozen=True)
