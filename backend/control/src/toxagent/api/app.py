@@ -205,7 +205,7 @@ def create_app(
         app.state.sessions = SessionService(db)
         app.state.connections = ModelConnectionService(
             db,
-            FilesystemSecretStore(settings.object_store_dir.parent / "model-secrets"),
+            FilesystemSecretStore(settings.secrets_dir),
             # The probe calls a URL the user supplied, from inside this
             # process. Which destinations that may reach is a deployment
             # decision, not a default (I15) — see SecuritySettings.egress_policy.
@@ -286,9 +286,7 @@ def create_app(
                 # The same store the connection service writes into: without
                 # it a run silently used the runtime host's own credentials
                 # rather than the profile the user chose (I12).
-                secrets=FilesystemSecretStore(
-                    settings.object_store_dir.parent / "model-secrets"
-                ),
+                secrets=FilesystemSecretStore(settings.secrets_dir),
             )
 
             async def run_agentic(context: RunContext) -> None:

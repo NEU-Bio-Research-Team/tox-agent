@@ -478,6 +478,16 @@ class Settings:
     #: is injected explicitly (tests always inject one; api/app.py's real
     #: default construction is what reads this).
     object_store_dir: Path = SERVICE_ROOT / ".data" / "attachments"
+    #: Where a FilesystemSecretStore keeps AI profile credentials.
+    #:
+    #: I16: this used to be derived at the two call sites as
+    #: `object_store_dir.parent / "model-secrets"`, which made it invisible to
+    #: anyone configuring a deployment — the Compose stack gave PostgreSQL a
+    #: volume and gave neither of these one, so recreating the control
+    #: container destroyed every stored credential and every uploaded
+    #: attachment while the database kept rows referring to them. A directory
+    #: a deployment must persist has to be one it can see and set.
+    secrets_dir: Path = SERVICE_ROOT / ".data" / "model-secrets"
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
 
     @classmethod
@@ -494,6 +504,16 @@ class Settings:
             profiles_dir=Path(_env("TOXAGENT_PROFILES_DIR") or PACKAGE_ROOT / "agent_profiles"),
             object_store_dir=Path(
                 _env("TOXAGENT_OBJECT_STORE_DIR") or SERVICE_ROOT / ".data" / "attachments"
+            ),
+            secrets_dir=Path(
+                _env("TOXAGENT_SECRETS_DIR")
+                # Falls back to where the old derivation put it, so an
+                # existing deployment keeps reading the keys it already has.
+                or (
+                    Path(_env("TOXAGENT_OBJECT_STORE_DIR")).parent / "model-secrets"
+                    if _env("TOXAGENT_OBJECT_STORE_DIR")
+                    else SERVICE_ROOT / ".data" / "model-secrets"
+                )
             ),
             database=DatabaseSettings.from_env(),
         )

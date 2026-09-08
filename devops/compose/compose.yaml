@@ -89,6 +89,20 @@ services:
       TOXAGENT_CAPABILITY_SECRET: ${TOXAGENT_CAPABILITY_SECRET:?run ./bin/toxagent setup first}
       TOXAGENT_STATIC_TOKENS: ${TOXAGENT_STATIC_TOKENS:?run ./bin/toxagent setup first}
       TOXAGENT_CORS_ALLOW_ORIGINS: ${TOXAGENT_CORS_ALLOW_ORIGINS:-}
+      # I16: uploaded attachments and AI profile credentials are files, and
+      # they had no volume — only PostgreSQL did. `docker compose up` after a
+      # rebuild therefore destroyed every stored key and every uploaded image
+      # while the database kept the rows that refer to them: connections that
+      # still tested as configured, attachments whose bytes were gone.
+      #
+      # Both live under one named volume, at a path outside the image so a
+      # rebuild cannot shadow them. This is the local answer; a hosted
+      # deployment points these at an object store and a secret manager
+      # instead (see K07 in docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md).
+      TOXAGENT_OBJECT_STORE_DIR: /var/lib/toxagent/attachments
+      TOXAGENT_SECRETS_DIR: /var/lib/toxagent/model-secrets
+    volumes:
+      - toxagent-state:/var/lib/toxagent
     depends_on:
       postgres:
         condition: service_healthy
@@ -109,3 +123,7 @@ services:
 
 volumes:
   toxagent-postgres:
+  # Attachment bytes and AI profile credentials. Backed up together with the
+  # database or not at all: the rows in `attachments` and `model_connections`
+  # are references into this volume, and half a restore is dangling refs.
+  toxagent-state:
