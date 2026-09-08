@@ -1,0 +1,17 @@
+schema_version: 1
+models:
+  - model_id: clintox-smilesgnn-v1
+    display_name: SMILESGNN ClinTox v1 (blocked)
+    provider: clintox_smilesgnn
+    capabilities: [clintox]
+    artifact_dir: smilesgnn_model
+    required: false
+    feature_schema_version: smilesgnn-hybrid-v1
+    model_config: ../../configs/smilesgnn_config.yaml
+    declared_thresholds:
+      clintox: 0.35
+    blocked_reason: >-
+      The exact tokenizer.pkl with the 69-token vocabulary is absent. Restore and hash-verify it, or
+      retrain as a complete v2 release before this endpoint can be served.
+    files:
+      - {path: best_model.pt, sha256: 404f0fa834d067b198d6351e85ca55ed6724d3c40c5457635c2ee4c83a4cb2f1, bytes: 1680373}

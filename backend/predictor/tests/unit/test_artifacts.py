@@ -137,6 +137,25 @@ def test_empty_manifest_is_rejected(tmp_path):
         load_manifest(write_manifest(tmp_path, {"schema_version": 1, "models": []}))
 
 
+def test_manifest_index_merges_per_model_releases(tmp_path):
+    models = tmp_path / "models"
+    models.mkdir()
+    for name in ("first", "second"):
+        child = tmp_path / f"{name}.yaml"
+        child.write_text(yaml.safe_dump({
+            "schema_version": 1,
+            "models": [{
+                "model_id": name, "provider": "p1", "capabilities": ["herg"],
+                "artifact_dir": name,
+                "files": [{"path": "best.pt", "sha256": "0" * 64}],
+            }],
+        }))
+    index = write_manifest(tmp_path, {
+        "schema_version": 1, "models_root": "models", "includes": ["first.yaml", "second.yaml"],
+    })
+    assert set(load_manifest(index)) == {"first", "second"}
+
+
 def test_real_manifest_verifies_against_real_artifacts():
     """The shipped manifest must describe the artifacts actually on disk."""
     from pathlib import Path

@@ -105,7 +105,14 @@ class ArtifactSpec:
 
 
 def load_manifest(manifest_path: Path, models_root: Path | None = None) -> dict[str, ArtifactSpec]:
-    """Parse an artifact manifest into ArtifactSpecs. Does not read weights."""
+    """Parse a manifest or manifest index into artifact specifications.
+
+    A registry index may contain ``includes`` pointing at per-model manifests.
+    Every included release is parsed independently (so its relative config
+    paths remain local to that release), while the index owns the common
+    artifact root.  The older single-file ``models`` form remains supported
+    for external deployments that have not split their registry yet.
+    """
     manifest_path = Path(manifest_path)
     raw = yaml.safe_load(manifest_path.read_text()) or {}
     if int(raw.get("schema_version", 0)) != 1:
@@ -117,6 +124,16 @@ def load_manifest(manifest_path: Path, models_root: Path | None = None) -> dict[
     base = base.resolve()
 
     specs: dict[str, ArtifactSpec] = {}
+    for include in raw.get("includes") or ():
+        child_path = (manifest_path.parent / str(include)).resolve()
+        if not child_path.is_file():
+            raise ArtifactError(f"manifest include does not exist: {include}")
+        child_specs = load_manifest(child_path, models_root=base)
+        for model_id, spec in child_specs.items():
+            if model_id in specs:
+                raise ArtifactError(f"duplicate model_id across manifests: {model_id}")
+            specs[model_id] = spec
+
     for entry in raw.get("models") or []:
         model_id = entry["model_id"]
         if model_id in specs:
