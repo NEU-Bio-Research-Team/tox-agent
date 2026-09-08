@@ -7,6 +7,7 @@ artifact or the runtime is unavailable. The baseline was captured by
 Tolerance: 1e-6 on the same CPU container, per the plan's Phase 3 gate.
 """
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -40,6 +41,17 @@ def _requirements_met() -> tuple[bool, str]:
 
 
 _OK, _REASON = _requirements_met()
+
+# I26: a scientific gate that reports success because every one of its tests
+# skipped is worse than no gate — it is a green tick attached to nothing. CI's
+# scientific-regression job provisions the artifacts and then sets this, so a
+# missing checkpoint fails the release path instead of quietly passing it.
+# Unset (a developer without artifacts) still skips, with the reason attached.
+if not _OK and os.getenv("TOXPRED_REQUIRE_GOLDEN") == "1":
+    raise RuntimeError(
+        "TOXPRED_REQUIRE_GOLDEN=1 but the golden suite cannot run: " + _REASON
+    )
+
 pytestmark = [pytest.mark.golden, pytest.mark.skipif(not _OK, reason=_REASON)]
 
 
