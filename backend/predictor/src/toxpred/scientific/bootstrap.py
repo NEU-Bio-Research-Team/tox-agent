@@ -14,11 +14,12 @@ from .providers.clintox_smilesgnn import make_factory as clintox_factory
 from .providers.herg_tox21_chemberta import factory as chemberta_factory
 from .registry import ModelRegistry
 
-# ``src/toxpred/scientific/bootstrap.py`` lives three levels below the
-# predictor package root. Keep release metadata with that package rather than
-# relying on the historical repository-root artifacts directory.
-PREDICTOR_ROOT = Path(__file__).resolve().parents[3]
-WORKSPACE_ROOT = PREDICTOR_ROOT.parents[1]
+# In development the package lives at ``predictor/src/toxpred``; release
+# images intentionally copy only ``toxpred`` into ``/app``. Derive both roots
+# from the observed source layout instead of indexing an assumed parent chain.
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+PREDICTOR_ROOT = SOURCE_ROOT.parent if SOURCE_ROOT.name == "src" else SOURCE_ROOT
+WORKSPACE_ROOT = PREDICTOR_ROOT.parents[1] if PREDICTOR_ROOT.parent.name == "backend" else PREDICTOR_ROOT
 DEFAULT_MANIFEST = PREDICTOR_ROOT / "registry" / "predictor-manifest.yaml"
 DEFAULT_CLINTOX_CONFIG = WORKSPACE_ROOT / "config" / "smilesgnn_config.yaml"
 
