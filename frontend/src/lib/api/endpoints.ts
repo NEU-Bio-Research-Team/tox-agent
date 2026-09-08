@@ -252,15 +252,29 @@ export function listAllEventsForRun(sessionId: string, runId: string): Promise<T
   );
 }
 
+/** One capability's state, as `application/capabilities.py` reports it.
+ *
+ * `configured` is what the deployment's wiring declared; `available` is what
+ * a request would actually meet. They are separate because they disagreed
+ * (I01/I05): a stack advertised a runtime kind it never constructed. Read
+ * `available` for anything that gates UI, and show `reason` when it is false
+ * — it is written for the reader and carries no secrets.
+ */
+export interface Capability {
+  configured: boolean;
+  available: boolean;
+  checked_at: string;
+  reason?: string;
+}
+
 export interface HealthReady {
   ready: boolean;
+  /** `predictor_only` or `agent_enabled`, derived from what is bound. */
+  mode?: 'predictor_only' | 'agent_enabled';
+  database?: { ready: boolean; reason?: string; checked_at?: string };
   predictor?: { ready: boolean; served_endpoints?: string[]; reason?: string };
-  runtime?: { kind: string };
-  /** routes.py `ready()` — whether a deployment fact (a gated capability's
-   * scheduler handler) is registered. `structure_recognition` reflects
-   * whether `TOXAGENT_OCR_URL` is configured (ADR 0006), not a permanent
-   * limitation the UI can hardcode. */
-  capabilities?: Record<string, boolean>;
+  runtime?: { configured_kind: string; bound: boolean; healthy?: boolean; reason?: string };
+  capabilities?: Record<string, Capability>;
 }
 
 export function getHealthReady(): Promise<HealthReady> {

@@ -124,7 +124,11 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
     queryFn: () => getHealthReady(),
     staleTime: 5 * 60_000,
   });
-  const structureRecognitionAvailable = capabilitiesQuery.data?.capabilities?.structure_recognition ?? false;
+  // `.available`, not the capability object: routes.py now reports
+  // configured/available/reason per capability, and reading the object as a
+  // boolean would make every capability look present.
+  const structureRecognitionAvailable =
+    capabilitiesQuery.data?.capabilities?.structure_recognition?.available ?? false;
 
   const { status, liveToolCalls, liveActivities, recoveryBanners, analysisIdByRun, latestArtifact } = useSessionEvents(
     sessionId,
