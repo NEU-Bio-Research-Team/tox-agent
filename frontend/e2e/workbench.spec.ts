@@ -106,3 +106,11 @@ test('opens the keyboard-accessible structure drawing dialog and survives reload
   await page.reload();
   await expect(page.getByRole('heading', { name: 'E2E workspace' })).toBeVisible();
 });
+
+test('honours reduced-motion preferences in the session UI', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await openWorkbench(page);
+  await expect(page.getByRole('heading', { name: 'E2E workspace' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+  await expect(page.locator('body')).toHaveCSS('scroll-behavior', 'auto');
+});
