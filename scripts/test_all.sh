@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run every package's test suite with an explicit interpreter/environment for
 # each — never "whichever python happens to be on PATH". This exists because
-# toxocr/tests was once reported as hanging past ~90s (remaining-implementation
+# backend/ocr/tests was once reported as hanging past ~90s (remaining-implementation
 # -plan section 2.2); the actual cause was invoking it with the wrong python
 # (missing PYTHONPATH, drug-tox-env's torch instead of toxocr-env's), not a
 # product hang — confirmed fast (<1s) once invoked as below. See PROGRESS.md
@@ -40,7 +40,7 @@ cd "$REPO_ROOT"
 
 run "toxpred (root package)" "$DRUG_TOX_PY" -m pytest tests -q
 run "toxagent-control" "$DRUG_TOX_PY" -m pytest backend/control/tests -q
-PYTHONPATH="$REPO_ROOT" run "toxocr" "$TOXOCR_PY" -m pytest toxocr/tests -q
+PYTHONPATH="$REPO_ROOT/backend" run "toxocr" "$TOXOCR_PY" -m pytest backend/ocr/tests -q
 
 if command -v npm >/dev/null 2>&1; then
   (

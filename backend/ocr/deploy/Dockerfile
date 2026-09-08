@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # toxocr: optical chemical structure recognition (image -> SMILES).
 #
-# Build: docker build -f toxocr/deploy/Dockerfile -t toxocr toxocr
+# Build: docker build -f backend/ocr/deploy/Dockerfile -t toxocr backend/ocr
 #
 # Build context is this package's own directory — same three/four-boundary
 # reasoning as toxagent-control's Dockerfile (ADR 0006): this image must not
@@ -43,12 +43,9 @@ COPY requirements.txt /app/requirements.txt
 # verified local install sequence does (requirements.txt's own comment).
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r /app/requirements.txt && pip install "numpy<2"
 
-# The build context (toxocr/) *is* the package's own contents — there is no
-# nested toxocr/toxocr/ the way a packaged project would have — so the
-# import root has to be one level above where the source lands, exactly like
-# every other place in this repo runs it with PYTHONPATH pointed at the
-# monorepo root. Recreate that shape inside the image instead.
-COPY . /app/toxocr/
+# The source follows the same src layout as the predictor. Copy just the
+# package, rather than turning deployment files and tests into importable code.
+COPY src/toxocr /app/toxocr/
 ENV PYTHONPATH=/app
 ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/x86_64-linux-gnu
 

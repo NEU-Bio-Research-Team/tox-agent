@@ -42,7 +42,7 @@ services:
 
   toxocr:
     build:
-      context: ./toxocr
+      context: ./backend/ocr
       dockerfile: deploy/Dockerfile
       args:
         TORCH_VARIANT: ${TOXOCR_TORCH_VARIANT:-cpu}
