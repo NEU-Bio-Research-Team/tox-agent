@@ -7,7 +7,7 @@ from pathlib import Path
 from toxpred.scientific.artifacts import load_manifest
 
 manifest = Path("/app/registry/predictor-manifest.yaml")
-for specification in load_manifest(manifest).values():
+for specification in load_manifest(manifest, Path("/app/models")).values():
     if specification.required:
         specification.verify()
 print("required predictor artifacts verified", flush=True)

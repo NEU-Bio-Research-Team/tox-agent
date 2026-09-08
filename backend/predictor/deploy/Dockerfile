@@ -42,7 +42,7 @@ COPY backend/predictor/deploy/entrypoint.sh /app/deploy/entrypoint.sh
 RUN python - <<'PY'
 from pathlib import Path
 from toxpred.scientific.artifacts import load_manifest
-for spec in load_manifest(Path('/app/registry/predictor-manifest.yaml')).values():
+for spec in load_manifest(Path('/app/registry/predictor-manifest.yaml'), Path('/app/models')).values():
     if spec.required:
         spec.verify()
 PY
