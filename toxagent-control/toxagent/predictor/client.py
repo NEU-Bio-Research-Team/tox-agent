@@ -102,11 +102,14 @@ class PredictorClient:
         smiles: str,
         endpoints: tuple[str, ...] | None = None,
         *,
+        model_selection: Mapping[str, str] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
     ) -> PredictionResponse:
         body: dict[str, Any] = {"smiles": smiles}
         if endpoints:
             body["endpoints"] = list(endpoints)
+        if model_selection:
+            body["model_selection"] = dict(model_selection)
         if threshold_overrides:
             body["threshold_overrides"] = dict(threshold_overrides)
         response = await self._request("POST", "/v1/predictions", json=body)
@@ -119,6 +122,7 @@ class PredictorClient:
         smiles: list[str],
         endpoints: tuple[str, ...] | None = None,
         *,
+        model_selection: Mapping[str, str] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
     ) -> BatchPredictionResponse:
         if len(smiles) > self._settings.max_batch_size:
@@ -129,6 +133,8 @@ class PredictorClient:
         body: dict[str, Any] = {"smiles": smiles}
         if endpoints:
             body["endpoints"] = list(endpoints)
+        if model_selection:
+            body["model_selection"] = dict(model_selection)
         if threshold_overrides:
             body["threshold_overrides"] = dict(threshold_overrides)
         response = await self._request("POST", "/v1/predictions:batch", json=body)

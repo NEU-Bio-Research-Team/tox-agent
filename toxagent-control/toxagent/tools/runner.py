@@ -23,6 +23,7 @@ from ..domain.errors import ToolDenied, ToxAgentError
 from ..domain.events import EventType
 from ..domain.ids import TOOL_CALL, new_id
 from ..domain.provenance import content_sha256
+from ..activities import activity_for_tool
 from . import envelope
 from .definitions.answer import ANSWER_TOOL_NAME
 from .registry import ToolContext, ToolRegistry
@@ -167,6 +168,12 @@ class ToolRunner:
                         entity_type="tool_call", entity_id=context.call_id,
                         run_id=context.run_id, payload={"tool_name": tool_name},
                     )
+                    uow.emit(
+                        session_id=context.session_id, type=EventType.ACTIVITY_STARTED,
+                        entity_type="activity", entity_id=context.call_id,
+                        run_id=context.run_id,
+                        payload=activity_for_tool(tool_name, status="started"),
+                    )
                     await uow.commit()
                     return
 
@@ -221,6 +228,11 @@ class ToolRunner:
                     "duration_ms": duration_ms,
                 },
             )
+            uow.emit(
+                session_id=context.session_id, type=EventType.ACTIVITY_COMPLETED,
+                entity_type="activity", entity_id=context.call_id, run_id=context.run_id,
+                payload=activity_for_tool(tool_name, status="completed"),
+            )
             await uow.commit()
 
     async def _finish_error(
@@ -245,6 +257,11 @@ class ToolRunner:
                 session_id=context.session_id, type=EventType.TOOL_FAILED,
                 entity_type="tool_call", entity_id=context.call_id, run_id=context.run_id,
                 payload={"tool_name": tool_name, "error_code": code},
+            )
+            uow.emit(
+                session_id=context.session_id, type=EventType.ACTIVITY_FAILED,
+                entity_type="activity", entity_id=context.call_id, run_id=context.run_id,
+                payload=activity_for_tool(tool_name, status="failed"),
             )
             await uow.commit()
         return envelope.failed(

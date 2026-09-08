@@ -13,6 +13,7 @@ import type {
   GroundedAnswer,
   Message,
   MessageListResponse,
+  ModelConnection,
   ObservationResponse,
   PredictCapabilities,
   PreferredLanguage,
@@ -80,6 +81,7 @@ export interface SendMessageInput {
   image?: { mime_type: 'image/png' | 'image/jpeg' | 'image/webp'; data_base64: string };
   analysis_options?: {
     endpoints?: Array<'clintox' | 'herg' | 'tox21'>;
+    model_selection?: Partial<Record<'clintox' | 'herg' | 'tox21', string>>;
     threshold_overrides?: Record<string, number> | null;
     include_attribution?: boolean;
     explanation_mode?: 'required' | 'on_demand' | 'none';
@@ -108,6 +110,25 @@ export function quickPredictBatch(
 
 export function quickPredictCapabilities(): Promise<PredictCapabilities> {
   return apiRequest('/v1/predict/capabilities');
+}
+
+export function listModelConnections(): Promise<{ connections: ModelConnection[] }> {
+  return apiRequest('/v1/model-connections');
+}
+
+export function createModelConnection(input: {
+  provider_id: string; model_id: string; auth_mode: ModelConnection['auth_mode'];
+  base_url?: string; credential?: string;
+}): Promise<ModelConnection> {
+  return apiRequest('/v1/model-connections', { method: 'POST', body: input });
+}
+
+export function testModelConnection(connectionId: string): Promise<ModelConnection> {
+  return apiRequest(`/v1/model-connections/${connectionId}:test`, { method: 'POST' });
+}
+
+export function deleteModelConnection(connectionId: string): Promise<void> {
+  return apiRequest(`/v1/model-connections/${connectionId}`, { method: 'DELETE' });
 }
 
 /** Image → SMILES through the stateless toxocr proxy. Two-step by design:

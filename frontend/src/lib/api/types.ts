@@ -164,6 +164,8 @@ export interface AnalysisProjection {
 export interface QuickPredictRequest {
   smiles: string;
   endpoints?: Endpoint[];
+  /** Endpoint -> explicitly selected admitted model. Omit for safe Auto mode. */
+  model_selection?: Partial<Record<Endpoint, string>>;
   threshold_overrides?: Record<string, number | Record<string, number>> | null;
   include_attribution?: boolean;
   explanation_mode?: 'required' | 'on_demand' | 'none';
@@ -181,6 +183,7 @@ export interface QuickPredictResult extends Omit<AnalysisProjection, 'analysis_i
 export interface QuickPredictBatchRequest {
   smiles: string[];
   endpoints?: Endpoint[];
+  model_selection?: Partial<Record<Endpoint, string>>;
   threshold_overrides?: Record<string, number | Record<string, number>> | null;
   explanation_mode?: 'required' | 'on_demand' | 'none';
   explanation_targets?: ExplanationTarget[];
@@ -210,6 +213,28 @@ export interface PredictEndpointCapability {
   explanation_target_required: boolean;
   tasks: string[];
   blocked_reason: string | null;
+  /** All admitted candidates for this endpoint, not merely the Auto default. */
+  models?: PredictModelInfo[];
+}
+
+export interface ActivityLive {
+  activity_id: string;
+  phase: 'planning' | 'retrieval' | 'reading' | 'prediction' | 'analysis' | 'synthesis';
+  kind: string;
+  label_key: string;
+  status: 'started' | 'progress' | 'completed' | 'failed';
+  progress?: { current?: number; total?: number };
+}
+
+export interface ModelConnection {
+  connection_id: string;
+  provider_id: string;
+  model_id: string;
+  auth_mode: 'chatgpt_subscription' | 'api_key' | 'local' | 'none';
+  base_url: string | null;
+  has_credential: boolean;
+  capabilities: { streaming: boolean; tool_calls: boolean; structured_output: boolean; context_size: number | null };
+  status: 'untested' | 'ready' | 'failed';
 }
 
 export interface ExplanationTarget {
@@ -522,6 +547,10 @@ export type EventType =
   | 'tool.started'
   | 'tool.completed'
   | 'tool.failed'
+  | 'activity.started'
+  | 'activity.progress'
+  | 'activity.completed'
+  | 'activity.failed'
   | 'observation.created'
   | 'analysis.created'
   | 'evidence.created'

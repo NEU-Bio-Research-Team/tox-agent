@@ -97,7 +97,7 @@ def models(request: Request):
 @v1_router.post("/predictions")
 def predict(request: Request, body: PredictionRequest) -> dict[str, Any]:
     result = _predictor(request).predict(
-        body.smiles, body.endpoints, **_overrides(body)
+        body.smiles, body.endpoints, model_selection=body.model_selection, **_overrides(body)
     )
     return result.to_dict()
 
@@ -105,7 +105,7 @@ def predict(request: Request, body: PredictionRequest) -> dict[str, Any]:
 @v1_router.post("/predictions:batch", response_model=BatchPredictionResponse)
 def predict_batch(request: Request, body: BatchPredictionRequest):
     results, errors = _predictor(request).predict_batch(
-        body.smiles, body.endpoints, **_overrides(body)
+        body.smiles, body.endpoints, model_selection=body.model_selection, **_overrides(body)
     )
     return BatchPredictionResponse(
         results=[r.to_dict() for r in results],

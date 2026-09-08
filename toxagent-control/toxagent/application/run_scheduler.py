@@ -42,6 +42,7 @@ class RunContext:
     smiles: str | None = None
     batch_smiles: tuple[str, ...] = ()
     endpoints: tuple[str, ...] | None = None
+    model_selection: Mapping[str, str] | None = None
     threshold_overrides: Mapping[str, Any] | None = None
     explanation_mode: str = "on_demand"
     explanation_targets: tuple[tuple[str, str | None], ...] = ()
@@ -198,6 +199,7 @@ class RunScheduler:
                     smiles=context.smiles,
                     batch_smiles=context.batch_smiles,
                     endpoints=context.endpoints,
+                    model_selection=context.model_selection,
                     threshold_overrides=context.threshold_overrides,
                     explanation_mode=context.explanation_mode,
                     explanation_targets=context.explanation_targets,

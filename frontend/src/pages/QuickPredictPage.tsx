@@ -35,6 +35,7 @@ export function QuickPredictPage() {
   const [batchMode, setBatchMode] = useState(false);
   const [batchText, setBatchText] = useState('');
   const [endpoints, setEndpoints] = useState<Endpoint[]>(() => getEndpointSelection() ?? ['herg', 'tox21']);
+  const [modelSelection, setModelSelection] = useState<Partial<Record<Endpoint, string>>>({});
   const [thresholdHerg, setThresholdHerg] = useState('');
   const [drawOpen, setDrawOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
@@ -67,6 +68,20 @@ export function QuickPredictPage() {
     });
   }, [caps]);
 
+  useEffect(() => {
+    if (!caps) return;
+    setModelSelection((current) => Object.fromEntries(
+      (caps.endpoints ?? []).flatMap((endpoint) => {
+        const compatible = endpoint.models ?? [];
+        const retained = current[endpoint.id];
+        const selected = compatible.some((model) => model.model_id === retained)
+          ? retained
+          : compatible[0]?.model_id;
+        return selected ? [[endpoint.id, selected]] : [];
+      }),
+    ) as Partial<Record<Endpoint, string>>);
+  }, [caps]);
+
   useEffect(() => { setEndpointSelection(endpoints); }, [endpoints]);
 
   useEffect(() => {
@@ -95,7 +110,7 @@ export function QuickPredictPage() {
     setBatchResult(null);
     try {
       setResult(
-        await quickPredict({ smiles: trimmed, endpoints, threshold_overrides: overrides }),
+        await quickPredict({ smiles: trimmed, endpoints, model_selection: modelSelection, threshold_overrides: overrides }),
       );
     } catch (err) {
       if (err instanceof ApiError) {
@@ -125,7 +140,7 @@ export function QuickPredictPage() {
     setResult(null);
     try {
       setBatchResult(
-        await quickPredictBatch({ smiles: lines, endpoints, threshold_overrides: overrides }),
+        await quickPredictBatch({ smiles: lines, endpoints, model_selection: modelSelection, threshold_overrides: overrides }),
       );
     } catch (err) {
       if (err instanceof ApiError) {
@@ -264,7 +279,7 @@ export function QuickPredictPage() {
 
             <fieldset>
               <legend className="mb-2 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-                Phạm vi dự đoán
+                Endpoints &amp; mô hình
               </legend>
               <div className="flex flex-wrap gap-2">
                 {endpointCapabilities.map((endpoint) => {
@@ -279,6 +294,28 @@ export function QuickPredictPage() {
                   );
                 })}
               </div>
+              <div className="mt-3 space-y-2">
+                {endpointCapabilities.filter((endpoint) => endpoints.includes(endpoint.id)).map((endpoint) => {
+                  const models = endpoint.models ?? [];
+                  if (!endpoint.enabled) return null;
+                  return (
+                    <label key={`${endpoint.id}-model`} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-xs" style={{ borderColor: 'var(--line)', backgroundColor: 'var(--surface-solid)' }}>
+                      <span className="font-medium" style={{ color: 'var(--ink)' }}>{endpoint.display_name}</span>
+                      <select
+                        aria-label={`Mô hình ${endpoint.display_name}`}
+                        value={modelSelection[endpoint.id] ?? ''}
+                        onChange={(event) => setModelSelection((current) => ({ ...current, [endpoint.id]: event.target.value }))}
+                        className="max-w-[220px] bg-transparent text-xs outline-none"
+                      >
+                        {models.map((model) => <option key={model.model_id} value={model.model_id}>{model.model_id}</option>)}
+                      </select>
+                    </label>
+                  );
+                })}
+              </div>
+              {endpoints.length > 1 && new Set(endpoints.map((endpoint) => modelSelection[endpoint])).size === 1 && (
+                <p className="mt-2 text-xs" style={{ color: 'var(--purple-700)' }}>⚡ Các endpoint đã chọn dùng chung một model; predictor sẽ deduplicate inference.</p>
+              )}
             </fieldset>
 
             {expertMode && (

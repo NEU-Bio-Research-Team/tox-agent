@@ -158,6 +158,7 @@ restore() { [[ $# -eq 2 && -f "$2" ]] || fail "usage: toxagent restore backups/f
 command="${1:-}"
 shift || true
 case "$command" in
+  models) python3 "$ROOT/tools/model_admission.py" "$@" ;;
   setup)
     if [[ "${1:-}" == "--agent" ]]; then shift; setup_agent "$@"; else setup; fi
     ;;
@@ -167,5 +168,5 @@ case "$command" in
   status) [[ "${1:-}" == "--agent" ]] && agent_status || status ;;
   logs) [[ "${1:-}" == "--agent" ]] && agent_logs || logs "$@" ;;
   smoke) smoke ;; backup) backup ;; restore) restore "$@" ;;
-  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent],down [--agent],status [--agent],logs [--agent],smoke,backup,restore}\n' "$0" >&2; exit 2 ;;
+  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent],down [--agent],status [--agent],logs [--agent],smoke,backup,restore,models}\n' "$0" >&2; exit 2 ;;
 esac

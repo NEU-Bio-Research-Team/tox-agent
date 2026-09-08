@@ -7,6 +7,8 @@ import { ClarificationCard } from './ClarificationCard';
 import { StructureRecognitionCard } from './StructureRecognitionCard';
 import { AnswerBlock } from './AnswerBlock';
 import { RunBlock } from './RunBlock';
+import { ActivityPresence } from './ActivityPresence';
+import type { ActivityLive } from '../../lib/api/types';
 import { AnalysisSystemCard } from './AnalysisSystemCard';
 import { SystemEventCard } from './SystemEventCard';
 import { RecoveryBanner } from './RecoveryBanner';
@@ -27,6 +29,7 @@ export function Transcript({
   pendingSends,
   runs,
   liveToolCalls,
+  liveActivities,
   recoveryBanners,
   analysisIdByRun,
   activeAnalysisId,
@@ -38,6 +41,7 @@ export function Transcript({
   pendingSends: PendingUserSend[];
   runs: RunProjection[];
   liveToolCalls: Record<string, ToolCallLive[]>;
+  liveActivities: Record<string, ActivityLive[]>;
   recoveryBanners: RecoveryBannerData[];
   /** run_id -> analysis_id seen live this session (useSessionEvents). */
   analysisIdByRun: Record<string, string>;
@@ -128,7 +132,11 @@ export function Transcript({
                   {showAsAnalysis ? (
                     <AnalysisSystemCard sessionId={sessionId} run={run} analysisId={resolvedAnalysisId} />
                   ) : (
-                    <RunBlock sessionId={sessionId} run={run} liveToolCalls={liveToolCalls[run.run_id] ?? []} />
+                    <ActivityPresence
+                      activities={liveActivities[run.run_id] ?? []}
+                      tools={liveToolCalls[run.run_id] ?? []}
+                      status={run.status}
+                    />
                   )}
                   {(bannersByOriginalRun.get(run.run_id) ?? []).map((banner) => (
                     <RecoveryBanner key={banner.recoveryRunId} banner={banner} />

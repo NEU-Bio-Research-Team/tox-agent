@@ -77,7 +77,7 @@ async function parseErrorBody(response: Response): Promise<ErrorBody> {
 }
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH';
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;

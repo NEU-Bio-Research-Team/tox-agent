@@ -126,7 +126,7 @@ def create_app(
         async def run_analysis(context: RunContext) -> None:
             await analysis.execute(
                 actor=context.actor, session_id=context.session_id, run_id=context.run_id,
-                smiles=context.smiles, endpoints=context.endpoints,
+                smiles=context.smiles, endpoints=context.endpoints, model_selection=context.model_selection,
                 threshold_overrides=context.threshold_overrides,
                 explanation_mode=context.explanation_mode,
                 explanation_targets=context.explanation_targets,
@@ -135,7 +135,7 @@ def create_app(
         async def run_batch(context: RunContext) -> None:
             await batch.execute(
                 actor=context.actor, session_id=context.session_id, run_id=context.run_id,
-                smiles=list(context.batch_smiles), endpoints=context.endpoints,
+                smiles=list(context.batch_smiles), endpoints=context.endpoints, model_selection=context.model_selection,
                 threshold_overrides=context.threshold_overrides,
             )
 

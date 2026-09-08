@@ -146,6 +146,7 @@ class ToxicityPredictor:
         smiles: str,
         endpoints: Sequence[str] | None = None,
         *,
+        model_selection: Mapping[str, str] | None = None,
         herg_threshold_override: float | None = None,
         tox21_threshold_overrides: Mapping[str, float] | None = None,
         clintox_threshold_override: float | None = None,
@@ -153,6 +154,7 @@ class ToxicityPredictor:
         results, errors = self.predict_batch(
             [smiles],
             endpoints,
+            model_selection=model_selection,
             herg_threshold_override=herg_threshold_override,
             tox21_threshold_overrides=tox21_threshold_overrides,
             clintox_threshold_override=clintox_threshold_override,
@@ -166,6 +168,7 @@ class ToxicityPredictor:
         smiles_list: Sequence[str],
         endpoints: Sequence[str] | None = None,
         *,
+        model_selection: Mapping[str, str] | None = None,
         herg_threshold_override: float | None = None,
         tox21_threshold_overrides: Mapping[str, float] | None = None,
         clintox_threshold_override: float | None = None,
@@ -181,7 +184,19 @@ class ToxicityPredictor:
             )
 
         requested = self._resolve_endpoints(endpoints)
-        providers = {e: self._registry.for_capability(e.value) for e in requested}
+        selections = dict(model_selection or {})
+        unknown_selection = sorted(set(selections) - {endpoint.value for endpoint in requested})
+        if unknown_selection:
+            raise ValueError(
+                "model_selection contains endpoint(s) not requested: "
+                f"{unknown_selection}"
+            )
+        providers = {
+            endpoint: self._registry.resolve(
+                capability=endpoint.value, model_id=selections.get(endpoint.value)
+            )
+            for endpoint in requested
+        }
 
         molecules: list[Molecule | None] = []
         errors: list[BatchItemError] = []

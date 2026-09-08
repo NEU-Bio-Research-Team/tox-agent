@@ -166,6 +166,7 @@ async def quick_predict(
             actor=principal,
             smiles=body.smiles,
             endpoints=tuple(body.endpoints) if body.endpoints else None,
+            model_selection=body.model_selection,
             threshold_overrides=body.threshold_overrides,
         )
         if body.include_attribution:
@@ -202,6 +203,7 @@ async def quick_predict_batch(
             actor=principal,
             smiles=body.smiles,
             endpoints=tuple(body.endpoints) if body.endpoints else None,
+            model_selection=body.model_selection,
             threshold_overrides=body.threshold_overrides,
         )
 
@@ -232,6 +234,7 @@ async def predict_capabilities(request: Request, principal: Actor = Depends(acto
             "explanation_target_required": endpoint == "tox21",
             "tasks": list(TOX21_TASKS) if endpoint == "tox21" else [],
             "blocked_reason": None if enabled else (model.get("blocked_reason") if model else "No reproducible model artifact is available for this endpoint."),
+            "models": [candidate for candidate in matching if candidate.get("loaded")],
         })
     return {
         "capability_version": "predict-capabilities-v2",
@@ -450,6 +453,7 @@ async def send_message(
             smiles=molecule.smiles if molecule else None,
             batch_smiles=tuple(molecule.batch_smiles or ()) if molecule else (),
             endpoints=tuple(options.endpoints) if options and options.endpoints else None,
+            model_selection=options.model_selection if options else None,
             threshold_overrides=options.threshold_overrides if options else None,
             include_attribution=options.include_attribution if options else False,
             explanation_mode=options.explanation_mode if options else "on_demand",

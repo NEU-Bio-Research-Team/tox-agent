@@ -38,6 +38,7 @@ class QuickPredict:
         actor: Actor,
         smiles: str,
         endpoints: tuple[str, ...] | None = None,
+        model_selection: Mapping[str, str] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Return an ``AnalysisProjection``-shaped mapping. Never persisted:
@@ -49,7 +50,7 @@ class QuickPredict:
         policy = policy_snapshot(endpoints=resolved, overrides=overrides, actor=actor)
 
         response = await self._predictor.predict(
-            smiles, resolved, threshold_overrides=overrides
+            smiles, resolved, model_selection=model_selection, threshold_overrides=overrides
         )
         provenance = self._predictor.provenance_of(response)
 
@@ -76,6 +77,7 @@ class QuickPredict:
         actor: Actor,
         smiles: list[str],
         endpoints: tuple[str, ...] | None = None,
+        model_selection: Mapping[str, str] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Order-preserving batch. One unparseable molecule in the list comes
@@ -86,7 +88,7 @@ class QuickPredict:
         policy = policy_snapshot(endpoints=resolved, overrides=overrides, actor=actor)
 
         batch = await self._predictor.predict_batch(
-            smiles, resolved, threshold_overrides=overrides
+            smiles, resolved, model_selection=model_selection, threshold_overrides=overrides
         )
 
         results = []

@@ -98,3 +98,16 @@ ClinTox is intentionally shown as unavailable: its release artifact lacks the
 tokenizer needed for reproducible inference. hERG and Tox21 are the served
 predictor capabilities in this release. See the [model card](docs/MODEL_CARD.md)
 for intended use, calibration and limitations.
+
+## Model admission
+
+Checkpoints on disk are not automatically offered in the product. Review them
+through the admission workflow; only a hash-verified, provider-compatible
+manifest entry can be served.
+
+```bash
+./bin/toxagent models scan
+./bin/toxagent models inspect models/example/best_model.pt
+./bin/toxagent models validate herg-tox21-chemberta-v1
+./bin/toxagent models admit herg-tox21-chemberta-v1
+```

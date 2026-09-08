@@ -46,6 +46,10 @@ class PredictionRequest(BaseModel):
         description="Endpoints to evaluate. Defaults to every endpoint this build serves.",
     )
     threshold_overrides: ThresholdOverrides | None = None
+    model_selection: dict[EndpointName, str] | None = Field(
+        default=None,
+        description="Optional explicit admitted model id for each requested endpoint.",
+    )
 
 
 class BatchPredictionRequest(BaseModel):
@@ -54,6 +58,7 @@ class BatchPredictionRequest(BaseModel):
     smiles: list[str] = Field(..., min_length=1)
     endpoints: list[EndpointName] | None = None
     threshold_overrides: ThresholdOverrides | None = None
+    model_selection: dict[EndpointName, str] | None = None
 
 
 class AttributionRequest(BaseModel):

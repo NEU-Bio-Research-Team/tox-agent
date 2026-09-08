@@ -64,6 +64,7 @@ class ImageInput(_Request):
 
 class AnalysisOptions(_Request):
     endpoints: list[Literal["clintox", "herg", "tox21"]] | None = None
+    model_selection: dict[Literal["clintox", "herg", "tox21"], str] | None = None
     threshold_overrides: dict[str, Any] | None = None
     include_attribution: bool = False
     explanation_mode: Literal["required", "on_demand", "none"] = "on_demand"
@@ -117,6 +118,7 @@ class PredictRequest(_Request):
 
     smiles: str = Field(min_length=1, max_length=4000)
     endpoints: list[Literal["clintox", "herg", "tox21"]] | None = None
+    model_selection: dict[Literal["clintox", "herg", "tox21"], str] | None = None
     threshold_overrides: dict[str, Any] | None = None
     #: Convenience for API callers: additionally attach per-endpoint token
     #: attributions. The UI should prefer the explicit ``POST /v1/predict/explain``
@@ -132,6 +134,7 @@ class PredictBatchRequest(_Request):
 
     smiles: list[str] = Field(min_length=1)
     endpoints: list[Literal["clintox", "herg", "tox21"]] | None = None
+    model_selection: dict[Literal["clintox", "herg", "tox21"], str] | None = None
     threshold_overrides: dict[str, Any] | None = None
     explanation_mode: Literal["required", "on_demand", "none"] = "none"
     explanation_targets: list[ExplanationTarget] = Field(default_factory=list)

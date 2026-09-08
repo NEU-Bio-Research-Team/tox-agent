@@ -113,6 +113,24 @@ class ModelRegistry:
             )
         return matches[0]
 
+    def resolve(self, *, capability: str, model_id: str | None = None) -> ModelProvider:
+        """Resolve an endpoint to a reproducible, loaded model.
+
+        Omitting ``model_id`` retains the safe auto-selection behaviour only
+        when exactly one provider serves the endpoint.  Once a catalogue has
+        two candidates, callers must make the selection explicit rather than
+        getting whichever dictionary entry happened to be registered first.
+        """
+        if model_id is None:
+            return self.for_capability(capability)
+        provider = self.get(model_id)
+        if capability not in provider.capabilities:
+            raise ArtifactError(
+                f"incompatible_model: model {model_id!r} does not provide "
+                f"capability {capability!r}; supports {sorted(provider.capabilities)}"
+            )
+        return provider
+
     def spec(self, model_id: str) -> ArtifactSpec:
         try:
             return self._specs[model_id]

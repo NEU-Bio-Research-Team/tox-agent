@@ -65,6 +65,7 @@ class CreateAnalysis:
         run_id: str,
         smiles: str,
         endpoints: tuple[str, ...] | None = None,
+        model_selection: Mapping[str, str] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
         explanation_mode: str = "on_demand",
         explanation_targets: tuple[tuple[str, str | None], ...] = (),
@@ -94,7 +95,7 @@ class CreateAnalysis:
                 await uow.commit()
 
         response = await self._predictor.predict(
-            smiles, endpoints, threshold_overrides=overrides
+            smiles, endpoints, model_selection=model_selection, threshold_overrides=overrides
         )
         provenance = self._predictor.provenance_of(response)
         explanations: list[dict[str, Any]] = []
@@ -267,6 +268,7 @@ class CreateAnalysisBatch:
         run_id: str,
         smiles: list[str],
         endpoints: tuple[str, ...] | None = None,
+        model_selection: Mapping[str, str] | None = None,
         threshold_overrides: Mapping[str, Any] | None = None,
     ) -> BatchResult:
         endpoints = resolve_endpoints(endpoints, self._settings)
@@ -279,7 +281,7 @@ class CreateAnalysisBatch:
                 raise SessionNotFound("no such session", session_id=session_id)
 
         response = await self._predictor.predict_batch(
-            smiles, endpoints, threshold_overrides=overrides
+            smiles, endpoints, model_selection=model_selection, threshold_overrides=overrides
         )
 
         stored: list[AnalysisSnapshot] = []

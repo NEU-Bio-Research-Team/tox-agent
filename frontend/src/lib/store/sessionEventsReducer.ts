@@ -1,4 +1,4 @@
-import type { ToxAgentEvent, Violation } from '../api/types';
+import type { ActivityLive, ToxAgentEvent, Violation } from '../api/types';
 import type { ConnectionStatus } from './eventBus';
 import type { ArtifactSelection } from '../../hooks/useArtifactSelection';
 
@@ -25,6 +25,7 @@ export interface SessionEventsState {
   status: ConnectionStatus;
   cursor: number;
   liveToolCalls: Record<string, ToolCallLive[]>;
+  liveActivities: Record<string, ActivityLive[]>;
   liveRejections: Record<string, Violation[][]>;
   recoveryBanners: RecoveryBanner[];
   analysisIdByRun: Record<string, string>;
@@ -56,6 +57,7 @@ export function createSessionEventsState(initialCursor: number): SessionEventsRe
     recentEventIds: [],
     historyHydratedThroughSequence: -1,
     liveToolCalls: {},
+    liveActivities: {},
     liveRejections: {},
     recoveryBanners: [],
     analysisIdByRun: {},
@@ -112,6 +114,7 @@ function hydrateHistory(
     // New SSE state wins on a key collision. It follows the immutable cursor
     // and is necessarily newer than this requested history snapshot.
     liveToolCalls: mergeToolCalls(history.liveToolCalls, state.liveToolCalls),
+    liveActivities: { ...history.liveActivities, ...state.liveActivities },
     liveRejections: mergeRejections(history.liveRejections, state.liveRejections),
     analysisIdByRun: { ...history.analysisIdByRun, ...state.analysisIdByRun },
     recoveryBanners: uniqueRecoveryBanners([...history.recoveryBanners, ...state.recoveryBanners]),
@@ -162,6 +165,25 @@ function reduceEvent(state: SessionEventsReducerState, event: ToxAgentEvent): Se
   const runId = event.run_id ?? undefined;
 
   switch (event.type) {
+    case 'activity.started':
+    case 'activity.progress':
+    case 'activity.completed':
+    case 'activity.failed': {
+      if (!runId) return next;
+      const status = event.type.split('.')[1] as ActivityLive['status'];
+      const activity: ActivityLive = {
+        activity_id: event.entity_id,
+        phase: (event.payload.phase as ActivityLive['phase']) ?? 'analysis',
+        kind: String(event.payload.kind ?? 'cross_check'),
+        label_key: String(event.payload.label_key ?? 'activity.processing'),
+        status,
+        progress: event.payload.progress as ActivityLive['progress'],
+      };
+      const prior = next.liveActivities[runId] ?? [];
+      const index = prior.findIndex((item) => item.activity_id === activity.activity_id);
+      const activities = index < 0 ? [...prior, activity] : prior.map((item, i) => i === index ? { ...item, ...activity } : item);
+      return { ...next, liveActivities: { ...next.liveActivities, [runId]: activities } };
+    }
     case 'tool.started':
       if (!runId) return next;
       return {

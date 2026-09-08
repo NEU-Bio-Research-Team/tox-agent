@@ -80,6 +80,7 @@ class MessageSubmission:
     smiles: str | None = None
     batch_smiles: tuple[str, ...] = ()
     endpoints: tuple[str, ...] | None = None
+    model_selection: Mapping[str, str] | None = None
     threshold_overrides: Mapping[str, Any] | None = None
     include_attribution: bool = False
     explanation_mode: str = "on_demand"
@@ -337,6 +338,7 @@ class SubmitMessage:
                 smiles=submission.smiles,
                 batch_smiles=submission.batch_smiles,
                 endpoints=submission.endpoints,
+                model_selection=submission.model_selection,
                 threshold_overrides=submission.threshold_overrides,
                 explanation_mode=submission.explanation_mode,
                 explanation_targets=submission.explanation_targets,

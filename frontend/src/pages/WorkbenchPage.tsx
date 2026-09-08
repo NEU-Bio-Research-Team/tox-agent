@@ -125,7 +125,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   });
   const structureRecognitionAvailable = capabilitiesQuery.data?.capabilities?.structure_recognition ?? false;
 
-  const { status, liveToolCalls, recoveryBanners, analysisIdByRun, latestArtifact } = useSessionEvents(
+  const { status, liveToolCalls, liveActivities, recoveryBanners, analysisIdByRun, latestArtifact } = useSessionEvents(
     sessionId,
     initial.latest_event_sequence,
     historyEventsQuery.data,
@@ -281,6 +281,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
               pendingSends={pendingSends}
               runs={runs}
               liveToolCalls={liveToolCalls}
+              liveActivities={liveActivities}
               recoveryBanners={recoveryBanners}
               analysisIdByRun={analysisIdByRun}
               activeAnalysisId={session.active_analysis?.analysis_id ?? null}
