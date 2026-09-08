@@ -37,6 +37,7 @@ def make_provider(root: Path, config: Path = CONFIG) -> ClinToxSmilesGnnProvider
 
 # --- availability ----------------------------------------------------------
 
+@pytest.mark.needs_artifacts
 def test_missing_tokenizer_is_reported_specifically():
     available, reason = make_provider(ARTIFACT_DIR).availability()
     assert available is False
@@ -68,6 +69,7 @@ def test_missing_config_is_reported(tmp_path, monkeypatch):
     assert "model config missing" in reason
 
 
+@pytest.mark.needs_artifacts
 def test_health_carries_the_reason_without_loading():
     health = make_provider(ARTIFACT_DIR).health()
     assert health.model_id == MODEL_ID
@@ -75,6 +77,7 @@ def test_health_carries_the_reason_without_loading():
     assert TOKENIZER_FILENAME in health.detail
 
 
+@pytest.mark.needs_artifacts
 def test_load_raises_rather_than_degrading():
     with pytest.raises(ArtifactError, match="tokenizer missing"):
         make_provider(ARTIFACT_DIR).load()

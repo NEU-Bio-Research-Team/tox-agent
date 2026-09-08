@@ -35,6 +35,9 @@ HISTORICAL = (
     "docs/BM1_explainer_benchmark_analysis.md",
     # A source plan, on the same footing as docs/spec.
     "new_plan.md",
+    # An earlier audit, superseded by docs/audit/. Its inventory of the
+    # pre-relocation tree is the record.
+    "audit_5_9.md",
 )
 
 #: Paths the workspace consolidation removed, and what replaced them.
@@ -70,6 +73,11 @@ def check_links(path: Path, rel: str) -> list[str]:
     for target in LINK.findall(_strip_code_fences(path.read_text(encoding="utf-8"))):
         target = target.split("#", 1)[0].strip()
         if not target or "://" in target or target.startswith("mailto:"):
+            continue
+        # An absolute path is a machine-local file reference someone pasted
+        # (`/home/.../routes.py:42`), not a link into this repository. It
+        # cannot resolve on any other machine and there is nothing to fix.
+        if target.startswith("/"):
             continue
         if not (path.parent / target).exists():
             problems.append(f"{rel}: broken link -> {target}")

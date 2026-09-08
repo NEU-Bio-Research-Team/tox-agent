@@ -156,6 +156,7 @@ def test_manifest_index_merges_per_model_releases(tmp_path):
     assert set(load_manifest(index)) == {"first", "second"}
 
 
+@pytest.mark.needs_artifacts
 def test_real_manifest_verifies_against_real_artifacts():
     """The shipped manifest must describe the artifacts actually on disk."""
     from pathlib import Path
