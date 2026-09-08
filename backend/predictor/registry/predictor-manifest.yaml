@@ -5,7 +5,9 @@
 #
 # Regenerate checksums with:  python benchmarks/capture_baseline.py
 schema_version: 1
-models_root: ../models
+# Repository development keeps checkpoints outside the package tree. Container
+# startup overrides this via MODELS_ROOT=/app/models.
+models_root: ../../../models
 
 models:
   - model_id: herg-tox21-chemberta-v1

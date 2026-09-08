@@ -6,6 +6,7 @@ rather than failing startup — a required one still fails loud.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from .artifacts import ArtifactSpec
@@ -13,9 +14,13 @@ from .providers.clintox_smilesgnn import make_factory as clintox_factory
 from .providers.herg_tox21_chemberta import factory as chemberta_factory
 from .registry import ModelRegistry
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MANIFEST = REPO_ROOT / "artifacts" / "predictor-manifest.yaml"
-DEFAULT_CLINTOX_CONFIG = REPO_ROOT / "config" / "smilesgnn_config.yaml"
+# ``src/toxpred/scientific/bootstrap.py`` lives three levels below the
+# predictor package root. Keep release metadata with that package rather than
+# relying on the historical repository-root artifacts directory.
+PREDICTOR_ROOT = Path(__file__).resolve().parents[3]
+WORKSPACE_ROOT = PREDICTOR_ROOT.parents[1]
+DEFAULT_MANIFEST = PREDICTOR_ROOT / "registry" / "predictor-manifest.yaml"
+DEFAULT_CLINTOX_CONFIG = WORKSPACE_ROOT / "config" / "smilesgnn_config.yaml"
 
 
 def _clintox(spec: ArtifactSpec, *, device: str = "cpu"):
@@ -43,5 +48,6 @@ def build_registry(
     return ModelRegistry.from_manifest(
         manifest_path or DEFAULT_MANIFEST,
         provider_factories(device),
+        models_root=Path(os.environ["MODELS_ROOT"]) if os.environ.get("MODELS_ROOT") else None,
         eager_load=eager_load,
     )
