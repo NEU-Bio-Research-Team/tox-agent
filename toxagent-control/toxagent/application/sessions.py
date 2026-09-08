@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from ..domain.errors import SessionNotFound
+from ..domain.errors import InvalidRequest, SessionNotFound
 from ..domain.events import EventType
+from ..connections.model import ConnectionStatus
 from ..domain.session import Language, Session, TitleSource
 from .policy import Actor
 from .projections import display_projection
@@ -93,6 +94,12 @@ class SessionService:
                 connection = await uow.model_connections.get(ai_profile_id, owner_id=actor.subject_id)
                 if connection is None:
                     raise SessionNotFound("no such AI provider profile", profile_id=ai_profile_id)
+                if connection.status is not ConnectionStatus.READY:
+                    raise InvalidRequest(
+                        "AI provider profile must pass its connection test before selection",
+                        profile_id=ai_profile_id,
+                        status=connection.status.value,
+                    )
             await uow.session_settings.put(session_id, ai_profile_id=ai_profile_id,
                                            predictor_bindings=predictor_bindings, now=_now())
             uow.emit(session_id=session_id, type=EventType.SESSION_SETTINGS_UPDATED,

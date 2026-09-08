@@ -71,6 +71,10 @@ class RuntimeSessionSpec:
     mcp_url: str
     max_steps: int
     deadline_at: datetime
+    #: Product-owned AI provider profile selected for this run.  This is an
+    #: opaque connection id, never a credential; adapters receive only the
+    #: resolved provider/model pair above.
+    connection_id: str | None = None
     local_tool_context: Any = None
 
 

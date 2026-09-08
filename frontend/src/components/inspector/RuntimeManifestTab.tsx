@@ -12,10 +12,12 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 export function RuntimeManifestTab({ run }: { run: RunDetail }) {
+  const configuration = run.configuration_snapshot;
   if (!run.runtime) {
     return (
       <div className="space-y-3 text-xs" style={{ color: 'var(--text-faint)' }}>
         <p>Run này không có runtime binding (lane deterministic không mở agent runtime).</p>
+        <ConfigurationSnapshot configuration={configuration} />
         {run.potentially_billed && <PotentiallyBilledWarning />}
       </div>
     );
@@ -28,13 +30,40 @@ export function RuntimeManifestTab({ run }: { run: RunDetail }) {
       <Row label="runtime_version" value={runtime.runtime_version} />
       <Row label="provider_id" value={runtime.provider_id} />
       <Row label="model_id" value={runtime.model_id} />
+      <Row label="connection_id" value={runtime.connection_id ?? 'runtime mặc định'} />
       <Row label="profile_hash" value={runtime.profile_hash} />
       <Row label="tool_schema_hash" value={runtime.tool_schema_hash} />
       <Row label="system_prompt_hash" value={runtime.system_prompt_hash} />
       <Row label="potentially_billed" value={String(run.potentially_billed)} />
       {run.potentially_billed && <PotentiallyBilledWarning />}
       <UsageReports run={run} />
+      <ConfigurationSnapshot configuration={configuration} />
     </div>
+  );
+}
+
+function ConfigurationSnapshot({ configuration }: { configuration: RunDetail['configuration_snapshot'] }) {
+  if (!configuration) {
+    return (
+      <p className="mt-4 text-xs italic" style={{ color: 'var(--text-faint)' }}>
+        Run này được tạo trước khi hệ thống lưu snapshot cấu hình.
+      </p>
+    );
+  }
+  const bindings = Object.entries(configuration.predictor_bindings);
+  return (
+    <section className="mt-4 space-y-2 border-t pt-3" style={{ borderColor: 'var(--border)' }} aria-label="Cấu hình đã pin">
+      <p className="text-xs font-medium" style={{ color: 'var(--text)' }}>Cấu hình đã pin khi chạy</p>
+      <Row label="AI profile" value={configuration.ai_profile_id ?? 'runtime mặc định'} />
+      {bindings.length === 0 ? (
+        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Predictor dùng lựa chọn tự động.</p>
+      ) : bindings.map(([endpoint, modelId]) => (
+        <Row key={endpoint} label={`predictor.${endpoint}`} value={modelId} />
+      ))}
+      <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+        Đã pin lúc {new Date(configuration.created_at).toLocaleString('vi-VN')}; thay đổi cấu hình phiên sau đó không ảnh hưởng kết quả này.
+      </p>
+    </section>
   );
 }
 

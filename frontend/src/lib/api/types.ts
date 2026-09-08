@@ -635,6 +635,7 @@ export interface RuntimeManifest {
   runtime_version: string;
   provider_id: string;
   model_id: string;
+  connection_id?: string | null;
   profile_hash: string;
   tool_schema_hash: string;
   system_prompt_hash: string;

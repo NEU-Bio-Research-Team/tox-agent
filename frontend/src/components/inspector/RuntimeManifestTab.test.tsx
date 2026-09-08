@@ -63,4 +63,18 @@ describe('RuntimeManifestTab', () => {
     expect(screen.getByText('0 USD')).toBeInTheDocument();
     expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(3);
   });
+
+  it('shows the immutable predictor and AI configuration snapshot', () => {
+    render(<RuntimeManifestTab run={run({
+      configuration_snapshot: {
+        ai_profile_id: 'con_' + 'a'.repeat(32),
+        predictor_bindings: { herg: 'herg-tox21-chemberta-v1' },
+        created_at: '2026-09-06T00:00:00Z',
+      },
+    })} />);
+
+    expect(screen.getByText('Cấu hình đã pin khi chạy')).toBeInTheDocument();
+    expect(screen.getByText('herg-tox21-chemberta-v1')).toBeInTheDocument();
+    expect(screen.getByText(/thay đổi cấu hình phiên sau đó không ảnh hưởng/i)).toBeInTheDocument();
+  });
 });
