@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-MODELS_ROOT = Path(os.getenv("MODELS_ROOT") or (PROJECT_ROOT / "models")).expanduser()
+WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
+MODELS_ROOT = Path(os.getenv("MODELS_ROOT") or (WORKSPACE_ROOT / ".data" / "models")).expanduser()
 MODEL_ARTIFACTS_URI = str(os.getenv("MODEL_ARTIFACTS_URI") or "").strip()
 FORCE_DOWNLOAD = str(os.getenv("MODEL_ARTIFACTS_FORCE_DOWNLOAD") or "").strip().lower() in {
     "1",

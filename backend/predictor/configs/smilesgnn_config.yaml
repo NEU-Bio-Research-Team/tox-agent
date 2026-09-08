@@ -9,13 +9,13 @@ model:
   use_jk: true
   jk_mode: "cat"  # cat, max, mean, lstm
   graph_pooling: "meanmax"  # mean, max, sum, meanmax
-  
+
   # SMILES encoder settings
   smiles_vocab_size: 100
   smiles_max_length: 128
   smiles_d_model: 96  # Reduced from 128 to 96 to match graph encoder
   smiles_num_layers: 2  # Reduced from 3 to 2 to reduce complexity
-  
+
   # Fusion settings
   fusion_method: "attention"  # concat, attention, weighted
 
@@ -37,5 +37,5 @@ data:
   seed: 42
 
 output:
-  model_dir: "models/smilesgnn_model"
+  model_dir: ".data/models/smilesgnn_model"
 

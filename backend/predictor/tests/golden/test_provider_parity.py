@@ -11,9 +11,9 @@ from pathlib import Path
 
 import pytest
 
-REPO = Path(__file__).resolve().parents[2]
-GOLDEN = REPO / "benchmarks" / "golden" / "baseline_predictions.json"
-MANIFEST = REPO / "artifacts" / "predictor-manifest.yaml"
+REPO = Path(__file__).resolve().parents[4]
+GOLDEN = REPO / "backend" / "predictor" / "evals" / "benchmark" / "golden" / "baseline_predictions.json"
+MANIFEST = REPO / "backend" / "predictor" / "registry" / "predictor-manifest.yaml"
 TOLERANCE = 1e-6
 
 pytestmark = pytest.mark.golden
@@ -21,7 +21,7 @@ pytestmark = pytest.mark.golden
 
 def _requirements_met() -> tuple[bool, str]:
     if not GOLDEN.exists():
-        return False, "baseline not captured — run benchmarks/capture_baseline.py"
+        return False, "baseline not captured — run backend/predictor/evals/benchmark/capture_baseline.py"
     if not MANIFEST.exists():
         return False, "artifact manifest missing"
     try:
@@ -58,7 +58,7 @@ def predictions():
 
 def test_baseline_covers_the_whole_panel(predictions):
     baseline, _, _ = predictions
-    panel = json.loads((REPO / "benchmarks" / "fixtures" / "golden_panel.json").read_text())
+    panel = json.loads((REPO / "backend" / "predictor" / "evals" / "benchmark" / "fixtures" / "golden_panel.json").read_text())
     assert len(baseline) == panel["n_valid"]
 
 
@@ -115,5 +115,5 @@ def test_service_starts_with_no_network(predictions):
     """
     _, _, provider = predictions
     assert "offline" in provider.health().detail, provider.health().detail
-    assert (REPO / "models" / "pretrained_2head_herg_chemberta_model"
+    assert (REPO / ".data" / "models" / "pretrained_2head_herg_chemberta_model"
             / "base_model" / "config.json").is_file()

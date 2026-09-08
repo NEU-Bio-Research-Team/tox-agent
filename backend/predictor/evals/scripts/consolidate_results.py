@@ -8,14 +8,14 @@ from pathlib import Path
 import pandas as pd
 
 project_root = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "backend" / "predictor"))
 
-from backend.utils import load_metrics
-from backend.workspace_mode import assert_clintox_enabled
+from research.legacy_backend.utils import load_metrics
+from research.legacy_backend.workspace_mode import assert_clintox_enabled
 
 assert_clintox_enabled("scripts/consolidate_results.py")
 
-models_dir = project_root / "models"
+models_dir = project_root / ".data" / "models"
 results_dir = project_root / "results"
 results_dir.mkdir(exist_ok=True)
 

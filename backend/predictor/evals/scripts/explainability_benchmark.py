@@ -37,7 +37,7 @@ from PIL import Image
 # Project setup
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "backend" / "predictor"))
 
 BENCHMARK_DIR = PROJECT_ROOT / "benchmark"
 SEED = 42
@@ -191,7 +191,7 @@ def load_all_datasets():
     print("Step 1: Loading Datasets")
     print("=" * 60)
 
-    from backend.data import load_tox21, load_clintox
+    from research.legacy_backend.data import load_tox21, load_clintox
 
     # ── Tox21 ──
     print("[1/3] Loading Tox21 …")
@@ -314,11 +314,11 @@ def sample_compounds(datasets):
 
 def _explain_tox21_gatv2(samples):
     """Use trained GATv2 model + gradient saliency for Tox21 compounds."""
-    from backend.inference import load_tox21_gatv2_model
-    from backend.gnn_explainer import explain_tox21_task_gradient
+    from research.legacy_backend.inference import load_tox21_gatv2_model
+    from research.legacy_backend.gnn_explainer import explain_tox21_task_gradient
 
     model, task_names = load_tox21_gatv2_model(
-        model_dir=PROJECT_ROOT / "models" / "tox21_gatv2_model",
+        model_dir=PROJECT_ROOT / ".data" / "models" / "tox21_gatv2_model",
         config_path=PROJECT_ROOT / "backend" / "predictor" / "configs" / "tox21_gatv2_config.yaml",
         device=DEVICE,
     )
@@ -347,8 +347,8 @@ def _explain_tox21_gatv2(samples):
 def _explain_with_rf(samples, dataset_splits, label_col, model_label):
     """Train RF on Morgan FP, predict, derive atom importance."""
     from sklearn.ensemble import RandomForestClassifier
-    from backend.featurization import featurize_fingerprint
-    from backend.viz import map_fingerprint_to_atoms
+    from research.legacy_backend.featurization import featurize_fingerprint
+    from research.legacy_backend.viz import map_fingerprint_to_atoms
 
     train_df = dataset_splits["train"]
     smiles_tr = train_df["smiles"].astype(str).tolist()
@@ -387,8 +387,8 @@ def _explain_with_rf(samples, dataset_splits, label_col, model_label):
 
 def _fp_fallback(s):
     """Last-resort fallback: raw FP bits → atom importance."""
-    from backend.featurization import featurize_fingerprint
-    from backend.viz import map_fingerprint_to_atoms
+    from research.legacy_backend.featurization import featurize_fingerprint
+    from research.legacy_backend.viz import map_fingerprint_to_atoms
 
     fp = featurize_fingerprint(s["smiles"])
     atom_imp = map_fingerprint_to_atoms(s["smiles"], fp)

@@ -7,20 +7,20 @@ that keep them meaningful.
 
 ```bash
 # Once. Freezes the evaluation split; needs DeepChem and PyTDC.
-python benchmarks/build_split_manifest.py
+PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/build_split_manifest.py
 
 # Every time. Needs only the frozen manifest and the artifact.
-python benchmarks/run_benchmark.py
-python benchmarks/run_benchmark.py --limit 150      # smoke size
+PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/run_benchmark.py
+PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/run_benchmark.py --limit 150      # smoke size
 ```
 
-Output lands in `benchmarks/results/`: `benchmark_report.json` (tracked) plus
+Output lands in `backend/predictor/evals/benchmark/results/`: `benchmark_report.json` (tracked) plus
 per-sample dumps (gitignored, regenerated on demand).
 
 ## Rules
 
 **The split is frozen, and nothing re-splits at run time.**
-`benchmarks/manifests/eval-split-v1.json` holds the test molecules with a content
+`backend/predictor/evals/benchmark/manifests/eval-split-v1.json` holds the test molecules with a content
 hash, reproducing scaffold/seed 42 — the values in the artifact's `config.yaml`.
 A unit test recomputes the hash, so an edited split is a failure rather than a
 quietly moved goalpost.

@@ -108,7 +108,7 @@ def admit(manifest: Path, model_id: str) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="toxagent models")
-    parser.add_argument("--models-root", type=Path, default=ROOT / "models")
+    parser.add_argument("--models-root", type=Path, default=ROOT / ".data" / "models")
     parser.add_argument("--manifest", type=Path, default=PREDICTOR_ROOT / "registry" / "predictor-manifest.yaml")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("scan")

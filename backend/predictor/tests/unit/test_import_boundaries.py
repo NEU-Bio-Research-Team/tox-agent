@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-PACKAGE = Path(__file__).resolve().parents[2] / "toxpred"
+PACKAGE = Path(__file__).resolve().parents[2] / "src" / "toxpred"
 
 FORBIDDEN_EVERYWHERE = {
     "google", "google_adk", "google_genai", "firebase_admin", "firestore",

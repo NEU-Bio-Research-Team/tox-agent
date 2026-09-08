@@ -17,10 +17,10 @@ from toxpred.scientific.providers.clintox_smilesgnn import (
     ClinToxSmilesGnnProvider,
 )
 
-REPO = Path(__file__).resolve().parents[2]
-ARTIFACT_DIR = REPO / "models" / "smilesgnn_model"
-CONFIG = REPO / "config" / "smilesgnn_config.yaml"
-WRONG_TOKENIZER = REPO / "models" / "smilesgnn_multitask_model" / "tokenizer.pkl"
+REPO = Path(__file__).resolve().parents[4]
+ARTIFACT_DIR = REPO / ".data" / "models" / "smilesgnn_model"
+CONFIG = REPO / "backend" / "predictor" / "configs" / "smilesgnn_config.yaml"
+WRONG_TOKENIZER = REPO / ".data" / "models" / "smilesgnn_multitask_model" / "tokenizer.pkl"
 
 
 def make_provider(root: Path, config: Path = CONFIG) -> ClinToxSmilesGnnProvider:

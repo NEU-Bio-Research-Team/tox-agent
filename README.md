@@ -107,7 +107,7 @@ manifest entry can be served.
 
 ```bash
 ./bin/toxagent models scan
-./bin/toxagent models inspect models/example/best_model.pt
+./bin/toxagent models inspect .data/models/example/best_model.pt
 ./bin/toxagent models validate herg-tox21-chemberta-v1
 ./bin/toxagent models admit herg-tox21-chemberta-v1
 ```

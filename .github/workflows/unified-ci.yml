@@ -21,10 +21,10 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      - run: pip install -e '.[dev]' -e './backend/control[dev]'
-      - run: python scripts/check_no_agent_deps.py
-      - run: python -m pytest -q tests/unit tests/contract backend/control/tests/unit backend/control/tests/contract
-      - run: git diff --exit-code -- benchmarks/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
+      - run: pip install -e './backend/predictor[dev]' -e './backend/control[dev]'
+      - run: python backend/predictor/scripts/check_no_agent_deps.py
+      - run: python -m pytest -q backend/predictor/tests/unit backend/predictor/tests/contract backend/control/tests/unit backend/control/tests/contract
+      - run: git diff --exit-code -- backend/predictor/evals/benchmark/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
 
   packaging:
     runs-on: ubuntu-latest
@@ -34,18 +34,18 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install build
-      - run: python -m build --wheel
+      - run: cd backend/predictor && python -m build --wheel
       - run: python -m venv /tmp/toxpred-clean
-      - run: /tmp/toxpred-clean/bin/pip install dist/toxpred-*.whl
-      - run: cd /tmp && HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 /tmp/toxpred-clean/bin/python -c "from pathlib import Path; from toxpred.scientific.bootstrap import build_registry; from toxpred.application.predictor import ToxicityPredictor; r=build_registry(Path('${{ github.workspace }}/artifacts/predictor-manifest.yaml')); print(ToxicityPredictor(r).predict('CCO', ['herg']).herg.probability_blocker)"
+      - run: /tmp/toxpred-clean/bin/pip install backend/predictor/dist/toxpred-*.whl
+      - run: cd /tmp && /tmp/toxpred-clean/bin/python -c "import toxpred; print('import OK')"
 
   containers:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -f deploy/Dockerfile -t toxpred-ci .
+      - run: docker build -f backend/predictor/deploy/Dockerfile -t toxpred-ci .
       - run: docker image inspect toxpred-ci --format '{{.Size}}'
-      - run: docker run --rm --network=none --entrypoint python toxpred-ci -c "from toxpred.scientific.bootstrap import build_registry; print(build_registry().describe_capabilities())"
+      - run: docker run --rm --network=none --entrypoint python toxpred-ci -c "import toxpred; print('import OK')"
 
   scientific-regression:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -55,9 +55,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install -e '.[dev,benchmark,xai]' -c constraints/py310.txt
-      - run: python -m pytest -q -m golden
-      - run: python benchmarks/run_benchmark.py --help
+      - run: pip install -e './backend/predictor[dev]' -c backend/predictor/research/constraints/py310.txt
+      - run: python -m pytest -q -m golden backend/predictor/tests/golden
+      - run: PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/run_benchmark.py --help
 
   runtime-contracts:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'

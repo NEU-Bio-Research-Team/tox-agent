@@ -33,7 +33,7 @@ services:
     volumes:
       # Useful for an air-gapped/local smoke. Production should supply the
       # immutable object-store URI above instead of a host-path mount.
-      - ${TOXPRED_MODELS_HOST_PATH:-./models}:/app/models:ro
+      - ${TOXPRED_MODELS_HOST_PATH:-./.data/models}:/app/models:ro
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
       interval: 10s

@@ -56,7 +56,7 @@ code did — a number applied far from where it was chosen.
 | `toxpred/scientific/` | Manifest, registry, providers, featurisation, applicability | Business workflow |
 | `backend/` | Model architectures, graph featurisation, tokenizers, training | New serving logic |
 | `artifacts/` | Manifest: which models may be served, and their checksums | Weights |
-| `benchmarks/` | Frozen split, golden panel, benchmark runner | Generated per-sample dumps |
+| `backend/predictor/evals/benchmark/` | Frozen split, golden panel, benchmark runner | Generated per-sample dumps |
 | `deploy/` | Dockerfile, entrypoint, artifact download, Cloud Run env | Application code |
 
 `backend/` is deliberately not rewritten. It carries the model architectures and

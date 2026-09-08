@@ -3,8 +3,9 @@
 #
 # Build CPU: docker build -f backend/predictor/deploy/Dockerfile --build-arg TORCH_VARIANT=cpu -t toxpred .
 #
-# The release image carries its hash-pinned active artifact. Runtime model
-# downloads are forbidden; a missing/corrupt required artifact fails startup.
+# Model artifacts are deployment-owned and mounted or fetched before startup.
+# The image carries manifests and code only; a missing/corrupt required artifact
+# fails startup rather than being silently downloaded during a request.
 ARG TORCH_VARIANT=cpu
 
 FROM python:3.10-slim
@@ -37,16 +38,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY backend/predictor/src/toxpred /app/toxpred
 COPY backend/predictor/registry /app/registry
 COPY backend/predictor/configs /app/configs
-COPY models/pretrained_2head_herg_chemberta_model /app/models/pretrained_2head_herg_chemberta_model
 COPY backend/predictor/deploy/entrypoint.sh /app/deploy/entrypoint.sh
-
-RUN python - <<'PY'
-from pathlib import Path
-from toxpred.scientific.artifacts import load_manifest
-for spec in load_manifest(Path('/app/registry/predictor-manifest.yaml'), Path('/app/models')).values():
-    if spec.required:
-        spec.verify()
-PY
 
 # Fail the build rather than the first request if the package cannot import.
 RUN python -c "import toxpred; from toxpred.api.app import create_app; print('import OK')"

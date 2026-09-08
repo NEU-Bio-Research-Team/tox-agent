@@ -28,13 +28,13 @@ from rdkit import Chem
 from sklearn.metrics import accuracy_score, average_precision_score, f1_score, roc_auc_score
 
 project_root = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "scripts"))
+sys.path.insert(0, str(project_root / "backend" / "predictor"))
+sys.path.insert(0, str(project_root / "backend" / "predictor" / "research" / "scripts"))
 
-from backend.data import get_task_names, load_tox21
-from backend.inference import load_pretrained_dual_head_bundle
-from backend.utils import ensure_dir, set_seed
-from backend.datasets import get_task_config
+from research.legacy_backend.data import get_task_names, load_tox21
+from research.legacy_backend.inference import load_pretrained_dual_head_bundle
+from research.legacy_backend.utils import ensure_dir, set_seed
+from research.legacy_backend.datasets import get_task_config
 
 import ensemble5_tox21 as ens5
 import ensemble6_tox21 as ens6
@@ -46,12 +46,12 @@ except ImportError:
 
 
 DUAL_MODEL_DIRS: Dict[str, str] = {
-    "pretrained_2head_herg_chemberta_model": "models/pretrained_2head_herg_chemberta_model",
-    "pretrained_2head_herg_molformer_model": "models/pretrained_2head_herg_molformer_model",
-    "pretrained_2head_herg_pubchem_model": "models/pretrained_2head_herg_pubchem_model",
-    "pretrained_2head_herg_chemberta_quick": "models/pretrained_2head_herg_chemberta_quick",
-    "pretrained_2head_herg_molformer_quick": "models/pretrained_2head_herg_molformer_quick",
-    "pretrained_2head_herg_pubchem_quick": "models/pretrained_2head_herg_pubchem_quick",
+    "pretrained_2head_herg_chemberta_model": ".data/models/pretrained_2head_herg_chemberta_model",
+    "pretrained_2head_herg_molformer_model": ".data/models/pretrained_2head_herg_molformer_model",
+    "pretrained_2head_herg_pubchem_model": ".data/models/pretrained_2head_herg_pubchem_model",
+    "pretrained_2head_herg_chemberta_quick": ".data/models/pretrained_2head_herg_chemberta_quick",
+    "pretrained_2head_herg_molformer_quick": ".data/models/pretrained_2head_herg_molformer_quick",
+    "pretrained_2head_herg_pubchem_quick": ".data/models/pretrained_2head_herg_pubchem_quick",
 }
 
 
@@ -513,7 +513,7 @@ def main() -> None:
     # ---------------------------------------------------------------------
     # Build and evaluate NEW dual-head models
     # ---------------------------------------------------------------------
-    out_root = project_root / "models"
+    out_root = project_root / ".data" / "models"
     new_results: Dict[str, Dict[str, object]] = {}
 
     # 1) dualhead_ensemble3_simple
@@ -680,13 +680,13 @@ def main() -> None:
         joint = _joint_scores(tox_auc=tox_auc, herg_auc=herg_auc)
 
         if model_name == "dualhead_ensemble3_simple":
-            src = "models/dualhead_ensemble3/dualhead_metrics.json"
+            src = ".data/models/dualhead_ensemble3/dualhead_metrics.json"
         elif model_name == "dualhead_ensemble3_weighted":
-            src = "models/dualhead_weighted_ensemble3/dualhead_metrics.json"
+            src = ".data/models/dualhead_weighted_ensemble3/dualhead_metrics.json"
         elif model_name == "dualhead_ensemble5_simple":
-            src = "models/dualhead_ensemble5/dualhead_metrics.json"
+            src = ".data/models/dualhead_ensemble5/dualhead_metrics.json"
         else:
-            src = "models/dualhead_ensemble6/dualhead_metrics.json"
+            src = ".data/models/dualhead_ensemble6/dualhead_metrics.json"
 
         ranking_rows.append(
             {

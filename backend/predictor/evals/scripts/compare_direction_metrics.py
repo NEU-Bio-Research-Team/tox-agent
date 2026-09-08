@@ -13,7 +13,7 @@ from typing import Dict
 import pandas as pd
 
 project_root = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "backend" / "predictor"))
 
 
 def _read_metrics_txt(path: Path) -> Dict[str, float | str]:
@@ -44,17 +44,17 @@ def main() -> None:
     parser.add_argument(
         "--direction1-json",
         type=str,
-        default="models/tox21_clinical_proxy/clinical_proxy_metrics.json",
+        default=".data/models/tox21_clinical_proxy/clinical_proxy_metrics.json",
     )
     parser.add_argument(
         "--direction2-txt",
         type=str,
-        default="models/tox21_gatv2_model/tox21_gatv2_metrics.txt",
+        default=".data/models/tox21_gatv2_model/tox21_gatv2_metrics.txt",
     )
     parser.add_argument(
         "--direction3-json",
         type=str,
-        default="models/clinical_head_model/clinical_head_metrics.json",
+        default=".data/models/clinical_head_model/clinical_head_metrics.json",
     )
     parser.add_argument(
         "--output",
