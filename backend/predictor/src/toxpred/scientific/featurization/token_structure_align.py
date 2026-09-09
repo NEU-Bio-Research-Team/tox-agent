@@ -89,7 +89,18 @@ def align_tokens_to_structure(
             pending_bond = None
             i = _atom_end(canonical_smiles, i)
             continue
-        if char == "(":
+        if char == ".":
+            # A component break: the next atom starts a new fragment and is
+            # bonded to nothing before it. Without this the walk asked RDKit
+            # for a bond between the last atom of one component and the first
+            # of the next, found none, and raised — so every salt and every
+            # co-crystal (sodium salicylate, diphenhydramine HCl, cisplatin,
+            # ferrocene in the golden panel alone) made `/v1/explanations`
+            # fail. Salts are an ordinary way to write a drug.
+            current = None
+            pending_bond = None
+            branch_stack.clear()
+        elif char == "(":
             branch_stack.append(current)
         elif char == ")":
             if not branch_stack:
