@@ -49,6 +49,59 @@ DEFAULT_OUT = HERE / "manifests"
 _DETERMINISTIC_INTENTS = {"out_of_scope", "clarification_required"}
 
 
+# ------------------------------------------------------- W1-01 fixture modes
+
+#: What supplied the numbers and the evidence a run graded against. It is not
+#: the same question as which runtime drove the turn, and conflating them is
+#: how two manifests get compared that were never measuring the same thing: a
+#: `scripted` run is always frozen, but a live run may be reading a real
+#: ToxPred with stubbed evidence or reaching a real provider over the network,
+#: and those three produce different, non-interchangeable numbers.
+#:
+#: * `frozen` — a content-hashed fixture supplies predictor, evidence and
+#:   runtime responses. No network, reproducible, and the only mode in which a
+#:   task may pin an exact predicted value.
+#: * `predictor_integration` — a real ToxPred answers; evidence is still
+#:   stubbed. Wording, hard gates and semantics are graded; exact numbers are
+#:   not, because they are the model's, not the fixture's.
+#: * `live_evidence` — a real evidence provider is reached over the network as
+#:   well. Retrieval is genuinely exercised and the run is, by construction,
+#:   not reproducible from the repository alone.
+FIXTURE_MODES = ("frozen", "predictor_integration", "live_evidence")
+
+#: Modes in which the numbers come from the fixture, so a task may pin them.
+_FROZEN_NUMBER_MODES = frozenset({"frozen"})
+
+
+# ------------------------------------------------- W1-05 skipped_reason types
+
+#: Why a task did not execute, as a closed set rather than a sentence.
+#:
+#: The summary used to report every skip as `skipped_needs_runtime`, which was
+#: true of one of these and false of the rest — a task pinned to frozen
+#: numbers does not need a runtime, it needs a different fixture mode, and a
+#: task needing a process killed needs an orchestrator no driver here has. A
+#: reader counting "skipped because we have no model" was counting four other
+#: things as well, and could not tell which of them a credential would fix.
+SKIPPED_REASONS = {
+    "needs_agentic_runtime": (
+        "the scripted driver runs the deterministic lane only; this task needs a model"
+    ),
+    "pins_frozen_numbers": (
+        "expectations name exact frozen-fixture values, which a real predictor will not reproduce"
+    ),
+    "needs_broken_predictor_fixture": (
+        "the task tests a predictor failure that a healthy live predictor never produces"
+    ),
+    "needs_runtime_outage_injection": (
+        "the task needs the runtime to be unavailable; an HTTP driver cannot take it down"
+    ),
+    "needs_control_plane_restart": (
+        "the task needs the control plane restarted mid-run; an HTTP driver cannot restart it"
+    ),
+}
+
+
 # --------------------------------------------------------------------- loading
 
 def load_tasks(tasks_dir: Path = TASKS_DIR) -> list[dict[str, Any]]:
@@ -398,20 +451,50 @@ _BROKEN_PREDICTOR_FIXTURES = frozenset({"predictor-503", "predictor-malformed"})
 #: cannot honestly perform must not silently read as the product having
 #: failed it).
 def is_live_compatible(task: dict[str, Any]) -> bool:
+    """Kept as the boolean the older callers ask for; the reason is below."""
+    return live_skip_reason(task) is None
+
+
+def live_skip_reason(task: dict[str, Any]) -> str | None:
+    """Which of the typed reasons excludes this task from a live run, if any."""
     for claim in (task.get("expect", {}).get("answer", {}) or {}).get("required_claims", []):
         if "rendered_value" in claim or "source_value" in claim:
-            return False
+            return "pins_frozen_numbers"
     if task.get("fixture") in _BROKEN_PREDICTOR_FIXTURES:
-        return False
+        return "needs_broken_predictor_fixture"
     expect = task.get("expect", {})
     if expect.get("error_code") == "runtime_unavailable":
-        return False
+        return "needs_runtime_outage_injection"
     if expect.get("state", {}).get("reconstructable_after_restart"):
-        return False
-    return True
+        return "needs_control_plane_restart"
+    return None
 
 
 # ---------------------------------------------------------------------- suite
+
+def resolve_fixture_mode(runtime: str, declared: str | None) -> str:
+    """The declared mode, checked against what the runtime can actually be.
+
+    The scripted driver *is* the frozen fixture — it builds its predictor from
+    one — so letting a run label itself `live_evidence` while reading a JSON
+    file would put a false provenance on the manifest. A live run defaults to
+    `predictor_integration` because that is the weaker claim of the two it
+    could make; reaching a real provider has to be stated, never assumed.
+    """
+    if declared is not None and declared not in FIXTURE_MODES:
+        raise SystemExit(f"unknown fixture mode {declared!r}")
+    if runtime == "scripted":
+        if declared not in (None, "frozen"):
+            raise SystemExit(
+                f"--runtime scripted is frozen by construction; it cannot report {declared!r}"
+            )
+        return "frozen"
+    if declared == "frozen":
+        raise SystemExit(
+            f"--runtime {runtime} drives a live stack, whose predictor is not the frozen fixture"
+        )
+    return declared or "predictor_integration"
+
 
 async def run_suite(
     tasks: list[dict[str, Any]],
@@ -422,11 +505,14 @@ async def run_suite(
     only: set[str] | None = None,
     base_url: str = "http://127.0.0.1:8000",
     token: str = "dev-local",
+    fixture_mode: str | None = None,
 ) -> dict[str, Any]:
+    mode = resolve_fixture_mode(runtime, fixture_mode)
     if runtime == "scripted":
         driver: Any = ScriptedDriver()
-        eligible = is_deterministic
-        skip_reason = "needs an agentic runtime"
+
+        def skip_reason_for(task: dict[str, Any]) -> str | None:
+            return None if is_deterministic(task) else "needs_agentic_runtime"
     elif runtime in ("opencode", "dsh"):
         # Live: scripts/run_local_phase3.sh (or an equivalent independently
         # started stack) must already be running and reachable at base_url.
@@ -435,8 +521,7 @@ async def run_suite(
         # with, so a task pinned to exact frozen numbers is skipped rather
         # than graded against a mismatched real prediction.
         driver = RemoteHTTPDriver(base_url, token)
-        eligible = is_live_compatible
-        skip_reason = "not live-compatible (pins exact frozen-fixture numbers)"
+        skip_reason_for = live_skip_reason
     else:
         raise SystemExit(f"unknown runtime {runtime!r}")
     tmp_dir = out_dir / "_work"
@@ -446,11 +531,13 @@ async def run_suite(
     for task in tasks:
         if only and task["task_id"] not in only:
             continue
-        if not eligible(task):
+        reason = skip_reason_for(task)
+        if reason is not None:
+            assert reason in SKIPPED_REASONS, reason
             results.append(
                 TaskResult(
                     task["task_id"], task["category"], task.get("critical", False),
-                    executed=False, passed=False, skipped_reason=skip_reason,
+                    executed=False, passed=False, skipped_reason=reason,
                 )
             )
             continue
@@ -470,19 +557,19 @@ async def run_suite(
             )
         )
 
-    summary = _summarise(results, trials)
+    summary = _summarise(results, trials, mode)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / f"results-{stamp}.json").write_text(
         json.dumps([asdict(r) for r in results], indent=2) + "\n"
     )
     (out_dir / f"manifest-{stamp}.json").write_text(
-        json.dumps(_manifest(runtime, trials, summary), indent=2, sort_keys=True) + "\n"
+        json.dumps(_manifest(runtime, trials, summary, mode), indent=2, sort_keys=True) + "\n"
     )
     return summary
 
 
-def _summarise(results: list[TaskResult], trials: int) -> dict[str, Any]:
+def _summarise(results: list[TaskResult], trials: int, fixture_mode: str) -> dict[str, Any]:
     executed = [r for r in results if r.executed]
     passed = [r for r in executed if r.passed]
     by_category: dict[str, dict[str, int]] = {}
@@ -494,12 +581,22 @@ def _summarise(results: list[TaskResult], trials: int) -> dict[str, Any]:
         else:
             bucket["skipped"] += 1
     critical = [r for r in executed if r.critical]
+    skipped_by_reason = {reason: 0 for reason in SKIPPED_REASONS}
+    for r in results:
+        if not r.executed and r.skipped_reason is not None:
+            skipped_by_reason[r.skipped_reason] += 1
     return {
         "trials": trials,
         "metric": "pass^%d" % trials if trials > 1 else "pass@1",
+        "fixture_mode": fixture_mode,
         "total_tasks": len(results),
         "executed": len(executed),
-        "skipped_needs_runtime": len(results) - len(executed),
+        "skipped": len(results) - len(executed),
+        # W1-05: which skips a credential would fix, and which ones no
+        # credential ever will. `skipped_needs_runtime` counted all five
+        # reasons under the name of one of them.
+        "skipped_by_reason": {k: v for k, v in skipped_by_reason.items() if v},
+        "skipped_needs_runtime": skipped_by_reason["needs_agentic_runtime"],
         "passed": len(passed),
         "pass_rate": round(len(passed) / len(executed), 4) if executed else None,
         "critical_executed": len(critical),
@@ -513,12 +610,17 @@ def _summarise(results: list[TaskResult], trials: int) -> dict[str, Any]:
     }
 
 
-def _manifest(runtime: str, trials: int, summary: dict[str, Any]) -> dict[str, Any]:
+def _manifest(
+    runtime: str, trials: int, summary: dict[str, Any], fixture_mode: str
+) -> dict[str, Any]:
     return {
         "eval_suite_hash": _suite_hash(),
         "toxagent_commit": _git("HEAD"),
         "toxpred_commit": _pinned_predictor_commit(),
         "runtime_kind": runtime,
+        # W1-01: what supplied the numbers, which `runtime_kind` does not say.
+        # Two manifests are comparable only when this field agrees.
+        "fixture_mode": fixture_mode,
         "runtime_version": "in-process-scripted" if runtime == "scripted" else "live-stack",
         "trial_count": trials,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -557,6 +659,12 @@ def _pinned_predictor_commit() -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runtime", default="scripted", choices=["scripted", "opencode", "dsh"])
+    parser.add_argument(
+        "--fixture-mode", default=None, choices=list(FIXTURE_MODES),
+        help="what supplies the numbers and evidence (default: frozen for scripted, "
+             "predictor_integration for a live stack). Recorded in the manifest; two runs "
+             "are comparable only in the same mode.",
+    )
     parser.add_argument("--trials", type=int, default=1)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--task", action="append", dest="tasks", help="run only these task ids")
@@ -573,17 +681,22 @@ def main(argv: list[str] | None = None) -> int:
 
     tasks = load_tasks()
     if args.list:
-        eligible = is_deterministic if args.runtime == "scripted" else is_live_compatible
+        mode = resolve_fixture_mode(args.runtime, args.fixture_mode)
+        print(f"# runtime={args.runtime} fixture_mode={mode}")
         for task in tasks:
-            mark = "yes" if eligible(task) else "no "
-            print(f"{mark}  {task['category']:20s}  {task['task_id']}")
+            if args.runtime == "scripted":
+                reason = None if is_deterministic(task) else "needs_agentic_runtime"
+            else:
+                reason = live_skip_reason(task)
+            mark = "yes" if reason is None else "no "
+            print(f"{mark}  {task['category']:20s}  {task['task_id']:44s}  {reason or ''}")
         return 0
 
     summary = asyncio.run(
         run_suite(
             tasks, runtime=args.runtime, trials=args.trials, out_dir=args.out,
             only=set(args.tasks) if args.tasks else None,
-            base_url=args.base_url, token=args.token,
+            base_url=args.base_url, token=args.token, fixture_mode=args.fixture_mode,
         )
     )
     print(json.dumps(summary, indent=2))

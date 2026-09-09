@@ -13,11 +13,15 @@ import httpx
 import pytest
 
 from evals.runner import (
+    FIXTURE_MODES,
+    SKIPPED_REASONS,
     RemoteHTTPDriver,
     _fetch_all_evidence,
     is_deterministic,
     is_live_compatible,
+    live_skip_reason,
     load_tasks,
+    resolve_fixture_mode,
     run_suite,
 )
 
@@ -50,6 +54,8 @@ async def test_deterministic_subset_passes_pass_cubed(tmp_path):
     )
     assert summary["executed"] == len(DETERMINISTIC_IDS)
     assert summary["skipped_needs_runtime"] == 0
+    assert summary["skipped_by_reason"] == {}
+    assert summary["fixture_mode"] == "frozen"
     assert summary["pass_rate"] == 1.0, summary["failures"]
     assert summary["critical_all_pass"] is True
     assert summary["metric"] == "pass^3"
@@ -60,6 +66,7 @@ async def test_deterministic_subset_passes_pass_cubed(tmp_path):
     manifest = json.loads(manifests[0].read_text())
     assert len(manifest["eval_suite_hash"]) == 64
     assert manifest["runtime_kind"] == "scripted"
+    assert manifest["fixture_mode"] == "frozen"
     assert manifest["trial_count"] == 3
 
 
@@ -71,6 +78,7 @@ async def test_a_capability_task_is_reported_as_needing_a_runtime(tmp_path):
     )
     assert summary["executed"] == 0
     assert summary["skipped_needs_runtime"] == 1
+    assert summary["skipped_by_reason"] == {"needs_agentic_runtime": 1}
 
 
 async def test_an_unknown_runtime_still_refuses(tmp_path):
@@ -171,3 +179,80 @@ async def test_fetch_all_evidence_pages_past_the_endpoints_default_limit():
     assert len(records) == total
     assert {r["evidence_id"] for r in records} == {f"evd_{i:032d}" for i in range(total)}
     assert len(seen_params) == 2  # 200 + 10, the second page shorter than the limit stops the loop
+
+
+# ------------------------------------------------------- W1-01 / W1-05
+
+
+def test_a_scripted_run_cannot_claim_it_reached_anything_live():
+    """W1-01: the mode is a claim about provenance, so it has to be true.
+
+    The scripted driver builds its predictor out of a content-hashed JSON
+    file. A run that labelled itself `live_evidence` would put a false
+    provenance on a manifest that is otherwise trusted to say what a number
+    came from.
+    """
+    assert resolve_fixture_mode("scripted", None) == "frozen"
+    assert resolve_fixture_mode("scripted", "frozen") == "frozen"
+    for claim in ("predictor_integration", "live_evidence"):
+        with pytest.raises(SystemExit):
+            resolve_fixture_mode("scripted", claim)
+
+
+def test_a_live_run_defaults_to_the_weaker_of_the_two_claims_it_could_make():
+    """Reaching a real provider is stated, never assumed; and a live stack
+    cannot report `frozen`, because its predictor is not the fixture."""
+    assert resolve_fixture_mode("opencode", None) == "predictor_integration"
+    assert resolve_fixture_mode("dsh", "live_evidence") == "live_evidence"
+    with pytest.raises(SystemExit):
+        resolve_fixture_mode("opencode", "frozen")
+    with pytest.raises(SystemExit):
+        resolve_fixture_mode("opencode", "made-up-mode")
+
+
+def test_every_skip_reason_is_one_of_the_declared_types():
+    """W1-05: a skip is a typed fact, countable by kind.
+
+    Free text meant the summary reported all five reasons as
+    `skipped_needs_runtime`, so a reader counting "blocked on a model
+    credential" was also counting tasks no credential will ever unblock.
+    """
+    tasks = load_tasks()
+    for task in tasks:
+        reason = live_skip_reason(task)
+        assert reason is None or reason in SKIPPED_REASONS, task["task_id"]
+
+    by_reason: dict[str, int] = {}
+    for task in tasks:
+        reason = live_skip_reason(task)
+        if reason:
+            by_reason[reason] = by_reason.get(reason, 0) + 1
+    # All four live reasons are represented by the current suite, so the
+    # taxonomy is exercised rather than merely declared.
+    assert set(by_reason) == {
+        "pins_frozen_numbers",
+        "needs_broken_predictor_fixture",
+        "needs_runtime_outage_injection",
+        "needs_control_plane_restart",
+    }, by_reason
+
+
+def test_the_reason_says_which_blocker_it_is():
+    """Each of the four used to read as "pins exact frozen-fixture numbers",
+    which was true of one group and false of the other three."""
+    tasks = {t["task_id"]: t for t in load_tasks()}
+    assert live_skip_reason(tasks["numeric-01-herg-probability-round3-vi"]) == "pins_frozen_numbers"
+    assert live_skip_reason(tasks["fail-01-predictor-503"]) == "needs_broken_predictor_fixture"
+    assert (
+        live_skip_reason(tasks["fail-04-lost-runtime-before-first-request"])
+        == "needs_runtime_outage_injection"
+    )
+    assert live_skip_reason(tasks["fail-06-control-plane-restart"]) == "needs_control_plane_restart"
+    assert live_skip_reason(tasks["fail-03-invalid-smiles"]) is None
+    # The boolean the older callers use still agrees with the typed reason.
+    for task in tasks.values():
+        assert is_live_compatible(task) is (live_skip_reason(task) is None)
+
+
+def test_the_declared_modes_are_the_three_the_plan_names():
+    assert FIXTURE_MODES == ("frozen", "predictor_integration", "live_evidence")
