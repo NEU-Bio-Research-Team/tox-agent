@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from contextlib import asynccontextmanager, suppress
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .. import __version__
@@ -23,6 +25,7 @@ from ..application.run_scheduler import RunContext, RunScheduler
 from ..application.sessions import SessionService
 from ..application.startup_reconciliation import reconcile_orphaned_runs
 from ..application.submit_message import SubmitMessage
+from .. import observability
 from ..config import Settings
 from ..domain.run import Intent
 from ..harness.gateway import AgentRuntimeGateway
@@ -48,6 +51,17 @@ from .predict_limits import PredictLimiter
 from .routes import health, router
 
 log = logging.getLogger("toxagent.startup")
+
+#: A client-supplied correlation id goes into a log line, so it may not carry
+#: anything that would end a JSON string or start a new record.
+_SAFE_REQUEST_ID = re.compile(r"[^A-Za-z0-9._-]")
+
+
+def _url_password(url: str) -> str | None:
+    try:
+        return urlsplit(url).password
+    except ValueError:
+        return None
 
 DESCRIPTION = """\
 ToxAgent control plane.
@@ -196,6 +210,14 @@ def create_app(
         )
         runner = ToolRunner(registry, db, max_calls_per_run=settings.policy.max_tool_calls_per_run)
 
+        # Registered as literals so they are scrubbed wherever they appear,
+        # including inside an exception a library raised holding the URL it
+        # failed to connect to.
+        observability.configure_logging(
+            level=settings.log_level,
+            secrets=(settings.security.capability_secret, _url_password(settings.database_url)),
+        )
+
         app.state.settings = settings
         app.state.database = db
         app.state.predictor = client
@@ -332,6 +354,25 @@ def create_app(
         lifespan=lifespan,
     )
     errors.install(app)
+
+    # Before the routers, so the id is bound for anything they log. A client
+    # may supply its own, which is what makes a browser trace and a server log
+    # line joinable; it is echoed back for the same reason. It is never
+    # trusted for anything but correlation — it decides no access, so a
+    # forged one buys nothing — and it is bounded and stripped of anything
+    # that would let a caller inject structure into a log line.
+    @app.middleware("http")
+    async def bind_request_context(request: Request, call_next):
+        supplied = (request.headers.get("x-request-id") or "")[:64]
+        request_id = _SAFE_REQUEST_ID.sub("", supplied) or observability.new_request_id()
+        token = observability.request_id_var.set(request_id)
+        try:
+            response = await call_next(request)
+        finally:
+            observability.request_id_var.reset(token)
+        response.headers["x-request-id"] = request_id
+        return response
+
     app.include_router(health)
     app.include_router(router)
 

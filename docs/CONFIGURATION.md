@@ -14,6 +14,7 @@ the normal path and preserves all existing values.
 | `TOXAGENT_OIDC_JWKS_URL` | production | empty | no | yes |
 | `TOXAGENT_OIDC_JWKS_CACHE_S` | no | `300` | no | yes |
 | `TOXAGENT_OIDC_ROLES_CLAIM` | no | `roles` | no | yes |
+| `TOXAGENT_LOG_LEVEL` | no | `INFO` | no | yes |
 | `MODEL_ARTIFACTS_URI` | no | empty/local models | no | yes |
 | `TOXOCR_CHECKPOINT_HOST_PATH` | yes | `.artifacts/toxocr` | no | yes |
 | `TOXAGENT_ACCELERATOR` | no | `cpu` | no | yes |
@@ -45,3 +46,20 @@ that state.
 Key rotation needs no restart: the key set is cached for
 `TOXAGENT_OIDC_JWKS_CACHE_S`, and a token whose `kid` is not in the cache
 refetches immediately rather than failing until the cache expires.
+
+## Logs
+
+One JSON object per line on stdout, carrying `ts`, `level`, `logger`,
+`message`, and the `request_id` — plus `session_id` and `run_id` where the code
+writing the line knows them. A client may send its own `X-Request-Id`, which is
+echoed on the response, so a browser trace and a server log line join up; it
+grants nothing, and is stripped to `[A-Za-z0-9._-]` and 64 characters before it
+reaches a log line.
+
+Credentials are scrubbed on the way out: bearer tokens, JWTs, `sk-`-style
+provider keys, the password inside a connection URL, and the capability secret
+and database password registered at startup. The filter is on the root
+handler, so a dependency that logs a URL is covered too. It is a second line of
+defence and not a licence to log a credential.
+
+Not yet here: trace spans and metrics. `TOXAGENT_LOG_LEVEL` is the only knob.

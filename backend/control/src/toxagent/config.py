@@ -548,6 +548,11 @@ class Settings:
     #: attachment while the database kept rows referring to them. A directory
     #: a deployment must persist has to be one it can see and set.
     secrets_dir: Path = SERVICE_ROOT / ".data" / "model-secrets"
+    #: Root log level. The handler and its JSON format are installed by
+    #: `observability.configure_logging`; before that there was no logging
+    #: configuration at all and records took whatever uvicorn's default did
+    #: with them.
+    log_level: str = "INFO"
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
 
     @classmethod
@@ -575,6 +580,7 @@ class Settings:
                     else SERVICE_ROOT / ".data" / "model-secrets"
                 )
             ),
+            log_level=_env("TOXAGENT_LOG_LEVEL", cls.log_level),
             database=DatabaseSettings.from_env(),
         )
 
