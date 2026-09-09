@@ -344,6 +344,16 @@ class ResearchSettings:
     #: research/circuit_breaker.py.
     circuit_failure_threshold: int = 5
     circuit_reset_after_s: float = 30.0
+    #: The largest response body this client will read. A timeout bounds how
+    #: long a remote host may take; nothing bounded how much it could send,
+    #: and `response.json()` reads the whole body into memory first. A
+    #: multi-tenant deployment cannot let a third party decide how much of its
+    #: memory to use. EuropePMC's own pages at `max_results` are tens of
+    #: kilobytes, so this is orders of magnitude of headroom.
+    max_response_bytes: int = 8 * 1024 * 1024
+    #: Content types that may be parsed. `accept: application/json` is a
+    #: request header — a wish, not a constraint on what comes back.
+    allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
 
     @classmethod
     def from_env(cls) -> "ResearchSettings":
@@ -357,6 +367,9 @@ class ResearchSettings:
             contact_email=_env("TOXAGENT_RESEARCH_CONTACT"),
             circuit_failure_threshold=_int(
                 "TOXAGENT_RESEARCH_CIRCUIT_FAILURE_THRESHOLD", cls.circuit_failure_threshold
+            ),
+            max_response_bytes=_int(
+                "TOXAGENT_RESEARCH_MAX_RESPONSE_BYTES", cls.max_response_bytes
             ),
             circuit_reset_after_s=_float(
                 "TOXAGENT_RESEARCH_CIRCUIT_RESET_AFTER_S", cls.circuit_reset_after_s

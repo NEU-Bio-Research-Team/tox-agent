@@ -198,3 +198,108 @@ def test_a_record_missing_a_title_or_id_is_skipped_not_crashed_on():
     assert hit_from_record({"id": "1", "source": "MED"}) is None
     assert hit_from_record({"title": "x", "source": "MED"}) is None
     assert hit_from_record({"title": "x", "id": "1"}) is None
+
+
+# ------------------------------- K11: bounded fetch
+
+
+def _client(handler, **overrides):
+    """A provider wired to a scripted transport, with settings overridable."""
+    settings = ResearchSettings(**{"contact_email": "ops@example.test", **overrides})
+    return EuropePmcProvider(settings, transport=httpx.MockTransport(handler))
+
+
+async def test_a_body_larger_than_the_cap_is_refused_rather_than_read():
+    """A timeout bounds how long the provider may take. Nothing bounded how
+    much it could send, and `.json()` reads the whole body into memory first —
+    so a third party decided how much of a multi-tenant control plane's memory
+    to use."""
+    async def chunks():
+        # No content-length: a chunked response has none, which is exactly why
+        # the header check alone is not enough.
+        for _ in range(8):
+            yield b"x" * 1024
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=chunks(), headers={"content-type": "application/json"})
+
+    provider = _client(handler, max_response_bytes=1024)
+    with pytest.raises(EvidenceUnavailable, match="more than 1024 bytes"):
+        await provider.search(query="hERG")
+    await provider.aclose()
+
+
+async def test_an_announced_oversize_is_refused_before_the_body_is_read():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"resultList": {"result": []}},
+            headers={"content-type": "application/json", "content-length": "99999999"},
+        )
+
+    provider = _client(handler, max_response_bytes=1024)
+    with pytest.raises(EvidenceUnavailable, match="announced"):
+        await provider.search(query="hERG")
+    await provider.aclose()
+
+
+async def test_a_body_within_the_cap_still_works():
+    """The cap must not be the reason nothing ever succeeds."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"resultList": {"result": []}},
+            headers={"content-type": "application/json"},
+        )
+
+    provider = _client(handler, max_response_bytes=8 * 1024 * 1024)
+    assert await provider.search(query="hERG") == []
+    await provider.aclose()
+
+
+async def test_a_non_json_content_type_is_refused_before_parsing():
+    """`accept: application/json` is a request header — a wish, not a
+    constraint on what comes back. An HTML error page that happens to parse
+    as something must not become evidence."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>service unavailable</html>",
+                              headers={"content-type": "text/html"})
+
+    provider = _client(handler)
+    with pytest.raises(EvidenceUnavailable, match="not JSON"):
+        await provider.search(query="hERG")
+    await provider.aclose()
+
+
+async def test_the_client_does_not_follow_a_redirect_off_the_allowed_host():
+    """The host allowlist is checked once, at startup, against `base_url`.
+    That is only equivalent to checking every response while nothing can move
+    the request somewhere else."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(302, headers={"location": "https://attacker.example.com/x"})
+
+    provider = _client(handler)
+    with pytest.raises(EvidenceUnavailable) as excinfo:
+        await provider.search(query="hERG")
+    # A 302 is not success, so it is reported as a provider failure rather
+    # than followed.
+    assert "302" in str(excinfo.value)
+    await provider.aclose()
+
+
+async def test_an_oversized_response_counts_as_a_provider_failure():
+    """It opens the circuit like any other failure: a provider sending
+    unbounded bodies should stop being called, not be retried forever."""
+    async def chunks():
+        for _ in range(4):
+            yield b"x" * 1024
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=chunks(),
+                              headers={"content-type": "application/json"})
+
+    provider = _client(handler, max_response_bytes=64, circuit_failure_threshold=2)
+    for _ in range(2):
+        with pytest.raises(EvidenceUnavailable):
+            await provider.search(query="hERG")
+    with pytest.raises(EvidenceUnavailable, match="(?i)circuit|unavailable"):
+        await provider.search(query="hERG")
+    await provider.aclose()

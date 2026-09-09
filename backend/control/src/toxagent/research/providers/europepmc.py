@@ -127,6 +127,11 @@ class EuropePmcProvider:
             timeout=httpx.Timeout(settings.hard_timeout_s, connect=settings.timeout_s),
             transport=transport,
             headers={"accept": "application/json"},
+            # Stated rather than inherited. It is httpx's default, and the
+            # host allowlist above is checked once at startup against
+            # `base_url` — which is only equivalent to checking every response
+            # while no redirect can move the request somewhere else.
+            follow_redirects=False,
         )
         self._circuit = CircuitBreaker(
             failure_threshold=settings.circuit_failure_threshold,
@@ -172,7 +177,10 @@ class EuropePmcProvider:
         except CircuitOpen as exc:
             raise EvidenceUnavailable(str(exc)) from exc
         try:
-            response = await self._client.request(method, path, **kwargs)
+            response = await self._read_bounded(method, path, **kwargs)
+        except EvidenceUnavailable:
+            self._circuit.record_failure()
+            raise
         except httpx.ConnectError as exc:
             self._circuit.record_failure()
             raise EvidenceUnavailable(
@@ -200,7 +208,52 @@ class EuropePmcProvider:
         self._circuit.record_success()
         return response
 
+    async def _read_bounded(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        """Stream the body, stopping at the cap rather than after it.
+
+        A timeout bounds how long a remote host may take. Nothing bounded how
+        much it could send, and `response.json()` materialises the whole body
+        first — so a provider having a bad day, or anything able to answer as
+        one, decided how much of a multi-tenant control plane's memory to use.
+        Checking `content-length` alone would not do it: it is optional, and a
+        chunked response has none.
+        """
+        limit = self._settings.max_response_bytes
+        request = self._client.build_request(method, path, **kwargs)
+        response = await self._client.send(request, stream=True)
+        try:
+            declared = response.headers.get("content-length")
+            if declared and declared.isdigit() and int(declared) > limit:
+                raise EvidenceUnavailable(
+                    f"the research provider announced {declared} bytes, over the "
+                    f"{limit}-byte limit"
+                )
+            chunks: list[bytes] = []
+            total = 0
+            async for chunk in response.aiter_bytes():
+                total += len(chunk)
+                if total > limit:
+                    raise EvidenceUnavailable(
+                        f"the research provider sent more than {limit} bytes"
+                    )
+                chunks.append(chunk)
+        finally:
+            await response.aclose()
+        # Rebuilt as a non-streaming response so everything downstream — the
+        # status checks, `retry-after`, `.json()` — is unchanged.
+        return httpx.Response(
+            status_code=response.status_code,
+            headers=response.headers,
+            content=b"".join(chunks),
+            request=request,
+        )
+
     def _parse_json(self, response: httpx.Response) -> dict[str, Any]:
+        media_type = (response.headers.get("content-type") or "").split(";")[0].strip().lower()
+        if media_type and media_type not in self._settings.allowed_content_types:
+            raise EvidenceUnavailable(
+                f"the research provider answered {media_type!r}, which is not JSON"
+            )
         try:
             return response.json()
         except ValueError as exc:
