@@ -47,6 +47,32 @@ Key rotation needs no restart: the key set is cached for
 `TOXAGENT_OIDC_JWKS_CACHE_S`, and a token whose `kid` is not in the cache
 refetches immediately rather than failing until the cache expires.
 
+## Browser sign-in
+
+The frontend reads these at build time. They are public by definition — a
+client id, a redirect URI, and endpoints the browser is about to navigate to.
+There is no client secret, which is the point of PKCE: a browser cannot keep
+one.
+
+| Variable | Required | Default |
+|---|---:|---|
+| `VITE_OIDC_AUTHORIZATION_ENDPOINT` | with a provider | empty |
+| `VITE_OIDC_TOKEN_ENDPOINT` | with a provider | empty |
+| `VITE_OIDC_CLIENT_ID` | with a provider | empty |
+| `VITE_OIDC_REDIRECT_URI` | no | this origin |
+| `VITE_OIDC_SCOPE` | no | `openid profile email` |
+
+The first three are required together; with any of them missing the app keeps
+the paste-an-access-token gate, which is the right behaviour for local
+development where the server accepts `TOXAGENT_STATIC_TOKENS`. A login form
+pointing at a half-configured provider is worse than one that says what it
+wants.
+
+The token sent to the API is the provider's **access token**, not the id
+token: the id token describes the user to the app, while the control plane's
+audience check expects a token minted for the API. Sending the wrong one fails
+at the server as an audience mismatch, which is that check working.
+
 ## Logs
 
 One JSON object per line on stdout, carrying `ts`, `level`, `logger`,
