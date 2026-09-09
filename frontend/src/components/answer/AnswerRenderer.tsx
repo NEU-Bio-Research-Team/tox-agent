@@ -6,6 +6,7 @@ import type { Components } from 'react-markdown';
 import type { GroundedAnswer } from '../../lib/api/types';
 import { linkifyClaims, CLAIM_LINK_SCHEME } from '../../lib/answerMarkdown';
 import { ClaimChip } from './ClaimChip';
+import { AnswerSources } from './AnswerSources';
 import { LimitationBlock } from './LimitationBlock';
 import { FallbackBadge } from './FallbackBadge';
 
@@ -74,6 +75,8 @@ export function AnswerRenderer({ answer, sessionId }: { answer: GroundedAnswer; 
           {linkedMarkdown}
         </ReactMarkdown>
       </div>
+
+      <AnswerSources claims={answer.claims} sessionId={sessionId} />
 
       <LimitationBlock limitations={answer.limitations} />
 

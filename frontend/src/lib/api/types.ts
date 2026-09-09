@@ -474,7 +474,17 @@ export interface MessageListResponse {
 
 // -- answers ----------------------------------------------------------------
 
-export type ClaimKind = 'numeric' | 'classification' | 'scientific' | 'comparison';
+/** Every kind `domain/answer.py::ClaimKind` defines. This listed four of
+ *  the six; `limitation` and `recommendation` claims exist and were
+ *  outside the type, so anything switching on kind was incomplete without
+ *  TypeScript being able to say so. */
+export type ClaimKind =
+  | 'numeric'
+  | 'classification'
+  | 'scientific'
+  | 'comparison'
+  | 'limitation'
+  | 'recommendation';
 export type Transform = 'identity' | `round:${number}` | `percent:${number}` | 'difference' | 'ratio';
 
 export interface Claim {

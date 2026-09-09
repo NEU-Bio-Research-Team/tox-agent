@@ -1,6 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// AnswerSources lists the evidence a claim cites, which means a query client.
+// Stubbed here rather than mocked away: an answer with no citations must still
+// render, and that is worth asserting.
+vi.mock('../../lib/api/endpoints', () => ({ listAllEvidence: vi.fn(async () => []) }));
 import { AnswerRenderer } from './AnswerRenderer';
 import type { Claim, GroundedAnswer } from '../../lib/api/types';
 
@@ -26,10 +32,13 @@ function baseAnswer(overrides: Partial<GroundedAnswer>): GroundedAnswer {
 }
 
 function renderAnswer(answer: GroundedAnswer) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <MemoryRouter>
-      <AnswerRenderer answer={answer} sessionId="ses_1" />
-    </MemoryRouter>,
+    <QueryClientProvider client={client}>
+      <MemoryRouter>
+        <AnswerRenderer answer={answer} sessionId="ses_1" />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
@@ -91,14 +100,11 @@ describe('AnswerRenderer', () => {
   });
 
   it('shows the fallback badge only when the answer actually is a fallback', () => {
-    const { rerender } = renderAnswer(baseAnswer({ answer_markdown: 'ok', is_fallback: false }));
+    renderAnswer(baseAnswer({ answer_markdown: 'ok', is_fallback: false }));
     expect(screen.queryByText('ĐÁP ÁN DỰ PHÒNG')).toBeNull();
+    cleanup();
 
-    rerender(
-      <MemoryRouter>
-        <AnswerRenderer answer={baseAnswer({ answer_markdown: 'ok', is_fallback: true })} sessionId="ses_1" />
-      </MemoryRouter>,
-    );
+    renderAnswer(baseAnswer({ answer_markdown: 'ok', is_fallback: true }));
     expect(screen.getAllByText('ĐÁP ÁN DỰ PHÒNG').length).toBeGreaterThan(0);
   });
 });
