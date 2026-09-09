@@ -9,7 +9,8 @@
 >
 > A replacement covering the current four-service topology, staging/production
 > separation and digest promotion is package **K12** in
-> [`docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md`](../audit/REMAINING_IMPLEMENTATION_PLAN_VI.md)
+> `docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md` (internal; withheld from a
+> customer distribution, hence a name rather than a link)
 > and is tracked as issue #22. Until it lands, deploy from
 > [`DOCKER_TEST_RUNBOOK.md`](DOCKER_TEST_RUNBOOK.md) and
 > [`TOXAGENT_OPERATIONS_RUNBOOK.md`](TOXAGENT_OPERATIONS_RUNBOOK.md).

@@ -1,0 +1,194 @@
+{
+  "$comment": "What a customer distribution contains, as data (K12). The plan in docs/spec/WORKSPACE_HANDOFF_SIMPLIFICATION_PLAN_VI.md describes this as a table a person applies; a table a person applies is a table that goes stale the first time somebody adds a file. Every tracked path must match exactly one rule — an unmatched path fails the check, so a new file is a decision rather than an accident in whichever direction the default happened to point. This describes a surface; it does not create a customer repository, which is a separate act with its own review. `secret_shape_exemptions` names files whose credential-shaped content is deliberate — a test cannot prove a credential is redacted without containing one — and is data rather than an inline marker so adding one is reviewed.",
+  "schema_version": "handoff-allowlist-v1",
+  "include": [
+    {
+      "glob": "README.md",
+      "why": "the setup procedure a clean clone follows"
+    },
+    {
+      "glob": "LICENSE",
+      "why": "terms"
+    },
+    {
+      "glob": "THIRD_PARTY_NOTICES.md",
+      "why": "attribution obligations travel with the distribution"
+    },
+    {
+      "glob": "CHANGELOG.md",
+      "why": "what changed between the tags a customer receives"
+    },
+    {
+      "glob": "VERSION",
+      "why": "read by the services and by the release manifest"
+    },
+    {
+      "glob": ".env.example",
+      "why": "the template setup copies"
+    },
+    {
+      "glob": ".dockerignore",
+      "why": "affects what the images they build contain"
+    },
+    {
+      "glob": ".gitignore",
+      "why": "keeps their generated state out of their own commits"
+    },
+    {
+      "glob": "bin/**",
+      "why": "the operator wrapper: setup, doctor, up, smoke, backup, restore"
+    },
+    {
+      "glob": "frontend/**",
+      "why": "runtime"
+    },
+    {
+      "glob": "backend/control/**",
+      "why": "runtime"
+    },
+    {
+      "glob": "backend/predictor/**",
+      "why": "runtime"
+    },
+    {
+      "glob": "backend/ocr/**",
+      "why": "runtime"
+    },
+    {
+      "glob": "devops/compose/**",
+      "why": "the stack they run"
+    },
+    {
+      "glob": "devops/scripts/**",
+      "why": "setup, artifact verification, drills and the release manifest"
+    },
+    {
+      "glob": "devops/tests/**",
+      "why": "the wrapper and deployment assertions they can run themselves"
+    },
+    {
+      "glob": ".github/workflows/**",
+      "why": "the gates, so a customer fork keeps them"
+    },
+    {
+      "glob": "docs/README.md",
+      "why": "index"
+    },
+    {
+      "glob": "docs/GETTING_STARTED.md",
+      "why": "operator"
+    },
+    {
+      "glob": "docs/CONFIGURATION.md",
+      "why": "operator"
+    },
+    {
+      "glob": "docs/OPERATIONS.md",
+      "why": "operator"
+    },
+    {
+      "glob": "docs/DEVELOPMENT.md",
+      "why": "operator"
+    },
+    {
+      "glob": "docs/ARCHITECTURE.md",
+      "why": "what they are running"
+    },
+    {
+      "glob": "docs/architecture.md",
+      "why": "what they are running"
+    },
+    {
+      "glob": "docs/WORKSPACE_LAYOUT.md",
+      "why": "where things are"
+    },
+    {
+      "glob": "docs/MODEL_CARD.md",
+      "why": "scientific limitations must travel with the models"
+    },
+    {
+      "glob": "docs/model-card.md",
+      "why": "scientific limitations must travel with the models"
+    },
+    {
+      "glob": "docs/benchmark-protocol.md",
+      "why": "how the reported numbers were measured"
+    },
+    {
+      "glob": "docs/artifacts/**",
+      "why": "per-model admission and limitations"
+    },
+    {
+      "glob": "docs/runbooks/**",
+      "why": "operating the deployment they were given"
+    }
+  ],
+  "exclude": [
+    {
+      "glob": "docs/spec/**",
+      "why": "internal planning; describes work not delivered and decisions still open"
+    },
+    {
+      "glob": "docs/archive/**",
+      "why": "superseded intent, kept for internal history"
+    },
+    {
+      "glob": "docs/audit/**",
+      "why": "internal audit findings and evidence"
+    },
+    {
+      "glob": "docs/unified-v2/**",
+      "why": "internal architecture decisions in progress"
+    },
+    {
+      "glob": "docs/refactor/**",
+      "why": "internal migration state"
+    },
+    {
+      "glob": "docs/slides/**",
+      "why": "presentation material, released separately"
+    },
+    {
+      "glob": "docs/BM1_explainer_benchmark_analysis.md",
+      "why": "internal research analysis"
+    },
+    {
+      "glob": "*.pptx",
+      "why": "handover documents, released separately from source"
+    },
+    {
+      "glob": "audit_5_9.md",
+      "why": "internal audit"
+    },
+    {
+      "glob": ".gcloudignore",
+      "why": "our deployment account's concern, not theirs"
+    },
+    {
+      "glob": "devops/cloud/**",
+      "why": "a legacy Cloud Build target the current deploy.yml does not use; ship a cloud path only when it is the one contracted with that customer"
+    }
+  ],
+  "secret_shape_exemptions": [
+    {
+      "path": "backend/control/tests/unit/test_observability.py",
+      "why": "the fake credentials the redaction filter is tested against; if they were absent the test would assert nothing"
+    },
+    {
+      "path": "devops/scripts/restore_drill.sh",
+      "why": "'sk-drill-not-a-real-key', written into a throwaway volume so the drill can prove the credential survived a container recreate"
+    },
+    {
+      "path": "backend/control/tests/unit/test_oidc_auth.py",
+      "why": "tokens minted in-test to prove the forged ones are refused"
+    },
+    {
+      "path": "backend/control/tests/unit/test_connection_probe.py",
+      "why": "a fake key asserted never to appear in a probe failure message"
+    },
+    {
+      "path": "backend/control/tests/integration/test_profile_credential_isolation.py",
+      "why": "two owners' fake keys, which is the whole subject of the test"
+    }
+  ]
+}

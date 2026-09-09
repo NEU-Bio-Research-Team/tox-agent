@@ -123,4 +123,5 @@ whole Tox21 endpoint is refused; the twelve assays are independent.
 
 - [`model-card.md`](model-card.md) — measured performance and limitations
 - [`benchmark-protocol.md`](benchmark-protocol.md) — how those numbers are produced
-- [`refactor/PREDICTOR_ONLY_STATUS_VI.md`](refactor/PREDICTOR_ONLY_STATUS_VI.md) — what changed and why
+- `docs/refactor/PREDICTOR_ONLY_STATUS_VI.md` — what changed and why. Internal:
+  it is withheld from a customer distribution, so this is a name rather than a link.

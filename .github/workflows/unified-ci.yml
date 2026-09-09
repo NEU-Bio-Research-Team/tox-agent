@@ -315,7 +315,11 @@ jobs:
       # Every Dockerfile pinned to a digest, the resolved versions recorded,
       # and the served model registry named. The assertions are in
       # devops/tests; this runs them and then produces the artifact.
-      - run: python -m pytest -q devops/tests/test_release_manifest.py
+      - run: python -m pytest -q devops/tests/test_release_manifest.py devops/tests/test_handoff_allowlist.py
+      # What a customer distribution would contain. Fails on a tracked path
+      # matching no rule, on a shipped document linking to a withheld one, and
+      # on an undeclared credential shape in anything shipped.
+      - run: python devops/scripts/handoff.py --check
       - run: python devops/scripts/release_manifest.py --out release-manifest.json
       - run: cat release-manifest.json
 

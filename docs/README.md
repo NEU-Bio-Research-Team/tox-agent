@@ -48,7 +48,7 @@ Three statuses, and they mean different things:
 | [`benchmark-protocol.md`](benchmark-protocol.md) | Current | Frozen split and metric definitions |
 | [`artifacts/herg-tox21-chemberta-v1.md`](artifacts/herg-tox21-chemberta-v1.md) | Current | Admitted model card |
 | [`artifacts/clintox-smilesgnn-v1.md`](artifacts/clintox-smilesgnn-v1.md) | Current | **Blocked** artifact — records why v1 cannot be served (I07) |
-| [`BM1_explainer_benchmark_analysis.md`](BM1_explainer_benchmark_analysis.md) | Historical | Explainer analysis of the pre-refactor monolith |
+| `BM1_explainer_benchmark_analysis.md` | Historical | Explainer analysis of the pre-refactor monolith |
 
 ## Runbooks
 
@@ -67,17 +67,24 @@ Three statuses, and they mean different things:
 Source documents. Held immutable so a later report cannot be read back into an
 earlier one. The current consolidated view is the audit pair.
 
+**These live in the development repository and are not part of a customer
+distribution** — `devops/handoff_allowlist.json` withholds them, and the names
+below are deliberately not links so a handed-over clone has no dead ones. They
+are internal because they describe work that is not delivered, decisions still
+open, and audit findings.
+
 | Document | Status |
 |---|---|
-| [`audit/SYSTEM_ISSUES_VI.md`](audit/SYSTEM_ISSUES_VI.md) | Current — the 32 issues, I01–I32 |
-| [`audit/REMAINING_IMPLEMENTATION_PLAN_VI.md`](audit/REMAINING_IMPLEMENTATION_PLAN_VI.md) | Current — packages K01–K13 |
-| [`spec/`](spec/) | Historical — rebuild, capabilities, quick-predict, UI, landing, handoff, GPU plans |
-| [`spec/TOXAGENT_AGENTIC_LAYER_PROGRESS_VI.md`](spec/TOXAGENT_AGENTIC_LAYER_PROGRESS_VI.md) | Historical — a running log. Later entries correct earlier ones; do not sum runs or carry a score forward to a newer HEAD. |
-| [`unified-v2/ARCHITECTURE.md`](unified-v2/ARCHITECTURE.md), [`unified-v2/DECISIONS.md`](unified-v2/DECISIONS.md), [`unified-v2/MIGRATION.md`](unified-v2/MIGRATION.md) | Current — typed boundary invariants |
-| [`unified-v2/BASELINE.md`](unified-v2/BASELINE.md), [`unified-v2/IMPLEMENTATION_STATUS.md`](unified-v2/IMPLEMENTATION_STATUS.md) | Historical — G0–G12 evidence at the time of writing |
-| [`refactor/PREDICTOR_ONLY_STATUS_VI.md`](refactor/PREDICTOR_ONLY_STATUS_VI.md) | Historical — audit of the monolith it replaced |
-| [`archive/`](archive/) | Historical — ADK checklist, v1.0 overview, brainstorms |
-| [`slides/README.md`](slides/README.md) | Historical — deck source document was removed at `b79036d` |
+| `audit/SYSTEM_ISSUES_VI.md` | Current — the 32 issues, I01–I32 |
+| `audit/REMAINING_IMPLEMENTATION_PLAN_VI.md` | Current — packages K01–K13 |
+| `audit/K01_BASELINE.md`, `audit/K02_MEASURED_AFTER_FIXES.md`, `audit/K03_DRILLS.md` | Current — what was measured, and when |
+| `spec/` | Historical — rebuild, capabilities, quick-predict, UI, landing, handoff, GPU plans |
+| `spec/TOXAGENT_AGENTIC_LAYER_PROGRESS_VI.md` | Historical — a running log. Later entries correct earlier ones; do not sum runs or carry a score forward to a newer HEAD. |
+| `unified-v2/ARCHITECTURE.md`, `unified-v2/DECISIONS.md`, `unified-v2/MIGRATION.md` | Current — typed boundary invariants |
+| `unified-v2/BASELINE.md`, `unified-v2/IMPLEMENTATION_STATUS.md` | Historical — G0–G12 evidence at the time of writing |
+| `refactor/PREDICTOR_ONLY_STATUS_VI.md` | Historical — audit of the monolith it replaced |
+| `archive/` | Historical — ADK checklist, v1.0 overview, brainstorms |
+| `slides/README.md` | Historical — deck source document was removed at `b79036d` |
 
 ## Test numbers cited anywhere in these documents
 

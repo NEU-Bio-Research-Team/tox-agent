@@ -35,6 +35,13 @@ HISTORICAL = (
     "docs/BM1_explainer_benchmark_analysis.md",
     # A source plan, on the same footing as docs/spec.
     "new_plan.md",
+    # An ADR records a decision as it was made. Both of these name a path the
+    # relocation retired *because that is what existed at the time* — 0006
+    # describes what the pre-refactor monolith did, 0007 describes a profile
+    # built the day it was written. Rewriting the paths would make the record
+    # say something that was not true when it was made, which is the opposite
+    # of what an ADR is for.
+    "backend/control/docs/adr/",
     # An earlier audit, superseded by docs/audit/. Its inventory of the
     # pre-relocation tree is the record.
     "audit_5_9.md",
@@ -104,7 +111,19 @@ def check_retired_paths(path: Path, rel: str) -> list[str]:
 
 def main() -> int:
     problems: list[str] = []
-    for path in sorted(REPO_ROOT.glob("docs/**/*.md")) + sorted(REPO_ROOT.glob("*.md")):
+    # Service READMEs as well as docs/. They were outside the scan, and
+    # `backend/ocr/README.md` had been pointing at `backend/backend/control/`
+    # — one `../` too few — since the relocation, unnoticed because nothing
+    # checked a Markdown file outside `docs/`.
+    scanned = (
+        sorted(REPO_ROOT.glob("docs/**/*.md"))
+        + sorted(REPO_ROOT.glob("*.md"))
+        + sorted(REPO_ROOT.glob("backend/*/README.md"))
+        + sorted(REPO_ROOT.glob("backend/*/docs/**/*.md"))
+        + sorted(REPO_ROOT.glob("frontend/README.md"))
+        + sorted(REPO_ROOT.glob("devops/**/*.md"))
+    )
+    for path in scanned:
         rel = path.relative_to(REPO_ROOT).as_posix()
         problems += check_links(path, rel)
         if not _is_historical(rel):
