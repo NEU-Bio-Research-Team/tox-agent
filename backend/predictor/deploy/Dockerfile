@@ -8,7 +8,12 @@
 # fails startup rather than being silently downloaded during a request.
 ARG TORCH_VARIANT=cpu
 
-FROM python:3.10-slim
+# The digest, not the tag. `python:3.10-slim` is a different image next month,
+# so a rebuild of this commit would be a different release — and this is the
+# service whose output is a scientific measurement. Control and OCR were
+# already pinned; this one was the exception, which is the wrong way round.
+# Same digest as those two, so all three share one base.
+FROM python:3.10-slim@sha256:fd76ade0c607f27677bc04be3c60749f400eedc941d9e72967e19a4cedff80c2
 
 ENV PORT=8080 \
     MODELS_ROOT=/app/models \

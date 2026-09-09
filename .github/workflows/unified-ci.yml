@@ -295,3 +295,51 @@ jobs:
         run: cd backend/control && python -m evals.runner --runtime opencode --trials 3
         env:
           TOXAGENT_LIVE_RUNTIME: ${{ secrets.TOXAGENT_LIVE_RUNTIME }}
+
+  # What is in a release, and whether anything in it is known-vulnerable.
+  # Neither question was asked anywhere before: the tag named a commit and
+  # nothing named the resolved `torch`, the base image, or the served weights.
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # `git describe` and the clean/dirty flag need more than one commit.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -e './backend/control[dev,postgres]'
+
+      # Every Dockerfile pinned to a digest, the resolved versions recorded,
+      # and the served model registry named. The assertions are in
+      # devops/tests; this runs them and then produces the artifact.
+      - run: python -m pytest -q devops/tests/test_release_manifest.py
+      - run: python devops/scripts/release_manifest.py --out release-manifest.json
+      - run: cat release-manifest.json
+
+      # CycloneDX over the environment that was actually installed, rather
+      # than over the dependency ranges, for the same reason the manifest
+      # records resolved versions.
+      - run: pip install cyclonedx-bom pip-audit
+      # `--output-reproducible` drops the timestamp, so two SBOMs of the same
+      # environment compare equal and a diff means the environment moved.
+      - run: >-
+          cyclonedx-py environment --output-format JSON --output-reproducible
+          -o sbom-control.json
+
+      # Reported, not enforced. A gate that fails its first run on a
+      # pre-existing advisory teaches people to skip the job; making this
+      # blocking is a decision to take once the baseline is triaged. Not
+      # `--strict` either: it errors on any package it cannot look up, and a
+      # locally-versioned CUDA wheel (`torch-scatter 2.1.2+pt211cu130`) is not
+      # a vulnerability finding.
+      - run: pip-audit --progress-spinner=off || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supply-chain
+          path: |
+            release-manifest.json
+            sbom-control.json
