@@ -48,6 +48,21 @@ Bảng này ghi việc đã làm sau audit; nó không thay nội dung mô tả 
 
 Các hạng mục gate lớn hơn — K06 benchmark khoa học, K11 evidence mở rộng, K12 release/hosted security, K13 alpha/production — vẫn theo [kế hoạch còn lại](REMAINING_IMPLEMENTATION_PLAN_VI.md) và không được coi là đã đóng bởi các commit trên.
 
+## Cập nhật sau đợt xử lý issue GitHub
+
+Số đo ở [K04_MEASURED_AFTER_ISSUE_WORK.md](K04_MEASURED_AFTER_ISSUE_WORK.md), các diễn tập ở [K03_DRILLS.md](K03_DRILLS.md).
+
+Đã đóng: **K05** (#15), **K06** (#16), **K07** (#17), **K09** (#19), cùng **I33** (#24) và **I34** (#26). Còn mở: K08 (#18), K10 (#20), K11 (#21), K12 (#22), K13 (#23) — phần còn lại của mỗi gói cần credential provider, staging environment, hoặc quyết định của owner.
+
+Bảng trên vẫn đúng với I07 và I30. Hai dòng thay đổi:
+
+| Mã | Trạng thái mới |
+|---|---|
+| I16 | **Đóng.** Diễn tập restore sang instance mới và recreate container đã chạy thật trên Docker; `devops/scripts/restore_drill.sh`, kiểm chứng ngược bằng một target bị làm hỏng có chủ ý |
+| I17/I18 | **Đóng.** Chạy trên PostgreSQL 16.15 thật: 212 test integration+e2e, không skip. Gate này trước đó **chưa từng chạy trong CI** — job dựng service PostgreSQL rồi cho mọi test chạy trên SQLite tạm bên cạnh. Bật lên thì bắt được lỗi admission budget dưới concurrency thật |
+
+Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code** nằm ở cuối [K04_MEASURED_AFTER_ISSUE_WORK.md](K04_MEASURED_AFTER_ISSUE_WORK.md).
+
 ## Danh mục issue
 
 | ID | Mức | Căn cứ | Vấn đề | Gói sửa |
