@@ -43,17 +43,48 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def model_artifact_fingerprint(provenance, model_id: str | None) -> tuple[str, ...]:
+    """The artifact hashes belonging to one model, out of a response's provenance.
+
+    ToxPred reports provenance per model — `[{"model_id": ..., "weights_sha256":
+    ..., "tokenizer_sha256": ...}]` — which the client flattens to
+    `"<model_id>:<field>=<hash>"`. Selecting by prefix keeps the pin precise: a
+    retrain of one admitted model invalidates its own explanations and leaves
+    the other's alone.
+
+    An empty result is the honest answer when the predictor reported no
+    artifacts for this model, and it is a *different* key from any non-empty
+    one — so a checkpoint written while the weights were unidentified is never
+    served as though it had been pinned to them.
+    """
+    if not model_id:
+        return ()
+    prefix = f"{model_id}:"
+    return tuple(sorted(
+        h for h in getattr(provenance, "artifact_hashes", ()) or () if h.startswith(prefix)
+    ))
+
+
 def explanation_checkpoint_key(
-    *, canonical_smiles: str, endpoint: str, task: str | None, model_id: str | None
+    *, canonical_smiles: str, endpoint: str, task: str | None, model_id: str | None,
+    artifact_fingerprint: tuple[str, ...] = (),
 ) -> str:
     """Identity of one explanation: what it explains, and what produced it.
 
     The model id is part of it deliberately (I11): the same molecule explained
     by a different admitted model is a different artifact, and reusing one for
     the other is exactly the mismatch the bundle used to permit.
+
+    The id alone was not enough, though, and K06 asks for the hash. An id is a
+    name a deployment chooses; the weights behind it can be replaced by a
+    retrain, a re-download, or a corrected checkpoint without the name moving.
+    A key made only of the name would then serve last month's attribution for
+    this month's model and call it current. The artifact hashes the predictor
+    reported for that model are part of the key, so replacing the weights
+    retires every explanation made with the old ones.
     """
     material = "\u001f".join(
-        (canonical_smiles, endpoint, task or "", model_id or "")
+        (canonical_smiles, endpoint, task or "", model_id or "", *artifact_fingerprint)
     )
     return f"sha256:{hashlib.sha256(material.encode('utf-8')).hexdigest()}"
 
@@ -159,6 +190,7 @@ class CreateAnalysis:
                 session_id=session_id,
                 smiles=smiles,
                 response=response,
+                provenance=provenance,
                 model_selection=model_selection,
                 targets=explanation_targets,
             )
@@ -225,6 +257,7 @@ class CreateAnalysis:
         session_id: str,
         smiles: str,
         response,
+        provenance,
         model_selection: Mapping[str, str] | None,
         targets: tuple[tuple[str, str | None], ...],
     ) -> list[dict[str, Any]]:
@@ -248,19 +281,19 @@ class CreateAnalysis:
         statement about what happened, unlike an absent target or an
         unlabelled approximation.
         """
-        keys = {
-            (endpoint, task): explanation_checkpoint_key(
+        keys = {}
+        for endpoint, task in targets:
+            # I11: the same model that produced the probability, not whichever
+            # one the predictor would auto-resolve. With one admitted model per
+            # endpoint these agree; with two they did not, and the bundle
+            # paired B's number with A's attribution while claiming both were
+            # about B.
+            model_id = self._resolved_model(response, endpoint, model_selection)
+            keys[(endpoint, task)] = explanation_checkpoint_key(
                 canonical_smiles=response.canonical_smiles,
-                endpoint=endpoint, task=task,
-                # I11: the same model that produced the probability, not
-                # whichever one the predictor would auto-resolve. With one
-                # admitted model per endpoint these agree; with two they did
-                # not, and the bundle paired B's number with A's attribution
-                # while claiming both were about B.
-                model_id=self._resolved_model(response, endpoint, model_selection),
+                endpoint=endpoint, task=task, model_id=model_id,
+                artifact_fingerprint=model_artifact_fingerprint(provenance, model_id),
             )
-            for endpoint, task in targets
-        }
         async with self._db.unit_of_work() as uow:
             done = await uow.explanation_checkpoints.get_many(list(keys.values()))
 

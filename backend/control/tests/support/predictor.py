@@ -19,6 +19,15 @@ from toxagent.predictor.contract import TOX21_TASKS
 
 ASPIRIN = "CC(=O)Oc1ccccc1C(=O)O"
 
+#: The registry's model id, which is what a real response carries in both
+#: `predictions.<endpoint>.model_id` and `provenance.artifacts[].model_id` —
+#: they come from the same `provider.model_id`. This fixture used to put the
+#: artifact *directory* name (`pretrained_2head_herg_chemberta`) in the
+#: sections and the real id in the provenance, so the two disagreed in a way
+#: no real response does, and anything correlating them silently matched
+#: nothing.
+MODEL_ID = "herg-tox21-chemberta-v1"
+
 #: The real shape captured from a live ToxPred `POST /v1/predictions` (audit
 #: A01/A14): `predictor_version`, not `service_version`, and `artifacts` is a
 #: *list of dicts*, not a flat mapping — a fixture using the old shape is
@@ -33,7 +42,7 @@ PROVENANCE = {
     "models": ["herg-tox21-chemberta-v1"],
     "artifacts": [
         {
-            "model_id": "herg-tox21-chemberta-v1",
+            "model_id": MODEL_ID,
             "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
             "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
         }
@@ -45,7 +54,7 @@ PROVENANCE = {
 
 def herg_section(
     probability: float = 0.73064, threshold: float = 0.5,
-    model_id: str = "pretrained_2head_herg_chemberta",
+    model_id: str = MODEL_ID,
 ) -> dict[str, Any]:
     return {
         "probability_blocker": probability,
@@ -58,7 +67,7 @@ def herg_section(
 
 def tox21_section(
     active_tasks: tuple[str, ...] = ("SR-MMP",),
-    model_id: str = "pretrained_2head_herg_chemberta",
+    model_id: str = MODEL_ID,
 ) -> dict[str, Any]:
     return {
         "task_order_version": "tox21-12task-v1",
@@ -75,6 +84,21 @@ def tox21_section(
     }
 
 
+def provenance(*, weights_sha256: str | None = None) -> dict[str, Any]:
+    """`PROVENANCE`, optionally with different weights behind the same id.
+
+    Replacing a checkpoint without renaming the model is an ordinary thing to
+    do — a retrain, a re-download, a corrected export — and it is what the
+    explanation checkpoint has to notice (K06).
+    """
+    if weights_sha256 is None:
+        return PROVENANCE
+    artifacts = [dict(a) for a in PROVENANCE["artifacts"]]
+    for artifact in artifacts:
+        artifact["weights_sha256"] = weights_sha256
+    return {**PROVENANCE, "artifacts": artifacts}
+
+
 def prediction(
     smiles: str = ASPIRIN,
     *,
@@ -82,6 +106,7 @@ def prediction(
     probability: float = 0.73064,
     applicability_status: str = "ok",
     model_selection: dict[str, str] | None = None,
+    weights_sha256: str | None = None,
 ) -> dict[str, Any]:
     """``model_selection`` makes the stub answer *as* the requested model.
 
@@ -93,11 +118,11 @@ def prediction(
     predictions: dict[str, Any] = {}
     if "herg" in endpoints:
         predictions["herg"] = herg_section(
-            probability, model_id=selected.get("herg", "pretrained_2head_herg_chemberta")
+            probability, model_id=selected.get("herg", MODEL_ID)
         )
     if "tox21" in endpoints:
         predictions["tox21"] = tox21_section(
-            model_id=selected.get("tox21", "pretrained_2head_herg_chemberta")
+            model_id=selected.get("tox21", MODEL_ID)
         )
     if "clintox" in endpoints:
         predictions["clintox"] = {
@@ -116,7 +141,7 @@ def prediction(
             "method": "element_rules_v1",
             "reasons": [] if applicability_status == "ok" else ["contains boron"],
         },
-        "provenance": PROVENANCE,
+        "provenance": provenance(weights_sha256=weights_sha256),
     }
 
 
@@ -132,6 +157,7 @@ class StubPredictor:
         malformed: bool = False,
         probability: float = 0.73064,
         explain_status: str = "completed",
+        weights_sha256: str | None = None,
     ) -> None:
         self.served = served
         self.ready = ready
@@ -139,6 +165,7 @@ class StubPredictor:
         self.malformed = malformed
         self.probability = probability
         self.explain_status = explain_status
+        self.weights_sha256 = weights_sha256
         self.requests: list[dict[str, Any]] = []
 
     def transport(self) -> httpx.MockTransport:
@@ -171,7 +198,7 @@ class StubPredictor:
                 json={
                     "models": [
                         {
-                            "model_id": "pretrained_2head_herg_chemberta",
+                            "model_id": MODEL_ID,
                             "capabilities": ["herg", "tox21"],
                             "loaded": True, "required": True, "detail": "",
                             "blocked_reason": None,
@@ -208,6 +235,7 @@ class StubPredictor:
                     endpoints=tuple(e for e in requested if e in self.served),
                     probability=self.probability,
                     model_selection=body.get("model_selection"),
+                    weights_sha256=self.weights_sha256,
                 ),
             )
 
@@ -225,6 +253,7 @@ class StubPredictor:
                     results.append(prediction(
                         smiles, endpoints=self.served,
                         model_selection=body.get("model_selection"),
+                        weights_sha256=self.weights_sha256,
                     ))
             return httpx.Response(
                 200,
@@ -255,7 +284,7 @@ class StubPredictor:
                         # Echo what was asked for, so a test can tell "asked
                         # for B and got B" from "asked for B, got A" (I11).
                         "model_id": body.get("model_id")
-                        or "pretrained_2head_herg_chemberta",
+                        or MODEL_ID,
                         "deterministic": True, "duration_ms": 812.0,
                         "timeout_ms": 30000, "note": None,
                     },
@@ -299,7 +328,7 @@ class StubPredictor:
                     "metadata": {
                         # Echo, as in /v1/attributions above (I11).
                         "model_id": body.get("model_id")
-                        or "pretrained_2head_herg_chemberta",
+                        or MODEL_ID,
                         "deterministic": True, "duration_ms": 900.0, "note": note,
                     },
                 },

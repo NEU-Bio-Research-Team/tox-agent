@@ -41,8 +41,11 @@ class _CountingPredictor:
     from come from the same code the product runs.
     """
 
-    def __init__(self, *, fail_on: str | None = None, stall_on: str | None = None) -> None:
-        self._client = StubPredictor().client()
+    def __init__(
+        self, *, fail_on: str | None = None, stall_on: str | None = None,
+        weights_sha256: str | None = None,
+    ) -> None:
+        self._client = StubPredictor(weights_sha256=weights_sha256).client()
         self.explained: list[tuple[str, str | None]] = []
         self._fail_on = fail_on
         self._stall_on = stall_on
@@ -153,3 +156,79 @@ async def test_a_checkpoint_is_not_reused_across_a_different_model(db):
         canonical_smiles="CCO", endpoint="herg", task=None, model_id="model-b"
     )
     assert a != b
+
+
+def test_a_checkpoint_is_not_reused_across_different_weights_under_one_id():
+    """K06 asks for the pin to be the model *hash*, not the model name.
+
+    A model id is a name the deployment chooses; a retrain, a re-download or a
+    corrected checkpoint replaces the weights behind it without the name
+    moving. Keyed on the name alone, the bundle would serve the old weights'
+    attribution as the new model's — the I11 mismatch again, arriving through
+    time instead of through a second model.
+    """
+    from toxagent.application.create_analysis import explanation_checkpoint_key
+
+    def key(*fingerprint: str) -> str:
+        return explanation_checkpoint_key(
+            canonical_smiles="CCO", endpoint="herg", task=None,
+            model_id="herg-tox21-chemberta-v1", artifact_fingerprint=fingerprint,
+        )
+
+    retrained = key("herg-tox21-chemberta-v1:weights_sha256=aaa")
+    assert retrained != key("herg-tox21-chemberta-v1:weights_sha256=bbb")
+    # A tokenizer swap changes what the tokens mean, so it changes the
+    # explanation even when the weights are byte-identical.
+    assert retrained != key(
+        "herg-tox21-chemberta-v1:weights_sha256=aaa",
+        "herg-tox21-chemberta-v1:tokenizer_sha256=ccc",
+    )
+    # And an unidentified artifact is its own key, never the pinned one's:
+    # a checkpoint written when the weights were unknown must not be handed
+    # back as though it had been pinned to them.
+    assert retrained != key()
+
+
+def test_the_fingerprint_selects_only_the_model_that_answered():
+    """Per-model, so retraining one admitted model leaves the other's
+    explanations valid rather than invalidating the whole cache."""
+    from toxagent.application.create_analysis import model_artifact_fingerprint
+
+    class _Provenance:
+        artifact_hashes = (
+            "model-b:weights_sha256=bbb",
+            "model-a:weights_sha256=aaa",
+            "model-a:tokenizer_sha256=ttt",
+        )
+
+    assert model_artifact_fingerprint(_Provenance(), "model-a") == (
+        "model-a:tokenizer_sha256=ttt", "model-a:weights_sha256=aaa",
+    )
+    assert model_artifact_fingerprint(_Provenance(), "model-b") == (
+        "model-b:weights_sha256=bbb",
+    )
+    assert model_artifact_fingerprint(_Provenance(), None) == ()
+
+
+async def test_new_weights_under_the_same_id_are_explained_again(db):
+    """The end-to-end version: same molecule, same model id, new checksum.
+
+    The stub reports provenance the way ToxPred does — per model, with the id
+    the prediction sections carry — so this exercises the same correlation the
+    product does rather than a hand-built key.
+    """
+    session_id, run_id = await _seed(db)
+
+    first = _CountingPredictor()
+    await _run(db, first, session_id, run_id)
+    assert len(first.explained) == len(TARGETS)
+
+    # Nothing about the molecule or the request changed, so a rerun must reuse.
+    reused = _CountingPredictor()
+    await _run(db, reused, session_id, run_id)
+    assert reused.explained == []
+
+    # Now the weights behind that id are replaced.
+    retrained = _CountingPredictor(weights_sha256="f" * 64)
+    await _run(db, retrained, session_id, run_id)
+    assert retrained.explained == list(TARGETS)
