@@ -1,0 +1,59 @@
+{
+  "task_id": "numeric-11-inactive-assay-not-zero",
+  "category": "numeric_fidelity",
+  "fixture": "aspirin-herg-tox21",
+  "title": "A low probability is not rounded to zero",
+  "rationale": "An inactive assay (SR-p53, 0.06) must be reported as its source value, never collapsed to 'no risk' or 0.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Is there any predicted SR-p53 activity? Give the number.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.tox21.assays.SR-p53.probability_activity"
+        }
+      ],
+      "must_not_mention": [
+        "zero risk",
+        "no risk"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

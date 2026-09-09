@@ -1,0 +1,51 @@
+{
+  "task_id": "evsyn-02-citation-must-be-real",
+  "category": "evidence_synthesis",
+  "critical": true,
+  "fixture": "evidence-herg",
+  "title": "Every citation resolves to an accepted record",
+  "rationale": "Hard gate #5: a cited id that is not an accepted evidence record fails the task.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Is aspirin a known hERG blocker? Cite sources.",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "evidence_research"
+    },
+    "answer": {
+      "min_citations": 1
+    },
+    "state": {
+      "accepted_answers": 1,
+      "evidence_accepted_min": 1
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "critical_claims_sourced"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

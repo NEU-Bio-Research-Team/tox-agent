@@ -1,0 +1,23 @@
+# Runtime dependencies for the optical structure recognition service.
+#
+# MolScribe pins torch<2.0 (setup.py, github.com/thomas0809/MolScribe) — this
+# service therefore needs its own environment, never toxpred's or
+# toxagent-control's, both of which run a current torch/no torch at all.
+# Verified working combination (2026-09-05, CPU only):
+#
+#   conda create -n toxocr-env python=3.10
+#   pip install torch==1.13.1 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r toxocr/requirements.txt
+#   pip install "numpy<2"   # molscribe's pinned deps (timm, torchvision 0.14,
+#                           # albumentations 1.1.0) predate NumPy 2.0's ABI
+#                           # break; installing them alone resolves numpy 2.x
+#                           # and several import warnings turn into failures.
+#
+molscribe==1.1.1
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0
+pillow
+rdkit
+huggingface_hub>=0.22.2
+numpy<2

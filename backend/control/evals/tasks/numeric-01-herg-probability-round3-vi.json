@@ -1,0 +1,64 @@
+{
+  "task_id": "numeric-01-herg-probability-round3-vi",
+  "category": "numeric_fidelity",
+  "language": "vi",
+  "critical": true,
+  "fixture": "aspirin-herg-tox21",
+  "title": "hERG blocker probability, rounded to 3 dp, Vietnamese",
+  "rationale": "The core numeric-fidelity check: a probability rendered to 3 dp must equal the source under round:3, and a Vietnamese decimal comma is allowed (ADR 0005).",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Xác suất chẹn hERG là bao nhiêu? Làm tròn 3 chữ số thập phân.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.probability_blocker",
+          "source_value": 0.281,
+          "rendered_value": "0,281"
+        }
+      ],
+      "required_limitations": [
+        "uncalibrated_probability"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "claim_source_graph_complete": true
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_safety_or_regulatory_claim",
+    "critical_claims_sourced"
+  ],
+  "graders": [
+    "schema",
+    "state",
+    "transcript"
+  ],
+  "schema_version": "eval-task-v1"
+}

@@ -1,0 +1,19 @@
+# Local-only OpenCode bridge. The runtime stays on the host loopback; only the
+# Docker bridge can reach its narrowly scoped proxy. Run alongside compose/compose.yaml.
+services:
+  toxagent-control:
+    ports:
+      - "127.0.0.1:8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "${PWD}/.data/opencode-workspaces:${PWD}/.data/opencode-workspaces"
+    environment:
+      TOXAGENT_RUNTIME_KIND: opencode
+      TOXAGENT_OPENCODE_URL: http://host.docker.internal:4096
+      TOXAGENT_OPENCODE_VERSION: "1.17.11"
+      TOXAGENT_OPENCODE_DIRECTORY: ${PWD}/.data/opencode-workspaces
+      TOXAGENT_OPENCODE_CREATE_RUN_DIRECTORIES: "true"
+      TOXAGENT_MCP_RUNTIME_URL: http://127.0.0.1:8000/internal/mcp
+      TOXAGENT_PROVIDER_ID: ${TOXAGENT_PROVIDER_ID:?set provider ID in .env}
+      TOXAGENT_MODEL_ID: ${TOXAGENT_MODEL_ID:?set model ID in .env}

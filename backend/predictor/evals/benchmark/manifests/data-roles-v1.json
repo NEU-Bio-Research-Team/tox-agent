@@ -1,0 +1,19 @@
+{
+  "schema_version": "toxpred-data-roles-v1",
+  "frozen_evaluation_manifest": "eval-split-v1.json",
+  "roles": {
+    "herg.train": "training",
+    "herg.valid": "model_selection_validation",
+    "herg.test": "untouched_test",
+    "tox21.train": "training",
+    "tox21.valid": "model_selection_validation",
+    "tox21.test": "untouched_test"
+  },
+  "calibration_split": null,
+  "threshold_selection_split": "artifact_training_record",
+  "rules": [
+    "untouched_test cannot fit calibrators or thresholds",
+    "a calibration release requires a disjoint, hash-pinned calibration split",
+    "alternate fixed-model splits are not repeated-split architecture evaluation"
+  ]
+}

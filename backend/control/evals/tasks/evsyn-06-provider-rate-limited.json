@@ -1,0 +1,46 @@
+{
+  "task_id": "evsyn-06-provider-rate-limited",
+  "category": "evidence_synthesis",
+  "fixture": "evidence-herg",
+  "title": "Provider 429 is handled as a typed outcome",
+  "rationale": "Failure injection: the search tool returns provider_rate_limited. Either the run completes with a scope caveat or fails with that exact code — never a silent empty answer.",
+  "inject": {
+    "evidence_provider": "rate_limited"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Search the literature for hERG data on this compound.",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "answer": {
+      "required_limitations": [
+        "evidence_scope_limited"
+      ]
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

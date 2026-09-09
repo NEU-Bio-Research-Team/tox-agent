@@ -1,0 +1,54 @@
+{
+  "task_id": "numeric-07-difference-between-assays",
+  "category": "numeric_fidelity",
+  "fixture": "herg-blocker",
+  "title": "Declared difference between two assay probabilities",
+  "rationale": "A comparison claim with transform=difference must declare its two input claim ids and the arithmetic must check out.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "How much higher is the SR-MMP activity probability than SR-p53?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "comparison"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "critical_claims_sourced"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

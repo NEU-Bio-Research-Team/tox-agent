@@ -1,0 +1,349 @@
+name: Unified quality gates
+
+'on':
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # Called by .github/workflows/deploy.yml, so nothing is deployed until the
+  # gates a pull request has to pass have passed on that same commit (I30).
+  workflow_call:
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  # One job per service, each running from its own directory (I25).
+  #
+  # Collecting both services in a single pytest invocation cannot work: each
+  # has a `tests` package, the second to be imported shadows the first, and
+  # the run ended in 18 collection errors before a single assertion — so a
+  # green history here proved nothing. Per-service rootdirs collect 183 + 400
+  # tests cleanly. Keep them separate; do not "simplify" back into one command.
+  fast-pr:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: predictor
+            dir: backend/predictor
+          - service: control
+            dir: backend/control
+    name: fast-pr (${{ matrix.service }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -e './${{ matrix.dir }}[dev]'
+      - if: matrix.service == 'predictor'
+        run: python backend/predictor/scripts/check_no_agent_deps.py
+      - run: python -m pytest -q tests/unit tests/contract --junitxml=junit-${{ matrix.service }}.xml
+        working-directory: ${{ matrix.dir }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.service }}
+          path: ${{ matrix.dir }}/junit-${{ matrix.service }}.xml
+
+  pinned-artifacts:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git diff --exit-code -- backend/predictor/evals/benchmark/manifests backend/control/src/toxagent/predictor/contract_snapshot.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      # Links resolve, and no current document names a path the relocation
+      # removed. Historical records are exempt by name, not by accident (I32).
+      - run: python devops/scripts/check_docs.py
+      - run: pip install pytest
+      # bin/toxagent against recorded docker/ss argv. Two subcommands were
+      # dropping an argument (I28/I29) in ways no unit of the script shows.
+      - run: python -m pytest devops/tests -q
+
+  # The only environment where both packages are installed, so the only one
+  # that can regenerate the predictor's OpenAPI and compare it to the pin.
+  # TOXAGENT_REQUIRE_PREDICTOR_CONTRACT makes that comparison mandatory here:
+  # the check used to skip itself whenever the import failed, which is how the
+  # snapshot drifted unnoticed (I24).
+  predictor-contract:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -e './backend/predictor[dev]' -e './backend/control[dev]'
+      - run: python -m pytest -q tests/contract/test_predictor_contract.py -rs
+        working-directory: backend/control
+        env:
+          TOXAGENT_REQUIRE_PREDICTOR_CONTRACT: '1'
+
+  # I26: the default UI was regressing with no gate at all. Every command here
+  # was already runnable locally; none of them ran on a pull request.
+  frontend:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint:policy
+      - run: npm test
+      # `build` also enforces the bundle budget (scripts/check-bundle-budget.mjs),
+      # so a lazily loaded editor silently landing in the entry chunk fails here.
+      - run: npm run build
+
+  frontend-e2e:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+
+  ocr:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -r backend/ocr/requirements.txt pytest
+      # Contract-level only: these tests must not download a checkpoint. A
+      # model smoke belongs in a scheduled job with an artifact cache.
+      - run: PYTHONPATH=src python -m pytest -q tests
+        working-directory: backend/ocr
+
+  # Repositories, migrations and the multi-instance invariants only mean
+  # something on the real database. These suites existed and ran nowhere.
+  control-integration:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: toxagent
+          POSTGRES_USER: toxagent
+          POSTGRES_DB: toxagent
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      TOXAGENT_DATABASE_URL: postgresql+asyncpg://toxagent:toxagent@localhost:5432/toxagent
+      TOXAGENT_ALEMBIC_URL: postgresql+psycopg://toxagent:toxagent@localhost:5432/toxagent
+      # The variable the suite actually reads. Without it every test here ran
+      # on its own temporary SQLite file while a PostgreSQL service sat idle
+      # beside it, and the two `postgres`-marked files — the migrated-DDL gate
+      # and the two-replica admission gate — skipped. They were the reason for
+      # the service.
+      TOXAGENT_TEST_DATABASE_URL: postgresql+asyncpg://toxagent:toxagent@localhost:5432/toxagent
+      # And a skip is now a failure, so losing the line above is loud.
+      TOXAGENT_REQUIRE_POSTGRES: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -e './backend/control[dev,postgres]'
+      # Forward-only, from an empty database — the production contract.
+      - run: alembic -c alembic.ini upgrade head
+        working-directory: backend/control
+      - run: python -m pytest -q tests/integration tests/e2e -rs --junitxml=junit-integration.xml
+        working-directory: backend/control
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-control-integration
+          path: backend/control/junit-integration.xml
+
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install build
+      - run: cd backend/predictor && python -m build --wheel
+      - run: python -m venv /tmp/toxpred-clean
+      - run: /tmp/toxpred-clean/bin/pip install backend/predictor/dist/toxpred-*.whl
+      - run: cd /tmp && /tmp/toxpred-clean/bin/python -c "import toxpred; print('import OK')"
+      # I22/I23: importing is not the bar. Both services read files at runtime,
+      # and a non-editable install is the only layout where "next to the source"
+      # and "inside the package" differ — the exact break these two issues were.
+      - run: cd backend/control && python -m build --wheel
+      - run: python -m venv /tmp/toxagent-clean
+      - run: /tmp/toxagent-clean/bin/pip install backend/control/dist/toxagent_control-*.whl
+      - name: Shipped resources resolve from a wheel, run from an unrelated cwd
+        run: |
+          cd /tmp && /tmp/toxagent-clean/bin/python - <<'PY'
+          from toxagent.config import Settings
+          s = Settings.from_env()
+          profile = s.profiles_dir / "opencode" / "toxagent.json"
+          assert profile.is_file(), f"agent profile missing from the wheel: {profile}"
+          from pathlib import Path
+          import toxagent.predictor
+          snap = Path(toxagent.predictor.__file__).parent / "contract_snapshot.json"
+          assert snap.is_file(), f"contract snapshot missing from the wheel: {snap}"
+          print("packaged resources OK")
+          PY
+
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f backend/predictor/deploy/Dockerfile -t toxpred-ci .
+      - run: docker image inspect toxpred-ci --format '{{.Size}}'
+      - run: docker run --rm --network=none --entrypoint python toxpred-ci -c "import toxpred; print('import OK')"
+      # Build context is the service directory on purpose (ADR 0001): the
+      # control image must not be able to import toxpred even by accident.
+      - run: docker build -f backend/control/deploy/Dockerfile -t toxagent-control-ci backend/control
+      # `import OK` was the whole container gate and it never touched a file
+      # the app reads at runtime, so I22 shipped in the image undetected.
+      - name: Control image resolves the profiles it will actually load
+        run: |
+          docker run --rm --network=none --entrypoint python toxagent-control-ci -c "
+          from toxagent.config import Settings
+          p = Settings.from_env().profiles_dir / 'opencode' / 'toxagent.json'
+          assert p.is_file(), f'agent profile missing from the image: {p}'
+          print('control image resources OK')"
+
+  scientific-regression:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -e './backend/predictor[dev]' -c backend/predictor/research/constraints/py310.txt
+      # Model weights live outside Git. Without this the golden suite skipped
+      # itself and the job went green having verified nothing (I26).
+      - name: Provision model artifacts
+        run: python backend/predictor/deploy/download_model_artifacts.py
+        env:
+          MODEL_ARTIFACTS_URI: ${{ secrets.MODEL_ARTIFACTS_URI }}
+          MODELS_ROOT: ${{ github.workspace }}/.data/models
+      - name: Golden parity (must run, not skip)
+        run: python -m pytest -q -rs -m golden backend/predictor/tests/golden
+        env:
+          TOXPRED_REQUIRE_GOLDEN: '1'
+          MODELS_ROOT: ${{ github.workspace }}/.data/models
+      # A real run over the frozen panel, not `--help`. The results file is the
+      # artifact a reviewer compares against the previous release.
+      - name: Benchmark on the frozen split
+        run: |
+          PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/run_benchmark.py \
+            --out benchmark-results.json
+        env:
+          MODELS_ROOT: ${{ github.workspace }}/.data/models
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.json
+
+  runtime-contracts:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -e './backend/control[dev]'
+      - run: cd backend/control && python -m pytest -q tests/e2e/test_scripted_runtime.py tests/unit/test_runtime_recovery.py tests/unit/test_opencode_surface_assertion.py
+      - name: Credentialed OpenCode matrix
+        if: env.TOXAGENT_LIVE_RUNTIME == '1'
+        run: cd backend/control && python -m evals.runner --runtime opencode --trials 3
+        env:
+          TOXAGENT_LIVE_RUNTIME: ${{ secrets.TOXAGENT_LIVE_RUNTIME }}
+
+  # What is in a release, and whether anything in it is known-vulnerable.
+  # Neither question was asked anywhere before: the tag named a commit and
+  # nothing named the resolved `torch`, the base image, or the served weights.
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # `git describe` and the clean/dirty flag need more than one commit.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install -e './backend/control[dev,postgres]'
+
+      # Every Dockerfile pinned to a digest, the resolved versions recorded,
+      # and the served model registry named. The assertions are in
+      # devops/tests; this runs them and then produces the artifact.
+      - run: python -m pytest -q devops/tests/test_release_manifest.py devops/tests/test_handoff_allowlist.py
+      # What a customer distribution would contain. Fails on a tracked path
+      # matching no rule, on a shipped document linking to a withheld one, and
+      # on an undeclared credential shape in anything shipped.
+      - run: python devops/scripts/handoff.py --check
+      - run: python devops/scripts/release_manifest.py --out release-manifest.json
+      - run: cat release-manifest.json
+
+      # CycloneDX over the environment that was actually installed, rather
+      # than over the dependency ranges, for the same reason the manifest
+      # records resolved versions.
+      - run: pip install cyclonedx-bom pip-audit
+      # `--output-reproducible` drops the timestamp, so two SBOMs of the same
+      # environment compare equal and a diff means the environment moved.
+      - run: >-
+          cyclonedx-py environment --output-format JSON --output-reproducible
+          -o sbom-control.json
+
+      # Reported, not enforced. A gate that fails its first run on a
+      # pre-existing advisory teaches people to skip the job; making this
+      # blocking is a decision to take once the baseline is triaged. Not
+      # `--strict` either: it errors on any package it cannot look up, and a
+      # locally-versioned CUDA wheel (`torch-scatter 2.1.2+pt211cu130`) is not
+      # a vulnerability finding.
+      - run: pip-audit --progress-spinner=off || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supply-chain
+          path: |
+            release-manifest.json
+            sbom-control.json

@@ -1,0 +1,62 @@
+{
+  "task_id": "numeric-03-herg-probability-round2-vi",
+  "category": "numeric_fidelity",
+  "language": "vi",
+  "critical": true,
+  "fixture": "herg-blocker",
+  "title": "hERG probability rounded to 2 dp with a decimal comma",
+  "rationale": "0.9418 under round:2 renders '0,94' — the exact compound-render failure from the first live Phase 3 run must now round cleanly.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Xác suất chẹn hERG, làm tròn 2 chữ số.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.probability_blocker",
+          "rendered_value": "0,94"
+        }
+      ],
+      "required_limitations": [
+        "uncalibrated_probability"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "claim_source_graph_complete": true
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "critical_claims_sourced",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1"
+}

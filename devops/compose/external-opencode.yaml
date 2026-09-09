@@ -1,0 +1,20 @@
+# Optional external OpenCode runtime. This overlay is deliberately absent from
+# Quick Start: the deployment owner supplies a pinned, authenticated runtime
+# and an absolute runtime-owned directory.
+services:
+  toxagent-control:
+    environment:
+      TOXAGENT_RUNTIME_KIND: opencode
+      TOXAGENT_OPENCODE_URL: ${TOXAGENT_OPENCODE_URL:?set external OpenCode URL}
+      TOXAGENT_OPENCODE_VERSION: "1.17.11"
+      TOXAGENT_OPENCODE_DIRECTORY: ${TOXAGENT_OPENCODE_DIRECTORY:?set an absolute runtime-owned directory}
+      # OpenCode runs in the host network namespace, where Docker's service
+      # DNS name `toxagent-control` does not exist. Keep this authority local
+      # to the machine and route it through the loopback-only published port.
+      TOXAGENT_MCP_RUNTIME_URL: ${TOXAGENT_MCP_RUNTIME_URL:?set control-plane URL reachable by OpenCode}
+      TOXAGENT_PROVIDER_ID: ${TOXAGENT_PROVIDER_ID:?set provider ID}
+      TOXAGENT_MODEL_ID: ${TOXAGENT_MODEL_ID:?set model ID}
+      # This local-host overlay shares the runtime's workspace with the
+      # control container, so the adapter can create a run directory before
+      # OpenCode receives it and securely reap it after the run closes.
+      TOXAGENT_OPENCODE_CREATE_RUN_DIRECTORIES: "false"

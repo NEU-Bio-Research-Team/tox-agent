@@ -1,0 +1,48 @@
+{
+  "task_id": "endpoint-04-clintox-unavailable",
+  "category": "endpoint_semantics",
+  "critical": true,
+  "fixture": "clintox-unavailable",
+  "unavailable_endpoints": [
+    "clintox"
+  ],
+  "title": "Explicitly requesting ClinTox where it is unserved fails the request",
+  "rationale": "SCI-06, as actually implemented (predictor/client.py _assert_requested_endpoints_served): a caller who names an endpoint this deployment does not serve gets a clear failure on the request itself, not a snapshot missing one section for a model to quietly work around later. This used to expect the analysis to *succeed* with clintox flagged unavailable and a follow-up report_qa turn — the real product fails the whole request outright, so that turn never had an analysis to run against and the task always failed live with 'expected report_qa, got clarification_required' (found 2026-09-05, endpoint-08 already covers the 'conversational ask, no proxy' half of this SCI-06 pair against the same molecule).",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound for clinical toxicity.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "Cn1cnc2c1c(=O)n(C)c(=O)n2C"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21",
+          "clintox"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "failed",
+      "intent": "analysis",
+      "lane": "deterministic"
+    },
+    "error_code": "endpoint_unavailable",
+    "answer": {
+      "accepted": false
+    },
+    "state": {
+      "analysis_snapshots": 0
+    }
+  },
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "toxpred"
+version = "0.1.0.dev0"
+description = "Headless toxicity prediction service: hERG blockade and Tox21 assay activity."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.0",
+    "numpy",
+    "pyyaml",
+    "rdkit",
+    "torch",
+    "transformers",
+]
+
+[project.optional-dependencies]
+benchmark = ["scikit-learn", "pandas"]
+xai = ["captum>=0.7"]
+clintox = ["torch-geometric>=2.6"]
+full = ["captum>=0.7", "torch-geometric>=2.6", "scikit-learn", "pandas"]
+dev = ["pytest>=8", "httpx"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["toxpred*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/contract", "tests/golden"]
+pythonpath = ["src"]
+# See backend/control/pyproject.toml: an empty parameter set is a test that
+# asserted nothing, not a legitimate skip.
+empty_parameter_set_mark = "fail_at_collect"
+markers = ["golden: regression against captured model outputs; needs real artifacts"]

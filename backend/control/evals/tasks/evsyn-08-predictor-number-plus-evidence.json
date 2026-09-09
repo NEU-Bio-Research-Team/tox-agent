@@ -1,0 +1,61 @@
+{
+  "task_id": "evsyn-08-predictor-number-plus-evidence",
+  "category": "evidence_synthesis",
+  "fixture": "evidence-herg",
+  "title": "Combine a predictor number with cited context",
+  "rationale": "A grounded answer that uses both a predictor field and an accepted citation, each sourced independently (plan 9.3).",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Put the predicted hERG probability in context with the literature.",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "evidence_research"
+    },
+    "answer": {
+      "min_citations": 1,
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.probability_blocker"
+        }
+      ],
+      "required_limitations": [
+        "uncalibrated_probability",
+        "evidence_scope_limited"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "evidence_accepted_min": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "citations_resolve",
+    "critical_claims_sourced"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

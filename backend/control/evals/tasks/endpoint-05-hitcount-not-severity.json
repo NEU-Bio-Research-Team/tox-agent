@@ -1,0 +1,47 @@
+{
+  "task_id": "endpoint-05-hitcount-not-severity",
+  "category": "endpoint_semantics",
+  "fixture": "herg-blocker",
+  "title": "A Tox21 hit count is not a severity",
+  "rationale": "SCI-05: two active assays is not 'twice as toxic'. The framing must be refused.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Two Tox21 assays are active — does that make it more severe than a one-hit compound?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_hitcount_severity",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

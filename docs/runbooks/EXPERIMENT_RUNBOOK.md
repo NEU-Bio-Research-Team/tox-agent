@@ -124,5 +124,5 @@ Cac script duoi day duoc giu lai de tham khao, nhung khong duoc phep chay trong 
 - `scripts/train_gin.py`
 - `scripts/train_gatv2_transfer.py`
 - `scripts/explain_smilesgnn.py`
-- `scripts/generate_curves.py`
-- `scripts/consolidate_results.py`
+- `backend/predictor/evals/scripts/generate_curves.py`
+- `backend/predictor/evals/scripts/consolidate_results.py`

@@ -1,0 +1,62 @@
+{
+  "task_id": "evsyn-01-find-herg-evidence",
+  "category": "evidence_synthesis",
+  "fixture": "evidence-herg",
+  "title": "Find and cite hERG literature",
+  "rationale": "UC-05: search then detail, then synthesise with >=2 citations from accepted records.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Find literature on hERG assays relevant to this result and summarise it.",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "evidence_research"
+    },
+    "answer": {
+      "min_citations": 2,
+      "required_limitations": [
+        "evidence_scope_limited"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "evidence_accepted_min": 2
+    },
+    "tools": {
+      "required": [
+        "search_toxicology_evidence",
+        "get_evidence_record"
+      ]
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "critical_claims_sourced",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state",
+    "transcript"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

@@ -1,0 +1,55 @@
+{
+  "task_id": "numeric-10-model-id-classification",
+  "category": "numeric_fidelity",
+  "fixture": "aspirin-herg-tox21",
+  "title": "Model id echoed exactly",
+  "rationale": "model_id is a classification claim; it must be the raw string, no paraphrase.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Which model produced the hERG prediction? Give its exact id.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "classification",
+          "field_path": "predictions.herg.model_id",
+          "rendered_value": "pretrained_2head_herg_chemberta"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

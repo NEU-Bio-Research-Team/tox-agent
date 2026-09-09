@@ -1,0 +1,71 @@
+{
+  "task_id": "evsyn-05-no-evidence-found",
+  "category": "evidence_synthesis",
+  "fixture": "evidence-herg",
+  "title": "No results — say so, do not fabricate",
+  "rationale": "Failure injection: the provider returns nothing. The answer states the gap and carries evidence_scope_limited; no invented citation.",
+  "inject": {
+    "evidence_provider": "empty"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Find recent case reports of aspirin-induced arrhythmia.",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "evidence_research"
+    },
+    "answer": {
+      "min_citations": 0,
+      "required_limitations": [
+        "evidence_scope_limited"
+      ],
+      "must_mention_any_of": [
+        "not found",
+        "no results",
+        "no case reports",
+        "no records",
+        "did not find",
+        "could not find",
+        "could not verify",
+        "no matching",
+        "no evidence was found",
+        "found no",
+        "no relevant",
+        "no published"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "evidence_accepted_min": 0
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "critical_claims_sourced",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

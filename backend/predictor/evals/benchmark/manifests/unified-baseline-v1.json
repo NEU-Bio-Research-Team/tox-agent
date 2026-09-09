@@ -1,0 +1,44 @@
+{
+  "schema_version": "toxagent-unified-baseline-v1",
+  "captured_at": "2026-09-08T00:00:00+08:00",
+  "git_commit": "299bf22",
+  "predictor_version": "0.1.0.dev0",
+  "control_version": "0.1.0.dev0",
+  "scientific_runtime": {
+    "python": "3.10.20",
+    "torch": "2.11.0+cu130",
+    "transformers": "4.56.2",
+    "rdkit": "2025.09.6",
+    "numpy": "2.2.6",
+    "source_manifest": "baseline-e6882b2.json"
+  },
+  "artifacts": {
+    "predictor_manifest_sha256": "150b5ca4c002ba4313ab915dfcc1712d46b6f287a523de5ea74c2a4a7cc5cfe1",
+    "golden_predictions_sha256": "496dd830bf1401ca49f0bb2cf3c4dfd6a8dc3ab39233f63962845b3ecccfd131",
+    "standalone_parity_sha256": "71b3fe3d25f975383e4570c399fb9ee8be38361658e565bc1c1b7eca8244fea4",
+    "image_digest": "sha256:b5d88da2df73df34d1dd09f7314b368c6ed95372b6ebad8a4785edeffb7aa79d"
+  },
+  "contracts": {
+    "predictor_openapi": "../manifests/openapi-legacy-e6882b2.json",
+    "control_predictor_contract_sha256": "3dc898cd5e93f19b87d38c376e60ba1091752e17793972d1d33ffa41ef19b771",
+    "opencode_contract_sha256": "c236b185fc4e9fdefe0cedfac6354980f1e723ba4831132cb85901de1c87b019"
+  },
+  "runtime": {
+    "opencode_version": "1.17.11",
+    "dsh_spike_version": "0.1.2rc1",
+    "profile_hash": "e45caf8b6f4c581d583033a5c0277393438c2d941746ba3cb535aa71ca346425",
+    "tool_schema_hash": "c236b185fc4e9fdefe0cedfac6354980f1e723ba4831132cb85901de1c87b019",
+    "prompt_hash": null
+  },
+  "reports": {
+    "scientific": "../results/benchmark_report.json",
+    "standalone_parity": "../results/standalone-parity-v1.json",
+    "operational": "../results/operational-baseline-v1.json",
+    "agent_live": "../../backend/control/evals/manifests/README.md"
+  },
+  "limitations": [
+    "the image digest records the locally built amd64 CPU verification image and must be replaced by the registry digest at release",
+    "the DSH composed-surface profile is pinned; the OpenCode prompt hash is populated by a credentialed live run",
+    "ClinTox remains unavailable because the exact 69-token tokenizer is absent"
+  ]
+}

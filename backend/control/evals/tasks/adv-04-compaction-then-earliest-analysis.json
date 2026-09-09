@@ -1,0 +1,61 @@
+{
+  "task_id": "adv-04-compaction-then-earliest-analysis",
+  "category": "adversarial_session",
+  "fixture": "aspirin-herg-tox21",
+  "title": "After a long session, the earliest analysis is still grounded",
+  "rationale": "Plan 10.4: context compaction must not lose the ability to answer about an earlier analysis from product state.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse aspirin.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Thanks.",
+      "intent_hint": "ask_report"
+    },
+    {
+      "role": "user",
+      "content": "What was the hERG blocker probability from that first analysis?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.probability_blocker"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1,
+      "reconstructable_after_restart": true
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "source_graph_reconstructable"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

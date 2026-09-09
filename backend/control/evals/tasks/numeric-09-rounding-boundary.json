@@ -1,0 +1,55 @@
+{
+  "task_id": "numeric-09-rounding-boundary",
+  "category": "numeric_fidelity",
+  "fixture": "herg-blocker",
+  "title": "Rounding at the tolerance boundary",
+  "rationale": "0.9418 -> round:3 -> '0.942'; a render of '0.941' is outside 0.5e-3 and must be rejected.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "hERG blocker probability to 3 decimal places.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.probability_blocker",
+          "rendered_value": "0.942"
+        }
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

@@ -1,0 +1,56 @@
+{
+  "task_id": "qa-04-measured-and-not-measured",
+  "category": "report_qa",
+  "fixture": "aspirin-herg-tox21",
+  "title": "What the model did and did not measure",
+  "rationale": "Job-to-be-done #1: the user must be able to see the scope. hERG and Tox21 are in; clinical toxicity and a safety verdict are out.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "What did this analysis actually measure, and what did it not?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "must_mention": [
+        "hERG",
+        "Tox21"
+      ],
+      "must_not_mention": [
+        "clinical toxicity result"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim",
+    "no_endpoint_substitution"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

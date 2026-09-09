@@ -1,0 +1,150 @@
+{
+  "fixture_version": "eval-fixture-v1",
+  "content_sha256": "4756cd7206f7a18dc21bd406bd0c65d8ea73b4d1e145f58d7edb711fd895e40b",
+  "name": "herg-blocker",
+  "description": "Astemizole, a textbook hERG blocker. hERG probability 0.942 (blocker), applicability ok. For 'explain a high probability' and numeric rounding.",
+  "predictor": {
+    "served_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "predictions": {
+      "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1": {
+        "input_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+        "canonical_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+        "predictions": {
+          "herg": {
+            "probability_blocker": 0.9418,
+            "label": "blocker",
+            "threshold": 0.5,
+            "threshold_source": "model_default",
+            "model_id": "pretrained_2head_herg_chemberta"
+          },
+          "tox21": {
+            "task_order_version": "tox21-12task-v1",
+            "assays": {
+              "NR-AR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AR-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AhR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-Aromatase": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-PPAR-gamma": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ARE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ATAD5": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-HSE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-MMP": {
+                "probability_activity": 0.83,
+                "active": true,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-p53": {
+                "probability_activity": 0.83,
+                "active": true,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              }
+            },
+            "model_id": "pretrained_2head_herg_chemberta"
+          }
+        },
+        "applicability": {
+          "status": "ok",
+          "method": "element_rules_v1",
+          "reasons": []
+        },
+        "provenance": {
+          "git_commit": "562b988de9714106fd842bb503072cfe8cd2852a",
+          "service_version": "0.1.0.dev0",
+          "artifact_hashes": [
+            "herg-chemberta:sha256-aaa",
+            "tox21-chemberta:sha256-bbb"
+          ]
+        }
+      }
+    },
+    "attributions": {
+      "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1|herg|": {
+        "status": "completed",
+        "input_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+        "canonical_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+        "endpoint": "herg",
+        "task": null,
+        "probability": 0.9418,
+        "tokens": [
+          {
+            "token": "c1ccccc1",
+            "score": 0.41
+          },
+          {
+            "token": "C(=O)O",
+            "score": 0.12
+          },
+          {
+            "token": "OC(C)=O",
+            "score": -0.05
+          }
+        ],
+        "metadata": {
+          "method": "integrated_gradients_v1",
+          "model_id": "pretrained_2head_herg_chemberta",
+          "deterministic": true,
+          "duration_ms": 740.0,
+          "timeout_ms": 30000,
+          "note": null
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,136 @@
+# Full local/container topology. It deliberately gives the browser only the
+# frontend port; predictor, OCR, PostgreSQL and control-plane stay private.
+#
+# The supported default is a self-contained CPU evaluation stack. Run
+# `./bin/toxagent setup` once; it creates credentials and provisions the
+# checksum-pinned OCR checkpoint. OpenCode is an explicit advanced overlay.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: toxagent
+      POSTGRES_USER: toxagent
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toxagent -d toxagent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - toxagent-postgres:/var/lib/postgresql/data
+
+  toxpred:
+    build:
+      context: .
+      dockerfile: backend/predictor/deploy/Dockerfile
+      args:
+        TORCH_VARIANT: ${TOXPRED_TORCH_VARIANT:-cpu}
+    environment:
+      PORT: 8080
+      MODEL_ARTIFACTS_URI: ${MODEL_ARTIFACTS_URI:-}
+      TOXPRED_DEVICE: ${TOXPRED_DEVICE:-cpu}
+      TOXAGENT_ACCELERATOR: ${TOXAGENT_ACCELERATOR:-cpu}
+    volumes:
+      # Useful for an air-gapped/local smoke. Production should supply the
+      # immutable object-store URI above instead of a host-path mount.
+      - ${TOXPRED_MODELS_HOST_PATH:-./.data/models}:/app/models:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  toxocr:
+    build:
+      context: ./backend/ocr
+      dockerfile: deploy/Dockerfile
+      args:
+        TORCH_VARIANT: ${TOXOCR_TORCH_VARIANT:-cpu}
+    environment:
+      PORT: 8090
+      TOXOCR_CHECKPOINT_PATH: /checkpoint/swin_base_char_aux_1m.pth
+      TOXOCR_CHECKPOINT_SHA256: ${TOXOCR_CHECKPOINT_SHA256:?run ./bin/toxagent setup first}
+      TOXOCR_ALLOW_CHECKPOINT_DOWNLOAD: "false"
+      TOXOCR_DEVICE: ${TOXOCR_DEVICE:-cpu}
+      TOXAGENT_ACCELERATOR: ${TOXAGENT_ACCELERATOR:-cpu}
+    volumes:
+      - ${TOXOCR_CHECKPOINT_HOST_PATH:-./.artifacts/toxocr}:/checkpoint:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8090/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  toxagent-control:
+    build:
+      context: ./backend/control
+      dockerfile: deploy/Dockerfile
+    environment:
+      PORT: 8000
+      TOXAGENT_ENV: ${TOXAGENT_ENV:-development}
+      TOXAGENT_DATABASE_URL: postgresql+asyncpg://toxagent:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/toxagent
+      TOXAGENT_PREDICTOR_URL: http://toxpred:8080
+      TOXAGENT_OCR_URL: http://toxocr:8090
+      # This stack is predictor-only: prediction, batch and OCR, no agent.
+      #
+      # It said `scripted` (I01), which reads as "a runtime is configured" and
+      # is not: api/app.py only ever constructs a provider for `opencode`, and
+      # `scripted` is injection-only for tests. The stack therefore advertised
+      # a runtime it would never start, and a Session asking for research,
+      # report Q&A or attribution reached a scheduler with no handler.
+      # `none` is the honest value, and /health/ready now reports
+      # mode=predictor_only with a reason per unavailable capability.
+      # devops/compose/external-opencode.yaml sets `opencode` for agent mode.
+      TOXAGENT_RUNTIME_KIND: none
+      # A report-Q&A normally needs one or a few slices. Keep the production
+      # default bounded; evidence-heavy deployments may explicitly raise this
+      # to 24 after measuring latency/cost.
+      TOXAGENT_MAX_TOOL_CALLS: ${TOXAGENT_MAX_TOOL_CALLS:-12}
+      TOXAGENT_CAPABILITY_SECRET: ${TOXAGENT_CAPABILITY_SECRET:?run ./bin/toxagent setup first}
+      TOXAGENT_STATIC_TOKENS: ${TOXAGENT_STATIC_TOKENS:?run ./bin/toxagent setup first}
+      TOXAGENT_CORS_ALLOW_ORIGINS: ${TOXAGENT_CORS_ALLOW_ORIGINS:-}
+      # Where the control plane may send a model endpoint URL a user typed
+      # into Settings (I15). `local` is right for this stack — a self-hosted
+      # Ollama or vLLM is on loopback or the LAN — and a multi-user
+      # deployment must set `hosted`, where a private address is never a
+      # legitimate endpoint. Passed through from .env so setting it there
+      # actually reaches the process.
+      TOXAGENT_EGRESS_POLICY: ${TOXAGENT_EGRESS_POLICY:-local}
+      # I16: uploaded attachments and AI profile credentials are files, and
+      # they had no volume — only PostgreSQL did. `docker compose up` after a
+      # rebuild therefore destroyed every stored key and every uploaded image
+      # while the database kept the rows that refer to them: connections that
+      # still tested as configured, attachments whose bytes were gone.
+      #
+      # Both live under one named volume, at a path outside the image so a
+      # rebuild cannot shadow them. This is the local answer; a hosted
+      # deployment points these at an object store and a secret manager
+      # instead (see K07 in docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md).
+      TOXAGENT_OBJECT_STORE_DIR: /var/lib/toxagent/attachments
+      TOXAGENT_SECRETS_DIR: /var/lib/toxagent/model-secrets
+    volumes:
+      - toxagent-state:/var/lib/toxagent
+    depends_on:
+      postgres:
+        condition: service_healthy
+      toxpred:
+        condition: service_healthy
+      toxocr:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-8088}:8080"
+    depends_on:
+      toxagent-control:
+        condition: service_started
+
+volumes:
+  toxagent-postgres:
+  # Attachment bytes and AI profile credentials. Backed up together with the
+  # database or not at all: the rows in `attachments` and `model_connections`
+  # are references into this volume, and half a restore is dangling refs.
+  toxagent-state:

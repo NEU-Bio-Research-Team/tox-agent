@@ -1,0 +1,51 @@
+{
+  "task_id": "qa-05-limitations-of-the-prediction",
+  "category": "report_qa",
+  "fixture": "aspirin-herg-tox21",
+  "title": "Ask for the limitations",
+  "rationale": "Job-to-be-done #4: uncertainty and data gaps. The probability caveat must be present.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "What are the limitations of this hERG prediction?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_limitations": [
+        "uncalibrated_probability"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

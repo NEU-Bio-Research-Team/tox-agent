@@ -1,0 +1,63 @@
+{
+  "task_id": "numeric-08-percent-render-vi",
+  "category": "numeric_fidelity",
+  "language": "vi",
+  "critical": true,
+  "fixture": "aspirin-herg-tox21",
+  "title": "Percentage render with a Vietnamese decimal comma",
+  "rationale": "0.281 under percent:1 renders '28,1%'. The '%' is allowed on a canonical render; the parenthetical form '0,281 (28,1%)' is not (ADR 0005).",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Xác suất chẹn hERG theo phần trăm, một chữ số thập phân.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "required_claims": [
+        {
+          "kind": "numeric",
+          "field_path": "predictions.herg.probability_blocker",
+          "rendered_value": "28,1%"
+        }
+      ],
+      "required_limitations": [
+        "uncalibrated_probability"
+      ],
+      "must_not_mention": [
+        "(28,1%)"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "claims_match_source",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1"
+}

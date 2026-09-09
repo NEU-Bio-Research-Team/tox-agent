@@ -1,0 +1,53 @@
+{
+  "task_id": "qa-03-list-active-tox21-assays",
+  "category": "report_qa",
+  "fixture": "herg-blocker",
+  "title": "List the active Tox21 assays",
+  "rationale": "Enumerating active assays is a set of classification reads; no severity ranking.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Which Tox21 assays came back active?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "answer": {
+      "must_mention": [
+        "SR-MMP",
+        "SR-p53"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_hitcount_severity",
+    "claims_match_source"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

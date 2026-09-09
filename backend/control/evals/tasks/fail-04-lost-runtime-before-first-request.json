@@ -1,0 +1,47 @@
+{
+  "task_id": "fail-04-lost-runtime-before-first-request",
+  "category": "failure_recovery",
+  "fixture": "aspirin-herg-tox21",
+  "title": "A lost runtime before the first request is not a hidden retry",
+  "rationale": "Plan 7.4: binding lost before any tool call fails the run with runtime_unavailable and creates no automatic recovery run.",
+  "inject": {
+    "runtime": "lost_before_first_request"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Explain the hERG result.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "failed",
+      "intent": "report_qa"
+    },
+    "error_code": "runtime_unavailable",
+    "answer": {
+      "accepted": false
+    }
+  },
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

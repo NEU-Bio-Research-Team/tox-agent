@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "toxagent": {
+      "description": "Grounded toxicology report Q&A through ToxAgent MCP only.",
+      "mode": "primary",
+      "maxSteps": 32,
+      "permission": {
+        "*": "deny",
+        "read": "deny",
+        "edit": "deny",
+        "glob": "deny",
+        "grep": "deny",
+        "list": "deny",
+        "bash": "deny",
+        "shell": "deny",
+        "task": "deny",
+        "subagent": "deny",
+        "skill": "deny",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "execute": "deny",
+        "toxagent_*": "allow"
+      }
+    }
+  }
+}
