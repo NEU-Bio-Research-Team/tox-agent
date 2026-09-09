@@ -63,6 +63,10 @@
       "why": "setup, artifact verification, drills and the release manifest"
     },
     {
+      "glob": "devops/handoff_allowlist.json",
+      "why": "read by devops/scripts/handoff.py, which ships: withholding it would ship a script that cannot run. It also tells the recipient what they received"
+    },
+    {
       "glob": "devops/tests/**",
       "why": "the wrapper and deployment assertions they can run themselves"
     },
@@ -176,7 +180,7 @@
     },
     {
       "path": "devops/scripts/restore_drill.sh",
-      "why": "'sk-drill-not-a-real-key', written into a throwaway volume so the drill can prove the credential survived a container recreate"
+      "why": "an obviously fake key written into a throwaway volume so the drill can prove the credential survived a container recreate. Described rather than quoted: this file declares the exemptions, so it must not need one of its own"
     },
     {
       "path": "backend/control/tests/unit/test_oidc_auth.py",
