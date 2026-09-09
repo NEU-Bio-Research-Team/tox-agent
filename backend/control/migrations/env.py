@@ -15,7 +15,11 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+# src layout: the package is under `src/`, not next to this file. The old
+# `parents[1]` pointed at backend/control, where no `toxagent` exists, so this
+# line did nothing and the import below worked only because CI happens to
+# `pip install -e` the service first — the same latent break as I22/I24/I33.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from toxagent.persistence.schema import metadata  # noqa: E402
 
@@ -26,10 +30,19 @@ if config.config_file_name is not None:
 target_metadata = metadata
 
 
+#: Checked in order. `TOXAGENT_ALEMBIC_URL` exists so a deployment can point
+#: migrations at a role with DDL rights while the application keeps a narrower
+#: one; CI has been setting it since I26 and nothing read it, which is only
+#: harmless while both names carry the same value.
+URL_VARIABLES = ("TOXAGENT_ALEMBIC_URL", "TOXAGENT_DATABASE_URL")
+
+
 def database_url() -> str:
-    url = os.getenv("TOXAGENT_DATABASE_URL")
+    url = next((os.getenv(name) for name in URL_VARIABLES if os.getenv(name)), None)
     if not url:
-        raise RuntimeError("TOXAGENT_DATABASE_URL must be set to run migrations")
+        raise RuntimeError(
+            "set one of " + " or ".join(URL_VARIABLES) + " to run migrations"
+        )
     # Migrations run synchronously. SQLite's built-in driver needs no explicit
     # suffix; PostgreSQL must name psycopg rather than falling back to the
     # legacy psycopg2 default, which this project does not install.

@@ -183,7 +183,17 @@ async def test_a_run_that_exhausted_its_budget_stops_calling_tools(db):
 async def test_concurrent_calls_cannot_exceed_the_budget(db):
     """audit_5_9.md A04: five concurrent calls against ``max_calls=2`` used to
     all pass admission (checked in a separate transaction from the row that
-    reserved a slot) and all complete. Exactly two must be admitted now."""
+    reserved a slot) and all complete. Exactly two must be admitted now.
+
+    This passed on SQLite from the day it was written and failed the first time
+    it was pointed at PostgreSQL — five completed, not one. SQLite serializes
+    writers with a database-level lock, which made a single
+    ``INSERT ... SELECT ... WHERE count < budget`` look like a serialization
+    point; under READ COMMITTED it is not one, and nothing stopped five
+    transactions each counting one row and inserting a second. The reservation
+    now locks the parent run, so this is a test about the budget on both
+    engines rather than a test about SQLite's write lock.
+    """
     runner, context, session, _ = await scenario(db, StubPredictor(), max_calls=2)
     analysis_id = (
         await runner.call(context, "create_analysis_snapshot", {"session_id": session.id, "smiles": ASPIRIN})

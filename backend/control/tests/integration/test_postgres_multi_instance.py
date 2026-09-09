@@ -8,7 +8,6 @@ without pretending their in-memory task maps are shared.
 from __future__ import annotations
 
 import asyncio
-import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -23,6 +22,7 @@ from toxagent.domain.errors import AdmissionBusy, Conflict
 from toxagent.domain.session import Session
 from toxagent.persistence.sql.database import Database
 from toxagent.streaming.sse import event_stream
+from tests.conftest import _configured_postgres_url
 from tests.support.api import AUTH, api_client
 from tests.support.predictor import StubPredictor
 
@@ -42,11 +42,14 @@ class _RecordingScheduler:
 
 
 def _postgres_url() -> str:
-    url = os.getenv("TOXAGENT_TEST_DATABASE_URL")
-    if not url:
-        pytest.skip("set TOXAGENT_TEST_DATABASE_URL to run PostgreSQL multi-instance checks")
-    if not url.startswith("postgresql+"):
-        raise AssertionError("TOXAGENT_TEST_DATABASE_URL must use an async PostgreSQL URL")
+    """The one URL the whole suite uses; the `postgres` marker already gated it.
+
+    This file used to read `TOXAGENT_TEST_DATABASE_URL` and its neighbour
+    `TOXAGENT_POSTGRES_TEST_URL`, and the CI job set neither, so both skipped.
+    Deciding to run is now `tests/conftest.py`'s job, by marker.
+    """
+    url = _configured_postgres_url()
+    assert url is not None  # pytest_runtest_setup skipped or failed already
     return url
 
 

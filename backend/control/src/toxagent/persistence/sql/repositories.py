@@ -1191,6 +1191,25 @@ class SqlToolCallStore:
 
         Returns whether the reservation succeeded.
         """
+        if self._conn.dialect.name == "postgresql":
+            # One statement is not one serialization point. Under READ
+            # COMMITTED each statement takes its own snapshot and an
+            # INSERT ... SELECT takes no lock that would stop a concurrent
+            # transaction inserting the row its own count did not see, so five
+            # concurrent calls against a budget of two were all admitted. The
+            # docstring above was true of SQLite only, where a database-level
+            # write lock serialized them for reasons that have nothing to do
+            # with this query.
+            #
+            # Serializing on the parent run makes the claim true on both:
+            # reservations for one run queue behind each other, and the count
+            # below then runs in a statement whose snapshot includes whatever
+            # the previous holder committed. NO KEY UPDATE for the same reason
+            # `get_for_admission` uses it — a reservation never changes the
+            # run's key, and child rows still pass their foreign-key check.
+            await self._conn.execute(
+                select(runs.c.id).where(runs.c.id == run_id).with_for_update(key_share=True)
+            )
         not_denied = tool_calls.c.status != "denied"
         conditions = [
             (
