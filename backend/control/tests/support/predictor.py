@@ -28,6 +28,28 @@ ASPIRIN = "CC(=O)Oc1ccccc1C(=O)O"
 #: nothing.
 MODEL_ID = "herg-tox21-chemberta-v1"
 
+#: A second admitted model, so a comparison has two real columns. A catalogue
+#: with one entry cannot distinguish "compared two admitted models" from
+#: "sent two names the deployment has never heard of", which is how the
+#: compare test came to assert 200 for two invented ids.
+SECOND_MODEL_ID = "herg-tox21-chemberta-v2"
+
+#: Present in the catalogue and deliberately not loaded — ClinTox's real
+#: shape on this build. A comparison naming it must be refused by name.
+BLOCKED_MODEL_ID = "clintox-smilesgnn-v1"
+
+#: The catalogue a comparison test needs: two admitted models for the same
+#: endpoints, plus one present-but-blocked.
+COMPARABLE_CATALOGUE = (
+    {"model_id": MODEL_ID, "capabilities": ["herg", "tox21"],
+     "loaded": True, "required": True, "detail": "", "blocked_reason": None},
+    {"model_id": SECOND_MODEL_ID, "capabilities": ["herg", "tox21"],
+     "loaded": True, "required": False, "detail": "", "blocked_reason": None},
+    {"model_id": BLOCKED_MODEL_ID, "capabilities": ["clintox"],
+     "loaded": False, "required": False, "detail": "",
+     "blocked_reason": "the original tokenizer cannot be proved; see docs/artifacts/clintox-smilesgnn-v1.md"},
+)
+
 #: The real shape captured from a live ToxPred `POST /v1/predictions` (audit
 #: A01/A14): `predictor_version`, not `service_version`, and `artifacts` is a
 #: *list of dicts*, not a flat mapping — a fixture using the old shape is
@@ -158,6 +180,7 @@ class StubPredictor:
         probability: float = 0.73064,
         explain_status: str = "completed",
         weights_sha256: str | None = None,
+        catalogue: tuple[dict[str, Any], ...] | None = None,
     ) -> None:
         self.served = served
         self.ready = ready
@@ -166,6 +189,12 @@ class StubPredictor:
         self.probability = probability
         self.explain_status = explain_status
         self.weights_sha256 = weights_sha256
+        self.catalogue = catalogue if catalogue is not None else (
+            {
+                "model_id": MODEL_ID, "capabilities": ["herg", "tox21"],
+                "loaded": True, "required": True, "detail": "", "blocked_reason": None,
+            },
+        )
         self.requests: list[dict[str, Any]] = []
 
     def transport(self) -> httpx.MockTransport:
@@ -196,14 +225,7 @@ class StubPredictor:
             return httpx.Response(
                 200,
                 json={
-                    "models": [
-                        {
-                            "model_id": MODEL_ID,
-                            "capabilities": ["herg", "tox21"],
-                            "loaded": True, "required": True, "detail": "",
-                            "blocked_reason": None,
-                        }
-                    ],
+                    "models": [dict(model) for model in self.catalogue],
                     "served_endpoints": list(self.served),
                 },
             )

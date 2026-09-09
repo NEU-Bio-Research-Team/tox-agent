@@ -24,6 +24,7 @@ from ..application.submit_message import MessageSubmission
 from ..domain.errors import (
     AnalysisNotFound,
     CapabilityUnavailable,
+    EndpointUnavailable,
     InvalidRequest,
     NotFound,
     SmilesNotDetected,
@@ -242,6 +243,47 @@ async def quick_predict_batch(
         )
 
 
+async def _refuse_unadmitted(services, selections) -> None:
+    """Refuse a comparison naming a model this build will not run.
+
+    Checked against the predictor's own catalogue rather than a list here, so
+    a model blocked for a reason the control plane does not model — a
+    tokenizer that cannot be proved, in ClinTox's case — is still refused, and
+    refused with the predictor's stated reason instead of a guess.
+    """
+    catalogue = await services.predictor.models()
+    admitted = {
+        model.model_id: model for model in catalogue.models if model.loaded
+    }
+    known = {model.model_id: model for model in catalogue.models}
+    problems = []
+    for endpoint, model_id in selections:
+        model = admitted.get(model_id)
+        if model is None:
+            declared = known.get(model_id)
+            reason = (
+                (declared.blocked_reason or declared.detail or "not admitted on this build")
+                if declared is not None
+                else "no such model in this deployment's catalogue"
+            )
+            problems.append({"endpoint": endpoint, "model_id": model_id, "reason": reason})
+        elif endpoint not in model.capabilities:
+            # A model that is admitted, but not for this endpoint. Running it
+            # would answer a different question and label it with this one.
+            problems.append({
+                "endpoint": endpoint, "model_id": model_id,
+                "reason": f"does not serve {endpoint}; serves {sorted(model.capabilities)}",
+            })
+    if problems:
+        raise EndpointUnavailable(
+            "comparison names "
+            + ("a model" if len(problems) == 1 else f"{len(problems)} models")
+            + " this deployment will not run",
+            refused=problems,
+            admitted=sorted(admitted),
+        )
+
+
 @router.post("/predict:compare")
 async def quick_predict_compare(
     request: Request, body: PredictCompareRequest, principal: Actor = Depends(actor)
@@ -251,6 +293,13 @@ async def quick_predict_compare(
     Each item is independently projected through ``QuickPredict``.  There is
     no aggregate verdict and no cross-model averaging: models can differ in
     calibration and their numbers must remain attributable to that model.
+
+    Admission is checked here, before any of them runs. It used to be checked
+    only by the predictor, per request, inside an ``asyncio.gather`` with no
+    ``return_exceptions`` — so naming one blocked model (ClinTox on this
+    build) discarded every other column and returned one error about the whole
+    comparison. The user asked which models can answer, and the honest reply
+    names the one that cannot and why, rather than failing all of them.
     """
     services = _services(request)
     selections = [
@@ -258,6 +307,7 @@ async def quick_predict_compare(
         for endpoint, model_ids in body.model_selection.items()
         for model_id in dict.fromkeys(model_ids)
     ]
+    await _refuse_unadmitted(services, selections)
     async with services.predict_limits.slot(principal.subject_id):
         results = await asyncio.gather(
             *(

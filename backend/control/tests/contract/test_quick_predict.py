@@ -13,7 +13,14 @@ from sqlalchemy import text
 
 from toxagent.config import PolicySettings, PredictorSettings
 from tests.support.api import AUTH, EXPERT_AUTH, api_client, settings
-from tests.support.predictor import ASPIRIN, StubPredictor
+from tests.support.predictor import (
+    ASPIRIN,
+    BLOCKED_MODEL_ID,
+    COMPARABLE_CATALOGUE,
+    MODEL_ID,
+    SECOND_MODEL_ID,
+    StubPredictor,
+)
 
 pytestmark = pytest.mark.anyio
 
@@ -158,17 +165,27 @@ async def test_batch_writes_no_rows(db):
     assert before == after == 0
 
 
+def comparable() -> StubPredictor:
+    return StubPredictor(catalogue=COMPARABLE_CATALOGUE)
+
+
 async def test_compare_keeps_each_explicit_endpoint_model_result_separate(db):
-    """Compare is not an ensemble and must never lose the selected model id."""
-    stub = StubPredictor()
+    """Compare is not an ensemble and must never lose the selected model id.
+
+    Two models the deployment actually admits. This used to name `model-a`
+    and `model-b`, which the stub's catalogue had never heard of — so it could
+    not tell "compared two admitted models" from "sent two invented names",
+    and asserted 200 for the second.
+    """
+    stub = comparable()
     async with api_client(db, stub) as client:
         response = await client.post(
             "/v1/predict:compare",
             json={
                 "smiles": ASPIRIN,
                 "model_selection": {
-                    "herg": ["model-a"],
-                    "tox21": ["model-b"],
+                    "herg": [MODEL_ID],
+                    "tox21": [SECOND_MODEL_ID],
                 },
             },
             headers=AUTH,
@@ -177,22 +194,109 @@ async def test_compare_keeps_each_explicit_endpoint_model_result_separate(db):
     body = response.json()
     assert body["persisted"] is False
     assert [(item["endpoint"], item["model_id"]) for item in body["comparisons"]] == [
-        ("herg", "model-a"), ("tox21", "model-b"),
+        ("herg", MODEL_ID), ("tox21", SECOND_MODEL_ID),
     ]
     assert all(item["result"]["analysis_id"] is None for item in body["comparisons"])
     assert [item["body"]["model_selection"] for item in stub.requests if item["path"] == "/v1/predictions"] == [
-        {"herg": "model-a"}, {"tox21": "model-b"},
+        {"herg": MODEL_ID}, {"tox21": SECOND_MODEL_ID},
     ]
 
 
 async def test_compare_refuses_a_single_selection(db):
-    async with api_client(db, StubPredictor()) as client:
+    async with api_client(db, comparable()) as client:
         response = await client.post(
             "/v1/predict:compare",
-            json={"smiles": ASPIRIN, "model_selection": {"herg": ["model-a"]}},
+            json={"smiles": ASPIRIN, "model_selection": {"herg": [MODEL_ID]}},
             headers=AUTH,
         )
     assert response.status_code == 400
+
+
+# ------------------------------------------- K10: admitted models only
+
+
+async def test_compare_refuses_a_model_this_build_does_not_run(db):
+    """Named, with the predictor's own reason.
+
+    Admission was checked only by the predictor, once per column, inside an
+    `asyncio.gather` with no `return_exceptions` — so one blocked model
+    discarded every other column and returned a single error about the whole
+    comparison. The user asked which models can answer; the honest reply says
+    which one cannot.
+    """
+    stub = comparable()
+    async with api_client(db, stub) as client:
+        response = await client.post(
+            "/v1/predict:compare",
+            json={
+                "smiles": ASPIRIN,
+                "model_selection": {"herg": [MODEL_ID], "clintox": [BLOCKED_MODEL_ID]},
+            },
+            headers=AUTH,
+        )
+    assert response.status_code == 422, response.text
+    error = response.json()["error"]
+    assert error["code"] == "endpoint_unavailable"
+    refused = error["details"]["refused"]
+    assert [item["model_id"] for item in refused] == [BLOCKED_MODEL_ID]
+    assert "tokenizer" in refused[0]["reason"]
+    assert MODEL_ID in error["details"]["admitted"]
+    # And nothing was predicted: refusing after spending the forward passes
+    # would bill for work whose result is discarded.
+    assert not [item for item in stub.requests if item["path"] == "/v1/predictions"]
+
+
+async def test_compare_refuses_a_model_the_catalogue_has_never_heard_of(db):
+    async with api_client(db, comparable()) as client:
+        response = await client.post(
+            "/v1/predict:compare",
+            json={
+                "smiles": ASPIRIN,
+                "model_selection": {"herg": [MODEL_ID, "model-from-a-blog-post"]},
+            },
+            headers=AUTH,
+        )
+    assert response.status_code == 422
+    refused = response.json()["error"]["details"]["refused"]
+    assert refused[0]["model_id"] == "model-from-a-blog-post"
+    assert "catalogue" in refused[0]["reason"]
+
+
+async def test_compare_refuses_an_admitted_model_for_an_endpoint_it_does_not_serve(db):
+    """It would answer a different question and the column would be labelled
+    with this one."""
+    async with api_client(db, comparable()) as client:
+        response = await client.post(
+            "/v1/predict:compare",
+            json={
+                "smiles": ASPIRIN,
+                "model_selection": {"herg": [MODEL_ID], "clintox": [MODEL_ID]},
+            },
+            headers=AUTH,
+        )
+    assert response.status_code == 422
+    refused = response.json()["error"]["details"]["refused"]
+    assert refused == [
+        {"endpoint": "clintox", "model_id": MODEL_ID,
+         "reason": "does not serve clintox; serves ['herg', 'tox21']"},
+    ]
+
+
+async def test_compare_names_every_refused_model_not_just_the_first(db):
+    """One round trip, one complete answer: fixing them one at a time is the
+    shape of an error message that wastes the user's afternoon."""
+    async with api_client(db, comparable()) as client:
+        response = await client.post(
+            "/v1/predict:compare",
+            json={
+                "smiles": ASPIRIN,
+                "model_selection": {"herg": ["ghost-a", "ghost-b"], "tox21": [MODEL_ID]},
+            },
+            headers=AUTH,
+        )
+    assert response.status_code == 422
+    refused = response.json()["error"]["details"]["refused"]
+    assert {item["model_id"] for item in refused} == {"ghost-a", "ghost-b"}
 
 
 async def test_capabilities_proxies_what_the_predictor_serves(db):
