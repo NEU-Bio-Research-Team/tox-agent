@@ -422,6 +422,34 @@ class SecuritySettings:
     #: hosted deployment must say so; it is also refused below unless it does,
     #: when ``environment`` is production.
     egress_policy: str = "local"
+    #: The identity provider that issues product user tokens.
+    #:
+    #: `build_auth` used to fall back to `JwtAuth(secret=capability_secret)`,
+    #: which made the capability signing key double as the user
+    #: authentication key — the two mechanisms this module's docstring calls
+    #: "deliberately not interchangeable". It verified neither issuer nor
+    #: audience, so any HS256 token signed with that key, carrying any `sub`
+    #: and any `roles`, authenticated as that user. Only the audience claim on
+    #: real capability tokens kept them out, and that is a coincidence of
+    #: PyJWT's validation order rather than a boundary.
+    #:
+    #: Set these three and the control plane verifies asymmetric tokens
+    #: against the provider's published keys, with issuer and audience
+    #: required. Production accepts nothing else.
+    oidc_issuer: str = ""
+    oidc_audience: str = ""
+    oidc_jwks_url: str = ""
+    #: How long a fetched key set is reused. Short enough that a rotated key
+    #: is picked up without a restart, long enough that the provider is not
+    #: called per request. A `kid` that is not in the cache forces a refetch
+    #: regardless, which is what makes rotation work mid-TTL.
+    oidc_jwks_cache_s: int = 300
+    #: Claim holding the user's roles.
+    oidc_roles_claim: str = "roles"
+
+    @property
+    def oidc_configured(self) -> bool:
+        return bool(self.oidc_issuer and self.oidc_audience and self.oidc_jwks_url)
 
     @classmethod
     def from_env(cls) -> "SecuritySettings":
@@ -435,7 +463,30 @@ class SecuritySettings:
             mcp_runtime_url=_env("TOXAGENT_MCP_RUNTIME_URL").rstrip("/"),
             cors_allow_origins=_list("TOXAGENT_CORS_ALLOW_ORIGINS", cls.cors_allow_origins),
             egress_policy=_env("TOXAGENT_EGRESS_POLICY", cls.egress_policy).lower(),
+            oidc_issuer=_env("TOXAGENT_OIDC_ISSUER").rstrip("/"),
+            oidc_audience=_env("TOXAGENT_OIDC_AUDIENCE"),
+            oidc_jwks_url=_env("TOXAGENT_OIDC_JWKS_URL"),
+            oidc_jwks_cache_s=_int("TOXAGENT_OIDC_JWKS_CACHE_S", cls.oidc_jwks_cache_s),
+            oidc_roles_claim=_env("TOXAGENT_OIDC_ROLES_CLAIM", cls.oidc_roles_claim),
         )
+        partial = [
+            name for name, value in (
+                ("TOXAGENT_OIDC_ISSUER", settings.oidc_issuer),
+                ("TOXAGENT_OIDC_AUDIENCE", settings.oidc_audience),
+                ("TOXAGENT_OIDC_JWKS_URL", settings.oidc_jwks_url),
+            ) if not value
+        ]
+        if partial and len(partial) < 3:
+            # Half-configured is the dangerous state: without an audience the
+            # verifier accepts a token minted for a different service by the
+            # same provider, and without an issuer it accepts one from any
+            # provider at all.
+            raise ValueError(
+                "OIDC needs issuer, audience and JWKS URL together; missing "
+                + ", ".join(partial)
+            )
+        if settings.oidc_configured and not settings.oidc_jwks_url.startswith("https://"):
+            raise ValueError("TOXAGENT_OIDC_JWKS_URL must be https")
         if settings.egress_policy not in {"local", "hosted"}:
             raise ValueError(
                 f"TOXAGENT_EGRESS_POLICY must be 'local' or 'hosted', got "
@@ -447,6 +498,15 @@ class SecuritySettings:
             if settings.static_tokens:
                 raise ValueError(
                     "TOXAGENT_STATIC_TOKENS is a development shim and must be empty in production"
+                )
+            if not settings.oidc_configured:
+                # The remaining path is HS256 with a secret this deployment
+                # holds, which is not an identity provider: it authenticates
+                # whoever can sign, and the only key available to sign with was
+                # the capability secret.
+                raise ValueError(
+                    "production needs an identity provider: set TOXAGENT_OIDC_ISSUER, "
+                    "TOXAGENT_OIDC_AUDIENCE and TOXAGENT_OIDC_JWKS_URL"
                 )
             if settings.egress_policy != "hosted":
                 # A multi-user deployment that kept the self-hosting default
