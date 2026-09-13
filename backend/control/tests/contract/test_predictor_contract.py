@@ -20,9 +20,30 @@ import toxagent.predictor
 # the whole contract suite stopped at fixture setup instead of checking
 # anything. Importing the package works in a checkout, a wheel and the image.
 SNAPSHOT_PATH = Path(toxagent.predictor.__file__).resolve().parent / "contract_snapshot.json"
-#: backend/control/src/toxagent/predictor/… → repository root.
-_REPO_ROOT = SNAPSHOT_PATH.parents[5]
-PREDICTOR_SRC = _REPO_ROOT / "backend" / "predictor" / "src"
+
+
+def _find_predictor_source(start: Path) -> Path | None:
+    """Walk up looking for the monorepo sibling, rather than counting levels.
+
+    P2-2 of the 2026-09-13 audit: this was ``SNAPSHOT_PATH.parents[5]``, a
+    number that is only correct for one directory layout. An editable install
+    from a checkout, a wheel in site-packages and the container image each put
+    the package at a different depth, so five levels up landed somewhere
+    arbitrary and the regeneration check skipped with a misleading reason — or,
+    before I24, stopped the whole suite at fixture setup.
+
+    Searching for the marker is layout-independent and self-describing: either
+    the predictor source is somewhere above us, or this is not a monorepo
+    checkout and the regeneration check genuinely cannot run.
+    """
+    for parent in [start, *start.parents]:
+        candidate = parent / "backend" / "predictor" / "src"
+        if (candidate / "toxpred").is_dir():
+            return candidate
+    return None
+
+
+PREDICTOR_SRC = _find_predictor_source(SNAPSHOT_PATH.parent)
 
 # Every path the control plane calls. Anything not here is not depended upon.
 REQUIRED_PATHS = {
@@ -112,10 +133,14 @@ def test_snapshot_matches_the_predictor_source():
     # and this degrades to a skip that names why.
     required = os.getenv("TOXAGENT_REQUIRE_PREDICTOR_CONTRACT") == "1"
 
-    if not PREDICTOR_SRC.is_dir():
+    if PREDICTOR_SRC is None or not PREDICTOR_SRC.is_dir():
+        reason = (
+            "no backend/predictor/src/toxpred above "
+            f"{SNAPSHOT_PATH.parent} — this is not a monorepo checkout"
+        )
         if required:
-            pytest.fail(f"predictor source required but missing: {PREDICTOR_SRC}")
-        pytest.skip(f"predictor source not in this install: {PREDICTOR_SRC}")
+            pytest.fail(f"predictor source required but not found: {reason}")
+        pytest.skip(f"predictor source not in this install: {reason}")
 
     code = (
         "import json,sys; sys.path.insert(0, %r); "

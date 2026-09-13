@@ -27,6 +27,10 @@ hard gates are exercised somewhere.
 
 ## Running
 
+From a fresh clone, the whole backend suite plus three scripted eval trials is
+one command — `make -C backend/control test` (see `backend/control/Makefile`),
+which needs no pre-existing workstation virtualenv.
+
 ```bash
 # CI path — deterministic tasks only, no model. pass^3 over the subset.
 python -m evals.runner --runtime scripted --trials 3
@@ -43,10 +47,22 @@ without an LLM:
 - routing tasks (`qa-09` out-of-scope, `qa-10` clarification-required).
 
 The other 45 are reported `needs an agentic runtime` and excluded from the
-pass rate. To run them, stand up the full stack
-(`scripts/run_local_phase3.sh`) and drive the suite against a live OpenCode or
-DSH binding — the remote driver for that is not written yet; `--runtime
-opencode` currently refuses rather than pretending.
+pass rate. To run them, stand up the full stack (`scripts/run_local_phase3.sh`)
+and point the suite at it:
+
+```bash
+python -m evals.runner --runtime opencode \
+  --base-url http://127.0.0.1:8000 --token dev-local --trials 1
+```
+
+`RemoteHTTPDriver` (`runner.py`) drives those tasks over the product's own HTTP
+API. It talks to whatever predictor that stack is configured with — normally
+the real ToxPred, not the frozen fixture — so the fixture mode defaults to
+`predictor_integration` and `is_live_compatible` excludes any task that pins an
+exact `source_value`. What runs live is graded on structure and wording
+(required/forbidden limitations, must/must-not-mention, hard gates), which hold
+regardless of the exact numbers. Two runs are comparable only in the same
+fixture mode, and the manifest records which one was used.
 
 ## Hard gates (plan §16.5)
 
