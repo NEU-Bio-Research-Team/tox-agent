@@ -38,6 +38,7 @@ from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
 from .report_profile import compose_report_profile
+from .prompt_budget import measure as measure_prompt, split_system_prompt
 from .runtime_profiles import RuntimeProfileRegistry
 from .usage_normalizer import RuntimeUsageNormalizer
 from .provider import (
@@ -182,6 +183,33 @@ class AgentRuntimeGateway:
         runtime_profile = self._runtime_profiles.resolve(
             context.intent.value, capability_profile=profile
         )
+        # What this dispatch actually costs, by component. Recorded on the
+        # binding rather than logged: "the report used 28,408 tokens" is not
+        # actionable, and the audit had no way to say which part of the prompt
+        # they were (P1-10).
+        policy_prefix, pinned_facts, history = split_system_prompt(system_prompt)
+        budget = measure_prompt(
+            profile=profile,
+            policy_prefix=policy_prefix,
+            tool_schemas=tool_schema,
+            pinned_facts=pinned_facts,
+            history=history,
+            user_message=context.text,
+            context={"model_id": resolved.model_id, "intent": context.intent.value},
+        )
+        if budget.over_budget_by:
+            log.info(
+                "prompt is over its component budget",
+                extra={
+                    "run_id": context.run_id,
+                    "profile": profile,
+                    "total_tokens": budget.total_tokens,
+                    "target_tokens": budget.target_tokens,
+                    "largest_component": (
+                        budget.largest_component.name if budget.largest_component else None
+                    ),
+                },
+            )
         discrepancy = runtime_profile.discrepancy
         if discrepancy:
             # Dispatch still happens — refusing a report because its profile
@@ -256,7 +284,10 @@ class AgentRuntimeGateway:
                 capabilities=capabilities,
                 now=_now(),
                 selection_reason="deployment-pinned runtime provider",
-                runtime_manifest=runtime_profile.to_manifest(),
+                runtime_manifest={
+                    **runtime_profile.to_manifest(),
+                    "prompt_budget": budget.to_manifest(),
+                },
             )
             await self._persist_started_run(context, binding)
 
