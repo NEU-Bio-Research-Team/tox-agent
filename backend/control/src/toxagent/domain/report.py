@@ -188,6 +188,11 @@ class GapReason(str, Enum):
     EXPLANATION_PARTIAL = "explanation_partial"
     COMPOUND_IDENTITY_UNRESOLVED = "compound_identity_unresolved"
     NO_RELEVANT_EVIDENCE = "no_relevant_evidence"
+    #: Nobody looked. Distinct from NO_RELEVANT_EVIDENCE, which means a search
+    #: ran and came back empty or unusable: telling a reader the evidence base
+    #: is thin, when in fact the build was configured not to search, misreports
+    #: the state of the literature (P0-2).
+    EXTERNAL_EVIDENCE_NOT_REQUESTED = "external_evidence_not_requested"
     PROVIDER_UNAVAILABLE = "provider_unavailable"
     BUDGET_EXHAUSTED = "budget_exhausted"
 
