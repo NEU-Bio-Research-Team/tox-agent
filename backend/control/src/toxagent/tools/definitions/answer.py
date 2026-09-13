@@ -12,7 +12,9 @@ from typing import Final
 
 from ...application.submit_answer import SubmitAnswer
 from ...config import PolicySettings
+from ...flags import is_enabled
 from ...validation.wire import GroundedAnswerCandidate
+from ...validation.wire_v2 import GroundedAnswerDraftV2
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 #: Referenced by tools/runner.py so the final-answer tool can be excluded from
@@ -21,10 +23,34 @@ from ..registry import ToolContext, ToolDefinition, ToolOutput
 ANSWER_TOOL_NAME: Final[str] = "submit_grounded_answer"
 
 
+#: The v2 surface. Notice what is missing: no identifier format, no worked
+#: example of one, and no instruction about decimal commas. The server issues
+#: the ids and renders the values, so there is nothing here for a model to
+#: imitate wrongly (P1-4).
+_V2_DESCRIPTION: Final[str] = (
+    "Submit the final answer to this turn's question. Give each claim a short "
+    "local_ref label ('herg_p', 'claim_1') unique within this answer; the server "
+    "issues the permanent identifier. Every numeric or classification claim names "
+    "the observation_id and field_path it comes from — obtained from "
+    "get_analysis_slice or get_attribution — and the server reads, renders and "
+    "checks the value itself, so do not send the number. Every scientific or "
+    "comparison claim needs either such a citation or an accepted evidence "
+    "citation_id.\n\n"
+    "To compare two predictor values ('how much higher is X than Y'): submit each "
+    "value as its own numeric claim, then a third with kind=comparison, "
+    "transform='difference' (first minus second) or 'ratio', and input_local_refs "
+    "naming those two claims in that order. The server computes the result. Do not "
+    "write the two source numbers directly into answer_markdown — coverage checking "
+    "rejects an unclaimed number.\n\n"
+    "A rejected draft returns typed violations naming exactly what to correct; at "
+    "most one correction attempt is allowed per run."
+)
+
+
 def build(database, settings: PolicySettings) -> list[ToolDefinition]:
     submit_answer = SubmitAnswer(database, settings)
 
-    async def submit(context: ToolContext, payload: GroundedAnswerCandidate) -> ToolOutput:
+    async def submit(context: ToolContext, payload) -> ToolOutput:
         outcome = await submit_answer.execute(
             session_id=context.session_id, run_id=context.run_id, candidate=payload,
             language=context.language,
@@ -41,6 +67,21 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             observation_ids=tuple(outcome.answer.cited_observation_ids),
             provenance={"candidate_generation": outcome.answer.candidate_generation},
         )
+
+    if is_enabled("answer_draft_v2"):
+        return [
+            ToolDefinition(
+                name=ANSWER_TOOL_NAME,
+                title="Submit a grounded answer",
+                description=_V2_DESCRIPTION,
+                input_model=GroundedAnswerDraftV2,
+                handler=submit,
+                profiles=frozenset({"analysis", "report_qa", "evidence_research"}),
+                soft_timeout_s=5.0,
+                hard_timeout_s=10.0,
+                idempotent=False,
+            )
+        ]
 
     return [
         ToolDefinition(

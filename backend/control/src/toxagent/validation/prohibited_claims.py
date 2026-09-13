@@ -73,6 +73,46 @@ _NEGATION_CUE = re.compile(
 
 _NEGATION_WINDOW_CHARS = 48
 
+#: Cues that say the *product* is declining to make the verdict, not that a
+#: verdict is being made about something negative (P1-5).
+#:
+#: `_SAFETY_VERDICT` is deliberately not run through the general
+#: `_NEGATION_CUE` list: that list contains bare "no" and "not", and "there is
+#: no doubt the compound is safe" would pass a gate whose whole job is to
+#: refuse that sentence. These cues are narrower — each one states that no
+#: conclusion is being offered — so the sentences they admit are the product
+#: describing its own limits, which is what it is supposed to say.
+#:
+#: The audit's case: "Mô hình không đưa ra kết luận an toàn cho người" was
+#: refused as a safety verdict when it is the opposite of one.
+_DECLINES_TO_ASSERT = re.compile(
+    r"\b(cannot|can't|could\s+not|couldn't|does\s+not|doesn't|do\s+not|don't|"
+    r"will\s+not|won't|is\s+not\s+able\s+to|are\s+not\s+able\s+to)\s+"
+    r"(say|state|tell|conclude|determine|assert|claim|establish|provide|issue|make)\b"
+    r"|\bmakes?\s+no\s+(claim|statement|assertion|verdict)\b"
+    r"|\bno\s+(such\s+)?(verdict|conclusion|claim)\b"
+    r"|\bkhông\s+(đưa\s+ra|kết\s+luận|khẳng\s+định|tuyên\s+bố|nói)\b"
+    r"|\bkhông\s+phải\s+(là\s+)?(kết\s+luận|tuyên\s+bố)\b",
+    re.IGNORECASE,
+)
+
+
+def _declines_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS) -> bool:
+    """Whether the product declines to assert, within the same sentence."""
+    segment = text[max(0, start - window):start]
+    boundary = max(segment.rfind("."), segment.rfind("\n"))
+    if boundary != -1:
+        segment = segment[boundary + 1:]
+    return bool(_DECLINES_TO_ASSERT.search(segment))
+
+
+def _scan_unless_declined(
+    pattern: re.Pattern, text: str, code: str, message: str, path: str
+) -> list[Violation]:
+    if any(not _declines_before(text, m.start()) for m in pattern.finditer(text)):
+        return [Violation(code, message, path=path)]
+    return []
+
 
 def _negated_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS) -> bool:
     segment = text[max(0, start - window):start]
@@ -114,7 +154,7 @@ def _scan_unless_negated(
 
 def validate_answer_markdown(answer_markdown: str) -> list[Violation]:
     violations: list[Violation] = []
-    violations += _scan(
+    violations += _scan_unless_declined(
         _SAFETY_VERDICT, answer_markdown, "safety_verdict_out_of_scope",
         "the answer states a safety verdict this product does not issue", "answer_markdown",
     )
@@ -132,7 +172,7 @@ def validate_claim_wording(claim: ClaimCandidate) -> list[Violation]:
     path = f"claims[{claim.claim_id}].text"
     field = claim.field_path or ""
 
-    violations += _scan(
+    violations += _scan_unless_declined(
         _SAFETY_VERDICT, text, "safety_verdict_out_of_scope",
         "this claim states a safety verdict this product does not issue", path,
     )

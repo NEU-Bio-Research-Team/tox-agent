@@ -20,6 +20,8 @@ from ..domain.observation import Observation
 from ..validation.answer_validator import AnswerValidationResult, validate_candidate
 from ..validation.fallback import build_fallback_answer
 from ..validation.wire import GroundedAnswerCandidate
+from ..validation.claim_resolver import resolve_draft
+from ..validation.wire_v2 import GroundedAnswerDraftV2
 
 SUBMIT_TOOL_NAME = "submit_grounded_answer"
 
@@ -57,6 +59,22 @@ class SubmitAnswer:
             observations_by_id = await self._resolve_observations(uow, session_id, candidate)
             evidence_by_id = await self._resolve_evidence(uow, session_id, candidate)
             read_evidence_ids = await self._resolve_read_evidence_ids(uow, run_id)
+
+            if isinstance(candidate, GroundedAnswerDraftV2):
+                # The server issues the identifiers and reads the values before
+                # anything is validated, so every check below runs against
+                # facts the model could not have got wrong (P1-4).
+                resolved = resolve_draft(
+                    candidate,
+                    observations_by_id=observations_by_id,
+                    language=language,
+                )
+                if resolved.candidate is None:
+                    return await self._reject(
+                        uow, session, session_id, run_id, generation,
+                        list(resolved.violations), language,
+                    )
+                candidate = resolved.candidate
 
             result = validate_candidate(
                 candidate,
@@ -112,6 +130,58 @@ class SubmitAnswer:
             f"submit_grounded_answer again — {attempts_remaining} attempt(s) remain before this "
             "run ends with a deterministic fallback answer instead of yours.",
             violations=list(result.violations),
+            candidate_generation=generation,
+            attempts_remaining=attempts_remaining,
+        )
+
+    async def _reject(
+        self, uow, session, session_id: str, run_id: str, generation: int,
+        violations: list, language: str,
+    ) -> SubmitOutcome:
+        """The shared rejection path: one more attempt, or the fallback.
+
+        Resolution failures take it too. A draft naming a field path that does
+        not exist is exactly as correctable as a claim whose number was wrong,
+        and giving it a different shape of error would spend a correction
+        attempt on a message the model cannot act on.
+        """
+        if generation >= self._settings.max_answer_candidates_per_run:
+            fallback = await self._build_fallback(
+                uow, session, session_id, run_id, generation, language
+            )
+            await uow.answers.add(fallback)
+            uow.emit(
+                session_id=session_id, type=EventType.ANSWER_REJECTED, entity_type="answer",
+                entity_id=fallback.id, run_id=run_id,
+                payload={
+                    "candidate_generation": generation,
+                    "violations": [v.to_dict() for v in violations],
+                },
+            )
+            uow.emit(
+                session_id=session_id, type=EventType.ANSWER_ACCEPTED, entity_type="answer",
+                entity_id=fallback.id, run_id=run_id,
+                payload={"is_fallback": True, "candidate_generation": generation},
+            )
+            await uow.commit()
+            return SubmitOutcome(fallback, is_fallback=True)
+
+        uow.emit(
+            session_id=session_id, type=EventType.ANSWER_REJECTED, entity_type="run",
+            entity_id=run_id, run_id=run_id,
+            payload={
+                "candidate_generation": generation,
+                "violations": [v.to_dict() for v in violations],
+            },
+        )
+        await uow.commit()
+        attempts_remaining = self._settings.max_answer_candidates_per_run - generation
+        raise AnswerValidationFailed(
+            f"candidate {generation} did not pass validation ({len(violations)} "
+            f"violation(s), listed in details.violations). Correct exactly those and call "
+            f"submit_grounded_answer again — {attempts_remaining} attempt(s) remain before this "
+            "run ends with a deterministic fallback answer instead of yours.",
+            violations=list(violations),
             candidate_generation=generation,
             attempts_remaining=attempts_remaining,
         )
