@@ -87,9 +87,20 @@ def _resolve_star_pattern_rules(permission: object) -> dict[str, str] | None:
     return None
 
 
-def evaluate_surface(agents: list[dict], agent_name: str) -> list[str]:
+def evaluate_surface(
+    agents: list[dict], agent_name: str, mcp_namespace: str | None = None
+) -> list[str]:
     """Return a list of human-readable problems; empty means the surface is
-    deny-all except this product's own MCP namespace."""
+    deny-all except this product's own MCP namespace.
+
+    ``mcp_namespace`` is the MCP *server* name, which is not the agent name for
+    every agent: ``toxagent-report`` calls the same ``toxagent`` server, so its
+    tools are ``toxagent_*``. Deriving the namespace from the agent name flagged
+    the report agent's own tools as a leak and its surface as tool-less
+    (found live, 2026-09-13). It defaults to the agent name for the one agent
+    where the two coincide.
+    """
+    namespace = mcp_namespace or agent_name
     problems: list[str] = []
     match = next(
         (a for a in agents if isinstance(a, dict) and a.get("name") == agent_name), None
@@ -111,7 +122,7 @@ def evaluate_surface(agents: list[dict], agent_name: str) -> list[str]:
     for key, effect in permission.items():
         if key == "*" or key in UI_INTERACTION_PERMISSIONS:
             continue
-        if _is_own_mcp(key, agent_name):
+        if _is_own_mcp(key, namespace):
             continue
         if effect != "allow":
             continue
@@ -126,9 +137,9 @@ def evaluate_surface(agents: list[dict], agent_name: str) -> list[str]:
 
     # An allow rule for the product's own MCP must actually be present, or the
     # model is handed no tools at all (progress log §3.2).
-    if not any(_is_own_mcp(k, agent_name) and e == "allow" for k, e in permission.items()):
+    if not any(_is_own_mcp(k, namespace) and e == "allow" for k, e in permission.items()):
         problems.append(
-            f"no allow rule for the {agent_name!r} MCP namespace; the model would see no tools"
+            f"no allow rule for the {namespace!r} MCP namespace; the model would see no tools"
         )
     return problems
 
@@ -138,6 +149,10 @@ def main() -> int:
     parser.add_argument("--url", default=os.getenv("TOXAGENT_OPENCODE_URL", "http://127.0.0.1:4096"))
     parser.add_argument("--agent", default=os.getenv("TOXAGENT_AGENT_NAME", "toxagent"))
     parser.add_argument("--directory", default=os.getenv("TOXAGENT_OPENCODE_DIRECTORY", ""))
+    parser.add_argument(
+        "--mcp-namespace", default=os.getenv("TOXAGENT_MCP_NAMESPACE", "toxagent"),
+        help="the MCP server name whose tools the agent may call (not the agent name)",
+    )
     args = parser.parse_args()
 
     query = f"?directory={urllib.parse.quote(args.directory)}" if args.directory else ""
@@ -152,7 +167,7 @@ def main() -> int:
         print(f"GET /agent returned {type(agents).__name__}, expected a list", file=sys.stderr)
         return 2
 
-    problems = evaluate_surface(agents, args.agent)
+    problems = evaluate_surface(agents, args.agent, args.mcp_namespace)
     if problems:
         print(f"OpenCode agent {args.agent!r} surface is NOT isolated:", file=sys.stderr)
         for problem in problems:

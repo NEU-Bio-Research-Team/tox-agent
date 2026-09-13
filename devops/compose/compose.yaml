@@ -86,6 +86,9 @@ services:
       # default bounded; evidence-heavy deployments may explicitly raise this
       # to 24 after measuring latency/cost.
       TOXAGENT_MAX_TOOL_CALLS: ${TOXAGENT_MAX_TOOL_CALLS:-12}
+      # A report build is a much larger job than a chat answer; see
+      # PolicySettings.max_tool_calls_per_report_build for the arithmetic.
+      TOXAGENT_MAX_TOOL_CALLS_REPORT: ${TOXAGENT_MAX_TOOL_CALLS_REPORT:-80}
       TOXAGENT_CAPABILITY_SECRET: ${TOXAGENT_CAPABILITY_SECRET:?run ./bin/toxagent setup first}
       TOXAGENT_STATIC_TOKENS: ${TOXAGENT_STATIC_TOKENS:?run ./bin/toxagent setup first}
       TOXAGENT_CORS_ALLOW_ORIGINS: ${TOXAGENT_CORS_ALLOW_ORIGINS:-}

@@ -49,7 +49,13 @@ from ..domain.report import (
 )
 from ..predictor.client import PredictorClient
 from ..predictor.contract import TOX21_TASKS
-from ..report.figures import FigureRejected, alt_text_for, caption_for, store_explanation_figure
+from ..report.figures import (
+    FIGURE_RENDERER_VERSION,
+    FigureRejected,
+    alt_text_for,
+    caption_for,
+    store_explanation_figure,
+)
 from .explanation_identity import (
     ATTRIBUTION_ALIGNMENT_VERSION,
     EXPLANATION_SCHEMA_VERSION,
@@ -389,7 +395,14 @@ class GetOrCreateExplanation:
         )
         if existing is not None:
             package = package_from_observation(existing, top_k=top_k)
-            if package.figure is not None or not self._can_draw(existing):
+            # A figure stored by an older sanitizer counts as missing. v1
+            # dropped RDKit's `style` paint and stored black boxes; reusing one
+            # would put that box into every new report of this explanation.
+            current_figure = (
+                package.figure is not None
+                and package.figure.renderer_version == FIGURE_RENDERER_VERSION
+            )
+            if current_figure or not self._can_draw(existing):
                 return ExplanationResult(package=package, observation=existing, reused=True)
             # Numbers cached, picture missing. Draw only the picture: the
             # backward pass is the expensive half and repeating it to obtain an

@@ -48,10 +48,56 @@ def test_the_audit_profile_cannot_author_an_answer():
     assert "submit_grounded_answer" not in PROFILES["audit_readonly"]
 
 
-def test_every_profile_is_a_small_closed_set():
+#: The one profile that is allowed to be large, and exactly how large. A report
+#: build is the single workflow that has to assemble substance, predictor,
+#: explanation and evidence facts within one run, so report spec section 8
+#: enumerates a wider roster on purpose. Pinning it by name here keeps the
+#: "small closed set" guard meaningful for every other profile while making any
+#: drift in this one a failing test rather than a quiet expansion.
+REPORT_BUILD_TOOLS = frozenset(
+    {
+        "get_report_context",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "resolve_compound_record",
+        "get_or_create_explanation",
+        "get_explanation_package",
+        "search_toxicology_evidence",
+        "get_evidence_record",
+        "save_report_draft",
+        "check_saved_report_draft",
+        "patch_saved_report_draft",
+        "submit_saved_report_draft",
+        "check_report_draft",
+        "submit_report_draft",
+    }
+)
+
+
+def test_every_conversational_profile_is_a_small_closed_set():
     """Plan section 21: a large tool roster costs money and misroutes."""
     for name, tools in PROFILES.items():
+        # Neither is conversational: report_build is the model-driven builder's
+        # enumerated roster, and report_synthesis is one submission boundary.
+        if name in ("report_build", "report_synthesis"):
+            continue
         assert 2 <= len(tools) <= 6, f"{name} has {len(tools)} tools"
+
+
+def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():
+    """PR-12: by dispatch time the server has done every read a model could
+    ask for, so the only thing left to expose is the submission."""
+    assert PROFILES["report_synthesis"] == frozenset({"submit_report_synthesis"})
+
+
+def test_the_report_build_roster_is_exactly_what_the_spec_enumerates():
+    assert PROFILES["report_build"] == REPORT_BUILD_TOOLS
+
+
+def test_a_report_build_cannot_author_a_conversational_answer():
+    """A report is not an answer: two ways to finish a run would mean two
+    validators to satisfy and two things a transcript could call the result."""
+    assert "submit_grounded_answer" not in PROFILES["report_build"]
 
 
 def test_visibility_follows_the_profile(registry_with_two_tools):

@@ -27,6 +27,7 @@ from ..domain.errors import (
 from .schemas import (
     AttributionResponse,
     BatchPredictionResponse,
+    DepictionResponse,
     ExplanationResponse,
     ModelsResponse,
     PredictionResponse,
@@ -194,6 +195,24 @@ class PredictorClient:
             ),
         )
         return self._parse(ExplanationResponse, response)
+
+    # --- depiction ---------------------------------------------------------
+
+    async def depict(self, smiles: str, *, atom_numbering: bool = False) -> DepictionResponse:
+        """A neutral 2D structure drawing via ToxPred ``POST /v1/depictions``.
+
+        Not an inference call: no model runs, so this uses the ordinary read
+        budget rather than the attribution one. The report needs this picture as
+        a *separate* image from the explanation heat map — substance identity and
+        "which atoms moved the score" are different claims, and one image
+        serving both invites a reader to take the colours as a property of the
+        compound (REP-02).
+        """
+        response = await self._request(
+            "POST", "/v1/depictions",
+            json={"smiles": smiles, "atom_numbering": atom_numbering},
+        )
+        return self._parse(DepictionResponse, response)
 
     # --- provenance --------------------------------------------------------
 

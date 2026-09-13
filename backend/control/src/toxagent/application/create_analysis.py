@@ -32,6 +32,11 @@ from ..domain.run import Run, RunStatus
 from ..domain.session import Session
 from ..predictor.client import PredictorClient
 from . import projections
+from .explanation_identity import (
+    EXPLANATION_SCHEMA_VERSION,
+    explanation_checkpoint_key,
+    model_artifact_fingerprint,
+)
 from .policy import Actor, authorise_threshold_overrides, policy_snapshot, resolve_endpoints
 from .runs import advance
 
@@ -41,52 +46,6 @@ log = logging.getLogger("toxagent.analysis")
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
-
-
-def model_artifact_fingerprint(provenance, model_id: str | None) -> tuple[str, ...]:
-    """The artifact hashes belonging to one model, out of a response's provenance.
-
-    ToxPred reports provenance per model — `[{"model_id": ..., "weights_sha256":
-    ..., "tokenizer_sha256": ...}]` — which the client flattens to
-    `"<model_id>:<field>=<hash>"`. Selecting by prefix keeps the pin precise: a
-    retrain of one admitted model invalidates its own explanations and leaves
-    the other's alone.
-
-    An empty result is the honest answer when the predictor reported no
-    artifacts for this model, and it is a *different* key from any non-empty
-    one — so a checkpoint written while the weights were unidentified is never
-    served as though it had been pinned to them.
-    """
-    if not model_id:
-        return ()
-    prefix = f"{model_id}:"
-    return tuple(sorted(
-        h for h in getattr(provenance, "artifact_hashes", ()) or () if h.startswith(prefix)
-    ))
-
-
-def explanation_checkpoint_key(
-    *, canonical_smiles: str, endpoint: str, task: str | None, model_id: str | None,
-    artifact_fingerprint: tuple[str, ...] = (),
-) -> str:
-    """Identity of one explanation: what it explains, and what produced it.
-
-    The model id is part of it deliberately (I11): the same molecule explained
-    by a different admitted model is a different artifact, and reusing one for
-    the other is exactly the mismatch the bundle used to permit.
-
-    The id alone was not enough, though, and K06 asks for the hash. An id is a
-    name a deployment chooses; the weights behind it can be replaced by a
-    retrain, a re-download, or a corrected checkpoint without the name moving.
-    A key made only of the name would then serve last month's attribution for
-    this month's model and call it current. The artifact hashes the predictor
-    reported for that model are part of the key, so replacing the weights
-    retires every explanation made with the old ones.
-    """
-    material = "\u001f".join(
-        (canonical_smiles, endpoint, task or "", model_id or "", *artifact_fingerprint)
-    )
-    return f"sha256:{hashlib.sha256(material.encode('utf-8')).hexdigest()}"
 
 
 def _failed_explanation(
@@ -103,6 +62,25 @@ def _failed_explanation(
         "atoms": [], "bonds": [], "tokens": [], "method": "unavailable",
         "metadata": {"error": reason},
     }
+
+
+@dataclass(frozen=True, slots=True)
+class ExplanationOutcome:
+    """One computed target, carrying the identity it was computed under.
+
+    The cache key travels with the payload because it is what makes the
+    explanation findable later. Before XAI-01 this loop returned bare payloads,
+    the key stayed inside the checkpoint table, and the observation the report
+    builder reads had no key on it at all — so the report could not tell that
+    the attribution in front of it was the one the analysis had already paid
+    for, and asked the predictor again.
+    """
+
+    payload: dict[str, Any]
+    cache_key: str
+    endpoint: str
+    task: str | None
+    model_id: str | None
 
 
 @dataclass(frozen=True)
@@ -184,7 +162,7 @@ class CreateAnalysis:
             smiles, endpoints, model_selection=model_selection, threshold_overrides=overrides
         )
         provenance = self._predictor.provenance_of(response)
-        explanations: list[dict[str, Any]] = []
+        explanations: list[ExplanationOutcome] = []
         if explanation_mode == "required":
             explanations = await self._explain_targets(
                 session_id=session_id,
@@ -238,13 +216,18 @@ class CreateAnalysis:
                 entity_type="observation", entity_id=observation.id, run_id=run_id,
                 payload={"kind": observation.kind.value},
             )
-            for explanation in explanations:
-                explanation_observation = self._explanation_observation(snapshot, run_id, explanation)
+            for outcome in explanations:
+                explanation_observation = self._explanation_observation(snapshot, run_id, outcome)
                 await uow.observations.add(explanation_observation, analysis_id=snapshot.id)
                 uow.emit(
                     session_id=session_id, type=EventType.OBSERVATION_CREATED,
                     entity_type="observation", entity_id=explanation_observation.id, run_id=run_id,
-                    payload={"kind": "attribution", "endpoint": explanation.get("endpoint"), "task": explanation.get("task"), "status": explanation.get("status")},
+                    payload={
+                        "kind": "attribution",
+                        "endpoint": outcome.endpoint,
+                        "task": outcome.task,
+                        "status": outcome.payload.get("status"),
+                    },
                 )
             await self._complete(uow, session, run_id, snapshot, reused=False, owns_run=owns_run)
             await uow.commit()
@@ -260,7 +243,7 @@ class CreateAnalysis:
         provenance,
         model_selection: Mapping[str, str] | None,
         targets: tuple[tuple[str, str | None], ...],
-    ) -> list[dict[str, Any]]:
+    ) -> list[ExplanationOutcome]:
         """Compute each requested explanation, committing them as they land.
 
         I19: this used to be a loop that computed every target and then wrote
@@ -298,24 +281,33 @@ class CreateAnalysis:
             done = await uow.explanation_checkpoints.get_many(list(keys.values()))
 
         deadline = time.monotonic() + self._settings.explanation_budget_s
-        explanations: list[dict[str, Any]] = []
+        explanations: list[ExplanationOutcome] = []
         for endpoint, task in targets:
             key = keys[(endpoint, task)]
+            model_id = self._resolved_model(response, endpoint, model_selection)
+
+            def outcome(payload: dict[str, Any]) -> ExplanationOutcome:
+                return ExplanationOutcome(
+                    payload=payload, cache_key=key,
+                    endpoint=endpoint, task=task, model_id=model_id,
+                )
+
+            def failed(reason: str) -> ExplanationOutcome:
+                return outcome(_failed_explanation(
+                    endpoint=endpoint, task=task, smiles=smiles,
+                    canonical_smiles=response.canonical_smiles, reason=reason,
+                ))
+
             committed = done.get(key)
             if committed is not None:
                 # Already paid for, by an earlier attempt at this run or by
                 # another run asking the same question.
-                explanations.append(committed)
+                explanations.append(outcome(committed))
                 continue
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                explanations.append(_failed_explanation(
-                    endpoint=endpoint, task=task, smiles=smiles,
-                    canonical_smiles=response.canonical_smiles,
-                    reason="explanation_budget_exceeded",
-                ))
+                explanations.append(failed("explanation_budget_exceeded"))
                 continue
-            model_id = self._resolved_model(response, endpoint, model_selection)
             try:
                 explanation = await asyncio.wait_for(
                     self._predictor.explain(
@@ -325,11 +317,7 @@ class CreateAnalysis:
                 )
                 payload = explanation.model_dump(mode="json")
             except asyncio.TimeoutError:
-                explanations.append(_failed_explanation(
-                    endpoint=endpoint, task=task, smiles=smiles,
-                    canonical_smiles=response.canonical_smiles,
-                    reason="explanation_budget_exceeded",
-                ))
+                explanations.append(failed("explanation_budget_exceeded"))
                 continue
             except asyncio.CancelledError:
                 # The run itself is being cancelled. Whatever has been
@@ -337,14 +325,10 @@ class CreateAnalysis:
                 # cancellation into a fabricated failure artifact.
                 raise
             except Exception as exc:  # terminal failure artifact; never fabricate XAI
-                explanations.append(_failed_explanation(
-                    endpoint=endpoint, task=task, smiles=smiles,
-                    canonical_smiles=response.canonical_smiles,
-                    reason=type(exc).__name__,
-                ))
+                explanations.append(failed(type(exc).__name__))
                 continue
 
-            explanations.append(payload)
+            explanations.append(outcome(payload))
             # Committed on its own, immediately: a checkpoint written in the
             # same transaction as the snapshot would be lost by exactly the
             # crash it exists to survive. A failure to record it costs a
@@ -391,21 +375,35 @@ class CreateAnalysis:
         )
 
     @staticmethod
-    def _explanation_observation(snapshot: AnalysisSnapshot, run_id: str, payload: dict[str, Any]) -> Observation:
-        tokens = list(payload.get("tokens") or [])
-        return Observation.create(
-            session_id=snapshot.session_id, run_id=run_id,
-            producer=Producer.ATTRIBUTION, kind=ObservationKind.ATTRIBUTION,
-            schema_version="toxpred-explanation-v2", canonical_payload=payload,
-            model_projection={
-                "analysis_id": snapshot.id, "endpoint": payload.get("endpoint"), "task": payload.get("task"),
-                "status": payload.get("status"), "method": payload.get("method"),
-                "model_id": (payload.get("metadata") or {}).get("model_id"),
-                "top_tokens": sorted(tokens, key=lambda token: abs(float(token.get("importance", token.get("score", 0)))), reverse=True)[:12],
-                "required_limitations": ["attribution_not_causality"],
-            },
-            provenance={**snapshot.provenance.to_dict(), "analysis_id": snapshot.id, "target": {"endpoint": payload.get("endpoint"), "task": payload.get("task")}},
-            now=_now(), required_limitations=("attribution_not_causality",),
+    def _explanation_observation(
+        snapshot: AnalysisSnapshot, run_id: str, outcome: ExplanationOutcome
+    ) -> Observation:
+        """The observation both pipelines write, under one schema version.
+
+        The projection and the provenance are built by ``application.explanation``
+        rather than here, so an explanation produced eagerly by an analysis and
+        one produced on demand by ``get_or_create_explanation`` are the same row
+        shape. That is what lets the report builder resolve either of them, and
+        what stops it recomputing an attribution it is already holding.
+
+        No figure is drawn here. This path has neither an object store nor an
+        owner id, and the honest consequence is a numeric explanation with no
+        picture yet; ``GetOrCreateExplanation`` draws it later from *this*
+        payload, without a second backward pass.
+        """
+        from .explanation import explanation_observation
+
+        return explanation_observation(
+            payload=outcome.payload,
+            session_id=snapshot.session_id,
+            run_id=run_id,
+            analysis_id=snapshot.id,
+            snapshot_provenance=snapshot.provenance.to_dict(),
+            cache_key=outcome.cache_key,
+            requested_model_id=outcome.model_id,
+            endpoint=outcome.endpoint,
+            task=outcome.task,
+            now=_now(),
         )
 
     @staticmethod

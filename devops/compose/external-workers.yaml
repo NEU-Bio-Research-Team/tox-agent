@@ -1,0 +1,57 @@
+# External workers (WS08 / PR-14, PR-15). Layer on top of the agent overlay:
+#
+#   docker compose -f compose.yaml -f devops/compose/external-opencode.yaml \
+#     -f devops/compose/external-workers.yaml up
+#
+# The control service becomes API-only: it accepts runs and writes jobs, and a
+# restart of it no longer cancels anyone's agent turn. Two worker pools claim
+# those jobs by queue, so a burst of report builds cannot occupy the slots a
+# user's question needs.
+#
+# Concurrency caps are enforced in the database, across every worker, not per
+# process. Leave a cap at 0 for unlimited; set the report cap to what the model
+# provider's rate limit actually allows.
+
+x-worker-env: &worker-env
+  TOXAGENT_FLAG_EXTERNAL_WORKER_MODE: "1"
+  TOXAGENT_PROCESS_ROLE: worker
+  TOXAGENT_SKIP_MIGRATIONS: "1"
+  TOXAGENT_GLOBAL_MAX_RUNS: ${TOXAGENT_GLOBAL_MAX_RUNS:-16}
+  TOXAGENT_TENANT_MAX_RUNS: ${TOXAGENT_TENANT_MAX_RUNS:-4}
+  TOXAGENT_PROVIDER_MAX_RUNS: ${TOXAGENT_PROVIDER_MAX_RUNS:-8}
+  TOXAGENT_REPORT_MAX_RUNS: ${TOXAGENT_REPORT_MAX_RUNS:-4}
+  # Longer than a typical answer, shorter than a container stop timeout. A run
+  # still going when it expires is handed to another worker, not cancelled.
+  TOXAGENT_DRAIN_GRACE_S: ${TOXAGENT_DRAIN_GRACE_S:-25}
+
+services:
+  toxagent-control:
+    environment:
+      TOXAGENT_FLAG_EXTERNAL_WORKER_MODE: "1"
+      TOXAGENT_PROCESS_ROLE: api
+
+  toxagent-worker-interactive:
+    extends:
+      file: ../../compose.yaml
+      service: toxagent-control
+    environment:
+      <<: *worker-env
+      TOXAGENT_WORKER_QUEUES: interactive,deterministic
+      TOXAGENT_WORKER_MAX_IN_FLIGHT: ${TOXAGENT_INTERACTIVE_WORKER_IN_FLIGHT:-8}
+    stop_grace_period: 30s
+    depends_on:
+      toxagent-control:
+        condition: service_started
+
+  toxagent-worker-report:
+    extends:
+      file: ../../compose.yaml
+      service: toxagent-control
+    environment:
+      <<: *worker-env
+      TOXAGENT_WORKER_QUEUES: report
+      TOXAGENT_WORKER_MAX_IN_FLIGHT: ${TOXAGENT_REPORT_WORKER_IN_FLIGHT:-2}
+    stop_grace_period: 30s
+    depends_on:
+      toxagent-control:
+        condition: service_started

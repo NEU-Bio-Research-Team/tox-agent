@@ -22,10 +22,15 @@ from pydantic import ValidationError
 from ..domain.errors import ToolDenied, ToxAgentError
 from ..domain.events import EventType
 from ..domain.ids import TOOL_CALL, new_id
+from ..domain.run import Intent
 from ..domain.provenance import content_sha256
 from ..activities import activity_for_tool
 from . import envelope
 from .definitions.answer import ANSWER_TOOL_NAME
+from ..application.submit_report_draft import (
+    SUBMIT_SAVED_TOOL_NAME,
+    SUBMIT_TOOL_NAME as REPORT_SUBMIT_TOOL_NAME,
+)
 from .registry import ToolContext, ToolRegistry
 
 log = logging.getLogger("toxagent.tools")
@@ -46,10 +51,16 @@ class ToolRunner:
         database,
         *,
         max_calls_per_run: int = 12,
+        max_calls_per_report_build: int | None = None,
     ) -> None:
         self._registry = registry
         self._db = database
         self._max_calls = max_calls_per_run
+        # A report build is a different size of job from a chat answer: eleven
+        # sections over one slice per Tox21 assay and one explanation package
+        # per target. Sharing one number meant the smaller job's budget bounded
+        # the larger one, and the larger one ran out before it could submit.
+        self._max_calls_report = max_calls_per_report_build or max_calls_per_run
 
     async def call(
         self, context: ToolContext, tool_name: str, arguments: dict[str, Any]
@@ -145,7 +156,7 @@ class ToolRunner:
         audit row and a ``TOOL_FAILED`` event, not just a response the model
         sees and the database never records.
         """
-        max_calls = None if tool_name == ANSWER_TOOL_NAME else self._max_calls
+        max_calls = self._budget_for(context, tool_name)
         denial: ToolDenied | None = None
         async with self._db.unit_of_work() as uow:
             run = await uow.runs.get(context.run_id)
@@ -182,9 +193,22 @@ class ToolRunner:
                     context.run_id, tool_name, arguments_hash
                 )
                 if max_calls is not None and total >= max_calls:
+                    # Name the exempt tool. A live report build reached this
+                    # message holding one correctable violation and an exempt
+                    # submit path, kept trying to re-read instead, and ended
+                    # with no report: the denial said what was closed and never
+                    # said what was still open.
+                    exempt = (
+                        SUBMIT_SAVED_TOOL_NAME
+                        if context.intent == Intent.BUILD_REPORT.value
+                        else ANSWER_TOOL_NAME
+                    )
                     denial = ToolDenied(
-                        f"this run has reached its budget of {max_calls} tool calls",
+                        f"this run has reached its budget of {max_calls} tool calls. "
+                        f"{exempt} is exempt from this budget and can still be called: "
+                        "submit what you already have rather than gathering more.",
                         tool_calls=total, max_calls=max_calls, remaining_calls=0,
+                        still_available=exempt,
                     )
                 else:
                     denial = ToolDenied(
@@ -205,6 +229,20 @@ class ToolRunner:
             )
             await uow.commit()
         raise denial
+
+    def _budget_for(self, context: ToolContext, tool_name: str) -> int | None:
+        """This call's ceiling, or ``None`` when the tool is exempt.
+
+        The two submit tools are exempt for the same reason: a run that spent
+        its budget on reads must still be able to attempt the product it is
+        required to submit — and, having been handed typed violations, must be
+        able to submit the correction those violations describe.
+        """
+        if tool_name in {ANSWER_TOOL_NAME, REPORT_SUBMIT_TOOL_NAME, SUBMIT_SAVED_TOOL_NAME}:
+            return None
+        if context.intent == Intent.BUILD_REPORT.value:
+            return self._max_calls_report
+        return self._max_calls
 
     def _budget(self, context: ToolContext, hard_timeout_s: float) -> float:
         remaining = (context.deadline_at - _now()).total_seconds()

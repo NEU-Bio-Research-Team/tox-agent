@@ -179,6 +179,14 @@ class StubPredictor:
         malformed: bool = False,
         probability: float = 0.73064,
         explain_status: str = "completed",
+        #: A depiction on the explanation payload. Off by default so the
+        #: existing tests keep exercising the "numeric explanation, no figure"
+        #: path, which is a real deployment state and not a degraded one.
+        explain_depiction: str | None = None,
+        #: Emit ``signed_contribution`` on the atoms. Off by default for the
+        #: same reason: a provider that reports only magnitudes exists, and the
+        #: control plane must not invent a direction for it (XAI-02).
+        signed_contributions: bool = False,
         weights_sha256: str | None = None,
         catalogue: tuple[dict[str, Any], ...] | None = None,
     ) -> None:
@@ -188,6 +196,8 @@ class StubPredictor:
         self.malformed = malformed
         self.probability = probability
         self.explain_status = explain_status
+        self.explain_depiction = explain_depiction
+        self.signed_contributions = signed_contributions
         self.weights_sha256 = weights_sha256
         self.catalogue = catalogue if catalogue is not None else (
             {
@@ -338,10 +348,16 @@ class StubPredictor:
                     "probability": self.probability,
                     "atoms": [
                         {"atom_index": 0, "symbol": "C", "importance": 0.5,
-                         "relative_importance": 0.4},
+                         "relative_importance": 0.4,
+                         **({"signed_contribution": 0.5} if self.signed_contributions else {})},
                         {"atom_index": 1, "symbol": "C", "importance": 0.3,
-                         "relative_importance": 0.25},
+                         "relative_importance": 0.25,
+                         **({"signed_contribution": -0.3} if self.signed_contributions else {})},
                     ],
+                    "depiction_svg": self.explain_depiction,
+                    "target_class": "hERG blocker" if endpoint == "herg" else (
+                        f"{body.get('task')} active"
+                    ),
                     "unmapped_importance": 0.35,
                     "tokens": [
                         {"token": "C", "position": 1, "importance": 0.5, "offsets": [0, 1]},
@@ -352,6 +368,23 @@ class StubPredictor:
                         "model_id": body.get("model_id")
                         or MODEL_ID,
                         "deterministic": True, "duration_ms": 900.0, "note": note,
+                    },
+                },
+            )
+
+        if request.url.path == "/v1/depictions":
+            return httpx.Response(
+                200,
+                json={
+                    "smiles": body.get("smiles"),
+                    "depiction_svg": (
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="300">'
+                        '<rect width="10" height="10" fill="#000000" /></svg>'
+                    ),
+                    "depiction": {
+                        "renderer_version": "rdkit-moldraw2d-structure-v1",
+                        "atom_numbering": "true" if body.get("atom_numbering") else "false",
+                        "canonical_smiles": body.get("smiles"),
                     },
                 },
             )

@@ -42,6 +42,20 @@ class EventType(str, Enum):
     ANSWER_REJECTED = "answer.rejected"
     RUNTIME_RECOVERY_STARTED = "runtime.recovery_started"
     RUNTIME_USAGE_REPORTED = "runtime.usage_reported"
+    # Report builder (spec section 12.2). A build emits its own progress rather
+    # than reusing run.* events: a report build is a long, multi-stage,
+    # resumable thing, and a client showing "which stage is it on" cannot get
+    # that from a run status.
+    REPORT_BUILD_STARTED = "report.build_started"
+    REPORT_STAGE_CHANGED = "report.stage_changed"
+    REPORT_FIGURE_CREATED = "report.figure_created"
+    REPORT_DRAFT_SAVED = "report.draft_saved"
+    REPORT_DRAFT_PATCHED = "report.draft_patched"
+    REPORT_VALIDATION_FAILED = "report.validation_failed"
+    REPORT_COMPLETED = "report.completed"
+    REPORT_COMPLETED_WITH_GAPS = "report.completed_with_gaps"
+    REPORT_FAILED = "report.failed"
+    REPORT_CANCELLED = "report.cancelled"
 
 
 @dataclass(frozen=True, slots=True)

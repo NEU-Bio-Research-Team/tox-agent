@@ -1,5 +1,5 @@
 {
-  "captured_at_commit": "6e469decf8537a16856600cf6862db4813f86a34",
+  "captured_at_commit": "253b1a4155b4a1d489cf881a1cc6c9b209e0f1a6",
   "openapi": {
     "components": {
       "schemas": {
@@ -186,6 +186,28 @@
             "count"
           ],
           "title": "BatchPredictionResponse",
+          "type": "object"
+        },
+        "DepictionRequest": {
+          "additionalProperties": false,
+          "description": "``POST /v1/depictions``: a neutral 2D structure drawing.\n\nNo model, no endpoint, no attribution \u2014 the identity picture a report shows\nbeside the substance profile. It lives here rather than in the control plane\nbecause RDKit does, and shipping a chemistry toolkit into a second service\nto draw the same molecule twice is how two depictions of one compound start\ndisagreeing.",
+          "properties": {
+            "atom_numbering": {
+              "default": false,
+              "description": "Print atom indices on the drawing. Off by default: the indices belong to a contributor table, not to the identity figure.",
+              "title": "Atom Numbering",
+              "type": "boolean"
+            },
+            "smiles": {
+              "minLength": 1,
+              "title": "Smiles",
+              "type": "string"
+            }
+          },
+          "required": [
+            "smiles"
+          ],
+          "title": "DepictionRequest",
           "type": "object"
         },
         "ExplainRequest": {
@@ -612,6 +634,50 @@
             }
           },
           "summary": "Attributions",
+          "tags": [
+            "prediction"
+          ]
+        }
+      },
+      "/v1/depictions": {
+        "post": {
+          "description": "A neutral structure drawing. Needs no model, so it works on a stack whose\ncheckpoints are still loading \u2014 a report can show what the compound *is*\neven when it cannot yet say anything about it.",
+          "operationId": "depictions_v1_depictions_post",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepictionRequest"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "additionalProperties": true,
+                    "title": "Response Depictions V1 Depictions Post",
+                    "type": "object"
+                  }
+                }
+              },
+              "description": "Successful Response"
+            },
+            "422": {
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/HTTPValidationError"
+                  }
+                }
+              },
+              "description": "Validation Error"
+            }
+          },
+          "summary": "Depictions",
           "tags": [
             "prediction"
           ]

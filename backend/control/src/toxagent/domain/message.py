@@ -24,6 +24,7 @@ class PartType(str, Enum):
     TEXT = "text"
     ANALYSIS_REF = "analysis_ref"
     ANSWER_REF = "answer_ref"
+    REPORT_REF = "report_ref"
     TOOL_CALL = "tool_call"
     ERROR = "error"
     #: Metadata only (mime type, byte size and, once accepted, an opaque

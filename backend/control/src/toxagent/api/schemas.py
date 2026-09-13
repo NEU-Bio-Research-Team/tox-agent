@@ -102,7 +102,8 @@ class SendMessageRequest(_Request):
     client_message_id: str | None = Field(default=None, max_length=255)
     content: list[TextPart] = Field(default_factory=list)
     intent_hint: Literal[
-        "auto", "analyze", "ask_report", "research_evidence", "request_attribution"
+        "auto", "analyze", "ask_report", "research_evidence", "request_attribution",
+        "build_report"
     ] = "auto"
     molecule: MoleculeInput | None = None
     image: ImageInput | None = None
@@ -112,6 +113,43 @@ class SendMessageRequest(_Request):
     @property
     def text(self) -> str:
         return "\n".join(part.text for part in self.content).strip()
+
+
+class CreateReportRequest(_Request):
+    analysis_id: str | None = None
+    molecule: MoleculeInput | None = None
+    selected_endpoints: list[Literal["clintox", "herg", "tox21"]] | None = None
+    selected_tox21_tasks: list[str] = Field(default_factory=list)
+    report_language: Literal["en"] = "en"
+    audience: Literal["technical_r_and_d"] = "technical_r_and_d"
+    include_explanations: bool = True
+    include_external_evidence: bool = True
+    output_formats: list[Literal["markdown", "markdown_bundle", "html", "pdf"]] = Field(
+        # ``markdown_bundle`` is a zip of ``report.md`` plus a ``figures/``
+        # directory. The plain ``.md`` links its images at relative paths, so on
+        # its own it is a document whose pictures are missing; the bundle is what
+        # makes those links resolve, and it is in the default set for that reason
+        # (REP-03).
+        default_factory=lambda: ["markdown", "markdown_bundle", "html"]
+    )
+
+    @model_validator(mode="after")
+    def _report_subject_and_tasks(self) -> "CreateReportRequest":
+        has_analysis = self.analysis_id is not None
+        has_smiles = bool(self.molecule and self.molecule.smiles)
+        if has_analysis == has_smiles:
+            raise ValueError("exactly one of analysis_id or molecule.smiles is required")
+        if self.molecule and self.molecule.batch_smiles:
+            raise ValueError("a report is about exactly one molecule")
+        if self.selected_tox21_tasks and "tox21" not in (self.selected_endpoints or []):
+            raise ValueError("selected_tox21_tasks requires the tox21 endpoint")
+        if len(set(self.selected_tox21_tasks)) != len(self.selected_tox21_tasks):
+            raise ValueError("selected_tox21_tasks must be unique")
+        if any(task not in TOX21_TASKS for task in self.selected_tox21_tasks):
+            raise ValueError("selected_tox21_tasks contains an unknown assay")
+        if len(set(self.output_formats)) != len(self.output_formats):
+            raise ValueError("output_formats must be unique")
+        return self
 
 
 class PredictRequest(_Request):

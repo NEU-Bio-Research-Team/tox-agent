@@ -316,6 +316,7 @@ def bundle_from_checkpoints(
     required_limitations: Sequence[str] = (),
     policy: Mapping[str, Any] | None = None,
     provenance: Mapping[str, Any] | None = None,
+    extra_gaps: Sequence[Mapping[str, str]] = (),
     language: str = "en",
 ) -> ReportFactBundle:
     """Assemble the bundle from what the stages checkpointed.
@@ -330,9 +331,9 @@ def bundle_from_checkpoints(
     projected = completed.get(BuildStage.ASSEMBLING_PREDICTIONS.value) or {}
     researched = completed.get(BuildStage.RESEARCHING_EVIDENCE.value) or {}
 
-    extra_gaps: list[dict[str, str]] = []
+    gaps: list[dict[str, str]] = [dict(gap) for gap in extra_gaps]
     if researched and not researched.get("search_performed"):
-        extra_gaps.append(
+        gaps.append(
             {
                 "reason": "provider_unavailable",
                 "section_id": "external_evidence",
@@ -356,6 +357,6 @@ def bundle_from_checkpoints(
         required_limitations=required_limitations,
         policy=policy,
         provenance=provenance,
-        extra_gaps=extra_gaps,
+        extra_gaps=gaps,
         language=language,
     )

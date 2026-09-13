@@ -1,4 +1,4 @@
-import { apiRequest } from './client';
+import { apiBlob, apiRequest } from './client';
 import { collectSequencedPages } from './pagination';
 import type {
   AcceptedResponse,
@@ -24,6 +24,7 @@ import type {
   QuickPredictRequest,
   QuickPredictResult,
   RecognizedStructure,
+  ReportArtifact,
   RunDetail,
   SessionListResponse,
   SessionProjection,
@@ -87,7 +88,7 @@ export async function listAllMessages(sessionId: string): Promise<MessageListRes
 export interface SendMessageInput {
   client_message_id?: string;
   content?: Array<{ type: 'text'; text: string }>;
-  intent_hint?: 'auto' | 'analyze' | 'ask_report' | 'research_evidence' | 'request_attribution';
+  intent_hint?: 'auto' | 'analyze' | 'ask_report' | 'research_evidence' | 'request_attribution' | 'build_report';
   molecule?: { smiles?: string; batch_smiles?: string[] };
   /** Recognised through the toxocr/ service (ADR 0006) into a SMILES, then the
    * same deterministic analysis pipeline a typed SMILES goes through. A
@@ -107,6 +108,35 @@ export interface SendMessageInput {
 
 export function sendMessage(sessionId: string, input: SendMessageInput): Promise<AcceptedResponse> {
   return apiRequest(`/v1/sessions/${sessionId}/messages`, { method: 'POST', body: input });
+}
+
+export function getReport(sessionId: string, reportId: string): Promise<ReportArtifact> {
+  return apiRequest(`/v1/sessions/${sessionId}/reports/${reportId}`);
+}
+
+/** REP-02: one figure's bytes, scoped to the report that shows it. Returns a
+ * blob rather than a URL because the request needs the bearer token — an
+ * `<img src>` cannot carry one, which is why figure ids had no delivery path at
+ * all before this. The caller owns the object URL and must revoke it. */
+export async function getReportFigure(
+  sessionId: string,
+  reportId: string,
+  figureId: string,
+): Promise<Blob> {
+  return apiBlob(
+    `/v1/sessions/${sessionId}/reports/${reportId}/figures/${figureId}`,
+  );
+}
+
+/** One rendering's bytes, for download. */
+export async function getReportRendering(
+  sessionId: string,
+  reportId: string,
+  format: string,
+): Promise<Blob> {
+  return apiBlob(
+    `/v1/sessions/${sessionId}/reports/${reportId}/renderings/${format}`,
+  );
 }
 
 // -- quick predict (stateless, no session) --------------------------------

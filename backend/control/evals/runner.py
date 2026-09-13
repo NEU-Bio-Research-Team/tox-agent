@@ -166,8 +166,8 @@ class ScriptedDriver:
     async def _app(self, fixture: dict[str, Any], db_path: Path) -> AsyncIterator[httpx.AsyncClient]:
         from toxagent.api.app import create_app
         from toxagent.config import (
-            OcrSettings, PolicySettings, PredictorSettings, PredictSettings, ResearchSettings,
-            RuntimeSettings, SecuritySettings, Settings,
+            CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
+            ResearchSettings, RuntimeSettings, SecuritySettings, Settings,
         )
         from toxagent.persistence.sql.database import Database
 
@@ -178,6 +178,7 @@ class ScriptedDriver:
             predict=PredictSettings(),
             runtime=RuntimeSettings(kind="scripted"),
             research=ResearchSettings(),
+            compound=CompoundSettings(),
             ocr=OcrSettings(),
             security=SecuritySettings(
                 capability_secret="eval-secret-not-for-production",

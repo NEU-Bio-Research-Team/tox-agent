@@ -191,6 +191,7 @@ class UnitOfWork(Protocol):
     tool_calls: ToolCallStore
     capability_tokens: CapabilityTokenStore
     attachments: AttachmentStore
+    reports: Any
     investigations: Any
     model_connections: Any
     session_settings: Any

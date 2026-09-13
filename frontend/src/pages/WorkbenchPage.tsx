@@ -130,7 +130,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   const structureRecognitionAvailable =
     capabilitiesQuery.data?.capabilities?.structure_recognition?.available ?? false;
 
-  const { status, liveToolCalls, liveActivities, recoveryBanners, analysisIdByRun, latestArtifact } = useSessionEvents(
+  const { status, liveToolCalls, liveActivities, recoveryBanners, analysisIdByRun, latestArtifact, liveReportProgress } = useSessionEvents(
     sessionId,
     initial.latest_event_sequence,
     historyEventsQuery.data,
@@ -256,7 +256,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   );
 
   const chatColumn = (
-    <div className="relative flex h-full min-w-0 flex-col">
+    <div className="flex h-full min-w-0 flex-col">
       <WorkspaceHeader
         title={session.title ?? 'Phiên mới'}
         sessionId={session.session_id}
@@ -264,7 +264,13 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
         actions={<><SessionConfigPopover sessionId={sessionId} />{artifactsButton}</>}
         onRename={async (title) => { await renameMutation.mutateAsync(title); }}
       />
-      <div ref={transcriptRef} className="flex-1 overflow-y-auto px-4 pb-48 pt-4 md:px-6">
+      {/* UI-01: `min-h-0` is what lets `flex-1` actually shrink inside a
+          `flex-col` — without it the scroller grows to fit its content and
+          pushes the composer off-screen. The old `pb-48` was a guess at the
+          composer's height, and the composer's height depends on the viewport,
+          the draft's line count, attachments and the context chip, so the guess
+          was wrong in exactly the cases that mattered. */}
+      <div ref={transcriptRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4 md:px-6">
         <div className="mx-auto max-w-[760px]">
           {messagesQuery.isLoading && (
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -294,46 +300,59 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
               recoveryBanners={recoveryBanners}
               analysisIdByRun={analysisIdByRun}
               activeAnalysisId={session.active_analysis?.analysis_id ?? null}
+              liveReportProgress={liveReportProgress}
               onClarificationAction={handleClarificationAction}
               onUseRecognizedSmiles={handleUseRecognizedSmiles}
             />
           )}
         </div>
       </div>
-      {showJump && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-24 flex justify-center">
-          <Button size="sm" className="pointer-events-auto gap-1.5 shadow-md" onClick={jumpToBottom}>
-            <ArrowDown className="h-3.5 w-3.5" />
-            Tin nhắn mới
-          </Button>
-        </div>
-      )}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--canvas)] via-[var(--canvas)]/95 to-transparent px-4 pb-3 pt-10 md:px-6">
-        <div className="mx-auto max-w-[820px]">
-          <div className="pointer-events-auto">
+      {/* The composer region now occupies real layout height, so "just above
+          the composer" is the bottom of this wrapper rather than a hardcoded
+          offset from the column's bottom edge. */}
+      <div className="relative shrink-0">
+        {showJump && (
+          <div className="pointer-events-none absolute inset-x-0 -top-11 flex justify-center">
+            <Button size="sm" className="pointer-events-auto gap-1.5 shadow-md" onClick={jumpToBottom}>
+              <ArrowDown className="h-3.5 w-3.5" />
+              Tin nhắn mới
+            </Button>
+          </div>
+        )}
+        <div
+          className="border-t px-4 pb-3 pt-3 md:px-6"
+          style={{
+            backgroundColor: 'var(--canvas)',
+            borderColor: 'var(--border-subtle)',
+            // Mobile browsers reserve space below the viewport for the home
+            // indicator; without this the send button sits under it.
+            paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+          }}
+        >
+          <div className="mx-auto max-w-[820px]">
             <MessageComposer
-            sessionId={sessionId}
-            hasActiveAnalysis={Boolean(session.active_analysis)}
-            disabled={sendMutation.isPending || activeRunBusy}
-            focusSmilesSignal={focusSmilesSignal}
-            openDrawSignal={openDrawSignal}
-            openImageSignal={openImageSignal}
-            smilesPrefill={smilesPrefill}
-            structureRecognitionAvailable={structureRecognitionAvailable}
-            analysisContext={analysisContext}
-            onClearAnalysisContext={() => setAnalysisContext(null)}
-            onSend={async (input) => {
-              setPendingSends((current) => addPendingSend(current, pendingSendFromInput(input)));
-              try {
-                await sendMutation.mutateAsync(input);
-                setAnalysisContext(null);
-                return true;
-              } catch {
-                // The mutation's own onError already surfaced a toast; the
-                // composer just needs to know not to clear the draft.
-                return false;
-              }
-            }}
+              sessionId={sessionId}
+              hasActiveAnalysis={Boolean(session.active_analysis)}
+              disabled={sendMutation.isPending || activeRunBusy}
+              focusSmilesSignal={focusSmilesSignal}
+              openDrawSignal={openDrawSignal}
+              openImageSignal={openImageSignal}
+              smilesPrefill={smilesPrefill}
+              structureRecognitionAvailable={structureRecognitionAvailable}
+              analysisContext={analysisContext}
+              onClearAnalysisContext={() => setAnalysisContext(null)}
+              onSend={async (input) => {
+                setPendingSends((current) => addPendingSend(current, pendingSendFromInput(input)));
+                try {
+                  await sendMutation.mutateAsync(input);
+                  setAnalysisContext(null);
+                  return true;
+                } catch {
+                  // The mutation's own onError already surfaced a toast; the
+                  // composer just needs to know not to clear the draft.
+                  return false;
+                }
+              }}
             />
           </div>
         </div>

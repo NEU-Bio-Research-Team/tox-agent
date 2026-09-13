@@ -6,8 +6,11 @@ import { MessageBubble } from './MessageBubble';
 import { ClarificationCard } from './ClarificationCard';
 import { StructureRecognitionCard } from './StructureRecognitionCard';
 import { AnswerBlock } from './AnswerBlock';
+import { ReportBlock } from './ReportBlock';
 import { ActivityPresence } from './ActivityPresence';
+import { ReportProgressTimeline } from './ReportProgressTimeline';
 import type { ActivityLive } from '../../lib/api/types';
+import type { ReportProgress } from '../../lib/store/reportProgress';
 import { AnalysisSystemCard } from './AnalysisSystemCard';
 import { SystemEventCard } from './SystemEventCard';
 import { RecoveryBanner } from './RecoveryBanner';
@@ -33,6 +36,7 @@ export function Transcript({
   recoveryBanners,
   analysisIdByRun,
   activeAnalysisId,
+  liveReportProgress = {},
   onClarificationAction,
   onUseRecognizedSmiles,
 }: {
@@ -49,6 +53,8 @@ export function Transcript({
    * fallback link target for the single most recently completed analysis
    * run when it wasn't observed live (e.g. right after a reload). */
   activeAnalysisId?: string | null;
+  /** run_id -> report build stages (useSessionEvents). */
+  liveReportProgress?: Record<string, ReportProgress>;
   onClarificationAction: (action: string) => void;
   /** A recognition result is a prefill only; it never auto-submits analysis. */
   onUseRecognizedSmiles: (smiles: string) => void;
@@ -131,6 +137,10 @@ export function Transcript({
                 <div key={run.run_id}>
                   {showAsAnalysis ? (
                     <AnalysisSystemCard sessionId={sessionId} run={run} analysisId={resolvedAnalysisId} />
+                  ) : run.intent === 'build_report' && liveReportProgress[run.run_id] ? (
+                    // A report build reports its stages; a tool-call spinner
+                    // would hide which of eight steps a long build is on.
+                    <ReportProgressTimeline progress={liveReportProgress[run.run_id]} />
                   ) : (
                     <ActivityPresence
                       activities={liveActivities[run.run_id] ?? []}
@@ -217,6 +227,7 @@ function renderAssistant(
 ) {
   const textPart = message.parts.find((p) => p.type === 'text');
   const answerRefPart = message.parts.find((p) => p.type === 'answer_ref');
+  const reportRefPart = message.parts.find((p) => p.type === 'report_ref');
 
   if (textPart && isStructureRecognitionContent(textPart.content)) {
     return <StructureRecognitionCard content={textPart.content} onUseSmiles={onUseRecognizedSmiles} />;
@@ -230,6 +241,14 @@ function renderAssistant(
     return (
       <MessageBubble role="assistant">
         <AnswerBlock sessionId={sessionId} answerId={answerRefPart.content.answer_id as string} />
+      </MessageBubble>
+    );
+  }
+
+  if (reportRefPart) {
+    return (
+      <MessageBubble role="assistant">
+        <ReportBlock sessionId={sessionId} reportId={reportRefPart.content.report_id as string} />
       </MessageBubble>
     );
   }

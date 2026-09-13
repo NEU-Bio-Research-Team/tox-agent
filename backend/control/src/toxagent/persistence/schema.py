@@ -22,6 +22,7 @@ from sqlalchemy import (
     Integer,
     MetaData,
     Numeric,
+    PrimaryKeyConstraint,
     String,
     Table,
     Text,
@@ -462,7 +463,35 @@ run_jobs = Table(
     Column("attempts", Integer, nullable=False, server_default="0"),
     Column("created_at", _TS, nullable=False),
     Column("updated_at", _TS, nullable=False),
+    # WS08: which worker class may take this job, and in what order. NULL on
+    # a job written before 0014; readers derive the queue from its intent.
+    Column("queue_name", String(32)),
+    Column("priority", Integer, nullable=False, server_default="0"),
+    # Not before this moment — a job deferred because a concurrency slot was
+    # full is not claimable again until then.
+    Column("available_at", _TS),
+    Column("last_error_code", String(64)),
     Index("ix_run_jobs_claimable", "lease_expires_at"),
+    Index("ix_run_jobs_queue", "queue_name", "priority", "created_at"),
+)
+
+concurrency_slots = Table(
+    "concurrency_slots", metadata,
+    # WS08 / PR-15: global, tenant, provider and queue caps that hold across
+    # every worker. One row per occupied slot index; the primary key is the
+    # mutual exclusion, the lease is what frees a dead worker's slot.
+    Column("scope", String(16), nullable=False),
+    Column("scope_key", String(128), nullable=False),
+    Column("slot_index", Integer, nullable=False),
+    # No foreign key on purpose: a slot outliving its run by one lease period
+    # is harmless, and a cascade would make deleting a session contend with
+    # the claim path for these rows.
+    Column("run_id", _ID, nullable=False),
+    Column("worker_id", String(64), nullable=False),
+    Column("expires_at", _TS, nullable=False),
+    Column("acquired_at", _TS, nullable=False),
+    PrimaryKeyConstraint("scope", "scope_key", "slot_index"),
+    Index("ix_concurrency_slots_run", "run_id"),
 )
 
 explanation_checkpoints = Table(

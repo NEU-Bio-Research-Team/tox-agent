@@ -10,6 +10,7 @@ checked.
 """
 from __future__ import annotations
 
+import re
 from typing import Mapping
 
 from ..domain.errors import Violation
@@ -17,6 +18,20 @@ from ..domain.evidence import EvidenceRecord
 from .wire import ClaimCandidate
 
 NEEDS_A_BASIS = {"scientific", "comparison"}
+
+#: A citation marker a model may write inside report prose: ``[@evd_<32 hex>]``.
+#: Structured on purpose. The alternative — letting the model write ``[1]`` or a
+#: bare URL — makes the number the model's opinion rather than the artifact's
+#: fact, and puts unvalidated text into something the renderers turn into a
+#: link. Lives here rather than beside the compiler because both the validator
+#: that refuses a bad token and the compiler that numbers a good one must read
+#: exactly the same pattern (REP-01).
+CITATION_TOKEN = re.compile(r"\[@(evd_[0-9a-f]{32})\]")
+
+
+def cited_in_prose(body_markdown: str | None) -> set[str]:
+    """Evidence ids cited inline in one section's prose."""
+    return {match.group(1) for match in CITATION_TOKEN.finditer(body_markdown or "")}
 
 
 def validate_basis(

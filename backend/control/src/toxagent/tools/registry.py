@@ -46,8 +46,41 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
     #: Read-only audit. Deliberately without submit_grounded_answer: an auditor
     #: inspects answers, it does not author them.
     "audit_readonly": frozenset(
-        {"get_analysis_slice", "get_evidence_record"}
+        {"get_analysis_slice", "get_evidence_record", "get_explanation_slice"}
     ),
+    #: The report builder (report spec section 8). Deliberately *not* a
+    #: superset of report_qa: it has no ``submit_grounded_answer``, because a
+    #: report is not an answer and a run that could emit either would have two
+    #: ways to finish and two validators to satisfy. Note also what is absent
+    #: on the figure side — the runtime can ask for an explanation and receive
+    #: refs, but never reaches attachment storage or the renderer directly
+    #: (spec section 8: "Do not expose both low-level figure rendering and
+    #: attachment storage to the agent").
+    "report_build": frozenset(
+        {
+            "get_report_context",
+            "get_analysis_bundle", "get_analysis_slice",
+            "resolve_compound_record",
+            "get_or_create_explanation", "get_explanation_package",
+            "search_toxicology_evidence", "get_evidence_record",
+            # The dry run sits beside the submission deliberately: it runs the
+            # same validator and stores nothing, so a model can find its own
+            # bookkeeping slips without spending the build's one correction
+            # attempt on the discovery.
+            "save_report_draft", "check_saved_report_draft",
+            "patch_saved_report_draft", "submit_saved_report_draft",
+            # Backward-compatible stateless path. New profiles instruct the
+            # runtime to use the durable flow above.
+            "check_report_draft", "submit_report_draft",
+        }
+    ),
+    #: The one LLM boundary of an orchestrated report build (WS05 5B / PR-12).
+    #: A single tool, on purpose: by the time this profile is dispatched the
+    #: server has already resolved the substance, projected the predictions,
+    #: produced the explanations and run the search. A read tool here would be
+    #: an invitation to redo that work, and a draft tool would be a second way
+    #: to finish.
+    "report_synthesis": frozenset({"submit_report_synthesis"}),
 }
 
 
@@ -181,4 +214,5 @@ class ToolRegistry:
             "report_qa": "report_qa",
             "attribution": "report_qa",
             "evidence_research": "evidence_research",
+            "build_report": "report_build",
         }.get(intent, "report_qa")

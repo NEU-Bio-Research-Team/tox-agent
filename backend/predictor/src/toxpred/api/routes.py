@@ -19,6 +19,7 @@ from .schemas import (
     AttributionRequest,
     BatchPredictionRequest,
     BatchPredictionResponse,
+    DepictionRequest,
     ExplainRequest,
     ModelInfo,
     ModelsResponse,
@@ -130,6 +131,22 @@ def attributions(request: Request, body: AttributionRequest) -> dict[str, Any]:
     return service.attribute(
         body.smiles, body.endpoint, body.task, method=body.method, model_id=body.model_id
     )
+
+
+# --- depiction -------------------------------------------------------------
+
+@v1_router.post("/depictions")
+def depictions(body: DepictionRequest) -> dict[str, Any]:
+    """A neutral structure drawing. Needs no model, so it works on a stack whose
+    checkpoints are still loading — a report can show what the compound *is*
+    even when it cannot yet say anything about it."""
+    from ..application.depiction import structure_svg
+
+    # An undepictable SMILES raises ValueError, which ``value_error_handler``
+    # already maps to a typed ``invalid_request`` — the same answer every other
+    # route gives, rather than a second convention for the same failure.
+    svg, metadata = structure_svg(body.smiles, atom_numbering=body.atom_numbering)
+    return {"smiles": body.smiles, "depiction_svg": svg, "depiction": metadata}
 
 
 # --- explanation ---------------------------------------------------------------

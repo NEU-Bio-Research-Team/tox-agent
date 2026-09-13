@@ -30,6 +30,7 @@ from .repositories import (
     SqlAnalysisStore,
     SqlAnswerStore,
     SqlAttachmentStore,
+    SqlReportStore,
     SqlCapabilityTokenStore,
     SqlEvidenceStore,
     SqlExplanationCheckpointStore,
@@ -38,6 +39,7 @@ from .repositories import (
     SqlModelConnectionStore,
     SqlObservationStore,
     SqlRunJobStore,
+    SqlConcurrencySlotStore,
     SqlRunStore,
     SqlRunConfigurationSnapshotStore,
     SqlSessionSettingsStore,
@@ -100,6 +102,7 @@ class SqlUnitOfWork:
         self.messages = SqlMessageStore(conn)
         self.runs = SqlRunStore(conn)
         self.run_jobs = SqlRunJobStore(conn)
+        self.concurrency_slots = SqlConcurrencySlotStore(conn)
         self.analyses = SqlAnalysisStore(conn)
         self.observations = SqlObservationStore(conn)
         self.evidence = SqlEvidenceStore(conn)
@@ -112,6 +115,7 @@ class SqlUnitOfWork:
         self.tool_calls = SqlToolCallStore(conn)
         self.capability_tokens = SqlCapabilityTokenStore(conn)
         self.attachments = SqlAttachmentStore(conn)
+        self.reports = SqlReportStore(conn)
 
     # --- events ------------------------------------------------------------
 

@@ -32,6 +32,18 @@ def test_a_deny_all_agent_with_only_its_own_mcp_allow_has_no_problems():
     assert evaluate_surface([CLEAN_AGENT], "toxagent") == []
 
 
+def test_the_report_agent_is_judged_against_the_mcp_server_it_calls_not_its_own_name():
+    """toxagent-report calls the `toxagent` MCP server, so its tools are
+    `toxagent_*`. Judged against its agent name, a correct surface read as a
+    leak with no tools, and the launcher refused to start (2026-09-13)."""
+    report = {**CLEAN_AGENT, "name": "toxagent-report"}
+    assert evaluate_surface([report], "toxagent-report", "toxagent") == []
+    leaked = {**report, "permission": {**report["permission"], "codegraph_*": "allow"}}
+    assert evaluate_surface([leaked], "toxagent-report", "toxagent") == [
+        "unexpected permission 'codegraph_*' resolves to \"allow\""
+    ]
+
+
 def test_the_mcp_prefixed_naming_is_also_accepted():
     agent = {**CLEAN_AGENT, "permission": {"*": "deny", "mcp_toxagent_get_analysis_slice": "allow"}}
     assert evaluate_surface([agent], "toxagent") == []

@@ -1,6 +1,7 @@
 import type { ActivityLive, ToxAgentEvent, Violation } from '../api/types';
 import type { ConnectionStatus } from './eventBus';
 import type { ArtifactSelection } from '../../hooks/useArtifactSelection';
+import { reduceReportProgress, type ReportProgress } from './reportProgress';
 
 /** The live-only projection is intentionally small. Durable session, message,
  * run, answer, and artifact data remains in REST/React Query; these fields
@@ -30,6 +31,8 @@ export interface SessionEventsState {
   recoveryBanners: RecoveryBanner[];
   analysisIdByRun: Record<string, string>;
   latestArtifact: (ArtifactSelection & { sequence: number }) | null;
+  /** run_id -> report build progress from `report.stage_changed` (WS09). */
+  liveReportProgress: Record<string, ReportProgress>;
 }
 
 /** A short replay window gives event_id an explicit role in deduplication,
@@ -62,6 +65,7 @@ export function createSessionEventsState(initialCursor: number): SessionEventsRe
     recoveryBanners: [],
     analysisIdByRun: {},
     latestArtifact: null,
+    liveReportProgress: {},
   };
 }
 
@@ -117,6 +121,7 @@ function hydrateHistory(
     liveActivities: { ...history.liveActivities, ...state.liveActivities },
     liveRejections: mergeRejections(history.liveRejections, state.liveRejections),
     analysisIdByRun: { ...history.analysisIdByRun, ...state.analysisIdByRun },
+    liveReportProgress: { ...history.liveReportProgress, ...state.liveReportProgress },
     recoveryBanners: uniqueRecoveryBanners([...history.recoveryBanners, ...state.recoveryBanners]),
   };
 }
@@ -246,6 +251,18 @@ function reduceEvent(state: SessionEventsReducerState, event: ToxAgentEvent): Se
         analysisIdByRun: runId ? { ...next.analysisIdByRun, [runId]: event.entity_id } : next.analysisIdByRun,
         latestArtifact: { kind: 'analysis', entityId: event.entity_id, sequence: event.sequence },
       };
+
+    case 'report.stage_changed':
+    case 'report.completed':
+    case 'report.completed_with_gaps':
+    case 'report.failed':
+    case 'report.cancelled': {
+      if (!runId) return next;
+      const prior = next.liveReportProgress[runId];
+      const progress = reduceReportProgress(prior, event);
+      if (!progress || progress === prior) return next;
+      return { ...next, liveReportProgress: { ...next.liveReportProgress, [runId]: progress } };
+    }
 
     case 'runtime.recovery_started': {
       const originalRunId = String(event.payload.recovery_of_run_id ?? '');

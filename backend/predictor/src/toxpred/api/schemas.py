@@ -90,6 +90,28 @@ class AttributionRequest(BaseModel):
         return value
 
 
+class DepictionRequest(BaseModel):
+    """``POST /v1/depictions``: a neutral 2D structure drawing.
+
+    No model, no endpoint, no attribution — the identity picture a report shows
+    beside the substance profile. It lives here rather than in the control plane
+    because RDKit does, and shipping a chemistry toolkit into a second service
+    to draw the same molecule twice is how two depictions of one compound start
+    disagreeing.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    smiles: str = Field(..., min_length=1)
+    atom_numbering: bool = Field(
+        default=False,
+        description=(
+            "Print atom indices on the drawing. Off by default: the indices "
+            "belong to a contributor table, not to the identity figure."
+        ),
+    )
+
+
 class ExplainRequest(BaseModel):
     """``POST /v1/explanations`` (plan section 5.1).
 

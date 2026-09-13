@@ -40,6 +40,7 @@ const INTENT_OPTIONS: Array<{ value: IntentHint; label: string }> = [
   { value: 'ask_report', label: 'Hỏi về báo cáo hiện tại' },
   { value: 'research_evidence', label: 'Tìm bằng chứng khoa học' },
   { value: 'request_attribution', label: 'Attribution' },
+  { value: 'build_report', label: 'Tạo báo cáo đầy đủ' },
 ];
 
 /** Explanation is a separate choice from prediction (I03).
@@ -259,6 +260,11 @@ export function MessageComposer({
       setText('');
       setSmiles('');
       clearStagedImage();
+      // The hint describes *this* message, not the conversation. Leaving it
+      // set made the next message inherit it silently: a "tạo báo cáo" sent
+      // after a research question routed to evidence_research and never
+      // reached the report build at all.
+      setIntentHint('auto');
       // A fresh id for the *next* message; a failed send above keeps this
       // one so a retry of unedited content reuses the same idempotency key
       // instead of risking a duplicate if the original request actually

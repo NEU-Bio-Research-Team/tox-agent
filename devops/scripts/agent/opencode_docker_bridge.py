@@ -23,6 +23,15 @@ def relay(source: socket.socket, target: socket.socket) -> None:
 def serve(client: socket.socket, upstream_host: str, upstream_port: int) -> None:
     try:
         upstream = socket.create_connection((upstream_host, upstream_port), timeout=10)
+        # The 10s budget is for establishing the connection only. Leaving it on
+        # the socket applies it to every later ``recv`` too, which silently
+        # killed the ``/global/event`` SSE feed after 10s of quiet — and a model
+        # turn is routinely quiet for longer than that while it composes. The
+        # relay then closed the connection, the control plane saw the stream end
+        # with the session still busy, and reported ``runtime_unavailable``.
+        # A relay has no business timing out an idle stream: the turn is already
+        # bounded by the run deadline in harness/gateway.py.
+        upstream.settimeout(None)
         threading.Thread(target=relay, args=(client, upstream), daemon=True).start()
         relay(upstream, client)
     finally:

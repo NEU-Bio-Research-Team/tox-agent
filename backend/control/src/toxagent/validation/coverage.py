@@ -28,7 +28,23 @@ from .wire import ClaimCandidate
 #: misread as an unclaimed prediction. Deliberately narrower than
 #: ``numeric._CANONICAL_NUMBER``, which matches a whole, already-isolated
 #: token; this instead has to find one embedded inside a sentence.
-_NUMERIC_TOKEN = re.compile(r"(?<![\w.,])-?\d+(?:[.,]\d+%?|%)(?![\w])")
+#:
+#: Two exclusions keep *version strings* out. A report's provenance appendix is
+#: required to name the predictor version and the renderer that produced the
+#: document, so ``0.1.0.dev0`` and ``weasyprint-66.0`` are content that section
+#: cannot be written without — and no claim will ever carry ``rendered_value ==
+#: "0.1"``, so treating them as unclaimed predictions made a required section
+#: impossible to write. A genuine bare probability there is still caught.
+#:
+#: - ``(?<![\w]-)`` — not the tail of a hyphenated identifier, so the ``66.0`` in
+#:   ``weasyprint-66.0`` is part of a name rather than a measurement. A real
+#:   negative number is unaffected: the ``-`` in ``" -0.5"`` has no word
+#:   character before it.
+#: - ``(?![.,]\d)`` — not one component of a dotted version, so ``0.1.0.dev0``
+#:   yields nothing rather than yielding ``0.1``.
+_NUMERIC_TOKEN = re.compile(
+    r"(?<![\w.,])(?<![\w]-)-?\d+(?:[.,]\d+%?|%)(?![\w])(?![.,]\d)"
+)
 
 _MARKDOWN_LINK = re.compile(r"\[[^\]\n]*\]\(\s*\S+\s*\)")
 _BARE_URL = re.compile(r"\bhttps?://\S+", re.IGNORECASE)

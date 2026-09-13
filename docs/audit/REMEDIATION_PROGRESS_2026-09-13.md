@@ -24,20 +24,23 @@ baseline was 1,019 backend and 155 frontend.
 | PR-13 | Word-boundary intent matching, bounded negation, `IntentDecision` persisted on the run | P1-9 |
 | PR-16 | Prompt measured by component, with a cacheable-prefix hash, recorded on the binding | P1-10 (measurement half) |
 | PR-17 | `make test` from a fresh clone, Docker `test` stage, production image stops shipping tests; canvas stub and a console.error gate in the frontend suite | P2-1, P2-2, P2-3, P2-4 |
+| PR-12 | The orchestrator is dispatched: `OrchestratedReportBuild` is the `BUILD_REPORT` handler behind `report_orchestrator_v2`; one runtime turn under the `report_synthesis` profile with a single tool, `submit_report_synthesis`; validating and rendering stages publish a `toxagent-report-v3` artifact through the existing renderers; UI reads v3 and shows a stage timeline from `report.stage_changed` | P1-3, P0-2, P1-8 (report half) |
+| PR-16 (second half) | The synthesis turn gets its own short brief plus the shared wording policy — about a third of the builder profile's tokens — instead of the builder's skills | P1-10 |
+| PR-14 | `external_worker_mode`: API writes unowned jobs, `python -m toxagent.worker` claims by queue class (`interactive`, `report`, `deterministic`); one composition root for both roles; a queued run cancels without a worker | P1-7 |
+| PR-15 | Global, queue, provider and tenant caps held in `concurrency_slots`; deferral that is not an attempt; drain hands runs off instead of cancelling; recovery bounded to one generation; queue-position route | P1-7 |
+| PR-18 (code half) | Metric registry with a label guard and `/metrics` (API route, worker listener); metric dictionary; `evals/gates.py` G5 evaluator; rollout and worker-drill runbooks | G5 tooling |
 
-## Not started
+## Not done, and not doable in code
 
-| PR | What it needs | Blocking gate |
+| Item | Why it is still open | Gate |
 |---|---|---|
-| PR-12 | Report renderers/UI compatibility and the progress timeline (frontend) | G3 |
-| PR-14 | Worker composition root, entrypoint and queue classes | G4 |
-| PR-15 | Global/per-tenant quotas, graceful drain, recovery drills | G4 |
-| PR-18 | Metrics, dashboards, live eval, alpha rollout | G5 |
-
-`PR-16`'s second half — actually shrinking the report profile — waits on the
-orchestrator being dispatched through rather than merely built: the tokens to
-cut are the skills describing work the stage handlers now do, and they cannot
-be removed from the profile while the old path is still the one that runs.
+| Internal alpha, ≥ 7 days | needs a deployment and users; `evals/gates.py` returns `no_go` without the telemetry | G5 |
+| Full live eval with pinned model | needs a live runtime and budget | G5 |
+| SME sign-off on semantic fixtures and relevance set | needs the SME | G2, G5 |
+| Fault drills on real infrastructure | listed in `docs/runbooks/worker-drills.md`; in-process tests cover the logic, not the infrastructure | G4 |
+| PostgreSQL run of the worker/quota suite | the suites run on SQLite locally; the `postgres` CI job is the one that shows the slot store under read-committed | G4 |
+| Dashboards and alert thresholds | thresholds must not be locked before the alpha; the dictionary lists the queries | G5 |
+| Removing the report-builder profile's skills | the old path still runs while `report_orchestrator_v2` is off; remove with the flag | — |
 
 ## Flags, and when they must be gone
 

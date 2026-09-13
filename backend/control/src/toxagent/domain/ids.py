@@ -37,12 +37,20 @@ STEP: Final = "step"
 CONFLICT: Final = "con"
 GAP: Final = "gap"
 CONNECTION: Final = "conn"
+#: Report builder (spec docs/spec/TOXAGENT_REPORT_BUILDER_PLAN.md sections 5.2, 5.5).
+REPORT: Final = "rpt"
+REPORT_BUILD: Final = "rpb"
+FIGURE: Final = "fig"
+EXPLANATION: Final = "xpl"
+SYNTHESIS: Final = "syn"
+RENDERING: Final = "rnd"
 
 PREFIXES: Final[frozenset[str]] = frozenset(
     {
         SESSION, MESSAGE, PART, RUN, ANALYSIS, OBSERVATION, EVIDENCE, ANSWER,
         CLAIM, EVENT, RUNTIME_BINDING, ATTACHMENT, TOOL_CALL, CAPABILITY, RUNTIME_USAGE,
         CASE, PLAN, STEP, CONFLICT, GAP, CONNECTION,
+        REPORT, REPORT_BUILD, FIGURE, EXPLANATION, SYNTHESIS, RENDERING,
     }
 )
 

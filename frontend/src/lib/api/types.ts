@@ -17,7 +17,8 @@ export type IntentHint =
   | 'analyze'
   | 'ask_report'
   | 'research_evidence'
-  | 'request_attribution';
+  | 'request_attribution'
+  | 'build_report';
 
 /** What the router actually decided. NOT the same enum as IntentHint:
  * "analyze" (hint) becomes "analysis" (selected), "ask_report" becomes
@@ -28,6 +29,7 @@ export type SelectedIntent =
   | 'report_qa'
   | 'evidence_research'
   | 'attribution'
+  | 'build_report'
   | 'structure_recognition'
   | 'clarification_required'
   | 'out_of_scope';
@@ -397,7 +399,182 @@ export interface SessionProjection {
 
 // -- messages -------------------------------------------------------------
 
-export type PartType = 'text' | 'analysis_ref' | 'answer_ref' | 'tool_call' | 'error' | 'image_ref';
+export type PartType = 'text' | 'analysis_ref' | 'answer_ref' | 'report_ref' | 'tool_call' | 'error' | 'image_ref';
+
+/** A predictor number, an explanation, an external record and an agent's own
+ * synthesis are four different kinds of claim about the world, and the report is
+ * required never to blur them (spec 3.4). The UI carries the distinction into
+ * the visual treatment rather than only into the data. */
+export type ReportSourceClass =
+  | 'structure_fact'
+  | 'predictor_fact'
+  | 'explanation_fact'
+  | 'external_evidence'
+  | 'agent_synthesis'
+  | 'recommendation';
+
+export interface ReportSection {
+  section_id: string;
+  heading: string;
+  body_markdown: string;
+  claim_ids: string[];
+  figure_ids: string[];
+  table_ids: string[];
+  gap_ids: string[];
+  source_classes?: ReportSourceClass[];
+}
+
+export interface ReportClaim {
+  claim_id: string;
+  kind: 'numeric' | 'classification' | 'scientific' | 'comparison' | 'limitation' | string;
+  text: string;
+  observation_id: string | null;
+  field_path: string | null;
+  rendered_value: string | null;
+  transform?: string;
+  citation_ids: string[];
+}
+
+export interface ReportFigure {
+  figure_id: string;
+  attachment_id: string;
+  media_type: string;
+  caption: string;
+  alt_text: string;
+  content_sha256: string;
+  renderer_version: string;
+  endpoint: string | null;
+  task: string | null;
+  observation_id: string | null;
+}
+
+export interface ReportTable {
+  table_id: string;
+  title: string;
+  columns: string[];
+  rows: string[][];
+  source_class: ReportSourceClass;
+  row_claim_ids?: string[][];
+}
+
+/** REP-01: the resolved, immutable snapshot of one cited source. `link_url` is
+ * null when the recorded URL is missing or not HTTPS — the metadata stays so a
+ * reader can still identify the source, only the anchor is withheld. */
+export interface ReportReference {
+  evidence_id: string;
+  number: number;
+  title: string;
+  provider: string;
+  canonical_url: string | null;
+  link_url: string | null;
+  authors: string[];
+  published_at: string | null;
+  identifier: Record<string, string>;
+  source_type: string | null;
+  source_quality_tier: string | null;
+  retrieved_at: string | null;
+  unresolved_reason: string | null;
+  short_form: string;
+}
+
+export interface ReportExplanation {
+  explanation_id: string;
+  observation_id: string;
+  endpoint: string;
+  task: string | null;
+  method: string | null;
+  status: 'completed' | 'partial' | 'failed';
+  figure: ReportFigure | null;
+  extracted_highlights: {
+    positive_contributors: Array<Record<string, unknown>>;
+    negative_contributors: Array<Record<string, unknown>>;
+    unmapped_importance: number | null;
+  };
+  failure_reason: string | null;
+}
+
+export interface ReportSubstanceProfile {
+  canonical_smiles: string;
+  structure_figure_id: string | null;
+  preferred_name: string | null;
+  synonyms: string[];
+  identifiers: Record<string, unknown>;
+  properties: Array<Record<string, unknown>>;
+  source_refs: Record<string, string>;
+}
+
+export interface ReportEvidenceSynthesis {
+  synthesis_id: string;
+  proposition: string;
+  relation: 'supports' | 'contradicts' | 'contextualizes' | 'insufficient';
+  evidence_ids: string[];
+  endpoint: string | null;
+  assay: string | null;
+  organism: string | null;
+  dose_context: string | null;
+  quality_notes: string[];
+  conflict_id: string | null;
+}
+
+export interface ReportConclusion {
+  conclusion_id: string;
+  text: string;
+  basis_claim_ids: string[];
+  endpoint: string | null;
+  task: string | null;
+  is_integrated: boolean;
+}
+
+export interface ReportRecommendation {
+  recommendation_id: string;
+  text: string;
+  basis_claim_ids: string[];
+  action_category: string;
+  priority: string;
+  rationale: string;
+  conditions: string;
+}
+
+export type ReportFormat = 'markdown' | 'markdown_bundle' | 'html' | 'pdf';
+
+export interface ReportArtifact {
+  /** v2 adds `references`. v1 artifacts are still served and still render; they
+   * simply have no resolved snapshot behind their citation ids. v3 is compiled
+   * by the server from a fact bundle: it has no `claims` or `tables`, its
+   * `conclusions[].basis_claim_ids` hold fact ids, and the limitations section's
+   * body already carries the compiled limitation sentences. */
+  schema_version: 'toxagent-report-v1' | 'toxagent-report-v2' | 'toxagent-report-v3';
+  report_id: string;
+  report_build_id: string;
+  analysis_id: string;
+  title: string;
+  status: 'completed' | 'completed_with_gaps';
+  version: number;
+  subject: ReportSubstanceProfile;
+  sections: ReportSection[];
+  tables: ReportTable[];
+  figures: ReportFigure[];
+  claims: ReportClaim[];
+  explanations: ReportExplanation[];
+  evidence_synthesis: ReportEvidenceSynthesis[];
+  conclusions: ReportConclusion[];
+  recommendations: ReportRecommendation[];
+  references?: ReportReference[];
+  gaps: Array<{
+    gap_id: string;
+    reason: string;
+    detail: string;
+    section_id: string;
+    endpoint?: string | null;
+    task?: string | null;
+  }>;
+  limitations: Array<{ code: string; text: string }>;
+  provenance: Record<string, unknown>;
+  renderings: Array<{ format: ReportFormat; size_bytes: number; media_type?: string }>;
+  content_sha256: string;
+  created_at: string;
+  [key: string]: unknown;
+}
 
 /** A gateway-produced answer message: `{text: answer_markdown}` — see
  * harness/gateway.py `_commit_answer_message`. */
@@ -586,7 +763,17 @@ export type EventType =
   | 'answer.accepted'
   | 'answer.rejected'
   | 'runtime.recovery_started'
-  | 'runtime.usage_reported';
+  | 'runtime.usage_reported'
+  | 'report.build_started'
+  | 'report.stage_changed'
+  | 'report.figure_created'
+  | 'report.draft_saved'
+  | 'report.draft_patched'
+  | 'report.validation_failed'
+  | 'report.completed'
+  | 'report.completed_with_gaps'
+  | 'report.failed'
+  | 'report.cancelled';
 
 export interface Violation {
   code: string;

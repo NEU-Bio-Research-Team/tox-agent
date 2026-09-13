@@ -13,6 +13,7 @@ import httpx
 
 from toxagent.api.app import create_app
 from toxagent.config import (
+    CompoundSettings,
     OcrSettings,
     PolicySettings,
     PredictSettings,
@@ -21,6 +22,7 @@ from toxagent.config import (
     RuntimeSettings,
     SecuritySettings,
     Settings,
+    WorkerSettings,
 )
 from toxagent.persistence.sql.database import Database
 
@@ -47,7 +49,11 @@ def settings(**overrides) -> Settings:
         # config says one thing and whose wiring does another.
         runtime=overrides.pop("runtime", None) or RuntimeSettings(kind="scripted"),
         research=overrides.pop("research", None) or ResearchSettings(),
+        compound=overrides.pop("compound", None) or CompoundSettings(),
         ocr=overrides.pop("ocr", None) or OcrSettings(),
+        # No drain grace: a test that leaves a run in flight at teardown should
+        # hand it off at once rather than wait out a production grace window.
+        worker=overrides.pop("worker", None) or WorkerSettings(drain_grace_s=0),
         security=overrides.pop("security", None)
         or SecuritySettings(
             capability_secret="test-secret-not-for-production",

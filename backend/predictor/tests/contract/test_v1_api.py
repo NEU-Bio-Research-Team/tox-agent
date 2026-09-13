@@ -204,7 +204,9 @@ def test_openapi_exposes_only_the_prediction_surface(client):
     assert paths == {
         "/health/live", "/health/ready", "/v1/models",
         "/v1/predictions", "/v1/predictions:batch", "/v1/attributions",
-        "/v1/explanations",
+        # A neutral structure drawing. Model-free, so it is not an inference
+        # route, but it is RDKit's job and RDKit lives here (REP-02).
+        "/v1/explanations", "/v1/depictions",
     }
 
 
@@ -212,3 +214,44 @@ def test_openapi_carries_no_agent_or_chat_schema(client):
     spec = json.dumps(client.get("/openapi.json").json()).lower()
     for banned in ("agent", "chat", "report_state", "adk", "session_id"):
         assert banned not in spec, f"{banned!r} leaked into the OpenAPI document"
+
+
+# --- depiction -------------------------------------------------------------
+
+def test_a_depiction_is_neutral_svg_with_no_attribution_colours(client):
+    """REP-02: the structure figure states identity, not model behaviour.
+
+    Reusing the explanation heat map here would invite a reader to take the
+    colours as a property of the compound rather than of one model on one
+    endpoint, so this drawing carries neither of the signed palette's hues.
+    """
+    from toxpred.application.depiction import (
+        NEGATIVE_COLOR,
+        POSITIVE_COLOR,
+        STRUCTURE_RENDERER_VERSION,
+    )
+
+    body = client.post("/v1/depictions", json={"smiles": ASPIRIN}).json()
+    svg = body["depiction_svg"]
+    assert svg.startswith("<svg")
+    assert 'xmlns="http://www.w3.org/2000/svg"' in svg
+    assert POSITIVE_COLOR not in svg.upper() and NEGATIVE_COLOR not in svg.upper()
+    assert body["depiction"]["renderer_version"] == STRUCTURE_RENDERER_VERSION
+    assert body["depiction"]["atom_numbering"] == "false"
+
+
+def test_atom_numbering_is_opt_in(client):
+    plain = client.post("/v1/depictions", json={"smiles": ASPIRIN}).json()
+    numbered = client.post(
+        "/v1/depictions", json={"smiles": ASPIRIN, "atom_numbering": True}
+    ).json()
+    assert numbered["depiction"]["atom_numbering"] == "true"
+    # The indices belong to a contributor table; the identity figure only
+    # carries them when someone asks, so the two drawings must differ.
+    assert numbered["depiction_svg"] != plain["depiction_svg"]
+
+
+def test_an_undepictable_smiles_is_a_typed_error_not_a_blank_image(client):
+    response = client.post("/v1/depictions", json={"smiles": "not-a-molecule"})
+    assert response.status_code in (400, 422)
+    assert "depiction_svg" not in response.json()

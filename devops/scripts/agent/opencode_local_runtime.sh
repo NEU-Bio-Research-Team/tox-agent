@@ -45,8 +45,14 @@ start() {
     running "$SERVER_PID" || { tail -80 "$SERVER_LOG" >&2 || true; fail "OpenCode exited during startup"; }
     sleep 1
   done
-  python3 "$ROOT/backend/control/scripts/assert_opencode_surface.py" \
-    --url http://127.0.0.1:4096 --agent toxagent --directory "$WORKSPACES"
+  # Both agents the control plane dispatches. A host missing toxagent-report
+  # leaves build_report unavailable; one whose report agent inherited a wider
+  # surface would be worse, so both are checked, not just loaded.
+  for agent in toxagent toxagent-report; do
+    python3 "$ROOT/backend/control/scripts/assert_opencode_surface.py" \
+      --url http://127.0.0.1:4096 --agent "$agent" --mcp-namespace toxagent \
+      --directory "$WORKSPACES"
+  done
 
   local gateway
   gateway="$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}')"

@@ -634,6 +634,74 @@ class SecuritySettings:
 
 
 @dataclass(frozen=True)
+class WorkerSettings:
+    """How this process takes part in executing runs (WS08).
+
+    ``role`` only matters with ``external_worker_mode`` on. Off, every process
+    executes the runs it accepts, exactly as before. On:
+
+    * ``api`` accepts runs and writes unowned jobs; it executes nothing.
+    * ``worker`` claims jobs from ``queues`` and executes them.
+    * ``all`` does both — one process, the same code paths, for development.
+    """
+
+    role: str = "all"
+    queues: tuple[str, ...] = ("interactive", "report", "deterministic")
+    #: How often an idle worker looks for a claimable job. Bounded polling is
+    #: the whole delivery mechanism; a notification can shorten it later
+    #: without becoming something correctness depends on.
+    poll_interval_s: float = 1.0
+    #: Runs one worker process executes at once, across its queues.
+    max_in_flight: int = 8
+    #: PR-15 caps, enforced in the database across every worker. 0 = no cap.
+    global_max_runs: int = 0
+    tenant_max_runs: int = 0
+    provider_max_runs: int = 0
+    report_max_runs: int = 0
+    #: How long a job that could not get its slots waits before it is
+    #: claimable again. Short: a slot frees when any run in scope finishes.
+    quota_retry_s: float = 5.0
+    #: On shutdown, how long in-flight runs get to finish before they are
+    #: handed to another worker. A handed-off run is not cancelled.
+    drain_grace_s: float = 20.0
+    #: Executions a run may have: the first, plus adoptions after a worker died
+    #: or drained. Two means one recovery generation (WS08 step 8).
+    max_run_attempts: int = 2
+    #: A worker serves no HTTP, so it exposes `/metrics` on this port instead.
+    #: 0 = no listener.
+    metrics_port: int = 0
+
+    @classmethod
+    def from_env(cls) -> "WorkerSettings":
+        settings = cls(
+            role=_env("TOXAGENT_PROCESS_ROLE", cls.role).lower(),
+            queues=_list("TOXAGENT_WORKER_QUEUES", cls.queues),
+            poll_interval_s=_float("TOXAGENT_WORKER_POLL_S", cls.poll_interval_s),
+            max_in_flight=_int("TOXAGENT_WORKER_MAX_IN_FLIGHT", cls.max_in_flight),
+            global_max_runs=_int("TOXAGENT_GLOBAL_MAX_RUNS", cls.global_max_runs),
+            tenant_max_runs=_int("TOXAGENT_TENANT_MAX_RUNS", cls.tenant_max_runs),
+            provider_max_runs=_int("TOXAGENT_PROVIDER_MAX_RUNS", cls.provider_max_runs),
+            report_max_runs=_int("TOXAGENT_REPORT_MAX_RUNS", cls.report_max_runs),
+            quota_retry_s=_float("TOXAGENT_QUOTA_RETRY_S", cls.quota_retry_s),
+            drain_grace_s=_float("TOXAGENT_DRAIN_GRACE_S", cls.drain_grace_s),
+            max_run_attempts=_int("TOXAGENT_MAX_RUN_ATTEMPTS", cls.max_run_attempts),
+            metrics_port=_int("TOXAGENT_METRICS_PORT", cls.metrics_port),
+        )
+        if settings.role not in ("api", "worker", "all"):
+            raise ValueError(
+                f"TOXAGENT_PROCESS_ROLE must be api, worker or all, got {settings.role!r}"
+            )
+        if settings.poll_interval_s <= 0 or settings.max_in_flight < 1:
+            raise ValueError("worker poll interval and max in-flight must be positive")
+        if min(
+            settings.global_max_runs, settings.tenant_max_runs,
+            settings.provider_max_runs, settings.report_max_runs,
+        ) < 0 or settings.max_run_attempts < 1 or settings.drain_grace_s < 0:
+            raise ValueError("concurrency caps, drain grace and run attempts must not be negative")
+        return settings
+
+
+@dataclass(frozen=True)
 class Settings:
     database_url: str
     predictor: PredictorSettings
@@ -668,6 +736,7 @@ class Settings:
     #: with them.
     log_level: str = "INFO"
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
+    worker: WorkerSettings = field(default_factory=WorkerSettings)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -697,6 +766,7 @@ class Settings:
             ),
             log_level=_env("TOXAGENT_LOG_LEVEL", cls.log_level),
             database=DatabaseSettings.from_env(),
+            worker=WorkerSettings.from_env(),
         )
 
 

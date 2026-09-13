@@ -210,10 +210,23 @@ class ExplanationResponse(_Base):
     bonds: list[dict[str, Any]] = []
     depiction_svg: str | None = None
     depiction: dict[str, Any] | None = None
+    #: The class the signed contributions point towards. Declared rather than
+    #: left to ``extra="allow"`` because every caption, alt text and contributor
+    #: table in a report has to name it, and a field the schema does not know
+    #: about is one no reader of this type can rely on (XAI-02).
+    target_class: str | None = None
     unmapped_importance: float | None = None
     tokens: list[dict[str, Any]] = []
     method: str | None = None
     metadata: dict[str, Any] = {}
+
+
+class DepictionResponse(_Base):
+    """``POST /v1/depictions``: a neutral structure drawing, no model involved."""
+
+    smiles: str
+    depiction_svg: str | None = None
+    depiction: dict[str, Any] = {}
 
 
 class ModelInfo(_Base):

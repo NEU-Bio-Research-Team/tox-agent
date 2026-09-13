@@ -71,6 +71,11 @@ def to_envelope(context: "RunContext") -> dict[str, Any]:
         "needs_snapshot_first": context.needs_snapshot_first,
         "language": context.language,
         "attachment_id": context.attachment_id,
+        "report_language": context.report_language,
+        "report_audience": context.report_audience,
+        "include_external_evidence": context.include_external_evidence,
+        "report_output_formats": list(context.report_output_formats),
+        "report_build_id": context.report_build_id,
     }
 
 
@@ -122,4 +127,11 @@ def from_envelope(envelope: Mapping[str, Any]) -> "RunContext":
         needs_snapshot_first=bool(envelope.get("needs_snapshot_first")),
         language=envelope.get("language") or "en",
         attachment_id=envelope.get("attachment_id"),
+        report_language=envelope.get("report_language") or "en",
+        report_audience=envelope.get("report_audience") or "technical_r_and_d",
+        include_external_evidence=bool(envelope.get("include_external_evidence", True)),
+        report_output_formats=tuple(
+            envelope.get("report_output_formats") or ("markdown", "html")
+        ),
+        report_build_id=envelope.get("report_build_id"),
     )

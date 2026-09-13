@@ -115,4 +115,22 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return (await response.json()) as T;
 }
 
+/** Bytes rather than JSON, through the same auth and the same typed errors.
+ *
+ * Figures and renderings need the bearer token, which an `<img src>` or an
+ * `<a href>` cannot carry — so they are fetched here and handed to the DOM as
+ * object URLs. Errors come back as `ApiError` like every other call, so a 404
+ * on a figure is distinguishable from a broken image. */
+export async function apiBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+  const response = await fetch(buildUrl(path, options.query), {
+    method: options.method ?? 'GET',
+    headers: authHeaders(),
+    signal: options.signal,
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, await parseErrorBody(response));
+  }
+  return await response.blob();
+}
+
 export { buildUrl };

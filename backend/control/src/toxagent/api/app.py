@@ -21,13 +21,16 @@ from ..application.capabilities import CapabilityResolver
 from ..application.create_analysis import CreateAnalysis, CreateAnalysisBatch
 from ..application.quick_predict import QuickPredict
 from ..application.recognize_structure import RecognizeStructure
-from ..application.run_scheduler import RunContext, RunScheduler
+from ..application.report_dispatch import OrchestratedReportBuild
+from ..application.concurrency import SlotLeaser, limits_from_settings
+from ..application.run_scheduler import LEASE_TTL_S, RunContext, RunScheduler
 from ..application.sessions import SessionService
 from ..application.startup_reconciliation import reconcile_orphaned_runs
 from ..application.submit_message import SubmitMessage
 from .. import observability
 from ..config import Settings
 from ..domain.run import Intent
+from ..flags import is_enabled
 from ..harness.gateway import AgentRuntimeGateway
 from ..harness.provider import AgentRuntimeProvider
 from ..persistence.object_store import FilesystemObjectStore, ObjectStore
@@ -35,7 +38,7 @@ from ..persistence.sql.database import Database
 from ..predictor.client import PredictorClient
 from ..predictor.ocr_client import OcrClient
 from ..research.interfaces import ResearchProvider
-from ..research.providers import build_provider
+from ..research.providers import build_compound_provider, build_provider
 from ..streaming.events import EventNotifier
 from ..tools.bootstrap import build_registry
 from ..tools.capability import CapabilityTokenService
@@ -48,6 +51,8 @@ from ..connections.service import ModelConnectionService
 from . import errors
 from .auth import build_auth
 from .predict_limits import PredictLimiter
+from .metrics_routes import router as metrics_router
+from .queue_routes import router as queue_router
 from .routes import health, router
 
 log = logging.getLogger("toxagent.startup")
@@ -115,6 +120,7 @@ def create_app(
         # provider means the two evidence tools are simply never registered
         # below, not registered and always failing.
         research_provider = build_provider(settings.research)
+    compound_provider = build_compound_provider(settings.compound)
     if runtime_provider is None and settings.runtime.kind == "opencode":
         # The real V1 adapter is composed explicitly from a pinned deployment
         # setting.  ``scripted`` intentionally remains injection-only so no
@@ -160,8 +166,31 @@ def create_app(
         # already injected one — a real deployment's only implementation
         # today is the filesystem adapter (persistence/object_store.py's
         # module docstring explains why there is no GCS adapter yet).
-        objects = object_store or (FilesystemObjectStore(settings.object_store_dir) if ocr is not None else None)
-        scheduler = RunScheduler(db)
+        # Reports persist explanation figures and downloadable renderings even
+        # when OCR is disabled, so byte storage is a core report dependency.
+        objects = object_store or FilesystemObjectStore(settings.object_store_dir)
+        # WS08: with external workers on, an `api` process only writes jobs and
+        # a `worker` process only claims them. The composition below is the
+        # same for both — a worker needs every handler a run might reach, and
+        # building it twice would be two object graphs to keep in step.
+        external_workers = is_enabled("external_worker_mode")
+        executes_runs = not external_workers or settings.worker.role in ("worker", "all")
+        limits = limits_from_settings(settings.worker)
+        scheduler = RunScheduler(
+            db,
+            external=external_workers,
+            queues=settings.worker.queues if external_workers else None,
+            max_in_flight=settings.worker.max_in_flight if external_workers else None,
+            # Caps are taken on the claim path, which is every run's path only
+            # when workers are external. In-process mode keeps its admission
+            # cap and nothing else, rather than a cap half its runs bypass.
+            slots=(
+                SlotLeaser(db, limits, ttl_s=LEASE_TTL_S)
+                if external_workers and limits.enabled else None
+            ),
+            max_attempts=settings.worker.max_run_attempts,
+            quota_retry_s=settings.worker.quota_retry_s,
+        )
 
         analysis = CreateAnalysis(db, client, settings.policy)
         batch = CreateAnalysisBatch(db, client, settings.policy)
@@ -207,8 +236,13 @@ def create_app(
         registry = build_registry(
             db, client, analysis, settings.policy,
             research_provider=research_provider, research_settings=settings.research,
+            compound_provider=compound_provider, object_store=objects,
         )
-        runner = ToolRunner(registry, db, max_calls_per_run=settings.policy.max_tool_calls_per_run)
+        runner = ToolRunner(
+            registry, db,
+            max_calls_per_run=settings.policy.max_tool_calls_per_run,
+            max_calls_per_report_build=settings.policy.max_tool_calls_per_report_build,
+        )
 
         # Registered as literals so they are scrubbed wherever they appear,
         # including inside an exception a library raised holding the URL it
@@ -269,6 +303,7 @@ def create_app(
         # Exposed for the stateless OCR proxy (Part B) and the capabilities
         # feature-detect; ``None`` when no OCR service is configured.
         app.state.ocr = ocr
+        app.state.object_store = objects
         app.state.tool_registry = registry
         app.state.tool_runner = runner
         app.state.runtime_gateway = None
@@ -309,37 +344,64 @@ def create_app(
                 # it a run silently used the runtime host's own credentials
                 # rather than the profile the user chose (I12).
                 secrets=FilesystemSecretStore(settings.secrets_dir),
+                profiles_dir=settings.profiles_dir,
             )
 
             async def run_agentic(context: RunContext) -> None:
                 await gateway.execute(context)
 
-            for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
+            for intent in (
+                Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH,
+                Intent.BUILD_REPORT,
+            ):
                 scheduler.register(intent, run_agentic)
+            if is_enabled("report_orchestrator_v2"):
+                # WS05: the server drives the build and the runtime is invoked
+                # once, at synthesis. Replaces the registration above for this
+                # one intent; in-flight builds keep the handler they started
+                # under, because a build's envelope does not change path.
+                orchestrated = OrchestratedReportBuild(
+                    db, gateway=gateway, runner=runner, registry=registry,
+                    predictor=client, object_store=objects,
+                )
+                scheduler.register(Intent.BUILD_REPORT, orchestrated.execute)
             app.state.runtime_gateway = gateway
 
         # Runs accepted by a process that has since died. The first pass runs
         # before serving, so a restart resumes its own work; the loop then
         # keeps watching, because the replica that dies next may not be this
         # one and nobody restarts to notice (I18).
-        adopted = await scheduler.adopt()
-        if adopted:
-            log.warning("adopted %d run(s) from a worker that stopped renewing", adopted)
-        adoption = asyncio.create_task(_adoption_sweep(scheduler), name="run-adoption")
+        adoption = None
+        if executes_runs:
+            adopted = await scheduler.adopt()
+            if adopted:
+                log.warning("adopted %d run(s) from a worker that stopped renewing", adopted)
+            adoption = asyncio.create_task(
+                scheduler.serve(poll_interval_s=settings.worker.poll_interval_s)
+                if external_workers
+                else _adoption_sweep(scheduler),
+                name="run-claims" if external_workers else "run-adoption",
+            )
 
         try:
             yield
         finally:
-            adoption.cancel()
-            with suppress(asyncio.CancelledError):
-                await adoption
-            await scheduler.drain()
+            if adoption is not None:
+                adoption.cancel()
+                with suppress(asyncio.CancelledError):
+                    await adoption
+            # PR-15: finish or hand off, never cancel a user's run because this
+            # process is going away.
+            await scheduler.shutdown(grace_s=settings.worker.drain_grace_s)
             close_runtime = getattr(runtime_provider, "aclose", None)
             if close_runtime is not None:
                 await close_runtime()
             close_research = getattr(research_provider, "aclose", None)
             if close_research is not None:
                 await close_research()
+            close_compound = getattr(compound_provider, "aclose", None)
+            if close_compound is not None:
+                await close_compound()
             if ocr_client is None and ocr is not None:
                 await ocr.aclose()
             if predictor is None:
@@ -375,6 +437,8 @@ def create_app(
 
     app.include_router(health)
     app.include_router(router)
+    app.include_router(queue_router)
+    app.include_router(metrics_router)
 
     if settings.security.cors_allow_origins:
         # Bearer tokens, not cookies, carry auth here, so credentials stay

@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Mapping, Sequence
 
-from sqlalchemy import and_, delete, func, insert, literal, select, update
+from sqlalchemy import and_, delete, func, insert, literal, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from ...domain.analysis import AnalysisSnapshot
@@ -41,6 +41,7 @@ from ..schema import (
     cases,
     claim_sources,
     claims,
+    concurrency_slots,
     evidence_records,
     explanation_checkpoints,
     report_artifacts,
@@ -700,24 +701,34 @@ class SqlRunJobStore:
         run_id: str,
         envelope: dict[str, Any],
         *,
-        worker_id: str,
+        worker_id: str | None,
         lease_expires_at: datetime,
         now: datetime,
+        queue_name: str | None = None,
+        priority: int = 0,
     ) -> int:
-        """Record the run's execution input, claimed by this worker.
+        """Record the run's execution input, claimed by this worker — or by nobody.
 
         Written in the transaction that creates the run, so there is no window
         in which an accepted run exists with no way to execute it. Returns the
         fencing epoch the caller must present for every later write.
+
+        ``worker_id=None`` is the external-worker path (WS08): the job is
+        written unowned at epoch 0 with a lease that has already expired, which
+        is exactly what makes it claimable by ``claim``. Nothing about a job
+        waiting for its first worker differs from one whose worker died.
         """
+        owned = worker_id is not None
         await self._conn.execute(
             insert(run_jobs).values(
                 run_id=run_id, envelope=envelope, worker_id=worker_id,
-                lease_expires_at=lease_expires_at, lease_epoch=1, attempts=1,
+                lease_expires_at=lease_expires_at,
+                lease_epoch=1 if owned else 0, attempts=1 if owned else 0,
+                queue_name=queue_name, priority=priority,
                 created_at=now, updated_at=now,
             )
         )
-        return 1
+        return 1 if owned else 0
 
     async def renew(
         self, run_id: str, *, worker_id: str, epoch: int, lease_expires_at: datetime,
@@ -760,18 +771,36 @@ class SqlRunJobStore:
         terminal state, where there is nothing left for any worker to own."""
         await self._conn.execute(delete(run_jobs).where(run_jobs.c.run_id == run_id))
 
-    async def claimable(self, *, now: datetime, limit: int = 100) -> Sequence[dict[str, Any]]:
-        """Jobs whose lease has expired, oldest first.
+    async def claimable(
+        self,
+        *,
+        now: datetime,
+        limit: int = 100,
+        queue_names: Sequence[str] | None = None,
+    ) -> Sequence[dict[str, Any]]:
+        """Jobs whose lease has expired, by priority then oldest first.
 
         A live lease is deliberately not returned: another replica is running
         that job right now, and the whole point of I17 is that starting a new
-        process must not disturb it.
+        process must not disturb it. Neither is a job deferred until later.
+
+        ``queue_names`` narrows to the queues a worker serves. A row with no
+        queue (written before 0014) is returned regardless, and the caller
+        derives its queue from the envelope.
         """
+        conditions = [
+            run_jobs.c.lease_expires_at <= now,
+            or_(run_jobs.c.available_at.is_(None), run_jobs.c.available_at <= now),
+        ]
+        if queue_names is not None:
+            conditions.append(
+                or_(run_jobs.c.queue_name.in_(list(queue_names)), run_jobs.c.queue_name.is_(None))
+            )
         rows = (
             await self._conn.execute(
                 select(run_jobs)
-                .where(run_jobs.c.lease_expires_at <= now)
-                .order_by(run_jobs.c.created_at)
+                .where(and_(*conditions))
+                .order_by(run_jobs.c.priority, run_jobs.c.created_at)
                 .limit(limit)
             )
         ).mappings().all()
@@ -818,6 +847,182 @@ class SqlRunJobStore:
             )
         ).scalars().all()
         return list(rows)
+
+    async def defer(
+        self, run_id: str, *, worker_id: str, epoch: int, available_at: datetime,
+        error_code: str, now: datetime,
+    ) -> bool:
+        """Give a claimed job back, not before ``available_at`` (PR-15).
+
+        For a job that could not get its concurrency slots. It never started,
+        so the claim is not counted as an attempt — a run that waited behind a
+        cap ten times has not failed ten times.
+        """
+        result = await self._conn.execute(
+            update(run_jobs)
+            .where(and_(
+                run_jobs.c.run_id == run_id,
+                run_jobs.c.worker_id == worker_id,
+                run_jobs.c.lease_epoch == epoch,
+            ))
+            .values(
+                worker_id=None, lease_expires_at=available_at, available_at=available_at,
+                last_error_code=error_code, attempts=run_jobs.c.attempts - 1, updated_at=now,
+            )
+        )
+        return result.rowcount > 0
+
+    async def hand_off(
+        self, run_id: str, *, worker_id: str, epoch: int, now: datetime,
+        error_code: str = "worker_draining",
+    ) -> bool:
+        """Release a job that was executing, for another worker to take now.
+
+        Unlike ``defer`` this counts: the run did start, may have reached a
+        provider, and the attempt bound is what stops a job that kills every
+        worker it lands on from circulating forever.
+        """
+        result = await self._conn.execute(
+            update(run_jobs)
+            .where(and_(
+                run_jobs.c.run_id == run_id,
+                run_jobs.c.worker_id == worker_id,
+                run_jobs.c.lease_epoch == epoch,
+            ))
+            .values(
+                worker_id=None, lease_expires_at=now, last_error_code=error_code,
+                updated_at=now,
+            )
+        )
+        return result.rowcount > 0
+
+    async def position(self, run_id: str, *, now: datetime) -> dict[str, Any] | None:
+        """Where a waiting job stands in its queue. An estimate, and says so."""
+        job = await self.get(run_id)
+        if job is None:
+            return None
+        queue_name = job.get("queue_name")
+        ahead = 0
+        if job.get("worker_id") is None and queue_name:
+            ahead = int(
+                (
+                    await self._conn.execute(
+                        select(func.count())
+                        .select_from(run_jobs)
+                        .where(and_(
+                            run_jobs.c.queue_name == queue_name,
+                            run_jobs.c.worker_id.is_(None),
+                            or_(
+                                run_jobs.c.priority < job["priority"],
+                                and_(
+                                    run_jobs.c.priority == job["priority"],
+                                    run_jobs.c.created_at < job["created_at"],
+                                ),
+                            ),
+                        ))
+                    )
+                ).scalar()
+                or 0
+            )
+        return {**job, "ahead": ahead}
+
+
+class SqlConcurrencySlotStore:
+    """Slot leases for the caps in ``application.concurrency`` (PR-15).
+
+    Every write is conditional and says in its rowcount whether it won, so the
+    caller never has to read the table to decide anything.
+    """
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    def _insert(self):
+        if self._conn.dialect.name == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert as dialect_insert
+        else:
+            from sqlalchemy.dialects.sqlite import insert as dialect_insert
+        return dialect_insert(concurrency_slots)
+
+    async def take(
+        self, *, scope: str, scope_key: str, limit: int, run_id: str, worker_id: str,
+        expires_at: datetime, now: datetime,
+    ) -> bool:
+        slot = concurrency_slots.c
+        # Already holding one in this scope — a job deferred and re-claimed by
+        # the same run. Refresh it rather than take a second.
+        refreshed = await self._conn.execute(
+            update(concurrency_slots)
+            .where(and_(
+                slot.scope == scope, slot.scope_key == scope_key, slot.run_id == run_id,
+                slot.expires_at > now,
+            ))
+            .values(worker_id=worker_id, expires_at=expires_at)
+        )
+        if refreshed.rowcount > 0:
+            return True
+        for index in range(limit):
+            reclaimed = await self._conn.execute(
+                update(concurrency_slots)
+                .where(and_(
+                    slot.scope == scope, slot.scope_key == scope_key,
+                    slot.slot_index == index, slot.expires_at <= now,
+                ))
+                .values(
+                    run_id=run_id, worker_id=worker_id, expires_at=expires_at,
+                    acquired_at=now,
+                )
+            )
+            if reclaimed.rowcount > 0:
+                return True
+            inserted = await self._conn.execute(
+                self._insert()
+                .values(
+                    scope=scope, scope_key=scope_key, slot_index=index, run_id=run_id,
+                    worker_id=worker_id, expires_at=expires_at, acquired_at=now,
+                )
+                .on_conflict_do_nothing()
+            )
+            if inserted.rowcount > 0:
+                return True
+        return False
+
+    async def renew(self, *, run_id: str, worker_id: str, expires_at: datetime) -> int:
+        result = await self._conn.execute(
+            update(concurrency_slots)
+            .where(and_(
+                concurrency_slots.c.run_id == run_id,
+                concurrency_slots.c.worker_id == worker_id,
+            ))
+            .values(expires_at=expires_at)
+        )
+        return result.rowcount
+
+    async def release(self, *, run_id: str, worker_id: str) -> None:
+        # Scoped to the worker: a worker that was fenced and finishes late must
+        # not free the slots its successor now holds under the same run id.
+        await self._conn.execute(
+            delete(concurrency_slots).where(and_(
+                concurrency_slots.c.run_id == run_id,
+                concurrency_slots.c.worker_id == worker_id,
+            ))
+        )
+
+    async def in_use(self, *, scope: str, scope_key: str, now: datetime) -> int:
+        return int(
+            (
+                await self._conn.execute(
+                    select(func.count())
+                    .select_from(concurrency_slots)
+                    .where(and_(
+                        concurrency_slots.c.scope == scope,
+                        concurrency_slots.c.scope_key == scope_key,
+                        concurrency_slots.c.expires_at > now,
+                    ))
+                )
+            ).scalar()
+            or 0
+        )
 
 
 class SqlAnalysisStore:

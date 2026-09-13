@@ -17,6 +17,8 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Awaitable, Callable
+
 from ..application.create_analysis import CreateAnalysis
 from ..application.run_scheduler import RunContext
 from ..connections.model import ConnectionStatus
@@ -38,6 +40,7 @@ from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
 from .report_profile import compose_report_profile
+from .synthesis_profile import PROFILE_NAME as SYNTHESIS_PROFILE, compose_synthesis_profile
 from .prompt_budget import measure as measure_prompt, split_system_prompt
 from .runtime_profiles import RuntimeProfileRegistry
 from .usage_normalizer import RuntimeUsageNormalizer
@@ -54,6 +57,11 @@ from .provider import (
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+async def _no_commit(context: RunContext) -> None:
+    """A turn whose product is committed by its caller, not by the gateway."""
+    return None
 
 
 @dataclass(frozen=True)
@@ -163,13 +171,108 @@ class AgentRuntimeGateway:
                 context, report_build_id=await self._ensure_report_build(context)
             )
 
+        system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
+        await self._dispatch(
+            context,
+            system_prompt=system_prompt,
+            profile=profile,
+            deadline=deadline,
+            instructions_hash=instructions_hash,
+            has_product=self._has_answer,
+            commit=self._commit_product_and_complete,
+        )
+
+    async def snapshot_before_runtime(self, context: RunContext) -> None:
+        """The mixed-run snapshot, for a caller that drives its own workflow."""
+        await self._snapshot_before_runtime(context)
+
+    async def ensure_report_build(self, context: RunContext) -> str:
+        """Create the build manifest without walking any stage (WS05).
+
+        The orchestrator emits a stage event when a stage actually starts; the
+        old path's walk through five stages at one timestamp is exactly what it
+        replaces, so it must not happen on the way in either.
+        """
+        return await self._ensure_report_build(context, walk_stages=False)
+
+    async def run_report_synthesis(
+        self,
+        context: RunContext,
+        *,
+        report_build_id: str,
+        fact_view: dict,
+        deadline_at: datetime | None,
+        has_synthesis: Callable[[RunContext], Awaitable[bool]],
+    ) -> None:
+        """Dispatch the one LLM turn of an orchestrated report build (PR-12).
+
+        The prompt is the synthesis brief and the fact bundle, nothing else: no
+        answer-format guide, no required-limitations guide and no transcript,
+        because none of them describe work this turn can do. The capability
+        token names ``report_synthesis``, so the runtime sees one tool.
+
+        Completion is not this method's business. The turn ends, and the
+        orchestrator's synthesizing handler decides from the stored build
+        whether a synthesis was accepted.
+        """
+        if self._profiles_dir is None:
+            raise RuntimeProtocolError("the report synthesis profile directory is not configured")
+        from dataclasses import replace
+        import json
+
+        composed = compose_synthesis_profile(self._profiles_dir)
+        profile = SYNTHESIS_PROFILE
+        system_prompt = "\n\n".join(
+            (
+                composed.instructions,
+                f"Capability profile for this turn: {profile}. Only the tools listed by "
+                "the MCP server for this connection exist.",
+                "Pinned references:\n"
+                f"- report_build {report_build_id}: the fact bundle below is the only "
+                "source of values for this report.\n"
+                "```json\n"
+                + json.dumps(fact_view, sort_keys=True, ensure_ascii=False, default=str)
+                + "\n```",
+            )
+        )
+        now = _now()
+        deadline = now + timedelta(seconds=self._settings.report_turn_deadline_s)
+        if deadline_at is not None:
+            deadline = min(deadline, deadline_at)
+        if deadline <= now:
+            raise DeadlineExceeded("the report build deadline elapsed before synthesis")
+        await self._dispatch(
+            replace(
+                context,
+                report_build_id=report_build_id,
+                text=f"Write and submit the synthesis for report build {report_build_id}.",
+            ),
+            system_prompt=system_prompt,
+            profile=profile,
+            deadline=deadline,
+            instructions_hash=composed.content_sha256,
+            has_product=has_synthesis,
+            commit=_no_commit,
+        )
+
+    async def _dispatch(
+        self,
+        context: RunContext,
+        *,
+        system_prompt: str,
+        profile: str,
+        deadline: datetime,
+        instructions_hash: str | None,
+        has_product: Callable[[RunContext], Awaitable[bool]],
+        commit: Callable[[RunContext], Awaitable[None]],
+    ) -> None:
+        """One runtime turn: bind, authorize, send, consume, commit, close."""
         health = await self._probe_health_with_retries()
         if not health.healthy:
             raise RuntimeUnavailable("the selected runtime is not healthy", detail=health.detail)
         capabilities = await self._provider.capabilities()
         kind = self._runtime_kind()
 
-        system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
         resolved = await self._resolve_ai_profile(context)
         tool_schema = tuple(self._registry.descriptors(profile))
         tool_schema_hash = self._registry.schema_hash(profile)
@@ -333,8 +436,10 @@ class AgentRuntimeGateway:
                     actual_turn_id=receipt.turn_id,
                 )
 
-            binding_lost = await self._consume_events(runtime_session, context, binding, deadline)
-            await self._commit_product_and_complete(context)
+            binding_lost = await self._consume_events(
+                runtime_session, context, binding, deadline, has_product
+            )
+            await commit(context)
             completed = True
         except asyncio.CancelledError:
             # Scheduler cancellation only becomes an honest terminal state
@@ -636,8 +741,12 @@ class AgentRuntimeGateway:
                     await uow.commit()
         return prompt, profile, deadline, instructions_hash
 
-    async def _ensure_report_build(self, context: RunContext) -> str:
-        """Create the durable build manifest after an optional new snapshot exists."""
+    async def _ensure_report_build(self, context: RunContext, *, walk_stages: bool = True) -> str:
+        """Create the durable build manifest after an optional new snapshot exists.
+
+        ``walk_stages`` is the old path's behaviour and stays its default: the
+        model-driven build expects to find the pointer at synthesizing.
+        """
         now = _now()
         async with self._db.unit_of_work() as uow:
             existing = await uow.reports.list_builds_for_session(context.session_id, limit=50)
@@ -688,6 +797,9 @@ class AgentRuntimeGateway:
                 entity_type="report_build", entity_id=build.id, run_id=context.run_id,
                 payload={"analysis_id": snapshot.id, "selected_endpoints": list(selected)},
             )
+            if not walk_stages:
+                await uow.commit()
+                return build.id
             stages = [
                 BuildStage.PREPARING_ANALYSIS, BuildStage.ASSEMBLING_SUBSTANCE,
                 BuildStage.ASSEMBLING_PREDICTIONS,
@@ -714,6 +826,21 @@ class AgentRuntimeGateway:
             if current is None or current.session_id != context.session_id or current.is_terminal:
                 raise RuntimeProtocolError("the run changed before runtime binding could be stored")
             await uow.runtime_bindings.add(binding)
+            if current.status is RunStatus.RUNNING:
+                # An orchestrated build started its run before any runtime was
+                # involved: the deterministic stages are work too. Attach the
+                # binding without pretending the run started a second time —
+                # and attach it, because recovery after a lost runtime is only
+                # permitted for a run that demonstrably had one.
+                from dataclasses import replace
+                await uow.runs.update(
+                    replace(
+                        current, runtime_binding_id=binding.id, version=current.version + 1
+                    ),
+                    expected_version=current.version,
+                )
+                await uow.commit()
+                return
             await advance(
                 uow,
                 current,
@@ -729,6 +856,7 @@ class AgentRuntimeGateway:
         context: RunContext,
         binding: RuntimeBinding,
         deadline: datetime,
+        has_product: Callable[[RunContext], Awaitable[bool]] | None = None,
     ) -> bool:
         """Wait for a normalized terminal event; return whether the binding was lost.
 
@@ -740,6 +868,7 @@ class AgentRuntimeGateway:
         diagnostic log below; it is never written to the database or exposed
         over the API.
         """
+        has_product = has_product or self._has_answer
         stream = self._provider.events(runtime_session, after=None)
         # One normalizer per runtime session. It is the fast path only: the
         # partial unique index on (runtime_binding_id, source_event_id) is what
@@ -757,7 +886,7 @@ class AgentRuntimeGateway:
         while True:
             remaining = (deadline - _now()).total_seconds()
             if remaining <= 0:
-                if await self._has_answer(context):
+                if await has_product(context):
                     return lost
                 raise DeadlineExceeded("the runtime turn exceeded its deadline")
             try:
@@ -772,7 +901,7 @@ class AgentRuntimeGateway:
                 # "deadline_exceeded" this exact case exists for.
                 continue
             except StopAsyncIteration:
-                if await self._has_answer(context):
+                if await has_product(context):
                     return lost
                 raise RuntimeProtocolError("the runtime event stream ended without a final answer")
 
@@ -785,7 +914,7 @@ class AgentRuntimeGateway:
                 await self._record_usage_event(context, binding, event, normalizer)
                 continue
             if event.type is RuntimeEventType.TURN_IDLE:
-                if delta_tail and not await self._has_answer(context):
+                if delta_tail and not await has_product(context):
                     log.warning(
                         "run %s reached TURN_IDLE with no submit_grounded_answer call; "
                         "last %d chars the runtime wrote instead: %r",
@@ -797,11 +926,11 @@ class AgentRuntimeGateway:
                 # A persisted, validated answer is sufficient product state.
                 # Do not turn it into a failed report merely because the
                 # provider died after the authoritative tool call completed.
-                if await self._has_answer(context):
+                if await has_product(context):
                     return lost
                 raise RuntimeUnavailable("the runtime session was lost", **event.payload)
             if event.type is RuntimeEventType.TURN_FAILED:
-                if await self._has_answer(context):
+                if await has_product(context):
                     return lost
                 raise RuntimeProtocolError("the runtime turn failed", **event.payload)
 

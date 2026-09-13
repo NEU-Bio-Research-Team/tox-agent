@@ -342,7 +342,43 @@ def build(
             ),
             input_model=SliceInput,
             handler=analysis_slice,
-            profiles=frozenset({"analysis", "report_qa", "evidence_research", "audit_readonly"}),
+            profiles=frozenset(
+                {"analysis", "report_qa", "evidence_research", "audit_readonly", "report_build"}
+            ),
+            soft_timeout_s=2.0,
+            hard_timeout_s=5.0,
+        ),
+        ToolDefinition(
+            name="get_analysis_bundle",
+            title="Read the whole analysis at once",
+            description=(
+                "Return one compact bundle for a stored analysis: the prediction summary for "
+                "every served endpoint, the explanations that already exist, and full "
+                "provenance — each with the observation id needed to cite it. Use this once at "
+                "the start of a report build instead of slicing each endpoint separately; use "
+                "get_analysis_slice afterwards for the exact field paths a numeric or "
+                "classification claim must name. Values are the predictor's; nothing here is "
+                "interpolated or filled in for an endpoint this analysis does not serve."
+            ),
+            input_model=BundleInput,
+            handler=analysis_bundle,
+            profiles=frozenset({"report_build"}),
+            soft_timeout_s=3.0,
+            hard_timeout_s=8.0,
+        ),
+        ToolDefinition(
+            name="get_explanation_slice",
+            title="Read a stored explanation's declared fields",
+            description=(
+                "Return the atom, bond or token importances of one already-computed "
+                "explanation for exactly one endpoint, and for Tox21 exactly one assay, ranked "
+                "by magnitude. Reads what is stored; it never asks the predictor for a new "
+                "explanation. Attribution shows what moved the model's score and is not "
+                "evidence of a chemical mechanism."
+            ),
+            input_model=ExplanationSliceInput,
+            handler=explanation_slice,
+            profiles=frozenset({"audit_readonly"}),
             soft_timeout_s=2.0,
             hard_timeout_s=5.0,
         ),

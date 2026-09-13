@@ -26,6 +26,8 @@ class Intent(str, Enum):
     ANALYSIS_BATCH = "analysis_batch"
     REPORT_QA = "report_qa"
     EVIDENCE_RESEARCH = "evidence_research"
+    #: A complete report document, not a focused answer (report spec section 3.1).
+    BUILD_REPORT = "build_report"
     ATTRIBUTION = "attribution"
     STRUCTURE_RECOGNITION = "structure_recognition"
     CLARIFICATION_REQUIRED = "clarification_required"

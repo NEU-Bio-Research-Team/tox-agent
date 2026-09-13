@@ -26,6 +26,20 @@ from .attribution import AttributionService
 
 TOKEN_ALIGN_METHOD = "token_structure_align_v2"
 
+#: What the explained logit is the logit *of*. Every provider here explains the
+#: single positive-class logit whose sigmoid is the reported probability, so
+#: "positive contribution" means "towards this label" — and a figure that says
+#: only "positive" leaves the reader to supply the label themselves, which they
+#: reliably supply as "more toxic" (XAI-02).
+_POSITIVE_CLASS = {"herg": "hERG blocker", "clintox": "clinical-trial toxicity"}
+
+
+def target_class_for(endpoint: str, task: str | None) -> str:
+    """The class name a signed contribution points towards."""
+    if task:
+        return f"{task} active"
+    return _POSITIVE_CLASS.get(endpoint, f"{endpoint} positive")
+
 
 @dataclass(frozen=True)
 class ExplainService:
@@ -51,6 +65,7 @@ class ExplainService:
                 "canonical_smiles": raw.get("canonical_smiles"),
                 "atom_order_version": ATOM_ORDER_VERSION,
                 "structure_order_version": STRUCTURE_ORDER_VERSION,
+                "target_class": target_class_for(endpoint, task),
                 "probability": None,
                 "atoms": [],
                 "bonds": [],
@@ -125,8 +140,11 @@ class ExplainService:
                 "display_importance": (direct if direct else adjacent) / denominator,
                 "source": "explicit_token" if direct else "adjacent_atom_derived",
             })
+        target_class = target_class_for(endpoint, task)
         try:
-            depiction_svg, depiction = xai_svg(canonical, atoms, bonds)
+            depiction_svg, depiction = xai_svg(
+                canonical, atoms, bonds, target_class=target_class
+            )
         except Exception as exc:  # a numeric artifact remains complete without a drawable SVG
             depiction_svg, depiction = None, {"error": type(exc).__name__}
 
@@ -144,6 +162,11 @@ class ExplainService:
             "bonds": bonds,
             "depiction_svg": depiction_svg,
             "depiction": depiction,
+            # Named on the artifact, not only inside the drawing: the control
+            # plane's caption, alt text and contributor table all have to say
+            # which direction "positive" is, and each of them re-deriving the
+            # label from the endpoint is three places for it to drift.
+            "target_class": target_class,
             "unmapped_importance": unmapped / denominator,
             "unmapped_signed_contribution": unmapped_signed,
             "signed_contribution_total": sum(atom_signed) + sum(bond_signed) + unmapped_signed,
