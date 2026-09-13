@@ -1,0 +1,108 @@
+{
+  "finding": "P1-2",
+  "description": "The audit asked for at most two papers on ethanol and hERG. The run persisted these five as 'accepted' durable evidence and then cited none of them. 'Accepted' meant the provider payload parsed, not that the paper was about this compound or this endpoint.",
+  "request": {
+    "compound": {
+      "input_smiles": "CCO",
+      "canonical_smiles": "CCO",
+      "preferred_name": "ethanol",
+      "synonyms": ["ethanol", "ethyl alcohol", "alcohol"],
+      "identifiers": {"inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N", "cid": "702"}
+    },
+    "target": {"endpoint": "herg", "task": null},
+    "proposition": "hERG channel block by ethanol",
+    "limit": 2
+  },
+  "expected": {
+    "promoted": 0,
+    "comment": "Every hit below must come back irrelevant. 'No relevant evidence' is the correct outcome for this query; lowering the bar to fill the two slots is the failure this fixture exists to catch."
+  },
+  "hits": [
+    {
+      "provider_record_id": "PMC9012345",
+      "source_type": "journal_article",
+      "title": "Alpha-asaronol attenuates airway inflammation in a murine model of allergic asthma",
+      "authors": ["Chen, L.", "Wang, Y."],
+      "published_at": "2023-04-11",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC9012345",
+      "identifier": {"doi": "10.1000/aa-asthma"},
+      "abstract_or_excerpt": "Alpha-asaronol reduced eosinophil infiltration and airway hyperresponsiveness in ovalbumin-sensitised mice.",
+      "normalized_facts": {"journal": "Respiratory Research", "pub_type": "research-article"},
+      "expected_assessment": {"relevance": "irrelevant", "reason_codes": ["compound_mismatch", "endpoint_mismatch"]}
+    },
+    {
+      "provider_record_id": "PMC8123456",
+      "source_type": "journal_article",
+      "title": "Cannabinoid receptor agonists and cardiac repolarisation: a systematic review",
+      "authors": ["Novak, P."],
+      "published_at": "2022-09-02",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC8123456",
+      "identifier": {"doi": "10.1000/cb-cardiac"},
+      "abstract_or_excerpt": "We reviewed reports of QT prolongation associated with synthetic cannabinoid receptor agonists.",
+      "normalized_facts": {"journal": "Cardiovascular Toxicology", "pub_type": "review"},
+      "expected_assessment": {"relevance": "irrelevant", "reason_codes": ["compound_mismatch"]}
+    },
+    {
+      "provider_record_id": "PMC7654321",
+      "source_type": "journal_article",
+      "title": "A novel benzimidazole derivative inhibits proliferation in triple-negative breast cancer cells",
+      "authors": ["Ibrahim, S."],
+      "published_at": "2021-12-19",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC7654321",
+      "identifier": {"doi": "10.1000/bz-tnbc"},
+      "abstract_or_excerpt": "The compound induced apoptosis in MDA-MB-231 cells at submicromolar concentrations.",
+      "normalized_facts": {"journal": "Oncology Letters", "pub_type": "research-article"},
+      "expected_assessment": {"relevance": "irrelevant", "reason_codes": ["compound_mismatch", "endpoint_mismatch"]}
+    },
+    {
+      "provider_record_id": "PMC6543210",
+      "source_type": "journal_article",
+      "title": "Remdesivir pharmacokinetics in hospitalised adults with COVID-19",
+      "authors": ["Okafor, N."],
+      "published_at": "2020-11-05",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC6543210",
+      "identifier": {"doi": "10.1000/rdv-pk"},
+      "abstract_or_excerpt": "Plasma concentrations of remdesivir and its metabolite GS-441524 were measured over five days of dosing.",
+      "normalized_facts": {"journal": "Antimicrobial Agents and Chemotherapy", "pub_type": "research-article"},
+      "expected_assessment": {"relevance": "irrelevant", "reason_codes": ["compound_mismatch", "endpoint_mismatch"]}
+    },
+    {
+      "provider_record_id": "PMC5432109",
+      "source_type": "journal_article",
+      "title": "The brain-heart axis: a narrative review of neurocardiac interactions",
+      "authors": ["Ruiz, M."],
+      "published_at": "2019-06-30",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC5432109",
+      "identifier": {"doi": "10.1000/brain-heart"},
+      "abstract_or_excerpt": "Autonomic pathways linking cerebral injury to arrhythmia are reviewed.",
+      "normalized_facts": {"journal": "Frontiers in Neurology", "pub_type": "review"},
+      "expected_assessment": {"relevance": "irrelevant", "reason_codes": ["compound_mismatch"]}
+    }
+  ],
+  "control_hits": [
+    {
+      "provider_record_id": "PMC1111111",
+      "source_type": "journal_article",
+      "title": "Ethanol inhibits the hERG potassium channel in a concentration-dependent manner",
+      "authors": ["Tanaka, H."],
+      "published_at": "2018-03-01",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC1111111",
+      "identifier": {"doi": "10.1000/etoh-herg"},
+      "abstract_or_excerpt": "Whole-cell patch clamp recordings show that ethanol reduces hERG (KCNH2) tail current with an IC50 in the high millimolar range.",
+      "normalized_facts": {"journal": "British Journal of Pharmacology", "pub_type": "research-article"},
+      "expected_assessment": {"relevance": "direct", "reason_codes": ["compound_match", "endpoint_match"]}
+    },
+    {
+      "provider_record_id": "PMC2222222",
+      "source_type": "journal_article",
+      "title": "Ethanol exposure and hepatic oxidative stress in chronic drinkers",
+      "authors": ["Silva, R."],
+      "published_at": "2020-01-15",
+      "canonical_url": "https://europepmc.org/article/PMC/PMC2222222",
+      "identifier": {"doi": "10.1000/etoh-liver"},
+      "abstract_or_excerpt": "Chronic ethanol intake increased hepatic lipid peroxidation markers.",
+      "normalized_facts": {"journal": "Alcohol and Alcoholism", "pub_type": "research-article"},
+      "expected_assessment": {"relevance": "contextual", "reason_codes": ["compound_match", "endpoint_mismatch"]}
+    }
+  ]
+}
