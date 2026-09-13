@@ -21,6 +21,7 @@ from ...config import ResearchSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ...domain.evidence import SourceIdentifier, SourceType
 from ..circuit_breaker import CircuitBreaker, CircuitOpen
+from ..transport import rebuild_decoded_response
 from ..interfaces import SearchHit
 
 #: EuropePMC's own source codes for a peer-reviewed-journal record space
@@ -241,11 +242,13 @@ class EuropePmcProvider:
             await response.aclose()
         # Rebuilt as a non-streaming response so everything downstream — the
         # status checks, `retry-after`, `.json()` — is unchanged.
-        return httpx.Response(
-            status_code=response.status_code,
-            headers=response.headers,
-            content=b"".join(chunks),
-            request=request,
+        # The headers must describe the bytes actually held. ``aiter_bytes``
+        # already decoded any Content-Encoding, so carrying the original
+        # header over would make the next ``.json()`` try to decompress plain
+        # JSON — the decompression failure the 2026-09-13 audit hit against
+        # PubChem (P2-5).
+        return rebuild_decoded_response(
+            response=response, body=b"".join(chunks), request=request
         )
 
     def _parse_json(self, response: httpx.Response) -> dict[str, Any]:

@@ -445,6 +445,13 @@ class CompoundSettings:
     circuit_reset_after_s: float = 30.0
     max_response_bytes: int = 2 * 1024 * 1024
     allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
+    #: Total attempts for a *transport* failure or a 5xx — connect refused,
+    #: read timeout, provider having a bad minute. Never for a 404, a 429 or a
+    #: malformed payload: those are answers, and asking again returns the same
+    #: one at twice the cost. Two retries sit comfortably inside a run
+    #: deadline; more would spend a user's turn waiting.
+    retry_attempts: int = 3
+    retry_backoff_s: float = 0.25
 
     @classmethod
     def from_env(cls) -> "CompoundSettings":
@@ -462,6 +469,10 @@ class CompoundSettings:
             ),
             max_response_bytes=_int(
                 "TOXAGENT_COMPOUND_MAX_RESPONSE_BYTES", cls.max_response_bytes
+            ),
+            retry_attempts=_int("TOXAGENT_COMPOUND_RETRY_ATTEMPTS", cls.retry_attempts),
+            retry_backoff_s=_float(
+                "TOXAGENT_COMPOUND_RETRY_BACKOFF_S", cls.retry_backoff_s
             ),
         )
 

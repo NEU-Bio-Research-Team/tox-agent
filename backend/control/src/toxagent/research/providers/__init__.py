@@ -6,9 +6,11 @@ composition root's control flow.
 """
 from __future__ import annotations
 
-from ...config import ResearchSettings
+from ...config import CompoundSettings, ResearchSettings
+from ..compound import CompoundProvider
 from ..interfaces import ResearchProvider
 from .europepmc import EuropePmcProvider
+from .pubchem import PubChemCompoundProvider
 
 
 def build_provider(settings: ResearchSettings) -> ResearchProvider | None:
@@ -20,3 +22,17 @@ def build_provider(settings: ResearchSettings) -> ResearchProvider | None:
     if settings.provider == "europepmc":
         return EuropePmcProvider(settings)
     raise ValueError(f"unknown research provider: {settings.provider!r}")
+
+
+def build_compound_provider(settings: CompoundSettings) -> CompoundProvider | None:
+    """The substance-information provider (report spec section 9).
+
+    Same contract as ``build_provider``: ``None`` when nothing is configured,
+    so ``resolve_compound_record`` is simply not registered and a report
+    records an identity gap rather than calling a tool that could only fail.
+    """
+    if not settings.provider:
+        return None
+    if settings.provider == "pubchem":
+        return PubChemCompoundProvider(settings)
+    raise ValueError(f"unknown compound provider: {settings.provider!r}")
