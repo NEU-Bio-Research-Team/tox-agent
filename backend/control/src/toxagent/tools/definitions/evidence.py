@@ -11,6 +11,7 @@ come from the capability token, same as the analysis tools.
 """
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date, datetime, timezone
 from typing import Literal
 
@@ -23,9 +24,17 @@ from ...domain.evidence import EvidenceStatus
 from ...research.interfaces import ResearchProvider
 from ...research.normalization import hit_to_evidence
 from ...research.policy import decide_acceptance, filter_source_types
+from ...research.relevance import (
+    RELEVANCE_POLICY_VERSION,
+    CompoundIdentity,
+    RelevanceTarget,
+    RetrievalBudget,
+    assess,
+)
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 SourceTypeName = Literal["article", "database", "regulatory", "vendor_documentation", "other"]
+EndpointName = Literal["clintox", "herg", "tox21"]
 
 #: Fields a search result shows without a follow-up ``get_evidence_record``
 #: call — enough to judge relevance, not enough to cite in detail (plan
@@ -54,7 +63,30 @@ class SearchEvidenceInput(_Input):
     date_from: date | None = Field(
         default=None, description="Only records published on or after this date."
     )
-    limit: int = Field(default=10, ge=1, le=25)
+    limit: int = Field(
+        default=10, ge=1, le=25,
+        description=(
+            "A ceiling on what may become citable evidence, not a target. "
+            "Returning fewer — or none — is a correct outcome."
+        ),
+    )
+    endpoint: EndpointName | None = Field(
+        default=None,
+        description=(
+            "The endpoint this search is about (herg, clintox, tox21). Given it, "
+            "each result is assessed for whether it is actually about this compound "
+            "and this endpoint; results that are not stay in the audit trail but "
+            "never become citable."
+        ),
+    )
+    compound_names: list[str] | None = Field(
+        default=None, max_length=10,
+        description=(
+            "Names the compound is known by, if the run has resolved them. The "
+            "canonical SMILES and identifiers come from the analysis snapshot; this "
+            "only adds synonyms, and cannot broaden what is considered a match."
+        ),
+    )
 
 
 class GetEvidenceInput(_Input):
@@ -73,17 +105,33 @@ def build(
         if snapshot is None:
             raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
 
+        budget = RetrievalBudget.from_request(payload.limit)
+        assessment_target = (
+            RelevanceTarget(endpoint=payload.endpoint) if payload.endpoint else None
+        )
         hits = await provider.search(
             query=payload.query,
             source_types=payload.source_types,
             date_from=payload.date_from,
-            limit=payload.limit,
+            # With relevance assessment on, the user's limit bounds what may
+            # become citable, not how many results are looked at: you cannot
+            # know a paper is irrelevant without reading it, and asking the
+            # provider for exactly two means two chances to find the right two.
+            limit=budget.max_reads if assessment_target is not None else payload.limit,
         )
         hits = filter_source_types(hits, payload.source_types)
 
+        # Assembled from the snapshot the server holds, never from what the
+        # model says the molecule is called: a query plan built out of
+        # model-supplied names would let it search for what it expected.
+        identity = CompoundIdentity(
+            canonical_smiles=snapshot.canonical_smiles,
+            preferred_name=snapshot.canonical_smiles,
+            synonyms=tuple(payload.compound_names or ()),
+        )
         retrieved_at = _now()
         result_views: list[dict] = []
-        accepted = rejected = reused = 0
+        accepted = rejected = reused = promoted = 0
         async with database.unit_of_work() as uow:
             for hit in hits:
                 candidate = hit_to_evidence(
@@ -98,6 +146,43 @@ def build(
                     reused += 1
                 else:
                     final = decide_acceptance(candidate, allowed_hosts=settings.allowed_hosts)
+                    if assessment_target is not None and final.status is EvidenceStatus.ACCEPTED:
+                        # A payload that parses is not a paper about this
+                        # question. Both judgements used to share one durable
+                        # state, which is how five papers about asthma,
+                        # cannabinoids and remdesivir became ethanol/hERG
+                        # evidence (P1-2).
+                        assessment = assess(
+                            hit, compound=identity, target=assessment_target
+                        )
+                        final = replace(final, relevance_assessment=assessment.to_dict())
+                        if not assessment.is_citable:
+                            final = final.to_status(
+                                EvidenceStatus.REJECTED,
+                                reason=(
+                                    f"assessed {assessment.relevance.value} for "
+                                    f"{assessment_target.endpoint}: "
+                                    f"{', '.join(assessment.reason_codes)}"
+                                ),
+                            )
+                            final = replace(
+                                final, relevance_assessment=assessment.to_dict()
+                            )
+                        elif promoted >= budget.max_promotions:
+                            # The user's limit is a ceiling on what becomes
+                            # citable, not just on the provider's page size.
+                            final = final.to_status(
+                                EvidenceStatus.REJECTED,
+                                reason=(
+                                    f"relevant, but this search's promotion budget of "
+                                    f"{budget.max_promotions} was already spent"
+                                ),
+                            )
+                            final = replace(
+                                final, relevance_assessment=assessment.to_dict()
+                            )
+                        else:
+                            promoted += 1
                     await uow.evidence.add(final)
                     uow.emit(
                         session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
@@ -119,6 +204,15 @@ def build(
             "reused_from_this_session": reused,
             "results": result_views,
         }
+        if assessment_target is not None:
+            model_view["relevance_policy"] = RELEVANCE_POLICY_VERSION
+            model_view["promotion_budget"] = budget.max_promotions
+            model_view["promoted"] = promoted
+            if promoted == 0:
+                model_view["note"] = (
+                    "No result was about this compound and endpoint. That is a valid "
+                    "outcome; do not cite a rejected record."
+                )
         return ToolOutput(
             canonical=model_view, model_view=model_view, ui_view=model_view,
             provenance={
@@ -163,7 +257,7 @@ def build(
             ),
             input_model=SearchEvidenceInput,
             handler=search_evidence,
-            profiles=frozenset({"evidence_research"}),
+            profiles=frozenset({"evidence_research", "report_build"}),
             soft_timeout_s=settings.timeout_s,
             hard_timeout_s=settings.hard_timeout_s,
             max_retries=1,
@@ -180,7 +274,7 @@ def build(
             ),
             input_model=GetEvidenceInput,
             handler=get_evidence,
-            profiles=frozenset({"evidence_research", "audit_readonly"}),
+            profiles=frozenset({"evidence_research", "audit_readonly", "report_build"}),
             soft_timeout_s=10.0,
             hard_timeout_s=30.0,
             max_retries=1,

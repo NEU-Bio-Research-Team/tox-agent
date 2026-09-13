@@ -283,6 +283,7 @@ def evidence_to_row(record: EvidenceRecord) -> dict[str, Any]:
         "raw_payload_ref": record.raw_payload_ref,
         "status": record.status.value,
         "rejection_reason": record.rejection_reason,
+        "relevance_assessment": dict(record.relevance_assessment) or None,
         "content_sha256": record.content_sha256,
     }
 
@@ -311,6 +312,7 @@ def row_to_evidence(row: Mapping[str, Any]) -> EvidenceRecord:
         source_quality_tier=SourceQualityTier(row["source_quality_tier"]),
         raw_payload_ref=row["raw_payload_ref"],
         rejection_reason=row["rejection_reason"],
+        relevance_assessment=dict(row.get("relevance_assessment") or {}),
     )
 
 

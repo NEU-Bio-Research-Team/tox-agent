@@ -205,3 +205,130 @@ async def test_get_evidence_record_is_visible_to_the_audit_readonly_profile(db):
          "limitations": [], "recommended_next_steps": []},
     )
     assert submit_denied["error"]["code"] == "tool_denied"
+
+
+# --- P1-2: a payload that parses is not a paper about this question ---------
+
+
+def _audit_hits():
+    """The five the audit persisted, plus the one it should have found."""
+    from datetime import date as _date
+
+    from tests.support.audit_fixtures import ETHANOL_HERG_FALSE_MATCHES, load
+    from toxagent.domain.evidence import SourceIdentifier
+
+    fixture = load(ETHANOL_HERG_FALSE_MATCHES)
+
+    def to_hit(raw: dict) -> SearchHit:
+        return SearchHit(
+            provider_record_id=raw["provider_record_id"],
+            source_type=SourceType.ARTICLE,
+            title=raw["title"],
+            authors=tuple(raw["authors"]),
+            published_at=_date.fromisoformat(raw["published_at"]),
+            # The fixture's europepmc.org URLs are on this suite's allowlist,
+            # so host policy cannot be what refuses these — relevance has to be.
+            canonical_url=raw["canonical_url"],
+            identifier=SourceIdentifier(doi=(raw.get("identifier") or {}).get("doi")),
+            abstract_or_excerpt=raw["abstract_or_excerpt"],
+            normalized_facts=raw["normalized_facts"],
+        )
+
+    return (
+        [to_hit(raw) for raw in fixture["hits"]],
+        [to_hit(raw) for raw in fixture["control_hits"]],
+    )
+
+
+async def test_the_audit_false_matches_never_become_citable(db):
+    false_matches, _ = _audit_hits()
+    runner, context, _, analysis_id, _ = await scenario(db, hits=tuple(false_matches))
+    result = await runner.call(
+        context,
+        "search_toxicology_evidence",
+        {
+            "analysis_id": analysis_id,
+            "query": "ethanol hERG",
+            "limit": 2,
+            "endpoint": "herg",
+            "compound_names": ["ethanol", "ethyl alcohol"],
+        },
+    )
+    view = result["model_view"]
+    assert view["returned"] == 0
+    assert view["rejected"] == 5
+    assert view["results"] == []
+    assert view["promoted"] == 0
+    assert "valid outcome" in view["note"]
+
+
+async def test_the_refused_records_stay_in_the_audit_trail_with_a_reason(db):
+    false_matches, _ = _audit_hits()
+    runner, context, session, analysis_id, _ = await scenario(db, hits=tuple(false_matches))
+    await runner.call(
+        context,
+        "search_toxicology_evidence",
+        {
+            "analysis_id": analysis_id, "query": "ethanol hERG", "limit": 2,
+            "endpoint": "herg", "compound_names": ["ethanol"],
+        },
+    )
+    async with db.unit_of_work() as uow:
+        records = await uow.evidence.list_for_session(session.id)
+    assert len(records) == 5
+    for record in records:
+        assert record.status.value == "rejected"
+        assert record.relevance_assessment["relevance"] == "irrelevant"
+        assert "compound_mismatch" in record.relevance_assessment["reason_codes"]
+        assert "assessed irrelevant" in (record.rejection_reason or "")
+
+
+async def test_a_directly_relevant_paper_is_still_promoted(db):
+    _, controls = _audit_hits()
+    runner, context, _, analysis_id, _ = await scenario(db, hits=tuple(controls))
+    view = (
+        await runner.call(
+            context,
+            "search_toxicology_evidence",
+            {
+                "analysis_id": analysis_id, "query": "ethanol hERG", "limit": 2,
+                "endpoint": "herg", "compound_names": ["ethanol"],
+            },
+        )
+    )["model_view"]
+    assert view["returned"] == 2
+    assert view["promoted"] == 2
+
+
+async def test_the_limit_bounds_what_becomes_citable(db):
+    _, controls = _audit_hits()
+    runner, context, _, analysis_id, _ = await scenario(db, hits=tuple(controls))
+    view = (
+        await runner.call(
+            context,
+            "search_toxicology_evidence",
+            {
+                "analysis_id": analysis_id, "query": "ethanol hERG", "limit": 1,
+                "endpoint": "herg", "compound_names": ["ethanol"],
+            },
+        )
+    )["model_view"]
+    assert view["promoted"] == 1
+    assert view["returned"] == 1
+    assert view["rejected"] == 1
+
+
+async def test_a_search_without_an_endpoint_keeps_the_old_behaviour(db):
+    """Relevance needs to know what the question is about. Without an endpoint
+    there is nothing to assess against, and the tool must not invent one."""
+    false_matches, _ = _audit_hits()
+    runner, context, _, analysis_id, _ = await scenario(db, hits=tuple(false_matches))
+    view = (
+        await runner.call(
+            context,
+            "search_toxicology_evidence",
+            {"analysis_id": analysis_id, "query": "ethanol hERG", "limit": 5},
+        )
+    )["model_view"]
+    assert view["returned"] == 5
+    assert "promoted" not in view

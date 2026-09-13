@@ -343,6 +343,10 @@ evidence_records = Table(
     Column("raw_payload_ref", Text),
     Column("status", String(16), nullable=False),
     Column("rejection_reason", Text),
+    # Why this record is, or is not, about the compound and endpoint the run
+    # asked about. Nullable: records stored before WS04 were never assessed,
+    # and an empty judgement is the honest value for them.
+    Column("relevance_assessment", Json),
     Column("content_sha256", String(64), nullable=False),
     # The same source retrieved twice in one session is one record.
     UniqueConstraint("session_id", "dedupe_key", name="uq_evidence_dedupe"),

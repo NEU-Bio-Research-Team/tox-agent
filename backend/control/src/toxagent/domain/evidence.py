@@ -96,6 +96,11 @@ class EvidenceRecord:
     source_quality_tier: SourceQualityTier = SourceQualityTier.UNKNOWN
     raw_payload_ref: str | None = None
     rejection_reason: str | None = None
+    #: The relevance decision and the reason codes behind it (P1-2). Empty for
+    #: a record retrieved before the lifecycle existed; a run that wants to
+    #: cite such a record needs a fresh assessment rather than the benefit of
+    #: the doubt.
+    relevance_assessment: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         require_id(self.id, EVIDENCE, field="evidence.id")
