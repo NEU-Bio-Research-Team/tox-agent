@@ -22,5 +22,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Forks, and few of them. Vitest's default pool starts a worker per core
+    // and each jsdom environment is expensive; on an 8 GB developer machine
+    // that reliably ends in the OOM killer taking the whole run, which reads
+    // as a flaky suite rather than as a memory ceiling. Two forks finish this
+    // suite in a few seconds and leave the machine usable.
+    pool: 'forks',
+    poolOptions: { forks: { maxForks: 2, minForks: 1 } },
   },
 });
