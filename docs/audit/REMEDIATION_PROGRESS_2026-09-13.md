@@ -3,7 +3,7 @@
 Tracks `AGENTIC_FLOW_REMEDIATION_IMPLEMENTATION_PLAN_2026-09-13_VI.md` against
 what is actually merged. One row per PR in that plan's §7 sequence.
 
-Measured state of the suites at the time of writing: **1,080 backend unit +
+Measured state of the suites at the time of writing: **1,128 backend unit +
 contract, 251 integration + e2e, 155 frontend** — all passing. The audit's
 baseline was 1,019 backend and 155 frontend.
 
@@ -19,6 +19,7 @@ baseline was 1,019 backend and 155 frontend.
 | PR-06/07 | Deterministic relevance assessment; only direct/contextual become citable; the user limit is a promotion ceiling | P1-2 |
 | PR-08 | XAI coverage: mapped / special-token / other-unmapped fractions, coverage bands, no renormalization | P1-6 |
 | PR-09 | `ReportOrchestrator` skeleton: true per-stage events, typed checkpoints, recovery that does not repeat a settled stage, skipping as a recorded outcome | P1-3 (part), P0-2 (evidence-state half) |
+| PR-10 | `ReportFactBundle` — every assertable fact once, with a stable id, source class and server-owned rendering — and the deterministic stage handlers that fill PR-09's slots | P1-3, P0-2 (structural half) |
 | PR-11 | Cross-section semantic gates; the audit's contradiction artifact is refused | P0-2 |
 | PR-13 | Word-boundary intent matching, bounded negation, `IntentDecision` persisted on the run | P1-9 |
 | PR-16 | Prompt measured by component, with a cacheable-prefix hash, recorded on the binding | P1-10 (measurement half) |
@@ -28,7 +29,6 @@ baseline was 1,019 backend and 155 frontend.
 
 | PR | What it needs | Blocking gate |
 |---|---|---|
-| PR-10 | Deterministic stage handlers and the `ReportFactBundle` — the orchestrator's loop exists, the handlers do not | G3 |
 | PR-12 | Report renderers/UI compatibility and the progress timeline (frontend) | G3 |
 | PR-14 | Worker composition root, entrypoint and queue classes | G4 |
 | PR-15 | Global/per-tenant quotas, graceful drain, recovery drills | G4 |
@@ -75,7 +75,9 @@ and differs per model. What the estimate has to be is *stable*, so a diff
 between two manifests means the prompt changed; it is never presented as a
 provider count.
 
-**The orchestrator is not wired.** Its handlers are injected and
-`report_orchestrator_v2` is off, so the report path is unchanged. The loop, the
-checkpointing, the event discipline and the recovery rule are what PR-09
-delivers, and they are tested without a predictor, a provider or a runtime.
+**The orchestrator is not wired.** `report_orchestrator_v2` is off, so the
+report path is unchanged: the loop, the checkpoints, the handlers and the fact
+bundle exist and are tested, but nothing dispatches through them yet. Wiring
+them is PR-11's narrow synthesis schema plus PR-12's renderers — until both
+land, switching the flag on would produce a build with no way to write or
+render its output.
