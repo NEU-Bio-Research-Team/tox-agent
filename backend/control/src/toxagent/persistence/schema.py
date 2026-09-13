@@ -26,6 +26,7 @@ from sqlalchemy import (
     Table,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -146,6 +147,9 @@ runtime_bindings = Table(
     Column("capabilities", Json, nullable=False),
     Column("status", String(16), nullable=False),
     Column("selection_reason", Text, nullable=False, server_default=""),
+    # Nullable on purpose: bindings written before WS01 have no manifest, and
+    # inventing one for them would be a fabricated audit row.
+    Column("runtime_manifest", Json),
     Column("created_at", _TS, nullable=False),
     Column("closed_at", _TS),
 )
@@ -251,7 +255,28 @@ runtime_usage_events = Table(
     Column("cost_amount", Numeric(18, 8)),
     Column("cost_currency", String(8)),
     Column("reported_at", _TS, nullable=False),
+    # WS02 source identity. Nullable: rows written before normalization have
+    # none, and a backfill would be a guess about what a provider reported.
+    Column("source_event_id", String(64)),
+    Column("source_event_type", String(64)),
+    Column("provider_message_id", String(128)),
+    Column("provider_step_id", String(128)),
+    Column("revision", Integer),
+    Column("semantics", String(16), nullable=False, server_default="unknown"),
+    Column("is_normalized", Boolean, nullable=False, server_default="0"),
+    Column("raw_payload_hash", String(64)),
     Index("ix_runtime_usage_events_run", "run_id", "reported_at"),
+    # The last line of defence against a duplicate. In-memory deduplication
+    # cannot survive a worker restart mid-run; this can. Partial, so the rows
+    # that predate source identity are not all collapsed onto one NULL key.
+    Index(
+        "uq_runtime_usage_source",
+        "runtime_binding_id",
+        "source_event_id",
+        unique=True,
+        sqlite_where=text("source_event_id IS NOT NULL"),
+        postgresql_where=text("source_event_id IS NOT NULL"),
+    ),
 )
 
 analysis_snapshots = Table(
@@ -448,6 +473,122 @@ explanation_checkpoints = Table(
     Index("ix_explanation_checkpoints_session", "session_id", "created_at"),
 )
 
+# --- report builder (spec section 12.1) ------------------------------------
+#
+# Bytes never live here. A figure's SVG and a rendering's Markdown/HTML/PDF go
+# to the object store; these rows carry ownership, hashes, provenance and the
+# object refs. Evidence and observation payloads are referenced, never copied:
+# a report that duplicated them could disagree with the observation it cites,
+# which is the one thing the whole trust chain exists to prevent.
+
+report_builds = Table(
+    "report_builds", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("run_id", _ID, ForeignKey("runs.id"), nullable=False),
+    Column("analysis_id", _ID, ForeignKey("analysis_snapshots.id"), nullable=False),
+    # The frozen request. Which endpoints were *asked* for is not recoverable
+    # from the finished report: two served endpoints could be a two-endpoint
+    # request that succeeded or a three-endpoint one that lost a section.
+    Column("request", Json, nullable=False),
+    Column("stage", String(32), nullable=False),
+    Column("report_id", _ID),
+    # The one permitted correction attempt, counted durably so a restart
+    # cannot buy a second one.
+    Column("correction_attempts", Integer, nullable=False, server_default="0"),
+    Column("failure_code", String(64)),
+    Column("failure_detail", Text),
+    # Stage outputs already paid for, so a resumed build does not re-run a
+    # billable predictor or provider call (spec section 10).
+    Column("stage_state", Json, nullable=False),
+    Column("deadline_at", _TS),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    Index("ix_report_builds_session", "session_id", "created_at"),
+)
+
+report_artifacts = Table(
+    "report_artifacts", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("report_build_id", _ID, ForeignKey("report_builds.id"), nullable=False),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("analysis_id", _ID, ForeignKey("analysis_snapshots.id"), nullable=False),
+    Column("schema_version", String(32), nullable=False),
+    Column("title", Text, nullable=False),
+    Column("status", String(32), nullable=False),
+    Column("report_language", String(8), nullable=False),
+    # The whole canonical artifact. Written once; the renderers read it rather
+    # than re-deriving anything, so a rendering can never say something the
+    # validated artifact does not.
+    Column("document", Json, nullable=False),
+    Column("content_sha256", String(64), nullable=False),
+    # A rebuild links to what it supersedes rather than replacing it: the old
+    # report stays readable and its provenance stays true (eval scenario 15).
+    Column("supersedes_report_id", _ID, ForeignKey("report_artifacts.id")),
+    Column("version", Integer, nullable=False, server_default="1"),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_report_artifacts_session", "session_id", "created_at"),
+    Index("ix_report_artifacts_build", "report_build_id"),
+)
+
+report_figures = Table(
+    "report_figures", metadata,
+    Column("figure_id", _ID, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("attachment_id", _ID, ForeignKey("attachments.id"), nullable=False),
+    # What the image depicts. Stored as columns rather than only inside the
+    # artifact JSON so the validator's figure-to-observation check is a lookup,
+    # not a scan of a document (eval scenario 12).
+    Column("observation_id", _ID, ForeignKey("observations.id")),
+    Column("endpoint", String(32)),
+    Column("task", String(64)),
+    Column("media_type", String(64), nullable=False),
+    Column("caption", Text, nullable=False),
+    Column("alt_text", Text, nullable=False),
+    Column("content_sha256", String(64), nullable=False),
+    Column("renderer_version", String(64), nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_report_figures_session", "session_id", "created_at"),
+)
+
+report_renderings = Table(
+    "report_renderings", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("report_id", _ID, ForeignKey("report_artifacts.id", ondelete="CASCADE"), nullable=False),
+    Column("format", String(16), nullable=False),
+    Column("media_type", String(64), nullable=False),
+    Column("object_uri", Text, nullable=False),
+    Column("content_sha256", String(64), nullable=False),
+    Column("size_bytes", Integer, nullable=False),
+    Column("renderer_version", String(64), nullable=False),
+    Column("created_at", _TS, nullable=False),
+    # One rendering per format per report. A second Markdown for the same
+    # immutable artifact would be a second answer to a settled question.
+    UniqueConstraint("report_id", "format", name="uq_report_rendering_format"),
+)
+
+report_claim_links = Table(
+    "report_claim_links", metadata,
+    Column("report_id", _ID, ForeignKey("report_artifacts.id", ondelete="CASCADE"), primary_key=True),
+    Column("claim_id", _ID, primary_key=True),
+    Column("section_id", String(64), nullable=False),
+    Column("kind", String(24), nullable=False),
+    Column("source_class", String(24), nullable=False),
+    Column("observation_id", _ID),
+    Column("field_path", Text),
+    Index("ix_report_claim_links_observation", "observation_id"),
+)
+
+report_evidence_links = Table(
+    "report_evidence_links", metadata,
+    Column("report_id", _ID, ForeignKey("report_artifacts.id", ondelete="CASCADE"), primary_key=True),
+    Column("evidence_id", _ID, primary_key=True),
+    Column("relation", String(24), nullable=False),
+    Column("section_id", String(64), nullable=False),
+    Index("ix_report_evidence_links_evidence", "evidence_id"),
+)
+
+
 event_outbox = Table(
     "event_outbox", metadata,
     Column("event_id", _ID, primary_key=True),
@@ -468,5 +609,9 @@ event_outbox = Table(
 #: Written once, never updated. Repositories expose no update path for these.
 IMMUTABLE_TABLES = frozenset(
     {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox",
-     "case_revisions", "investigation_plans", "kernel_transitions"}
+     "case_revisions", "investigation_plans", "kernel_transitions",
+     # A report is immutable for the same reason an answer is: it is cited,
+     # downloaded and audited. A changed report needs a new version row, not an
+     # UPDATE that quietly rewrites what someone already read.
+     "report_artifacts", "report_claim_links", "report_evidence_links"}
 )

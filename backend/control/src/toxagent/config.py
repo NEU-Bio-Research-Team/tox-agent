@@ -147,8 +147,33 @@ class PolicySettings:
     #: submit_grounded_answer, failing the run with no answer at all rather
     #: than a slower but honest one.
     max_tool_calls_per_run: int = 24
+    #: A report build's own budget, because it is not the same size of job. The
+    #: number above was raised 12 -> 24 when a live evidence_research sweep ran
+    #: out of budget before it reached submit_grounded_answer; a report build is
+    #: the same lesson at a larger scale, and one number for both was too small
+    #: for the larger one.
+    #:
+    #: An eleven-section report over this deployment's endpoints needs, with no
+    #: mistakes and no re-reads: the build context, the analysis bundle, the
+    #: compound record, ~4 structural slices plus one per Tox21 assay reported
+    #: (12), one explanation package per target (~10), a literature search or
+    #: two, and one ``get_evidence_record`` per source it intends to cite —
+    #: about 37. A live build (run_947bfb9b, 2026-09-09) hit 40 and had nothing
+    #: left, so the single correction attempt it was promised could not be
+    #: spent: every read it tried while fixing the draft was budget-denied.
+    #:
+    #: 80 is that floor with room for the schema mistakes a model actually
+    #: makes. It bounds cost as before; it just stops the bound from falling
+    #: below the honest workflow.
+    max_tool_calls_per_report_build: int = 80
     max_answer_candidates_per_run: int = 2
     run_deadline_s: int = 300
+    # Report composition emits an eleven-section structured document. A live
+    # build spent only eight seconds in tools but exhausted the old 900-second
+    # ceiling while the model repaired the draft. Durable checkpoints make
+    # retries cheap; the wider ceiling keeps provider variance from deleting a
+    # healthy checkpoint just before its small final submit call.
+    report_build_deadline_s: int = 3600
     #: A CPU-bound OCSR forward pass (toxocr/, MolScribe) measured ~1-2s per
     #: image under normal load — comfortably inside run_deadline_s already.
     #: This separate, more generous deadline exists only as a safety margin
@@ -184,10 +209,16 @@ class PolicySettings:
                 "TOXAGENT_ADMISSION_LOCK_TIMEOUT_MS", cls.admission_lock_timeout_ms
             ),
             max_tool_calls_per_run=_int("TOXAGENT_MAX_TOOL_CALLS", cls.max_tool_calls_per_run),
+            max_tool_calls_per_report_build=_int(
+                "TOXAGENT_MAX_TOOL_CALLS_REPORT", cls.max_tool_calls_per_report_build
+            ),
             max_answer_candidates_per_run=_int(
                 "TOXAGENT_MAX_ANSWER_CANDIDATES", cls.max_answer_candidates_per_run
             ),
             run_deadline_s=_int("TOXAGENT_RUN_DEADLINE_S", cls.run_deadline_s),
+            report_build_deadline_s=_int(
+                "TOXAGENT_REPORT_BUILD_DEADLINE_S", cls.report_build_deadline_s
+            ),
             structure_recognition_deadline_s=_int(
                 "TOXAGENT_STRUCTURE_RECOGNITION_DEADLINE_S", cls.structure_recognition_deadline_s
             ),
@@ -256,7 +287,14 @@ class RuntimeSettings:
     provider_id: str = "scripted"
     model_id: str = "scripted-deterministic"
     agent_name: str = "toxagent"
+    #: The named agent a report build runs as. Separate from ``agent_name``
+    #: because a report profile carries its own instructions and its own step
+    #: cap (agent_profiles/report_build/profile.json); dispatching a report to
+    #: the shared Q&A agent is exactly P0-1 of the 2026-09-13 audit — the run
+    #: manifest recorded a 64-step budget while the runtime enforced 32.
+    report_agent_name: str = "toxagent-report"
     turn_deadline_s: int = 180
+    report_turn_deadline_s: int = 3600
     #: Recorded in the run audit and, for a runtime whose protocol accepts a
     #: per-request step count, sent as the turn's budget. OpenCode V1 does not
     #: (its ``prompt_async`` has no step field — the checked-in agent profile's
@@ -278,6 +316,7 @@ class RuntimeSettings:
     #: Raised to comfortably clear 24 reads plus up to 2 submit attempts.
     max_steps_qa: int = 32
     max_steps_research: int = 32
+    max_steps_report: int = 64
     #: A run's pre-flight health probe (``AgentRuntimeGateway.execute``, both
     #: a fresh run and a recovery run) retries this many times before giving
     #: up. A runtime that was just restarted after a crash can take a moment
@@ -314,9 +353,14 @@ class RuntimeSettings:
             provider_id=_env("TOXAGENT_PROVIDER_ID", cls.provider_id),
             model_id=_env("TOXAGENT_MODEL_ID", cls.model_id),
             agent_name=_env("TOXAGENT_AGENT_NAME", cls.agent_name),
+            report_agent_name=_env("TOXAGENT_REPORT_AGENT_NAME", cls.report_agent_name),
             turn_deadline_s=_int("TOXAGENT_TURN_DEADLINE_S", cls.turn_deadline_s),
+            report_turn_deadline_s=_int(
+                "TOXAGENT_REPORT_TURN_DEADLINE_S", cls.report_turn_deadline_s
+            ),
             max_steps_qa=_int("TOXAGENT_MAX_STEPS_QA", cls.max_steps_qa),
             max_steps_research=_int("TOXAGENT_MAX_STEPS_RESEARCH", cls.max_steps_research),
+            max_steps_report=_int("TOXAGENT_MAX_STEPS_REPORT", cls.max_steps_report),
             runtime_health_check_retries=_int(
                 "TOXAGENT_RUNTIME_HEALTH_CHECK_RETRIES", cls.runtime_health_check_retries
             ),
@@ -373,6 +417,51 @@ class ResearchSettings:
             ),
             circuit_reset_after_s=_float(
                 "TOXAGENT_RESEARCH_CIRCUIT_RESET_AFTER_S", cls.circuit_reset_after_s
+            ),
+        )
+
+
+@dataclass(frozen=True)
+class CompoundSettings:
+    """The compound-information provider (report spec section 9).
+
+    Pluggable exactly like ``ResearchSettings``: an empty ``provider`` means no
+    substance provider is configured here, ``resolve_compound_record`` is never
+    registered, and a report records an identity gap instead of calling a tool
+    that could only fail. The transport limits are duplicated rather than
+    shared because the two providers are separately rate-limited by separate
+    organisations, and one tightening its budget must not silently change the
+    other's.
+    """
+
+    provider: str = "pubchem"
+    base_url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+    #: Only these hosts may be reached for compound identity. A model cannot
+    #: add one; provider selection is server policy (spec section 9).
+    allowed_hosts: tuple[str, ...] = ("pubchem.ncbi.nlm.nih.gov",)
+    timeout_s: float = 10.0
+    hard_timeout_s: float = 30.0
+    circuit_failure_threshold: int = 5
+    circuit_reset_after_s: float = 30.0
+    max_response_bytes: int = 2 * 1024 * 1024
+    allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
+
+    @classmethod
+    def from_env(cls) -> "CompoundSettings":
+        return cls(
+            provider=_env("TOXAGENT_COMPOUND_PROVIDER", cls.provider),
+            base_url=_env("TOXAGENT_COMPOUND_URL", cls.base_url).rstrip("/"),
+            allowed_hosts=_list("TOXAGENT_COMPOUND_ALLOWED_HOSTS", cls.allowed_hosts),
+            timeout_s=_float("TOXAGENT_COMPOUND_TIMEOUT", cls.timeout_s),
+            hard_timeout_s=_float("TOXAGENT_COMPOUND_HARD_TIMEOUT", cls.hard_timeout_s),
+            circuit_failure_threshold=_int(
+                "TOXAGENT_COMPOUND_CIRCUIT_FAILURE_THRESHOLD", cls.circuit_failure_threshold
+            ),
+            circuit_reset_after_s=_float(
+                "TOXAGENT_COMPOUND_CIRCUIT_RESET_AFTER_S", cls.circuit_reset_after_s
+            ),
+            max_response_bytes=_int(
+                "TOXAGENT_COMPOUND_MAX_RESPONSE_BYTES", cls.max_response_bytes
             ),
         )
 
@@ -541,6 +630,7 @@ class Settings:
     predict: PredictSettings
     runtime: RuntimeSettings
     research: ResearchSettings
+    compound: CompoundSettings
     ocr: OcrSettings
     security: SecuritySettings
     profiles_dir: Path = PACKAGE_ROOT / "agent_profiles"
@@ -577,6 +667,7 @@ class Settings:
             predict=PredictSettings.from_env(),
             runtime=RuntimeSettings.from_env(),
             research=ResearchSettings.from_env(),
+            compound=CompoundSettings.from_env(),
             ocr=OcrSettings.from_env(),
             security=SecuritySettings.from_env(),
             profiles_dir=Path(_env("TOXAGENT_PROFILES_DIR") or PACKAGE_ROOT / "agent_profiles"),

@@ -80,6 +80,11 @@ class RuntimeBinding:
     created_at: datetime = field(default_factory=datetime.now)
     closed_at: datetime | None = None
     selection_reason: str = ""
+    #: What the runtime was actually asked to be, as resolved at dispatch:
+    #: the named agent, the requested step cap, and the cap the deployed agent
+    #: profile really enforces. Both numbers, because a manifest that records
+    #: only the request is how P0-1 stayed invisible for weeks.
+    runtime_manifest: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         require_id(self.id, RUNTIME_BINDING, field="binding.id")
@@ -103,6 +108,7 @@ class RuntimeBinding:
         capabilities: RuntimeCapabilities,
         now: datetime,
         selection_reason: str = "",
+        runtime_manifest: dict | None = None,
     ) -> "RuntimeBinding":
         return cls(
             id=new_id(RUNTIME_BINDING),
@@ -121,6 +127,7 @@ class RuntimeBinding:
             status=BindingStatus.ACTIVE,
             created_at=now,
             selection_reason=selection_reason,
+            runtime_manifest=dict(runtime_manifest or {}),
         )
 
     def lost(self, *, now: datetime) -> "RuntimeBinding":

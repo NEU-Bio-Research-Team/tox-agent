@@ -29,6 +29,7 @@ from ...domain.evidence import (
 from ...domain.events import Event, EventType
 from ...domain.message import Message, MessagePart, PartType, Role
 from ...domain.observation import Observation, ObservationKind, Producer
+from ...domain.report import BuildStage, ReportBuild, ReportBuildRequest
 from ...domain.run import Intent, Lane, Run, RunStatus
 from ...domain.runtime import AuthMode, BindingStatus, RuntimeBinding, RuntimeCapabilities, RuntimeKind
 from ...domain.usage import RuntimeUsageEvent
@@ -403,6 +404,7 @@ def binding_to_row(binding: RuntimeBinding) -> dict[str, Any]:
         "capabilities": binding.capabilities.to_dict(),
         "status": binding.status.value,
         "selection_reason": binding.selection_reason,
+        "runtime_manifest": dict(binding.runtime_manifest) or None,
         "created_at": binding.created_at,
         "closed_at": binding.closed_at,
     }
@@ -433,6 +435,7 @@ def row_to_binding(row: Mapping[str, Any]) -> RuntimeBinding:
         created_at=utc(row["created_at"]),
         closed_at=utc(row["closed_at"]),
         selection_reason=row["selection_reason"],
+        runtime_manifest=dict(row.get("runtime_manifest") or {}),
     )
 
 
@@ -455,6 +458,14 @@ def usage_to_row(event: RuntimeUsageEvent) -> dict[str, Any]:
         "cost_amount": event.cost_amount,
         "cost_currency": event.cost_currency,
         "reported_at": event.reported_at,
+        "source_event_id": event.source_event_id,
+        "source_event_type": event.source_event_type,
+        "provider_message_id": event.provider_message_id,
+        "provider_step_id": event.provider_step_id,
+        "revision": event.revision,
+        "semantics": event.semantics,
+        "is_normalized": event.is_normalized,
+        "raw_payload_hash": event.raw_payload_hash,
     }
 
 
@@ -476,6 +487,14 @@ def row_to_usage(row: Mapping[str, Any]) -> RuntimeUsageEvent:
         cost_amount=Decimal(str(amount)) if amount is not None else None,
         cost_currency=row["cost_currency"],
         reported_at=utc(row["reported_at"]),
+        source_event_id=row.get("source_event_id"),
+        source_event_type=row.get("source_event_type"),
+        provider_message_id=row.get("provider_message_id"),
+        provider_step_id=row.get("provider_step_id"),
+        revision=row.get("revision"),
+        semantics=row.get("semantics") or "unknown",
+        is_normalized=bool(row.get("is_normalized")),
+        raw_payload_hash=row.get("raw_payload_hash"),
     )
 
 
@@ -523,4 +542,45 @@ def row_to_event(row: Mapping[str, Any]) -> Event:
         run_id=row["run_id"],
         occurred_at=utc(row["occurred_at"]),
         payload=row["payload"],
+    )
+
+
+# --- report builder ---------------------------------------------------------
+
+
+def report_build_to_row(build: ReportBuild) -> dict[str, Any]:
+    return {
+        "id": build.id,
+        "session_id": build.session_id,
+        "run_id": build.run_id,
+        "analysis_id": build.analysis_id,
+        "request": build.request.to_dict(),
+        "stage": build.stage.value,
+        "report_id": build.report_id,
+        "correction_attempts": build.correction_attempts,
+        "failure_code": build.failure_code,
+        "failure_detail": build.failure_detail,
+        "stage_state": dict(build.stage_state),
+        "deadline_at": build.deadline_at,
+        "created_at": build.created_at,
+        "updated_at": build.updated_at,
+    }
+
+
+def row_to_report_build(row: Mapping[str, Any]) -> ReportBuild:
+    return ReportBuild(
+        id=row["id"],
+        session_id=row["session_id"],
+        run_id=row["run_id"],
+        analysis_id=row["analysis_id"],
+        request=ReportBuildRequest.from_dict(dict(row["request"])),
+        stage=BuildStage(row["stage"]),
+        created_at=utc(row["created_at"]),
+        updated_at=utc(row["updated_at"]),
+        deadline_at=utc(row["deadline_at"]),
+        report_id=row["report_id"],
+        correction_attempts=row["correction_attempts"] or 0,
+        failure_code=row["failure_code"],
+        failure_detail=row["failure_detail"],
+        stage_state=dict(row["stage_state"] or {}),
     )

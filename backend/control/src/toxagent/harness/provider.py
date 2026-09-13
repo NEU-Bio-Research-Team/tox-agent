@@ -40,6 +40,14 @@ class RuntimeEventType(str, Enum):
 class RuntimeHealth:
     healthy: bool
     detail: str = ""
+    #: Named agents the product needs that this runtime does not expose.
+    #:
+    #: A runtime missing the *report* agent is not an unhealthy runtime — Q&A
+    #: still works — it is a runtime with one capability unavailable. Reporting
+    #: that here lets the readiness projection turn ``build_report`` off
+    #: instead of the adapter quietly dispatching a report to the Q&A agent,
+    #: which is what P0-1 of the 2026-09-13 audit actually was.
+    missing_agents: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -69,8 +77,23 @@ class RuntimeSessionSpec:
     tool_schema: tuple[dict[str, Any], ...]
     tool_schema_hash: str
     mcp_url: str
+    #: What the control plane asked for. Recorded in the audit row whether or
+    #: not the runtime can honour it.
     max_steps: int
     deadline_at: datetime
+    #: The named runtime agent this turn must run as. Empty means "whatever the
+    #: adapter is configured to default to" — the pre-WS01 behaviour, kept so a
+    #: scripted or DSH adapter that has no named agents needs no change.
+    #:
+    #: An adapter reads this instead of its own settings because the agent is a
+    #: per-intent product decision (a report build runs the report agent), and
+    #: an adapter that picks its own cannot be audited against the manifest.
+    runtime_agent_name: str = ""
+    #: The cap the runtime will actually enforce, as read from the deployed
+    #: agent profile. ``None`` when it could not be determined; never silently
+    #: equal to ``max_steps``, because "we asked for 64" and "64 will happen"
+    #: are different claims (P0-1).
+    effective_max_steps: int | None = None
     #: Product-owned AI provider profile selected for this run.  This is an
     #: opaque connection id, never a credential; it identifies which profile
     #: the audit row should record.

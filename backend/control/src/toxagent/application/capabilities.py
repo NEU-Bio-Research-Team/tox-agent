@@ -62,11 +62,12 @@ REQUESTABLE: tuple[Intent, ...] = (
     Intent.REPORT_QA,
     Intent.ATTRIBUTION,
     Intent.EVIDENCE_RESEARCH,
+    Intent.BUILD_REPORT,
 )
 
 #: The intents that need an agent runtime turn.
 CONVERSATIONAL: frozenset[Intent] = frozenset(
-    {Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH}
+    {Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH, Intent.BUILD_REPORT}
 )
 
 
@@ -174,6 +175,30 @@ class CapabilityResolver:
             available = False
             reason = "no literature provider is configured for this deployment"
 
+        if intent is Intent.BUILD_REPORT and available and self._research_provider is None:
+            available = False
+            reason = "no literature provider is configured for report building"
+
+        if intent is Intent.BUILD_REPORT and available:
+            # P0-1: a runtime host that does not expose the report agent cannot
+            # build reports. Serving them from the shared Q&A agent is what the
+            # audit found — a 64-step manifest running under a 32-step cap — so
+            # the capability goes unavailable instead of silently degrading.
+            gateway = self._gateway_getter()
+            required = (
+                gateway.agent_for_capability("build_report")
+                if hasattr(gateway, "agent_for_capability")
+                else None
+            )
+            missing = tuple(getattr(gateway, "missing_runtime_agents", ()) or ())
+            if required and required in missing:
+                available = False
+                reason = (
+                    f"the runtime host does not expose the {required!r} agent this "
+                    "deployment builds reports with; reports are unavailable rather "
+                    "than built under the shared conversational agent"
+                )
+
         if intent is Intent.STRUCTURE_RECOGNITION and available and self._ocr is None:
             available = False
             reason = "no structure-recognition service is configured for this deployment"
@@ -223,5 +248,8 @@ _UNREGISTERED_REASON: dict[Intent, str] = {
     Intent.EVIDENCE_RESEARCH: (
         "this deployment has no agent runtime bound, so literature research "
         "cannot run here"
+    ),
+    Intent.BUILD_REPORT: (
+        "this deployment has no agent runtime bound, so reports cannot be built here"
     ),
 }

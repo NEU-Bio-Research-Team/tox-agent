@@ -91,6 +91,15 @@ class OpenCodeV1Provider:
             timeout=httpx.Timeout(settings.opencode_request_timeout_s),
         )
         self._owns_client = client is None
+        # Both product agents, unless the deployment has opted out of named
+        # agent selection. ``health()`` reports each one it cannot find.
+        self._required_agents: tuple[str, ...] = tuple(
+            dict.fromkeys(
+                name
+                for name in (settings.agent_name, getattr(settings, "report_agent_name", ""))
+                if name
+            )
+        )
         self._specs: dict[str, RuntimeSessionSpec] = {}
         self._directories: dict[str, str] = {}
         self._locally_managed_directories: set[str] = set()
@@ -168,10 +177,23 @@ class OpenCodeV1Provider:
             for item in agents
             if isinstance(item, dict) and isinstance(item.get("name"), str)
         }
-        if self._settings.agent_name not in names:
+        missing = tuple(name for name in self._required_agents if name not in names)
+        if self._settings.agent_name in missing:
+            # The base agent is the runtime. Without it there is no Q&A, no
+            # research and no report, so this is a genuine health failure.
             return RuntimeHealth(
                 False,
                 f"dedicated OpenCode agent {self._settings.agent_name!r} is unavailable",
+                missing_agents=missing,
+            )
+        if missing:
+            # Everything else is a capability that must be reported
+            # unavailable — never silently served by the base agent (P0-1).
+            return RuntimeHealth(
+                True,
+                f"OpenCode V1 {OPENCODE_V1_PIN} is available; "
+                f"missing agent profile(s): {', '.join(missing)}",
+                missing_agents=missing,
             )
         return RuntimeHealth(True, f"OpenCode V1 {OPENCODE_V1_PIN} agent is available")
 
@@ -250,18 +272,22 @@ class OpenCodeV1Provider:
         # the model-visible schema.  The runtime management API installs it as
         # a private remote-MCP header only after the binding is durable.
         await self._install_run_mcp(spec, turn.capability_token, directory)
-        # ``spec.max_steps`` (the gateway's per-intent step budget) is not sent
-        # here: V1's prompt_async body has no step field at all (checked
-        # against the pinned OpenAPI doc). The only enforced cap is the
-        # checked-in agent profile's static ``maxSteps``, the same value for
-        # every intent (agent_profiles/opencode/README.md, progress log §4.6).
+        # ``spec.max_steps`` (the gateway's per-intent step budget) is still not
+        # sent here: V1's prompt_async body has no step field at all (checked
+        # against the pinned OpenAPI doc). The enforced cap is the checked-in
+        # agent profile's static ``maxSteps`` — but which profile that is now
+        # depends on which agent this turn runs as, which is the whole point of
+        # ``spec.runtime_agent_name``. The gateway resolved both the agent and
+        # its real cap before dispatch and recorded them on the binding, so the
+        # manifest and the runtime agree (P0-1).
+        agent_name = spec.runtime_agent_name or self._settings.agent_name
         response = await self._request(
             "POST",
             f"/session/{session.runtime_session_id}/prompt_async",
             params=self._query(directory),
             json={
                 "model": {"providerID": session.provider_id, "modelID": session.model_id},
-                "agent": self._settings.agent_name,
+                "agent": agent_name,
                 "system": spec.system_prompt,
                 "parts": [{"type": "text", "text": turn.user_message}],
             },
@@ -450,16 +476,38 @@ class OpenCodeV1Provider:
             if part.get("type") == "step-finish":
                 tokens = part.get("tokens")
                 if isinstance(tokens, dict):
+                    # Source identity travels with the numbers. Without it the
+                    # gateway cannot tell this report apart from the
+                    # ``message.updated`` restatement of the same running total
+                    # that follows it, which is how the audit's Q&A run stored
+                    # one snapshot three times (P1-1).
                     return RuntimeEvent(
-                        RuntimeEventType.USAGE_REPORTED, _now(), {"tokens": tokens}, raw=envelope
+                        RuntimeEventType.USAGE_REPORTED,
+                        _now(),
+                        {
+                            "tokens": tokens,
+                            "source_event_type": "message.part.updated:step-finish",
+                            "provider_message_id": part.get("messageID"),
+                            "provider_step_id": part.get("id"),
+                        },
+                        raw=envelope,
                     )
         if event_type == "message.updated":
             info = properties.get("info")
             if isinstance(info, dict) and info.get("role") == "assistant":
                 tokens = info.get("tokens")
                 if isinstance(tokens, dict):
+                    revision = info.get("revision")
                     return RuntimeEvent(
-                        RuntimeEventType.USAGE_REPORTED, _now(), {"tokens": tokens}, raw=envelope
+                        RuntimeEventType.USAGE_REPORTED,
+                        _now(),
+                        {
+                            "tokens": tokens,
+                            "source_event_type": "message.updated",
+                            "provider_message_id": info.get("id"),
+                            "revision": revision if isinstance(revision, int) else None,
+                        },
+                        raw=envelope,
                     )
         log.debug("ignored unmapped OpenCode V1 event", extra={"event_type": event_type})
         return None

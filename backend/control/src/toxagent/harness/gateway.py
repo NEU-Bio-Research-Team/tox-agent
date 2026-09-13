@@ -16,6 +16,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from ..application.create_analysis import CreateAnalysis
 from ..application.run_scheduler import RunContext
 from ..connections.model import ConnectionStatus
@@ -29,11 +30,16 @@ from ..domain.evidence import EvidenceStatus
 from ..domain.message import Message, PartType, Role
 from ..domain.provenance import content_sha256
 from ..domain.run import Intent, RunStatus
+from ..domain.report import BuildStage, ReportBuild, ReportBuildRequest
 from ..domain.runtime import BindingStatus, RuntimeBinding, RuntimeKind
 from ..domain.usage import RuntimeUsageEvent
+from ..flags import is_enabled
 from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
+from .report_profile import compose_report_profile
+from .runtime_profiles import RuntimeProfileRegistry
+from .usage_normalizer import RuntimeUsageNormalizer
 from .provider import (
     AgentRuntimeProvider,
     RuntimeEvent,
@@ -99,6 +105,7 @@ class AgentRuntimeGateway:
         create_analysis: CreateAnalysis | None = None,
         mcp_url: str = "",
         secrets: SecretStore | None = None,
+        profiles_dir: Path | None = None,
     ) -> None:
         self._db = database
         self._registry = registry
@@ -112,6 +119,21 @@ class AgentRuntimeGateway:
         # whose profile has a credential, rather than dispatching it under the
         # runtime host's own authentication.
         self._secrets = secrets
+        self._profiles_dir = profiles_dir
+        # Which agent and which *real* step cap each intent runs under. Built
+        # once: it reads the shipped agent profile files, and those do not
+        # change under a running process.
+        self._missing_agents: tuple[str, ...] = ()
+        self._runtime_profiles = RuntimeProfileRegistry(
+            profiles_dir=profiles_dir,
+            agent_name=settings.agent_name,
+            report_agent_name=getattr(settings, "report_agent_name", "toxagent-report"),
+            max_steps_qa=settings.max_steps_qa,
+            max_steps_research=settings.max_steps_research,
+            max_steps_report=settings.max_steps_report,
+            runtime_kind=settings.kind,
+            select_named_agents=is_enabled("runtime_profile_selector_v2"),
+        )
 
     async def execute(self, context: RunContext) -> None:
         """Drive an admitted agentic/mixed run until product completion.
@@ -124,6 +146,7 @@ class AgentRuntimeGateway:
             Intent.REPORT_QA,
             Intent.ATTRIBUTION,
             Intent.EVIDENCE_RESEARCH,
+            Intent.BUILD_REPORT,
         }:
             raise RuntimeProtocolError(
                 "the runtime gateway only accepts conversational intents",
@@ -133,13 +156,19 @@ class AgentRuntimeGateway:
         if context.needs_snapshot_first:
             await self._snapshot_before_runtime(context)
 
+        if context.intent is Intent.BUILD_REPORT:
+            from dataclasses import replace
+            context = replace(
+                context, report_build_id=await self._ensure_report_build(context)
+            )
+
         health = await self._probe_health_with_retries()
         if not health.healthy:
             raise RuntimeUnavailable("the selected runtime is not healthy", detail=health.detail)
         capabilities = await self._provider.capabilities()
         kind = self._runtime_kind()
 
-        system_prompt, profile, deadline = await self._prepare_context(context)
+        system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
         resolved = await self._resolve_ai_profile(context)
         tool_schema = tuple(self._registry.descriptors(profile))
         tool_schema_hash = self._registry.schema_hash(profile)
@@ -147,8 +176,28 @@ class AgentRuntimeGateway:
             {
                 "profile": profile,
                 "visible_tools": [tool["name"] for tool in tool_schema],
+                "instructions_sha256": instructions_hash,
             }
         )
+        runtime_profile = self._runtime_profiles.resolve(
+            context.intent.value, capability_profile=profile
+        )
+        discrepancy = runtime_profile.discrepancy
+        if discrepancy:
+            # Dispatch still happens — refusing a report because its profile
+            # is one step short would be worse than running it — but the
+            # difference is stated, never inferred later from a truncated run.
+            log.warning(
+                "runtime step cap will not be honoured",
+                extra={
+                    "run_id": context.run_id,
+                    "intent": context.intent.value,
+                    "runtime_agent_name": runtime_profile.runtime_agent_name,
+                    "requested_step_cap": runtime_profile.requested_step_cap,
+                    "effective_step_cap": runtime_profile.effective_step_cap,
+                    "detail": discrepancy,
+                },
+            )
         local_context = ToolContext(
             session_id=context.session_id,
             run_id=context.run_id,
@@ -173,8 +222,10 @@ class AgentRuntimeGateway:
             tool_schema=tool_schema,
             tool_schema_hash=tool_schema_hash,
             mcp_url=self._mcp_url,
-            max_steps=self._max_steps(context.intent),
+            max_steps=runtime_profile.requested_step_cap,
             deadline_at=deadline,
+            runtime_agent_name=runtime_profile.runtime_agent_name,
+            effective_max_steps=runtime_profile.effective_step_cap,
             connection_id=resolved.connection_id,
             provider_base_url=resolved.base_url,
             provider_credential=resolved.credential,
@@ -205,6 +256,7 @@ class AgentRuntimeGateway:
                 capabilities=capabilities,
                 now=_now(),
                 selection_reason="deployment-pinned runtime provider",
+                runtime_manifest=runtime_profile.to_manifest(),
             )
             await self._persist_started_run(context, binding)
 
@@ -251,7 +303,7 @@ class AgentRuntimeGateway:
                 )
 
             binding_lost = await self._consume_events(runtime_session, context, binding, deadline)
-            await self._commit_answer_and_complete(context)
+            await self._commit_product_and_complete(context)
             completed = True
         except asyncio.CancelledError:
             # Scheduler cancellation only becomes an honest terminal state
@@ -368,9 +420,21 @@ class AgentRuntimeGateway:
             return False
         return health.healthy
 
+    @property
+    def missing_runtime_agents(self) -> tuple[str, ...]:
+        """Named agents the last probe found absent from the runtime host.
+
+        Read by the capability resolver, which is synchronous: the probe that
+        fills this runs on readiness and before every dispatch, so the value is
+        as fresh as the last time anything asked the runtime a question.
+        """
+        return self._missing_agents
+
     async def _health(self):
         try:
-            return await self._provider.health()
+            health = await self._provider.health()
+            self._missing_agents = tuple(getattr(health, "missing_agents", ()) or ())
+            return health
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001 - adapter errors must stay typed
@@ -418,6 +482,9 @@ class AgentRuntimeGateway:
             )
         return kind
 
+    def agent_for_capability(self, capability: str) -> str | None:
+        return self._runtime_profiles.agent_for_capability(capability)
+
     def _runtime_version(self, kind: RuntimeKind) -> str:
         if kind is RuntimeKind.OPENCODE:
             return self._settings.opencode_version
@@ -426,13 +493,15 @@ class AgentRuntimeGateway:
         return "in-process-scripted-v1"
 
     def _max_steps(self, intent: Intent) -> int:
+        if intent is Intent.BUILD_REPORT:
+            return self._settings.max_steps_report
         return (
             self._settings.max_steps_research
             if intent is Intent.EVIDENCE_RESEARCH
             else self._settings.max_steps_qa
         )
 
-    async def _prepare_context(self, context: RunContext) -> tuple[str, str, datetime]:
+    async def _prepare_context(self, context: RunContext) -> tuple[str, str, datetime, str | None]:
         """Load product-owned state and construct a bounded prompt projection."""
         async with self._db.unit_of_work() as uow:
             run = await uow.runs.get(context.run_id)
@@ -491,11 +560,24 @@ class AgentRuntimeGateway:
                         summary=f"{record.title[:120]!r}; read with get_evidence_record",
                     )
                 )
+            if context.intent is Intent.BUILD_REPORT:
+                builds = await uow.reports.list_builds_for_session(context.session_id, limit=50)
+                build = next((item for item in builds if item.id == context.report_build_id), None)
+                if build is None:
+                    raise RuntimeProtocolError("the report build manifest is missing")
+                pinned.append(PinnedReference(
+                    kind="report_build", id=build.id,
+                    summary="call get_report_context with this report_build_id before any other work",
+                ))
 
         profile = self._registry.profile_for_intent(context.intent.value)
         deadline = min(
             run.deadline_at,
-            _now() + timedelta(seconds=self._settings.turn_deadline_s),
+            _now() + timedelta(seconds=(
+                self._settings.report_turn_deadline_s
+                if context.intent is Intent.BUILD_REPORT
+                else self._settings.turn_deadline_s
+            )),
         )
         if deadline <= _now():
             raise DeadlineExceeded("the run deadline elapsed before runtime dispatch")
@@ -505,7 +587,95 @@ class AgentRuntimeGateway:
             pinned=pinned,
             recent_messages=recent,
         )
-        return prompt, profile, deadline
+        instructions_hash = None
+        if context.intent is Intent.BUILD_REPORT:
+            if self._profiles_dir is None:
+                raise RuntimeProtocolError("the report instruction profile directory is not configured")
+            composed = compose_report_profile(self._profiles_dir)
+            prompt = composed.instructions + "\n\n---\n\n# Run context\n\n" + prompt
+            instructions_hash = composed.content_sha256
+            async with self._db.unit_of_work() as uow:
+                builds = await uow.reports.list_builds_for_session(context.session_id, limit=50)
+                build = next((item for item in builds if item.id == context.report_build_id), None)
+                if build is not None:
+                    from dataclasses import replace
+                    state = dict(build.stage_state)
+                    state["instruction_manifest"] = composed.manifest()
+                    await uow.reports.save_build(replace(build, stage_state=state, updated_at=_now()))
+                    await uow.commit()
+        return prompt, profile, deadline, instructions_hash
+
+    async def _ensure_report_build(self, context: RunContext) -> str:
+        """Create the durable build manifest after an optional new snapshot exists."""
+        now = _now()
+        async with self._db.unit_of_work() as uow:
+            existing = await uow.reports.list_builds_for_session(context.session_id, limit=50)
+            current = (
+                next((item for item in existing if item.id == context.report_build_id), None)
+                if context.report_build_id
+                else next((item for item in existing if item.run_id == context.run_id), None)
+            )
+            if current is not None:
+                return current.id
+            session = await uow.sessions.get_unscoped(context.session_id)
+            analysis_id = context.analysis_id or (session.active_analysis_id if session else None)
+            snapshot = (
+                await uow.analyses.get(analysis_id, session_id=context.session_id)
+                if analysis_id else None
+            )
+            if snapshot is None:
+                raise RuntimeProtocolError("a report build requires an immutable analysis snapshot")
+            selected = tuple(context.endpoints or snapshot.served_endpoints)
+            unavailable = sorted(set(selected) - set(snapshot.served_endpoints))
+            if unavailable:
+                raise RuntimeProtocolError(
+                    "selected report endpoints are not served by this analysis",
+                    unavailable_endpoints=unavailable,
+                )
+            request = ReportBuildRequest(
+                session_id=context.session_id,
+                analysis_id=snapshot.id,
+                selected_endpoints=selected,
+                selected_tox21_tasks=tuple(
+                    task for endpoint, task in context.explanation_targets
+                    if endpoint == "tox21" and task
+                ),
+                report_language=context.report_language,
+                audience=context.report_audience,
+                include_explanations=context.explanation_mode != "none",
+                include_external_evidence=context.include_external_evidence,
+                output_formats=context.report_output_formats,
+            )
+            build = ReportBuild.start(
+                session_id=context.session_id, run_id=context.run_id, request=request,
+                now=now,
+                deadline_at=now + timedelta(seconds=self._settings.report_turn_deadline_s),
+            )
+            await uow.reports.add_build(build)
+            uow.emit(
+                session_id=context.session_id, type=EventType.REPORT_BUILD_STARTED,
+                entity_type="report_build", entity_id=build.id, run_id=context.run_id,
+                payload={"analysis_id": snapshot.id, "selected_endpoints": list(selected)},
+            )
+            stages = [
+                BuildStage.PREPARING_ANALYSIS, BuildStage.ASSEMBLING_SUBSTANCE,
+                BuildStage.ASSEMBLING_PREDICTIONS,
+            ]
+            if request.include_explanations:
+                stages.append(BuildStage.GENERATING_EXPLANATIONS)
+            if request.include_external_evidence:
+                stages.append(BuildStage.RESEARCHING_EVIDENCE)
+            stages.append(BuildStage.SYNTHESIZING)
+            for stage in stages:
+                build = build.advance(stage, now=now)
+            await uow.reports.save_build(build)
+            uow.emit(
+                session_id=context.session_id, type=EventType.REPORT_STAGE_CHANGED,
+                entity_type="report_build", entity_id=build.id, run_id=context.run_id,
+                payload={"stage": build.stage.value},
+            )
+            await uow.commit()
+            return build.id
 
     async def _persist_started_run(self, context: RunContext, binding: RuntimeBinding) -> None:
         async with self._db.unit_of_work() as uow:
@@ -540,6 +710,17 @@ class AgentRuntimeGateway:
         over the API.
         """
         stream = self._provider.events(runtime_session, after=None)
+        # One normalizer per runtime session. It is the fast path only: the
+        # partial unique index on (runtime_binding_id, source_event_id) is what
+        # holds when a worker is replaced mid-run and the replacement re-reads
+        # the stream from the beginning.
+        normalizer = (
+            RuntimeUsageNormalizer(
+                runtime_session.runtime_session_id, provider=self._provider.kind
+            )
+            if is_enabled("normalized_usage_v2")
+            else None
+        )
         lost = False
         delta_tail = ""
         while True:
@@ -570,7 +751,7 @@ class AgentRuntimeGateway:
                 ]
                 continue
             if event.type is RuntimeEventType.USAGE_REPORTED:
-                await self._record_usage_event(context, binding, event)
+                await self._record_usage_event(context, binding, event, normalizer)
                 continue
             if event.type is RuntimeEventType.TURN_IDLE:
                 if delta_tail and not await self._has_answer(context):
@@ -594,14 +775,27 @@ class AgentRuntimeGateway:
                 raise RuntimeProtocolError("the runtime turn failed", **event.payload)
 
     async def _record_usage_event(
-        self, context: RunContext, binding: RuntimeBinding, event: RuntimeEvent
+        self,
+        context: RunContext,
+        binding: RuntimeBinding,
+        event: RuntimeEvent,
+        normalizer: "RuntimeUsageNormalizer | None" = None,
     ) -> None:
-        """Persist a report as received, without inventing a total.
+        """Persist a report as a fact, without inventing a total.
 
         A zero is faithfully retained; an absent/malformed field is ``None``.
-        The event is an immutable audit record because providers disagree on
-        whether a later report is a delta or a cumulative snapshot.
+        With normalization on, a report that restates a total already held
+        establishes no new fact, and nothing is written or emitted — which is
+        the difference between 21 rows and the 7 the audit's Q&A run actually
+        measured (P1-1). Providers disagree on whether a later report is a
+        delta or a cumulative snapshot, so the row says which this one is
+        rather than leaving a reader to assume.
         """
+        normalized = None
+        if normalizer is not None:
+            normalized = normalizer.accept(event.payload)
+            if normalized is None:
+                return
         usage = RuntimeUsageEvent.from_provider_payload(
             session_id=context.session_id,
             run_id=context.run_id,
@@ -610,6 +804,14 @@ class AgentRuntimeGateway:
             model_id=binding.model_id,
             payload=event.payload,
             reported_at=event.occurred_at,
+            source_event_id=normalized.source_event_id if normalized else None,
+            source_event_type=normalized.source_event_type if normalized else None,
+            provider_message_id=normalized.provider_message_id if normalized else None,
+            provider_step_id=normalized.provider_step_id if normalized else None,
+            revision=normalized.revision if normalized else None,
+            semantics=normalized.semantics.value if normalized else "unknown",
+            is_normalized=normalized is not None,
+            raw_payload_hash=normalized.raw_payload_hash if normalized else None,
         )
         async with self._db.unit_of_work() as uow:
             await uow.runtime_usage.add(usage)
@@ -629,7 +831,84 @@ class AgentRuntimeGateway:
 
     async def _has_answer(self, context: RunContext) -> bool:
         async with self._db.unit_of_work() as uow:
+            if context.intent is Intent.BUILD_REPORT:
+                builds = await uow.reports.list_builds_for_session(context.session_id, limit=50)
+                build = next((item for item in builds if item.id == context.report_build_id), None)
+                return bool(build and build.report_id)
             return await uow.answers.get_for_run(context.run_id) is not None
+
+    async def _commit_product_and_complete(self, context: RunContext) -> None:
+        if context.intent is Intent.BUILD_REPORT:
+            await self._commit_report_and_complete(context)
+            return
+        await self._commit_answer_and_complete(context)
+
+    async def _commit_report_and_complete(self, context: RunContext) -> None:
+        async with self._db.unit_of_work() as uow:
+            run = await uow.runs.get(context.run_id)
+            builds = await uow.reports.list_builds_for_session(context.session_id, limit=50)
+            build = next((item for item in builds if item.id == context.report_build_id), None)
+            if run is None or build is None or not build.report_id:
+                # Say which of the three it was. "without submit_report_draft"
+                # was emitted for all of them, including the common case where
+                # the tool *was* called and the draft was refused — which sent
+                # whoever read the failure looking for a runtime that skipped a
+                # tool call, when the actual record showed two calls and two
+                # rejections.
+                raise RuntimeProtocolError(self._report_failure_detail(run, build))
+            artifact = await uow.reports.get_artifact(
+                build.report_id, session_id=context.session_id
+            )
+            if artifact is None:
+                raise RuntimeProtocolError("the accepted report artifact cannot be reconstructed")
+            if run.status is not RunStatus.RUNNING:
+                raise RuntimeProtocolError(
+                    "the run changed before its accepted report could be committed",
+                    status=run.status.value,
+                )
+            sequence = await uow.messages.next_sequence(context.session_id)
+            reply = Message.create(
+                context.session_id, Role.ASSISTANT, sequence, now=_now(),
+                parts=(
+                    (PartType.TEXT, {
+                        "text": f"Report completed: {artifact['title']}",
+                    }),
+                    (PartType.REPORT_REF, {
+                        "report_id": artifact["report_id"],
+                        "report_build_id": build.id,
+                        "status": artifact["status"],
+                    }),
+                ),
+            )
+            await uow.messages.add(reply)
+            uow.emit(
+                session_id=context.session_id, type=EventType.MESSAGE_CREATED,
+                entity_type="message", entity_id=reply.id, run_id=context.run_id,
+                payload={"role": "assistant", "report_id": artifact["report_id"]},
+            )
+            await advance(
+                uow, run, RunStatus.COMPLETED,
+                payload={"report_id": artifact["report_id"], "report_build_id": build.id},
+            )
+            await uow.commit()
+
+    @staticmethod
+    def _report_failure_detail(run, build) -> str:
+        """Why no report exists, in the terms the record actually supports."""
+        if run is None:
+            return "the runtime run disappeared before completion"
+        if build is None:
+            return "the report build this run was started for no longer resolves"
+        if build.stage is BuildStage.FAILED:
+            reason = build.failure_detail or build.failure_code or "no reason recorded"
+            return (
+                "submit_report_draft was called and the draft did not pass validation, so "
+                f"the build failed and no report was produced: {reason}"
+            )
+        return (
+            "the runtime reached a terminal event without a report: the build is "
+            f"{build.stage.value} and submit_report_draft never produced an artifact"
+        )
 
     async def _commit_answer_and_complete(self, context: RunContext) -> None:
         async with self._db.unit_of_work() as uow:

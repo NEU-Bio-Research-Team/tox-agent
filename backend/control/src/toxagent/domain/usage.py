@@ -57,6 +57,21 @@ class RuntimeUsageEvent:
     total_tokens: int | None = None
     cost_amount: Decimal | None = None
     cost_currency: str | None = None
+    #: Identity of the provider report this row came from (WS02). Stable
+    #: across a reconnect, so replaying a stream cannot create a second row
+    #: for the same report — the partial unique index is the enforcement.
+    source_event_id: str | None = None
+    source_event_type: str | None = None
+    provider_message_id: str | None = None
+    provider_step_id: str | None = None
+    revision: int | None = None
+    #: ``cumulative`` | ``delta`` | ``unknown``. Rows written before WS02 are
+    #: ``unknown``: their semantics were never recorded and cannot be inferred
+    #: without guessing, so they stay out of every total.
+    semantics: str = "unknown"
+    #: False for a row appended straight from a provider report.
+    is_normalized: bool = False
+    raw_payload_hash: str | None = None
 
     def __post_init__(self) -> None:
         require_id(self.id, RUNTIME_USAGE, field="usage.id")
@@ -74,6 +89,12 @@ class RuntimeUsageEvent:
             raise ValueError("usage.cost_amount must be non-negative when reported")
         if self.cost_amount is not None and not self.cost_currency:
             raise ValueError("usage.cost_currency is required when cost_amount is reported")
+        if self.semantics not in {"cumulative", "delta", "unknown"}:
+            raise ValueError(
+                f"usage.semantics {self.semantics!r} must be cumulative, delta or unknown"
+            )
+        if self.revision is not None and self.revision < 0:
+            raise ValueError("usage.revision must be non-negative when reported")
 
     @classmethod
     def from_provider_payload(
@@ -86,6 +107,14 @@ class RuntimeUsageEvent:
         model_id: str,
         payload: Mapping[str, Any],
         reported_at: datetime,
+        source_event_id: str | None = None,
+        source_event_type: str | None = None,
+        provider_message_id: str | None = None,
+        provider_step_id: str | None = None,
+        revision: int | None = None,
+        semantics: str = "unknown",
+        is_normalized: bool = False,
+        raw_payload_hash: str | None = None,
     ) -> "RuntimeUsageEvent":
         tokens = payload.get("tokens")
         tokens = tokens if isinstance(tokens, Mapping) else {}
@@ -116,6 +145,14 @@ class RuntimeUsageEvent:
             total_tokens=_first_count((tokens.get("total"), tokens.get("total_tokens"))),
             cost_amount=amount,
             cost_currency=currency,
+            source_event_id=source_event_id,
+            source_event_type=source_event_type,
+            provider_message_id=provider_message_id,
+            provider_step_id=provider_step_id,
+            revision=revision,
+            semantics=semantics,
+            is_normalized=is_normalized,
+            raw_payload_hash=raw_payload_hash,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -137,4 +174,13 @@ class RuntimeUsageEvent:
                 "amount": str(self.cost_amount) if self.cost_amount is not None else None,
                 "currency": self.cost_currency,
             },
+            "source": {
+                "event_id": self.source_event_id,
+                "event_type": self.source_event_type,
+                "message_id": self.provider_message_id,
+                "step_id": self.provider_step_id,
+                "revision": self.revision,
+            },
+            "semantics": self.semantics,
+            "is_normalized": self.is_normalized,
         }

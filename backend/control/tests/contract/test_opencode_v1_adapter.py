@@ -360,3 +360,121 @@ async def test_v1_local_mode_creates_and_reaps_only_its_run_workspace(tmp_path: 
 def test_v1_refuses_a_floating_or_wrong_version_pin():
     with pytest.raises(ValueError, match="pinned V1 contract"):
         OpenCodeV1Provider(RuntimeSettings(kind="opencode", opencode_version="latest"))
+
+
+# --- P0-1: the request body names the agent the intent resolved to ----------
+
+
+def _report_spec() -> RuntimeSessionSpec:
+    """What the gateway builds for a BUILD_REPORT run after WS01."""
+    now = datetime.now(timezone.utc)
+    return RuntimeSessionSpec(
+        session_id="ses_" + "1" * 32,
+        run_id="run_" + "3" * 32,
+        provider_id="provider-a",
+        model_id="model-a",
+        profile="report_build",
+        system_prompt="report instructions",
+        system_prompt_hash="c" * 64,
+        tool_schema=(),
+        tool_schema_hash="d" * 64,
+        mcp_url="http://control.private/internal/mcp",
+        max_steps=64,
+        deadline_at=now + timedelta(minutes=30),
+        runtime_agent_name="toxagent-report",
+        effective_max_steps=64,
+    )
+
+
+def _transport(agents: list[dict], recorder: list[httpx.Request], session_id: str):
+    def handler(request: httpx.Request) -> httpx.Response:
+        recorder.append(request)
+        if request.url.path == "/agent":
+            return httpx.Response(200, json=agents)
+        if request.url.path == "/session" and request.method == "POST":
+            return httpx.Response(200, json={"id": session_id})
+        if request.url.path == "/mcp" and request.method == "POST":
+            return httpx.Response(200, json={MCP_NAME: {"status": "connected"}})
+        if request.url.path == f"/mcp/{MCP_NAME}/connect":
+            return httpx.Response(200, json=True)
+        if request.url.path == f"/session/{session_id}/prompt_async":
+            return httpx.Response(204)
+        raise AssertionError(f"unexpected request {request.method} {request.url}")
+
+    return httpx.MockTransport(handler)
+
+
+async def test_a_report_turn_is_dispatched_to_the_report_agent():
+    """The audit's P0-1: this body said ``toxagent`` while the manifest said 64
+    steps. It must now say ``toxagent-report``, which is where 64 lives."""
+    requests: list[httpx.Request] = []
+    client = httpx.AsyncClient(
+        base_url="http://opencode.test",
+        transport=_transport(
+            [{"name": "toxagent"}, {"name": "toxagent-report"}], requests, "opencode-session-2"
+        ),
+    )
+    provider = OpenCodeV1Provider(_settings(), client=client)
+    session = await provider.create_session(_report_spec())
+    await provider.send(
+        session,
+        RuntimeTurn(
+            turn_id="run_" + "3" * 32,
+            user_message="Build the report.",
+            deadline_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            capability_token="run-capability-secret",
+        ),
+    )
+    prompt_body = json.loads(requests[-1].content)
+    assert prompt_body["agent"] == "toxagent-report"
+    await client.aclose()
+
+
+async def test_a_spec_without_an_agent_falls_back_to_the_configured_default():
+    requests: list[httpx.Request] = []
+    client = httpx.AsyncClient(
+        base_url="http://opencode.test",
+        transport=_transport([{"name": "toxagent"}], requests, "opencode-session-3"),
+    )
+    provider = OpenCodeV1Provider(_settings(), client=client)
+    session = await provider.create_session(_spec())
+    await provider.send(
+        session,
+        RuntimeTurn(
+            turn_id="run_" + "2" * 32,
+            user_message="What is the hERG result?",
+            deadline_at=datetime.now(timezone.utc) + timedelta(minutes=2),
+            capability_token="run-capability-secret",
+        ),
+    )
+    assert json.loads(requests[-1].content)["agent"] == "toxagent"
+    await client.aclose()
+
+
+async def test_a_missing_report_agent_is_a_missing_capability_not_a_dead_runtime():
+    """Q&A keeps working; ``build_report`` is reported unavailable instead of
+    being silently served by the 32-step shared agent."""
+    requests: list[httpx.Request] = []
+    client = httpx.AsyncClient(
+        base_url="http://opencode.test",
+        transport=_transport([{"name": "toxagent"}], requests, "opencode-session-4"),
+    )
+    provider = OpenCodeV1Provider(_settings(), client=client)
+    health = await provider.health()
+    assert health.healthy is True
+    assert health.missing_agents == ("toxagent-report",)
+    assert "toxagent-report" in health.detail
+    await client.aclose()
+
+
+async def test_a_missing_base_agent_is_still_a_dead_runtime():
+    requests: list[httpx.Request] = []
+    client = httpx.AsyncClient(
+        base_url="http://opencode.test",
+        transport=_transport([{"name": "something-else"}], requests, "opencode-session-5"),
+    )
+    provider = OpenCodeV1Provider(_settings(), client=client)
+    health = await provider.health()
+    assert health.healthy is False
+    assert "toxagent" in health.missing_agents
+    await client.aclose()
