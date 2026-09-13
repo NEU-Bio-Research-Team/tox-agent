@@ -34,9 +34,10 @@ baseline was 1,019 backend and 155 frontend.
 | PR-15 | Global/per-tenant quotas, graceful drain, recovery drills | G4 |
 | PR-18 | Metrics, dashboards, live eval, alpha rollout | G5 |
 
-`PR-16`'s second half — actually shrinking the report profile once the
-orchestrator owns the workflow — depends on PR-10, because the tokens to cut are
-the skills that describe work the orchestrator will be doing.
+`PR-16`'s second half — actually shrinking the report profile — waits on the
+orchestrator being dispatched through rather than merely built: the tokens to
+cut are the skills describing work the stage handlers now do, and they cannot
+be removed from the profile while the old path is still the one that runs.
 
 ## Flags, and when they must be gone
 
@@ -63,8 +64,10 @@ that a new hard-reject class runs in shadow before it refuses anything.
 **The semantic gates read denials, not meaning.** `report_semantics` checks a
 closed set of sentences that assert the absence of a fact the server holds. That
 is the exact shape both audit contradictions took, and it is much narrower than
-"does this paragraph agree with the data". The structural fix — every repeated
-fact compiled from one entry and referenced by id — needs PR-10.
+"does this paragraph agree with the data". The structural fix now exists —
+PR-10's bundle compiles every repeated fact once and hands out ids — but the
+gate stays until sections are actually written against those ids, because until
+then prose is still the thing being checked.
 
 **Router negation reaches four tokens.** Longer-range negation is a classifier
 question (WS07 step 7), and widening the window trades one class of false
