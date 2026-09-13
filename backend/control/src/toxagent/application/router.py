@@ -8,6 +8,17 @@ and, worse, can answer about the wrong molecule.
 The keyword lists are deliberately narrow. They exist to recognise an explicit
 request for literature, not to infer intent from tone; anything ambiguous falls
 through to clarification, which is cheap and honest.
+
+Matching is by **whole word and whole phrase** (``intent_matching``), not by
+substring. P1-9 of the 2026-09-13 audit: ``"execute" in text`` fires on
+"**exec**utive summary" and routed a question about a report section to
+OUT_OF_SCOPE, and ``"contribut"`` fires on "**contribut**ing factors". A term
+list here therefore spells out the forms it means; three forms of a word are
+three decisions, not an accident of a prefix.
+
+Every decision carries reason codes and the terms that produced them. A router
+that cannot say why it chose cannot be argued with, and the frontend's own
+guess must be a hint this code validates, never a second source of truth.
 """
 from __future__ import annotations
 
@@ -15,12 +26,14 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from ..domain.run import Intent, Lane
+from .intent_matching import matched_terms, mentions
 
 INTENT_HINTS: Final[dict[str, Intent]] = {
     "analyze": Intent.ANALYSIS,
     "ask_report": Intent.REPORT_QA,
     "research_evidence": Intent.EVIDENCE_RESEARCH,
     "request_attribution": Intent.ATTRIBUTION,
+    "build_report": Intent.BUILD_REPORT,
 }
 
 #: Explicit asks for external literature, in both supported languages (DEC-08).
@@ -31,15 +44,39 @@ RESEARCH_TERMS: Final[tuple[str, ...]] = (
     "bằng chứng",
 )
 
+#: Explicit asks for a whole report document. Deliberately narrow, and checked
+#: *before* the research and attribution terms: a report build launches
+#: explanation generation and bounded external research, which is far more
+#: expensive than either, and inferring it from "tell me about this molecule"
+#: would spend a provider budget nobody asked for (report spec section 3.1:
+#: "must not launch research or explanation generation for a normal prediction
+#: request"). A bare "report" is not enough on its own — this product already
+#: calls its analysis view a report, so the phrase has to name the *making* of
+#: one.
+REPORT_BUILD_TERMS: Final[tuple[str, ...]] = (
+    "build a report", "build me a report", "generate a report", "generate the report",
+    "write a report", "write me a report", "produce a report", "create a report",
+    "full report", "complete report", "detailed report", "comprehensive report",
+    "report document", "download a report", "export a report", "pdf report",
+    "tạo báo cáo", "lập báo cáo", "viết báo cáo", "xuất báo cáo", "báo cáo đầy đủ",
+    "báo cáo chi tiết", "báo cáo hoàn chỉnh",
+)
+
 #: Asks for a per-token explanation of one endpoint.
 ATTRIBUTION_TERMS: Final[tuple[str, ...]] = (
-    "attribution", "attribute", "which atoms", "which tokens", "contribut",
+    "attribution", "attributions", "attribute", "attributes",
+    "which atoms", "which tokens", "what atoms",
+    # Spelled out rather than the old "contribut" prefix, which matched
+    # "contributing factors" and turned a question about uncertainty into an
+    # attribution run.
+    "contributor", "contributors", "contribution", "contributions",
     "quy gán", "nguyên tử nào", "đóng góp",
 )
 
 #: Requests this product does not serve at all. Routed without touching a tool.
 OUT_OF_SCOPE_TERMS: Final[tuple[str, ...]] = (
-    "run this code", "execute", "shell command", "browse the web", "open a website",
+    "run this code", "execute this", "execute the following", "shell command",
+    "browse the web", "open a website",
     "prescribe", "dosage for a patient", "treat my", "diagnose",
     "kê đơn", "liều dùng cho bệnh nhân", "chẩn đoán",
 )
@@ -47,9 +84,15 @@ OUT_OF_SCOPE_TERMS: Final[tuple[str, ...]] = (
 #: Marks text as a question rather than a bare submission. Punctuation alone is
 #: not enough, since "CCO?" is a typo, not a question about a report.
 QUESTION_TERMS: Final[tuple[str, ...]] = (
-    "what", "why", "how", "which", "is it", "does", "explain", "compare", "should",
+    "what", "why", "how", "which", "is it", "does", "do", "explain", "compare",
+    "should", "can you", "tell me",
     "gì", "sao", "thế nào", "tại sao", "giải thích", "so sánh", "có nên", "bao nhiêu",
 )
+
+#: The router's own version, recorded on every decision and in the run
+#: configuration snapshot. A routing complaint six weeks old is unanswerable
+#: without knowing which rules were in force.
+ROUTER_VERSION: Final = "router-2"
 
 
 @dataclass(frozen=True)
@@ -78,16 +121,65 @@ class RouteRequest:
     def normalised_text(self) -> str:
         return self.text.strip().lower()
 
+    def matches(self, terms: tuple[str, ...]) -> tuple[str, ...]:
+        """Which of ``terms`` appear as whole words or phrases."""
+        return matched_terms(self.text, terms)
+
     def mentions(self, terms: tuple[str, ...]) -> bool:
-        text = self.normalised_text
-        return any(term in text for term in terms)
+        return bool(self.matches(terms))
 
     @property
     def looks_like_a_question(self) -> bool:
         text = self.normalised_text
         if not text:
             return False
-        return "?" in text and len(text) > 12 or any(t in text for t in QUESTION_TERMS)
+        # No negation handling here: "do not explain" is still a question,
+        # and suppressing the word would make it look like a bare submission.
+        if mentions(text, QUESTION_TERMS, negators=None):
+            return True
+        # Punctuation alone is not enough: "CCO?" is a typo, not a question.
+        return "?" in text and len(text) > 12
+
+
+@dataclass(frozen=True)
+class IntentDecision:
+    """Why the router chose what it chose.
+
+    Carried on every route so a disagreement can be settled with evidence
+    rather than by re-reading the term lists. ``matched`` holds the phrases
+    that actually fired, ``reason_codes`` the rules they triggered, and
+    ``required_context`` what a clarification is waiting for.
+
+    ``confidence`` is a band, not a number. ``high`` means an explicit signal —
+    a caller's ``intent_hint``, or a phrase that names the workflow. ``medium``
+    means a structural inference (a molecule with a question attached).
+    ``low`` means the router declined and asked.
+    """
+
+    intent: Intent
+    confidence: str
+    reason_codes: tuple[str, ...] = ()
+    matched: tuple[str, ...] = ()
+    required_context: tuple[str, ...] = ()
+    clarification_options: tuple[str, ...] = ()
+    router_version: str = ROUTER_VERSION
+    #: What the caller asked for, kept even when it was not honoured, so a UI
+    #: that disagrees with the backend can be shown where it diverged.
+    requested_hint: str = "auto"
+    hint_honoured: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "intent": self.intent.value,
+            "confidence": self.confidence,
+            "reason_codes": list(self.reason_codes),
+            "matched": list(self.matched),
+            "required_context": list(self.required_context),
+            "clarification_options": list(self.clarification_options),
+            "router_version": self.router_version,
+            "requested_hint": self.requested_hint,
+            "hint_honoured": self.hint_honoured,
+        }
 
 
 @dataclass(frozen=True)
@@ -97,24 +189,71 @@ class Route:
     reason: str
     needs_snapshot_first: bool = False
     clarification: Clarification | None = None
+    decision: IntentDecision | None = None
 
     @property
     def calls_a_runtime(self) -> bool:
         return self.lane in (Lane.AGENTIC, Lane.MIXED)
 
 
-def route(request: RouteRequest) -> Route:
-    """Decide the lane and intent for one request. Pure and total."""
-    hinted = INTENT_HINTS.get(request.intent_hint)
+def _subject_context(request: RouteRequest) -> tuple[str, ...]:
+    """What a subject-bound intent still needs before it can run."""
+    if request.analysis_id or request.has_active_analysis or request.molecule_smiles:
+        return ()
+    return ("analysis_id_or_smiles",)
 
-    if request.mentions(OUT_OF_SCOPE_TERMS):
+
+def route(request: RouteRequest) -> Route:
+    """Decide the lane and intent for one request. Pure and total.
+
+    Precedence is explicit and ordered, because two rules can both match one
+    sentence ("build me a report citing the literature" names a report build
+    *and* research) and the expensive workflow has to win deliberately rather
+    than by whichever list happens to be checked first.
+    """
+    hinted = INTENT_HINTS.get(request.intent_hint)
+    hint_given = request.intent_hint not in ("", "auto", None)
+    # An unknown hint is not a silent fall-through to inference: the caller
+    # asked for something this deployment does not have a name for.
+    hint_unknown = hint_given and hinted is None
+
+    def decide(
+        intent: Intent,
+        *,
+        confidence: str,
+        codes: tuple[str, ...],
+        matched: tuple[str, ...] = (),
+    ) -> IntentDecision:
+        return IntentDecision(
+            intent=intent,
+            confidence=confidence,
+            reason_codes=codes + (("unknown_intent_hint",) if hint_unknown else ()),
+            matched=matched,
+            router_version=ROUTER_VERSION,
+            requested_hint=request.intent_hint or "auto",
+            hint_honoured=not hint_given or (hinted is not None and hinted is intent),
+        )
+
+    out_of_scope = request.matches(OUT_OF_SCOPE_TERMS)
+    if out_of_scope:
         return Route(
             Intent.OUT_OF_SCOPE, Lane.DETERMINISTIC,
             "the request asks for something outside this product's scope",
+            decision=decide(
+                Intent.OUT_OF_SCOPE,
+                confidence="high",
+                codes=("out_of_scope_phrase",),
+                matched=out_of_scope,
+            ),
         )
 
     if request.batch_smiles:
-        return Route(Intent.ANALYSIS_BATCH, Lane.DETERMINISTIC, "batch of molecules submitted")
+        return Route(
+            Intent.ANALYSIS_BATCH, Lane.DETERMINISTIC, "batch of molecules submitted",
+            decision=decide(
+                Intent.ANALYSIS_BATCH, confidence="high", codes=("batch_submitted",)
+            ),
+        )
 
     if request.has_image:
         # Lane.DETERMINISTIC — REBUILD_PLAN section 26.6's own transcript-shape
@@ -128,16 +267,63 @@ def route(request: RouteRequest) -> Route:
         # submit_message.py's `structure_recognition_available` gate) — both
         # are a deterministic lookup, so the run's lane must say so.
         return Route(
-            Intent.STRUCTURE_RECOGNITION, Lane.DETERMINISTIC, "an image was submitted for structure recognition"
+            Intent.STRUCTURE_RECOGNITION, Lane.DETERMINISTIC,
+            "an image was submitted for structure recognition",
+            decision=decide(
+                Intent.STRUCTURE_RECOGNITION,
+                confidence="high",
+                codes=("image_submitted",),
+            ),
         )
 
-    if hinted is Intent.ATTRIBUTION or (
-        hinted is None and request.mentions(ATTRIBUTION_TERMS)
-    ):
-        if not (request.analysis_id or request.has_active_analysis or request.molecule_smiles):
+    report_terms = request.matches(REPORT_BUILD_TERMS)
+    wants_report = hinted is Intent.BUILD_REPORT or (hinted is None and report_terms)
+    if wants_report:
+        missing = _subject_context(request)
+        if missing:
+            return _clarify(
+                "report_subject_missing",
+                "Which molecule or analysis should the report be about?",
+                decision=decide(
+                    Intent.CLARIFICATION_REQUIRED,
+                    confidence="low",
+                    codes=("report_requested", "subject_missing"),
+                    matched=report_terms,
+                ),
+                required_context=missing,
+            )
+        return Route(
+            Intent.BUILD_REPORT,
+            # MIXED even without a new molecule: a report build is a
+            # deterministic assembly stage (substance, predictions,
+            # explanations) followed by an agent synthesis stage, which is
+            # exactly what MIXED describes. Calling it AGENTIC would say the
+            # whole thing is a model turn, and the expensive half is not.
+            Lane.MIXED,
+            "the request explicitly asks for a report document to be produced",
+            needs_snapshot_first=bool(request.molecule_smiles),
+            decision=decide(
+                Intent.BUILD_REPORT,
+                confidence="high",
+                codes=("explicit_hint",) if hinted else ("report_phrase",),
+                matched=report_terms,
+            ),
+        )
+
+    attribution_terms = request.matches(ATTRIBUTION_TERMS)
+    if hinted is Intent.ATTRIBUTION or (hinted is None and attribution_terms):
+        missing = _subject_context(request)
+        if missing:
             return _clarify(
                 "attribution_target_missing",
                 "Which analysis and endpoint should the attribution explain?",
+                decision=decide(
+                    Intent.CLARIFICATION_REQUIRED,
+                    confidence="low",
+                    codes=("attribution_requested", "subject_missing"),
+                    matched=attribution_terms,
+                ),
+                required_context=missing,
             )
         return Route(
             Intent.ATTRIBUTION,
@@ -147,34 +333,76 @@ def route(request: RouteRequest) -> Route:
             # even if a *different* analysis is already active — otherwise a
             # new molecule silently answers against the stale one.
             needs_snapshot_first=bool(request.molecule_smiles),
+            decision=decide(
+                Intent.ATTRIBUTION,
+                confidence="high",
+                codes=("explicit_hint",) if hinted else ("attribution_phrase",),
+                matched=attribution_terms,
+            ),
         )
 
+    research_terms = request.matches(RESEARCH_TERMS)
     wants_research = hinted is Intent.EVIDENCE_RESEARCH or (
-        hinted is None and request.mentions(RESEARCH_TERMS)
+        hinted is None and research_terms
     )
     if wants_research:
-        if not (request.analysis_id or request.has_active_analysis or request.molecule_smiles):
+        missing = _subject_context(request)
+        if missing:
             return _clarify(
                 "research_subject_missing",
                 "Which molecule or analysis should the evidence search be about?",
+                decision=decide(
+                    Intent.CLARIFICATION_REQUIRED,
+                    confidence="low",
+                    codes=("research_requested", "subject_missing"),
+                    matched=research_terms,
+                ),
+                required_context=missing,
             )
         return Route(
             Intent.EVIDENCE_RESEARCH,
             Lane.AGENTIC,
             "the request explicitly asks for external literature",
             needs_snapshot_first=bool(request.molecule_smiles),
+            decision=decide(
+                Intent.EVIDENCE_RESEARCH,
+                confidence="high",
+                codes=("explicit_hint",) if hinted else ("research_phrase",),
+                matched=research_terms,
+            ),
         )
 
     if hinted is Intent.ANALYSIS:
         if not request.molecule_smiles:
-            return _clarify("smiles_missing", "Which SMILES should be analysed?")
-        return Route(Intent.ANALYSIS, Lane.DETERMINISTIC, "analysis requested for a SMILES")
+            return _clarify(
+                "smiles_missing",
+                "Which SMILES should be analysed?",
+                decision=decide(
+                    Intent.CLARIFICATION_REQUIRED,
+                    confidence="low",
+                    codes=("analysis_requested", "smiles_missing"),
+                ),
+                required_context=("molecule_smiles",),
+            )
+        return Route(
+            Intent.ANALYSIS, Lane.DETERMINISTIC, "analysis requested for a SMILES",
+            decision=decide(
+                Intent.ANALYSIS, confidence="high", codes=("explicit_hint",)
+            ),
+        )
 
     if hinted is Intent.REPORT_QA:
-        if not (request.analysis_id or request.has_active_analysis or request.molecule_smiles):
+        missing = _subject_context(request)
+        if missing:
             return _clarify(
                 "report_subject_missing",
                 "Which analysis is the question about? Submit a SMILES or select one.",
+                decision=decide(
+                    Intent.CLARIFICATION_REQUIRED,
+                    confidence="low",
+                    codes=("question_requested", "subject_missing"),
+                ),
+                required_context=missing,
             )
         needs_snapshot = bool(request.molecule_smiles)
         return Route(
@@ -182,11 +410,17 @@ def route(request: RouteRequest) -> Route:
             Lane.MIXED if needs_snapshot else Lane.AGENTIC,
             "the caller asked to question a report",
             needs_snapshot_first=needs_snapshot,
+            decision=decide(
+                Intent.REPORT_QA, confidence="high", codes=("explicit_hint",)
+            ),
         )
 
     if request.molecule_smiles and not request.looks_like_a_question:
         return Route(
-            Intent.ANALYSIS, Lane.DETERMINISTIC, "a molecule was submitted with no question"
+            Intent.ANALYSIS, Lane.DETERMINISTIC, "a molecule was submitted with no question",
+            decision=decide(
+                Intent.ANALYSIS, confidence="medium", codes=("bare_molecule",)
+            ),
         )
 
     if request.molecule_smiles and request.looks_like_a_question:
@@ -197,12 +431,31 @@ def route(request: RouteRequest) -> Route:
             Intent.REPORT_QA, Lane.MIXED,
             "a new molecule and a question; the snapshot is taken before the question is answered",
             needs_snapshot_first=True,
+            decision=decide(
+                Intent.REPORT_QA,
+                confidence="medium",
+                codes=("molecule_with_question",),
+            ),
         )
 
     if request.analysis_id or request.has_active_analysis:
         if not request.text.strip():
-            return _clarify("question_missing", "What would you like to know about this analysis?")
-        return Route(Intent.REPORT_QA, Lane.AGENTIC, "a question about an existing analysis")
+            return _clarify(
+                "question_missing",
+                "What would you like to know about this analysis?",
+                decision=decide(
+                    Intent.CLARIFICATION_REQUIRED,
+                    confidence="low",
+                    codes=("active_analysis", "question_missing"),
+                ),
+                required_context=("question_text",),
+            )
+        return Route(
+            Intent.REPORT_QA, Lane.AGENTIC, "a question about an existing analysis",
+            decision=decide(
+                Intent.REPORT_QA, confidence="medium", codes=("question_about_active",)
+            ),
+        )
 
     if request.text.strip():
         # This clarification is only ever reached when there is no active
@@ -213,15 +466,42 @@ def route(request: RouteRequest) -> Route:
             "molecule_missing",
             "Provide a SMILES string to analyse.",
             options=("submit_smiles",),
+            decision=decide(
+                Intent.CLARIFICATION_REQUIRED,
+                confidence="low",
+                codes=("text_without_subject",),
+            ),
+            required_context=("molecule_smiles",),
         )
 
-    return _clarify("empty_request", "The request contained neither a molecule nor a question.")
+    return _clarify(
+        "empty_request",
+        "The request contained neither a molecule nor a question.",
+        decision=decide(
+            Intent.CLARIFICATION_REQUIRED, confidence="low", codes=("empty_request",)
+        ),
+        required_context=("molecule_smiles", "question_text"),
+    )
 
 
-def _clarify(code: str, question: str, options: tuple[str, ...] = ()) -> Route:
+def _clarify(
+    code: str,
+    question: str,
+    options: tuple[str, ...] = (),
+    *,
+    decision: IntentDecision | None = None,
+    required_context: tuple[str, ...] = (),
+) -> Route:
+    from dataclasses import replace as _replace
+
+    if decision is not None:
+        decision = _replace(
+            decision, required_context=required_context, clarification_options=options
+        )
     return Route(
         Intent.CLARIFICATION_REQUIRED,
         Lane.DETERMINISTIC,
         "the request is missing something the router will not guess at",
         clarification=Clarification(code, question, options),
+        decision=decision,
     )

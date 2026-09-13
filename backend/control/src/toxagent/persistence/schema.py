@@ -79,6 +79,10 @@ run_configuration_snapshots = Table(
     Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
     Column("ai_profile_id", _ID, nullable=True),
     Column("predictor_bindings", Json, nullable=False),
+    # Which router decided this run's intent, and why. Nullable: runs routed
+    # before WS07 recorded neither, and a routing complaint is unanswerable
+    # without knowing which rules were in force (P1-9).
+    Column("intent_decision", Json),
     Column("created_at", _TS, nullable=False),
 )
 

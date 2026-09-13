@@ -80,6 +80,10 @@ _CAPABILITY_UNAVAILABLE_MESSAGE: dict[Intent, str] = {
         "This deployment runs predictions only and cannot compute an attribution "
         "explanation. Prediction and batch prediction remain available."
     ),
+    Intent.BUILD_REPORT: (
+        "This deployment cannot build report documents because its restricted report "
+        "runtime or literature provider is unavailable."
+    ),
 }
 
 
@@ -107,6 +111,10 @@ class MessageSubmission:
     image_mime_type: str | None = None
     image_size_bytes: int = 0
     image_bytes: bytes | None = None
+    report_language: str = "en"
+    report_audience: str = "technical_r_and_d"
+    include_external_evidence: bool = True
+    report_output_formats: tuple[str, ...] = ("markdown", "html")
 
 
 @dataclass(frozen=True)
@@ -309,6 +317,8 @@ class SubmitMessage:
             deadline_s = (
                 self._settings.structure_recognition_deadline_s
                 if decision.intent is Intent.STRUCTURE_RECOGNITION
+                else self._settings.report_build_deadline_s
+                if decision.intent is Intent.BUILD_REPORT
                 else self._settings.run_deadline_s
             )
             run = Run.create(
@@ -319,6 +329,9 @@ class SubmitMessage:
             await uow.run_configuration_snapshots.add(
                 run.id, ai_profile_id=ai_profile_id,
                 predictor_bindings=resolved_model_selection, now=_now(),
+                intent_decision=(
+                    decision.decision.to_dict() if decision.decision else None
+                ),
             )
             uow.emit(
                 session_id=session_id, type=EventType.RUN_QUEUED, entity_type="run",
@@ -371,6 +384,10 @@ class SubmitMessage:
                 needs_snapshot_first=decision.needs_snapshot_first,
                 language=session.preferred_language.value,
                 attachment_id=attachment_id,
+                report_language=submission.report_language,
+                report_audience=submission.report_audience,
+                include_external_evidence=submission.include_external_evidence,
+                report_output_formats=submission.report_output_formats,
             )
             # I18: the run row and the record of what the run is *for* commit
             # together. Accepting a request and then holding its only copy in
