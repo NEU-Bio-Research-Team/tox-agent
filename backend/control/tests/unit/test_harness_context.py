@@ -7,6 +7,7 @@ from toxagent.domain.message import Message, PartType, Role
 from toxagent.domain.session import Session
 from toxagent.harness.context import (
     ANSWER_FORMAT,
+    DECISION_SUPPORT_POLICY,
     PRODUCT_ROLE,
     REQUIRED_LIMITATIONS_GUIDE,
     SCIENTIFIC_INVARIANTS,
@@ -50,3 +51,22 @@ def test_context_prefix_has_the_plan_order_and_keeps_messages_as_a_projection():
     # The current user message is sent in RuntimeTurn, never duplicated into
     # this prefix by the context builder.
     assert "Current user message" not in prompt
+
+
+def test_decision_support_gets_the_search_policy_other_profiles_do_not():
+    """ADR 0010 / W4: the sufficiency/search-trigger policy is only meaningful
+    where the model decides whether to search at all; a closed profile like
+    report_qa never had that choice, so it should not carry the policy."""
+    common = dict(
+        checkpoint=SessionCheckpoint(), pinned=(), recent_messages=(),
+    )
+    decision_support_prompt = build_system_prompt(
+        capability_profile="decision_support", **common
+    )
+    report_qa_prompt = build_system_prompt(capability_profile="report_qa", **common)
+
+    assert DECISION_SUPPORT_POLICY in decision_support_prompt
+    assert DECISION_SUPPORT_POLICY not in report_qa_prompt
+    assert decision_support_prompt.index(REQUIRED_LIMITATIONS_GUIDE) < (
+        decision_support_prompt.index(DECISION_SUPPORT_POLICY)
+    )

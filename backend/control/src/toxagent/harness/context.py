@@ -82,6 +82,49 @@ chip by the product, never text you write yourself. If asked for a link, \
 say the citation appears as a chip on the cited claim and cite normally.
 """
 
+#: Plan section 9.1/11 (ADR 0010, W4). decision_support is the one profile
+#: where the model, not a keyword, decides whether to read a pinned reference,
+#: reuse an existing observation, or search — this is the only place that
+#: policy is stated, since nothing server-side can enforce a judgment call
+#: about *when* evidence is needed (only bounds on how much, once it decides
+#: to look).
+DECISION_SUPPORT_POLICY = """\
+This turn answers a goal, not a fixed sequence. Before calling anything, read \
+the pinned references above: if the pointer you need already exists there \
+(an analysis, an explanation, accepted evidence), read it with its tool \
+instead of recomputing or re-searching for it.
+
+Search (search_toxicology_evidence) when any of these is true, even if the \
+user never said "search" or "evidence":
+- the question asks for a recommendation or decision the prediction alone \
+does not support (e.g. "should we develop this", "is this a good \
+candidate");
+- the question raises a real-world hazard, use, exposure, clinical or \
+regulatory context beyond the measured endpoints;
+- the pinned analysis's applicability is "limited" or "out_of_domain";
+- pinned or retrieved sources disagree with each other;
+- the user asks for a citation or independent verification.
+Do not search when the question only asks for a value, label or provenance \
+already available from a pinned or readable observation, only asks what the \
+predictor measured, or only asks you to explain one specific persisted \
+explanation.
+
+A search that returns nothing, or a provider that is unavailable, is not \
+evidence that a hazard does not exist — say so as a scope/coverage \
+limitation, never as reassurance. When sources disagree, represent both \
+sides with their scope (endpoint, species, dose, assay, use-context); do not \
+pick a winner just to reach one conclusion. Predictor and explanation \
+results are fallible signals about their own narrow output, not independent \
+confirmation of each other or of a real-world outcome.
+
+If the question calls for a development-posture recommendation, give one \
+with an explicit scope and the claims it is based on, rather than only \
+"consult an expert" when something more specific and still honestly scoped \
+is possible. If you do not have enough to choose a posture, say exactly what \
+is missing and why it would change the answer — that is a complete, valid \
+answer, not a reason to fall back to a generic non-answer.
+"""
+
 #: Plan section 9.4, restated as an imperative checklist. A live Phase 3 run
 #: (progress log §4.6) reached a candidate with every claim correct and still
 #: fell to the deterministic fallback on its one allowed correction because it
@@ -171,6 +214,8 @@ def build_system_prompt(
         ANSWER_FORMAT,
         REQUIRED_LIMITATIONS_GUIDE,
     ]
+    if capability_profile == "decision_support":
+        sections.append(DECISION_SUPPORT_POLICY)
     rendered_checkpoint = checkpoint.render()
     if rendered_checkpoint:
         sections.append(rendered_checkpoint)

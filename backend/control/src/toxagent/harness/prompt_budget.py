@@ -192,6 +192,12 @@ PROMPT_TARGETS: Mapping[str, int] = {
     "analysis": 2_500,
     "evidence_research": 2_500,
     "report_build": 8_000,
+    # ADS plan section 8.1/W3 (ADR 0010): the conversational target, same as
+    # report_qa/evidence_research/analysis — this profile carries more pinned
+    # references and a search-policy block those never needed, so it is the
+    # one most likely to actually trip `over_budget_by`; W8 tunes the number,
+    # this PR only makes sure it is measured at all.
+    "decision_support": 2_500,
 }
 
 
