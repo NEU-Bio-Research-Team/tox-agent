@@ -10,15 +10,20 @@ untouched by this migration.
 
 New table; nothing existing is altered.
 
-Revision ID: 0016_evidence_relation_assessments
+Revision ID: 0016_evidence_relations
 Revises: 0015_concurrency_slots
+
+The revision id is intentionally shorter than the table name: alembic_version
+.version_num is character varying(32), and "0016_evidence_relation_assessments"
+(34 chars) doesn't fit — found the hard way, against a real database, rather
+than by reading the column definition first.
 """
 from alembic import op
 import sqlalchemy as sa
 
 from toxagent.persistence.migration_helpers import index_exists, table_exists
 
-revision = "0016_evidence_relation_assessments"
+revision = "0016_evidence_relations"
 down_revision = "0015_concurrency_slots"
 branch_labels = None
 depends_on = None
