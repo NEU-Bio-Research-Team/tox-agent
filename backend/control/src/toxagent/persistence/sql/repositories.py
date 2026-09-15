@@ -1554,6 +1554,28 @@ class SqlToolCallStore:
             or 0
         )
 
+    async def count_for_run_and_tool(self, run_id: str, tool_name: str) -> int:
+        """Admitted calls to one tool, for a per-tool budget (ADS plan
+        section 9.2/W4-04) distinct from ``count_for_run``'s whole-run cap —
+        e.g. a decision_support run may search several times within its
+        overall step budget, but only up to its own, tighter query budget."""
+        return int(
+            (
+                await self._conn.execute(
+                    select(func.count())
+                    .select_from(tool_calls)
+                    .where(
+                        and_(
+                            tool_calls.c.run_id == run_id,
+                            tool_calls.c.tool_name == tool_name,
+                            tool_calls.c.status != "denied",
+                        )
+                    )
+                )
+            ).scalar()
+            or 0
+        )
+
     async def duplicate_count(self, run_id: str, tool_name: str, arguments_sha256: str) -> int:
         return int(
             (

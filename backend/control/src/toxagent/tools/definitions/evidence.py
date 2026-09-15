@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...config import ResearchSettings
-from ...domain.errors import AnalysisNotFound, EvidenceNotFound
+from ...domain.errors import AnalysisNotFound, EvidenceNotFound, ToolDenied
 from ...domain.events import EventType
 from ...domain.evidence import EvidenceStatus
 from ...research.interfaces import ResearchProvider
@@ -44,6 +44,17 @@ _SEARCH_RESULT_FIELDS = (
     "title", "authors", "published_at", "source_type", "source_quality_tier",
     "identifier", "canonical_url",
 )
+
+#: ADS plan section 9.2 initial budgets (W4-04). Enforced only for
+#: decision_support: evidence_research's whole reason for existing is
+#: intensive search, and report_build is bounded by its own step cap, so a
+#: query-specific ceiling here is a decision_support-only guardrail against
+#: the unbounded search loop the motivating run's postmortem worried about —
+#: not a limit the plan asks every profile to share. The numbers are a
+#: starting point to tune against eval (plan section 9.2's own caveat), not a
+#: permanent constant.
+DECISION_SUPPORT_MAX_SEARCHES_PER_RUN = 4
+DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN = 8
 
 
 def _now() -> datetime:
@@ -102,8 +113,28 @@ def build(
     async def search_evidence(context: ToolContext, payload: SearchEvidenceInput) -> ToolOutput:
         async with database.unit_of_work() as uow:
             snapshot = await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
+            if context.profile == "decision_support":
+                # Counted *including* this call: ToolRunner._reserve already
+                # inserted this call's own "running" row before the handler
+                # ran, so on the Nth search this count is already N — the
+                # budget is "at most N searches", not "N searches before
+                # this one".
+                used = await uow.tool_calls.count_for_run_and_tool(
+                    context.run_id, "search_toxicology_evidence"
+                )
         if snapshot is None:
             raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
+        if (
+            context.profile == "decision_support"
+            and used > DECISION_SUPPORT_MAX_SEARCHES_PER_RUN
+        ):
+            raise ToolDenied(
+                f"this run has reached its budget of {DECISION_SUPPORT_MAX_SEARCHES_PER_RUN} "
+                "evidence searches. Broadening or repeating the query further will not be "
+                "admitted — synthesize an answer from what has already been read, and say "
+                "what remains unsearched as a scope limitation rather than a negative finding.",
+                searches_used=used - 1, max_searches=DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
+            )
 
         budget = RetrievalBudget.from_request(payload.limit)
         assessment_target = (
@@ -224,9 +255,24 @@ def build(
     async def get_evidence(context: ToolContext, payload: GetEvidenceInput) -> ToolOutput:
         async with database.unit_of_work() as uow:
             record = await uow.evidence.get(payload.evidence_id, session_id=context.session_id)
+            if context.profile == "decision_support":
+                used = await uow.tool_calls.count_for_run_and_tool(
+                    context.run_id, "get_evidence_record"
+                )
         if record is None:
             raise EvidenceNotFound(
                 "no such evidence in this session", evidence_id=payload.evidence_id
+            )
+        if (
+            context.profile == "decision_support"
+            and used > DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN
+        ):
+            raise ToolDenied(
+                f"this run has reached its budget of "
+                f"{DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN} evidence records read. Cite "
+                "only from what has already been read, and note anything else found but "
+                "unread as a scope limitation.",
+                records_read=used - 1, max_records=DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
             )
         fields = tuple(payload.fields) if payload.fields else None
         view = record.model_view(fields=fields)

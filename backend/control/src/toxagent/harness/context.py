@@ -89,10 +89,19 @@ say the citation appears as a chip on the cited claim and cite normally.
 #: about *when* evidence is needed (only bounds on how much, once it decides
 #: to look).
 DECISION_SUPPORT_POLICY = """\
-This turn answers a goal, not a fixed sequence. Before calling anything, read \
-the pinned references above: if the pointer you need already exists there \
-(an analysis, an explanation, accepted evidence), read it with its tool \
-instead of recomputing or re-searching for it.
+This turn answers a goal, not a fixed sequence. Call get_artifact_inventory \
+first: it tells you what already exists (the active analysis, the latest \
+report and its gaps/recommendations, which explanations already exist, which \
+evidence is already accepted, and which tools this deployment actually has) \
+without spending budget reading any of it. Read the pinned references above \
+too — if the pointer you need is already there, read it with the tool named \
+for it instead of recomputing or re-searching for it. A report's gap is not \
+evidence against the missing claim; get_report_summary is how you read what \
+a prior report already established before deciding what is still open.
+
+Evidence search is bounded per run (a handful of queries, a bounded number of \
+records read) — spend it on what the answer actually needs, not on \
+re-confirming something get_artifact_inventory already told you exists.
 
 Search (search_toxicology_evidence) when any of these is true, even if the \
 user never said "search" or "evidence":
