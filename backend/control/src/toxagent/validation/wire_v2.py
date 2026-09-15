@@ -37,6 +37,20 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from .wire import ID_PATTERN, TRANSFORM_PATTERN, LimitationCandidate
 
+#: ADS plan section 9.3/W5-06. Allowed values mirror
+#: domain/evidence_relation.py's enums exactly — kept as plain string
+#: literals here (rather than importing the domain enums) so the wire layer
+#: stays free of domain-object coupling, the same separation wire.py/wire_v2.py
+#: already keep from domain/answer.py.
+_SOURCE_CLASSES = (
+    "predictor_fact", "explanation_fact", "external_experimental",
+    "external_regulatory", "report_fact", "agent_synthesis",
+)
+_RELATIONS = ("supports", "contradicts", "contextual", "insufficient", "not_applicable")
+_DIRECTNESS = ("direct", "indirect")
+_APPLICABILITY = ("ok", "limited", "out_of_domain", "not_applicable")
+_STRENGTH = ("weak", "moderate", "strong", "not_assessed")
+
 SCHEMA_VERSION = "grounded-answer-v2"
 
 #: A label, not an identifier. Short, readable, and scoped to one draft — two
@@ -118,6 +132,54 @@ class RecommendationCandidateV2(_Wire):
     basis_local_refs: list[str] = Field(default_factory=list)
 
 
+class EvidenceRelationInputV2(_Wire):
+    """One source's proposed bearing on one proposition (ADS plan section
+    9.3/W5-06, ADR 0010). The model proposes; the server independently
+    resolves ``source_id`` against a real, session-owned artifact before
+    persisting (domain/evidence_relation.py's own docstring: an unresolved
+    source is rejected, not partially trusted).
+
+    Deliberately no ``proposition_id`` field: minting a fresh, globally
+    unique id is exactly the "make the model generate entropy" failure
+    mode ``ClaimCandidateV2``'s ``local_ref`` exists to avoid (see this
+    module's own docstring) — the server mints one, grouping relations that
+    give the same ``proposition`` text within one draft under the same id.
+    """
+
+    proposition: str = Field(min_length=1, max_length=500)
+    source_class: Literal[_SOURCE_CLASSES]
+    source_id: str
+    relation: Literal[_RELATIONS]
+    directness: Literal[_DIRECTNESS] = "direct"
+    applicability: Literal[_APPLICABILITY] = "ok"
+    strength: Literal[_STRENGTH] = "not_assessed"
+    reason_codes: list[str] = Field(default_factory=list, max_length=8)
+    endpoint: str | None = None
+    species: str | None = None
+    dose: str | None = None
+    use_context: str | None = None
+
+    @field_validator("source_id")
+    @classmethod
+    def _source_id_shape(cls, value: str) -> str:
+        if not ID_PATTERN.match(value):
+            raise ValueError(
+                f"source_id {value!r} is not a ToxAgent identifier — it must be a real "
+                "observation_id, evidence_id or report_id handed to you by a tool, never one "
+                "you invent"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def _reason_codes_required_unless_a_null_outcome(self) -> "EvidenceRelationInputV2":
+        if self.relation not in ("insufficient", "not_applicable") and not self.reason_codes:
+            raise ValueError(
+                f"a {self.relation} relation must carry at least one reason code — 'we "
+                "assessed this but decline to say why' is not an accepted state"
+            )
+        return self
+
+
 class GroundedAnswerDraftV2(_Wire):
     """One complete draft. The final action of a conversational run."""
 
@@ -127,6 +189,12 @@ class GroundedAnswerDraftV2(_Wire):
     limitations: list[LimitationCandidate] = Field(default_factory=list, max_length=16)
     recommended_next_steps: list[RecommendationCandidateV2] = Field(
         default_factory=list, max_length=8
+    )
+    #: Decision-support only in practice (other profiles have no reason to
+    #: populate this), but not schema-gated by profile — an empty list is a
+    #: no-op everywhere else, the same way other optional fields here are.
+    evidence_relations: list[EvidenceRelationInputV2] = Field(
+        default_factory=list, max_length=16
     )
 
     @model_validator(mode="after")

@@ -16,12 +16,23 @@ from ..domain.answer import GroundedAnswer
 from ..domain.errors import AnswerValidationFailed, Conflict, SessionNotFound, Violation
 from ..domain.evidence import EvidenceRecord
 from ..domain.events import EventType
+from ..domain.evidence_relation import (
+    Applicability,
+    Directness,
+    EvidenceRelationAssessment,
+    EvidenceScope,
+    RelationLabel,
+    SourceClass,
+    SourceRef,
+    Strength,
+    new_proposition_id,
+)
 from ..domain.observation import Observation
 from ..validation.answer_validator import AnswerValidationResult, validate_candidate
 from ..validation.fallback import build_fallback_answer
 from ..validation.wire import GroundedAnswerCandidate
 from ..validation.claim_resolver import resolve_draft
-from ..validation.wire_v2 import GroundedAnswerDraftV2
+from ..validation.wire_v2 import EvidenceRelationInputV2, GroundedAnswerDraftV2
 
 SUBMIT_TOOL_NAME = "submit_grounded_answer"
 
@@ -59,6 +70,13 @@ class SubmitAnswer:
             observations_by_id = await self._resolve_observations(uow, session_id, candidate)
             evidence_by_id = await self._resolve_evidence(uow, session_id, candidate)
             read_evidence_ids = await self._resolve_read_evidence_ids(uow, run_id)
+            # Captured before v2 resolution reassigns ``candidate`` below: v1
+            # (GroundedAnswerCandidate) carries no evidence_relations field at
+            # all, so this is empty on that path.
+            proposed_relations = (
+                candidate.evidence_relations
+                if isinstance(candidate, GroundedAnswerDraftV2) else []
+            )
 
             if isinstance(candidate, GroundedAnswerDraftV2):
                 # The server issues the identifiers and reads the values before
@@ -84,8 +102,20 @@ class SubmitAnswer:
             )
             result = await self._reject_claim_id_collisions(uow, candidate, result)
 
+            resolved_relations: list[EvidenceRelationAssessment] = []
+            if result.ok and proposed_relations:
+                resolved_relations, relation_violations = await self._resolve_evidence_relations(
+                    uow, session_id=session_id, run_id=run_id, proposed=proposed_relations,
+                )
+                if relation_violations:
+                    result = replace(
+                        result, violations=(*result.violations, *relation_violations), answer=None
+                    )
+
             if result.ok:
                 await uow.answers.add(result.answer)
+                for assessment in resolved_relations:
+                    await uow.evidence_relations.add(assessment)
                 uow.emit(
                     session_id=session_id, type=EventType.ANSWER_ACCEPTED,
                     entity_type="answer", entity_id=result.answer.id, run_id=run_id,
@@ -230,6 +260,76 @@ class SubmitAnswer:
             if call["tool_name"] == "get_evidence_record" and call["status"] == "completed":
                 read.update(call.get("observation_ids") or ())
         return frozenset(read)
+
+    async def _resolve_evidence_relations(
+        self, uow, *, session_id: str, run_id: str, proposed: list[EvidenceRelationInputV2],
+    ) -> tuple[list[EvidenceRelationAssessment], list[Violation]]:
+        """W5-06: the model proposes, the server independently confirms
+        ``source_id`` resolves to a real, session-owned artifact of the
+        claimed kind before anything is persisted — an unresolved source is
+        rejected outright, consuming the candidate the same way any other
+        validation violation does (domain/evidence_relation.py's own
+        docstring), not silently dropped or partially trusted.
+
+        Relations that share identical ``proposition`` text within one draft
+        share one server-minted ``proposition_id``, since the wire type
+        deliberately does not let the model mint that id itself.
+        """
+        proposition_ids: dict[str, str] = {}
+        assessments: list[EvidenceRelationAssessment] = []
+        violations: list[Violation] = []
+        now = _now()
+        for index, item in enumerate(proposed):
+            resolved = await self._source_exists(
+                uow, session_id=session_id, source_class=item.source_class, source_id=item.source_id,
+            )
+            if not resolved:
+                violations.append(
+                    Violation(
+                        "evidence_relation_source_not_found",
+                        f"source_id {item.source_id!r} does not resolve to a "
+                        f"session-owned {item.source_class} this run can cite",
+                        path=f"evidence_relations[{index}].source_id",
+                    )
+                )
+                continue
+            proposition_id = proposition_ids.setdefault(item.proposition, new_proposition_id())
+            assessments.append(
+                EvidenceRelationAssessment.create(
+                    session_id=session_id,
+                    run_id=run_id,
+                    proposition_id=proposition_id,
+                    source_ref=SourceRef(
+                        source_class=SourceClass(item.source_class), source_id=item.source_id,
+                    ),
+                    relation=RelationLabel(item.relation),
+                    directness=Directness(item.directness),
+                    applicability=Applicability(item.applicability),
+                    strength=Strength(item.strength),
+                    reason_codes=tuple(item.reason_codes),
+                    scope=EvidenceScope(
+                        endpoint=item.endpoint, species=item.species, dose=item.dose,
+                        use_context=item.use_context,
+                    ),
+                    now=now,
+                )
+            )
+        if violations:
+            return [], violations
+        return assessments, []
+
+    async def _source_exists(
+        self, uow, *, session_id: str, source_class: str, source_id: str,
+    ) -> bool:
+        if source_class in ("predictor_fact", "explanation_fact"):
+            return await uow.observations.get(source_id, session_id=session_id) is not None
+        if source_class in ("external_experimental", "external_regulatory"):
+            return await uow.evidence.get(source_id, session_id=session_id) is not None
+        if source_class == "report_fact":
+            return await uow.reports.get_artifact(source_id, session_id=session_id) is not None
+        # agent_synthesis: the model's own reasoning, not a stored artifact of
+        # any single kind — there is nothing external to resolve it against.
+        return True
 
     async def _reject_claim_id_collisions(
         self, uow, candidate: GroundedAnswerCandidate, result: AnswerValidationResult
