@@ -1,0 +1,150 @@
+{
+  "fixture_version": "eval-fixture-v1",
+  "content_sha256": "4c76fb6e8466ede7de0264ea3694a496e368cd5f4e86a416d998d4a13876a23f",
+  "name": "benzene-motivating-run",
+  "description": "Benzene, hERG + Tox21 served, applicability ok. hERG non_blocker (0.280), no active Tox21 assay. Frozen baseline for the adaptive-decision-support regression task (docs/spec/TOXAGENT_ADAPTIVE_DECISION_SUPPORT_PLAN_VI.md section 2), which reproduces the router-2/report_qa follow-up that fell back on a Vietnamese development-decision question. No evidence is attached: the motivating run's report_qa profile carried no search tool (RC-03), so no evidence content is part of the reproduced scenario.",
+  "predictor": {
+    "served_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "predictions": {
+      "c1ccccc1": {
+        "input_smiles": "c1ccccc1",
+        "canonical_smiles": "c1ccccc1",
+        "predictions": {
+          "herg": {
+            "probability_blocker": 0.28,
+            "label": "non_blocker",
+            "threshold": 0.5,
+            "threshold_source": "model_default",
+            "model_id": "pretrained_2head_herg_chemberta"
+          },
+          "tox21": {
+            "task_order_version": "tox21-12task-v1",
+            "assays": {
+              "NR-AR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AR-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AhR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-Aromatase": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-PPAR-gamma": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ARE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ATAD5": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-HSE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-MMP": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-p53": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              }
+            },
+            "model_id": "pretrained_2head_herg_chemberta"
+          }
+        },
+        "applicability": {
+          "status": "ok",
+          "method": "element_rules_v1",
+          "reasons": []
+        },
+        "provenance": {
+          "git_commit": "562b988de9714106fd842bb503072cfe8cd2852a",
+          "service_version": "0.1.0.dev0",
+          "artifact_hashes": [
+            "herg-chemberta:sha256-aaa",
+            "tox21-chemberta:sha256-bbb"
+          ]
+        }
+      }
+    },
+    "attributions": {
+      "c1ccccc1|herg|": {
+        "status": "completed",
+        "input_smiles": "c1ccccc1",
+        "canonical_smiles": "c1ccccc1",
+        "endpoint": "herg",
+        "task": null,
+        "probability": 0.28,
+        "tokens": [
+          {
+            "token": "c1ccccc1",
+            "score": 0.41
+          },
+          {
+            "token": "C(=O)O",
+            "score": 0.12
+          },
+          {
+            "token": "OC(C)=O",
+            "score": -0.05
+          }
+        ],
+        "metadata": {
+          "method": "integrated_gradients_v1",
+          "model_id": "pretrained_2head_herg_chemberta",
+          "deterministic": true,
+          "duration_ms": 740.0,
+          "timeout_ms": 30000,
+          "note": null
+        }
+      }
+    }
+  }
+}

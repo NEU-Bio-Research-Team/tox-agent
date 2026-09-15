@@ -1,0 +1,45 @@
+{
+  "task_id": "ads-00-benzene-drug-decision-baseline-vi",
+  "category": "report_qa",
+  "fixture": "benzene-motivating-run",
+  "title": "Baseline reproduction: benzene development-decision follow-up (VI) falls back under report_qa",
+  "rationale": "Motivating run run_21a5bb38922a4fffb83859841ee11b65 / session ses_74a7e689b5ac4b88a6e6e8d0a8e640d4 (docs/spec/TOXAGENT_ADAPTIVE_DECISION_SUPPORT_PLAN_VI.md section 2) also included an intervening 'build a summary report' turn and a prior-report-pinning gap (RC-04); that turn is out of scope for this scripted task because the frozen eval schema's `intent_hint` enum (evals/schema/task.schema.json) has no `build_report` value, so it cannot be driven through this conversation shape. What is reproduced here is the narrower, still-sufficient regression: the follow-up question carries no research/attribution keyword, so router-2 keeps it in report_qa; that profile has no search/evidence tool (RC-01/RC-02/RC-03), so the agent cannot search evidence and both submit_grounded_answer candidates are rejected on out-of-scope safety-verdict wording, landing on the deterministic fallback (RC-07/RC-08). This task is the frozen 'before' snapshot for the adaptive-decision-support workstream (W0-02) and is expected to keep failing exactly this way until the W1-W6 changes land; it lives outside the frozen 50-task set (evals/tasks/) so it is never touched by `python -m evals.build_tasks`.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Phân tích chất này giúp tôi.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "c1ccccc1"
+      },
+      "analysis_options": {
+        "endpoints": ["herg", "tox21"]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Thế là tôi có nên dùng chất này trong drug industry không?",
+      "intent_hint": "auto"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "report_qa"
+    },
+    "state": {
+      "accepted_answers": 1
+    },
+    "tools": {
+      "forbidden": ["search_toxicology_evidence", "get_evidence_record"],
+      "max_calls": 6
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": ["schema", "state", "transcript"],
+  "schema_version": "eval-task-v1",
+  "language": "vi",
+  "rubric_notes": "The plan's own trace for the third turn is: get_analysis_slice x4, submit_grounded_answer candidate 1 rejected, candidate 2 rejected, deterministic fallback accepted. This task's `expect` block covers what the current scripted/live runner can check (routed intent, one committed answer, zero evidence-tool calls, a tool-call ceiling consistent with the report_qa budget in agent/budget.py::PROFILES). The runner does not yet expose an `is_fallback` assertion field; W0-03's baseline measurement note (docs/adr/0010-adaptive-decision-support-boundary.md) records is_fallback=true and the exact tool trace from the plan document as the qualitative baseline until that grader field exists."
+}

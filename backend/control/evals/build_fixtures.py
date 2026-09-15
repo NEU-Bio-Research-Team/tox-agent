@@ -21,6 +21,7 @@ ASPIRIN = "CC(=O)Oc1ccccc1C(=O)O"
 ASTEMIZOLE = "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
 CAFFEINE = "Cn1cnc2c1c(=O)n(C)c(=O)n2C"
 BORONIC = "OB(O)c1ccccc1"
+BENZENE = "c1ccccc1"
 
 TOX21_TASKS = (
     "NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD",
@@ -176,6 +177,20 @@ FIXTURES: dict[str, dict[str, Any]] = {
         "predictor": {
             "served_endpoints": ["herg", "tox21"],
             "predictions": {CAFFEINE: prediction(CAFFEINE, herg_prob=0.13, tox21_active=())},
+        },
+    },
+    "benzene-motivating-run": {
+        "description": "Benzene, hERG + Tox21 served, applicability ok. hERG non_blocker "
+        "(0.280), no active Tox21 assay. Frozen baseline for the adaptive-decision-support "
+        "regression task (docs/spec/TOXAGENT_ADAPTIVE_DECISION_SUPPORT_PLAN_VI.md section 2), "
+        "which reproduces the router-2/report_qa follow-up that fell back on a Vietnamese "
+        "development-decision question. No evidence is attached: the motivating run's "
+        "report_qa profile carried no search tool (RC-03), so no evidence content is part of "
+        "the reproduced scenario.",
+        "predictor": {
+            "served_endpoints": ["herg", "tox21"],
+            "predictions": {BENZENE: prediction(BENZENE, herg_prob=0.280, tox21_active=())},
+            "attributions": {f"{BENZENE}|herg|": attribution(BENZENE, "herg", None, 0.280)},
         },
     },
     "predictor-503": {
