@@ -17,6 +17,7 @@ from ...domain.answer import Claim, GroundedAnswer
 from ...domain.attachment import Attachment
 from ...domain.errors import Conflict
 from ...domain.evidence import EvidenceRecord, EvidenceStatus
+from ...domain.evidence_relation import EvidenceRelationAssessment
 from ...domain.message import Message
 from ...domain.observation import Observation
 from ...domain.run import Run
@@ -43,6 +44,7 @@ from ..schema import (
     claims,
     concurrency_slots,
     evidence_records,
+    evidence_relation_assessments,
     explanation_checkpoints,
     report_artifacts,
     report_builds,
@@ -1240,6 +1242,47 @@ class SqlEvidenceStore:
             )
         ).mappings().all()
         return [m.row_to_evidence(r) for r in rows]
+
+
+class SqlEvidenceRelationStore:
+    """One source-vs-proposition assessment per row (ADS plan section 9.3,
+    ADR 0010). Append-only: a relation is never edited in place, a later
+    reassessment is a new row for the same proposition."""
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def add(self, assessment: EvidenceRelationAssessment) -> None:
+        await self._conn.execute(
+            insert(evidence_relation_assessments).values(
+                m.evidence_relation_to_row(assessment)
+            )
+        )
+
+    async def list_for_run(self, run_id: str) -> Sequence[EvidenceRelationAssessment]:
+        rows = (
+            await self._conn.execute(
+                select(evidence_relation_assessments)
+                .where(evidence_relation_assessments.c.run_id == run_id)
+                .order_by(evidence_relation_assessments.c.created_at)
+            )
+        ).mappings().all()
+        return [m.row_to_evidence_relation(r) for r in rows]
+
+    async def list_for_proposition(
+        self, session_id: str, proposition_id: str
+    ) -> Sequence[EvidenceRelationAssessment]:
+        rows = (
+            await self._conn.execute(
+                select(evidence_relation_assessments).where(
+                    and_(
+                        evidence_relation_assessments.c.session_id == session_id,
+                        evidence_relation_assessments.c.proposition_id == proposition_id,
+                    )
+                ).order_by(evidence_relation_assessments.c.created_at)
+            )
+        ).mappings().all()
+        return [m.row_to_evidence_relation(r) for r in rows]
 
 
 class SqlAnswerStore:

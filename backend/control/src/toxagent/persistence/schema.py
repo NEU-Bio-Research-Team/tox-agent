@@ -626,6 +626,30 @@ report_evidence_links = Table(
 )
 
 
+#: Adaptive decision support (docs/spec/TOXAGENT_ADAPTIVE_DECISION_SUPPORT_PLAN_VI.md
+#: section 9.3, ADR 0010). One row per source-vs-proposition assessment for a
+#: decision_support run; distinct from report_evidence_links above, which is
+#: the report-build capability's own, narrower relation link.
+evidence_relation_assessments = Table(
+    "evidence_relation_assessments", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("run_id", _ID, ForeignKey("runs.id"), nullable=False),
+    Column("proposition_id", _ID, nullable=False),
+    Column("source_class", String(32), nullable=False),
+    Column("source_id", _ID, nullable=False),
+    Column("relation", String(24), nullable=False),
+    Column("directness", String(16), nullable=False),
+    Column("applicability", String(16), nullable=False),
+    Column("strength", String(16), nullable=False),
+    Column("reason_codes", Json, nullable=False),
+    Column("scope", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_evidence_relation_run", "run_id"),
+    Index("ix_evidence_relation_proposition", "session_id", "proposition_id"),
+)
+
+
 event_outbox = Table(
     "event_outbox", metadata,
     Column("event_id", _ID, primary_key=True),

@@ -44,6 +44,14 @@ FIGURE: Final = "fig"
 EXPLANATION: Final = "xpl"
 SYNTHESIS: Final = "syn"
 RENDERING: Final = "rnd"
+#: Adaptive decision support (docs/spec/TOXAGENT_ADAPTIVE_DECISION_SUPPORT_PLAN_VI.md
+#: section 9.3, ADR 0010). A proposition is the question one turn is
+#: answering; an evidence relation is one source's assessed bearing on one
+#: proposition. Distinct from REPORT's SYNTHESIS/CONFLICT, which are the
+#: report-build capability's own, narrower types (report.py::EvidenceRelation,
+#: EvidenceSynthesis) — this is the decision_support capability's.
+PROPOSITION: Final = "prop"
+EVIDENCE_RELATION: Final = "evr"
 
 PREFIXES: Final[frozenset[str]] = frozenset(
     {
@@ -51,6 +59,7 @@ PREFIXES: Final[frozenset[str]] = frozenset(
         CLAIM, EVENT, RUNTIME_BINDING, ATTACHMENT, TOOL_CALL, CAPABILITY, RUNTIME_USAGE,
         CASE, PLAN, STEP, CONFLICT, GAP, CONNECTION,
         REPORT, REPORT_BUILD, FIGURE, EXPLANATION, SYNTHESIS, RENDERING,
+        PROPOSITION, EVIDENCE_RELATION,
     }
 )
 

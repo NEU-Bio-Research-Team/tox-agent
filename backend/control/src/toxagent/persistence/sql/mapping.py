@@ -27,6 +27,16 @@ from ...domain.evidence import (
     SourceType,
 )
 from ...domain.events import Event, EventType
+from ...domain.evidence_relation import (
+    Applicability,
+    Directness,
+    EvidenceRelationAssessment,
+    EvidenceScope,
+    RelationLabel,
+    SourceClass,
+    SourceRef,
+    Strength,
+)
 from ...domain.message import Message, MessagePart, PartType, Role
 from ...domain.observation import Observation, ObservationKind, Producer
 from ...domain.report import BuildStage, ReportBuild, ReportBuildRequest
@@ -585,4 +595,47 @@ def row_to_report_build(row: Mapping[str, Any]) -> ReportBuild:
         failure_code=row["failure_code"],
         failure_detail=row["failure_detail"],
         stage_state=dict(row["stage_state"] or {}),
+    )
+
+
+# --- evidence relations (ADS plan section 9.3, ADR 0010) -------------------
+
+def evidence_relation_to_row(assessment: EvidenceRelationAssessment) -> dict[str, Any]:
+    return {
+        "id": assessment.id,
+        "session_id": assessment.session_id,
+        "run_id": assessment.run_id,
+        "proposition_id": assessment.proposition_id,
+        "source_class": assessment.source_ref.source_class.value,
+        "source_id": assessment.source_ref.source_id,
+        "relation": assessment.relation.value,
+        "directness": assessment.directness.value,
+        "applicability": assessment.applicability.value,
+        "strength": assessment.strength.value,
+        "reason_codes": list(assessment.reason_codes),
+        "scope": assessment.scope.to_dict(),
+        "created_at": assessment.created_at,
+    }
+
+
+def row_to_evidence_relation(row: Mapping[str, Any]) -> EvidenceRelationAssessment:
+    scope = dict(row["scope"] or {})
+    return EvidenceRelationAssessment(
+        id=row["id"],
+        session_id=row["session_id"],
+        run_id=row["run_id"],
+        proposition_id=row["proposition_id"],
+        source_ref=SourceRef(
+            source_class=SourceClass(row["source_class"]), source_id=row["source_id"],
+        ),
+        relation=RelationLabel(row["relation"]),
+        directness=Directness(row["directness"]),
+        applicability=Applicability(row["applicability"]),
+        strength=Strength(row["strength"]),
+        reason_codes=tuple(row["reason_codes"] or ()),
+        scope=EvidenceScope(
+            endpoint=scope.get("endpoint"), species=scope.get("species"),
+            dose=scope.get("dose"), use_context=scope.get("use_context"),
+        ),
+        created_at=utc(row["created_at"]),
     )
