@@ -14,6 +14,7 @@ from toxagent.harness.context import (
     PinnedReference,
     SessionCheckpoint,
     build_system_prompt,
+    render_recent_messages,
 )
 
 
@@ -70,3 +71,48 @@ def test_decision_support_gets_the_search_policy_other_profiles_do_not():
     assert decision_support_prompt.index(REQUIRED_LIMITATIONS_GUIDE) < (
         decision_support_prompt.index(DECISION_SUPPORT_POLICY)
     )
+
+
+def test_typed_ref_parts_are_not_dropped_from_recent_history():
+    """W3-02: answer_ref/report_ref parts carry the pointer a follow-up turn
+    needs; before this, render_recent_messages only ever read PartType.TEXT
+    and silently dropped every one of them."""
+    now = datetime(2026, 9, 16, tzinfo=timezone.utc)
+    session_id = "ses_" + "a" * 32
+    answer_message = Message.create(
+        session_id, Role.ASSISTANT, 2, now=now,
+        parts=(
+            (PartType.TEXT, {"text": "Benzene is non_blocker for hERG."}),
+            (PartType.ANSWER_REF, {"answer_id": "ans_" + "b" * 32}),
+        ),
+    )
+    report_message = Message.create(
+        session_id, Role.ASSISTANT, 3, now=now,
+        parts=(
+            (PartType.TEXT, {"text": "Report completed."}),
+            (PartType.REPORT_REF, {"report_id": "rpt_" + "c" * 32}),
+        ),
+    )
+
+    rendered = render_recent_messages((answer_message, report_message))
+
+    assert f"[answer_ref=ans_{'b' * 32}]" in rendered
+    assert f"[report_ref=rpt_{'c' * 32}]" in rendered
+    assert "Benzene is non_blocker for hERG." in rendered
+
+
+def test_a_stale_analysis_ref_is_not_leaked_into_history_rendering():
+    """audit_5_9.md A02: a no-longer-active analysis must not reappear in the
+    prompt through any path, including recent-history rendering — only the
+    dedicated, currently-scoped pinning in harness/gateway.py may name which
+    analysis is active."""
+    now = datetime(2026, 9, 16, tzinfo=timezone.utc)
+    session_id = "ses_" + "a" * 32
+    analysis_request = Message.create(
+        session_id, Role.USER, 1, now=now,
+        parts=((PartType.ANALYSIS_REF, {"smiles": "c1ccccc1"}),),
+    )
+
+    rendered = render_recent_messages((analysis_request,))
+
+    assert "c1ccccc1" not in rendered

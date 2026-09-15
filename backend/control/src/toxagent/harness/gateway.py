@@ -701,12 +701,6 @@ class AgentRuntimeGateway:
                 # / get_attribution instead of guessing from prose or recomputing
                 # one (RC-04). Pointer only — endpoint/task/observation_id — the
                 # highlights themselves are still read through those tools.
-                # Report-artifact pinning (latest report + open gaps) is
-                # deliberately not added here yet: the profile has no read tool
-                # for report content (get_report_summary, plan section 8.1) and
-                # pinning an id the model has no tool to read would be a false
-                # affordance. Adding that tool needs the report_fact citation
-                # story from W5/W6 settled first, so it is a follow-up PR.
                 explanation_observations = [
                     obs
                     for obs in await uow.observations.list_for_analysis(target_analysis_id)
@@ -724,6 +718,33 @@ class AgentRuntimeGateway:
                                 f"endpoint/task={target}; already computed — read with "
                                 "get_explanation_slice or get_attribution instead of "
                                 "recomputing"
+                            ),
+                        )
+                    )
+                # W3-03: the latest non-superseded report for this analysis, now
+                # that get_report_summary (W2-04) gives the model a tool that can
+                # actually read it — pinning an id with nothing to read it with
+                # would have been a false affordance, which is why this was
+                # deferred past the first ADS pass. "Latest" is the same
+                # version-DESC query get_report_summary itself defaults to, so
+                # the pointer and the read agree about which report "latest"
+                # means.
+                latest_report = await uow.reports.get_latest_artifact_for_analysis(
+                    target_analysis_id, session_id=context.session_id
+                )
+                if latest_report is not None:
+                    gaps = latest_report.get("gaps") or []
+                    recommendations = latest_report.get("recommendations") or []
+                    pinned.append(
+                        PinnedReference(
+                            kind="report",
+                            id=latest_report.get("report_id") or latest_report.get("id"),
+                            summary=(
+                                f"status={latest_report.get('status')}; "
+                                f"{len(gaps)} open gap(s), {len(recommendations)} "
+                                "recommendation(s) already on file — read with "
+                                "get_report_summary before treating a gap as evidence "
+                                "against anything"
                             ),
                         )
                     )

@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-from ..domain.message import Message, Role
+from ..domain.message import Message, PartType, Role
 
 #: Plan section 2.2. Restated to every runtime turn because these are the
 #: invariants a model must not violate, not a policy the validator alone should
@@ -174,14 +174,42 @@ class PinnedReference:
     without spending budget on its values (plan section 10.4 step 5) — the
     model reads values through get_analysis_slice / get_evidence_record."""
 
-    #: "analysis" | "evidence" | "explanation" (ADS plan section 8.1, W3) |
-    #: "report_build" (build_report only, a different pinning contract).
+    #: "analysis" | "evidence" | "explanation" | "report" (ADS plan section
+    #: 8.1, W3) | "report_build" (build_report only, a different pinning
+    #: contract).
     kind: str
     id: str
     summary: str
 
     def render(self) -> str:
         return f"- {self.kind} {self.id}: {self.summary}"
+
+
+def _render_ref_parts(message: Message) -> list[str]:
+    """W3-02: answer_ref/report_ref carry the typed pointer a follow-up turn
+    needs (an id to read with the tool named for it) — ``Message.text()``
+    only ever sees PartType.TEXT, so without this a ref part is silently
+    invisible to context, not merely under-detailed.
+
+    Deliberately excludes ANALYSIS_REF: unlike an answer or report id, a
+    stale ANALYSIS_REF's SMILES is exactly the leak
+    ``test_an_explicit_analysis_id_overrides_a_different_stale_active_one``
+    (audit_5_9.md A02) exists to keep out of the prompt — "which analysis is
+    current" is already correctly scoped by the dedicated pinning logic in
+    ``harness/gateway.py``, and restating a no-longer-active molecule here
+    would undermine that scoping rather than add information.
+    """
+    refs: list[str] = []
+    for part in message.parts:
+        if part.type is PartType.ANSWER_REF:
+            answer_id = part.content.get("answer_id")
+            if answer_id:
+                refs.append(f"[answer_ref={answer_id}]")
+        elif part.type is PartType.REPORT_REF:
+            report_id = part.content.get("report_id")
+            if report_id:
+                refs.append(f"[report_ref={report_id}]")
+    return refs
 
 
 def render_recent_messages(messages: Sequence[Message], *, limit: int = 12) -> str:
@@ -191,8 +219,10 @@ def render_recent_messages(messages: Sequence[Message], *, limit: int = 12) -> s
             message.role.value
         ]
         text = message.text()
-        if text:
-            lines.append(f"{speaker}: {text}")
+        refs = _render_ref_parts(message)
+        rendered = " ".join(part for part in (text, *refs) if part)
+        if rendered:
+            lines.append(f"{speaker}: {rendered}")
     return "\n".join(lines)
 
 
