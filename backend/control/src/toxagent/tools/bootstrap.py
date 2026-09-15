@@ -16,6 +16,7 @@ from .definitions import answer as answer_tools
 from .definitions import compound as compound_tools
 from .definitions import evidence as evidence_tools
 from .definitions import explanation as explanation_tools
+from .definitions import inventory as inventory_tools
 from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
 from .registry import ToolRegistry
@@ -37,6 +38,15 @@ def build_registry(
     for definition in analysis_tools.build(database, predictor, create_analysis):
         registry.register(definition)
     for definition in answer_tools.build(database, settings or PolicySettings()):
+        registry.register(definition)
+    # Registered regardless of research_provider — get_artifact_inventory's
+    # available_tools.evidence_search flag is how a run learns search is
+    # absent, rather than the tool itself vanishing (ADS plan W2-03; unlike
+    # evidence_tools below, whose absence *is* the signal for report_qa/
+    # evidence_research/report_build).
+    for definition in inventory_tools.build(
+        database, research_provider_configured=research_provider is not None
+    ):
         registry.register(definition)
     if research_provider is not None:
         for definition in evidence_tools.build(

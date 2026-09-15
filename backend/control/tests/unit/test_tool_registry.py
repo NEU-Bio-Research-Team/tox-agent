@@ -81,7 +81,12 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # enumerated roster, and report_synthesis is one submission boundary.
         if name in ("report_build", "report_synthesis"):
             continue
-        assert 2 <= len(tools) <= 6, f"{name} has {len(tools)} tools"
+        # decision_support is deliberately the adaptive superset of
+        # report_qa + evidence_research (ADR 0010, ADS plan section 7.2) plus
+        # the read-your-own-artifacts tools of W2-03/04 — its ceiling is wider
+        # on purpose, not an oversight this guardrail should catch.
+        ceiling = 10 if name == "decision_support" else 6
+        assert 2 <= len(tools) <= ceiling, f"{name} has {len(tools)} tools"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

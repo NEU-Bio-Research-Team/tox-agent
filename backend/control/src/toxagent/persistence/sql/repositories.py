@@ -1817,6 +1817,31 @@ class SqlReportStore:
             for row in rows
         ]
 
+    async def get_latest_artifact_for_analysis(
+        self, analysis_id: str, *, session_id: str
+    ) -> dict[str, Any] | None:
+        """The most recent version's full document, or ``None`` if this
+        analysis has no report yet. "Latest" is ``version`` DESC, not
+        ``created_at`` DESC (ADS plan section 7.3/W3-03): a rebuild's
+        ``supersedes_report_id`` chain is what makes a version newer, and
+        ``version`` is the field that encodes that ordering directly."""
+        report_id = (
+            await self._conn.execute(
+                select(report_artifacts.c.id)
+                .where(
+                    and_(
+                        report_artifacts.c.analysis_id == analysis_id,
+                        report_artifacts.c.session_id == session_id,
+                    )
+                )
+                .order_by(report_artifacts.c.version.desc())
+                .limit(1)
+            )
+        ).scalar()
+        if report_id is None:
+            return None
+        return await self.get_artifact(report_id, session_id=session_id)
+
     async def latest_version_for_analysis(self, analysis_id: str, *, session_id: str) -> int:
         row = (
             await self._conn.execute(

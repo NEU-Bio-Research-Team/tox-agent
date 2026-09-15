@@ -358,14 +358,15 @@ def build(
                 "Return one compact bundle for a stored analysis: the prediction summary for "
                 "every served endpoint, the explanations that already exist, and full "
                 "provenance — each with the observation id needed to cite it. Use this once at "
-                "the start of a report build instead of slicing each endpoint separately; use "
-                "get_analysis_slice afterwards for the exact field paths a numeric or "
-                "classification claim must name. Values are the predictor's; nothing here is "
-                "interpolated or filled in for an endpoint this analysis does not serve."
+                "the start of a report build, or once at the start of a decision-support turn "
+                "instead of slicing each endpoint separately; use get_analysis_slice "
+                "afterwards for the exact field paths a numeric or classification claim must "
+                "name. Values are the predictor's; nothing here is interpolated or filled in "
+                "for an endpoint this analysis does not serve."
             ),
             input_model=BundleInput,
             handler=analysis_bundle,
-            profiles=frozenset({"report_build"}),
+            profiles=frozenset({"report_build", "decision_support"}),
             soft_timeout_s=3.0,
             hard_timeout_s=8.0,
         ),
@@ -398,5 +399,6 @@ def build(
             profiles=frozenset({"report_qa", "decision_support"}),
             soft_timeout_s=90.0,
             hard_timeout_s=180.0,
+            cost_class="expensive",
         ),
     ]

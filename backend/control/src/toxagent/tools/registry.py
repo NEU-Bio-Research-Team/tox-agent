@@ -44,15 +44,18 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
         }
     ),
     #: Adaptive decision support (ADS plan section 7.2, ADR 0010). Superset of
-    #: report_qa + evidence_research's read/research surface: the model picks
-    #: which of these to call and in what order within the run's budget,
-    #: rather than the profile being pre-selected by a keyword. Deliberately
-    #: still closed — no shell/filesystem/raw web, same as every other
-    #: profile — and still without get_analysis_bundle/report-build tooling,
-    #: which stay report_build-only.
+    #: report_qa + evidence_research's read/research surface, plus
+    #: get_artifact_inventory/get_report_summary (W2-03/04) so a follow-up
+    #: turn can see what a prior report already established instead of
+    #: guessing from prose: the model picks which of these to call and in
+    #: what order within the run's budget, rather than the profile being
+    #: pre-selected by a keyword. Deliberately still closed — no
+    #: shell/filesystem/raw web, same as every other profile — and still
+    #: without the report_build-only draft/submit tooling.
     "decision_support": frozenset(
         {
-            "get_analysis_slice",
+            "get_artifact_inventory", "get_report_summary",
+            "get_analysis_slice", "get_analysis_bundle",
             "get_explanation_slice",
             "get_attribution",
             "search_toxicology_evidence", "get_evidence_record",
@@ -163,6 +166,15 @@ class ToolDefinition:
     #: Whether a repeat with identical arguments may reuse the stored result
     #: rather than doing the work again.
     idempotent: bool = True
+    #: A model-facing cost signal (ADS plan W2-06/07), distinct from
+    #: soft/hard_timeout_s (an execution ceiling, not a reuse hint):
+    #: "cheap" — a bounded read of already-persisted state; "moderate" — calls
+    #: an external provider but does not mint a new stored artifact each time;
+    #: "expensive" — computes and persists something new (e.g. a fresh
+    #: attribution), so a repeat with the same arguments is real work reused,
+    #: not free. Surfaced in ``descriptor()`` so the model can see it without
+    #: it being restated in every tool's description string.
+    cost_class: str = "cheap"
 
     def json_schema(self) -> dict[str, Any]:
         schema = self.input_model.model_json_schema()
@@ -175,6 +187,7 @@ class ToolDefinition:
             "title": self.title,
             "description": self.description,
             "inputSchema": self.json_schema(),
+            "costClass": self.cost_class,
         }
 
 

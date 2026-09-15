@@ -261,6 +261,7 @@ def build(
             soft_timeout_s=settings.timeout_s,
             hard_timeout_s=settings.hard_timeout_s,
             max_retries=1,
+            cost_class="moderate",
         ),
         ToolDefinition(
             name="get_evidence_record",
