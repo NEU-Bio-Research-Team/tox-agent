@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 from typing import Iterable
 
+from ..domain.development_posture import DevelopmentPosture
 from ..domain.errors import Violation
 from .wire import ClaimCandidate
 
@@ -49,6 +50,25 @@ _IN_DISTRIBUTION = re.compile(
 _MECHANISM_CLAIM = re.compile(
     r"\b(proves?|demonstrates?|is\s+evidence\s+of)\b[^.]{0,30}\bmechanism\b"
     r"|\bcausal(?:ly)?\s+(proof|evidence)\b",
+    re.IGNORECASE,
+)
+
+#: RC-07/W6: a development posture (proceed/hold/deprioritize) must never be
+#: dressed up as a safety verdict. `_SAFETY_VERDICT` already catches the
+#: blatant form ("is/are/considered/deemed/generally safe", or any bare
+#: mention of Vietnamese "an toàn") — but a posture word paired with "safe"
+#: through a *different* verb ("appears safe to proceed", "safely advance")
+#: or the adverb form ("safely") slips past it. This is additive to
+#: `_SAFETY_VERDICT`, not a replacement: it exists only to catch a safety
+#: word sitting near development/posture language, in either order, within
+#: one sentence.
+_POSTURE_WORD = (
+    r"(?:proceed(?:ing)?|develop(?:ment|ing)?|advanc(?:e|ing)|continu(?:e|ing)|"
+    r"tiếp\s+tục|phát\s+triển)"
+)
+_SAFETY_POSTURE_CONFLATION = re.compile(
+    rf"\b(safe|unsafe|safely|an\s+toàn)\b[^.\n]{{0,60}}\b{_POSTURE_WORD}\b"
+    rf"|\b{_POSTURE_WORD}\b[^.\n]{{0,60}}\b(safe|unsafe|safely|an\s+toàn)\b",
     re.IGNORECASE,
 )
 
@@ -214,6 +234,37 @@ def validate_claim_wording(claim: ClaimCandidate) -> list[Violation]:
                 "chemical mechanism (SCI-09)",
                 path=path,
             )
+        )
+    return violations
+
+
+def validate_posture_wording(
+    answer_markdown: str, posture: DevelopmentPosture
+) -> list[Violation]:
+    """W6/RC-07: scans the answer markdown plus the posture's own rationale
+    and conditions for safety/posture conflation — reuses
+    `_scan_unless_negated` so a hedged/negated sentence ("not proceeding
+    because it cannot be confirmed safe") is not flagged, the same
+    negation-awareness every other gate in this module gets."""
+    violations: list[Violation] = []
+    violations += _scan_unless_negated(
+        _SAFETY_POSTURE_CONFLATION, answer_markdown, "safety_posture_conflation",
+        f"the answer pairs a safety word with a {posture.value.value} recommendation — a "
+        "development posture is never a safety verdict",
+        "answer_markdown",
+    )
+    violations += _scan_unless_negated(
+        _SAFETY_POSTURE_CONFLATION, posture.rationale, "safety_posture_conflation",
+        f"the posture's rationale pairs a safety word with its {posture.value.value} "
+        "recommendation — a development posture is never a safety verdict",
+        "development_posture.rationale",
+    )
+    for index, condition in enumerate(posture.conditions):
+        violations += _scan_unless_negated(
+            _SAFETY_POSTURE_CONFLATION, condition, "safety_posture_conflation",
+            f"a posture condition pairs a safety word with its {posture.value.value} "
+            "recommendation — a development posture is never a safety verdict",
+            f"development_posture.conditions[{index}]",
         )
     return violations
 

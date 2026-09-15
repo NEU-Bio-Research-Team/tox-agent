@@ -180,6 +180,30 @@ class EvidenceRelationInputV2(_Wire):
         return self
 
 
+_POSTURE_VALUES = ("proceed", "hold", "deprioritize", "insufficient", "not_applicable")
+_POSTURE_SCOPES = ("drug_candidate", "api", "excipient", "solvent", "intermediate", "unknown")
+_POSTURE_CONFIDENCE = ("weak", "moderate", "strong", "not_assessed")
+
+
+class DevelopmentPostureInputV2(_Wire):
+    """The decision-support answer's scoped R&D recommendation (ADS plan
+    section 10.1/10.2, W6). ``basis_local_refs``/``contrary_local_refs``
+    name claims in *this same draft* by their ``local_ref`` — the server
+    resolves them to the real ``claim_id`` it issues, the same
+    local-ref-not-a-minted-id principle ``ClaimCandidateV2`` and
+    ``RecommendationCandidateV2`` already follow.
+    """
+
+    value: Literal[_POSTURE_VALUES]
+    scope: Literal[_POSTURE_SCOPES]
+    confidence_band: Literal[_POSTURE_CONFIDENCE]
+    basis_local_refs: list[str] = Field(default_factory=list)
+    contrary_local_refs: list[str] = Field(default_factory=list)
+    rationale: str = Field(min_length=1, max_length=2000)
+    conditions: list[str] = Field(default_factory=list, max_length=8)
+    recommended_next_steps: list[str] = Field(default_factory=list, max_length=8)
+
+
 class GroundedAnswerDraftV2(_Wire):
     """One complete draft. The final action of a conversational run."""
 
@@ -196,6 +220,8 @@ class GroundedAnswerDraftV2(_Wire):
     evidence_relations: list[EvidenceRelationInputV2] = Field(
         default_factory=list, max_length=16
     )
+    #: Decision-support only in practice, same as evidence_relations above.
+    development_posture: DevelopmentPostureInputV2 | None = None
 
     @model_validator(mode="after")
     def _local_refs_are_unique_and_resolvable(self) -> "GroundedAnswerDraftV2":
@@ -219,5 +245,15 @@ class GroundedAnswerDraftV2(_Wire):
                 raise ValueError(
                     f"a recommendation names basis_local_refs this draft does not "
                     f"contain: {unknown}"
+                )
+        if self.development_posture is not None:
+            posture = self.development_posture
+            unknown = sorted(
+                (set(posture.basis_local_refs) | set(posture.contrary_local_refs)) - known
+            )
+            if unknown:
+                raise ValueError(
+                    f"development_posture names local_refs this draft does not contain: "
+                    f"{unknown}"
                 )
         return self

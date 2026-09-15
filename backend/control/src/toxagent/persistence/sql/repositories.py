@@ -43,6 +43,7 @@ from ..schema import (
     claim_sources,
     claims,
     concurrency_slots,
+    development_postures,
     evidence_records,
     evidence_relation_assessments,
     explanation_checkpoints,
@@ -1283,6 +1284,45 @@ class SqlEvidenceRelationStore:
             )
         ).mappings().all()
         return [m.row_to_evidence_relation(r) for r in rows]
+
+
+class SqlDevelopmentPostureStore:
+    """One row per answer that carried a development posture (ADS plan
+    section 10.1/10.2, W6). Append-only, 1:1 with the answer it belongs to —
+    ``answer_id`` is the primary key, not a separately minted id."""
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def add(
+        self, posture, *, answer_id: str, session_id: str, run_id: str, now: datetime,
+    ) -> None:
+        await self._conn.execute(
+            insert(development_postures).values(
+                m.development_posture_to_row(
+                    posture, answer_id=answer_id, session_id=session_id, run_id=run_id,
+                    created_at=now,
+                )
+            )
+        )
+
+    async def get_for_answer(self, answer_id: str):
+        row = (
+            await self._conn.execute(
+                select(development_postures).where(development_postures.c.answer_id == answer_id)
+            )
+        ).mappings().first()
+        return m.row_to_development_posture(row) if row is not None else None
+
+    async def list_for_run(self, run_id: str):
+        rows = (
+            await self._conn.execute(
+                select(development_postures)
+                .where(development_postures.c.run_id == run_id)
+                .order_by(development_postures.c.created_at)
+            )
+        ).mappings().all()
+        return [m.row_to_development_posture(r) for r in rows]
 
 
 class SqlAnswerStore:

@@ -55,15 +55,28 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             session_id=context.session_id, run_id=context.run_id, candidate=payload,
             language=context.language,
         )
+        answer_view = outcome.answer.to_dict()
+        model_view = {
+            "answer_id": outcome.answer.id,
+            "accepted": True,
+            "is_fallback": outcome.is_fallback,
+            "candidate_generation": outcome.answer.candidate_generation,
+        }
+        # W6/plan section 12.1: rendered as its own labeled block, never
+        # folded into answer_markdown's prose — a posture value like
+        # "proceed" sitting unlabeled next to ordinary claim text is exactly
+        # the wording ambiguity that let a safety-adjacent reading slip past
+        # a human reader even when prohibited_claims.py's gate would have
+        # caught the same words inline.
+        ui_view = dict(answer_view)
+        if outcome.development_posture is not None:
+            posture_dict = outcome.development_posture.to_dict()
+            model_view["development_posture"] = posture_dict
+            ui_view["development_posture"] = posture_dict
         return ToolOutput(
-            canonical=outcome.answer.to_dict(),
-            model_view={
-                "answer_id": outcome.answer.id,
-                "accepted": True,
-                "is_fallback": outcome.is_fallback,
-                "candidate_generation": outcome.answer.candidate_generation,
-            },
-            ui_view=outcome.answer.to_dict(),
+            canonical=answer_view,
+            model_view=model_view,
+            ui_view=ui_view,
             observation_ids=tuple(outcome.answer.cited_observation_ids),
             provenance={"candidate_generation": outcome.answer.candidate_generation},
         )

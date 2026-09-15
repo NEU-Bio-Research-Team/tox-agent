@@ -27,12 +27,18 @@ from ..domain.evidence_relation import (
     Strength,
     new_proposition_id,
 )
+from ..domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ..domain.observation import Observation
 from ..validation.answer_validator import AnswerValidationResult, validate_candidate
 from ..validation.fallback import build_fallback_answer
+from ..validation.prohibited_claims import validate_posture_wording
 from ..validation.wire import GroundedAnswerCandidate
 from ..validation.claim_resolver import resolve_draft
-from ..validation.wire_v2 import EvidenceRelationInputV2, GroundedAnswerDraftV2
+from ..validation.wire_v2 import (
+    DevelopmentPostureInputV2,
+    EvidenceRelationInputV2,
+    GroundedAnswerDraftV2,
+)
 
 SUBMIT_TOOL_NAME = "submit_grounded_answer"
 
@@ -45,6 +51,11 @@ def _now() -> datetime:
 class SubmitOutcome:
     answer: GroundedAnswer
     is_fallback: bool
+    #: W6/plan section 12.1: carried separately from ``answer`` so a renderer
+    #: can present it as its own labeled block (value/scope/confidence/
+    #: conditions) rather than inline prose that could be read as folded into
+    #: the answer's ordinary claims.
+    development_posture: DevelopmentPosture | None = None
 
 
 class SubmitAnswer:
@@ -77,7 +88,12 @@ class SubmitAnswer:
                 candidate.evidence_relations
                 if isinstance(candidate, GroundedAnswerDraftV2) else []
             )
+            proposed_posture = (
+                candidate.development_posture
+                if isinstance(candidate, GroundedAnswerDraftV2) else None
+            )
 
+            issued_ids: Mapping[str, str] = {}
             if isinstance(candidate, GroundedAnswerDraftV2):
                 # The server issues the identifiers and reads the values before
                 # anything is validated, so every check below runs against
@@ -93,6 +109,7 @@ class SubmitAnswer:
                         list(resolved.violations), language,
                     )
                 candidate = resolved.candidate
+                issued_ids = resolved.issued_ids
 
             result = validate_candidate(
                 candidate,
@@ -112,17 +129,39 @@ class SubmitAnswer:
                         result, violations=(*result.violations, *relation_violations), answer=None
                     )
 
+            posture: DevelopmentPosture | None = None
+            if result.ok and proposed_posture is not None:
+                posture, posture_violations = self._build_development_posture(
+                    proposed_posture, issued_ids=issued_ids,
+                )
+                if posture is not None:
+                    posture_violations = posture_violations + validate_posture_wording(
+                        candidate.answer_markdown, posture
+                    )
+                if posture_violations:
+                    posture = None
+                    result = replace(
+                        result, violations=(*result.violations, *posture_violations), answer=None
+                    )
+
             if result.ok:
                 await uow.answers.add(result.answer)
                 for assessment in resolved_relations:
                     await uow.evidence_relations.add(assessment)
+                if posture is not None:
+                    await uow.development_postures.add(
+                        posture, answer_id=result.answer.id, session_id=session_id,
+                        run_id=run_id, now=_now(),
+                    )
                 uow.emit(
                     session_id=session_id, type=EventType.ANSWER_ACCEPTED,
                     entity_type="answer", entity_id=result.answer.id, run_id=run_id,
                     payload={"is_fallback": False, "candidate_generation": generation},
                 )
                 await uow.commit()
-                return SubmitOutcome(result.answer, is_fallback=False)
+                return SubmitOutcome(
+                    result.answer, is_fallback=False, development_posture=posture
+                )
 
             if generation >= self._settings.max_answer_candidates_per_run:
                 fallback = await self._build_fallback(uow, session, session_id, run_id, generation, language)
@@ -317,6 +356,30 @@ class SubmitAnswer:
         if violations:
             return [], violations
         return assessments, []
+
+    def _build_development_posture(
+        self, proposed: DevelopmentPostureInputV2, *, issued_ids: Mapping[str, str],
+    ) -> tuple[DevelopmentPosture | None, list[Violation]]:
+        """Local refs are already confirmed to exist within the draft by
+        ``GroundedAnswerDraftV2``'s own validator; ``issued_ids`` maps them to
+        the real, server-minted claim ids the domain type requires
+        (W6 — the same "the model never mints an id" principle
+        ``resolve_draft`` already applies to claims themselves)."""
+        try:
+            return DevelopmentPosture(
+                value=PostureValue(proposed.value),
+                scope=DevelopmentScope(proposed.scope),
+                confidence_band=proposed.confidence_band,
+                basis_claim_ids=tuple(issued_ids[ref] for ref in proposed.basis_local_refs),
+                contrary_claim_ids=tuple(issued_ids[ref] for ref in proposed.contrary_local_refs),
+                rationale=proposed.rationale,
+                conditions=tuple(proposed.conditions),
+                recommended_next_steps=tuple(proposed.recommended_next_steps),
+            ), []
+        except ValueError as exc:
+            return None, [
+                Violation("development_posture_invalid", str(exc), path="development_posture")
+            ]
 
     async def _source_exists(
         self, uow, *, session_id: str, source_class: str, source_id: str,

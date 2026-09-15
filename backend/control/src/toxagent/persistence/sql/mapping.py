@@ -37,6 +37,7 @@ from ...domain.evidence_relation import (
     SourceRef,
     Strength,
 )
+from ...domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ...domain.message import Message, MessagePart, PartType, Role
 from ...domain.observation import Observation, ObservationKind, Producer
 from ...domain.report import BuildStage, ReportBuild, ReportBuildRequest
@@ -638,4 +639,36 @@ def row_to_evidence_relation(row: Mapping[str, Any]) -> EvidenceRelationAssessme
             dose=scope.get("dose"), use_context=scope.get("use_context"),
         ),
         created_at=utc(row["created_at"]),
+    )
+
+
+def development_posture_to_row(
+    posture: DevelopmentPosture, *, answer_id: str, session_id: str, run_id: str, created_at,
+) -> dict[str, Any]:
+    return {
+        "answer_id": answer_id,
+        "session_id": session_id,
+        "run_id": run_id,
+        "value": posture.value.value,
+        "scope": posture.scope.value,
+        "confidence_band": posture.confidence_band,
+        "basis_claim_ids": list(posture.basis_claim_ids),
+        "contrary_claim_ids": list(posture.contrary_claim_ids),
+        "rationale": posture.rationale,
+        "conditions": list(posture.conditions),
+        "recommended_next_steps": list(posture.recommended_next_steps),
+        "created_at": created_at,
+    }
+
+
+def row_to_development_posture(row: Mapping[str, Any]) -> DevelopmentPosture:
+    return DevelopmentPosture(
+        value=PostureValue(row["value"]),
+        scope=DevelopmentScope(row["scope"]),
+        confidence_band=row["confidence_band"],
+        basis_claim_ids=tuple(row["basis_claim_ids"] or ()),
+        contrary_claim_ids=tuple(row["contrary_claim_ids"] or ()),
+        rationale=row["rationale"],
+        conditions=tuple(row["conditions"] or ()),
+        recommended_next_steps=tuple(row["recommended_next_steps"] or ()),
     )

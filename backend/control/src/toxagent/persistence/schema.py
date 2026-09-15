@@ -650,6 +650,30 @@ evidence_relation_assessments = Table(
 )
 
 
+#: ADS plan section 10.1/10.2, W6. One row per answer that carried a
+#: development posture — ``answer_id`` is the primary key rather than a
+#: separately minted id, since the relationship is 1:1 (an answer either has
+#: one posture or none) and domain/development_posture.py's
+#: ``DevelopmentPosture`` is deliberately a value object with no identity of
+#: its own.
+development_postures = Table(
+    "development_postures", metadata,
+    Column("answer_id", _ID, ForeignKey("answers.id", ondelete="CASCADE"), primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("run_id", _ID, ForeignKey("runs.id"), nullable=False),
+    Column("value", String(24), nullable=False),
+    Column("scope", String(24), nullable=False),
+    Column("confidence_band", String(16), nullable=False),
+    Column("basis_claim_ids", Json, nullable=False),
+    Column("contrary_claim_ids", Json, nullable=False),
+    Column("rationale", Text, nullable=False),
+    Column("conditions", Json, nullable=False),
+    Column("recommended_next_steps", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_development_postures_run", "run_id"),
+)
+
+
 event_outbox = Table(
     "event_outbox", metadata,
     Column("event_id", _ID, primary_key=True),
@@ -674,5 +698,9 @@ IMMUTABLE_TABLES = frozenset(
      # A report is immutable for the same reason an answer is: it is cited,
      # downloaded and audited. A changed report needs a new version row, not an
      # UPDATE that quietly rewrites what someone already read.
-     "report_artifacts", "report_claim_links", "report_evidence_links"}
+     "report_artifacts", "report_claim_links", "report_evidence_links",
+     # A posture belongs to the answer it was submitted with; a changed
+     # posture is a new answer, not an UPDATE on this row (same reasoning as
+     # claims above).
+     "development_postures"}
 )
