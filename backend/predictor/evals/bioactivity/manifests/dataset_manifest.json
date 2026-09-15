@@ -1,0 +1,72 @@
+{
+  "dataset_id": "toxact-chembl37-hq-v1",
+  "source": {
+    "name": "ChEMBL",
+    "release": "ChEMBL_37",
+    "release_date": "2026-05-01",
+    "doi": "10.6019/CHEMBL.database.37",
+    "access": "REST API (www.ebi.ac.uk/chembl/api/data)",
+    "api_activities_total": 24527044
+  },
+  "extraction": {
+    "filter_definition_sha256": "39d0ba0b885b25131e557370b6a53cbb6c0a83e2cfea49b8fc4c1a60b4bab7a2",
+    "fields": [
+      "activity_id",
+      "molecule_chembl_id",
+      "canonical_smiles",
+      "target_chembl_id",
+      "target_organism",
+      "assay_chembl_id",
+      "assay_type",
+      "assay_description",
+      "assay_variant_mutation",
+      "bao_label",
+      "standard_type",
+      "standard_relation",
+      "standard_units",
+      "standard_value",
+      "pchembl_value",
+      "document_chembl_id",
+      "document_year",
+      "potential_duplicate",
+      "data_validity_comment"
+    ]
+  },
+  "chemistry": {
+    "standardizer_version": "toxact-standardizer-v1"
+  },
+  "labels": {
+    "primary": "pactivity",
+    "scale": "pChEMBL (-log10 M)",
+    "aggregation": "median over replicates within (parent, target, standard_type, assay_context)",
+    "max_replicate_range": 1.0
+  },
+  "panel": "chembl37-human-single-protein-v1",
+  "filter_ledger": {
+    "raw_rows": 142805,
+    "after_record_filters": 142805,
+    "structure:empty_smiles": 1,
+    "structure:nonorganic_element:Zn": 1,
+    "structure:isotopic_label": 167,
+    "structure:coordination_metal:Te": 2,
+    "dropped_structure_rejected": 164,
+    "dropped_structure_flagged": 268,
+    "after_standardization": 142373,
+    "flagged_high_disagreement": 3861,
+    "aggregated_rows": 120240,
+    "aggregated_rows_hq": 116379,
+    "unique_compounds": 96374
+  },
+  "artifacts": {
+    "hq_exact.csv.gz": {
+      "sha256": "9a3e7c2758b497d0aa1683bd002ac725878845b973dc1d7571b0bc704b614e15",
+      "bytes": 5796789,
+      "rows": 120240
+    }
+  },
+  "request_stats": {
+    "requests": 160,
+    "retries": 0,
+    "bytes_down": 182545520
+  }
+}

@@ -1,0 +1,941 @@
+{
+  "split_manifest_id": "toxact-chembl37-hq-v1-splits",
+  "dataset": "hq_exact.csv.gz",
+  "dataset_sha256": "9a3e7c2758b497d0aa1683bd002ac725878845b973dc1d7571b0bc704b614e15",
+  "seed": 42,
+  "fractions": {
+    "train": 0.6,
+    "validation": 0.1,
+    "calibration": 0.1,
+    "test": 0.2
+  },
+  "grouping": "global, by stereo-insensitive InChIKey connectivity block",
+  "primary_view": "temporal",
+  "n_rows": 116379,
+  "n_compounds": 93911,
+  "views": {
+    "temporal": {
+      "counts": {
+        "train": {
+          "compounds": 56359,
+          "rows": 70679
+        },
+        "validation": {
+          "compounds": 8943,
+          "rows": 11427
+        },
+        "calibration": {
+          "compounds": 9160,
+          "rows": 11423
+        },
+        "test": {
+          "compounds": 19449,
+          "rows": 22850
+        }
+      },
+      "per_task": {
+        "CHEMBL1163125|IC50": {
+          "train": 2259,
+          "validation": 1052,
+          "calibration": 1059,
+          "test": 3802
+        },
+        "CHEMBL1163125|Ki": {
+          "train": 765,
+          "validation": 231,
+          "calibration": 28,
+          "test": 69
+        },
+        "CHEMBL1741186|EC50": {
+          "train": 558,
+          "validation": 138,
+          "calibration": 290,
+          "test": 350
+        },
+        "CHEMBL1741186|IC50": {
+          "train": 4067,
+          "validation": 1404,
+          "calibration": 2147,
+          "test": 1631
+        },
+        "CHEMBL1741186|Kd": {
+          "train": 162,
+          "validation": 315,
+          "calibration": 363,
+          "test": 974
+        },
+        "CHEMBL203|IC50": {
+          "train": 7733,
+          "validation": 1031,
+          "calibration": 810,
+          "test": 3634
+        },
+        "CHEMBL206|IC50": {
+          "train": 2048,
+          "validation": 717,
+          "calibration": 408,
+          "test": 453
+        },
+        "CHEMBL217|EC50": {
+          "train": 409,
+          "validation": 35,
+          "calibration": 87,
+          "test": 151
+        },
+        "CHEMBL217|Ki": {
+          "train": 6287,
+          "validation": 294,
+          "calibration": 785,
+          "test": 1190
+        },
+        "CHEMBL222|IC50": {
+          "train": 1858,
+          "validation": 164,
+          "calibration": 20,
+          "test": 85
+        },
+        "CHEMBL222|Ki": {
+          "train": 1534,
+          "validation": 182,
+          "calibration": 135,
+          "test": 125
+        },
+        "CHEMBL228|IC50": {
+          "train": 2471,
+          "validation": 168,
+          "calibration": 141,
+          "test": 144
+        },
+        "CHEMBL228|Ki": {
+          "train": 2194,
+          "validation": 363,
+          "calibration": 75,
+          "test": 119
+        },
+        "CHEMBL240|IC50": {
+          "train": 6307,
+          "validation": 893,
+          "calibration": 827,
+          "test": 1807
+        },
+        "CHEMBL240|Ki": {
+          "train": 1350,
+          "validation": 49,
+          "calibration": 53,
+          "test": 43
+        },
+        "CHEMBL253|EC50": {
+          "train": 3169,
+          "validation": 119,
+          "calibration": 233,
+          "test": 254
+        },
+        "CHEMBL253|IC50": {
+          "train": 1003,
+          "validation": 45,
+          "calibration": 30,
+          "test": 147
+        },
+        "CHEMBL253|Ki": {
+          "train": 3388,
+          "validation": 178,
+          "calibration": 236,
+          "test": 267
+        },
+        "CHEMBL2971|IC50": {
+          "train": 5053,
+          "validation": 1621,
+          "calibration": 1335,
+          "test": 2104
+        },
+        "CHEMBL2971|Ki": {
+          "train": 1069,
+          "validation": 644,
+          "calibration": 352,
+          "test": 294
+        },
+        "CHEMBL325|IC50": {
+          "train": 3979,
+          "validation": 513,
+          "calibration": 788,
+          "test": 3021
+        },
+        "CHEMBL4198|IC50": {
+          "train": 987,
+          "validation": 222,
+          "calibration": 69,
+          "test": 12
+        },
+        "CHEMBL4296|IC50": {
+          "train": 6876,
+          "validation": 529,
+          "calibration": 309,
+          "test": 270
+        },
+        "CHEMBL4361|IC50": {
+          "train": 1391,
+          "validation": 219,
+          "calibration": 99,
+          "test": 276
+        },
+        "CHEMBL4361|Ki": {
+          "train": 510,
+          "validation": 105,
+          "calibration": 266,
+          "test": 691
+        },
+        "CHEMBL4523377|EC50": {
+          "train": 34,
+          "validation": 18,
+          "calibration": 238,
+          "test": 568
+        },
+        "CHEMBL5023|IC50": {
+          "train": 3218,
+          "validation": 178,
+          "calibration": 240,
+          "test": 369
+        }
+      },
+      "year_boundaries": {
+        "train": {
+          "year_min": 1980,
+          "year_max": 2017
+        },
+        "validation": {
+          "year_min": 2017,
+          "year_max": 2019
+        },
+        "calibration": {
+          "year_min": 2019,
+          "year_max": 2020
+        },
+        "test": {
+          "year_min": 2020,
+          "year_max": 2025
+        }
+      },
+      "undated_compounds_to_train": 1895,
+      "assignment_sha256": "ebf5b35a8ec8db93cfed779ba3edaea539b8f67c882ff411176569a88991ecd1"
+    },
+    "cluster": {
+      "counts": {
+        "train": {
+          "compounds": 56319,
+          "rows": 69827
+        },
+        "validation": {
+          "compounds": 9333,
+          "rows": 11638
+        },
+        "calibration": {
+          "compounds": 9414,
+          "rows": 11638
+        },
+        "test": {
+          "compounds": 18845,
+          "rows": 23276
+        }
+      },
+      "per_task": {
+        "CHEMBL1163125|IC50": {
+          "train": 5143,
+          "validation": 784,
+          "calibration": 366,
+          "test": 1879
+        },
+        "CHEMBL1163125|Ki": {
+          "train": 781,
+          "validation": 53,
+          "calibration": 18,
+          "test": 241
+        },
+        "CHEMBL1741186|EC50": {
+          "train": 828,
+          "validation": 181,
+          "calibration": 133,
+          "test": 194
+        },
+        "CHEMBL1741186|IC50": {
+          "train": 6233,
+          "validation": 392,
+          "calibration": 1414,
+          "test": 1210
+        },
+        "CHEMBL1741186|Kd": {
+          "train": 858,
+          "validation": 349,
+          "calibration": 278,
+          "test": 329
+        },
+        "CHEMBL203|IC50": {
+          "train": 9104,
+          "validation": 1364,
+          "calibration": 828,
+          "test": 1912
+        },
+        "CHEMBL206|IC50": {
+          "train": 2361,
+          "validation": 145,
+          "calibration": 165,
+          "test": 955
+        },
+        "CHEMBL217|EC50": {
+          "train": 383,
+          "validation": 101,
+          "calibration": 72,
+          "test": 126
+        },
+        "CHEMBL217|Ki": {
+          "train": 4639,
+          "validation": 900,
+          "calibration": 1090,
+          "test": 1927
+        },
+        "CHEMBL222|IC50": {
+          "train": 1348,
+          "validation": 245,
+          "calibration": 240,
+          "test": 294
+        },
+        "CHEMBL222|Ki": {
+          "train": 1047,
+          "validation": 303,
+          "calibration": 207,
+          "test": 419
+        },
+        "CHEMBL228|IC50": {
+          "train": 1828,
+          "validation": 373,
+          "calibration": 330,
+          "test": 393
+        },
+        "CHEMBL228|Ki": {
+          "train": 1758,
+          "validation": 432,
+          "calibration": 152,
+          "test": 409
+        },
+        "CHEMBL240|IC50": {
+          "train": 5140,
+          "validation": 657,
+          "calibration": 1267,
+          "test": 2770
+        },
+        "CHEMBL240|Ki": {
+          "train": 696,
+          "validation": 80,
+          "calibration": 299,
+          "test": 420
+        },
+        "CHEMBL253|EC50": {
+          "train": 1886,
+          "validation": 176,
+          "calibration": 470,
+          "test": 1243
+        },
+        "CHEMBL253|IC50": {
+          "train": 719,
+          "validation": 221,
+          "calibration": 131,
+          "test": 154
+        },
+        "CHEMBL253|Ki": {
+          "train": 2613,
+          "validation": 242,
+          "calibration": 320,
+          "test": 894
+        },
+        "CHEMBL2971|IC50": {
+          "train": 6482,
+          "validation": 519,
+          "calibration": 1356,
+          "test": 1756
+        },
+        "CHEMBL2971|Ki": {
+          "train": 1525,
+          "validation": 377,
+          "calibration": 106,
+          "test": 351
+        },
+        "CHEMBL325|IC50": {
+          "train": 4368,
+          "validation": 1197,
+          "calibration": 696,
+          "test": 2040
+        },
+        "CHEMBL4198|IC50": {
+          "train": 904,
+          "validation": 204,
+          "calibration": 5,
+          "test": 177
+        },
+        "CHEMBL4296|IC50": {
+          "train": 4141,
+          "validation": 1157,
+          "calibration": 809,
+          "test": 1877
+        },
+        "CHEMBL4361|IC50": {
+          "train": 1185,
+          "validation": 278,
+          "calibration": 229,
+          "test": 293
+        },
+        "CHEMBL4361|Ki": {
+          "train": 1026,
+          "validation": 200,
+          "calibration": 76,
+          "test": 270
+        },
+        "CHEMBL4523377|EC50": {
+          "train": 553,
+          "validation": 74,
+          "calibration": 2,
+          "test": 229
+        },
+        "CHEMBL5023|IC50": {
+          "train": 2278,
+          "validation": 634,
+          "calibration": 579,
+          "test": 514
+        }
+      },
+      "n_clusters": 1878,
+      "clustering": "MiniBatchKMeans on ECFP4 (radius 2, 2048 bits)",
+      "clustering_is_approximation_of": "Butina (infeasible at this scale)",
+      "assignment_sha256": "104e05cd6416df6fe43f5bb10bf85b5e9f0cc3ba0be1c8fbdcdf5f0eef7d65f0"
+    },
+    "scaffold": {
+      "counts": {
+        "train": {
+          "compounds": 56416,
+          "rows": 69827
+        },
+        "validation": {
+          "compounds": 9215,
+          "rows": 11638
+        },
+        "calibration": {
+          "compounds": 9500,
+          "rows": 11638
+        },
+        "test": {
+          "compounds": 18780,
+          "rows": 23276
+        }
+      },
+      "per_task": {
+        "CHEMBL1163125|IC50": {
+          "train": 4775,
+          "validation": 767,
+          "calibration": 823,
+          "test": 1807
+        },
+        "CHEMBL1163125|Ki": {
+          "train": 718,
+          "validation": 115,
+          "calibration": 125,
+          "test": 135
+        },
+        "CHEMBL1741186|EC50": {
+          "train": 754,
+          "validation": 101,
+          "calibration": 220,
+          "test": 261
+        },
+        "CHEMBL1741186|IC50": {
+          "train": 5672,
+          "validation": 809,
+          "calibration": 952,
+          "test": 1816
+        },
+        "CHEMBL1741186|Kd": {
+          "train": 1072,
+          "validation": 121,
+          "calibration": 131,
+          "test": 490
+        },
+        "CHEMBL203|IC50": {
+          "train": 7737,
+          "validation": 1254,
+          "calibration": 1743,
+          "test": 2474
+        },
+        "CHEMBL206|IC50": {
+          "train": 2155,
+          "validation": 629,
+          "calibration": 353,
+          "test": 489
+        },
+        "CHEMBL217|EC50": {
+          "train": 432,
+          "validation": 82,
+          "calibration": 57,
+          "test": 111
+        },
+        "CHEMBL217|Ki": {
+          "train": 5151,
+          "validation": 733,
+          "calibration": 874,
+          "test": 1798
+        },
+        "CHEMBL222|IC50": {
+          "train": 1286,
+          "validation": 202,
+          "calibration": 161,
+          "test": 478
+        },
+        "CHEMBL222|Ki": {
+          "train": 1244,
+          "validation": 262,
+          "calibration": 106,
+          "test": 364
+        },
+        "CHEMBL228|IC50": {
+          "train": 1726,
+          "validation": 324,
+          "calibration": 233,
+          "test": 641
+        },
+        "CHEMBL228|Ki": {
+          "train": 1700,
+          "validation": 365,
+          "calibration": 178,
+          "test": 508
+        },
+        "CHEMBL240|IC50": {
+          "train": 5775,
+          "validation": 1023,
+          "calibration": 973,
+          "test": 2063
+        },
+        "CHEMBL240|Ki": {
+          "train": 903,
+          "validation": 192,
+          "calibration": 126,
+          "test": 274
+        },
+        "CHEMBL253|EC50": {
+          "train": 2235,
+          "validation": 428,
+          "calibration": 389,
+          "test": 723
+        },
+        "CHEMBL253|IC50": {
+          "train": 789,
+          "validation": 99,
+          "calibration": 116,
+          "test": 221
+        },
+        "CHEMBL253|Ki": {
+          "train": 2457,
+          "validation": 349,
+          "calibration": 385,
+          "test": 878
+        },
+        "CHEMBL2971|IC50": {
+          "train": 6409,
+          "validation": 1033,
+          "calibration": 836,
+          "test": 1835
+        },
+        "CHEMBL2971|Ki": {
+          "train": 1302,
+          "validation": 286,
+          "calibration": 314,
+          "test": 457
+        },
+        "CHEMBL325|IC50": {
+          "train": 4817,
+          "validation": 772,
+          "calibration": 798,
+          "test": 1914
+        },
+        "CHEMBL4198|IC50": {
+          "train": 667,
+          "validation": 148,
+          "calibration": 149,
+          "test": 326
+        },
+        "CHEMBL4296|IC50": {
+          "train": 5142,
+          "validation": 688,
+          "calibration": 806,
+          "test": 1348
+        },
+        "CHEMBL4361|IC50": {
+          "train": 1131,
+          "validation": 216,
+          "calibration": 182,
+          "test": 456
+        },
+        "CHEMBL4361|Ki": {
+          "train": 774,
+          "validation": 171,
+          "calibration": 175,
+          "test": 452
+        },
+        "CHEMBL4523377|EC50": {
+          "train": 517,
+          "validation": 158,
+          "calibration": 84,
+          "test": 99
+        },
+        "CHEMBL5023|IC50": {
+          "train": 2487,
+          "validation": 311,
+          "calibration": 349,
+          "test": 858
+        }
+      },
+      "n_scaffolds": 37850,
+      "assignment_sha256": "84c139bd454aa11f4976e01892020bfc9927cd60c9d608499ca4ac18b164ead3"
+    },
+    "random": {
+      "counts": {
+        "train": {
+          "compounds": 56416,
+          "rows": 69828
+        },
+        "validation": {
+          "compounds": 9437,
+          "rows": 11638
+        },
+        "calibration": {
+          "compounds": 9337,
+          "rows": 11638
+        },
+        "test": {
+          "compounds": 18721,
+          "rows": 23275
+        }
+      },
+      "per_task": {
+        "CHEMBL1163125|IC50": {
+          "train": 4979,
+          "validation": 760,
+          "calibration": 828,
+          "test": 1605
+        },
+        "CHEMBL1163125|Ki": {
+          "train": 659,
+          "validation": 116,
+          "calibration": 114,
+          "test": 204
+        },
+        "CHEMBL1741186|EC50": {
+          "train": 777,
+          "validation": 143,
+          "calibration": 138,
+          "test": 278
+        },
+        "CHEMBL1741186|IC50": {
+          "train": 5580,
+          "validation": 961,
+          "calibration": 939,
+          "test": 1769
+        },
+        "CHEMBL1741186|Kd": {
+          "train": 1083,
+          "validation": 180,
+          "calibration": 196,
+          "test": 355
+        },
+        "CHEMBL203|IC50": {
+          "train": 7954,
+          "validation": 1263,
+          "calibration": 1304,
+          "test": 2687
+        },
+        "CHEMBL206|IC50": {
+          "train": 2149,
+          "validation": 360,
+          "calibration": 363,
+          "test": 754
+        },
+        "CHEMBL217|EC50": {
+          "train": 432,
+          "validation": 57,
+          "calibration": 49,
+          "test": 144
+        },
+        "CHEMBL217|Ki": {
+          "train": 5133,
+          "validation": 865,
+          "calibration": 874,
+          "test": 1684
+        },
+        "CHEMBL222|IC50": {
+          "train": 1277,
+          "validation": 218,
+          "calibration": 221,
+          "test": 411
+        },
+        "CHEMBL222|Ki": {
+          "train": 1164,
+          "validation": 191,
+          "calibration": 207,
+          "test": 414
+        },
+        "CHEMBL228|IC50": {
+          "train": 1756,
+          "validation": 292,
+          "calibration": 319,
+          "test": 557
+        },
+        "CHEMBL228|Ki": {
+          "train": 1635,
+          "validation": 273,
+          "calibration": 283,
+          "test": 560
+        },
+        "CHEMBL240|IC50": {
+          "train": 5945,
+          "validation": 948,
+          "calibration": 947,
+          "test": 1994
+        },
+        "CHEMBL240|Ki": {
+          "train": 944,
+          "validation": 144,
+          "calibration": 147,
+          "test": 260
+        },
+        "CHEMBL253|EC50": {
+          "train": 2237,
+          "validation": 379,
+          "calibration": 380,
+          "test": 779
+        },
+        "CHEMBL253|IC50": {
+          "train": 706,
+          "validation": 137,
+          "calibration": 119,
+          "test": 263
+        },
+        "CHEMBL253|Ki": {
+          "train": 2427,
+          "validation": 405,
+          "calibration": 400,
+          "test": 837
+        },
+        "CHEMBL2971|IC50": {
+          "train": 6006,
+          "validation": 1100,
+          "calibration": 1020,
+          "test": 1987
+        },
+        "CHEMBL2971|Ki": {
+          "train": 1426,
+          "validation": 246,
+          "calibration": 226,
+          "test": 461
+        },
+        "CHEMBL325|IC50": {
+          "train": 4921,
+          "validation": 840,
+          "calibration": 814,
+          "test": 1726
+        },
+        "CHEMBL4198|IC50": {
+          "train": 778,
+          "validation": 100,
+          "calibration": 142,
+          "test": 270
+        },
+        "CHEMBL4296|IC50": {
+          "train": 4790,
+          "validation": 834,
+          "calibration": 771,
+          "test": 1589
+        },
+        "CHEMBL4361|IC50": {
+          "train": 1229,
+          "validation": 195,
+          "calibration": 190,
+          "test": 371
+        },
+        "CHEMBL4361|Ki": {
+          "train": 955,
+          "validation": 144,
+          "calibration": 158,
+          "test": 315
+        },
+        "CHEMBL4523377|EC50": {
+          "train": 504,
+          "validation": 80,
+          "calibration": 75,
+          "test": 199
+        },
+        "CHEMBL5023|IC50": {
+          "train": 2382,
+          "validation": 407,
+          "calibration": 414,
+          "test": 802
+        }
+      },
+      "role": "diagnostic upper bound; not a release criterion",
+      "assignment_sha256": "c19494b66659713fc8369e576a14b51302de887dc29c3f003bd12afe64fa55d6"
+    }
+  },
+  "task_eligibility": {
+    "floors": {
+      "min_train_rows": 500,
+      "min_calibration_rows": 150,
+      "min_test_rows": 150
+    },
+    "basis_view": "temporal",
+    "n_eligible": 15,
+    "n_ineligible": 12,
+    "eligible_tasks": [
+      "CHEMBL1163125|IC50",
+      "CHEMBL1741186|EC50",
+      "CHEMBL1741186|IC50",
+      "CHEMBL203|IC50",
+      "CHEMBL206|IC50",
+      "CHEMBL217|Ki",
+      "CHEMBL240|IC50",
+      "CHEMBL253|EC50",
+      "CHEMBL253|Ki",
+      "CHEMBL2971|IC50",
+      "CHEMBL2971|Ki",
+      "CHEMBL325|IC50",
+      "CHEMBL4296|IC50",
+      "CHEMBL4361|Ki",
+      "CHEMBL5023|IC50"
+    ],
+    "ineligible_tasks": {
+      "CHEMBL1163125|Ki": {
+        "reasons": [
+          "calibration=28<150",
+          "test=69<150"
+        ],
+        "counts": {
+          "train": 765,
+          "calibration": 28,
+          "test": 69
+        }
+      },
+      "CHEMBL1741186|Kd": {
+        "reasons": [
+          "train=162<500"
+        ],
+        "counts": {
+          "train": 162,
+          "calibration": 363,
+          "test": 974
+        }
+      },
+      "CHEMBL217|EC50": {
+        "reasons": [
+          "train=409<500",
+          "calibration=87<150"
+        ],
+        "counts": {
+          "train": 409,
+          "calibration": 87,
+          "test": 151
+        }
+      },
+      "CHEMBL222|IC50": {
+        "reasons": [
+          "calibration=20<150",
+          "test=85<150"
+        ],
+        "counts": {
+          "train": 1858,
+          "calibration": 20,
+          "test": 85
+        }
+      },
+      "CHEMBL222|Ki": {
+        "reasons": [
+          "calibration=135<150",
+          "test=125<150"
+        ],
+        "counts": {
+          "train": 1534,
+          "calibration": 135,
+          "test": 125
+        }
+      },
+      "CHEMBL228|IC50": {
+        "reasons": [
+          "calibration=141<150",
+          "test=144<150"
+        ],
+        "counts": {
+          "train": 2471,
+          "calibration": 141,
+          "test": 144
+        }
+      },
+      "CHEMBL228|Ki": {
+        "reasons": [
+          "calibration=75<150",
+          "test=119<150"
+        ],
+        "counts": {
+          "train": 2194,
+          "calibration": 75,
+          "test": 119
+        }
+      },
+      "CHEMBL240|Ki": {
+        "reasons": [
+          "calibration=53<150",
+          "test=43<150"
+        ],
+        "counts": {
+          "train": 1350,
+          "calibration": 53,
+          "test": 43
+        }
+      },
+      "CHEMBL253|IC50": {
+        "reasons": [
+          "calibration=30<150",
+          "test=147<150"
+        ],
+        "counts": {
+          "train": 1003,
+          "calibration": 30,
+          "test": 147
+        }
+      },
+      "CHEMBL4198|IC50": {
+        "reasons": [
+          "calibration=69<150",
+          "test=12<150"
+        ],
+        "counts": {
+          "train": 987,
+          "calibration": 69,
+          "test": 12
+        }
+      },
+      "CHEMBL4361|IC50": {
+        "reasons": [
+          "calibration=99<150"
+        ],
+        "counts": {
+          "train": 1391,
+          "calibration": 99,
+          "test": 276
+        }
+      },
+      "CHEMBL4523377|EC50": {
+        "reasons": [
+          "train=34<500"
+        ],
+        "counts": {
+          "train": 34,
+          "calibration": 238,
+          "test": 568
+        }
+      }
+    },
+    "note": "ineligible tasks stay in the dataset for training signal but are excluded from per-task and macro metric reporting"
+  }
+}
