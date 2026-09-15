@@ -38,8 +38,7 @@ async def _install_scripted_runtime(client, script) -> None:
     async def run_agentic(context) -> None:
         await gateway.execute(context)
 
-    for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
-        app.state.scheduler.register(intent, run_agentic)
+    app.state.scheduler.register(Intent.DECISION_SUPPORT, run_agentic)
     # api/app.py binds both — see test_scripted_runtime.py's note (I01/I05).
     app.state.runtime_gateway = gateway
 
@@ -70,8 +69,7 @@ async def _install_unhealthy_runtime(client) -> None:
     async def run_agentic(context) -> None:
         await gateway.execute(context)
 
-    for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
-        app.state.scheduler.register(intent, run_agentic)
+    app.state.scheduler.register(Intent.DECISION_SUPPORT, run_agentic)
     # api/app.py binds both — see test_scripted_runtime.py's note (I01/I05).
     app.state.runtime_gateway = gateway
 

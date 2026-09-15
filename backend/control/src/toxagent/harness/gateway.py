@@ -30,6 +30,7 @@ from ..domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnava
 from ..domain.events import EventType
 from ..domain.evidence import EvidenceStatus
 from ..domain.message import Message, PartType, Role
+from ..domain.observation import ObservationKind
 from ..domain.provenance import content_sha256
 from ..domain.run import Intent, RunStatus
 from ..domain.report import BuildStage, ReportBuild, ReportBuildRequest
@@ -694,6 +695,38 @@ class AgentRuntimeGateway:
                         summary=f"{record.title[:120]!r}; read with get_evidence_record",
                     )
                 )
+            if context.intent is Intent.DECISION_SUPPORT and target_analysis_id:
+                # ADS plan section 8.1/W3: which explanations already exist for
+                # this analysis, so a follow-up turn reuses get_explanation_slice
+                # / get_attribution instead of guessing from prose or recomputing
+                # one (RC-04). Pointer only — endpoint/task/observation_id — the
+                # highlights themselves are still read through those tools.
+                # Report-artifact pinning (latest report + open gaps) is
+                # deliberately not added here yet: the profile has no read tool
+                # for report content (get_report_summary, plan section 8.1) and
+                # pinning an id the model has no tool to read would be a false
+                # affordance. Adding that tool needs the report_fact citation
+                # story from W5/W6 settled first, so it is a follow-up PR.
+                explanation_observations = [
+                    obs
+                    for obs in await uow.observations.list_for_analysis(target_analysis_id)
+                    if obs.kind is ObservationKind.ATTRIBUTION
+                ]
+                for obs in explanation_observations:
+                    endpoint = obs.model_projection.get("endpoint", "?")
+                    task = obs.model_projection.get("task")
+                    target = f"{endpoint}/{task}" if task else endpoint
+                    pinned.append(
+                        PinnedReference(
+                            kind="explanation",
+                            id=obs.id,
+                            summary=(
+                                f"endpoint/task={target}; already computed — read with "
+                                "get_explanation_slice or get_attribution instead of "
+                                "recomputing"
+                            ),
+                        )
+                    )
             if context.intent is Intent.BUILD_REPORT:
                 builds = await uow.reports.list_builds_for_session(context.session_id, limit=50)
                 build = next((item for item in builds if item.id == context.report_build_id), None)

@@ -131,7 +131,9 @@ class PinnedReference:
     without spending budget on its values (plan section 10.4 step 5) — the
     model reads values through get_analysis_slice / get_evidence_record."""
 
-    kind: str  # "analysis" | "evidence"
+    #: "analysis" | "evidence" | "explanation" (ADS plan section 8.1, W3) |
+    #: "report_build" (build_report only, a different pinning contract).
+    kind: str
     id: str
     summary: str
 

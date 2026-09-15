@@ -45,8 +45,7 @@ async def _install_scripted_runtime(client, script) -> None:
     async def run_agentic(context) -> None:
         await gateway.execute(context)
 
-    for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
-        app.state.scheduler.register(intent, run_agentic)
+    app.state.scheduler.register(Intent.DECISION_SUPPORT, run_agentic)
     # api/app.py binds both — a registered handler and the gateway behind it.
     # Registering only the handler is what let a deployment claim a capability
     # it could not serve (I01/I05); a harness that models half the seam cannot
@@ -269,18 +268,21 @@ async def test_a_claims_observation_is_readable_and_tool_calls_carry_timestamps(
 ETHANOL = "CCO"
 
 
-async def test_evidence_research_answers_deterministically_when_unavailable(db):
-    """audit_5_9.md A06, and now the general case: a deployment with no
-    research provider configured (``TOXAGENT_RESEARCH_PROVIDER=""``) must not
-    let this intent reach a runtime turn a model has no way to fulfil — even
-    with a scripted runtime installed that *would* otherwise happily accept
-    the turn. Phase 5 exists now (see the test below), so this is exercising
-    the "not configured" deployment fact, not "not built yet"."""
+async def test_decision_support_reaches_the_runtime_even_without_a_research_provider(db):
+    """ADR 0010 / ADS plan section 9.1: unlike the old evidence_research, a
+    request that only asks for literature does not hard-gate on a research
+    provider once it is decision_support — a missing provider narrows what
+    the agent can search, it does not remove the capability, so the turn
+    still reaches the runtime (which is then expected to answer with a
+    provider-gap limitation, not to fail admission). Superseded audit_5_9.md
+    A06's "capability_unavailable without reaching a runtime" expectation,
+    which was specific to evidence_research being provider-gated."""
     runtime_was_called = False
 
     async def script(turn) -> None:
         nonlocal runtime_was_called
         runtime_was_called = True
+        turn.say("noop")
 
     no_research = settings(research=ResearchSettings(provider=""))
     async with api_client(db, StubPredictor(), config=no_research) as client:
@@ -297,14 +299,9 @@ async def test_evidence_research_answers_deterministically_when_unavailable(db):
             headers=AUTH,
         )
         assert submitted.status_code == 202, submitted.text
-        body = submitted.json()
-        assert body["run_status"] == "completed"
+        await wait_for_run(client, session_id, submitted.json()["run_id"])
 
-        messages = await client.get(f"/v1/sessions/{session_id}/messages", headers=AUTH)
-        assistant = [m for m in messages.json()["messages"] if m["role"] == "assistant"]
-        assert assistant[-1]["parts"][0]["content"]["code"] == "capability_unavailable"
-
-    assert runtime_was_called is False
+    assert runtime_was_called is True
 
 
 async def test_structure_recognition_answers_deterministically_when_unavailable(db):
@@ -747,6 +744,50 @@ async def test_accepted_evidence_is_pinned_into_a_later_turns_prompt(db):
         await wait_for_run(client, session_id, second.json()["run_id"])
 
     assert ACCEPTED_HIT.title in later_prompt
+
+
+async def test_a_computed_attribution_is_pinned_into_a_later_turns_prompt(db):
+    """ADS plan section 8.1 / W3 (ADR 0010): once an explanation exists for an
+    endpoint, a later decision_support turn should see it pinned rather than
+    guessing from prose or paying to recompute it (RC-04)."""
+    analysis_id = ""
+    later_prompt = ""
+
+    async def script(turn) -> None:
+        nonlocal later_prompt
+        if "atoms" in turn.user_message:
+            await turn.call_tool(
+                "get_attribution", {"analysis_id": analysis_id, "endpoint": "herg"}
+            )
+            turn.say("The attribution has been computed.")
+        else:
+            later_prompt = turn.system_prompt
+            turn.say("noop")
+
+    async with api_client(db, StubPredictor()) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        analysis_id = await _analyse_aspirin(client, session_id)
+
+        first = await client.post(
+            f"/v1/sessions/{session_id}/messages",
+            json={
+                "intent_hint": "request_attribution",
+                "content": [{"type": "text", "text": "which atoms drive the hERG score?"}],
+            },
+            headers=AUTH,
+        )
+        await wait_for_run(client, session_id, first.json()["run_id"])
+
+        second = await client.post(
+            f"/v1/sessions/{session_id}/messages",
+            json={"content": [{"type": "text", "text": "And what about the rest?"}]},
+            headers=AUTH,
+        )
+        await wait_for_run(client, session_id, second.json()["run_id"])
+
+    assert "herg" in later_prompt
+    assert "get_explanation_slice" in later_prompt
 
 
 async def test_an_explicit_analysis_id_overrides_a_different_stale_active_one(db):
