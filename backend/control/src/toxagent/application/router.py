@@ -30,10 +30,24 @@ from .intent_matching import matched_terms, mentions
 
 INTENT_HINTS: Final[dict[str, Intent]] = {
     "analyze": Intent.ANALYSIS,
-    "ask_report": Intent.REPORT_QA,
-    "research_evidence": Intent.EVIDENCE_RESEARCH,
-    "request_attribution": Intent.ATTRIBUTION,
+    # ADS plan section 7.1 / ADR 0010: these three legacy hints are still
+    # accepted from old clients, but no longer name distinct destinations —
+    # all three resolve to the one adaptive capability. Which flavour was
+    # asked for is preserved separately in REQUESTED_HINT_FLAVOR for audit
+    # (IntentDecision.requested_hint / reason_codes), never as a different
+    # Intent value.
+    "ask_report": Intent.DECISION_SUPPORT,
+    "research_evidence": Intent.DECISION_SUPPORT,
+    "request_attribution": Intent.DECISION_SUPPORT,
     "build_report": Intent.BUILD_REPORT,
+}
+
+#: The pre-ADS name of the flavour a legacy hint asked for, kept only as a
+#: reason code on the routing decision — never used to pick the Intent.
+REQUESTED_HINT_FLAVOR: Final[dict[str, str]] = {
+    "ask_report": "requested_report_qa",
+    "research_evidence": "requested_evidence_research",
+    "request_attribution": "requested_attribution",
 }
 
 #: Explicit asks for external literature, in both supported languages (DEC-08).
@@ -310,8 +324,18 @@ def route(request: RouteRequest) -> Route:
             ),
         )
 
+    # ADS plan section 7.1 / ADR 0010: attribution, evidence-research and
+    # report-QA keyword/hint triggers all resolve to the one adaptive
+    # capability now. Precedence among them is preserved from the pre-ADS
+    # router (attribution phrase, then research phrase, then the explicit
+    # ask_report hint) purely to keep `matched`/reason_codes deterministic
+    # when a sentence fires more than one term list; it no longer picks
+    # between different destinations.
     attribution_terms = request.matches(ATTRIBUTION_TERMS)
-    if hinted is Intent.ATTRIBUTION or (hinted is None and attribution_terms):
+    wants_attribution = request.intent_hint == "request_attribution" or (
+        hinted is None and attribution_terms
+    )
+    if wants_attribution:
         missing = _subject_context(request)
         if missing:
             return _clarify(
@@ -326,7 +350,7 @@ def route(request: RouteRequest) -> Route:
                 required_context=missing,
             )
         return Route(
-            Intent.ATTRIBUTION,
+            Intent.DECISION_SUPPORT,
             Lane.MIXED,
             "attribution requested; the tool is deterministic and the synthesis is not",
             # Any explicitly submitted molecule always gets a fresh snapshot,
@@ -334,15 +358,16 @@ def route(request: RouteRequest) -> Route:
             # new molecule silently answers against the stale one.
             needs_snapshot_first=bool(request.molecule_smiles),
             decision=decide(
-                Intent.ATTRIBUTION,
+                Intent.DECISION_SUPPORT,
                 confidence="high",
-                codes=("explicit_hint",) if hinted else ("attribution_phrase",),
+                codes=(("explicit_hint", REQUESTED_HINT_FLAVOR["request_attribution"])
+                       if hinted else ("attribution_phrase",)),
                 matched=attribution_terms,
             ),
         )
 
     research_terms = request.matches(RESEARCH_TERMS)
-    wants_research = hinted is Intent.EVIDENCE_RESEARCH or (
+    wants_research = request.intent_hint == "research_evidence" or (
         hinted is None and research_terms
     )
     if wants_research:
@@ -360,14 +385,15 @@ def route(request: RouteRequest) -> Route:
                 required_context=missing,
             )
         return Route(
-            Intent.EVIDENCE_RESEARCH,
+            Intent.DECISION_SUPPORT,
             Lane.AGENTIC,
             "the request explicitly asks for external literature",
             needs_snapshot_first=bool(request.molecule_smiles),
             decision=decide(
-                Intent.EVIDENCE_RESEARCH,
+                Intent.DECISION_SUPPORT,
                 confidence="high",
-                codes=("explicit_hint",) if hinted else ("research_phrase",),
+                codes=(("explicit_hint", REQUESTED_HINT_FLAVOR["research_evidence"])
+                       if hinted else ("research_phrase",)),
                 matched=research_terms,
             ),
         )
@@ -391,7 +417,7 @@ def route(request: RouteRequest) -> Route:
             ),
         )
 
-    if hinted is Intent.REPORT_QA:
+    if request.intent_hint == "ask_report":
         missing = _subject_context(request)
         if missing:
             return _clarify(
@@ -406,12 +432,14 @@ def route(request: RouteRequest) -> Route:
             )
         needs_snapshot = bool(request.molecule_smiles)
         return Route(
-            Intent.REPORT_QA,
+            Intent.DECISION_SUPPORT,
             Lane.MIXED if needs_snapshot else Lane.AGENTIC,
             "the caller asked to question a report",
             needs_snapshot_first=needs_snapshot,
             decision=decide(
-                Intent.REPORT_QA, confidence="high", codes=("explicit_hint",)
+                Intent.DECISION_SUPPORT,
+                confidence="high",
+                codes=("explicit_hint", REQUESTED_HINT_FLAVOR["ask_report"]),
             ),
         )
 
@@ -428,11 +456,11 @@ def route(request: RouteRequest) -> Route:
         # then answer against that snapshot. The question never reaches a model
         # before the numbers it is about exist.
         return Route(
-            Intent.REPORT_QA, Lane.MIXED,
+            Intent.DECISION_SUPPORT, Lane.MIXED,
             "a new molecule and a question; the snapshot is taken before the question is answered",
             needs_snapshot_first=True,
             decision=decide(
-                Intent.REPORT_QA,
+                Intent.DECISION_SUPPORT,
                 confidence="medium",
                 codes=("molecule_with_question",),
             ),
@@ -451,9 +479,9 @@ def route(request: RouteRequest) -> Route:
                 required_context=("question_text",),
             )
         return Route(
-            Intent.REPORT_QA, Lane.AGENTIC, "a question about an existing analysis",
+            Intent.DECISION_SUPPORT, Lane.AGENTIC, "a question about an existing analysis",
             decision=decide(
-                Intent.REPORT_QA, confidence="medium", codes=("question_about_active",)
+                Intent.DECISION_SUPPORT, confidence="medium", codes=("question_about_active",)
             ),
         )
 

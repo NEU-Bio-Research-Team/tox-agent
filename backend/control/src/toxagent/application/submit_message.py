@@ -62,23 +62,17 @@ def _deterministic_title(submission: "MessageSubmission") -> str | None:
 #: rather than inlined at each call site, so a new gated capability adds one
 #: entry here instead of another branch in `_answer_without_a_runtime`.
 _CAPABILITY_UNAVAILABLE_MESSAGE: dict[Intent, str] = {
-    Intent.EVIDENCE_RESEARCH: (
-        "This deployment does not yet support searching external literature. "
-        "Ask a question about the analysis already on screen instead."
+    # I02: this was ungated for the intents it replaces (report_qa,
+    # attribution). A predictor-only stack accepted them, created a run, and
+    # failed it inside the scheduler.
+    Intent.DECISION_SUPPORT: (
+        "This deployment runs predictions only and has no agent to answer questions, "
+        "compute attribution, or search literature about an analysis. The prediction "
+        "results and their provenance are on screen."
     ),
     Intent.STRUCTURE_RECOGNITION: (
         "This deployment does not yet support recognising a chemical structure from an "
         "image. Submit a SMILES string directly, or draw the structure instead."
-    ),
-    # I02: these two were ungated. A predictor-only stack accepted them,
-    # created a run, and failed it inside the scheduler.
-    Intent.REPORT_QA: (
-        "This deployment runs predictions only and has no agent to answer questions "
-        "about an analysis. The prediction results and their provenance are on screen."
-    ),
-    Intent.ATTRIBUTION: (
-        "This deployment runs predictions only and cannot compute an attribution "
-        "explanation. Prediction and batch prediction remain available."
     ),
     Intent.BUILD_REPORT: (
         "This deployment cannot build report documents because its restricted report "
@@ -519,8 +513,11 @@ class SubmitMessage:
             return False
         if self._capabilities is not None:
             return not self._capabilities.available(intent)
-        if intent is Intent.EVIDENCE_RESEARCH:
-            return not self._evidence_research_available
+        # decision_support does not hard-gate on a research provider (ADR
+        # 0010 / plan section 9.1): unlike the old evidence_research, a
+        # missing provider narrows what it can search rather than making the
+        # whole capability unavailable, so `_evidence_research_available` is
+        # not consulted here any more.
         if intent is Intent.STRUCTURE_RECOGNITION:
             return not self._structure_recognition_available
         # No resolver injected: only the scheduler can answer for the
@@ -544,7 +541,7 @@ class SubmitMessage:
                     "capability": decision.intent.value,
                     "question": "",
                     "message": _CAPABILITY_UNAVAILABLE_MESSAGE.get(
-                        decision.intent, _CAPABILITY_UNAVAILABLE_MESSAGE[Intent.EVIDENCE_RESEARCH]
+                        decision.intent, _CAPABILITY_UNAVAILABLE_MESSAGE[Intent.DECISION_SUPPORT]
                     ),
                 }
             )

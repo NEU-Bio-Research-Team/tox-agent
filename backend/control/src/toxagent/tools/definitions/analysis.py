@@ -343,7 +343,10 @@ def build(
             input_model=SliceInput,
             handler=analysis_slice,
             profiles=frozenset(
-                {"analysis", "report_qa", "evidence_research", "audit_readonly", "report_build"}
+                {
+                    "analysis", "report_qa", "evidence_research", "decision_support",
+                    "audit_readonly", "report_build",
+                }
             ),
             soft_timeout_s=2.0,
             hard_timeout_s=5.0,
@@ -378,7 +381,7 @@ def build(
             ),
             input_model=ExplanationSliceInput,
             handler=explanation_slice,
-            profiles=frozenset({"audit_readonly"}),
+            profiles=frozenset({"audit_readonly", "decision_support"}),
             soft_timeout_s=2.0,
             hard_timeout_s=5.0,
         ),
@@ -392,7 +395,7 @@ def build(
             ),
             input_model=AttributionInput,
             handler=attribution,
-            profiles=frozenset({"report_qa"}),
+            profiles=frozenset({"report_qa", "decision_support"}),
             soft_timeout_s=90.0,
             hard_timeout_s=180.0,
         ),

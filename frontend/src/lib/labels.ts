@@ -18,6 +18,10 @@ export const LANE_LABEL_VI: Record<string, string> = {
 export const INTENT_LABEL_VI: Record<string, string> = {
   analysis: 'phân tích',
   analysis_batch: 'phân tích hàng loạt',
+  // ADR 0010: report_qa/evidence_research/attribution no longer route as
+  // distinct destinations — new runs land on decision_support. The three
+  // legacy labels stay so a historical run still renders.
+  decision_support: 'hỗ trợ quyết định',
   report_qa: 'hỏi báo cáo',
   evidence_research: 'tìm evidence',
   attribution: 'attribution',

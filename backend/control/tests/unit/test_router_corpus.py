@@ -53,7 +53,11 @@ def test_executive_summary_is_not_a_request_to_execute_something(text: str) -> N
 def test_contributing_factors_is_not_an_attribution_request() -> None:
     text = "What are the contributing factors to the uncertainty in this score?"
     decision = route(_req(text, has_active_analysis=True, analysis_id=ANALYSIS))
-    assert decision.intent is Intent.REPORT_QA
+    # Both an attribution phrase and a plain fallback question land on
+    # DECISION_SUPPORT now (ADR 0010); the reason code is what proves this
+    # did not fire as an attribution request.
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert decision.decision.reason_codes == ("question_about_active",)
     assert matched_terms(text, ATTRIBUTION_TERMS) == ()
 
 
@@ -82,7 +86,7 @@ def test_a_term_inside_a_longer_word_does_not_match(text: str, terms) -> None:
 )
 def test_a_real_attribution_request_still_routes(text: str) -> None:
     decision = route(_req(text, has_active_analysis=True, analysis_id=ANALYSIS))
-    assert decision.intent is Intent.ATTRIBUTION
+    assert decision.intent is Intent.DECISION_SUPPORT
     assert decision.decision.confidence == "high"
     assert "attribution_phrase" in decision.decision.reason_codes
 
@@ -98,7 +102,8 @@ def test_a_real_attribution_request_still_routes(text: str) -> None:
 )
 def test_a_real_research_request_still_routes(text: str) -> None:
     decision = route(_req(text, has_active_analysis=True, analysis_id=ANALYSIS))
-    assert decision.intent is Intent.EVIDENCE_RESEARCH
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "research_phrase" in decision.decision.reason_codes
 
 
 @pytest.mark.parametrize(
@@ -147,7 +152,8 @@ def test_a_negated_request_is_not_treated_as_a_request(text: str) -> None:
     doing so.
     """
     decision = route(_req(text, has_active_analysis=True, analysis_id=ANALYSIS))
-    assert decision.intent is Intent.REPORT_QA
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert decision.decision.reason_codes == ("question_about_active",)
     assert decision.decision.matched == ()
 
 
@@ -164,7 +170,8 @@ def test_negation_only_reaches_backwards_a_few_words() -> None:
             analysis_id=ANALYSIS,
         )
     )
-    assert decision.intent is Intent.EVIDENCE_RESEARCH
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "research_phrase" in decision.decision.reason_codes
 
 
 def test_a_term_mentioned_twice_counts_if_either_use_is_a_real_request() -> None:
@@ -175,7 +182,8 @@ def test_a_term_mentioned_twice_counts_if_either_use_is_a_real_request() -> None
             analysis_id=ANALYSIS,
         )
     )
-    assert decision.intent is Intent.EVIDENCE_RESEARCH
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "research_phrase" in decision.decision.reason_codes
 
 
 # --- a molecule and a question ----------------------------------------------
@@ -190,14 +198,15 @@ def test_a_bare_molecule_is_an_analysis() -> None:
 
 def test_a_molecule_with_a_question_snapshots_first() -> None:
     decision = route(_req("Is this likely to block hERG?", molecule_smiles="CCO"))
-    assert decision.intent is Intent.REPORT_QA
+    assert decision.intent is Intent.DECISION_SUPPORT
     assert decision.needs_snapshot_first is True
     assert decision.decision.reason_codes == ("molecule_with_question",)
 
 
 def test_a_molecule_with_a_research_request_snapshots_first() -> None:
     decision = route(_req("Find literature about this.", molecule_smiles="CCO"))
-    assert decision.intent is Intent.EVIDENCE_RESEARCH
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "research_phrase" in decision.decision.reason_codes
     assert decision.needs_snapshot_first is True
 
 

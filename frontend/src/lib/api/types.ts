@@ -21,11 +21,16 @@ export type IntentHint =
   | 'build_report';
 
 /** What the router actually decided. NOT the same enum as IntentHint:
- * "analyze" (hint) becomes "analysis" (selected), "ask_report" becomes
- * "report_qa", "request_attribution" becomes "attribution". */
+ * "analyze" (hint) becomes "analysis". As of ADR 0010, "ask_report",
+ * "research_evidence" and "request_attribution" all become
+ * "decision_support" — they no longer name distinct destinations, only a
+ * `requested_hint`/reason code kept for audit. "report_qa",
+ * "evidence_research" and "attribution" remain valid values only on
+ * historical runs created before this change. */
 export type SelectedIntent =
   | 'analysis'
   | 'analysis_batch'
+  | 'decision_support'
   | 'report_qa'
   | 'evidence_research'
   | 'attribution'

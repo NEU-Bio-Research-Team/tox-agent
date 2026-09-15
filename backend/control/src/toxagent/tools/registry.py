@@ -43,6 +43,22 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
             "submit_grounded_answer",
         }
     ),
+    #: Adaptive decision support (ADS plan section 7.2, ADR 0010). Superset of
+    #: report_qa + evidence_research's read/research surface: the model picks
+    #: which of these to call and in what order within the run's budget,
+    #: rather than the profile being pre-selected by a keyword. Deliberately
+    #: still closed — no shell/filesystem/raw web, same as every other
+    #: profile — and still without get_analysis_bundle/report-build tooling,
+    #: which stay report_build-only.
+    "decision_support": frozenset(
+        {
+            "get_analysis_slice",
+            "get_explanation_slice",
+            "get_attribution",
+            "search_toxicology_evidence", "get_evidence_record",
+            "submit_grounded_answer",
+        }
+    ),
     #: Read-only audit. Deliberately without submit_grounded_answer: an auditor
     #: inspects answers, it does not author them.
     "audit_readonly": frozenset(
@@ -211,8 +227,12 @@ class ToolRegistry:
         return {
             "analysis": "analysis",
             "analysis_batch": "analysis",
+            # Historical only (ADR 0010): the router no longer produces these
+            # three; kept so a stray legacy value still resolves to a real
+            # profile instead of a KeyError.
             "report_qa": "report_qa",
             "attribution": "report_qa",
             "evidence_research": "evidence_research",
+            "decision_support": "decision_support",
             "build_report": "report_build",
-        }.get(intent, "report_qa")
+        }.get(intent, "decision_support")

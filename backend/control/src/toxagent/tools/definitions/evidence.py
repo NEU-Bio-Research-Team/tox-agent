@@ -257,7 +257,7 @@ def build(
             ),
             input_model=SearchEvidenceInput,
             handler=search_evidence,
-            profiles=frozenset({"evidence_research", "report_build"}),
+            profiles=frozenset({"evidence_research", "decision_support", "report_build"}),
             soft_timeout_s=settings.timeout_s,
             hard_timeout_s=settings.hard_timeout_s,
             max_retries=1,
@@ -274,7 +274,9 @@ def build(
             ),
             input_model=GetEvidenceInput,
             handler=get_evidence,
-            profiles=frozenset({"evidence_research", "audit_readonly", "report_build"}),
+            profiles=frozenset(
+                {"evidence_research", "decision_support", "audit_readonly", "report_build"}
+            ),
             soft_timeout_s=10.0,
             hard_timeout_s=30.0,
             max_retries=1,

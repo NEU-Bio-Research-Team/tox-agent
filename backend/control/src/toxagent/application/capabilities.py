@@ -55,19 +55,21 @@ class DeploymentMode(str, Enum):
 
 #: Intents a browser can ask for. `CLARIFICATION_REQUIRED` and `OUT_OF_SCOPE`
 #: are router outcomes, not capabilities, and are deliberately absent.
+#: REPORT_QA/ATTRIBUTION/EVIDENCE_RESEARCH are not listed (ADR 0010): the
+#: router no longer produces them for a new decision, so advertising them as
+#: requestable would promise a destination nothing routes to any more. They
+#: stay in `Intent` only so a historical run still deserializes.
 REQUESTABLE: tuple[Intent, ...] = (
     Intent.ANALYSIS,
     Intent.ANALYSIS_BATCH,
     Intent.STRUCTURE_RECOGNITION,
-    Intent.REPORT_QA,
-    Intent.ATTRIBUTION,
-    Intent.EVIDENCE_RESEARCH,
+    Intent.DECISION_SUPPORT,
     Intent.BUILD_REPORT,
 )
 
 #: The intents that need an agent runtime turn.
 CONVERSATIONAL: frozenset[Intent] = frozenset(
-    {Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH, Intent.BUILD_REPORT}
+    {Intent.DECISION_SUPPORT, Intent.BUILD_REPORT}
 )
 
 
@@ -171,9 +173,11 @@ class CapabilityResolver:
                 "is bound behind it"
             )
 
-        if intent is Intent.EVIDENCE_RESEARCH and available and self._research_provider is None:
-            available = False
-            reason = "no literature provider is configured for this deployment"
+        # decision_support does NOT hard-gate on a research provider (ADS plan
+        # section 9.1/13.3): a missing provider narrows what it can search,
+        # and the agent is expected to answer with a provider-gap limitation
+        # rather than the whole capability going unavailable (plan section
+        # 3.3's behaviour matrix — "provider unavailable" is not "no answer").
 
         if intent is Intent.BUILD_REPORT and available and self._research_provider is None:
             available = False
@@ -238,16 +242,9 @@ _UNREGISTERED_REASON: dict[Intent, str] = {
     Intent.STRUCTURE_RECOGNITION: (
         "no structure-recognition service is configured for this deployment"
     ),
-    Intent.REPORT_QA: (
+    Intent.DECISION_SUPPORT: (
         "this deployment has no agent runtime bound, so questions about an "
         "analysis cannot be answered here"
-    ),
-    Intent.ATTRIBUTION: (
-        "this deployment has no agent runtime bound, so attribution cannot run here"
-    ),
-    Intent.EVIDENCE_RESEARCH: (
-        "this deployment has no agent runtime bound, so literature research "
-        "cannot run here"
     ),
     Intent.BUILD_REPORT: (
         "this deployment has no agent runtime bound, so reports cannot be built here"

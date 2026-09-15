@@ -47,13 +47,15 @@ def test_a_question_about_an_existing_analysis_is_report_qa():
     decision = route(
         RouteRequest(text="Why is the hERG label blocker?", has_active_analysis=True)
     )
-    assert decision.intent is Intent.REPORT_QA
+    # ADR 0010: report_qa/evidence_research/attribution collapse into
+    # DECISION_SUPPORT; this used to be REPORT_QA.
+    assert decision.intent is Intent.DECISION_SUPPORT
     assert decision.lane is Lane.AGENTIC
 
 
 def test_a_new_molecule_with_a_question_snapshots_first():
     decision = route(RouteRequest(text="Giải thích hERG cho chất này", molecule_smiles=ASPIRIN))
-    assert decision.intent is Intent.REPORT_QA
+    assert decision.intent is Intent.DECISION_SUPPORT
     assert decision.lane is Lane.MIXED
     assert decision.needs_snapshot_first
 
@@ -68,7 +70,8 @@ def test_a_new_molecule_with_a_question_snapshots_first():
 )
 def test_an_explicit_ask_for_sources_routes_to_research(text):
     decision = route(RouteRequest(text=text, has_active_analysis=True))
-    assert decision.intent is Intent.EVIDENCE_RESEARCH
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "research_phrase" in decision.decision.reason_codes
 
 
 def test_research_without_a_subject_asks_rather_than_searching():
@@ -82,7 +85,8 @@ def test_attribution_is_mixed_because_the_tool_is_deterministic():
     decision = route(
         RouteRequest(text="which atoms contributed to SR-p53?", has_active_analysis=True)
     )
-    assert decision.intent is Intent.ATTRIBUTION
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "attribution_phrase" in decision.decision.reason_codes
     assert decision.lane is Lane.MIXED
 
 
@@ -91,15 +95,15 @@ def test_attribution_is_mixed_because_the_tool_is_deterministic():
     [
         (
             dict(text="ask_report question", intent_hint="ask_report", molecule_smiles=ASPIRIN),
-            Intent.REPORT_QA,
+            Intent.DECISION_SUPPORT,
         ),
         (
             dict(text="which atoms contributed?", molecule_smiles=ASPIRIN),
-            Intent.ATTRIBUTION,
+            Intent.DECISION_SUPPORT,
         ),
         (
             dict(text="find literature about this", molecule_smiles=ASPIRIN),
-            Intent.EVIDENCE_RESEARCH,
+            Intent.DECISION_SUPPORT,
         ),
     ],
 )
@@ -148,9 +152,11 @@ def test_an_empty_request_is_a_clarification_not_a_run():
     "hint,expected",
     [
         ("analyze", Intent.ANALYSIS),
-        ("ask_report", Intent.REPORT_QA),
-        ("research_evidence", Intent.EVIDENCE_RESEARCH),
-        ("request_attribution", Intent.ATTRIBUTION),
+        # ADR 0010: these three legacy hints are still accepted, but all
+        # resolve to the one adaptive capability now.
+        ("ask_report", Intent.DECISION_SUPPORT),
+        ("research_evidence", Intent.DECISION_SUPPORT),
+        ("request_attribution", Intent.DECISION_SUPPORT),
     ],
 )
 def test_an_explicit_hint_is_honoured(hint, expected):
@@ -158,6 +164,8 @@ def test_an_explicit_hint_is_honoured(hint, expected):
         RouteRequest(text="something", molecule_smiles=ASPIRIN, intent_hint=hint)
     )
     assert decision.intent is expected
+    assert decision.decision.hint_honoured is True
+    assert decision.decision.requested_hint == hint
 
 
 def test_routing_is_pure():

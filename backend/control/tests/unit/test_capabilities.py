@@ -107,27 +107,32 @@ def test_a_conversational_intent_is_unavailable_without_a_runtime(intent):
     assert "runtime" in capability.reason
 
 
-def test_report_qa_and_attribution_were_the_ungated_pair():
-    """These two reached the scheduler with nothing registered (I02)."""
+def test_decision_support_was_the_ungated_trio():
+    """report_qa, attribution and evidence_research (I02) collapsed into this
+    one intent (ADR 0010); it reached the scheduler with nothing registered
+    exactly as they did."""
     resolver = predictor_only()
-    assert not resolver.available(Intent.REPORT_QA)
-    assert not resolver.available(Intent.ATTRIBUTION)
+    assert not resolver.available(Intent.DECISION_SUPPORT)
 
 
-def test_research_needs_a_provider_as_well_as_a_runtime():
+def test_decision_support_does_not_need_a_research_provider():
+    """ADR 0010 / plan section 9.1: unlike the old evidence_research,
+    decision_support stays available without a research provider — a missing
+    provider narrows what it can search rather than removing the capability;
+    the agent is expected to answer with a provider-gap limitation instead."""
     with_runtime_no_provider = agent_enabled(research_provider=None)
-    capability = with_runtime_no_provider.intent(Intent.EVIDENCE_RESEARCH)
-    assert capability.available is False
-    assert "provider" in capability.reason
+    assert with_runtime_no_provider.available(Intent.DECISION_SUPPORT)
 
     with_both = agent_enabled(research_provider=object())
-    assert with_both.available(Intent.EVIDENCE_RESEARCH)
+    assert with_both.available(Intent.DECISION_SUPPORT)
 
 
-def test_a_research_provider_alone_does_not_make_research_available():
-    """The precise I02 inversion: a provider existing was taken as capability."""
+def test_a_research_provider_alone_does_not_make_decision_support_available():
+    """The precise I02 inversion: a provider existing was taken as capability.
+    A research provider with no runtime bound still leaves decision_support
+    unavailable — it needs the runtime, the provider is optional."""
     resolver = predictor_only(research_provider=object())
-    assert resolver.available(Intent.EVIDENCE_RESEARCH) is False
+    assert resolver.available(Intent.DECISION_SUPPORT) is False
 
 
 def test_structure_recognition_follows_the_ocr_service():
@@ -158,7 +163,7 @@ def test_configured_and_available_are_reported_separately():
         runtime_kind="opencode",
         runtime_gateway_getter=lambda: None,
     )
-    capability = resolver.intent(Intent.REPORT_QA)
+    capability = resolver.intent(Intent.DECISION_SUPPORT)
     assert capability.configured is True
     assert capability.available is False
 

@@ -65,17 +65,11 @@ async def test_a_conversational_ask_is_refused_deterministically_without_a_runti
         reply = messages[-1]
         content = reply["parts"][0]["content"]
         assert content["code"] == "capability_unavailable"
-        assert content["capability"] == {
-            "ask_report": "report_qa",
-            "request_attribution": "attribution",
-            "research_evidence": "evidence_research",
-        }[hint]
-        # Each gated intent gets its own message. `report_qa` and
-        # `attribution` used to fall through to the research wording, which
-        # told the reader about a literature feature they had not asked for.
+        # ADR 0010: ask_report, request_attribution and research_evidence are
+        # legacy hint names for the one adaptive capability now — all three
+        # gate on and report the same intent.
+        assert content["capability"] == "decision_support"
         assert content["message"]
-        if hint == "ask_report":
-            assert "literature" not in content["message"].lower()
 
 
 @pytest.mark.parametrize("hint", sorted(ASKS))

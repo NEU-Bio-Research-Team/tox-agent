@@ -152,9 +152,7 @@ class AgentRuntimeGateway:
         malformed runtime from looking like a completed conversation.
         """
         if context.intent not in {
-            Intent.REPORT_QA,
-            Intent.ATTRIBUTION,
-            Intent.EVIDENCE_RESEARCH,
+            Intent.DECISION_SUPPORT,
             Intent.BUILD_REPORT,
         }:
             raise RuntimeProtocolError(
@@ -633,7 +631,7 @@ class AgentRuntimeGateway:
             return self._settings.max_steps_report
         return (
             self._settings.max_steps_research
-            if intent is Intent.EVIDENCE_RESEARCH
+            if intent is Intent.DECISION_SUPPORT
             else self._settings.max_steps_qa
         )
 

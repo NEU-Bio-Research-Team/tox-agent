@@ -267,10 +267,12 @@ def create_app(
             # decision, not a default (I15) — see SecuritySettings.egress_policy.
             OpenAICompatibleProbe(egress=EgressPolicy(settings.security.egress_policy)),
         )
-        # Intent.EVIDENCE_RESEARCH only reaches a runtime turn when this
-        # deployment actually has a way to fulfil it (Phase 5) — otherwise
-        # submit_message answers capability_unavailable without spending a
-        # runtime turn no tool exists for.
+        # Intent.DECISION_SUPPORT only reaches a runtime turn when this
+        # deployment actually has an agent runtime bound (Phase 5) —
+        # otherwise submit_message answers capability_unavailable without
+        # spending a runtime turn no tool exists for. It does not hard-gate
+        # on a research provider (ADR 0010): that only narrows what it can
+        # search.
         # I01/I02/I05: one resolver, consulted by admission and by readiness,
         # so a request cannot be admitted for work no handler can do and
         # readiness cannot report a runtime that was never constructed. It
@@ -350,10 +352,7 @@ def create_app(
             async def run_agentic(context: RunContext) -> None:
                 await gateway.execute(context)
 
-            for intent in (
-                Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH,
-                Intent.BUILD_REPORT,
-            ):
+            for intent in (Intent.DECISION_SUPPORT, Intent.BUILD_REPORT):
                 scheduler.register(intent, run_agentic)
             if is_enabled("report_orchestrator_v2"):
                 # WS05: the server drives the build and the runtime is invoked

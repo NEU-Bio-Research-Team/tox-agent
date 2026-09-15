@@ -24,11 +24,24 @@ class Lane(str, Enum):
 class Intent(str, Enum):
     ANALYSIS = "analysis"
     ANALYSIS_BATCH = "analysis_batch"
+    #: Deprecated (ADS plan, ADR 0010): the router no longer produces this
+    #: value for new decisions — see DECISION_SUPPORT — but it stays in the
+    #: enum so historical runs still deserialize (plan section 17.2).
     REPORT_QA = "report_qa"
+    #: Deprecated (ADS plan, ADR 0010): superseded by DECISION_SUPPORT for new
+    #: decisions; kept for historical reads.
     EVIDENCE_RESEARCH = "evidence_research"
     #: A complete report document, not a focused answer (report spec section 3.1).
     BUILD_REPORT = "build_report"
+    #: Deprecated (ADS plan, ADR 0010): superseded by DECISION_SUPPORT for new
+    #: decisions; kept for historical reads.
     ATTRIBUTION = "attribution"
+    #: All focused/open conversational reasoning about an already-analyzed
+    #: compound (ADS plan section 7.1): what used to be split into REPORT_QA,
+    #: EVIDENCE_RESEARCH and ATTRIBUTION by keyword is now one capability;
+    #: which flavour the caller asked for is kept as a reason code /
+    #: requested_hint on the routing decision, not as a different intent.
+    DECISION_SUPPORT = "decision_support"
     STRUCTURE_RECOGNITION = "structure_recognition"
     CLARIFICATION_REQUIRED = "clarification_required"
     OUT_OF_SCOPE = "out_of_scope"

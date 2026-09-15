@@ -150,7 +150,13 @@ class RuntimeProfileRegistry:
         self._report_agent_name = report_agent_name
         self._caps = {
             "build_report": max_steps_report,
+            # Historical only (ADR 0010): the router no longer produces this
+            # intent, but a spec resolved for an old run still needs its cap.
             "evidence_research": max_steps_research,
+            # ADS plan section 7.2: decision_support can search, so it gets
+            # the same generous cap evidence_research had rather than the
+            # tighter report_qa default.
+            "decision_support": max_steps_research,
         }
         self._default_cap = max_steps_qa
         self._runtime_kind = runtime_kind

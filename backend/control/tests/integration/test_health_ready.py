@@ -17,7 +17,10 @@ from tests.support.predictor import StubPredictor
 
 pytestmark = pytest.mark.anyio
 
-CONVERSATIONAL = ("report_qa", "attribution", "evidence_research")
+#: ADR 0010: report_qa, attribution and evidence_research collapsed into
+#: decision_support; this is the one conversational intent besides
+#: build_report now.
+CONVERSATIONAL = ("decision_support",)
 
 
 def _install(app, script):
@@ -26,8 +29,7 @@ def _install(app, script):
         app.state.database, app.state.tool_registry, app.state.capability_tokens,
         provider, app.state.settings.runtime, create_analysis=app.state.create_analysis,
     )
-    for intent in (Intent.REPORT_QA, Intent.ATTRIBUTION, Intent.EVIDENCE_RESEARCH):
-        app.state.scheduler.register(intent, gateway.execute)
+    app.state.scheduler.register(Intent.DECISION_SUPPORT, gateway.execute)
     app.state.runtime_gateway = gateway
     return gateway
 
@@ -91,7 +93,7 @@ async def test_a_registered_handler_with_no_runtime_behind_it_is_not_ready(db):
     """
     async with api_client(db, StubPredictor()) as client:
         app = client.app
-        app.state.scheduler.register(Intent.REPORT_QA, lambda context: None)
+        app.state.scheduler.register(Intent.DECISION_SUPPORT, lambda context: None)
         app.state.runtime_gateway = None
 
         response = await client.get("/health/ready")
@@ -99,9 +101,9 @@ async def test_a_registered_handler_with_no_runtime_behind_it_is_not_ready(db):
         body = response.json()
         assert body["ready"] is False
         assert body["runtime"]["healthy"] is False
-        assert body["runtime"]["misconfigured"] == ["report_qa"]
-        assert body["capabilities"]["report_qa"]["configured"] is True
-        assert body["capabilities"]["report_qa"]["available"] is False
+        assert body["runtime"]["misconfigured"] == ["decision_support"]
+        assert body["capabilities"]["decision_support"]["configured"] is True
+        assert body["capabilities"]["decision_support"]["available"] is False
 
 
 async def test_the_database_is_probed(db):
