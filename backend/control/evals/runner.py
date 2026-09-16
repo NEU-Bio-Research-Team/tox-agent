@@ -31,7 +31,7 @@ import json
 import subprocess
 import sys
 from contextlib import asynccontextmanager
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncIterator
@@ -40,7 +40,8 @@ import httpx
 
 from evals import task_packs
 from evals.frozen import FrozenPredictor, load_fixture
-from evals.graders import TaskOutcome, TaskReport, grade_task, grader_versions
+from evals.graders import GradeResult, TaskOutcome, TaskReport, grade_task, grader_versions
+from evals.graders.semantic import CommandJudge, RecordedJudge, grade_semantic
 from evals.graders.outcome_split import breakdown as outcome_breakdown
 from evals.manifest import build_manifest
 from evals.trace import project as project_trace
@@ -558,6 +559,8 @@ async def run_suite(
     suite: str | None = None,
     driver: Any = None,
     effective_product: dict[str, Any] | None = None,
+    judge: Any = None,
+    calibration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run a task set and write results, traces and an eval-manifest-v2.
 
@@ -652,10 +655,17 @@ async def run_suite(
                 trial_rows.append({"trial": trial, "status": "infra_error"})
                 continue
             report = grade_task(task, outcome)
+            semantic = await grade_semantic(task, outcome, judge, calibration)
+            if semantic.get("gating") and semantic.get("status") != "pass":
+                # A calibrated rubric gates. Abstaining on a blocking dimension,
+                # or a verdict that cannot be used, is not a pass either.
+                report = replace(report, results=report.results + (
+                    GradeResult.fail("semantic", f"semantic judge: {semantic.get('status')}"),
+                ))
             trial_reports.append(report)
             trial_rows.append(
                 {"trial": trial, "status": "pass" if report.passed else "fail",
-                 **outcome_breakdown(outcome)}
+                 "semantic": semantic, **outcome_breakdown(outcome)}
             )
         reasons: list[str] = []
         for report in trial_reports:
@@ -695,6 +705,13 @@ async def run_suite(
         predictor_commit=_pinned_predictor_commit(),
         suite=suite,
     )
+    manifest["semantic_judge"] = {
+        "judge": getattr(judge, "name", None),
+        "calibration": calibration.get("schema_version") if calibration else None,
+        "gating_rubrics": sorted(
+            key for key, r in ((calibration or {}).get("rubrics") or {}).items() if r.get("calibrated")
+        ),
+    }
     (out_dir / f"manifest-{stamp}.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     )
@@ -948,6 +965,16 @@ def main(argv: list[str] | None = None) -> int:
              f"(default: {','.join(task_packs.DEFAULT_PACKS)})",
     )
     parser.add_argument("--trials", type=int, default=1)
+    judges = parser.add_mutually_exclusive_group()
+    judges.add_argument(
+        "--judge-command", default=None,
+        help="external semantic judge: reads {request, verdict_schema} JSON on stdin, writes a "
+             "verdict on stdout. Must not be the product's own model.",
+    )
+    judges.add_argument("--judge-recorded", type=Path, default=None,
+                        help="directory of recorded verdicts, <task_id>.json")
+    parser.add_argument("--calibration", type=Path, default=None,
+                        help="judge-calibration-v1 report; only calibrated rubrics gate")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--task", action="append", dest="tasks", help="run only these task ids")
     parser.add_argument("--list", action="store_true", help="list tasks and exit")
@@ -990,6 +1017,11 @@ def main(argv: list[str] | None = None) -> int:
             only=set(args.tasks) if args.tasks else None,
             base_url=args.base_url, token=args.token, fixture_mode=args.fixture_mode,
             discovery=discovery, suite=suite,
+            judge=(
+                CommandJudge(args.judge_command) if args.judge_command
+                else RecordedJudge(args.judge_recorded) if args.judge_recorded else None
+            ),
+            calibration=json.loads(args.calibration.read_text()) if args.calibration else None,
         )
     )
     print(json.dumps(summary, indent=2))
