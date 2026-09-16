@@ -139,6 +139,37 @@ def calibrate(gold: Iterable[dict[str, Any]], verdicts: Iterable[dict[str, Any]]
     return {"schema_version": SCHEMA_VERSION, "thresholds": THRESHOLDS, "rubrics": rubrics}
 
 
+#: A calibrated rubric whose kappa falls this much between two reports, or
+#: whose false-pass rate rises this much, has drifted and stops gating.
+DRIFT = {"max_kappa_drop": 0.1, "max_false_pass_rise": 0.02}
+
+
+def drift(previous: dict[str, Any], current: dict[str, Any]) -> dict[str, Any]:
+    """Compare two calibration reports for the same rubrics.
+
+    Judges change under a fixed name (a provider updates a model) and a gold
+    set grows; either can move agreement. A rubric that drifted is reported
+    and its ``calibrated`` flag in ``current`` should not be trusted for gating
+    until re-reviewed.
+    """
+    findings: dict[str, list[str]] = {}
+    for key, rubric in (current.get("rubrics") or {}).items():
+        before = ((previous.get("rubrics") or {}).get(key) or {}).get("dimensions") or {}
+        for name, cell in (rubric.get("dimensions") or {}).items():
+            old = before.get(name) or {}
+            if old.get("kappa") is not None and cell.get("kappa") is not None:
+                if old["kappa"] - cell["kappa"] > DRIFT["max_kappa_drop"]:
+                    findings.setdefault(key, []).append(
+                        f"{name}: kappa {old['kappa']} -> {cell['kappa']}"
+                    )
+            if old.get("false_pass_rate") is not None and cell.get("false_pass_rate") is not None:
+                if cell["false_pass_rate"] - old["false_pass_rate"] > DRIFT["max_false_pass_rise"]:
+                    findings.setdefault(key, []).append(
+                        f"{name}: false-pass {old['false_pass_rate']} -> {cell['false_pass_rate']}"
+                    )
+    return {"drifted": sorted(findings), "findings": findings, "thresholds": DRIFT}
+
+
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 

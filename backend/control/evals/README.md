@@ -53,6 +53,20 @@ The sealed pack's content never lives in this repository: set
 `TOXAGENT_SEALED_TASKS_DIR`; only tasks whose `sealed_id` the pack manifest
 declares are admitted. Absent, the pack is `not_evaluated`.
 
+## Cutover and release tooling (Wave 4/5)
+
+| Command | Produces |
+|---|---|
+| `python -m evals.paired --baseline A --candidate B --expect-change flags.report_orchestrator_v2` | `eval-paired-comparison-v1`: per-task transitions, McNemar p, confounds, critical regressions |
+| `python -m evals.conformance --out conformance.json` | `control-plane-conformance-v1`: worker/lease/fencing/cancel/backpressure drills; `not_covered` ones need a real multi-replica stack |
+| `python -m evals.calibration --sme gold.jsonl --judge verdicts.jsonl --out calibration.json` | `judge-calibration-v1`; `calibration.drift(previous, current)` flags a judge that moved |
+| `python -m evals.scorecard --level release --manifest … --conformance … --calibration … --signoff …` | `toxagent-release-scorecard-v1`, HMAC-signed with `TOXAGENT_RELEASE_SIGNING_KEY`; `--verify` checks it |
+| `python -m evals.regression_from_run --base-url … --token … --session … --run … --task-id …` | a scrubbed `eval-task-v3` review draft in `regression/drafts/` (not a pack until reviewed) |
+
+Semantic judging is opt-in on a run: `--judge-command` (an external, non-product
+model reading `{request, verdict_schema}` on stdin) or `--judge-recorded DIR`,
+plus `--calibration` to let calibrated rubrics gate.
+
 ## Category budget (plan §16.2)
 
 `numeric_fidelity 12 · endpoint_semantics 8 · report_qa 10 ·
