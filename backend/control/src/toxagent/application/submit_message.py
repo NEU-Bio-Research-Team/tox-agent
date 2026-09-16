@@ -149,9 +149,13 @@ class SubmitMessage:
         evidence_research_available: bool = False,
         structure_recognition_available: bool = False,
         object_store: ObjectStore | None = None,
+        runtime_settings=None,
     ) -> None:
         self._db = database
         self._settings = settings
+        #: Only read to state the run's EffectiveRunBudgetV1 (step caps, turn
+        #: deadlines); None falls back to the defaults the gateway would use.
+        self._runtime_settings = runtime_settings
         self._scheduler = scheduler
         # I02: the shared resolver. The two booleans below remain for tests
         # that construct this directly with no deployment around them; when a
@@ -326,6 +330,7 @@ class SubmitMessage:
                 intent_decision=(
                     decision.decision.to_dict() if decision.decision else None
                 ),
+                effective_budget=self._effective_budget(decision.intent),
             )
             uow.emit(
                 session_id=session_id, type=EventType.RUN_QUEUED, entity_type="run",
@@ -523,6 +528,14 @@ class SubmitMessage:
         # No resolver injected: only the scheduler can answer for the
         # conversational intents, and it is always present.
         return not self._scheduler.handles(intent)
+
+    def _effective_budget(self, intent: Intent) -> dict:
+        from ..config import RuntimeSettings
+        from .run_budget import effective_run_budget
+
+        return effective_run_budget(
+            intent.value, self._settings, self._runtime_settings or RuntimeSettings()
+        ).to_dict()
 
     async def _answer_without_a_runtime(
         self, uow, session: Session, run: Run, decision, *, capability_unavailable: bool = False

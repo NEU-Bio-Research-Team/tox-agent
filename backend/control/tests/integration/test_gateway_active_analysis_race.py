@@ -32,7 +32,9 @@ BENZENE = "c1ccccc1"
 
 pytestmark = pytest.mark.anyio
 
-NOW = datetime(2026, 9, 16, tzinfo=timezone.utc)
+# Relative, not a calendar date: _prepare_context refuses a run whose deadline
+# (created_at + run_deadline_s) has already passed, so a fixed date rots.
+NOW = datetime.now(timezone.utc)
 ACTOR = Actor(subject_id="user-1")
 
 

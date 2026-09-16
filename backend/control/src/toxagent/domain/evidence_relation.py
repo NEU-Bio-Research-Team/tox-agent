@@ -127,9 +127,22 @@ class EvidenceRelationAssessment:
     reason_codes: tuple[str, ...]
     scope: EvidenceScope
     created_at: datetime
+    #: P1-03: for an ``agent_synthesis`` source, the typed refs of the
+    #: artifacts the synthesis was derived from (``observation:…``,
+    #: ``evidence:…``, ``report:…``). A synthesis is a transformation, never a
+    #: source in its own right; the server resolves every one of these.
+    input_refs: tuple[str, ...] = ()
+    #: evidence_ontology.Assessor: who judged this relation, and by what.
+    assessor: str = "model"
+    method_version: str = "grounded-answer-v2"
 
     def __post_init__(self) -> None:
         require_id(self.id, EVIDENCE_RELATION, field="evidence_relation.id")
+        if self.source_ref.source_class is SourceClass.AGENT_SYNTHESIS and not self.input_refs:
+            raise ValueError(
+                "an agent_synthesis relation must name the artifacts it was derived from "
+                "(input_refs) — a synthesis cannot be its own provenance"
+            )
         require_id(self.session_id, SESSION, field="evidence_relation.session_id")
         require_id(self.run_id, RUN, field="evidence_relation.run_id")
         require_id(self.proposition_id, PROPOSITION, field="evidence_relation.proposition_id")
@@ -155,6 +168,7 @@ class EvidenceRelationAssessment:
         strength: Strength,
         reason_codes: tuple[str, ...] = (),
         scope: EvidenceScope = EvidenceScope(),
+        input_refs: tuple[str, ...] = (),
         now: datetime,
     ) -> "EvidenceRelationAssessment":
         return cls(
@@ -170,6 +184,7 @@ class EvidenceRelationAssessment:
             reason_codes=reason_codes,
             scope=scope,
             created_at=now,
+            input_refs=input_refs,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -183,6 +198,9 @@ class EvidenceRelationAssessment:
             "strength": self.strength.value,
             "reason_codes": list(self.reason_codes),
             "scope": self.scope.to_dict(),
+            "input_refs": list(self.input_refs),
+            "assessor": self.assessor,
+            "method_version": self.method_version,
             "created_at": self.created_at.isoformat(),
         }
 

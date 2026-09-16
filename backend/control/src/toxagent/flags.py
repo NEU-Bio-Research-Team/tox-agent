@@ -130,6 +130,19 @@ FLAGS: tuple[RolloutFlag, ...] = (
         owner="platform",
         removal_condition="WS08 multi-replica drills pass and worker deployment is the default topology",
     ),
+    _flag(
+        "decision_state_plan_tool",
+        "Register record_decision_plan in the decision_support profile, so the "
+        "model can propose the propositions its answer must resolve. Off, the "
+        "DecisionSupportStateV1 is still kept (goal, usage, answer resolution, "
+        "stop reason) but has no model-proposed plan and the tool surface is "
+        "unchanged.",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 16),
+        remove_by=date(2026, 12, 14),
+        removal_condition="paired TAB-Suite ads-plan pack shows no first-pass regression "
+                          "and coverage/stop grading improves over flag-off",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

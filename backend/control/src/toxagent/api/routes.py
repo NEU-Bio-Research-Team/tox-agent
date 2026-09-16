@@ -900,6 +900,25 @@ async def get_run(
     return projection
 
 
+@router.get("/sessions/{session_id}/runs/{run_id}/decision-state")
+async def get_decision_state(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """The run's DecisionSupportStateV1: goal, propositions, coverage, usage
+    and stop reason. 404 for a run that keeps none (every non-decision_support
+    run, and decision_support runs admitted before the state existed)."""
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        state = await uow.decision_states.get(run_id)
+    if state is None:
+        raise NotFound("this run keeps no decision-support state", run_id=run_id)
+    return state.to_dict()
+
+
 @router.post("/sessions/{session_id}/runs/{run_id}:cancel", response_model=CancelResponse)
 async def cancel_run(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)

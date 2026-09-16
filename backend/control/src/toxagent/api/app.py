@@ -292,6 +292,7 @@ def create_app(
             evidence_research_available=research_provider is not None,
             structure_recognition_available=ocr is not None,
             object_store=objects,
+            runtime_settings=settings.runtime,
         )
         app.state.create_analysis = analysis
         app.state.create_analysis_batch = batch
@@ -347,6 +348,7 @@ def create_app(
                 # rather than the profile the user chose (I12).
                 secrets=FilesystemSecretStore(settings.secrets_dir),
                 profiles_dir=settings.profiles_dir,
+                policy=settings.policy,
             )
 
             async def run_agentic(context: RunContext) -> None:

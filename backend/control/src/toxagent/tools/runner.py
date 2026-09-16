@@ -137,6 +137,13 @@ class ToolRunner:
             attachments=output.attachments, duration_ms=duration_ms,
         )
         await self._record_finish(context, tool_name, output.observation_ids, duration_ms)
+        await self._observe_decision_state(
+            context, tool_name, status="completed", observation_ids=output.observation_ids,
+            found_evidence_ids=tuple(
+                item["evidence_id"] for item in (output.model_view or {}).get("results", ())
+                if isinstance(item, dict) and item.get("evidence_id")
+            ),
+        )
         return result
 
     # --- admission -----------------------------------------------------
@@ -228,6 +235,7 @@ class ToolRunner:
                 payload={"tool_name": tool_name, "error_code": denial.code},
             )
             await uow.commit()
+        await self._observe_decision_state(context, tool_name, status="denied", error_code=denial.code)
         raise denial
 
     def _budget_for(self, context: ToolContext, tool_name: str) -> int | None:
@@ -249,6 +257,30 @@ class ToolRunner:
         return max(0.1, min(hard_timeout_s, remaining))
 
     # --- bookkeeping -------------------------------------------------------
+
+    async def _observe_decision_state(
+        self, context: ToolContext, tool_name: str, *, status: str,
+        observation_ids: tuple[str, ...] = (), error_code: str | None = None,
+        found_evidence_ids: tuple[str, ...] = (),
+    ) -> None:
+        """Advance the run's DecisionSupportStateV1 (TAB-Suite Wave 2).
+
+        Only decision_support runs keep one. Recorded after the tool call's own
+        commit and never raised: the state observes the run, it cannot fail it.
+        """
+        if context.intent != Intent.DECISION_SUPPORT.value:
+            return
+        from ..application import decision_state_service
+        from ..domain import decision_state as ds
+
+        await decision_state_service.advance(
+            self._db, context.run_id,
+            lambda state: ds.apply_tool_result(
+                state, tool_name=tool_name, status=status,
+                observation_ids=observation_ids, error_code=error_code,
+                found_evidence_ids=found_evidence_ids,
+            ),
+        )
 
     async def _record_finish(
         self, context: ToolContext, tool_name: str, observation_ids: tuple[str, ...], duration_ms: int
@@ -302,6 +334,7 @@ class ToolRunner:
                 payload=activity_for_tool(tool_name, status="failed", intent=context.intent),
             )
             await uow.commit()
+        await self._observe_decision_state(context, tool_name, status="error", error_code=code)
         return envelope.failed(
             call_id=context.call_id, tool_name=tool_name, code=code, message=message,
             retryable=retryable, details=details, retry_after_ms=retry_after_ms,

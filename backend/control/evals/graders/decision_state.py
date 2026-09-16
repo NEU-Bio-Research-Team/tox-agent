@@ -40,7 +40,7 @@ def grade_decision_state(task: dict, outcome: TaskOutcome) -> GradeResult:
     if stop == "sufficient" and "open" in statuses:
         reasons.append("stop_reason is 'sufficient' while a proposition is still open")
     for proposition in propositions:
-        if proposition.get("status") in ("supported", "conflicted") and not proposition.get(
+        if proposition.get("status") in ("supported", "contradicted", "conflicted") and not proposition.get(
             "artifact_refs"
         ):
             reasons.append(

@@ -42,6 +42,58 @@ from ..validation.wire_v2 import (
 
 SUBMIT_TOOL_NAME = "submit_grounded_answer"
 
+#: A posture that commits a direction with some confidence. P1-03: such a
+#: posture may not rest on the model's own synthesis alone.
+_COMMITTING_POSTURES = frozenset({"proceed", "deprioritize"})
+_COMMITTING_CONFIDENCE = frozenset({"moderate", "strong"})
+
+
+def _synthesis_only_posture(posture, relations) -> list[Violation]:
+    bearing = [r for r in relations if r.relation in ("supports", "contradicts")]
+    if (
+        posture.value.value in _COMMITTING_POSTURES
+        and posture.confidence_band in _COMMITTING_CONFIDENCE
+        and bearing
+        and all(r.source_class == "agent_synthesis" for r in bearing)
+    ):
+        return [
+            Violation(
+                "posture_rests_on_synthesis_only",
+                f"a {posture.confidence_band} {posture.value.value} posture needs at least one "
+                "supporting or contradicting relation from a direct source (predictor, "
+                "explanation, external evidence or report), not only agent_synthesis; lower the "
+                "confidence or cite the sources directly",
+                path="development_posture",
+            )
+        ]
+    return []
+
+
+async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: bool,
+                                  generation: int) -> None:
+    """Resolve the run's DecisionSupportStateV1 from the committed answer.
+
+    Inside the answer's own unit of work so the two cannot disagree; a lost
+    race on the state is logged and skipped rather than failing the answer.
+    """
+    from ..domain import decision_state as ds
+    from . import decision_state_service
+
+    payload = decision_state_service.relations_payload(relations)
+    try:
+        await decision_state_service.advance_in(
+            uow, run_id,
+            lambda state: ds.apply_answer(
+                state, relations=payload, is_fallback=is_fallback,
+                candidate_generation=generation,
+            ),
+        )
+    except Conflict:
+        decision_state_service.log.warning(
+            "decision state changed under an answer commit; resolution skipped",
+            extra={"run_id": run_id},
+        )
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -123,6 +175,7 @@ class SubmitAnswer:
             if result.ok and proposed_relations:
                 resolved_relations, relation_violations = await self._resolve_evidence_relations(
                     uow, session_id=session_id, run_id=run_id, proposed=proposed_relations,
+                    read_evidence_ids=read_evidence_ids,
                 )
                 if relation_violations:
                     result = replace(
@@ -137,7 +190,7 @@ class SubmitAnswer:
                 if posture is not None:
                     posture_violations = posture_violations + validate_posture_wording(
                         candidate.answer_markdown, posture
-                    )
+                    ) + _synthesis_only_posture(posture, proposed_relations)
                 if posture_violations:
                     posture = None
                     result = replace(
@@ -157,6 +210,10 @@ class SubmitAnswer:
                     session_id=session_id, type=EventType.ANSWER_ACCEPTED,
                     entity_type="answer", entity_id=result.answer.id, run_id=run_id,
                     payload={"is_fallback": False, "candidate_generation": generation},
+                )
+                await _record_answer_in_state(
+                    uow, run_id, relations=proposed_relations, is_fallback=False,
+                    generation=generation,
                 )
                 await uow.commit()
                 return SubmitOutcome(
@@ -178,6 +235,9 @@ class SubmitAnswer:
                     session_id=session_id, type=EventType.ANSWER_ACCEPTED, entity_type="answer",
                     entity_id=fallback.id, run_id=run_id,
                     payload={"is_fallback": True, "candidate_generation": generation},
+                )
+                await _record_answer_in_state(
+                    uow, run_id, relations=(), is_fallback=True, generation=generation,
                 )
                 await uow.commit()
                 return SubmitOutcome(fallback, is_fallback=True)
@@ -231,6 +291,9 @@ class SubmitAnswer:
                 session_id=session_id, type=EventType.ANSWER_ACCEPTED, entity_type="answer",
                 entity_id=fallback.id, run_id=run_id,
                 payload={"is_fallback": True, "candidate_generation": generation},
+            )
+            await _record_answer_in_state(
+                uow, run_id, relations=(), is_fallback=True, generation=generation,
             )
             await uow.commit()
             return SubmitOutcome(fallback, is_fallback=True)
@@ -302,6 +365,7 @@ class SubmitAnswer:
 
     async def _resolve_evidence_relations(
         self, uow, *, session_id: str, run_id: str, proposed: list[EvidenceRelationInputV2],
+        read_evidence_ids: frozenset[str] = frozenset(),
     ) -> tuple[list[EvidenceRelationAssessment], list[Violation]]:
         """W5-06: the model proposes, the server independently confirms
         ``source_id`` resolves to a real, session-owned artifact of the
@@ -319,6 +383,26 @@ class SubmitAnswer:
         violations: list[Violation] = []
         now = _now()
         for index, item in enumerate(proposed):
+            if item.source_class == "agent_synthesis":
+                # P1-03: a synthesis is a transformation. Every input must be a
+                # real, session-owned artifact — and evidence must have been
+                # read in this run, the same bar a citation has to clear.
+                unresolved = [
+                    ref for ref in item.input_source_refs
+                    if not await self._input_ref_resolves(
+                        uow, session_id=session_id, ref=ref, read_evidence_ids=read_evidence_ids,
+                    )
+                ]
+                if unresolved:
+                    violations.append(
+                        Violation(
+                            "agent_synthesis_lineage_unresolved",
+                            f"input_source_refs {unresolved} do not resolve to session-owned "
+                            "artifacts this run read; a synthesis must derive from real sources",
+                            path=f"evidence_relations[{index}].input_source_refs",
+                        )
+                    )
+                    continue
             resolved = await self._source_exists(
                 uow, session_id=session_id, source_class=item.source_class, source_id=item.source_id,
             )
@@ -350,6 +434,7 @@ class SubmitAnswer:
                         endpoint=item.endpoint, species=item.species, dose=item.dose,
                         use_context=item.use_context,
                     ),
+                    input_refs=tuple(item.input_source_refs),
                     now=now,
                 )
             )
@@ -390,9 +475,24 @@ class SubmitAnswer:
             return await uow.evidence.get(source_id, session_id=session_id) is not None
         if source_class == "report_fact":
             return await uow.reports.get_artifact(source_id, session_id=session_id) is not None
-        # agent_synthesis: the model's own reasoning, not a stored artifact of
-        # any single kind — there is nothing external to resolve it against.
-        return True
+        # agent_synthesis: not a stored artifact itself. Its provenance is its
+        # input_source_refs, resolved one by one in _resolve_evidence_relations
+        # before this is reached (P1-03).
+        return source_class == "agent_synthesis"
+
+    async def _input_ref_resolves(
+        self, uow, *, session_id: str, ref: str, read_evidence_ids: frozenset[str],
+    ) -> bool:
+        kind, _, identifier = ref.partition(":")
+        if kind == "observation":
+            return await uow.observations.get(identifier, session_id=session_id) is not None
+        if kind == "evidence":
+            return identifier in read_evidence_ids and (
+                await uow.evidence.get(identifier, session_id=session_id) is not None
+            )
+        if kind == "report":
+            return await uow.reports.get_artifact(identifier, session_id=session_id) is not None
+        return False
 
     async def _reject_claim_id_collisions(
         self, uow, candidate: GroundedAnswerCandidate, result: AnswerValidationResult

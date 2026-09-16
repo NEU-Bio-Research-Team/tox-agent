@@ -32,6 +32,7 @@ from .repositories import (
     SqlAttachmentStore,
     SqlReportStore,
     SqlCapabilityTokenStore,
+    SqlDecisionStateStore,
     SqlDevelopmentPostureStore,
     SqlEvidenceStore,
     SqlEvidenceRelationStore,
@@ -110,6 +111,7 @@ class SqlUnitOfWork:
         self.evidence = SqlEvidenceStore(conn)
         self.evidence_relations = SqlEvidenceRelationStore(conn)
         self.development_postures = SqlDevelopmentPostureStore(conn)
+        self.decision_states = SqlDecisionStateStore(conn)
         self.explanation_checkpoints = SqlExplanationCheckpointStore(conn)
         self.investigations = SqlInvestigationStore(conn)
         self.model_connections = SqlModelConnectionStore(conn)

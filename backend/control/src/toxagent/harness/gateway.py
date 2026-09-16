@@ -39,6 +39,8 @@ from ..domain.usage import RuntimeUsageEvent
 from ..flags import is_enabled
 from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
+from ..application import decision_state_service
+from ..domain import decision_state
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
 from .report_profile import compose_report_profile
 from .synthesis_profile import PROFILE_NAME as SYNTHESIS_PROFILE, compose_synthesis_profile
@@ -116,8 +118,11 @@ class AgentRuntimeGateway:
         mcp_url: str = "",
         secrets: SecretStore | None = None,
         profiles_dir: Path | None = None,
+        policy=None,
     ) -> None:
         self._db = database
+        #: Read only to state a decision_support run's budget snapshot.
+        self._policy = policy
         self._registry = registry
         self._capability_tokens = capability_tokens
         self._provider = provider
@@ -171,15 +176,67 @@ class AgentRuntimeGateway:
             )
 
         system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
-        await self._dispatch(
-            context,
-            system_prompt=system_prompt,
-            profile=profile,
-            deadline=deadline,
-            instructions_hash=instructions_hash,
-            has_product=self._has_answer,
-            commit=self._commit_product_and_complete,
-        )
+        if context.intent is not Intent.DECISION_SUPPORT:
+            await self._dispatch(
+                context,
+                system_prompt=system_prompt,
+                profile=profile,
+                deadline=deadline,
+                instructions_hash=instructions_hash,
+                has_product=self._has_answer,
+                commit=self._commit_product_and_complete,
+            )
+            return
+
+        await self._begin_decision_state(context)
+        run_status = "failed"
+        try:
+            await self._dispatch(
+                context,
+                system_prompt=system_prompt,
+                profile=profile,
+                deadline=deadline,
+                instructions_hash=instructions_hash,
+                has_product=self._has_answer,
+                commit=self._commit_product_and_complete,
+            )
+            run_status = "completed"
+        except asyncio.CancelledError:
+            run_status = "cancelled"
+            raise
+        finally:
+            await decision_state_service.advance(
+                self._db, context.run_id,
+                lambda state: decision_state.finalize(state, run_status=run_status),
+            )
+
+    async def _begin_decision_state(self, context: RunContext) -> None:
+        """Open the run's DecisionSupportStateV1 (TAB-Suite Wave 2)."""
+        from ..application.run_budget import effective_run_budget
+        from ..config import PolicySettings
+
+        try:
+            async with self._db.unit_of_work() as uow:
+                session = await uow.sessions.get_unscoped(context.session_id)
+                subjects = []
+                analysis_id = context.analysis_id or (session.active_analysis_id if session else None)
+                if analysis_id:
+                    subjects.append(f"analysis:{analysis_id}")
+                    report = await uow.reports.get_latest_artifact_for_analysis(
+                        analysis_id, session_id=context.session_id
+                    )
+                    if report is not None:
+                        subjects.append(f"report:{report.get('report_id') or report.get('id')}")
+                await decision_state_service.begin(
+                    uow, session_id=context.session_id, run_id=context.run_id,
+                    goal=context.text or "", subject_refs=subjects,
+                    budget_snapshot=effective_run_budget(
+                        context.intent.value, self._policy or PolicySettings(), self._settings
+                    ).to_dict(),
+                )
+                await uow.commit()
+        except Exception:  # noqa: BLE001 - bookkeeping must not stop the run
+            log.exception("could not open decision-support state", extra={"run_id": context.run_id})
 
     async def snapshot_before_runtime(self, context: RunContext) -> None:
         """The mixed-run snapshot, for a caller that drives its own workflow."""
@@ -687,6 +744,40 @@ class AgentRuntimeGateway:
             accepted_evidence = await uow.evidence.list_for_session(
                 context.session_id, status=EvidenceStatus.ACCEPTED, limit=5
             )
+            checkpoint = SessionCheckpoint()
+            if context.intent is Intent.DECISION_SUPPORT:
+                # P1-05: memory is scoped to the subject, not the transcript.
+                # Prior decision states for *this* analysis contribute their
+                # resolved/open propositions and the evidence they actually
+                # used; states about another compound contribute nothing, so a
+                # subject switch cannot pull the wrong compound's evidence in.
+                prior = [
+                    state for state in await uow.decision_states.list_for_session(
+                        context.session_id, limit=20
+                    )
+                    if state.run_id != context.run_id and state.stop_reason is not None
+                ]
+                subject = f"analysis:{target_analysis_id}" if target_analysis_id else None
+                same_subject = [s for s in prior if subject and subject in s.subject_refs]
+                if prior:
+                    scoped_ids = {
+                        ref.split(":", 1)[1]
+                        for state in same_subject
+                        for ref in (
+                            *state.available_refs,
+                            *state.found_refs,
+                            *(r for p in state.propositions for r in p.artifact_refs),
+                        )
+                        if ref.startswith("evidence:")
+                    }
+                    accepted_evidence = [r for r in accepted_evidence if r.id in scoped_ids]
+                if same_subject:
+                    checkpoint = SessionCheckpoint(
+                        summary=decision_state.checkpoint_summary(same_subject[0]),
+                        open_intent="; ".join(
+                            p.question[:120] for p in same_subject[0].unresolved[:3]
+                        ),
+                    )
             for record in accepted_evidence:
                 pinned.append(
                     PinnedReference(
@@ -771,7 +862,7 @@ class AgentRuntimeGateway:
             raise DeadlineExceeded("the run deadline elapsed before runtime dispatch")
         prompt = build_system_prompt(
             capability_profile=profile,
-            checkpoint=SessionCheckpoint(),
+            checkpoint=checkpoint,
             pinned=pinned,
             recent_messages=recent,
         )

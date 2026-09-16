@@ -60,6 +60,10 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
             "get_attribution",
             "search_toxicology_evidence", "get_evidence_record",
             "submit_grounded_answer",
+            # TAB-Suite Wave 2: listed here, registered only behind the
+            # decision_state_plan_tool flag (tools/bootstrap.py), so it is
+            # absent from tools/list until then.
+            "record_decision_plan",
         }
     ),
     #: Read-only audit. Deliberately without submit_grounded_answer: an auditor

@@ -43,6 +43,7 @@ from ..schema import (
     claim_sources,
     claims,
     concurrency_slots,
+    decision_support_states,
     development_postures,
     evidence_records,
     evidence_relation_assessments,
@@ -104,11 +105,13 @@ class SqlRunConfigurationSnapshotStore:
 
     async def add(self, run_id: str, *, ai_profile_id: str | None,
                   predictor_bindings: dict[str, str], now: datetime,
-                  intent_decision: dict[str, Any] | None = None) -> None:
+                  intent_decision: dict[str, Any] | None = None,
+                  effective_budget: dict[str, Any] | None = None) -> None:
         await self._conn.execute(insert(run_configuration_snapshots).values(
             run_id=run_id, ai_profile_id=ai_profile_id,
             predictor_bindings=dict(predictor_bindings),
             intent_decision=dict(intent_decision) if intent_decision else None,
+            effective_budget=dict(effective_budget) if effective_budget else None,
             created_at=now,
         ))
 
@@ -122,6 +125,7 @@ class SqlRunConfigurationSnapshotStore:
             "ai_profile_id": row["ai_profile_id"],
             "predictor_bindings": dict(row["predictor_bindings"] or {}),
             "intent_decision": dict(row["intent_decision"] or {}),
+            "effective_budget": dict(row["effective_budget"]) if row.get("effective_budget") else None,
             "created_at": row["created_at"],
         }
 from . import mapping as m
@@ -1284,6 +1288,84 @@ class SqlEvidenceRelationStore:
             )
         ).mappings().all()
         return [m.row_to_evidence_relation(r) for r in rows]
+
+
+class SqlDecisionStateStore:
+    """DecisionSupportStateV1 rows (domain/decision_state.py), one per run.
+
+    Writes are compare-and-set on ``revision``: a writer that read revision N
+    may only store revision N+1. Tool results for one run can finish
+    concurrently, and a lost update here would drop a counted search or an
+    available artifact without anyone noticing.
+    """
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    async def get(self, run_id: str):
+        from ...domain.decision_state import DecisionSupportStateV1
+
+        row = (
+            await self._conn.execute(
+                select(decision_support_states).where(decision_support_states.c.run_id == run_id)
+            )
+        ).mappings().first()
+        return DecisionSupportStateV1.from_dict(row["state"]) if row is not None else None
+
+    async def latest_for_session(self, session_id: str, *, exclude_run_id: str | None = None):
+        from ...domain.decision_state import DecisionSupportStateV1
+
+        query = (
+            select(decision_support_states)
+            .where(decision_support_states.c.session_id == session_id)
+            .where(decision_support_states.c.stop_reason.is_not(None))
+            .order_by(decision_support_states.c.updated_at.desc())
+            .limit(1)
+        )
+        if exclude_run_id is not None:
+            query = query.where(decision_support_states.c.run_id != exclude_run_id)
+        row = (await self._conn.execute(query)).mappings().first()
+        return DecisionSupportStateV1.from_dict(row["state"]) if row is not None else None
+
+    async def list_for_session(self, session_id: str, *, limit: int = 20):
+        from ...domain.decision_state import DecisionSupportStateV1
+
+        rows = (
+            await self._conn.execute(
+                select(decision_support_states)
+                .where(decision_support_states.c.session_id == session_id)
+                .order_by(decision_support_states.c.updated_at.desc())
+                .limit(limit)
+            )
+        ).mappings().all()
+        return [DecisionSupportStateV1.from_dict(r["state"]) for r in rows]
+
+    async def put(self, state, *, expected_revision: int | None, now: datetime) -> None:
+        values = {
+            "revision": state.revision,
+            "stop_reason": state.stop_reason,
+            "state": state.to_dict(),
+            "updated_at": now,
+        }
+        if expected_revision is None:
+            await self._conn.execute(
+                insert(decision_support_states).values(
+                    run_id=state.run_id, session_id=state.session_id, created_at=now, **values,
+                )
+            )
+            return
+        result = await self._conn.execute(
+            update(decision_support_states)
+            .where(decision_support_states.c.run_id == state.run_id)
+            .where(decision_support_states.c.revision == expected_revision)
+            .where(decision_support_states.c.stop_reason.is_(None))
+            .values(**values)
+        )
+        if result.rowcount != 1:
+            raise Conflict(
+                "the decision-support state changed or is final; re-read and retry",
+                run_id=state.run_id, expected_revision=expected_revision,
+            )
 
 
 class SqlDevelopmentPostureStore:

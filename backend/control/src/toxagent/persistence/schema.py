@@ -84,6 +84,9 @@ run_configuration_snapshots = Table(
     # before WS07 recorded neither, and a routing complaint is unanswerable
     # without knowing which rules were in force (P1-9).
     Column("intent_decision", Json),
+    # EffectiveRunBudgetV1 the run was admitted under (0018, P1-06). Nullable:
+    # runs admitted earlier recorded no budget, and must not claim one.
+    Column("effective_budget", Json),
     Column("created_at", _TS, nullable=False),
 )
 
@@ -645,6 +648,12 @@ evidence_relation_assessments = Table(
     Column("reason_codes", Json, nullable=False),
     Column("scope", Json, nullable=False),
     Column("created_at", _TS, nullable=False),
+    # 0018: lineage for agent_synthesis (P1-03) and the canonical ontology's
+    # assessor/method fields (P1-02). Nullable: rows written before 0018
+    # dual-read as assessor=model, method_version=grounded-answer-v2.
+    Column("input_refs", Json),
+    Column("assessor", String(16)),
+    Column("method_version", String(40)),
     Index("ix_evidence_relation_run", "run_id"),
     Index("ix_evidence_relation_proposition", "session_id", "proposition_id"),
 )
@@ -671,6 +680,24 @@ development_postures = Table(
     Column("recommended_next_steps", Json, nullable=False),
     Column("created_at", _TS, nullable=False),
     Index("ix_development_postures_run", "run_id"),
+)
+
+
+#: DecisionSupportStateV1 (domain/decision_state.py), one row per
+#: decision_support run. Mutable on purpose — unlike an answer, the state is
+#: a working record that advances with every tool result — but only through
+#: ``revision``-checked writes, so two writers cannot silently overwrite each
+#: other. The final state (``stop_reason`` set) is never changed again.
+decision_support_states = Table(
+    "decision_support_states", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("stop_reason", String(32)),
+    Column("state", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    Index("ix_decision_support_states_session", "session_id", "updated_at"),
 )
 
 

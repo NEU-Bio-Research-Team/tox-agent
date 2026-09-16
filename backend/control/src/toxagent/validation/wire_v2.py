@@ -158,6 +158,27 @@ class EvidenceRelationInputV2(_Wire):
     species: str | None = None
     dose: str | None = None
     use_context: str | None = None
+    input_source_refs: list[str] = Field(
+        default_factory=list, max_length=8,
+        description=(
+            "Required when source_class is agent_synthesis, forbidden otherwise: the "
+            "artifacts your synthesis was derived from, as 'observation:<id>', "
+            "'evidence:<id>' (read with get_evidence_record in this run) or "
+            "'report:<id>'. A synthesis is never its own source."
+        ),
+    )
+
+    @field_validator("input_source_refs")
+    @classmethod
+    def _typed_refs(cls, value: list[str]) -> list[str]:
+        for ref in value:
+            kind, _, identifier = ref.partition(":")
+            if kind not in ("observation", "evidence", "report") or not ID_PATTERN.match(identifier):
+                raise ValueError(
+                    f"input_source_refs entry {ref!r} must be observation:<id>, evidence:<id> "
+                    "or report:<id> with an id a tool handed you"
+                )
+        return value
 
     @field_validator("source_id")
     @classmethod
@@ -177,6 +198,13 @@ class EvidenceRelationInputV2(_Wire):
                 f"a {self.relation} relation must carry at least one reason code — 'we "
                 "assessed this but decline to say why' is not an accepted state"
             )
+        if self.source_class == "agent_synthesis" and not self.input_source_refs:
+            raise ValueError(
+                "an agent_synthesis relation must list input_source_refs — the artifacts "
+                "the synthesis was derived from; a synthesis cannot be its own provenance"
+            )
+        if self.source_class != "agent_synthesis" and self.input_source_refs:
+            raise ValueError("input_source_refs is only for an agent_synthesis relation")
         return self
 
 

@@ -14,12 +14,14 @@ from ..research.interfaces import ResearchProvider
 from .definitions import analysis as analysis_tools
 from .definitions import answer as answer_tools
 from .definitions import compound as compound_tools
+from .definitions import decision_plan as decision_plan_tools
 from .definitions import evidence as evidence_tools
 from .definitions import explanation as explanation_tools
 from .definitions import inventory as inventory_tools
 from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
 from .registry import ToolRegistry
+from ..flags import is_enabled
 
 
 def build_registry(
@@ -67,6 +69,9 @@ def build_registry(
     # profile's tool list or schema hash.
     for definition in report_synthesis_tools.build(database):
         registry.register(definition)
+    if is_enabled("decision_state_plan_tool"):
+        for definition in decision_plan_tools.build(database):
+            registry.register(definition)
     if compound_provider is not None:
         for definition in compound_tools.build(database, compound_provider):
             registry.register(definition)

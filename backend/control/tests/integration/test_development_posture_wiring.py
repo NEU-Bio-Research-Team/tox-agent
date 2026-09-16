@@ -180,3 +180,48 @@ async def test_an_insufficient_posture_with_no_next_steps_is_rejected_not_silent
         for v in exc_info.value.detail["violations"]
     }
     assert "development_posture_invalid" in codes
+
+
+async def test_a_committing_posture_cannot_rest_on_synthesis_alone(db):
+    """P1-03 (TAB-Suite Wave 2): agent_synthesis is a transformation of real
+    sources, never a source. A moderate/strong proceed or deprioritize whose
+    only bearing relations are syntheses is refused; the same synthesis with
+    resolvable lineage beside a direct source is accepted, lineage persisted."""
+    from toxagent.validation.wire_v2 import EvidenceRelationInputV2
+
+    session, run, observation = await rig(db)
+    synthesis = EvidenceRelationInputV2(
+        proposition="hERG liability is manageable", source_class="agent_synthesis",
+        source_id=observation.id, relation="supports", reason_codes=["synthesis"],
+        input_source_refs=[f"observation:{observation.id}"],
+    )
+    posture = DevelopmentPostureInputV2(
+        value="proceed", scope="drug_candidate", confidence_band="moderate",
+        basis_local_refs=["herg_p"],
+        rationale="The predicted hERG signal is moderate and can be monitored.",
+    )
+    draft = _draft(observation, posture=posture).model_copy(update={"evidence_relations": [synthesis]})
+    with pytest.raises(AnswerValidationFailed) as exc_info:
+        await SubmitAnswer(db, PolicySettings(max_answer_candidates_per_run=2)).execute(
+            session_id=session.id, run_id=run.id, candidate=draft, language="en",
+        )
+    codes = {
+        v["code"] if isinstance(v, dict) else v.code
+        for v in exc_info.value.detail["violations"]
+    }
+    assert "posture_rests_on_synthesis_only" in codes
+
+    direct = EvidenceRelationInputV2(
+        proposition="hERG liability is manageable", source_class="predictor_fact",
+        source_id=observation.id, relation="supports", reason_codes=["predicted_probability"],
+    )
+    accepted = draft.model_copy(update={"evidence_relations": [direct, synthesis]})
+    outcome = await SubmitAnswer(db, PolicySettings(max_answer_candidates_per_run=2)).execute(
+        session_id=session.id, run_id=run.id, candidate=accepted, language="en",
+    )
+    assert outcome.is_fallback is False
+    async with db.unit_of_work() as uow:
+        relations = await uow.evidence_relations.list_for_run(run.id)
+    lineage = {r.source_ref.source_class.value: r.input_refs for r in relations}
+    assert lineage["agent_synthesis"] == (f"observation:{observation.id}",)
+    assert lineage["predictor_fact"] == ()

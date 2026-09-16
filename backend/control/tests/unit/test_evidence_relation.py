@@ -67,6 +67,8 @@ def test_to_dict_matches_the_plan_shape():
     assert set(payload) == {
         "id", "proposition_id", "source_ref", "relation", "directness",
         "applicability", "strength", "reason_codes", "scope", "created_at",
+        # TAB-Suite Wave 2: synthesis lineage and the ontology's provenance.
+        "input_refs", "assessor", "method_version",
     }
     assert payload["source_ref"] == {
         "source_class": "predictor_fact", "source_id": "obs_" + "3" * 32,

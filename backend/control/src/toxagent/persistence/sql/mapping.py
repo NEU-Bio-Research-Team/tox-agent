@@ -615,6 +615,9 @@ def evidence_relation_to_row(assessment: EvidenceRelationAssessment) -> dict[str
         "strength": assessment.strength.value,
         "reason_codes": list(assessment.reason_codes),
         "scope": assessment.scope.to_dict(),
+        "input_refs": list(assessment.input_refs),
+        "assessor": assessment.assessor,
+        "method_version": assessment.method_version,
         "created_at": assessment.created_at,
     }
 
@@ -639,6 +642,9 @@ def row_to_evidence_relation(row: Mapping[str, Any]) -> EvidenceRelationAssessme
             dose=scope.get("dose"), use_context=scope.get("use_context"),
         ),
         created_at=utc(row["created_at"]),
+        input_refs=tuple(row.get("input_refs") or ()),
+        assessor=row.get("assessor") or "model",
+        method_version=row.get("method_version") or "grounded-answer-v2",
     )
 
 
