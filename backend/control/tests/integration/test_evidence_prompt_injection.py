@@ -126,3 +126,30 @@ async def test_the_stored_record_does_not_widen_beyond_the_evidence_research_pro
     )
     denied = await runner.call(context, "get_attribution", {"analysis_id": analysis_id, "endpoint": "herg"})
     assert denied["error"]["code"] == "tool_denied"
+
+
+async def test_under_trust_envelope_v1_the_model_view_is_enveloped_and_the_ui_is_not(db, monkeypatch):
+    """Wave 3 / P1-04: the same injected record, with the flag on. The model
+    reads provider text only inside an envelope that says it has no authority;
+    the canonical and UI views keep the shape their consumers read. Still
+    verbatim: the envelope labels the text, it does not sanitise it."""
+    monkeypatch.setenv("TOXAGENT_FLAG_TRUST_ENVELOPE_V1", "1")
+    runner, context, analysis_id = await _scenario(db)
+    search = await runner.call(
+        context, "search_toxicology_evidence",
+        {"analysis_id": analysis_id, "query": "hERG", "limit": 5},
+    )
+    assert search["status"] == "completed", search
+    model_result = search["model_view"]["results"][0]
+    assert "title" not in model_result and model_result["trust_envelope"] == "trust-envelope-v1"
+    assert all(item["instructions_allowed"] is False for item in model_result["untrusted"])
+    assert search["ui_view"]["results"][0]["title"] == INJECTION_TITLE
+    record = await runner.call(
+        context, "get_evidence_record", {"evidence_id": model_result["evidence_id"]}
+    )
+    enveloped = {item["field"]: item for item in record["model_view"]["untrusted"]}
+    assert enveloped["abstract_or_excerpt"]["content"] == INJECTION_ABSTRACT
+    assert "role_marker" in enveloped["abstract_or_excerpt"]["signals"]
+    assert "imperative_to_assistant" in enveloped["title"]["signals"]
+    assert record["model_view"]["canonical_url"] == REAL_CANONICAL_URL
+    assert record["ui_view"]["abstract_or_excerpt"] == INJECTION_ABSTRACT

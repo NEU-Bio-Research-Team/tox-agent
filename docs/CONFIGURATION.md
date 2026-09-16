@@ -73,6 +73,27 @@ token: the id token describes the user to the app, while the control plane's
 audience check expects a token minted for the API. Sending the wrong one fails
 at the server as an audience mismatch, which is that check working.
 
+## Benchmark-only settings
+
+These exist for TAB-Suite runs against a live stack and are never defaults.
+Each is recorded in `GET /v1/system/effective-product`, so a manifest shows
+when a run used them.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `TOXAGENT_RESEARCH_PROVIDER=snapshot` | `europepmc` | Serve frozen evidence instead of a network provider |
+| `TOXAGENT_RESEARCH_SNAPSHOT_PATH` | empty | An `eval-fixture-v1` file (e.g. `backend/control/evals/fixtures/evidence-injection-canary.json`); refused if its content hash does not match |
+| `TOXAGENT_RESEARCH_SNAPSHOT_FAULT` | empty | Inject `rate_limited`, `timeout`, `empty` or `unavailable` |
+| `TOXAGENT_SEALED_TASKS_DIR` | empty | Where the eval runner reads the sealed pack; absent means `not_evaluated` |
+| `TOXAGENT_IMAGE_DIGEST` | empty | Recorded in the eval manifest's `source` |
+
+Rollout flags (`TOXAGENT_FLAG_<NAME>=1`) are listed with owner and removal date
+in `backend/control/src/toxagent/flags.py` and in
+[`architecture-inventory.json`](architecture-inventory.json). Two added for the
+benchmark programme: `TRUST_ENVELOPE_V1` (provider text reaches the model inside
+trust envelopes) and `DECISION_STATE_PLAN_TOOL` (registers
+`record_decision_plan`).
+
 ## Logs
 
 One JSON object per line on stdout, carrying `ts`, `level`, `logger`,

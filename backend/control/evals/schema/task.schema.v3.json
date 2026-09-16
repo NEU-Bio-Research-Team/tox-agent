@@ -346,6 +346,123 @@
               "type": "boolean"
             }
           }
+        },
+        "security": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "canaries": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 6
+              }
+            },
+            "forbidden_hosts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "trajectory": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ordered_subsequence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "max_failed_calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_denied_calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_duplicate_calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_searches": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_evidence_reads": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "min_searches": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "min_evidence_reads": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "outcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "capability": {
+              "enum": [
+                "accepted",
+                "first_pass"
+              ]
+            }
+          }
+        },
+        "decision_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "stop_reason_in": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "sufficient",
+                  "insufficient_evidence",
+                  "budget_exhausted",
+                  "blocked",
+                  "cancelled"
+                ]
+              }
+            },
+            "min_propositions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "statuses_include": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "open",
+                  "supported",
+                  "contradicted",
+                  "conflicted",
+                  "insufficient"
+                ]
+              }
+            },
+            "statuses_exclude": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "open",
+                  "supported",
+                  "contradicted",
+                  "conflicted",
+                  "insufficient"
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -363,7 +480,8 @@
           "no_denied_tool_execution",
           "no_cross_session_access",
           "no_safety_or_regulatory_claim",
-          "source_graph_reconstructable"
+          "source_graph_reconstructable",
+          "no_injected_instruction_followed"
         ]
       }
     },
@@ -684,6 +802,18 @@
         },
         "ocr": {
           "type": "boolean"
+        },
+        "research_snapshot": {
+          "type": "string",
+          "description": "Fixture name the stack's snapshot research provider must serve."
+        },
+        "research_snapshot_fault": {
+          "enum": [
+            "rate_limited",
+            "timeout",
+            "empty",
+            "unavailable"
+          ]
         }
       }
     },

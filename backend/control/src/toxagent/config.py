@@ -398,6 +398,11 @@ class ResearchSettings:
     #: Content types that may be parsed. `accept: application/json` is a
     #: request header — a wish, not a constraint on what comes back.
     allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
+    #: provider=snapshot only: an eval-fixture-v1 file whose ``evidence``
+    #: section is served instead of a network provider, and an optional
+    #: injected fault (research/providers/snapshot.py). Benchmarks only.
+    snapshot_path: str = ""
+    snapshot_fault: str = ""
 
     @classmethod
     def from_env(cls) -> "ResearchSettings":
@@ -418,6 +423,8 @@ class ResearchSettings:
             circuit_reset_after_s=_float(
                 "TOXAGENT_RESEARCH_CIRCUIT_RESET_AFTER_S", cls.circuit_reset_after_s
             ),
+            snapshot_path=_env("TOXAGENT_RESEARCH_SNAPSHOT_PATH"),
+            snapshot_fault=_env("TOXAGENT_RESEARCH_SNAPSHOT_FAULT"),
         )
 
 

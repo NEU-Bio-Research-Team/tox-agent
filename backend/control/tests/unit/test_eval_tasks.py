@@ -80,6 +80,12 @@ def test_every_declared_grader_is_known(tasks):
 
 def test_all_ten_hard_gates_are_exercised_somewhere(tasks):
     used = {gate for task in tasks for gate in task.get("hard_gates", [])}
+    # The core set exercises the original ten; gates added later (Wave 3)
+    # must be exercised by some declared pack instead of by the frozen core.
+    from evals import task_packs
+
+    packs = tuple(n for n, m in task_packs.load_pack_manifests().items() if not m.external)
+    used |= {g for t in task_packs.discover(packs).tasks for g in t.get("hard_gates", [])}
     assert used == set(_CHECKS), f"unused hard gates: {set(_CHECKS) - used}"
 
 

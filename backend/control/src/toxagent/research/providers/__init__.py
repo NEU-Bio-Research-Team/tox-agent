@@ -6,6 +6,8 @@ composition root's control flow.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from ...config import CompoundSettings, ResearchSettings
 from ..compound import CompoundProvider
 from ..interfaces import ResearchProvider
@@ -21,6 +23,15 @@ def build_provider(settings: ResearchSettings) -> ResearchProvider | None:
         return None
     if settings.provider == "europepmc":
         return EuropePmcProvider(settings)
+    if settings.provider == "snapshot":
+        # Frozen evidence for benchmarks (research/providers/snapshot.py).
+        from .snapshot import SnapshotResearchProvider
+
+        if not settings.snapshot_path:
+            raise ValueError("TOXAGENT_RESEARCH_SNAPSHOT_PATH is required for the snapshot provider")
+        return SnapshotResearchProvider(
+            Path(settings.snapshot_path), fault=settings.snapshot_fault
+        )
     raise ValueError(f"unknown research provider: {settings.provider!r}")
 
 

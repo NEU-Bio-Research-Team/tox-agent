@@ -187,6 +187,12 @@ def describe_effective_product(
             "research_provider": settings.research.provider or None,
             "research_host": _host(settings.research.base_url),
             "research_max_results": settings.research.max_results,
+            # A benchmark on frozen evidence says so, and says which snapshot.
+            "research_snapshot": (
+                {"path_name": Path(settings.research.snapshot_path).name,
+                 "fault": settings.research.snapshot_fault or None}
+                if settings.research.provider == "snapshot" else None
+            ),
             "compound_provider": getattr(settings.compound, "provider", None) or None,
             "ocr_configured": bool(settings.ocr.base_url),
         },

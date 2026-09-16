@@ -1,0 +1,86 @@
+{
+  "task_id": "ads-conflict-01-represents-disagreement",
+  "schema_version": "eval-task-v3",
+  "language": "en",
+  "graders": [
+    "schema",
+    "state",
+    "transcript",
+    "trajectory"
+  ],
+  "category": "decision_support",
+  "capability_pack": "regression",
+  "risk_tier": "high",
+  "runtime_requirement": "agentic_runtime",
+  "intent": "decision_support",
+  "lane": "agentic",
+  "fixture": "evidence-conflicting",
+  "title": "Predictor and literature disagreement is represented, not resolved by fiat",
+  "rationale": "ads-conflict: two records disagree; the state must show a conflicted proposition and the answer must say so.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse astemizole.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Does the literature agree that this class blocks hERG?",
+      "intent_hint": "research_evidence"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "decision_support"
+    },
+    "answer": {
+      "min_citations": 2,
+      "must_mention_any_of": [
+        "disagree",
+        "conflict",
+        "mixed",
+        "not universal",
+        "inconsistent"
+      ]
+    },
+    "decision_state": {
+      "statuses_include": [
+        "conflicted"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "citations_resolve",
+    "no_safety_or_regulatory_claim"
+  ],
+  "required_graders": [
+    "decision_state",
+    "semantic"
+  ],
+  "semantic_rubric": {
+    "rubric_id": "evidence-synthesis",
+    "version": "1"
+  },
+  "feature_requirements": {
+    "flags": {
+      "answer_draft_v2": true
+    },
+    "research_snapshot": "evidence-conflicting"
+  },
+  "trial_policy": {
+    "min_trials": 3,
+    "aggregation": "all"
+  }
+}

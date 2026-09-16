@@ -132,10 +132,18 @@ def test_v3_schema_is_a_superset_of_v1():
     v3 = json.loads(task_packs.SCHEMAS["eval-task-v3"].read_text())
     for name, spec in v1["properties"].items():
         assert name in v3["properties"], name
-        if name in ("schema_version", "category", "expect", "graders"):
+        if name in ("schema_version", "category", "expect", "graders", "hard_gates"):
             continue
         assert v3["properties"][name] == spec, name
-    assert set(v1["properties"]["category"]["enum"]) <= set(v3["properties"]["category"]["enum"])
+    for name in ("category",):
+        assert set(v1["properties"][name]["enum"]) <= set(v3["properties"][name]["enum"])
+    for name in ("graders", "hard_gates"):
+        assert set(v1["properties"][name]["items"]["enum"]) <= set(
+            v3["properties"][name]["items"]["enum"]
+        )
+    for key, spec in v1["properties"]["expect"]["properties"].items():
+        if key != "run":
+            assert v3["properties"]["expect"]["properties"][key] == spec, key
 
 
 def test_every_v1_task_adapts_without_losing_a_field():

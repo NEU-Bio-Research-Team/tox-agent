@@ -31,6 +31,8 @@ from ...research.relevance import (
     RetrievalBudget,
     assess,
 )
+from ...flags import is_enabled
+from .. import trust
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 SourceTypeName = Literal["article", "database", "regulatory", "vendor_documentation", "other"]
@@ -161,6 +163,8 @@ def build(
             synonyms=tuple(payload.compound_names or ()),
         )
         retrieved_at = _now()
+        envelope_on = is_enabled("trust_envelope_v1")
+        model_results: list[dict] = []
         result_views: list[dict] = []
         accepted = rejected = reused = promoted = 0
         async with database.unit_of_work() as uow:
@@ -221,7 +225,15 @@ def build(
                         payload={"provider": final.provider, "status": final.status.value},
                     )
                 if final.status is EvidenceStatus.ACCEPTED:
-                    result_views.append(final.model_view(fields=_SEARCH_RESULT_FIELDS))
+                    result_view = final.model_view(fields=_SEARCH_RESULT_FIELDS)
+                    result_views.append(result_view)
+                    model_results.append(
+                        trust.wrap_evidence_view(
+                            result_view, provider=final.provider,
+                            record_id=final.provider_record_id,
+                        )
+                        if envelope_on else result_view
+                    )
                     accepted += 1
                 else:
                     rejected += 1
@@ -244,12 +256,19 @@ def build(
                     "No result was about this compound and endpoint. That is a valid "
                     "outcome; do not cite a rejected record."
                 )
+        provenance = {
+            "analysis_id": payload.analysis_id, "provider": provider.name,
+            "query": payload.query,
+        }
+        if envelope_on:
+            provenance["trust_signals"] = trust.signal_summary(model_results)
         return ToolOutput(
-            canonical=model_view, model_view=model_view, ui_view=model_view,
-            provenance={
-                "analysis_id": payload.analysis_id, "provider": provider.name,
-                "query": payload.query,
-            },
+            canonical=model_view,
+            # The envelope is a model-facing boundary; canonical and UI views
+            # keep the flat shape their consumers read.
+            model_view={**model_view, "results": model_results},
+            ui_view=model_view,
+            provenance=provenance,
         )
 
     async def get_evidence(context: ToolContext, payload: GetEvidenceInput) -> ToolOutput:
@@ -276,8 +295,14 @@ def build(
             )
         fields = tuple(payload.fields) if payload.fields else None
         view = record.model_view(fields=fields)
+        model_view = (
+            trust.wrap_evidence_view(
+                view, provider=record.provider, record_id=record.provider_record_id
+            )
+            if is_enabled("trust_envelope_v1") else view
+        )
         return ToolOutput(
-            canonical=view, model_view=view, ui_view=view,
+            canonical=view, model_view=model_view, ui_view=view,
             # W3-07 (remaining-plan): a citation must follow a read, not just
             # a title glimpsed in search results — validate_citations checks
             # this against exactly the persisted tool_calls this produces,

@@ -778,6 +778,15 @@ def features_satisfied(task: dict[str, Any], product: dict[str, Any] | None) -> 
         return False
     if requirements.get("ocr") is True and not (product.get("providers") or {}).get("ocr_configured"):
         return False
+    wanted_snapshot = requirements.get("research_snapshot")
+    if wanted_snapshot:
+        # The stack must serve exactly this frozen evidence, with exactly the
+        # declared fault (none when the task declares none).
+        snapshot = (product.get("providers") or {}).get("research_snapshot") or {}
+        if snapshot.get("path_name") != f"{wanted_snapshot}.json":
+            return False
+        if snapshot.get("fault") != requirements.get("research_snapshot_fault"):
+            return False
     profile = requirements.get("capability_profile")
     intent = task.get("intent")
     if profile and intent:

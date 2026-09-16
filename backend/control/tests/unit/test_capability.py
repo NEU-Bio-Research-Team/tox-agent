@@ -128,3 +128,55 @@ async def test_require_tool_denies_what_the_claims_do_not_allow(db):
     claims = await service.verify(token)
     with pytest.raises(Forbidden):
         CapabilityTokenService.require_tool(claims, "search_toxicology_evidence")
+
+
+# --------------------------------------------------- Wave 3 abuse-case matrix
+
+
+async def test_a_token_for_another_audience_is_refused_even_when_issued_here(db):
+    """MCP authorization: a resource server validates the audience. A token
+    this service issued, re-signed for a different audience with the same
+    secret (a confused deputy), must not be accepted."""
+    service = a_service(db)
+    token = await service.issue(
+        session_id=new_id("ses"), run_id=new_id("run"), profile="analysis", owner_id="user-1",
+    )
+    claims = jwt.decode(token, options={"verify_signature": False})
+    retargeted = jwt.encode(
+        {**claims, "aud": "some-other-resource"}, "test-secret-at-least-32-bytes-long",
+        algorithm=ALGORITHM,
+    )
+    with pytest.raises(Unauthenticated, match="rejected"):
+        await service.verify(retargeted)
+
+
+async def test_a_token_whose_tool_list_was_widened_is_refused(db):
+    """The allowlist in a token is signed; editing it without the secret
+    breaks the signature, and a token re-signed with a guessed secret is not
+    one the store issued."""
+    service = a_service(db)
+    token = await service.issue(
+        session_id=new_id("ses"), run_id=new_id("run"), profile="analysis", owner_id="user-1",
+    )
+    header, payload, signature = token.split(".")
+    import base64
+    import json
+
+    decoded = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+    decoded["tools"] = decoded["tools"] + ["search_toxicology_evidence"]
+    widened_payload = base64.urlsafe_b64encode(json.dumps(decoded).encode()).decode().rstrip("=")
+    with pytest.raises(Unauthenticated, match="rejected"):
+        await service.verify(f"{header}.{widened_payload}.{signature}")
+
+
+async def test_a_run_scoped_token_is_dead_once_revoked_at_run_end(db):
+    """Cross-run reuse: the gateway revokes a run's token when the run ends;
+    presenting it for any later run is refused by the store, not by expiry."""
+    service = a_service(db, capability_ttl_s=3600)
+    token = await service.issue(
+        session_id=new_id("ses"), run_id=new_id("run"), profile="decision_support",
+        owner_id="user-1",
+    )
+    await service.revoke((await service.verify(token)).jti)
+    with pytest.raises(Unauthenticated, match="not active"):
+        await service.verify(token)

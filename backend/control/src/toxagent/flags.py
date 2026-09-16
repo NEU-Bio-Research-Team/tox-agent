@@ -131,6 +131,19 @@ FLAGS: tuple[RolloutFlag, ...] = (
         removal_condition="WS08 multi-replica drills pass and worker deployment is the default topology",
     ),
     _flag(
+        "trust_envelope_v1",
+        "Move provider free text (title, abstract, authors, provider metadata "
+        "and errors) in evidence tool model views into trust envelopes "
+        "(tools/trust.py) with provenance, instructions_allowed=false and "
+        "audit signals. Off, those fields stay flat beside a single "
+        "untrusted_external_content flag.",
+        owner="backend-platform",
+        added_on=date(2026, 9, 16),
+        remove_by=date(2026, 12, 14),
+        removal_condition="security-evidence pack passes worst-of-3 on the live matrix with no "
+                          "first-pass regression on evsyn tasks",
+    ),
+    _flag(
         "decision_state_plan_tool",
         "Register record_decision_plan in the decision_support profile, so the "
         "model can propose the propositions its answer must resolve. Off, the "
