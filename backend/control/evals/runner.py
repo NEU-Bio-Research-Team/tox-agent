@@ -38,8 +38,12 @@ from typing import Any, AsyncIterator
 
 import httpx
 
+from evals import task_packs
 from evals.frozen import FrozenPredictor, load_fixture
-from evals.graders import TaskOutcome, TaskReport, grade_task
+from evals.graders import TaskOutcome, TaskReport, grade_task, grader_versions
+from evals.graders.outcome_split import breakdown as outcome_breakdown
+from evals.manifest import build_manifest
+from evals.trace import project as project_trace
 
 HERE = Path(__file__).resolve().parent
 TASKS_DIR = HERE / "tasks"
@@ -99,7 +103,25 @@ SKIPPED_REASONS = {
     "needs_control_plane_restart": (
         "the task needs the control plane restarted mid-run; an HTTP driver cannot restart it"
     ),
+    "needs_live_evidence": (
+        "the task needs a real evidence provider; this run's fixture mode does not reach one"
+    ),
+    "feature_requirements_unmet": (
+        "the deployment's effective flags/profile/topology differ from what the task requires"
+    ),
+    "not_selected": "excluded by --task on this invocation",
 }
+
+#: Result statuses (Wave 1). `pass`/`fail` are product verdicts; the other
+#: three are facts about the run, and none of them is a pass.
+STATUSES = ("pass", "fail", "invalid", "skipped", "infra_error")
+
+#: Run failure codes that describe the environment rather than the product,
+#: when the task did not ask for that failure.
+INFRA_FAILURE_CODES = frozenset(
+    {"runtime_unavailable", "predictor_not_ready", "internal_error", "provider_unavailable",
+     "database_unavailable", "evidence_unavailable"}
+)
 
 
 # --------------------------------------------------------------------- loading
@@ -154,6 +176,13 @@ class TaskResult:
     reasons: list[str] = field(default_factory=list)
     deferred_graders: list[str] = field(default_factory=list)
     skipped_reason: str | None = None
+    status: str = "skipped"
+    capability_pack: str = "core"
+    risk_tier: str = "medium"
+    infra_errors: list[str] = field(default_factory=list)
+    #: Per trial: answer outcome (first pass / corrected / fallback), stop
+    #: reason and trace counters — capability and containment kept apart.
+    trials: list[dict[str, Any]] = field(default_factory=list)
 
 
 class ScriptedDriver:
@@ -162,16 +191,16 @@ class ScriptedDriver:
     def __init__(self) -> None:
         self._tmp: list[Path] = []
 
-    @asynccontextmanager
-    async def _app(self, fixture: dict[str, Any], db_path: Path) -> AsyncIterator[httpx.AsyncClient]:
-        from toxagent.api.app import create_app
+    @staticmethod
+    def settings(db_path: Path | str = ":memory:"):
+        """The deployment the scripted driver composes. Also what its
+        manifest's effective_product describes, so the two cannot differ."""
         from toxagent.config import (
             CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
             ResearchSettings, RuntimeSettings, SecuritySettings, Settings,
         )
-        from toxagent.persistence.sql.database import Database
 
-        settings = Settings(
+        return Settings(
             database_url=f"sqlite+aiosqlite:///{db_path}",
             predictor=PredictorSettings(base_url="http://predictor.frozen"),
             policy=PolicySettings(),
@@ -185,6 +214,13 @@ class ScriptedDriver:
                 static_tokens=("eval-user-token:eval-user", "eval-other-token:eval-other"),
             ),
         )
+
+    @asynccontextmanager
+    async def _app(self, fixture: dict[str, Any], db_path: Path) -> AsyncIterator[httpx.AsyncClient]:
+        from toxagent.api.app import create_app
+        from toxagent.persistence.sql.database import Database
+
+        settings = self.settings(db_path)
         database = Database(settings.database_url)
         await database.create_schema()
         predictor = FrozenPredictor(fixture["predictor"])
@@ -330,6 +366,14 @@ async def gather_outcome(client, session_id, run_id, auth, error_envelope) -> Ta
 
     evidence = await _fetch_all_evidence(client, session_id, auth)
 
+    decision_state = None
+    if run_id:
+        state_response = await client.get(
+            f"/v1/sessions/{session_id}/runs/{run_id}/decision-state", headers=auth
+        )
+        if state_response.status_code == 200:
+            decision_state = state_response.json()
+
     observation_ids: set[str] = set()
     observation_values: dict[str, Any] = {}
     for snapshot in analyses:
@@ -359,6 +403,9 @@ async def gather_outcome(client, session_id, run_id, auth, error_envelope) -> Ta
         session_observation_ids=frozenset(observation_ids),
         session_evidence_ids=frozenset(e.get("evidence_id") or e.get("id") for e in evidence),
         observation_values=observation_values,
+        decision_state=decision_state,
+        budget=((run.get("configuration_snapshot") or {}).get("effective_budget")
+                if isinstance(run.get("configuration_snapshot"), dict) else None),
     )
 
 
@@ -498,7 +545,7 @@ def resolve_fixture_mode(runtime: str, declared: str | None) -> str:
 
 
 async def run_suite(
-    tasks: list[dict[str, Any]],
+    tasks: list[dict[str, Any]] | None = None,
     *,
     runtime: str,
     trials: int,
@@ -507,13 +554,26 @@ async def run_suite(
     base_url: str = "http://127.0.0.1:8000",
     token: str = "dev-local",
     fixture_mode: str | None = None,
+    discovery: task_packs.Discovery | None = None,
+    suite: str | None = None,
+    driver: Any = None,
+    effective_product: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    mode = resolve_fixture_mode(runtime, fixture_mode)
-    if runtime == "scripted":
-        driver: Any = ScriptedDriver()
+    """Run a task set and write results, traces and an eval-manifest-v2.
 
-        def skip_reason_for(task: dict[str, Any]) -> str | None:
-            return None if is_deterministic(task) else "needs_agentic_runtime"
+    ``discovery`` is the pack-aware path. Passing bare ``tasks`` (the older
+    call shape) treats them as one ad-hoc selection of the core pack.
+    """
+    mode = resolve_fixture_mode(runtime, fixture_mode)
+    if discovery is None:
+        if tasks is None:
+            discovery = task_packs.discover(task_packs.DEFAULT_PACKS)
+        else:
+            discovery = _adhoc_discovery(tasks)
+    timeout_policy: dict[str, Any]
+    if runtime == "scripted":
+        driver = driver or ScriptedDriver()
+        timeout_policy = {"poll_tries": 300, "poll_delay_s": 0.01, "http_timeout_s": None}
     elif runtime in ("opencode", "dsh"):
         # Live: scripts/run_local_phase3.sh (or an equivalent independently
         # started stack) must already be running and reachable at base_url.
@@ -521,123 +581,326 @@ async def run_suite(
         # section 16.3) — it uses whatever predictor that stack is configured
         # with, so a task pinned to exact frozen numbers is skipped rather
         # than graded against a mismatched real prediction.
-        driver = RemoteHTTPDriver(base_url, token)
-        skip_reason_for = live_skip_reason
+        driver = driver or RemoteHTTPDriver(base_url, token)
+        timeout_policy = {"poll_tries": 180, "poll_delay_s": 1.0, "http_timeout_s": 30.0}
     else:
         raise SystemExit(f"unknown runtime {runtime!r}")
+
+    if effective_product is None:
+        effective_product = await _effective_product(runtime, base_url, token)
+
+    def skip_reason_for(task: dict[str, Any]) -> str | None:
+        if only and task["task_id"] not in only:
+            return "not_selected"
+        if runtime == "scripted":
+            if not runs_scripted(task):
+                return "needs_agentic_runtime"
+        else:
+            reason = live_skip_reason(task)
+            if reason is not None:
+                return reason
+            if task.get("runtime_requirement") == "live_evidence" and mode != "live_evidence":
+                return "needs_live_evidence"
+        if not features_satisfied(task, effective_product):
+            return "feature_requirements_unmet"
+        return None
+
     tmp_dir = out_dir / "_work"
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
     results: list[TaskResult] = []
-    for task in tasks:
-        if only and task["task_id"] not in only:
-            continue
+    traces: list[dict[str, Any]] = []
+    for invalid in discovery.invalid:
+        results.append(
+            TaskResult(
+                task_id=f"<invalid>/{invalid.path}", category="invalid", critical=False,
+                executed=False, passed=False, status="invalid",
+                capability_pack=invalid.pack, reasons=list(invalid.problems),
+            )
+        )
+    for task in discovery.tasks:
+        base = dict(
+            task_id=task["task_id"], category=task["category"],
+            critical=task.get("critical", False),
+            capability_pack=task.get("capability_pack", "core"),
+            risk_tier=task.get("risk_tier", "medium"),
+        )
         reason = skip_reason_for(task)
         if reason is not None:
             assert reason in SKIPPED_REASONS, reason
             results.append(
-                TaskResult(
-                    task["task_id"], task["category"], task.get("critical", False),
-                    executed=False, passed=False, skipped_reason=reason,
-                )
+                TaskResult(**base, executed=False, passed=False, skipped_reason=reason,
+                           status="skipped")
             )
             continue
+        trial_count = max(trials, (task.get("trial_policy") or {}).get("min_trials", 1))
         trial_reports: list[TaskReport] = []
-        for _ in range(trials):
-            outcome = await driver.run(task, tmp_dir)
-            trial_reports.append(grade_task(task, outcome))
-        passed = all(r.passed for r in trial_reports)  # pass^k, never averaged
+        infra: list[str] = []
+        trial_rows: list[dict[str, Any]] = []
+        for trial in range(trial_count):
+            try:
+                outcome = await driver.run(task, tmp_dir)
+            except (httpx.HTTPError, OSError, asyncio.TimeoutError) as exc:
+                infra.append(f"trial {trial}: driver error {type(exc).__name__}: {exc}")
+                trial_rows.append({"trial": trial, "status": "infra_error"})
+                continue
+            infra_reason = infra_failure(task, outcome)
+            trace = project_trace(outcome)
+            traces.append({"task_id": task["task_id"], "trial": trial, **trace.to_dict()})
+            if infra_reason is not None:
+                infra.append(f"trial {trial}: {infra_reason}")
+                trial_rows.append({"trial": trial, "status": "infra_error"})
+                continue
+            report = grade_task(task, outcome)
+            trial_reports.append(report)
+            trial_rows.append(
+                {"trial": trial, "status": "pass" if report.passed else "fail",
+                 **outcome_breakdown(outcome)}
+            )
         reasons: list[str] = []
         for report in trial_reports:
             reasons.extend(report.reasons())
+        any_failed = any(not r.passed for r in trial_reports)
+        if any_failed:
+            status = "fail"  # a product failure is real whatever else happened
+        elif infra or not trial_reports:
+            status = "infra_error"
+        else:
+            status = "pass"
         results.append(
             TaskResult(
-                task["task_id"], task["category"], task.get("critical", False),
-                executed=True, passed=passed, reasons=sorted(set(reasons)),
-                deferred_graders=list(trial_reports[0].deferred_graders),
+                **base, executed=status in ("pass", "fail"), passed=status == "pass",
+                reasons=sorted(set(reasons)), status=status, infra_errors=infra,
+                deferred_graders=list(trial_reports[0].deferred_graders) if trial_reports else [],
+                trials=trial_rows,
             )
         )
 
-    summary = _summarise(results, trials, mode)
+    summary = _summarise(results, trials, mode, discovery)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / f"results-{stamp}.json").write_text(
         json.dumps([asdict(r) for r in results], indent=2) + "\n"
     )
-    (out_dir / f"manifest-{stamp}.json").write_text(
-        json.dumps(_manifest(runtime, trials, summary, mode), indent=2, sort_keys=True) + "\n"
+    (out_dir / f"traces-{stamp}.jsonl").write_text(
+        "".join(json.dumps(t, sort_keys=True) + "\n" for t in traces)
     )
+    manifest = build_manifest(
+        runtime=runtime, trials=trials, fixture_mode=mode, summary=summary,
+        suite_hash=task_packs.suite_hash(discovery),
+        discovery=discovery.summary(),
+        effective_product=effective_product,
+        grader_versions=grader_versions(),
+        timeout_policy=timeout_policy,
+        predictor_commit=_pinned_predictor_commit(),
+        suite=suite,
+    )
+    (out_dir / f"manifest-{stamp}.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    )
+    summary["release_evidence"] = manifest["release_evidence"]
     return summary
 
 
-def _summarise(results: list[TaskResult], trials: int, fixture_mode: str) -> dict[str, Any]:
-    executed = [r for r in results if r.executed]
+def _adhoc_discovery(tasks: list[dict[str, Any]]) -> task_packs.Discovery:
+    """Wrap a caller-supplied task list so it flows through the same path."""
+    normalised = []
+    for task in tasks:
+        pack = task.get("capability_pack", "core")
+        item = task if "source_schema_version" in task else task_packs.normalise(task, pack)
+        item.setdefault("_source_path", f"tasks/{task['task_id']}.json")
+        normalised.append(item)
+    packs = tuple(dict.fromkeys(t["capability_pack"] for t in normalised)) or ("core",)
+    records = {
+        name: task_packs.PackDiscovery(
+            name, available=True,
+            files=[t["_source_path"] for t in normalised if t["capability_pack"] == name],
+            loaded=sum(1 for t in normalised if t["capability_pack"] == name),
+        )
+        for name in packs
+    }
+    return task_packs.Discovery(packs, normalised, [], records)
+
+
+def runs_scripted(task: dict[str, Any]) -> bool:
+    requirement = task.get("runtime_requirement")
+    if requirement is None:
+        return is_deterministic(task)
+    return requirement == "scripted"
+
+
+def features_satisfied(task: dict[str, Any], product: dict[str, Any] | None) -> bool:
+    """Whether the effective product is the one the task was written for.
+
+    An unknown product satisfies nothing but an empty requirement: guessing
+    that a flag was on is how a task grades a path that never ran.
+    """
+    requirements = task.get("feature_requirements") or {}
+    if not requirements:
+        return True
+    if not product or product.get("unavailable"):
+        return False
+    flags = product.get("flags") or {}
+    for name, wanted in (requirements.get("flags") or {}).items():
+        if (flags.get(name) or {}).get("enabled") is not wanted:
+            return False
+    topology = requirements.get("topology")
+    if topology and topology != "any":
+        external = (product.get("topology") or {}).get("external_worker_mode")
+        if external is not (topology == "external_workers"):
+            return False
+    kinds = requirements.get("runtime_kind")
+    if kinds and (product.get("runtime") or {}).get("kind") not in kinds:
+        return False
+    providers = requirements.get("provider")
+    if providers and (product.get("runtime") or {}).get("provider_id") not in providers:
+        return False
+    if requirements.get("research_provider") is True and not (
+        (product.get("providers") or {}).get("research_provider")
+    ):
+        return False
+    if requirements.get("ocr") is True and not (product.get("providers") or {}).get("ocr_configured"):
+        return False
+    profile = requirements.get("capability_profile")
+    intent = task.get("intent")
+    if profile and intent:
+        got = ((product.get("intents") or {}).get(intent) or {}).get("capability_profile")
+        if got != profile:
+            return False
+    return True
+
+
+def infra_failure(task: dict[str, Any], outcome: TaskOutcome) -> str | None:
+    """The environment, not the product, ended this trial — or ``None``."""
+    code = (outcome.run or {}).get("failure_code")
+    if code is None or code not in INFRA_FAILURE_CODES:
+        return None
+    expect = task.get("expect", {})
+    if code in (expect.get("error_code"), expect.get("run", {}).get("failure_code")):
+        return None
+    if (task.get("fault_injection") or {}) or task.get("inject"):
+        # The task injected a fault; how the product handled it is the verdict.
+        return None
+    return f"run failed with infrastructure code {code!r}"
+
+
+async def _effective_product(runtime: str, base_url: str, token: str) -> dict[str, Any]:
+    from toxagent.application.effective_product import describe_effective_product
+
+    if runtime == "scripted":
+        return describe_effective_product(ScriptedDriver.settings())
+    try:
+        async with httpx.AsyncClient(base_url=base_url.rstrip("/"), timeout=15.0) as client:
+            response = await client.get(
+                "/v1/system/effective-product", headers={"authorization": f"Bearer {token}"}
+            )
+    except httpx.HTTPError as exc:
+        return {"unavailable": f"{type(exc).__name__}: {exc}"}
+    if response.status_code != 200:
+        return {"unavailable": f"HTTP {response.status_code} from /v1/system/effective-product"}
+    return response.json()
+
+
+def _summarise(
+    results: list[TaskResult], trials: int, fixture_mode: str,
+    discovery: task_packs.Discovery | None = None,
+) -> dict[str, Any]:
+    real = [r for r in results if r.status != "invalid"]
+    executed = [r for r in real if r.status in ("pass", "fail")]
     passed = [r for r in executed if r.passed]
     by_category: dict[str, dict[str, int]] = {}
+    by_pack: dict[str, dict[str, int]] = {}
     for r in results:
-        bucket = by_category.setdefault(r.category, {"executed": 0, "passed": 0, "skipped": 0})
-        if r.executed:
-            bucket["executed"] += 1
-            bucket["passed"] += int(r.passed)
-        else:
-            bucket["skipped"] += 1
+        if r.status != "invalid":
+            if r.skipped_reason == "not_selected":
+                continue
+            bucket = by_category.setdefault(r.category, {"executed": 0, "passed": 0, "skipped": 0})
+            if r.executed:
+                bucket["executed"] += 1
+                bucket["passed"] += int(r.passed)
+            elif r.status == "skipped":
+                bucket["skipped"] += 1
+        pack = by_pack.setdefault(r.capability_pack, {s: 0 for s in STATUSES})
+        pack[r.status] += 1
     critical = [r for r in executed if r.critical]
     skipped_by_reason = {reason: 0 for reason in SKIPPED_REASONS}
     for r in results:
-        if not r.executed and r.skipped_reason is not None:
+        if r.status == "skipped" and r.skipped_reason is not None:
             skipped_by_reason[r.skipped_reason] += 1
+    # Deselected by --task: counted for conservation, but not a reason a task
+    # "could not run", so it stays out of skipped_by_reason.
+    not_selected = skipped_by_reason.pop("not_selected")
+    counts = {s: sum(1 for r in results if r.status == s) for s in STATUSES}
+
+    fallback_trials = first_pass = corrected = answered = 0
+    for r in executed:
+        for trial in r.trials:
+            outcome = trial.get("answer_outcome")
+            if outcome in (None, "none"):
+                continue
+            answered += 1
+            first_pass += outcome == "first_pass"
+            corrected += outcome == "accepted_after_correction"
+            fallback_trials += outcome == "fallback"
+
+    conservation: list[str] = []
+    not_evaluated: list[str] = []
+    if discovery is not None:
+        conservation = task_packs.check_conservation(
+            discovery, executed=counts["pass"] + counts["fail"], skipped=counts["skipped"],
+            invalid=counts["invalid"], infra_error=counts["infra_error"],
+        )
+        not_evaluated = sorted(n for n, p in discovery.packs.items() if not p.available)
     return {
         "trials": trials,
         "metric": "pass^%d" % trials if trials > 1 else "pass@1",
         "fixture_mode": fixture_mode,
-        "total_tasks": len(results),
+        "total_tasks": len(real),
         "executed": len(executed),
-        "skipped": len(results) - len(executed),
+        "skipped": counts["skipped"],
+        "invalid": counts["invalid"],
+        "infra_error": counts["infra_error"],
+        "status_counts": counts,
         # W1-05: which skips a credential would fix, and which ones no
         # credential ever will. `skipped_needs_runtime` counted all five
         # reasons under the name of one of them.
         "skipped_by_reason": {k: v for k, v in skipped_by_reason.items() if v},
         "skipped_needs_runtime": skipped_by_reason["needs_agentic_runtime"],
+        "not_selected": not_selected,
         "passed": len(passed),
         "pass_rate": round(len(passed) / len(executed), 4) if executed else None,
         "critical_executed": len(critical),
         "critical_passed": sum(r.passed for r in critical),
         "critical_all_pass": all(r.passed for r in critical) if critical else None,
         "by_category": by_category,
+        "by_pack": by_pack,
+        # Capability and containment, never folded together (P1-07).
+        "answer_outcomes": {
+            "answered_trials": answered,
+            "first_pass": first_pass,
+            "accepted_after_correction": corrected,
+            "fallback": fallback_trials,
+            "first_pass_rate": round(first_pass / answered, 4) if answered else None,
+        },
+        "not_evaluated_packs": not_evaluated,
+        "conservation_violations": conservation,
         "failures": [
             {"task_id": r.task_id, "critical": r.critical, "reasons": r.reasons}
             for r in executed if not r.passed
         ],
-    }
-
-
-def _manifest(
-    runtime: str, trials: int, summary: dict[str, Any], fixture_mode: str
-) -> dict[str, Any]:
-    return {
-        "eval_suite_hash": _suite_hash(),
-        "toxagent_commit": _git("HEAD"),
-        "toxpred_commit": _pinned_predictor_commit(),
-        "runtime_kind": runtime,
-        # W1-01: what supplied the numbers, which `runtime_kind` does not say.
-        # Two manifests are comparable only when this field agrees.
-        "fixture_mode": fixture_mode,
-        "runtime_version": "in-process-scripted" if runtime == "scripted" else "live-stack",
-        "trial_count": trials,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "summary": summary,
+        "infra_errors": [
+            {"task_id": r.task_id, "errors": r.infra_errors}
+            for r in results if r.status == "infra_error"
+        ],
+        "invalid_tasks": [
+            {"path": r.task_id, "reasons": r.reasons} for r in results if r.status == "invalid"
+        ],
     }
 
 
 def _suite_hash() -> str:
-    from toxagent.domain.provenance import content_sha256
-
-    payload = {
-        p.name: p.read_text()
-        for p in sorted(list(TASKS_DIR.glob("*.json")) + list((HERE / "fixtures").glob("*.json")))
-    }
-    payload["schema"] = SCHEMA_PATH.read_text()
-    return content_sha256(payload)
+    """The default PR selection's hash (kept for older callers)."""
+    return task_packs.suite_hash(task_packs.discover(task_packs.DEFAULT_PACKS))
 
 
 def _git(ref: str) -> str:
@@ -650,11 +913,24 @@ def _git(ref: str) -> str:
 
 
 def _pinned_predictor_commit() -> str:
-    snapshot = HERE.parent / "toxagent" / "predictor" / "contract_snapshot.json"
+    snapshot = HERE.parent / "src" / "toxagent" / "predictor" / "contract_snapshot.json"
     try:
         return json.loads(snapshot.read_text()).get("captured_at_commit", "unknown")
     except (OSError, ValueError):
         return "unknown"
+
+
+def exit_code(summary: dict[str, Any]) -> int:
+    """Non-zero for anything that is not a clean pass of what was selected."""
+    if summary.get("invalid") or summary.get("conservation_violations"):
+        return 1
+    if summary.get("infra_error"):
+        return 1
+    if summary["critical_all_pass"] is False:
+        return 1
+    if summary["pass_rate"] is not None and summary["pass_rate"] < 1.0:
+        return 1
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -665,6 +941,11 @@ def main(argv: list[str] | None = None) -> int:
         help="what supplies the numbers and evidence (default: frozen for scripted, "
              "predictor_integration for a live stack). Recorded in the manifest; two runs "
              "are comparable only in the same mode.",
+    )
+    parser.add_argument(
+        "--packs", default=None,
+        help="comma-separated task packs, 'all', or 'suite:pr|nightly|release' "
+             f"(default: {','.join(task_packs.DEFAULT_PACKS)})",
     )
     parser.add_argument("--trials", type=int, default=1)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -680,32 +961,39 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    tasks = load_tasks()
+    packs = task_packs.parse_packs(args.packs)
+    suite = args.packs.removeprefix("suite:") if args.packs and args.packs.startswith("suite:") else None
+    discovery = task_packs.discover(packs)
     if args.list:
         mode = resolve_fixture_mode(args.runtime, args.fixture_mode)
-        print(f"# runtime={args.runtime} fixture_mode={mode}")
-        for task in tasks:
+        print(f"# runtime={args.runtime} fixture_mode={mode} packs={','.join(packs)}")
+        print(f"# suite_hash={task_packs.suite_hash(discovery)}")
+        for name, record in discovery.packs.items():
+            state = "available" if record.available else f"unavailable ({record.unavailable_reason})"
+            print(f"# pack {name}: {len(record.files)} file(s), {record.loaded} loaded, "
+                  f"{record.invalid} invalid, {state}")
+        for task in discovery.tasks:
             if args.runtime == "scripted":
-                reason = None if is_deterministic(task) else "needs_agentic_runtime"
+                reason = None if runs_scripted(task) else "needs_agentic_runtime"
             else:
                 reason = live_skip_reason(task)
             mark = "yes" if reason is None else "no "
-            print(f"{mark}  {task['category']:20s}  {task['task_id']:44s}  {reason or ''}")
-        return 0
+            print(f"{mark}  {task['capability_pack']:10s}  {task['category']:20s}  "
+                  f"{task['task_id']:44s}  {reason or ''}")
+        for invalid in discovery.invalid:
+            print(f"INV  {invalid.pack:10s}  {invalid.path}: {'; '.join(invalid.problems)}")
+        return 1 if discovery.invalid else 0
 
     summary = asyncio.run(
         run_suite(
-            tasks, runtime=args.runtime, trials=args.trials, out_dir=args.out,
+            runtime=args.runtime, trials=args.trials, out_dir=args.out,
             only=set(args.tasks) if args.tasks else None,
             base_url=args.base_url, token=args.token, fixture_mode=args.fixture_mode,
+            discovery=discovery, suite=suite,
         )
     )
     print(json.dumps(summary, indent=2))
-    if summary["critical_all_pass"] is False:
-        return 1
-    if summary["pass_rate"] is not None and summary["pass_rate"] < 1.0:
-        return 1
-    return 0
+    return exit_code(summary)
 
 
 if __name__ == "__main__":

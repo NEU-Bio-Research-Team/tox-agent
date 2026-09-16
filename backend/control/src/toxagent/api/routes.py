@@ -343,6 +343,33 @@ async def quick_predict_compare(
     }
 
 
+@router.get("/system/effective-product")
+async def effective_product(request: Request, principal: Actor = Depends(actor)):
+    """The effective product configuration this deployment runs: flags, intent
+    to lane/profile/tools, runtime binding, budgets, topology and hashes.
+
+    Read by the eval runner so a live benchmark manifest records what was
+    actually graded. Secret-free by construction (effective_product.py)."""
+    from ..application.effective_product import describe_effective_product
+
+    services = _services(request)
+    resolver = getattr(services, "capabilities", None)
+    capabilities = None
+    if resolver is not None:
+        capabilities = {
+            "mode": resolver.mode.value,
+            "intents": {
+                intent.value: resolver.intent(intent).to_dict()["available"]
+                for intent in Intent
+            },
+        }
+    return describe_effective_product(
+        services.settings,
+        tool_registry=getattr(services, "tool_registry", None),
+        capabilities=capabilities,
+    )
+
+
 @router.get("/predict/capabilities")
 async def predict_capabilities(request: Request, principal: Actor = Depends(actor)):
     """A straight proxy of what the predictor actually serves, so the UI can
@@ -861,6 +888,10 @@ async def get_run(
         {
             "call_id": c["id"], "tool_name": c["tool_name"], "status": c["status"],
             "error_code": c["error_code"], "duration_ms": c["duration_ms"],
+            # A hash, never the arguments: enough for a trajectory grader to
+            # see a repeated call without exposing what the model sent.
+            "arguments_sha256": c.get("arguments_sha256"),
+            "observation_ids": list(c.get("observation_ids") or ()),
             "started_at": _isoformat(c["started_at"]),
             "ended_at": _isoformat(c["ended_at"]),
         }

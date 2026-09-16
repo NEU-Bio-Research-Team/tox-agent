@@ -21,7 +21,7 @@ the normal path and preserves all existing values.
 
 For GPU, use `docker compose --project-directory . -f devops/compose/compose.yaml -f devops/compose/gpu.yaml up` only
 after the host NVIDIA runtime has been verified. For an external, pinned
-OpenCode deployment, use `infra/compose/external-opencode.yaml` and set its URL,
+OpenCode deployment, use `devops/compose/external-opencode.yaml` and set its URL,
 runtime-owned directory, MCP URL, provider and model ID. This is an advanced
 deployment path; it is not required for prediction or OCR.
 
@@ -88,4 +88,8 @@ and database password registered at startup. The filter is on the root
 handler, so a dependency that logs a URL is covered too. It is a second line of
 defence and not a licence to log a credential.
 
-Not yet here: trace spans and metrics. `TOXAGENT_LOG_LEVEL` is the only knob.
+Metrics are served at `GET /metrics` (Prometheus text) by the API, and by a
+worker on `TOXAGENT_METRICS_PORT` (0 = no listener); every metric is declared in
+[`observability/METRICS.md`](observability/METRICS.md). Distributed trace spans
+are not emitted yet: the per-run trace a benchmark grades is the
+`eval-trace-v1` projection of the run API (`backend/control/evals/trace.py`).

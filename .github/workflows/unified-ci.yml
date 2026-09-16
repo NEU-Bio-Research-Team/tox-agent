@@ -45,6 +45,18 @@ jobs:
         run: python backend/predictor/scripts/check_no_agent_deps.py
       - run: python -m pytest -q tests/unit tests/contract --junitxml=junit-${{ matrix.service }}.xml
         working-directory: ${{ matrix.dir }}
+      # TAB-Suite PR gate: every pack the `pr` suite declares (core,
+      # regression, security), deterministic lane, pass^3. A task file that
+      # does not load is `invalid` and fails the job; so does a discovered
+      # task that lands in no result bucket (conservation).
+      - if: matrix.service == 'control'
+        run: python -m evals.runner --runtime scripted --packs suite:pr --trials 3 --out eval-pr
+        working-directory: ${{ matrix.dir }}
+      - if: always() && matrix.service == 'control'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-pr
+          path: ${{ matrix.dir }}/eval-pr/*.json*
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -63,6 +75,9 @@ jobs:
       # Links resolve, and no current document names a path the relocation
       # removed. Historical records are exempt by name, not by accident (I32).
       - run: python devops/scripts/check_docs.py
+      # A CI checkout holds only tracked roots; a stray source tree here means
+      # something generated or vendored code into the workspace.
+      - run: python devops/scripts/check_workspace.py --strict
       - run: pip install pytest
       # bin/toxagent against recorded docker/ss argv. Two subcommands were
       # dropping an argument (I28/I29) in ways no unit of the script shows.
@@ -290,11 +305,35 @@ jobs:
           python-version: '3.10'
       - run: pip install -e './backend/control[dev]'
       - run: cd backend/control && python -m pytest -q tests/e2e/test_scripted_runtime.py tests/unit/test_runtime_recovery.py tests/unit/test_opencode_surface_assertion.py
+      # P0-05: a missing credential is not a green nightly. The step always
+      # runs; without the credential it writes a `not_evaluated` status file
+      # and fails the scheduled job, so "the live suite passed" can never be
+      # read off a run that did not happen. A manual dispatch without the
+      # secret records the same status but does not fail.
       - name: Credentialed OpenCode matrix
-        if: env.TOXAGENT_LIVE_RUNTIME == '1'
-        run: cd backend/control && python -m evals.runner --runtime opencode --trials 3
         env:
           TOXAGENT_LIVE_RUNTIME: ${{ secrets.TOXAGENT_LIVE_RUNTIME }}
+          TOXAGENT_LIVE_BASE_URL: ${{ secrets.TOXAGENT_LIVE_BASE_URL }}
+          TOXAGENT_LIVE_TOKEN: ${{ secrets.TOXAGENT_LIVE_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          cd backend/control
+          mkdir -p eval-nightly
+          if [ "$TOXAGENT_LIVE_RUNTIME" != "1" ]; then
+            printf '{"status": "not_evaluated", "reason": "TOXAGENT_LIVE_RUNTIME credential absent", "event": "%s"}\n' "$EVENT_NAME" > eval-nightly/status.json
+            cat eval-nightly/status.json
+            echo "::error::live TAB-Suite not evaluated: credential absent"
+            if [ "$EVENT_NAME" = "schedule" ]; then exit 1; fi
+            exit 0
+          fi
+          python -m evals.runner --runtime opencode --packs suite:nightly --trials 3 \
+            --base-url "${TOXAGENT_LIVE_BASE_URL:-http://127.0.0.1:8000}" \
+            --token "${TOXAGENT_LIVE_TOKEN:-dev-local}" --out eval-nightly
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-nightly
+          path: backend/control/eval-nightly
 
   # What is in a release, and whether anything in it is known-vulnerable.
   # Neither question was asked anywhere before: the tag named a commit and

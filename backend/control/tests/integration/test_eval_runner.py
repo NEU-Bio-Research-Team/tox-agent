@@ -137,6 +137,9 @@ async def test_remote_http_driver_talks_only_over_the_product_api(tmp_path):
             return httpx.Response(200, json={"messages": []})
         if request.url.path == "/v1/sessions/ses_live1/evidence":
             return httpx.Response(200, json={"evidence": []})
+        if request.url.path == "/v1/sessions/ses_live1/runs/run_live1/decision-state":
+            # A deterministic run persists no decision-support state.
+            return httpx.Response(404, json={"error": {"code": "not_found"}})
         raise AssertionError(f"unexpected request {request.method} {request.url}")
 
     driver = RemoteHTTPDriver(
@@ -256,3 +259,43 @@ def test_the_reason_says_which_blocker_it_is():
 
 def test_the_declared_modes_are_the_three_the_plan_names():
     assert FIXTURE_MODES == ("frozen", "predictor_integration", "live_evidence")
+
+
+# ------------------------------------------------------- Wave 0 (P0-01/P0-03)
+
+
+async def test_the_live_stack_reports_the_product_it_runs(tmp_path):
+    """The scripted manifest describes settings in process; a live one reads
+    this endpoint. Both come from describe_effective_product, and the endpoint
+    additionally sees the registered tools of the running app."""
+    from evals.runner import ScriptedDriver
+    from evals.frozen import load_fixture
+
+    driver = ScriptedDriver()
+    async with driver._app(load_fixture("herg-blocker"), tmp_path / "p.db") as client:
+        response = await client.get(
+            "/v1/system/effective-product", headers={"authorization": "Bearer eval-user-token"}
+        )
+        anonymous = await client.get("/v1/system/effective-product")
+    assert anonymous.status_code == 401
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == "effective-product-v1"
+    decision = body["intents"]["decision_support"]
+    assert "registered_tools" in decision and "tool_schema_hash" in decision
+    assert "eval-secret-not-for-production" not in response.text
+
+
+async def test_a_default_run_executes_the_regression_pack_and_conserves_tasks(tmp_path):
+    summary = await run_suite(runtime="scripted", trials=1, out_dir=tmp_path)
+    assert summary["by_pack"]["regression"]["skipped"] + summary["by_pack"]["regression"]["pass"] >= 1
+    assert summary["conservation_violations"] == []
+    manifest = json.loads(next(tmp_path.glob("manifest-*.json")).read_text())
+    assert manifest["manifest_schema"] == "eval-manifest-v2"
+    assert manifest["discovery"]["selected_packs"] == ["core", "regression"]
+    assert manifest["effective_product"]["schema_version"] == "effective-product-v1"
+    assert "trajectory" in manifest["graders"]
+    assert manifest["release_evidence"]["eligible"] is False
+    results = json.loads(next(tmp_path.glob("results-*.json")).read_text())
+    assert any(r["task_id"] == "ads-00-benzene-drug-decision-baseline-vi" for r in results)
+    assert list(tmp_path.glob("traces-*.jsonl"))

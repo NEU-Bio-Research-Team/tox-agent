@@ -44,6 +44,10 @@ class TaskOutcome:
     #: the runner could not gather it (then the gate relies on commit-time
     #: validation and only flags a claim with no basis).
     observation_values: dict[str, Any] = field(default_factory=dict)
+    #: The run's persisted DecisionSupportStateV1, when the run produced one.
+    decision_state: dict[str, Any] | None = None
+    #: The effective budget recorded for the run (EffectiveRunBudgetV1).
+    budget: dict[str, Any] | None = None
 
     def answer_claims(self) -> list[dict[str, Any]]:
         return list((self.answer or {}).get("claims", []))

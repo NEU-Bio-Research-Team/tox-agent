@@ -1982,7 +1982,7 @@ Vertical slice đầu tiên phải chứng minh:
 ### Repository hiện tại
 
 - [`README.md`](../../README.md)
-- [`docs/architecture.md`](../architecture.md)
+- [`docs/PREDICTOR_ARCHITECTURE.md`](../PREDICTOR_ARCHITECTURE.md) (formerly `docs/architecture.md`)
 - [`docs/model-card.md`](../model-card.md)
 - [`docs/benchmark-protocol.md`](../benchmark-protocol.md)
 - [`docs/refactor/PREDICTOR_ONLY_STATUS_VI.md`](../refactor/PREDICTOR_ONLY_STATUS_VI.md)

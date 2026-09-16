@@ -1,5 +1,11 @@
 # Remediation progress — 2026-09-13 audit
 
+> **Historical progress log, not an architecture spec.** It records what was
+> merged when each row was written and may contain superseded descriptions.
+> What the product is *now* is generated from code in
+> [`../architecture-inventory.json`](../architecture-inventory.json)
+> (`python -m evals.architecture_inventory`).
+
 Tracks `AGENTIC_FLOW_REMEDIATION_IMPLEMENTATION_PLAN_2026-09-13_VI.md` against
 what is actually merged. One row per PR in that plan's §7 sequence.
 

@@ -25,7 +25,10 @@ EXPECTED_COUNTS = {
     "failure_recovery": 6,
     "adversarial_session": 6,
 }
-KNOWN_GRADERS = {"schema", "state", "transcript", "rubric", "sme"}
+KNOWN_GRADERS = {
+    "schema", "state", "transcript", "rubric", "sme",
+    "trajectory", "budget", "decision_state", "outcome_split", "semantic",
+}
 
 
 @pytest.fixture(scope="module")
