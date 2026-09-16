@@ -249,27 +249,9 @@ class ScriptedDriver:
             session.raise_for_status()
             session_id = session.json()["session_id"]
 
-            last_run_id: str | None = None
-            error_envelope: dict[str, Any] | None = None
-            for turn in task["conversation"]:
-                body: dict[str, Any] = {"intent_hint": turn.get("intent_hint", "auto")}
-                if turn.get("content"):
-                    body["content"] = [{"type": "text", "text": turn["content"]}]
-                if "molecule" in turn:
-                    body["molecule"] = turn["molecule"]
-                if "analysis_options" in turn:
-                    body["analysis_options"] = turn["analysis_options"]
-                if "analysis_id" in turn:
-                    body["analysis_id"] = turn["analysis_id"]
-                response = await client.post(
-                    f"/v1/sessions/{session_id}/messages", json=body, headers=auth
-                )
-                if response.status_code >= 400:
-                    error_envelope = response.json()
-                    continue
-                last_run_id = response.json().get("run_id")
-                if last_run_id:
-                    await _await_run(client, session_id, last_run_id, auth)
+            last_run_id, error_envelope = await drive_conversation(
+                client, session_id, task, auth
+            )
 
             outcome = await gather_outcome(client, session_id, last_run_id, auth, error_envelope)
 
@@ -298,6 +280,43 @@ class ScriptedDriver:
         from dataclasses import replace
 
         return replace(outcome, reconstructed_ok=ok)
+
+
+async def drive_conversation(
+    client, session_id: str, task: dict[str, Any], auth: dict[str, str], *,
+    tries: int = 300, delay: float = 0.01,
+) -> tuple[str | None, dict[str, Any] | None]:
+    """Send every turn of a task's conversation; return the last run id and
+    the last synchronous error envelope. Shared by every driver.
+
+    A v3 turn may be ``action: create_report``: it requests a report build for
+    the session's active analysis through ``POST .../reports``, the same
+    durable run path the product UI uses.
+    """
+    last_run_id: str | None = None
+    error_envelope: dict[str, Any] | None = None
+    for turn in task["conversation"]:
+        if turn.get("action") == "create_report":
+            session = (await client.get(f"/v1/sessions/{session_id}", headers=auth)).json()
+            active = (session.get("active_analysis") or {}).get("analysis_id")
+            body = {"analysis_id": active, **(turn.get("report") or {})}
+            url = f"/v1/sessions/{session_id}/reports"
+        else:
+            body = {"intent_hint": turn.get("intent_hint", "auto")}
+            if turn.get("content"):
+                body["content"] = [{"type": "text", "text": turn["content"]}]
+            for key in ("molecule", "analysis_options", "analysis_id"):
+                if key in turn:
+                    body[key] = turn[key]
+            url = f"/v1/sessions/{session_id}/messages"
+        response = await client.post(url, json=body, headers=auth)
+        if response.status_code >= 400:
+            error_envelope = response.json()
+            continue
+        last_run_id = response.json().get("run_id")
+        if last_run_id:
+            await _await_run(client, session_id, last_run_id, auth, tries=tries, delay=delay)
+    return last_run_id, error_envelope
 
 
 async def _await_run(client, session_id, run_id, auth, *, tries: int = 300, delay: float = 0.01) -> None:
@@ -367,6 +386,11 @@ async def gather_outcome(client, session_id, run_id, auth, error_envelope) -> Ta
 
     evidence = await _fetch_all_evidence(client, session_id, auth)
 
+    reports_response = await client.get(f"/v1/sessions/{session_id}/reports", headers=auth)
+    reports = (
+        reports_response.json().get("reports", []) if reports_response.status_code == 200 else []
+    )
+
     decision_state = None
     if run_id:
         state_response = await client.get(
@@ -405,6 +429,7 @@ async def gather_outcome(client, session_id, run_id, auth, error_envelope) -> Ta
         session_evidence_ids=frozenset(e.get("evidence_id") or e.get("id") for e in evidence),
         observation_values=observation_values,
         decision_state=decision_state,
+        reports=reports,
         budget=((run.get("configuration_snapshot") or {}).get("effective_budget")
                 if isinstance(run.get("configuration_snapshot"), dict) else None),
     )
@@ -449,32 +474,12 @@ class RemoteHTTPDriver:
             session.raise_for_status()
             session_id = session.json()["session_id"]
 
-            last_run_id: str | None = None
-            error_envelope: dict[str, Any] | None = None
-            for turn in task["conversation"]:
-                body: dict[str, Any] = {"intent_hint": turn.get("intent_hint", "auto")}
-                if turn.get("content"):
-                    body["content"] = [{"type": "text", "text": turn["content"]}]
-                if "molecule" in turn:
-                    body["molecule"] = turn["molecule"]
-                if "analysis_options" in turn:
-                    body["analysis_options"] = turn["analysis_options"]
-                if "analysis_id" in turn:
-                    body["analysis_id"] = turn["analysis_id"]
-                response = await client.post(
-                    f"/v1/sessions/{session_id}/messages", json=body, headers=self._auth
-                )
-                if response.status_code >= 400:
-                    error_envelope = response.json()
-                    continue
-                last_run_id = response.json().get("run_id")
-                if last_run_id:
-                    # A live agentic turn takes real wall-clock time (an actual
-                    # model round trip), unlike the scripted driver's in-process
-                    # turn — poll patiently rather than in a tight loop.
-                    await _await_run(
-                        client, session_id, last_run_id, self._auth, tries=180, delay=1.0
-                    )
+            # A live agentic turn takes real wall-clock time (an actual model
+            # round trip), unlike the scripted driver's in-process turn — poll
+            # patiently rather than in a tight loop.
+            last_run_id, error_envelope = await drive_conversation(
+                client, session_id, task, self._auth, tries=180, delay=1.0
+            )
 
             return await gather_outcome(client, session_id, last_run_id, self._auth, error_envelope)
 

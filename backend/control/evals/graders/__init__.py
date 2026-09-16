@@ -15,6 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
+from .artifacts import grade_artifacts
 from .budget import grade_budget
 from .decision_state import grade_decision_state
 from .hard_gates import grade_hard_gates
@@ -53,6 +54,8 @@ GRADER_REGISTRY: dict[str, GraderSpec] = {
         GraderSpec("outcome_split", "outcome-split-v1", grade_outcome_split, ("answer",)),
         GraderSpec("decision_state", "decision-state-v1", grade_decision_state,
                    ("decision_state",)),
+        GraderSpec("artifacts", "artifacts-v1", grade_artifacts,
+                   ("analyses", "answer", "reports", "evidence", "decision_state")),
         GraderSpec("rubric", "rubric-dimensions-v1", None, ("answer", "evidence"), kind="model"),
         GraderSpec("semantic", "semantic-judge-v1", None, ("answer", "evidence"), kind="model"),
         GraderSpec("sme", "sme-protocol-v1", None, ("answer", "evidence"), kind="human"),

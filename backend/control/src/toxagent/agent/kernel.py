@@ -1,5 +1,10 @@
 """Runtime-neutral orchestration for one scientific investigation.
 
+SUPERSEDED (ADR 0011). Not a live path: decision support runs through
+``harness/gateway.py`` with ``domain/decision_state.py``. Kept, unimported by
+any live module (enforced by ``tests/unit/test_eval_paired.py``), until the
+Wave 4 paired benchmark and a separate retirement of its tables.
+
 The kernel accepts structured plans and semantic drafts from replaceable model
 components, while every transition, capability execution, budget check and
 answer compilation remains product-owned and auditable.

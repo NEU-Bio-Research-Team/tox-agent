@@ -35,7 +35,7 @@ Three statuses, and they mean different things:
 |---|---|---|
 | [`PREDICTOR_ARCHITECTURE.md`](PREDICTOR_ARCHITECTURE.md) | Current | **ToxPred only** — the predictor's internal layering. Renamed from `architecture.md`, which differed from `ARCHITECTURE.md` above only by case. |
 | [`../backend/control/README.md`](../backend/control/README.md) | Current | Control plane |
-| [`../backend/control/docs/adr/`](../backend/control/docs/adr/) | Current | Architecture decision records (ADR 0001–0008) |
+| [`../backend/control/docs/adr/`](../backend/control/docs/adr/) | Current | Architecture decision records (ADR 0001–0011) |
 
 `frontend/` has no README; its commands are in `package.json` and in
 [`DEVELOPMENT.md`](DEVELOPMENT.md).

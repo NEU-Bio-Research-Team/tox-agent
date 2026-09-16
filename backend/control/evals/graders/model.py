@@ -48,6 +48,8 @@ class TaskOutcome:
     decision_state: dict[str, Any] | None = None
     #: The effective budget recorded for the run (EffectiveRunBudgetV1).
     budget: dict[str, Any] | None = None
+    #: Report artifacts in the session (``GET .../reports``).
+    reports: list[dict[str, Any]] = field(default_factory=list)
 
     def answer_claims(self) -> list[dict[str, Any]]:
         return list((self.answer or {}).get("claims", []))

@@ -132,7 +132,7 @@ def test_v3_schema_is_a_superset_of_v1():
     v3 = json.loads(task_packs.SCHEMAS["eval-task-v3"].read_text())
     for name, spec in v1["properties"].items():
         assert name in v3["properties"], name
-        if name in ("schema_version", "category", "expect", "graders", "hard_gates"):
+        if name in ("schema_version", "category", "expect", "graders", "hard_gates", "conversation"):
             continue
         assert v3["properties"][name] == spec, name
     for name in ("category",):
@@ -141,6 +141,9 @@ def test_v3_schema_is_a_superset_of_v1():
         assert set(v1["properties"][name]["items"]["enum"]) <= set(
             v3["properties"][name]["items"]["enum"]
         )
+    v1_turn = v1["properties"]["conversation"]["items"]["properties"]
+    v3_turn = v3["properties"]["conversation"]["items"]["properties"]
+    assert all(v3_turn[k] == spec for k, spec in v1_turn.items())
     for key, spec in v1["properties"]["expect"]["properties"].items():
         if key != "run":
             assert v3["properties"]["expect"]["properties"][key] == spec, key

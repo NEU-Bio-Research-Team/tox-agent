@@ -217,3 +217,18 @@ def test_calibration_reports_false_passes_per_tier_and_refuses_a_small_set():
     assert rubric["calibrated"] is False
     # conflict_handling has no gold items at all
     assert any("conflict_handling" in b for b in rubric["blockers"])
+
+
+def test_artifacts_grader_checks_counts_report_status_and_gaps():
+    from evals.graders.artifacts import grade_artifacts
+
+    task = {"expected_artifacts": [{"kind": "report", "min": 1, "max": 1}],
+            "expect": {"report": {"status_in": ["completed_with_gaps"],
+                                  "gap_reasons_include": ["provider_unavailable"]}}}
+    good = TaskOutcome(run={}, session={}, reports=[
+        {"status": "completed_with_gaps", "gaps": [{"reason": "provider_unavailable"}]}])
+    assert grade_artifacts(task, good).passed
+    silent = TaskOutcome(run={}, session={}, reports=[{"status": "completed", "gaps": []}])
+    result = grade_artifacts(task, silent)
+    assert not result.passed and len(result.reasons) == 2
+    assert not grade_artifacts(task, TaskOutcome(run={}, session={})).passed

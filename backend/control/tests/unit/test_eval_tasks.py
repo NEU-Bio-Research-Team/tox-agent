@@ -27,7 +27,7 @@ EXPECTED_COUNTS = {
 }
 KNOWN_GRADERS = {
     "schema", "state", "transcript", "rubric", "sme",
-    "trajectory", "budget", "decision_state", "outcome_split", "semantic",
+    "trajectory", "budget", "decision_state", "outcome_split", "semantic", "artifacts",
 }
 
 

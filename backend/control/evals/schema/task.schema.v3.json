@@ -86,8 +86,7 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "role",
-          "content"
+          "role"
         ],
         "properties": {
           "role": {
@@ -142,6 +141,41 @@
                   "object",
                   "null"
                 ]
+              }
+            }
+          },
+          "action": {
+            "enum": [
+              "message",
+              "create_report"
+            ],
+            "default": "message"
+          },
+          "report": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "selected_endpoints": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "clintox",
+                    "herg",
+                    "tox21"
+                  ]
+                }
+              },
+              "selected_tox21_tasks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "include_explanations": {
+                "type": "boolean"
+              },
+              "include_external_evidence": {
+                "type": "boolean"
               }
             }
           }
@@ -463,6 +497,27 @@
               }
             }
           }
+        },
+        "report": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status_in": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "gap_reasons_include": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "schema_version": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -498,7 +553,8 @@
           "budget",
           "decision_state",
           "outcome_split",
-          "semantic"
+          "semantic",
+          "artifacts"
         ]
       },
       "default": [

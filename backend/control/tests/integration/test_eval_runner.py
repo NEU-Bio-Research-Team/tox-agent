@@ -137,6 +137,8 @@ async def test_remote_http_driver_talks_only_over_the_product_api(tmp_path):
             return httpx.Response(200, json={"messages": []})
         if request.url.path == "/v1/sessions/ses_live1/evidence":
             return httpx.Response(200, json={"evidence": []})
+        if request.url.path == "/v1/sessions/ses_live1/reports":
+            return httpx.Response(200, json={"reports": [], "count": 0})
         if request.url.path == "/v1/sessions/ses_live1/runs/run_live1/decision-state":
             # A deterministic run persists no decision-support state.
             return httpx.Response(404, json={"error": {"code": "not_found"}})
