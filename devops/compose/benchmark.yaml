@@ -1,0 +1,24 @@
+# TAB-Suite benchmark overlay. Never part of a normal `up`: layered on top of
+# compose.yaml + local-opencode-host.yaml by the benchmark operator, one
+# configuration per run. Every value here is visible in
+# GET /v1/system/effective-product, so the eval manifest records it.
+#
+#   TOXAGENT_FLAG_REPORT_ORCHESTRATOR_V2=1 TOXAGENT_RESEARCH_PROVIDER=snapshot \
+#   TOXAGENT_RESEARCH_SNAPSHOT_PATH=/opt/toxagent-evals/fixtures/evidence-conflicting.json \
+#   docker compose --project-directory . -f devops/compose/compose.yaml \
+#     -f devops/compose/local-opencode-host.yaml -f devops/compose/benchmark.yaml \
+#     up -d --no-deps toxagent-control
+services:
+  toxagent-control:
+    volumes:
+      - "${PWD}/backend/control/evals/fixtures:/opt/toxagent-evals/fixtures:ro"
+    environment:
+      TOXAGENT_FLAG_ANSWER_DRAFT_V2: ${TOXAGENT_FLAG_ANSWER_DRAFT_V2:-0}
+      TOXAGENT_FLAG_EVIDENCE_PIPELINE_V2: ${TOXAGENT_FLAG_EVIDENCE_PIPELINE_V2:-0}
+      TOXAGENT_FLAG_REPORT_ORCHESTRATOR_V2: ${TOXAGENT_FLAG_REPORT_ORCHESTRATOR_V2:-0}
+      TOXAGENT_FLAG_ROUTER_V2: ${TOXAGENT_FLAG_ROUTER_V2:-0}
+      TOXAGENT_FLAG_TRUST_ENVELOPE_V1: ${TOXAGENT_FLAG_TRUST_ENVELOPE_V1:-0}
+      TOXAGENT_FLAG_DECISION_STATE_PLAN_TOOL: ${TOXAGENT_FLAG_DECISION_STATE_PLAN_TOOL:-0}
+      TOXAGENT_RESEARCH_PROVIDER: ${TOXAGENT_RESEARCH_PROVIDER:-europepmc}
+      TOXAGENT_RESEARCH_SNAPSHOT_PATH: ${TOXAGENT_RESEARCH_SNAPSHOT_PATH:-}
+      TOXAGENT_RESEARCH_SNAPSHOT_FAULT: ${TOXAGENT_RESEARCH_SNAPSHOT_FAULT:-}
