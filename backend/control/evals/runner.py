@@ -397,9 +397,17 @@ async def gather_outcome(client, session_id, run_id, auth, error_envelope) -> Ta
     evidence = await _fetch_all_evidence(client, session_id, auth)
 
     reports_response = await client.get(f"/v1/sessions/{session_id}/reports", headers=auth)
-    reports = (
+    listed = (
         reports_response.json().get("reports", []) if reports_response.status_code == 200 else []
     )
+    # The list is a summary (no schema_version, gaps or sections); graders
+    # need the published document.
+    reports = []
+    for item in listed:
+        full = await client.get(
+            f"/v1/sessions/{session_id}/reports/{item.get('report_id')}", headers=auth
+        )
+        reports.append(full.json() if full.status_code == 200 else item)
 
     decision_state = None
     if run_id:
