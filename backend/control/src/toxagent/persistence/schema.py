@@ -561,7 +561,8 @@ report_artifacts = Table(
     # than re-deriving anything, so a rendering can never say something the
     # validated artifact does not.
     Column("document", Json, nullable=False),
-    Column("content_sha256", String(64), nullable=False),
+    # 80, not 64: report hashes carry a "sha256:" prefix (71 chars). 0019.
+    Column("content_sha256", String(80), nullable=False),
     # A rebuild links to what it supersedes rather than replacing it: the old
     # report stays readable and its provenance stays true (eval scenario 15).
     Column("supersedes_report_id", _ID, ForeignKey("report_artifacts.id")),
@@ -585,7 +586,8 @@ report_figures = Table(
     Column("media_type", String(64), nullable=False),
     Column("caption", Text, nullable=False),
     Column("alt_text", Text, nullable=False),
-    Column("content_sha256", String(64), nullable=False),
+    # 80, not 64: report hashes carry a "sha256:" prefix (71 chars). 0019.
+    Column("content_sha256", String(80), nullable=False),
     Column("renderer_version", String(64), nullable=False),
     Column("created_at", _TS, nullable=False),
     Index("ix_report_figures_session", "session_id", "created_at"),
@@ -598,7 +600,8 @@ report_renderings = Table(
     Column("format", String(16), nullable=False),
     Column("media_type", String(64), nullable=False),
     Column("object_uri", Text, nullable=False),
-    Column("content_sha256", String(64), nullable=False),
+    # 80, not 64: report hashes carry a "sha256:" prefix (71 chars). 0019.
+    Column("content_sha256", String(80), nullable=False),
     Column("size_bytes", Integer, nullable=False),
     Column("renderer_version", String(64), nullable=False),
     Column("created_at", _TS, nullable=False),

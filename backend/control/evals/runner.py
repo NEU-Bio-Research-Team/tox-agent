@@ -57,6 +57,7 @@ _DETERMINISTIC_INTENTS = {"out_of_scope", "clarification_required"}
 #: Per-request timeout against a live stack. 30 s turned a slow read under
 #: parallel benchmark load into an infra_error; the run itself is still bounded
 #: by the poll budget. Recorded in the manifest's timeout_policy.
+REPORT_POLL_TRIES = int(os.environ.get("TOXAGENT_EVAL_REPORT_POLL_TRIES", "900"))
 LIVE_HTTP_TIMEOUT_S = float(os.environ.get("TOXAGENT_EVAL_HTTP_TIMEOUT_S", "120"))
 
 
@@ -321,7 +322,10 @@ async def drive_conversation(
             continue
         last_run_id = response.json().get("run_id")
         if last_run_id:
-            await _await_run(client, session_id, last_run_id, auth, tries=tries, delay=delay)
+            # A report build runs minutes, not one model turn: live builds took
+            # 4-7 min, and a 3 min poll graded a healthy build as unfinished.
+            wait = max(tries, REPORT_POLL_TRIES) if turn.get("action") == "create_report" else tries
+            await _await_run(client, session_id, last_run_id, auth, tries=wait, delay=delay)
     return last_run_id, error_envelope
 
 
