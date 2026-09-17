@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import subprocess
 import sys
 from contextlib import asynccontextmanager
@@ -52,6 +53,11 @@ SCHEMA_PATH = HERE / "schema" / "task.schema.json"
 DEFAULT_OUT = HERE / "manifests"
 
 _DETERMINISTIC_INTENTS = {"out_of_scope", "clarification_required"}
+
+#: Per-request timeout against a live stack. 30 s turned a slow read under
+#: parallel benchmark load into an infra_error; the run itself is still bounded
+#: by the poll budget. Recorded in the manifest's timeout_policy.
+LIVE_HTTP_TIMEOUT_S = float(os.environ.get("TOXAGENT_EVAL_HTTP_TIMEOUT_S", "120"))
 
 
 # ------------------------------------------------------- W1-01 fixture modes
@@ -464,7 +470,7 @@ class RemoteHTTPDriver:
     async def run(self, task: dict[str, Any], tmp_dir: Path) -> TaskOutcome:
         del tmp_dir  # no local scratch database against a live stack
         async with httpx.AsyncClient(
-            base_url=self._base_url, timeout=30.0, transport=self._transport
+            base_url=self._base_url, timeout=LIVE_HTTP_TIMEOUT_S, transport=self._transport
         ) as client:
             session = await client.post(
                 "/v1/sessions",
@@ -590,7 +596,7 @@ async def run_suite(
         # with, so a task pinned to exact frozen numbers is skipped rather
         # than graded against a mismatched real prediction.
         driver = driver or RemoteHTTPDriver(base_url, token)
-        timeout_policy = {"poll_tries": 180, "poll_delay_s": 1.0, "http_timeout_s": 30.0}
+        timeout_policy = {"poll_tries": 180, "poll_delay_s": 1.0, "http_timeout_s": LIVE_HTTP_TIMEOUT_S}
     else:
         raise SystemExit(f"unknown runtime {runtime!r}")
 
