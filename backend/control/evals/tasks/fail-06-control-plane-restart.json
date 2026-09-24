@@ -1,0 +1,42 @@
+{
+  "task_id": "fail-06-control-plane-restart",
+  "category": "failure_recovery",
+  "fixture": "aspirin-herg-tox21",
+  "title": "A control-plane restart loses no session state",
+  "rationale": "PROD-04/05: after an analysis, the runner restarts the control plane and the session, run, snapshot and (if any) answer are all still readable over REST.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Summarise the hERG result.",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "state": {
+      "analysis_snapshots": 1,
+      "reconstructable_after_restart": true
+    }
+  },
+  "hard_gates": [
+    "source_graph_reconstructable"
+  ],
+  "graders": [
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

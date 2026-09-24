@@ -1,0 +1,21 @@
+{
+  "schema_version": "toxagent-runtime-surface-v1",
+  "runtime": "dsh",
+  "runtime_version": "0.1.2rc1",
+  "verdict": "experimental",
+  "profile": "toxagent",
+  "sandbox": "read-only",
+  "approval": "deny",
+  "allowed_external_tools": ["toxagent_mcp"],
+  "forbidden": ["shell", "filesystem_write", "arbitrary_web", "code_execution", "unrelated_mcp"],
+  "mcp_transport": "streamable-http",
+  "authenticated_roundtrip": false,
+  "cancel_turn": false,
+  "close_session": false,
+  "process_cleanup_smoke": true,
+  "admission_blockers": [
+    "authenticated MCP roundtrip not yet recorded",
+    "negative wrong-run/wrong-capability token suite not run against live DSH",
+    "full runtime-provider evaluation matrix not run"
+  ]
+}

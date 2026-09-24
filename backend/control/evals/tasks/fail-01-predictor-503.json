@@ -1,0 +1,48 @@
+{
+  "task_id": "fail-01-predictor-503",
+  "category": "failure_recovery",
+  "critical": true,
+  "fixture": "predictor-503",
+  "title": "Predictor 503 fails the run, no snapshot",
+  "rationale": "Plan 7.1 / exit gate: a predictor outage produces a typed error and no immutable snapshot; deterministic lane, no runtime.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "failed",
+      "intent": "analysis",
+      "lane": "deterministic"
+    },
+    "error_code": "predictor_not_ready",
+    "answer": {
+      "accepted": false
+    },
+    "state": {
+      "analysis_snapshots": 0,
+      "accepted_answers": 0
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

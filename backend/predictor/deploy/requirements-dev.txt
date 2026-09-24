@@ -1,0 +1,12 @@
+# Benchmark and test extras. Not installed into the runtime image.
+-r requirements.txt
+pytest>=8
+httpx
+pandas
+scikit-learn
+
+# Dataset loaders, needed only to regenerate the frozen evaluation split
+# (benchmarks/build_split_manifest.py). The benchmark itself reads the frozen
+# manifest and needs neither.
+deepchem
+pytdc

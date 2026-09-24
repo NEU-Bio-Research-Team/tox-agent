@@ -1,0 +1,46 @@
+{
+  "task_id": "fail-02-predictor-malformed",
+  "category": "failure_recovery",
+  "critical": true,
+  "fixture": "predictor-malformed",
+  "title": "A malformed predictor body is rejected",
+  "rationale": "SCI-08 / plan 7.1: a 200 with a body that fails schema validation must not become a snapshot.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "failed",
+      "intent": "analysis",
+      "lane": "deterministic"
+    },
+    "answer": {
+      "accepted": false
+    },
+    "state": {
+      "analysis_snapshots": 0
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "schema",
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

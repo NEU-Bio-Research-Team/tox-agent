@@ -1,0 +1,78 @@
+{
+  "task_id": "report-v2-01-orchestrated-build-publishes-v3",
+  "schema_version": "eval-task-v3",
+  "language": "en",
+  "capability_pack": "report",
+  "category": "report_orchestration",
+  "runtime_requirement": "agentic_runtime",
+  "intent": "build_report",
+  "fixture": "evidence-conflicting",
+  "graders": [
+    "artifacts"
+  ],
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse astemizole.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "action": "create_report",
+      "report": {
+        "selected_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "include_explanations": false,
+        "include_external_evidence": true
+      }
+    }
+  ],
+  "risk_tier": "high",
+  "lane": "orchestrated",
+  "title": "Orchestrated build publishes a v3 report from one synthesis turn",
+  "rationale": "P0-06 candidate architecture: report_orchestrator_v2=1 must publish a toxagent-report-v3 artifact; paired with report-v2-03 on the legacy path.",
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "build_report"
+    },
+    "report": {
+      "status_in": [
+        "completed",
+        "completed_with_gaps"
+      ],
+      "schema_version": "toxagent-report-v3"
+    }
+  },
+  "expected_artifacts": [
+    {
+      "kind": "report",
+      "min": 1,
+      "max": 1
+    }
+  ],
+  "hard_gates": [
+    "no_safety_or_regulatory_claim"
+  ],
+  "feature_requirements": {
+    "flags": {
+      "report_orchestrator_v2": true
+    },
+    "research_snapshot": "evidence-conflicting"
+  },
+  "trial_policy": {
+    "min_trials": 3,
+    "aggregation": "all"
+  }
+}

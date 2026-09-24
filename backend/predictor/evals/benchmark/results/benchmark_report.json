@@ -1,0 +1,656 @@
+{
+  "content_sha256": "b7faa4c365e7c9d834461683a9ef2f5d0f83aa2a4c42b38c327373d642c89334",
+  "endpoints": {
+    "clintox": {
+      "reason": "ArtifactError: [clintox-smilesgnn-v1] tokenizer missing: tokenizer.pkl. The checkpoint was trained with a 69-token vocabulary derived from the ClinTox corpus; without that vocabulary the token ids cannot be reproduced and the embedding weights are unusable. Restore it from the training run, or retrain with scripts/train_hybrid.py and commit the tokenizer alongside the weights.",
+      "skipped": true
+    },
+    "herg": {
+      "auc_roc": 0.8372370557654361,
+      "balanced_accuracy": 0.7612969197230499,
+      "bootstrap_95ci": {
+        "auc_roc": {
+          "hi": 0.8513937349147969,
+          "lo": 0.8214739392813885,
+          "n_resamples": 1000
+        },
+        "f1": {
+          "hi": 0.7825221485547987,
+          "lo": 0.7458363949098156,
+          "n_resamples": 1000
+        },
+        "mcc": {
+          "hi": 0.556783195284654,
+          "lo": 0.4887173736755321,
+          "n_resamples": 1000
+        },
+        "pr_auc": {
+          "hi": 0.8494345289041793,
+          "lo": 0.8098498777700396,
+          "n_resamples": 1000
+        }
+      },
+      "brier": 0.18156309428737052,
+      "confusion": {
+        "fn": 284,
+        "fp": 359,
+        "tn": 1004,
+        "tp": 1043
+      },
+      "ece_10bin": 0.1200065441214961,
+      "f1": 0.7643825577134481,
+      "latency": {
+        "per_molecule_ms": 2.64,
+        "total_s": 7.1
+      },
+      "mcc": 0.5230169175241813,
+      "n": 2690,
+      "n_positive": 1327,
+      "per_sample_file": "herg_per_sample.json",
+      "pr_auc": 0.8310199110216464,
+      "prevalence": 0.4933085501858736,
+      "sensitivity": 0.785983421250942,
+      "specificity": 0.7366104181951577,
+      "threshold": 0.4133453071117401,
+      "threshold_source": "artifact"
+    },
+    "tox21": {
+      "latency": {
+        "per_molecule_ms": 3.93,
+        "total_s": 3.08
+      },
+      "macro": {
+        "auc_roc": 0.7594471979222565,
+        "n_tasks_scored": 12,
+        "note": "macro average over tasks; never pooled across molecules",
+        "pr_auc": 0.33534232019001536
+      },
+      "per_sample_file": "tox21_per_sample.json",
+      "per_task": {
+        "NR-AR": {
+          "auc_roc": 0.7820305770887166,
+          "balanced_accuracy": 0.6630329457364341,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8756090961356818,
+              "lo": 0.6745330311668191,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.6190476190476191,
+              "lo": 0.23529411764705882,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.622127939797362,
+              "lo": 0.2419404654683223,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.5709037083647973,
+              "lo": 0.2114893772410957,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.19490666738712237,
+          "confusion": {
+            "fn": 18,
+            "fp": 5,
+            "tn": 683,
+            "tp": 9
+          },
+          "ece_10bin": 0.37317509314605407,
+          "f1": 0.43902439024390244,
+          "mcc": 0.4485991492682372,
+          "n": 715,
+          "n_masked_out": 68,
+          "n_positive": 27,
+          "pr_auc": 0.3919070822712971,
+          "prevalence": 0.03776223776223776,
+          "sensitivity": 0.3333333333333333,
+          "specificity": 0.9927325581395349,
+          "threshold": 0.9399998188018799,
+          "threshold_source": "artifact"
+        },
+        "NR-AR-LBD": {
+          "auc_roc": 0.7509351892127012,
+          "balanced_accuracy": 0.6535015224010439,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8954390979915272,
+              "lo": 0.5874493605610561,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.2626395534290271,
+              "lo": 0.06593406593406594,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.28105871385437814,
+              "lo": 0.04691554845186382,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.6220787660211123,
+              "lo": 0.18720830159689036,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.09708180775028918,
+          "confusion": {
+            "fn": 11,
+            "fp": 69,
+            "tn": 536,
+            "tp": 8
+          },
+          "ece_10bin": 0.1942098001348383,
+          "f1": 0.16666666666666666,
+          "mcc": 0.1603829305770686,
+          "n": 624,
+          "n_masked_out": 159,
+          "n_positive": 19,
+          "pr_auc": 0.3898403620327203,
+          "prevalence": 0.030448717948717948,
+          "sensitivity": 0.42105263157894735,
+          "specificity": 0.8859504132231405,
+          "threshold": 0.489999920129776,
+          "threshold_source": "artifact"
+        },
+        "NR-AhR": {
+          "auc_roc": 0.8395170431544003,
+          "balanced_accuracy": 0.7309428386365476,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8799253851815279,
+              "lo": 0.7951881247235977,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.5785176718832424,
+              "lo": 0.4169977653905655,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.4943121845802524,
+              "lo": 0.31146256091158675,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.6024917552765292,
+              "lo": 0.3909080973087721,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.17558425014853887,
+          "confusion": {
+            "fn": 37,
+            "fp": 73,
+            "tn": 464,
+            "tp": 55
+          },
+          "ece_10bin": 0.242001897185972,
+          "f1": 0.5,
+          "mcc": 0.40540743021069625,
+          "n": 629,
+          "n_masked_out": 154,
+          "n_positive": 92,
+          "pr_auc": 0.4881161137223757,
+          "prevalence": 0.14626391096979333,
+          "sensitivity": 0.5978260869565217,
+          "specificity": 0.8640595903165735,
+          "threshold": 0.6799998879432678,
+          "threshold_source": "artifact"
+        },
+        "NR-Aromatase": {
+          "auc_roc": 0.7659127480779546,
+          "balanced_accuracy": 0.7116037904523511,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.834296441375237,
+              "lo": 0.6959780384471281,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.4634364111498258,
+              "lo": 0.2675821596244131,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.4118235623026828,
+              "lo": 0.19634387076626747,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.4677734959667094,
+              "lo": 0.20689152464714727,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.22791851024052623,
+          "confusion": {
+            "fn": 20,
+            "fp": 72,
+            "tn": 404,
+            "tp": 27
+          },
+          "ece_10bin": 0.3405636355038697,
+          "f1": 0.3698630136986301,
+          "mcc": 0.3089621782627418,
+          "n": 523,
+          "n_masked_out": 260,
+          "n_positive": 47,
+          "pr_auc": 0.3084461776360414,
+          "prevalence": 0.08986615678776291,
+          "sensitivity": 0.574468085106383,
+          "specificity": 0.8487394957983193,
+          "threshold": 0.7099998593330383,
+          "threshold_source": "artifact"
+        },
+        "NR-ER": {
+          "auc_roc": 0.7340613931523022,
+          "balanced_accuracy": 0.6662927981109799,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8008521009858535,
+              "lo": 0.6611524366173445,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.4014241078345297,
+              "lo": 0.25939945852818114,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.3106173360123954,
+              "lo": 0.14116417406154239,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.49494497915786156,
+              "lo": 0.2718559781174334,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.22299264187390763,
+          "confusion": {
+            "fn": 23,
+            "fp": 164,
+            "tn": 320,
+            "tp": 47
+          },
+          "ece_10bin": 0.33487600921939004,
+          "f1": 0.33451957295373663,
+          "mcc": 0.22755524481755704,
+          "n": 554,
+          "n_masked_out": 229,
+          "n_positive": 70,
+          "pr_auc": 0.38027027260104757,
+          "prevalence": 0.1263537906137184,
+          "sensitivity": 0.6714285714285714,
+          "specificity": 0.6611570247933884,
+          "threshold": 0.5099999308586121,
+          "threshold_source": "artifact"
+        },
+        "NR-ER-LBD": {
+          "auc_roc": 0.7247965641952984,
+          "balanced_accuracy": 0.6327230259192285,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8375463204836362,
+              "lo": 0.6007985162933809,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.2608695652173913,
+              "lo": 0.06314144736842106,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.26553398844659293,
+              "lo": 0.03355793613245013,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.4606424982422854,
+              "lo": 0.07566129186553475,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.16964874256181958,
+          "confusion": {
+            "fn": 13,
+            "fp": 73,
+            "tn": 559,
+            "tp": 8
+          },
+          "ece_10bin": 0.3114087209126885,
+          "f1": 0.1568627450980392,
+          "mcc": 0.1420705078270156,
+          "n": 653,
+          "n_masked_out": 130,
+          "n_positive": 21,
+          "pr_auc": 0.2308484381789094,
+          "prevalence": 0.03215926493108729,
+          "sensitivity": 0.38095238095238093,
+          "specificity": 0.884493670886076,
+          "threshold": 0.6799998879432678,
+          "threshold_source": "artifact"
+        },
+        "NR-PPAR-gamma": {
+          "auc_roc": 0.741821469669571,
+          "balanced_accuracy": 0.6034029261877363,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8217684021543984,
+              "lo": 0.6532755539373036,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.1818704284221525,
+              "lo": 0.05515364766596294,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.18491231429952382,
+              "lo": 0.004783908693248784,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.17922348235564958,
+              "lo": 0.052821682918899396,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.14083625947815256,
+          "confusion": {
+            "fn": 12,
+            "fp": 137,
+            "tn": 416,
+            "tp": 10
+          },
+          "ece_10bin": 0.24115354488198845,
+          "f1": 0.11834319526627218,
+          "mcc": 0.09094025734101309,
+          "n": 575,
+          "n_masked_out": 208,
+          "n_positive": 22,
+          "pr_auc": 0.09224510104155284,
+          "prevalence": 0.03826086956521739,
+          "sensitivity": 0.45454545454545453,
+          "specificity": 0.7522603978300181,
+          "threshold": 0.4199999272823334,
+          "threshold_source": "artifact"
+        },
+        "SR-ARE": {
+          "auc_roc": 0.6955455946210953,
+          "balanced_accuracy": 0.630363729747397,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.7510268759905205,
+              "lo": 0.6377440733069399,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.5222551928783383,
+              "lo": 0.38666666666666666,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.3166515102208489,
+              "lo": 0.13788911752111732,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.5759173198929284,
+              "lo": 0.39468166903479707,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.22805507086891152,
+          "confusion": {
+            "fn": 44,
+            "fp": 133,
+            "tn": 230,
+            "tp": 74
+          },
+          "ece_10bin": 0.2300776313223611,
+          "f1": 0.4553846153846154,
+          "mcc": 0.22657951089292455,
+          "n": 481,
+          "n_masked_out": 302,
+          "n_positive": 118,
+          "pr_auc": 0.4753991365894523,
+          "prevalence": 0.24532224532224534,
+          "sensitivity": 0.6271186440677966,
+          "specificity": 0.6336088154269972,
+          "threshold": 0.49999991059303284,
+          "threshold_source": "artifact"
+        },
+        "SR-ATAD5": {
+          "auc_roc": 0.6992934035187557,
+          "balanced_accuracy": 0.6994593825579741,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8063862424431835,
+              "lo": 0.5865254571260108,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.31580434136187924,
+              "lo": 0.15028179190751445,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.31281263868081854,
+              "lo": 0.12222590700502078,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.30005935952353124,
+              "lo": 0.09893723298899551,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.13546009842678508,
+          "confusion": {
+            "fn": 14,
+            "fp": 113,
+            "tn": 526,
+            "tp": 19
+          },
+          "ece_10bin": 0.22307903680623334,
+          "f1": 0.23030303030303031,
+          "mcc": 0.216974161887961,
+          "n": 672,
+          "n_masked_out": 111,
+          "n_positive": 33,
+          "pr_auc": 0.16810250394044007,
+          "prevalence": 0.049107142857142856,
+          "sensitivity": 0.5757575757575758,
+          "specificity": 0.8231611893583725,
+          "threshold": 0.47999992966651917,
+          "threshold_source": "artifact"
+        },
+        "SR-HSE": {
+          "auc_roc": 0.7788855116514691,
+          "balanced_accuracy": 0.7218439716312057,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8441926316626224,
+              "lo": 0.7075796608123225,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.4315849282296651,
+              "lo": 0.2499611801242236,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.3930854529356984,
+              "lo": 0.20086668119064335,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.3873602241959195,
+              "lo": 0.16254626814154643,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.1520725582149537,
+          "confusion": {
+            "fn": 18,
+            "fp": 91,
+            "tn": 434,
+            "tp": 29
+          },
+          "ece_10bin": 0.2511449598550953,
+          "f1": 0.3473053892215569,
+          "mcc": 0.2992584124087994,
+          "n": 572,
+          "n_masked_out": 211,
+          "n_positive": 47,
+          "pr_auc": 0.25391589374620543,
+          "prevalence": 0.08216783216783216,
+          "sensitivity": 0.6170212765957447,
+          "specificity": 0.8266666666666667,
+          "threshold": 0.5099999308586121,
+          "threshold_source": "artifact"
+        },
+        "SR-MMP": {
+          "auc_roc": 0.8307291666666667,
+          "balanced_accuracy": 0.745184748427673,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8732475963557094,
+              "lo": 0.788594404652517,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.6100418820757804,
+              "lo": 0.4544986906098017,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.5054021276979951,
+              "lo": 0.3268927157610276,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.5834529473997538,
+              "lo": 0.3842572366915743,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.16980902099677256,
+          "confusion": {
+            "fn": 29,
+            "fp": 88,
+            "tn": 336,
+            "tp": 67
+          },
+          "ece_10bin": 0.19032213848549873,
+          "f1": 0.5338645418326693,
+          "mcc": 0.4159390646173156,
+          "n": 520,
+          "n_masked_out": 263,
+          "n_positive": 96,
+          "pr_auc": 0.46896760034771423,
+          "prevalence": 0.18461538461538463,
+          "sensitivity": 0.6979166666666666,
+          "specificity": 0.7924528301886793,
+          "threshold": 0.5399999022483826,
+          "threshold_source": "artifact"
+        },
+        "SR-p53": {
+          "auc_roc": 0.7698377140581442,
+          "balanced_accuracy": 0.6577060931899641,
+          "bootstrap_95ci": {
+            "auc_roc": {
+              "hi": 0.8253816256076654,
+              "lo": 0.7033519640657583,
+              "n_resamples": 1000
+            },
+            "f1": {
+              "hi": 0.3435009306892963,
+              "lo": 0.22790404040404041,
+              "n_resamples": 1000
+            },
+            "mcc": {
+              "hi": 0.2651698052298577,
+              "lo": 0.12650685606389087,
+              "n_resamples": 1000
+            },
+            "pr_auc": {
+              "hi": 0.49909921910096594,
+              "lo": 0.2706166526324243,
+              "n_resamples": 1000
+            }
+          },
+          "brier": 0.18489911892745953,
+          "confusion": {
+            "fn": 16,
+            "fp": 258,
+            "tn": 300,
+            "tp": 56
+          },
+          "ece_10bin": 0.26327930378417175,
+          "f1": 0.29015544041450775,
+          "mcc": 0.20070280917496827,
+          "n": 630,
+          "n_masked_out": 153,
+          "n_positive": 72,
+          "pr_auc": 0.37604916017242773,
+          "prevalence": 0.11428571428571428,
+          "sensitivity": 0.7777777777777778,
+          "specificity": 0.5376344086021505,
+          "threshold": 0.34999996423721313,
+          "threshold_source": "artifact"
+        }
+      }
+    }
+  },
+  "generated_at": "2026-09-03T19:10:18+0800",
+  "provenance": {
+    "bootstrap": {
+      "n": 1000,
+      "seed": 20260903
+    },
+    "git_commit": "918c7852259bd3c1b05630d22c1b98c1d8a35a45",
+    "limit": null,
+    "python": "3.10.20",
+    "split_manifest": "backend/predictor/evals/benchmark/manifests/eval-split-v1.json",
+    "split_sha256": "0f0a45cff673d92a35d74d897549b9f0b23781829f4ada4ebeae51d8b6878f7e",
+    "threshold_policy": "applied only; nothing fitted on the test split",
+    "torch": "2.11.0+cu130"
+  },
+  "reproduction_check": {
+    "checks": [
+      {
+        "abs_delta": 1.796869687142877e-05,
+        "metric": "herg.auc_roc",
+        "recomputed": 0.8372370557654361,
+        "recorded": 0.8372190870685646,
+        "within_tolerance": true
+      },
+      {
+        "abs_delta": 2.6289975763926776e-05,
+        "metric": "herg.pr_auc",
+        "recomputed": 0.8310199110216464,
+        "recorded": 0.8309936210458825,
+        "within_tolerance": true
+      },
+      {
+        "abs_delta": 6.641863963319228e-05,
+        "metric": "tox21.macro_auc_roc",
+        "recomputed": 0.7594471979222565,
+        "recorded": 0.7595136165618896,
+        "within_tolerance": true
+      }
+    ],
+    "passed": true,
+    "source": ".data/models/pretrained_2head_herg_chemberta_model/pretrained_2head_herg_tox21_metrics.json",
+    "tolerance": 0.005
+  },
+  "schema_version": 1
+}

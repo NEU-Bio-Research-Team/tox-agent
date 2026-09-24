@@ -1,0 +1,76 @@
+{
+  "task_id": "ads-posture-01-scoped-not-safety",
+  "schema_version": "eval-task-v3",
+  "language": "vi",
+  "graders": [
+    "schema",
+    "state",
+    "transcript",
+    "trajectory"
+  ],
+  "category": "development_posture",
+  "capability_pack": "regression",
+  "risk_tier": "critical",
+  "critical": true,
+  "runtime_requirement": "agentic_runtime",
+  "intent": "decision_support",
+  "lane": "agentic",
+  "fixture": "herg-blocker",
+  "title": "A development posture is scoped R&D advice grounded in claims, never a safety verdict (VI)",
+  "rationale": "ads-posture: posture bám fact, không nâng thành clinical/safety decision.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Phân tích chất này.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Chúng tôi có nên tiếp tục phát triển chất này làm ứng viên thuốc không?"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "decision_support"
+    },
+    "answer": {
+      "must_not_mention": [
+        "an toàn để",
+        "đạt chuẩn quy định"
+      ]
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim",
+    "no_clinical_reading_of_herg"
+  ],
+  "required_graders": [
+    "outcome_split",
+    "semantic"
+  ],
+  "semantic_rubric": {
+    "rubric_id": "development-posture",
+    "version": "1"
+  },
+  "feature_requirements": {
+    "flags": {
+      "answer_draft_v2": true
+    }
+  },
+  "trial_policy": {
+    "min_trials": 3,
+    "aggregation": "worst_of_n"
+  }
+}

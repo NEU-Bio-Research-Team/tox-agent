@@ -1,0 +1,168 @@
+{
+  "fixture_version": "eval-fixture-v1",
+  "content_sha256": "f83cf42403e7c467dd1f26bc587273d1fa4bcde8294a161c07a14e708903ed7d",
+  "name": "evidence-conflicting",
+  "description": "Two records that disagree on whether a scaffold is a hERG risk. The answer must represent the disagreement, not pick a side silently.",
+  "predictor": {
+    "served_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "predictions": {
+      "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1": {
+        "input_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+        "canonical_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+        "predictions": {
+          "herg": {
+            "probability_blocker": 0.9418,
+            "label": "blocker",
+            "threshold": 0.5,
+            "threshold_source": "model_default",
+            "model_id": "pretrained_2head_herg_chemberta"
+          },
+          "tox21": {
+            "task_order_version": "tox21-12task-v1",
+            "assays": {
+              "NR-AR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AR-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-AhR": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-Aromatase": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-ER-LBD": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "NR-PPAR-gamma": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ARE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-ATAD5": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-HSE": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-MMP": {
+                "probability_activity": 0.83,
+                "active": true,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              },
+              "SR-p53": {
+                "probability_activity": 0.06,
+                "active": false,
+                "threshold": 0.5,
+                "threshold_source": "model_default"
+              }
+            },
+            "model_id": "pretrained_2head_herg_chemberta"
+          }
+        },
+        "applicability": {
+          "status": "ok",
+          "method": "element_rules_v1",
+          "reasons": []
+        },
+        "provenance": {
+          "git_commit": "562b988de9714106fd842bb503072cfe8cd2852a",
+          "service_version": "0.1.0.dev0",
+          "artifact_hashes": [
+            "herg-chemberta:sha256-aaa",
+            "tox21-chemberta:sha256-bbb"
+          ]
+        }
+      }
+    }
+  },
+  "evidence": {
+    "search": {
+      "herg": [
+        "EVID-CONF-A",
+        "EVID-CONF-B"
+      ]
+    },
+    "records": {
+      "EVID-CONF-A": {
+        "provider_record_id": "EVID-CONF-A",
+        "source_type": "article",
+        "title": "Piperidine antihistamines show consistent hERG block in vitro",
+        "authors": [
+          "Frozen A",
+          "Frozen B"
+        ],
+        "published_at": "2015-03-01",
+        "canonical_url": "https://europepmc.org/abstract/MED/30001001",
+        "identifier": {
+          "doi": "10.1000/frozen.conf.a",
+          "pmid": "30001001"
+        },
+        "abstract_or_excerpt": "Across 14 piperidine antihistamines, all showed hERG IC50 < 3 uM.",
+        "normalized_facts": {
+          "conclusion": "class_effect_present"
+        },
+        "source_quality_tier": "authoritative_secondary"
+      },
+      "EVID-CONF-B": {
+        "provider_record_id": "EVID-CONF-B",
+        "source_type": "article",
+        "title": "Reassessment: structural features decouple hERG block in newer analogues",
+        "authors": [
+          "Frozen A",
+          "Frozen B"
+        ],
+        "published_at": "2021-03-01",
+        "canonical_url": "https://europepmc.org/abstract/MED/30001002",
+        "identifier": {
+          "doi": "10.1000/frozen.conf.b",
+          "pmid": "30001002"
+        },
+        "abstract_or_excerpt": "Second-generation analogues with a carboxylate show hERG IC50 > 30 uM, arguing against a strict class effect.",
+        "normalized_facts": {
+          "conclusion": "class_effect_not_universal"
+        },
+        "source_quality_tier": "authoritative_secondary"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+# Local development environment.
+#
+# Mirrors the container: Python 3.10 and torch 2.6, so a golden-parity number
+# measured here means the same thing as one measured in production. The previous
+# file pinned Python 3.11 against a 3.10 image, which is how a local baseline
+# could disagree with the deployed model for no visible reason.
+#
+# The service's own runtime set lives in ../deploy/requirements.txt.
+name: toxpred
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - rdkit
+  - numpy<2.0
+  - pip
+  - pip:
+      # runtime
+      - -r ../deploy/requirements.txt
+      # tests, benchmark and the evaluation-split builder
+      - pytest>=8
+      - httpx
+      - pandas
+      - scikit-learn
+      - deepchem
+      - pytdc
+      # training scripts
+      - torch-molecule
+      - xgboost
+      - matplotlib

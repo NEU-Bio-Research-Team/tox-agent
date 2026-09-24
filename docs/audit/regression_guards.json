@@ -1,0 +1,364 @@
+{
+  "$comment": "W1-12: every fix names the check that would fail without it. Prose saying an issue is closed is not checkable; this is. Each guard is a real file plus an anchor that must appear inside it, so renaming or deleting the check that guards an issue turns the registry red instead of quietly leaving the issue unguarded. `kind` says what sort of check it is: `pytest` and `vitest` are tests, `ci` is a workflow job, `config` is a setting whose absence reopens the issue.",
+  "schema_version": "regression-guards-v1",
+  "issues": {
+    "I01": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_capabilities.py",
+        "anchor": "def test_mode_comes_from_what_is_bound_not_from_the_configured_kind"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_health_ready.py",
+        "anchor": "def test_a_predictor_only_deployment_is_ready_and_says_what_it_cannot_do"
+      }
+    ],
+    "I02": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_admission_capability.py",
+        "anchor": "def test_a_conversational_ask_is_refused_deterministically_without_a_runtime"
+      }
+    ],
+    "I03": [
+      {
+        "kind": "vitest",
+        "path": "frontend/src/components/workbench/MessageComposer.test.tsx",
+        "anchor": "I03 — prediction does not require an explanation target"
+      }
+    ],
+    "I04": [
+      {
+        "kind": "vitest",
+        "path": "frontend/src/components/workbench/MessageComposer.test.tsx",
+        "anchor": "I04 — the question survives the molecule"
+      },
+      {
+        "kind": "vitest",
+        "path": "frontend/src/lib/smiles.test.ts",
+        "anchor": "rejects a two-atom letter pair that is more likely a word"
+      }
+    ],
+    "I05": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_health_ready.py",
+        "anchor": "def test_a_registered_handler_with_no_runtime_behind_it_is_not_ready"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_capabilities.py",
+        "anchor": "def test_configured_and_available_are_reported_separately"
+      }
+    ],
+    "I06": [
+      {
+        "kind": "vitest",
+        "path": "frontend/src/components/workbench/SessionConfigPopover.test.tsx",
+        "anchor": "does not name a default runtime"
+      }
+    ],
+    "I07": [
+      {
+        "kind": "pytest",
+        "path": "backend/predictor/tests/unit/test_clintox_provider.py",
+        "anchor": "def test_the_shipped_manifest_declares_checkable_admission_criteria"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/predictor/tests/unit/test_clintox_provider.py",
+        "anchor": "def test_the_declared_vocabulary_is_checked_against_the_checkpoint"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/contract/test_quick_predict.py",
+        "anchor": "def test_compare_refuses_a_model_this_build_does_not_run"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/predictor/tests/unit/test_token_structure_align_components.py",
+        "anchor": "def test_a_multi_component_smiles_aligns_instead_of_raising"
+      }
+    ],
+    "I08": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_model_binding_matrix.py",
+        "anchor": "def test_a_chosen_model_reaches_the_predictor_and_is_persisted"
+      }
+    ],
+    "I09": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_model_binding_matrix.py",
+        "anchor": "def test_an_image_keeps_the_endpoints_and_model_the_request_chose"
+      }
+    ],
+    "I10": [
+      {
+        "kind": "pytest",
+        "path": "backend/predictor/tests/unit/test_explain_model_selection.py",
+        "anchor": "def test_"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/contract/test_predictor_contract.py",
+        "anchor": "I10"
+      }
+    ],
+    "I11": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_model_binding_matrix.py",
+        "anchor": "def test_the_explanation_follows_the_model_that_answered_not_the_one_requested"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_explanation_checkpoints.py",
+        "anchor": "def test_a_checkpoint_is_not_reused_across_a_different_model"
+      }
+    ],
+    "I12": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_profile_credential_isolation.py",
+        "anchor": "def test_each_owner_gets_their_own_endpoint_and_key"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_profile_credential_isolation.py",
+        "anchor": "def test_a_gateway_with_no_secret_store_refuses_rather_than_using_ambient_auth"
+      }
+    ],
+    "I13": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_supported_providers.py",
+        "anchor": "def test_every_offered_provider_can_be_reached_without_the_user_guessing"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_supported_providers.py",
+        "anchor": "def test_the_two_that_were_offered_falsely_are_refused_with_the_reason"
+      }
+    ],
+    "I14": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_connection_probe.py",
+        "anchor": "I14"
+      }
+    ],
+    "I15": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_connection_network_policy.py",
+        "anchor": "def test_"
+      }
+    ],
+    "I16": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_durable_state_locations.py",
+        "anchor": "def test_the_compose_stack_mounts_a_volume_over_both_directories"
+      }
+    ],
+    "I17": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_run_lease_ownership.py",
+        "anchor": "def test_startup_reconciliation_leaves_a_run_under_a_live_lease_alone"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_postgres_multi_instance.py",
+        "anchor": "def test_two_instances_admit_only_one_distinct_message_at_the_run_cap"
+      }
+    ],
+    "I18": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_run_lease_ownership.py",
+        "anchor": "def test_a_cancellation_through_another_replica_reaches_the_owning_worker"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_run_lease_ownership.py",
+        "anchor": "def test_a_fenced_worker_stops_executing_the_run_it_lost"
+      }
+    ],
+    "I19": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_explanation_checkpoints.py",
+        "anchor": "def test_a_retry_after_a_mid_bundle_failure_only_does_the_missing_target"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_explanation_checkpoints.py",
+        "anchor": "def test_the_whole_bundle_is_bounded_even_when_each_call_looks_healthy"
+      }
+    ],
+    "I20": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_session_list_summary.py",
+        "anchor": "def test_"
+      }
+    ],
+    "I21": [
+      {
+        "kind": "vitest",
+        "path": "frontend/src/components/workbench/MessageComposer.test.tsx",
+        "anchor": "I21 — Enter belongs to the input method while composing"
+      }
+    ],
+    "I22": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_packaged_resources.py",
+        "anchor": "def test_package_root_is_the_toxagent_package_not_the_src_directory"
+      },
+      {
+        "kind": "ci",
+        "path": ".github/workflows/unified-ci.yml",
+        "anchor": "Shipped resources resolve from a wheel, run from an unrelated cwd"
+      }
+    ],
+    "I23": [
+      {
+        "kind": "pytest",
+        "path": "backend/predictor/tests/unit/test_manifest_resolution.py",
+        "anchor": "def test_the_default_manifest_is_the_registry_that_ships_with_this_checkout"
+      }
+    ],
+    "I24": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/contract/test_predictor_contract.py",
+        "anchor": "I24"
+      }
+    ],
+    "I25": [
+      {
+        "kind": "ci",
+        "path": ".github/workflows/unified-ci.yml",
+        "anchor": "working-directory: backend/control"
+      },
+      {
+        "kind": "config",
+        "path": "backend/control/pyproject.toml",
+        "anchor": "testpaths"
+      }
+    ],
+    "I26": [
+      {
+        "kind": "ci",
+        "path": ".github/workflows/unified-ci.yml",
+        "anchor": "control-integration"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/predictor/tests/golden/test_provider_parity.py",
+        "anchor": "def test_"
+      }
+    ],
+    "I27": [
+      {
+        "kind": "config",
+        "path": "bin/toxagent",
+        "anchor": "verify_predictor_artifacts"
+      },
+      {
+        "kind": "ci",
+        "path": ".github/workflows/unified-ci.yml",
+        "anchor": "MODEL_ARTIFACTS_URI"
+      }
+    ],
+    "I28": [
+      {
+        "kind": "pytest",
+        "path": "devops/tests/test_toxagent_wrapper.py",
+        "anchor": "def test_restore_accepts_the_syntax_the_runbook_documents"
+      }
+    ],
+    "I29": [
+      {
+        "kind": "pytest",
+        "path": "devops/tests/test_toxagent_wrapper.py",
+        "anchor": "def test_logs_with_no_service_asks_for_all_of_them"
+      }
+    ],
+    "I30": [
+      {
+        "kind": "pytest",
+        "path": "devops/tests/test_deploy_target.py",
+        "anchor": "def test_"
+      },
+      {
+        "kind": "ci",
+        "path": ".github/workflows/deploy.yml",
+        "anchor": "staging"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_oidc_auth.py",
+        "anchor": "def test_a_token_signed_with_the_capability_secret_is_no_longer_a_user"
+      }
+    ],
+    "I31": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_kernel_budget_and_coverage.py",
+        "anchor": "def test_"
+      },
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_experimental_runtimes_stay_experimental.py",
+        "anchor": "def test_the_only_adapters_that_ship_are_the_two_that_are_supported"
+      }
+    ],
+    "I32": [
+      {
+        "kind": "config",
+        "path": "devops/scripts/check_docs.py",
+        "anchor": "scheme"
+      },
+      {
+        "kind": "ci",
+        "path": ".github/workflows/unified-ci.yml",
+        "anchor": "check_docs.py"
+      }
+    ],
+    "I33": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/unit/test_boundaries.py",
+        "anchor": "PACKAGE = Path(toxagent.__file__).resolve().parent"
+      },
+      {
+        "kind": "config",
+        "path": "backend/control/pyproject.toml",
+        "anchor": "empty_parameter_set_mark"
+      },
+      {
+        "kind": "config",
+        "path": "backend/predictor/pyproject.toml",
+        "anchor": "empty_parameter_set_mark"
+      }
+    ],
+    "I34": [
+      {
+        "kind": "pytest",
+        "path": "backend/control/tests/integration/test_postgres_migrations.py",
+        "anchor": "assert revision == alembic_head()"
+      },
+      {
+        "kind": "ci",
+        "path": ".github/workflows/unified-ci.yml",
+        "anchor": "TOXAGENT_REQUIRE_POSTGRES"
+      }
+    ]
+  }
+}

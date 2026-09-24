@@ -1,0 +1,100 @@
+{
+  "finding": "P0-2",
+  "source_artifact": "rpt_d595fee878984745b916c1c396ddbcde",
+  "description": "The audit's live report, sanitized to the fields the semantic gates read. The executive summary states the explanation reports no contributors and no unmapped mass; the same build's explanation package carries three negative contributors and 0.3583836537608235 of unmapped importance. A second contradiction: the limitation says a literature search covered a provider, while the build set include_external_evidence=false and the evidence section says no search ran.",
+  "expected_violations": [
+    "explanation_summary_contradicted",
+    "evidence_scope_limitation_without_search"
+  ],
+  "context": {
+    "include_explanations": true,
+    "include_external_evidence": false,
+    "selected_endpoints": ["herg"],
+    "explanations": [
+      {
+        "explanation_id": "xpl_00000000000000000000000000000001",
+        "observation_id": "obs_00000000000000000000000000000001",
+        "endpoint": "herg",
+        "task": null,
+        "status": "completed",
+        "method": "integrated-gradients+offset-align",
+        "highlights": {
+          "positive_contributors": [],
+          "negative_contributors": [
+            {"atom_index": 0, "symbol": "C", "signed_contribution": -0.2511, "relative_importance": 0.2511},
+            {"atom_index": 1, "symbol": "C", "signed_contribution": -0.2043, "relative_importance": 0.2043},
+            {"atom_index": 2, "symbol": "O", "signed_contribution": -0.1862163462391765, "relative_importance": 0.1862163462391765}
+          ],
+          "unmapped_importance": 0.3583836537608235
+        }
+      }
+    ]
+  },
+  "sections": [
+    {
+      "section_id": "executive_summary",
+      "heading": "Executive summary",
+      "body_markdown": "The hERG screening probability is low. The attribution analysis reports no mapped positive or negative contributors and no unmapped mass, so the score cannot be attributed to any part of the structure."
+    },
+    {
+      "section_id": "substance_profile",
+      "heading": "Substance profile",
+      "body_markdown": "Canonical SMILES CCO. The external identity provider was unavailable during this build."
+    },
+    {
+      "section_id": "predictor_results",
+      "heading": "Predictor results",
+      "body_markdown": "hERG blocker probability 0.027 (uncalibrated)."
+    },
+    {
+      "section_id": "explanation_and_visuals",
+      "heading": "Explanation and visuals",
+      "body_markdown": "Three atoms contribute negatively towards the blocker class, and 35.8% of the attribution mass is unmapped."
+    },
+    {
+      "section_id": "external_evidence",
+      "heading": "External evidence",
+      "body_markdown": "No literature search was performed for this build."
+    },
+    {
+      "section_id": "integrated_interpretation",
+      "heading": "Integrated interpretation",
+      "body_markdown": "The screening signal is low and unsupported by external literature."
+    },
+    {
+      "section_id": "conclusions",
+      "heading": "Conclusions",
+      "body_markdown": "Low predicted hERG liability under this model."
+    },
+    {
+      "section_id": "recommendations",
+      "heading": "Recommendations",
+      "body_markdown": "Confirm with an in vitro patch clamp assay before any decision."
+    },
+    {
+      "section_id": "limitations",
+      "heading": "Limitations",
+      "body_markdown": "The literature search covered one provider and abstracts only; full texts were not read."
+    },
+    {
+      "section_id": "references",
+      "heading": "References",
+      "body_markdown": "None."
+    },
+    {
+      "section_id": "provenance_appendix",
+      "heading": "Provenance",
+      "body_markdown": "Model herg-chemberta-v3; explainer offset-align-1."
+    }
+  ],
+  "limitations": [
+    {"code": "uncalibrated_probability", "text": "The probability is not calibrated to a clinical prevalence."},
+    {"code": "attribution_not_causality", "text": "Attribution reflects model sensitivity, not a chemical mechanism."},
+    {"code": "screening_not_safety_assessment", "text": "A screening result is not a safety assessment."},
+    {"code": "evidence_scope_limited", "text": "The literature search covered a single provider and did not read full texts."}
+  ],
+  "gaps": [
+    {"gap_id": "gap_identity", "reason": "compound_identity_unresolved", "detail": "The identity provider failed.", "section_id": "substance_profile"},
+    {"gap_id": "gap_evidence", "reason": "no_relevant_evidence", "detail": "External evidence was not requested for this build.", "section_id": "external_evidence"}
+  ]
+}

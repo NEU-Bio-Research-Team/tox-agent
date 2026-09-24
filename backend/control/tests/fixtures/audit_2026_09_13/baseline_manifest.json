@@ -1,0 +1,33 @@
+{
+  "captured_on": "2026-09-13",
+  "source": "docs/audit/AGENTIC_FLOW_AUDIT_2026-09-13_VI.md",
+  "environment": {
+    "stack_url": "http://127.0.0.1:8088",
+    "opencode_version": "1.17.11",
+    "model_id": "openai/gpt-5.6-luna",
+    "session_id": "ses_cc304429ec9d49cb8f51a8e05bba89ac"
+  },
+  "comment": "Every KPI gate in the remediation plan is a delta against this file. A latency number here is bound to the runtime, model and hardware above; comparing against it from a different manifest is not a comparison.",
+  "runs": [
+    {"flow": "deterministic_analysis", "run_id": "run_49a1ccbf7aef4da5944b2bd44dd7a915", "outcome": "completed", "duration_ms": 176},
+    {"flow": "qa_herg", "run_id": "run_331bad07a622489e9daf1bdd2d7aa262", "outcome": "completed", "duration_ms": 54100, "first_pass_accepted": false},
+    {"flow": "evidence_research", "run_id": "run_cb684ec92387459da1286333dc0aa597", "outcome": "completed", "duration_ms": 49700, "evidence_persisted": 5, "evidence_cited": 0},
+    {"flow": "attribution_qa", "run_id": "run_71ee1dfae0bc41c0bcc73e088d54114c", "outcome": "completed", "duration_ms": 46600, "tool_time_ms": 163},
+    {"flow": "minimal_report", "run_id": "run_fc0295afca8a43d2a1cee6fcc60ed0d8", "outcome": "completed", "duration_ms": 155500, "initial_input_tokens": 18149, "cumulative_input_tokens": 28408, "happy_path_tool_failures": 3, "semantic_contradictions": 2},
+    {"flow": "cancel_qa", "run_id": "run_42fa5e5e9a0d4d9f9f8eb4565af15281", "outcome": "cancelled", "duration_ms": 10400, "potentially_billed": true}
+  ],
+  "kpis": {
+    "deterministic_analysis_ms": {"baseline": 176, "gate": "no more than 20% slower"},
+    "qa_end_to_end_s": {"baseline_min": 46.6, "baseline_max": 54.1, "gate_p50": 15, "gate_p95": 30},
+    "minimal_report_s": {"baseline": 155.5, "gate_p50": 60, "gate_p95": 120},
+    "minimal_report_cumulative_input_tokens": {"baseline": 28408, "gate": 8000},
+    "qa_initial_input_tokens": {"gate": 2500},
+    "first_pass_qa_acceptance": {"baseline": 0.0, "gate": 0.95},
+    "duplicate_normalized_usage_per_snapshot": {"baseline": 3, "gate": 0},
+    "semantic_contradictions_per_report": {"baseline": 2, "gate": 0},
+    "promoted_evidence_precision": {"baseline": 0.0, "gate": 0.9},
+    "happy_path_report_tool_failures": {"baseline": 3, "gate": 0},
+    "cancel_settlement_s": {"baseline": 10.4, "gate_p95": 5}
+  },
+  "test_counts": {"backend_pass": 1019, "frontend_pass": 155}
+}

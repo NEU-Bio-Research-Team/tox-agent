@@ -1,0 +1,68 @@
+{
+  "finding": "P1-6",
+  "description": "The CCO/hERG attribution from the audit. 35.84% of the total importance mass never reaches an atom or a bond, and all of it comes from the tokenizer's own [CLS]/[SEP] markers. The audit report described this explanation as having 'no unmapped mass'.",
+  "expected_coverage": {
+    "mapped_importance_fraction": 0.6416163462391765,
+    "special_token_importance_fraction": 0.3583836537608235,
+    "other_unmapped_importance_fraction": 0.0,
+    "unmapped_importance": 0.3583836537608235,
+    "coverage_status": "limited",
+    "negative_contributor_count": 3,
+    "positive_contributor_count": 0
+  },
+  "payload": {
+    "status": "completed",
+    "endpoint": "herg",
+    "task": null,
+    "input_smiles": "CCO",
+    "canonical_smiles": "CCO",
+    "atom_order_version": "rdkit-canonical-1",
+    "structure_order_version": "rdkit-structure-1",
+    "probability": 0.0271,
+    "target_class": "blocker",
+    "method": "integrated-gradients+offset-align",
+    "unmapped_importance": 0.3583836537608235,
+    "unmapped_signed_contribution": -0.3583836537608235,
+    "signed_contribution_total": -1.0,
+    "atoms": [
+      {
+        "atom_index": 0,
+        "symbol": "C",
+        "importance": 0.2511,
+        "magnitude": 0.2511,
+        "signed_contribution": -0.2511,
+        "relative_importance": 0.2511
+      },
+      {
+        "atom_index": 1,
+        "symbol": "C",
+        "importance": 0.2043,
+        "magnitude": 0.2043,
+        "signed_contribution": -0.2043,
+        "relative_importance": 0.2043
+      },
+      {
+        "atom_index": 2,
+        "symbol": "O",
+        "importance": 0.1862163462391765,
+        "magnitude": 0.1862163462391765,
+        "signed_contribution": -0.1862163462391765,
+        "relative_importance": 0.1862163462391765
+      }
+    ],
+    "bonds": [],
+    "tokens": [
+      {"token": "[CLS]", "offsets": [0, 0], "importance": 0.2083836537608235, "signed_contribution": -0.2083836537608235},
+      {"token": "C", "offsets": [0, 1], "importance": 0.2511, "signed_contribution": -0.2511},
+      {"token": "C", "offsets": [1, 2], "importance": 0.2043, "signed_contribution": -0.2043},
+      {"token": "O", "offsets": [2, 3], "importance": 0.1862163462391765, "signed_contribution": -0.1862163462391765},
+      {"token": "[SEP]", "offsets": [3, 3], "importance": 0.15, "signed_contribution": -0.15}
+    ],
+    "metadata": {
+      "model_id": "herg-chemberta-v3",
+      "target": "logit",
+      "mapping_version": "offset-align-1",
+      "deterministic": true
+    }
+  }
+}

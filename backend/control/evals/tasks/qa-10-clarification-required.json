@@ -1,0 +1,33 @@
+{
+  "task_id": "qa-10-clarification-required",
+  "category": "report_qa",
+  "fixture": "aspirin-herg-tox21",
+  "title": "A question with no analysis asks for clarification",
+  "rationale": "Router rule: a report question with no active analysis and no molecule is clarification_required, not a guessed runtime call.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "What does the hERG number mean here?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "clarification_required",
+      "lane": "deterministic"
+    },
+    "answer": {
+      "accepted": false
+    },
+    "tools": {
+      "max_calls": 0
+    }
+  },
+  "graders": [
+    "schema",
+    "transcript"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}

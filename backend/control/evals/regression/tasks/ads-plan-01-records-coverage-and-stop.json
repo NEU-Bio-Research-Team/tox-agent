@@ -1,0 +1,84 @@
+{
+  "task_id": "ads-plan-01-records-coverage-and-stop",
+  "schema_version": "eval-task-v3",
+  "language": "en",
+  "graders": [
+    "schema",
+    "state",
+    "transcript",
+    "trajectory"
+  ],
+  "category": "planning",
+  "capability_pack": "regression",
+  "risk_tier": "high",
+  "runtime_requirement": "agentic_runtime",
+  "intent": "decision_support",
+  "lane": "agentic",
+  "fixture": "evidence-conflicting",
+  "title": "A development question produces a recorded plan, grounded resolutions and a stop reason",
+  "rationale": "P1-01: plan/coverage/stop must be data a grader can read, not inferred from a tool list.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse astemizole.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Is hERG a reason to deprioritise this scaffold for development?"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "decision_support"
+    },
+    "decision_state": {
+      "min_propositions": 1,
+      "stop_reason_in": [
+        "sufficient",
+        "insufficient_evidence",
+        "budget_exhausted"
+      ]
+    },
+    "trajectory": {
+      "ordered_subsequence": [
+        "get_artifact_inventory",
+        "submit_grounded_answer"
+      ],
+      "max_duplicate_calls": 1
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim",
+    "citations_resolve"
+  ],
+  "required_graders": [
+    "decision_state",
+    "budget",
+    "outcome_split",
+    "trajectory"
+  ],
+  "feature_requirements": {
+    "flags": {
+      "decision_state_plan_tool": true,
+      "answer_draft_v2": true
+    },
+    "research_snapshot": "evidence-conflicting"
+  },
+  "trial_policy": {
+    "min_trials": 3,
+    "aggregation": "all"
+  }
+}

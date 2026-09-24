@@ -1,0 +1,41 @@
+{
+  "task_id": "ads-00-benzene-drug-decision-baseline-vi",
+  "category": "report_qa",
+  "fixture": "benzene-motivating-run",
+  "title": "Benzene development-decision follow-up (VI) routes to decision_support",
+  "rationale": "Motivating run run_21a5bb38922a4fffb83859841ee11b65 / session ses_74a7e689b5ac4b88a6e6e8d0a8e640d4 (docs/spec/TOXAGENT_ADAPTIVE_DECISION_SUPPORT_PLAN_VI.md section 2). Originally authored (W0-02) as a frozen 'before' snapshot expecting `report_qa`, zero evidence-tool calls and a fallback answer, reproducing RC-01/RC-02/RC-03/RC-07/RC-08. PR-ADS-02 (W1 router collapse + W2 adaptive tool surface) landed in the same work session this task was created in, before any live run against it was recorded, so the `expect` block below already reflects the post-W1/W2 structural fact (routes to decision_support, which now HAS search_toxicology_evidence/get_evidence_record in its tool profile) rather than the pre-change one. It intentionally no longer asserts a forbidden-tools ceiling: that assertion encoded a structural guarantee (the tool did not exist in the report_qa profile) that W2 removed by design, and whether the model actually calls search now depends on prompt policy (W4), not tool availability. The original bug's outcome — no report/explanation pinned (RC-04, still open until W3), a fallback answer with no search actually attempted (RC-06/RC-07/RC-08, still open until W4/W6) — is not something a scripted/structural task can assert; it needs a live or paired-model run, tracked qualitatively in docs/adr/0010-adaptive-decision-support-boundary.md's baseline table instead. This task remains a routing/schema regression guard as later PRs land; it lives outside the frozen 50-task set (evals/tasks/) so it is never touched by `python -m evals.build_tasks`.",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Phân tích chất này giúp tôi.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "c1ccccc1"
+      },
+      "analysis_options": {
+        "endpoints": ["herg", "tox21"]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Thế là tôi có nên dùng chất này trong drug industry không?",
+      "intent_hint": "auto"
+    }
+  ],
+  "expect": {
+    "run": {
+      "status": "completed",
+      "intent": "decision_support"
+    },
+    "state": {
+      "accepted_answers": 1
+    }
+  },
+  "hard_gates": [
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": ["schema", "state"],
+  "schema_version": "eval-task-v1",
+  "language": "vi",
+  "rubric_notes": "The plan's own trace for the third turn under the pre-ADS router was: get_analysis_slice x4, submit_grounded_answer candidate 1 rejected, candidate 2 rejected, deterministic fallback accepted, with zero evidence-tool calls (the report_qa profile had none). As of PR-ADS-02, routing alone changed: this conversation now resolves to decision_support with search_toxicology_evidence/get_evidence_record/get_explanation_slice available in its profile. Whether a live run actually searches, pins the prior report, and avoids the fallback is not yet guaranteed — that is W3 (artifact inventory/report pinning), W4 (search-trigger policy) and W6 (development-posture answer contract) work. A live/paired-model run of this task, once those land, is what closes out W0-03's baseline comparison; running it here was deferred as a heavier job than this documentation/routing change warranted."
+}

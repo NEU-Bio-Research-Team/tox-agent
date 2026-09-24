@@ -1,0 +1,133 @@
+{
+  "finding": "P1-1",
+  "description": "OpenCode V1 raw SSE envelopes from the audit Q&A run. The same cumulative snapshot for one assistant message arrives three times: once on the step-finish part, twice on message.updated revisions. A fourth envelope is a lifecycle step-finish carrying only zeroes, which is not new information.",
+  "runtime_session_id": "ses_opencode_audit_qa",
+  "expected_normalized": {
+    "comment": "Two assistant messages survive normalization: one fact per (message, revision), holding that message's latest cumulative snapshot. The zero-only lifecycle step carries no new information and is dropped. The summary adds the per-message latest snapshots; it never adds two snapshots of the same message.",
+    "facts": 2,
+    "semantics": "cumulative",
+    "summary": {
+      "input_tokens": 11238,
+      "output_tokens": 361,
+      "reasoning_tokens": 112,
+      "cache_read_tokens": 10612,
+      "cache_write_tokens": 512,
+      "total_tokens": 11711
+    }
+  },
+  "envelopes": [
+    {
+      "type": "message.part.updated",
+      "properties": {
+        "sessionID": "ses_opencode_audit_qa",
+        "part": {
+          "id": "prt_step_0",
+          "messageID": "msg_assistant_1",
+          "sessionID": "ses_opencode_audit_qa",
+          "type": "step-finish",
+          "tokens": {
+            "input": 0,
+            "output": 0,
+            "reasoning": 0,
+            "cache": {"read": 0, "write": 0}
+          }
+        }
+      }
+    },
+    {
+      "type": "message.part.updated",
+      "properties": {
+        "sessionID": "ses_opencode_audit_qa",
+        "part": {
+          "id": "prt_step_1",
+          "messageID": "msg_assistant_1",
+          "sessionID": "ses_opencode_audit_qa",
+          "type": "step-finish",
+          "tokens": {
+            "input": 3826,
+            "output": 101,
+            "reasoning": 24,
+            "total": 3951,
+            "cache": {"read": 3712, "write": 0}
+          }
+        }
+      }
+    },
+    {
+      "type": "message.updated",
+      "properties": {
+        "sessionID": "ses_opencode_audit_qa",
+        "info": {
+          "id": "msg_assistant_1",
+          "sessionID": "ses_opencode_audit_qa",
+          "role": "assistant",
+          "revision": 1,
+          "tokens": {
+            "input": 3826,
+            "output": 101,
+            "reasoning": 24,
+            "total": 3951,
+            "cache": {"read": 3712, "write": 0}
+          }
+        }
+      }
+    },
+    {
+      "type": "message.updated",
+      "properties": {
+        "sessionID": "ses_opencode_audit_qa",
+        "info": {
+          "id": "msg_assistant_1",
+          "sessionID": "ses_opencode_audit_qa",
+          "role": "assistant",
+          "revision": 1,
+          "tokens": {
+            "input": 3826,
+            "output": 101,
+            "reasoning": 24,
+            "total": 3951,
+            "cache": {"read": 3712, "write": 0}
+          }
+        }
+      }
+    },
+    {
+      "type": "message.part.updated",
+      "properties": {
+        "sessionID": "ses_opencode_audit_qa",
+        "part": {
+          "id": "prt_step_2",
+          "messageID": "msg_assistant_2",
+          "sessionID": "ses_opencode_audit_qa",
+          "type": "step-finish",
+          "tokens": {
+            "input": 7412,
+            "output": 260,
+            "reasoning": 88,
+            "total": 7760,
+            "cache": {"read": 6900, "write": 512}
+          }
+        }
+      }
+    },
+    {
+      "type": "message.updated",
+      "properties": {
+        "sessionID": "ses_opencode_audit_qa",
+        "info": {
+          "id": "msg_assistant_2",
+          "sessionID": "ses_opencode_audit_qa",
+          "role": "assistant",
+          "revision": 2,
+          "tokens": {
+            "input": 7412,
+            "output": 260,
+            "reasoning": 88,
+            "total": 7760,
+            "cache": {"read": 6900, "write": 512}
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+# Runtime environment for the prediction service on Cloud Run.
+#
+# Apply with:
+#   gcloud run deploy toxpred --env-vars-file=deploy/cloudrun-env.yaml ...
+#
+# There are no API keys here and no model identifiers: this service calls no
+# external model provider. Everything it needs is the artifact bundle and where
+# to fetch it from.
+
+# Where the entrypoint installs artifacts, and where the registry looks for them.
+MODELS_ROOT: "/app/models"
+
+# Object-storage prefix holding the model bundle. Downloaded once at container
+# start by deploy/download_model_artifacts.py — never during a request.
+MODEL_ARTIFACTS_URI: "gs://tox-agent-models/models"
+
+# Declares which artifacts may be served and their checksums. Must match where
+# deploy/Dockerfile copies the registry — these two disagreed (I23), and the
+# only symptom was a startup failure naming a path nobody had configured.
+TOXPRED_MANIFEST: "/app/registry/predictor-manifest.yaml"
+
+# Inference device and request limits.
+TOXPRED_DEVICE: "cpu"
+TOXPRED_MAX_BATCH_SIZE: "256"
+
+# Load every required model during startup so readiness is honest: the service
+# reports ready only once it can actually answer.
+TOXPRED_EAGER_LOAD: "1"
+
+# The ChemBERTa checkpoint carries its own backbone weights and a bundled
+# tokenizer, so nothing needs to reach Hugging Face at run time. Kept strict so
+# a missing local file fails loudly instead of silently downloading.
+HF_HUB_OFFLINE: "1"
+
+GOOGLE_CLOUD_PROJECT: "tox-agent"

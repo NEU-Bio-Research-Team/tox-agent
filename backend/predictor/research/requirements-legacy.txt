@@ -1,0 +1,12 @@
+# Development and research environment.
+#
+# The prediction service does NOT install this file — see ../deploy/requirements.txt
+# for the runtime set. This one adds what training, benchmarking and the
+# evaluation-split builder need on top of it.
+-r ../deploy/requirements-dev.txt
+
+# Model training and experimentation (scripts/)
+torch-molecule
+xgboost
+scipy>=1.14.1
+matplotlib

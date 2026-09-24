@@ -1,0 +1,46 @@
+{
+  "task_id": "fail-05-recovery-after-tool-call",
+  "category": "failure_recovery",
+  "critical": true,
+  "fixture": "aspirin-herg-tox21",
+  "title": "A lost runtime after a tool call recovers explicitly",
+  "rationale": "Plan 7.4 / 10.3: a binding lost after get_analysis_slice creates a recovery run that reuses the stored observation; the source graph still reconstructs.",
+  "inject": {
+    "runtime": "lost_after_tool_call"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Analyse this compound.",
+      "intent_hint": "analyze",
+      "molecule": {
+        "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+      },
+      "analysis_options": {
+        "endpoints": [
+          "herg",
+          "tox21"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "What is the hERG blocker probability?",
+      "intent_hint": "ask_report"
+    }
+  ],
+  "expect": {
+    "state": {
+      "reconstructable_after_restart": true
+    }
+  },
+  "hard_gates": [
+    "source_graph_reconstructable",
+    "no_safety_or_regulatory_claim"
+  ],
+  "graders": [
+    "state"
+  ],
+  "schema_version": "eval-task-v1",
+  "language": "en"
+}
