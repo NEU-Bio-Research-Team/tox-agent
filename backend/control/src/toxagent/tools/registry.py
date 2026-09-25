@@ -107,6 +107,16 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
 }
 
 
+#: Tools a profile lists but a deployment registers only while a rollout flag
+#: is on (``tools/bootstrap.py`` applies it; ``evals/capability_matrix.py``
+#: reports it). One table, so the bootstrap and the published capability
+#: matrix cannot disagree about which flag gates which tool. With the flag off
+#: the tool is absent from ``tools/list`` and from the profile's schema hash.
+FLAG_GATED_TOOLS: Final[dict[str, str]] = {
+    "record_decision_plan": "decision_state_plan_tool",
+}
+
+
 @dataclass(frozen=True)
 class ToolContext:
     """Everything a handler is allowed to know about who is calling.

@@ -1,0 +1,340 @@
+{
+  "endpoints": {
+    "clintox": {
+      "model_id": "clintox-smilesgnn-v1",
+      "status": "blocked"
+    },
+    "herg": {
+      "model_id": "herg-tox21-chemberta-v1",
+      "status": "served"
+    },
+    "tox21": {
+      "model_id": "herg-tox21-chemberta-v1",
+      "status": "served"
+    }
+  },
+  "explainer_validation": [
+    {
+      "determinism": "42/42",
+      "endpoint": "herg",
+      "faithfulness_vs_random_control": "not_better_than_random_control",
+      "faithfulness_wins": "15/34",
+      "measured_on": "2026-09-09",
+      "median_delta_random": 0.0294,
+      "median_delta_top_k": 0.034,
+      "method": "grad_x_input_v2",
+      "model_id": "herg-tox21-chemberta-v1",
+      "molecules_attempted": 42,
+      "source": "backend/predictor/evals/xai/results/herg-20260909.json",
+      "spelling_invariance": "40/40",
+      "task": null
+    },
+    {
+      "determinism": "42/42",
+      "endpoint": "tox21",
+      "faithfulness_vs_random_control": "not_better_than_random_control",
+      "faithfulness_wins": "14/35",
+      "measured_on": "2026-09-09",
+      "median_delta_random": 0.0449,
+      "median_delta_top_k": 0.0383,
+      "method": "grad_x_input_v2",
+      "model_id": "herg-tox21-chemberta-v1",
+      "molecules_attempted": 42,
+      "source": "backend/predictor/evals/xai/results/tox21-NR-AR-20260909.json",
+      "spelling_invariance": "40/40",
+      "task": "NR-AR"
+    }
+  ],
+  "instruction_surfaces": {
+    "decision_support": {
+      "components": {
+        "answer_format": {
+          "characters": 1431,
+          "estimated_tokens": 407
+        },
+        "decision_support_policy": {
+          "characters": 2626,
+          "estimated_tokens": 701
+        },
+        "product_role": {
+          "characters": 874,
+          "estimated_tokens": 240
+        },
+        "required_limitations_guide": {
+          "characters": 729,
+          "estimated_tokens": 182
+        },
+        "scientific_invariants": {
+          "characters": 820,
+          "estimated_tokens": 228
+        }
+      },
+      "estimated_tokens_total": 1758,
+      "loading": "static: every component is composed into every decision_support turn"
+    },
+    "report_build": {
+      "estimated_tokens_by_skill": {
+        "assemble-report-context": 1579,
+        "compose-scientific-report": 2034,
+        "explain-predictor-results": 1056,
+        "preflight-report-draft": 2425,
+        "research-toxicology-evidence": 1149
+      },
+      "estimated_tokens_total": 11306,
+      "files": {
+        "AGENTS.md": {
+          "characters": 5539,
+          "estimated_tokens": 1471
+        },
+        "profile.json": {
+          "characters": 997,
+          "estimated_tokens": 318
+        },
+        "references/required-sections.md": {
+          "characters": 1925,
+          "estimated_tokens": 523
+        },
+        "references/source-hierarchy.md": {
+          "characters": 1455,
+          "estimated_tokens": 388
+        },
+        "references/wording-and-safety-policy.md": {
+          "characters": 2016,
+          "estimated_tokens": 531
+        },
+        "skills/assemble-report-context/SKILL.md": {
+          "characters": 2786,
+          "estimated_tokens": 762
+        },
+        "skills/assemble-report-context/references/report-context-contract.md": {
+          "characters": 2809,
+          "estimated_tokens": 817
+        },
+        "skills/compose-scientific-report/SKILL.md": {
+          "characters": 3100,
+          "estimated_tokens": 826
+        },
+        "skills/compose-scientific-report/references/report-schema.md": {
+          "characters": 4151,
+          "estimated_tokens": 1208
+        },
+        "skills/explain-predictor-results/SKILL.md": {
+          "characters": 2270,
+          "estimated_tokens": 598
+        },
+        "skills/explain-predictor-results/references/explanation-policy.md": {
+          "characters": 1597,
+          "estimated_tokens": 458
+        },
+        "skills/preflight-report-draft/SKILL.md": {
+          "characters": 4144,
+          "estimated_tokens": 1148
+        },
+        "skills/preflight-report-draft/references/validation-codes.md": {
+          "characters": 4588,
+          "estimated_tokens": 1277
+        },
+        "skills/research-toxicology-evidence/SKILL.md": {
+          "characters": 2599,
+          "estimated_tokens": 700
+        },
+        "skills/research-toxicology-evidence/references/evidence-synthesis-schema.md": {
+          "characters": 1528,
+          "estimated_tokens": 449
+        }
+      },
+      "instructions_sha256": "9090e20f71725dc14bf0239810b186da79c0daa04018fb2e0a642248bd568ae5",
+      "loading": "static: compose_report_profile() concatenates AGENTS.md, every shared reference, every declared SKILL.md and every skill reference into the prompt of every report run; the runtime's own skill tool is denied, so no skill is chosen or loaded on demand",
+      "skills": [
+        "assemble-report-context",
+        "explain-predictor-results",
+        "research-toxicology-evidence",
+        "compose-scientific-report",
+        "preflight-report-draft"
+      ]
+    }
+  },
+  "predictor_models": [
+    {
+      "base_model": null,
+      "blocked_reason": "The exact tokenizer.pkl with the 69-token vocabulary is absent, and its identity was never recorded, so a restored file could not be told from a different tokenizer of the same size. Record the hashes below from the training run, or retrain as a complete v2 release with its own tokenizer, calibration and evaluation, before this endpoint can be served.",
+      "display_name": "SMILESGNN ClinTox v1 (blocked)",
+      "endpoints": [
+        "clintox"
+      ],
+      "feature_schema_version": "smilesgnn-hybrid-v1",
+      "manifest": "backend/predictor/registry/models/clintox-smilesgnn-v1.yaml",
+      "model_id": "clintox-smilesgnn-v1",
+      "required": false,
+      "status": "blocked"
+    },
+    {
+      "base_model": "DeepChem/ChemBERTa-77M-MTR",
+      "blocked_reason": null,
+      "display_name": "ChemBERTa hERG / Tox21 v1",
+      "endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "feature_schema_version": "chemberta-smiles-v1",
+      "manifest": "backend/predictor/registry/models/herg-tox21-chemberta-v1.yaml",
+      "model_id": "herg-tox21-chemberta-v1",
+      "required": true,
+      "status": "served"
+    }
+  ],
+  "rollout_flags": {
+    "answer_draft_v2": {
+      "default": false,
+      "description": "Accept GroundedAnswerDraftV2 (local claim refs, server-issued ids, server-resolved source values). Off, the v1 wire shape is the only one the answer tool accepts.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-12"
+    },
+    "decision_state_plan_tool": {
+      "default": false,
+      "description": "Register record_decision_plan in the decision_support profile, so the model can propose the propositions its answer must resolve. Off, the DecisionSupportStateV1 is still kept (goal, usage, answer resolution, stop reason) but has no model-proposed plan and the tool surface is unchanged.",
+      "gates_tools": [
+        "record_decision_plan"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-14"
+    },
+    "evidence_pipeline_v2": {
+      "default": false,
+      "description": "Search results become candidates with an explicit relevance assessment; only direct/contextual assessments become citable durable records. Off, an accepted provider payload is a record.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-12"
+    },
+    "external_worker_mode": {
+      "default": false,
+      "description": "The API only enqueues run jobs; separate worker processes claim them. Off, the API process schedules runs in-process.",
+      "gates_tools": [],
+      "owner": "platform",
+      "remove_by": "2026-12-12"
+    },
+    "normalized_usage_v2": {
+      "default": true,
+      "description": "Record provider usage reports as normalized facts with source identity and cumulative/delta semantics, and serve usage.summary from them. Off, usage rows are appended as the adapter emits them.",
+      "gates_tools": [],
+      "owner": "backend-runtime",
+      "remove_by": "2026-12-12"
+    },
+    "report_orchestrator_v2": {
+      "default": false,
+      "description": "Build reports through the server-owned stage machine, invoking the model only at the synthesis boundary. Off, the report intent goes to the generic runtime gateway and the model drives the workflow.",
+      "gates_tools": [],
+      "owner": "backend-report",
+      "remove_by": "2026-12-12"
+    },
+    "router_v2": {
+      "default": false,
+      "description": "Resolve intent from the backend IntentDecision contract (token boundaries, precedence, structured clarification). Off, the lexical substring router decides.",
+      "gates_tools": [],
+      "owner": "backend-platform",
+      "remove_by": "2026-12-12"
+    },
+    "runtime_profile_selector_v2": {
+      "default": true,
+      "description": "Dispatch each intent to its own named runtime agent (BUILD_REPORT to toxagent-report) instead of the single default agent. Off, the adapter keeps sending the configured default agent for every intent.",
+      "gates_tools": [],
+      "owner": "backend-runtime",
+      "remove_by": "2026-12-12"
+    },
+    "trust_envelope_v1": {
+      "default": false,
+      "description": "Move provider free text (title, abstract, authors, provider metadata and errors) in evidence tool model views into trust envelopes (tools/trust.py) with provenance, instructions_allowed=false and audit signals. Off, those fields stay flat beside a single untrusted_external_content flag.",
+      "gates_tools": [],
+      "owner": "backend-platform",
+      "remove_by": "2026-12-14"
+    }
+  },
+  "runtime_invariants": [
+    "hERG, Tox21 and ClinTox are different measurements. Never rename or map one onto another.",
+    "There is no aggregate toxicity, risk or safety score. Do not compute or imply one.",
+    "Every probability is a model score, not a calibrated clinical risk.",
+    "Applicability (\"ok\"/\"limited\"/\"out_of_domain\") is a rule-based element check, not a learned in/out-of-distribution test.",
+    "Tox21 assays are independent; a count of active assays is not a severity.",
+    "Attribution explains what moved a score; it is never proof of mechanism.",
+    "Every numeric or classification claim must cite an observation_id and field_path obtained from a tool result. Never state a number you were not handed by a tool.",
+    "Never state that a compound is safe, unsafe, regulatory-ready or give clinical/dosing advice."
+  ],
+  "schema_version": "capability-matrix-v1",
+  "tool_profiles": {
+    "analysis": {
+      "default": [
+        "create_analysis_snapshot",
+        "get_analysis_slice",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {}
+    },
+    "audit_readonly": {
+      "default": [
+        "get_analysis_slice",
+        "get_evidence_record",
+        "get_explanation_slice"
+      ],
+      "flag_gated": {}
+    },
+    "decision_support": {
+      "default": [
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_report_summary",
+        "search_toxicology_evidence",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {
+        "record_decision_plan": "decision_state_plan_tool"
+      }
+    },
+    "evidence_research": {
+      "default": [
+        "get_analysis_slice",
+        "get_evidence_record",
+        "search_toxicology_evidence",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {}
+    },
+    "report_build": {
+      "default": [
+        "check_report_draft",
+        "check_saved_report_draft",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_evidence_record",
+        "get_explanation_package",
+        "get_or_create_explanation",
+        "get_report_context",
+        "patch_saved_report_draft",
+        "resolve_compound_record",
+        "save_report_draft",
+        "search_toxicology_evidence",
+        "submit_report_draft",
+        "submit_saved_report_draft"
+      ],
+      "flag_gated": {}
+    },
+    "report_qa": {
+      "default": [
+        "get_analysis_slice",
+        "get_attribution",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {}
+    },
+    "report_synthesis": {
+      "default": [
+        "submit_report_synthesis"
+      ],
+      "flag_gated": {}
+    }
+  }
+}

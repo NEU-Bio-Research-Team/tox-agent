@@ -81,6 +81,9 @@ open, and audit findings.
 | `audit/K01_BASELINE.md`, `audit/K02_MEASURED_AFTER_FIXES.md`, `audit/K03_DRILLS.md` | Current — what was measured, and when |
 | `spec/` | Historical — rebuild, capabilities, quick-predict, UI, landing, handoff, GPU plans |
 | `spec/TOXAGENT_AGENTIC_LAYER_PROGRESS_VI.md` | Historical — a running log. Later entries correct earlier ones; do not sum runs or carry a score forward to a newer HEAD. |
+| `RETHINK_TOXAGENT_AGENTIC_RESEARCH_EVALUATION_VI.md` | Current — research and design proposal for the agent's scientific role, external benchmarks, and evaluation protocol; observed-state claims are pinned to commit `ad66022`. |
+| `backlog/SCIENTIFIC_INVESTIGATION_BACKLOG.md` | Current — execution backlog and status for the RETHINK proposal, wave by wave |
+| `CAPABILITY_MATRIX.md`, `capability-matrix.json` | Current — **Generated** by `python -m evals.capability_matrix --write`: served/blocked models, explainer validation, tool profiles, flags, instruction cost |
 | `unified-v2/ARCHITECTURE.md`, `unified-v2/DECISIONS.md`, `unified-v2/MIGRATION.md` | Current — typed boundary invariants |
 | `unified-v2/BASELINE.md`, `unified-v2/IMPLEMENTATION_STATUS.md` | Historical — G0–G12 evidence at the time of writing |
 | `refactor/PREDICTOR_ONLY_STATUS_VI.md` | Historical — audit of the monolith it replaced |

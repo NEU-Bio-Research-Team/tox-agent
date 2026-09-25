@@ -20,8 +20,13 @@ from .definitions import explanation as explanation_tools
 from .definitions import inventory as inventory_tools
 from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
-from .registry import ToolRegistry
+from .registry import FLAG_GATED_TOOLS, ToolDefinition, ToolRegistry
 from ..flags import is_enabled
+
+
+def _gated_off(definition: ToolDefinition) -> bool:
+    flag_name = FLAG_GATED_TOOLS.get(definition.name)
+    return flag_name is not None and not is_enabled(flag_name)
 
 
 def build_registry(
@@ -37,10 +42,17 @@ def build_registry(
     extra: list | None = None,
 ) -> ToolRegistry:
     registry = ToolRegistry()
+
+    def add(definition: ToolDefinition) -> None:
+        # A flag-gated tool with its flag off is not registered at all, so it
+        # is absent from tools/list and from the profile's schema hash.
+        if not _gated_off(definition):
+            registry.register(definition)
+
     for definition in analysis_tools.build(database, predictor, create_analysis):
-        registry.register(definition)
+        add(definition)
     for definition in answer_tools.build(database, settings or PolicySettings()):
-        registry.register(definition)
+        add(definition)
     # Registered regardless of research_provider — get_artifact_inventory's
     # available_tools.evidence_search flag is how a run learns search is
     # absent, rather than the tool itself vanishing (ADS plan W2-03; unlike
@@ -49,32 +61,32 @@ def build_registry(
     for definition in inventory_tools.build(
         database, research_provider_configured=research_provider is not None
     ):
-        registry.register(definition)
+        add(definition)
     if research_provider is not None:
         for definition in evidence_tools.build(
             database, research_provider, research_settings or ResearchSettings()
         ):
-            registry.register(definition)
+            add(definition)
     # The report-builder surface. The explanation and report tools need no
     # provider, so they exist wherever a predictor does; ``resolve_compound_record``
     # follows the same rule as the evidence tools — an unconfigured substance
     # provider means the tool is simply absent, and a report records an
     # identity gap rather than calling something that could only fail.
     for definition in explanation_tools.build(database, predictor, object_store):
-        registry.register(definition)
+        add(definition)
     for definition in report_tools.build(database, object_store, predictor):
-        registry.register(definition)
+        add(definition)
     # Visible only under ``report_synthesis``, the profile an orchestrated
     # build dispatches; registering it unconditionally changes no other
     # profile's tool list or schema hash.
     for definition in report_synthesis_tools.build(database):
-        registry.register(definition)
-    if is_enabled("decision_state_plan_tool"):
-        for definition in decision_plan_tools.build(database):
-            registry.register(definition)
+        add(definition)
+    # Gated by decision_state_plan_tool through FLAG_GATED_TOOLS.
+    for definition in decision_plan_tools.build(database):
+        add(definition)
     if compound_provider is not None:
         for definition in compound_tools.build(database, compound_provider):
-            registry.register(definition)
+            add(definition)
     for definition in extra or []:
         registry.register(definition)
     return registry

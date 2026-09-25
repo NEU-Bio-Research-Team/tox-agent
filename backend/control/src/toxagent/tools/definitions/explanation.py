@@ -22,6 +22,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...application.explanation import GetOrCreateExplanation, package_from_observation
+from ...domain import explainer_validation
 from ...domain.errors import AnalysisNotFound, InvalidRequest
 from ...domain.observation import ObservationKind
 from ..registry import ToolContext, ToolDefinition, ToolOutput
@@ -66,9 +67,11 @@ class GetExplanationPackageInput(_Input):
     top_k: int = Field(default=8, ge=1, le=25)
 
 
-def _package_view(package, *, analysis_id: str) -> dict:
+def _package_view(package, *, analysis_id: str, model_id: str | None = None) -> dict:
     """The bounded projection. Contributor entries carry atom indices and
-    signed contributions — enough to write an honest narrative — and no bytes."""
+    signed contributions — enough to write an honest narrative — and no bytes.
+    ``explainer_validation`` says what the method behind the figure has been
+    measured to do, so a narrative cannot outrun it (RETHINK §4.3)."""
     figure = package.figure
     return {
         "analysis_id": analysis_id,
@@ -92,6 +95,9 @@ def _package_view(package, *, analysis_id: str) -> dict:
         "figure_unavailable_reason": None if figure else package.failure_reason,
         "extracted_highlights": package.highlights.to_dict(),
         "required_limitations": list(package.required_limitations),
+        "explainer_validation": explainer_validation.model_view(
+            model_id, package.endpoint, package.task, package.method
+        ),
     }
 
 
@@ -110,7 +116,10 @@ def build(database, predictor, object_store=None) -> list[ToolDefinition]:
             task=payload.task,
             top_k=payload.top_k,
         )
-        view = _package_view(result.package, analysis_id=payload.analysis_id)
+        view = _package_view(
+            result.package, analysis_id=payload.analysis_id,
+            model_id=result.observation.provenance.get("model_id"),
+        )
         view["reused"] = result.reused
         return ToolOutput(
             canonical=result.observation.canonical_payload,
@@ -159,7 +168,9 @@ def build(database, predictor, object_store=None) -> list[ToolDefinition]:
             )
         observation = matches[-1]
         package = package_from_observation(observation, top_k=payload.top_k)
-        view = _package_view(package, analysis_id=analysis_id)
+        view = _package_view(
+            package, analysis_id=analysis_id, model_id=observation.provenance.get("model_id")
+        )
         return ToolOutput(
             canonical=observation.canonical_payload,
             model_view=view,
