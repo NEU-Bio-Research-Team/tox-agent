@@ -13,6 +13,7 @@ failed trial that was re-run leaves both attempts on disk.
 """
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import platform
@@ -111,9 +112,20 @@ class StudyStore:
         return str(path.relative_to(self.root))
 
     def append(self, record: RunRecord) -> None:
+        """One record, one locked ``write`` on an ``O_APPEND`` descriptor, so
+        several runner processes can share a study without interleaving lines."""
         self.root.mkdir(parents=True, exist_ok=True)
-        with self.records_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record.to_dict(), ensure_ascii=False, default=str) + "\n")
+        data = (json.dumps(record.to_dict(), ensure_ascii=False, default=str) + "\n").encode("utf-8")
+        fd = os.open(self.records_path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            view = memoryview(data)
+            while view:
+                written = os.write(fd, view)
+                view = view[written:]
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
 
     def records(self) -> list[RunRecord]:
         if not self.records_path.exists():
@@ -131,9 +143,24 @@ class StudyStore:
 
     def write_manifest(self, manifest: dict[str, Any]) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
-        self.manifest_path.write_text(
+        temporary = self.manifest_path.with_suffix(f".tmp{os.getpid()}")
+        temporary.write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False, default=str) + "\n", encoding="utf-8"
         )
+        temporary.replace(self.manifest_path)
+
+    def update_manifest(self, change) -> dict[str, Any]:
+        """Read, change and write the manifest under a lock, so a second runner
+        on the same study merges into it instead of overwriting it."""
+        self.root.mkdir(parents=True, exist_ok=True)
+        with (self.root / ".manifest.lock").open("w") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            try:
+                manifest = change(self.manifest())
+                self.write_manifest(manifest)
+            finally:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+        return manifest
 
     def manifest(self) -> dict[str, Any]:
         return json.loads(self.manifest_path.read_text()) if self.manifest_path.exists() else {}
@@ -168,3 +195,25 @@ def summarise(records: Iterable[RunRecord]) -> dict[str, Any]:
         row = summary.setdefault(record.system_id, {STATUS_OK: 0, STATUS_ERROR: 0, STATUS_PENDING: 0})
         row[record.status] = row.get(record.status, 0) + 1
     return summary
+
+
+def answering_models(record: RunRecord, store: StudyStore, requested: str | None = None) -> list[str]:
+    """The model(s) that wrote this record's answers, re-derived from the raw
+    per-model usage where the adapter stored it (the claude CLI), else the
+    model the record carries. Lets an improved resolver correct the reading of
+    a run without re-running it."""
+    from evals.investigation.adapters.platform_cli import _main_model
+
+    raw_path = store.root / record.artifacts["raw"] if "raw" in record.artifacts else None
+    if raw_path is not None and raw_path.exists():
+        found = []
+        for turn in json.loads(raw_path.read_text()):
+            usage = ((turn.get("result") or {}).get("modelUsage")) if isinstance(turn, dict) else None
+            if usage:
+                found.append(str(_main_model(usage, requested)))
+        if found:
+            return sorted(set(found))
+    resolved = (record.model or {}).get("model_id_resolved")
+    if isinstance(resolved, list):
+        return sorted(str(m) for m in resolved)
+    return [str(resolved)] if resolved else []

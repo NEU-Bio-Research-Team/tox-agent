@@ -30,7 +30,7 @@ from evals.investigation import cases as case_module
 from evals.investigation import prompts
 from evals.investigation.adapters import AdapterResult
 from evals.investigation.adapters.manual import ManualAdapter
-from evals.investigation.adapters.platform_cli import ClaudeCLIAdapter, CodexCLIAdapter
+from evals.investigation.adapters.platform_cli import ClaudeCLIAdapter, CodexCLIAdapter, GeminiMCPAdapter
 from evals.investigation.adapters.predictor_template import PredictorTemplateAdapter
 from evals.investigation.adapters.toxagent import ToxAgentAdapter
 from evals.investigation.adapters.toxagent_api import ToxAgentAPI, snapshot_from_analysis
@@ -77,7 +77,10 @@ async def compute_snapshots(
 
 
 def build_adapters(specs: list[SystemSpec], *, toxagent_urls: dict[str, str], token: str,
-                   claude_model: str | None, transport=None) -> dict[str, Any]:
+                   claude_model: str | None, transport=None, google_channel: str = "mcp",
+                   gemini_mcp_command: list[str] | None = None,
+                   gemini_mcp_env: dict[str, str] | None = None,
+                   gemini_model: str | None = None) -> dict[str, Any]:
     adapters: dict[str, Any] = {}
     for spec in specs:
         if spec.adapter == "toxagent":
@@ -91,6 +94,13 @@ def build_adapters(specs: list[SystemSpec], *, toxagent_urls: dict[str, str], to
             adapters[spec.system_id] = CodexCLIAdapter()
         elif spec.adapter == "claude_cli":
             adapters[spec.system_id] = ClaudeCLIAdapter(model=claude_model)
+        elif spec.adapter == "google" and google_channel == "manual":
+            adapters[spec.system_id] = ManualAdapter()
+        elif spec.adapter == "google":
+            if not gemini_mcp_command:
+                raise SystemExit(f"{spec.system_id} needs --gemini-mcp-command (or --google-channel manual)")
+            adapters[spec.system_id] = GeminiMCPAdapter(gemini_mcp_command, gemini_mcp_env,
+                                                        model=gemini_model)
         elif spec.adapter == "manual":
             adapters[spec.system_id] = ManualAdapter()
         else:  # pragma: no cover - SYSTEMS is closed
@@ -103,13 +113,14 @@ async def run_study(
     trials: int, toxagent_urls: dict[str, str], snapshot_from: str | None, token: str,
     claude_model: str | None = None, rerun_errors: bool = False, transport=None,
     adapters: dict[str, Any] | None = None, cases_dir: Path = case_module.CASES_DIR,
-    parallel: int = 1,
+    parallel: int = 1, google: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cases = case_module.load_cases(cases_dir, only=case_ids)
     specs = resolve(system_ids)
     store = StudyStore(root / study_id)
     adapters = adapters or build_adapters(specs, toxagent_urls=toxagent_urls, token=token,
-                                          claude_model=claude_model, transport=transport)
+                                          claude_model=claude_model, transport=transport,
+                                          **(google or {}))
     for adapter in adapters.values():
         if hasattr(adapter, "prepare"):
             await adapter.prepare()
@@ -123,26 +134,29 @@ async def run_study(
         if needs_snapshot else {}
     )
 
-    manifest = store.manifest()
-    manifest.update({
-        "schema_version": MANIFEST_SCHEMA,
-        "study_id": study_id,
-        "created_at": manifest.get("created_at") or now_iso(),
-        "updated_at": now_iso(),
-        "runner_version": RUNNER_VERSION,
-        "case_set": {"set_id": cases[0]["set_id"] if cases else None,
-                     "sha256": case_module.case_set_sha256(cases),
-                     "cases": {c["case_id"]: case_module.sha256(c) for c in cases}},
-        "systems": {**manifest.get("systems", {}),
-                    **{s.system_id: {**s.to_dict(), "adapter_config": adapters[s.system_id].describe()}
-                       for s in specs}},
-        "platform_prompt": {"version": prompts.PROMPT_VERSION, "preamble": prompts.PREAMBLE,
-                            "preamble_sha256": prompts.preamble_sha256(),
-                            "snapshot_header": prompts.SNAPSHOT_HEADER},
-        "trials": trials,
-        "environment": environment(),
-    })
-    store.write_manifest(manifest)
+    new_systems = {s.system_id: {**s.to_dict(), "adapter_config": adapters[s.system_id].describe()}
+                   for s in specs}
+
+    def begin(manifest: dict[str, Any]) -> dict[str, Any]:
+        return {
+            **manifest,
+            "schema_version": MANIFEST_SCHEMA,
+            "study_id": study_id,
+            "created_at": manifest.get("created_at") or now_iso(),
+            "updated_at": now_iso(),
+            "runner_version": RUNNER_VERSION,
+            "case_set": {"set_id": cases[0]["set_id"] if cases else None,
+                         "sha256": case_module.case_set_sha256(cases),
+                         "cases": {c["case_id"]: case_module.sha256(c) for c in cases}},
+            "systems": {**manifest.get("systems", {}), **new_systems},
+            "platform_prompt": {"version": prompts.PROMPT_VERSION, "preamble": prompts.PREAMBLE,
+                                "preamble_sha256": prompts.preamble_sha256(),
+                                "snapshot_header": prompts.SNAPSHOT_HEADER},
+            "trials": trials,
+            "environment": environment(),
+        }
+
+    store.update_manifest(begin)
 
     latest = store.latest_records()
     work = []
@@ -181,13 +195,18 @@ async def run_study(
             return record
 
     await asyncio.gather(*(one(*item) for item in work))
-    summary = summarise(store.latest_records().values())
-    manifest["denominators"] = {
-        "cases": len(cases), "systems": len(specs), "trials": trials,
-        "expected_records": len(cases) * len(specs) * trials, "by_system": summary,
-    }
-    store.write_manifest(manifest)
-    return manifest
+
+    def finish(manifest: dict[str, Any]) -> dict[str, Any]:
+        # Over every system the study has, not only this runner's: a second
+        # runner on the same study must not shrink the denominators.
+        summary = summarise(store.latest_records().values())
+        systems = manifest.get("systems", {})
+        return {**manifest, "updated_at": now_iso(), "denominators": {
+            "cases": len(cases), "systems": len(systems), "trials": trials,
+            "expected_records": len(cases) * len(systems) * trials, "by_system": summary,
+        }}
+
+    return store.update_manifest(finish)
 
 
 def _pairs(values: list[str]) -> dict[str, str]:
@@ -213,6 +232,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--claude-model", default="opus",
                         help="alias passed to claude --model; recorded with the model the CLI reports")
     parser.add_argument("--rerun-errors", action="store_true")
+    parser.add_argument("--google-channel", choices=("mcp", "manual"), default="mcp")
+    parser.add_argument("--gemini-mcp-command", default="",
+                        help="the operator's Gemini MCP server command, e.g. 'python3 /path/server.py'")
+    parser.add_argument("--gemini-mcp-env", action="append", default=[], metavar="KEY=VALUE",
+                        help="environment for that server (never a credential; the server finds its own)")
+    parser.add_argument("--gemini-model", default=None)
     parser.add_argument("--parallel", type=int, default=1)
     args = parser.parse_args(argv)
     manifest = asyncio.run(run_study(
@@ -221,6 +246,12 @@ def main(argv: list[str] | None = None) -> int:
         case_ids=[c for c in args.cases.split(",") if c] or None, trials=args.trials,
         toxagent_urls=_pairs(args.toxagent), snapshot_from=args.snapshot_from, token=args.token,
         claude_model=args.claude_model, rerun_errors=args.rerun_errors, parallel=args.parallel,
+        google={
+            "google_channel": args.google_channel,
+            "gemini_mcp_command": args.gemini_mcp_command.split() or None,
+            "gemini_mcp_env": dict(kv.split("=", 1) for kv in args.gemini_mcp_env),
+            "gemini_model": args.gemini_model,
+        },
     ))
     print(json.dumps(manifest["denominators"], indent=2))
     pending = sum(row.get(STATUS_PENDING, 0) for row in manifest["denominators"]["by_system"].values())

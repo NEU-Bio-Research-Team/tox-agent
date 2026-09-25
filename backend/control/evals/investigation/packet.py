@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from evals.investigation import cases as case_module
-from evals.investigation.record import STATUS_OK, StudyStore, now_iso
+from evals.investigation.record import STATUS_OK, StudyStore, answering_models, now_iso
 from evals.investigation.run import DEFAULT_ROOT
 
 HERE = Path(__file__).resolve().parent
@@ -184,7 +184,11 @@ def build_packet(*, study_dir: Path, packet_id: str, seed: int, systems: list[st
             key["responses"].append({
                 "case_id": case_id, "response_id": response_id, "system_id": record.system_id,
                 "trial": record.trial, "record_id": record.record_id,
-                "model_id_resolved": (record.model or {}).get("model_id_resolved"),
+                "models_answering": answering_models(
+                    record, store,
+                    (manifest.get("systems", {}).get(record.system_id, {}).get("adapter_config") or {})
+                    .get("model_requested"),
+                ),
                 "identity_replacements": replaced,
             })
             rows.append({"case_id": case_id, "response_id": response_id})

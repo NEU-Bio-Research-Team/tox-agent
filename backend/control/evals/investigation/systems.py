@@ -74,11 +74,12 @@ SYSTEMS: dict[str, SystemSpec] = {spec.system_id: spec for spec in (
     SystemSpec("B_anthropic_snapshot", "B", "platform", "claude_cli",
                "Anthropic model through the claude CLI (no tools), with the ToxPred snapshot",
                uses_snapshot=True, platform="anthropic"),
-    SystemSpec("P_google_bare", "P", "platform", "manual",
-               "Google Gemini model, prompts answered out of process, question only",
-               platform="google"),
-    SystemSpec("B_google_snapshot", "B", "platform", "manual",
-               "Google Gemini model, prompts answered out of process, with the ToxPred snapshot",
+    SystemSpec("P_google_bare", "P", "platform", "google",
+               "Google Gemini model through the operator's MCP bridge (or answered out of "
+               "process with --google-channel manual), question only", platform="google"),
+    SystemSpec("B_google_snapshot", "B", "platform", "google",
+               "Google Gemini model through the operator's MCP bridge (or answered out of "
+               "process with --google-channel manual), with the ToxPred snapshot",
                uses_snapshot=True, platform="google"),
 )}
 

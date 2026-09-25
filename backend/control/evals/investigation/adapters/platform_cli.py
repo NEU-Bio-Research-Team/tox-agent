@@ -232,11 +232,21 @@ def _main_model(model_usage: dict[str, Any], requested: str | None = None) -> st
     """
     if not model_usage:
         return None
+    def cost(model: str) -> float:
+        return float((model_usage[model] or {}).get("costUSD", 0) or 0)
+
+    def output(model: str) -> int:
+        return int((model_usage[model] or {}).get("outputTokens", 0) or 0)
+
     if requested:
-        matching = sorted(m for m in model_usage if requested.lower() in m.lower())
+        matching = [m for m in model_usage if requested.lower() in m.lower()]
         if matching:
-            return matching[0]
-    return max(model_usage, key=lambda m: float((model_usage[m] or {}).get("costUSD", 0) or 0))
+            # Several ids can match the alias. Seen in the 2026-09-25 pilot:
+            # claude-opus-5-5 only wrote a prompt cache (0 output tokens) and
+            # claude-opus-5 wrote the whole answer. Whoever wrote the output
+            # answered; cost breaks a tie.
+            return max(matching, key=lambda m: (output(m), cost(m)))
+    return max(model_usage, key=cost)
 
 
 def _walk(value: Any):
@@ -247,3 +257,73 @@ def _walk(value: Any):
     elif isinstance(value, list):
         for inner in value:
             yield from _walk(inner)
+
+
+class GeminiMCPAdapter(_PlatformAdapter):
+    """Google models through an MCP server that exposes a ``review`` tool.
+
+    The operator's own Gemini bridge (configured for Claude Code) is started
+    over stdio with the same command and environment it runs with there; this
+    adapter never reads a credential. The neutral preamble goes in as the
+    system prompt, as for the claude CLI. A transient 503/429 is retried with a
+    pause and the attempts are recorded; the model id is the one the bridge
+    reports.
+    """
+
+    binary = "python3"
+
+    def __init__(self, command: list[str], env: dict[str, str] | None = None, *,
+                 model: str | None = None, attempts: int = 6, pause_s: float = 45.0) -> None:
+        super().__init__()
+        self._command = list(command)
+        self._env = dict(env or {})
+        self._model = model
+        self._attempts = attempts
+        self._pause_s = pause_s
+
+    def describe(self) -> dict[str, Any]:
+        return {**super().describe(), "channel": "MCP stdio bridge, tool 'review'",
+                "server": Path(self._command[-1]).name if self._command else None,
+                "server_env_keys": sorted(self._env), "model_requested": self._model,
+                "tool_policy": "the bridge's plain generation; no tools"}
+
+    async def _call(self, prompt: str) -> dict[str, Any]:
+        import os
+
+        from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
+
+        params = StdioServerParameters(command=self._command[0], args=self._command[1:],
+                                       env={**os.environ, **self._env})
+        arguments: dict[str, Any] = {"prompt": prompt, "system": prompts.PREAMBLE}
+        if self._model:
+            arguments["model"] = self._model
+        async with stdio_client(params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool("review", arguments)
+        text = "".join(getattr(block, "text", "") for block in result.content)
+        data = json.loads(text) if text.strip().startswith("{") else {"error": text}
+        if result.isError or "error" in data:
+            raise RuntimeError(str(data.get("error") or text)[:500])
+        return data
+
+    async def ask(self, prompt: str, workdir: Path) -> tuple[str, dict[str, Any], dict[str, Any]]:
+        del workdir
+        errors: list[str] = []
+        for attempt in range(1, self._attempts + 1):
+            try:
+                data = await self._call(prompt)
+                break
+            except RuntimeError as exc:
+                errors.append(str(exc))
+                transient = any(code in str(exc) for code in ("HTTP 503", "HTTP 429", "HTTP 500"))
+                if not transient or attempt == self._attempts:
+                    raise
+                await asyncio.sleep(self._pause_s)
+        model = {"provider": "google", "model_id_requested": self._model,
+                 "model_id_resolved": data.get("model"), "backend": data.get("backend")}
+        extra = {"bridge_response": {k: v for k, v in data.items() if k != "response"},
+                 "retried_errors": errors,
+                 "usage": {"duration_ms": data["duration_ms"]} if isinstance(data.get("duration_ms"), (int, float)) else {}}
+        return str(data.get("response") or "").strip(), model, extra

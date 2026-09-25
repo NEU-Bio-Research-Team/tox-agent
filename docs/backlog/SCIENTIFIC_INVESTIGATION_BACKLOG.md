@@ -167,18 +167,124 @@ typecheck, policy lint and bundle budget pass.
 
 ## Wave 7 — P1: external benchmark adapters
 
+Result: `backend/control/evals/external/scifact/` — release fetched at run time
+and pinned by SHA-256 (data never committed; claims CC BY 4.0, abstracts
+ODC-By 1.0), official oracle / TF-IDF retrieval, a fixed judge prompt, and a
+pandas-free port of the official metrics (`verisci/evaluate/lib/metrics.py` @
+`68b98a56`, Apache 2.0) checked against the official module: 480/480 metric
+values equal on random predictions over the dev split; the official worked
+example is a unit test. `docs/EXTERNAL_BENCHMARKS.md` records what runs and
+what is blocked. First runs (dev, 50 claims, seed 20260925, oracle retrieval
+including NEI abstracts, 53 judgments each, 0 errors, 0 parse errors) — label
+**`external-native-subset`**: a *model used as a stand-alone verifier*, never
+"ToxAgent on SciFact":
+
+| Judge (model that wrote the output) | Abstract label-only F1 | Abstract rationalized F1 | Sentence selection F1 | Sentence label F1 |
+|---|---|---|---|---|
+| Anthropic via `claude -p` (claude-opus-5-5 ×52, claude-opus-5 ×1) | 0.841 | 0.696 | 0.517 | 0.517 |
+| OpenAI via `codex exec` (gpt-6-sol ×53) | 0.781 | 0.656 | 0.491 | 0.491 |
+
+Runs: `backend/control/evals/external/scifact/runs/dev50-oracle-*-20260925/`
+(manifest, predictions in the official format, every judgment). A first
+Claude run was discarded because the model resolver was ambiguous; it is kept
+out of the repo, and `--summarise RUN_ID` now recomputes a manifest from stored
+outputs.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W7-01 | SciFact `external-native` adapter: official data, label + rationale selection, official metric definitions, dev split only during development | Scorer tests on gold-as-prediction; dev run recorded with denominators | todo |
-| W7-02 | BioASQ / AstaBench: adapter plan and access requirements (registration, sandbox, tool corpus) | Documented; not claimed as run | todo |
-| W7-03 | Predictor track (TDC/MoleculeNet) kept separate from agent scores | Documented protocol, no mixing | todo |
+| W7-01 | SciFact `external-native` adapter: official data, label + rationale selection, official metric definitions, dev split only during development | Scorer tests on gold-as-prediction; dev run recorded with denominators | done (subset runs; full dev split not yet run) |
+| W7-02 | BioASQ / AstaBench: adapter plan and access requirements (registration, sandbox, tool corpus) | Documented; not claimed as run | done (documented; blocked: BioASQ registration; AstaBench keys, memory, research profile) |
+| W7-03 | Predictor track (TDC/MoleculeNet) kept separate from agent scores | Documented protocol, no mixing | done (documented) |
+| W7-04 | SciFact *through the product* (`published-data-transfer`): a research provider that searches a fixed corpus, relations read as abstract labels | Adapter + run | todo — the `snapshot` provider serves fixed records per keyword and cannot do this; needs a new corpus-search provider |
 
 ## Wave 8 — Live pilot
 
+### What ran (2026-09-25)
+
+Stack: compose `postgres` + `toxpred` + base `toxagent-control` (image rebuilt
+from this branch; migration 0020 applied to the local PostgreSQL volume) +
+OpenCode 1.17.11 host runtime (`openai/gpt-5.6-luna`). One control-plane
+container per ToxAgent arm via `devops/scripts/study_arm.sh`, all with
+`TOXAGENT_TURN_DEADLINE_S=600` and `TOXAGENT_MAX_TOOL_CALLS=40`, differing only
+by the arm's flags (verified through `/v1/system/effective-product`):
+
+| Arm | Port | Flags / skills |
+|---|---|---|
+| C | 8011 | none (as shipped) |
+| D | 8012 | `answer_draft_v2`, `scientific_case_v1`, `scientific_skills_v1` (dynamic) |
+| D0 | 8013 | `answer_draft_v2`, `scientific_case_v1` (no skills) |
+| Ds | 8014 | `answer_draft_v2`, `scientific_case_v1`, `TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1` |
+
+Study `backend/control/evals/investigation/runs/pilot-2026-09-25/` (10 cases,
+11 systems, 1 trial, not committed yet), status of the latest record per
+(case, system):
+
+| System | ok | error | Cause of errors |
+|---|---|---|---|
+| A_predictor_template, C, D, D0, Ds | 10 each | 0 | — |
+| P_openai_bare, B_openai_snapshot (gpt-6-sol, xhigh, via `sglang` provider) | 10 each | 0 | — |
+| P_anthropic_bare, B_anthropic_snapshot | 2 each | 8 each | claude CLI "session limit" (resets on the Claude plan's schedule) |
+| P_google_bare | 0 | 10 | Gemini HTTP 503 (overload), then 429 (free-tier quota) |
+| B_google_snapshot | 1 | 9 | same |
+
+Findings recorded while running (they are data, not bugs to hide):
+
+1. **Default turn deadline (180 s) is too short for the case arms.** First pass
+   (`runs/pilot-2026-09-25-aborted-deadline180/`, kept): C 95 s and D 128 s on
+   case 1, D0 and Ds hit `deadline_exceeded` after 13 tool calls. The pilot
+   re-ran every ToxAgent arm with 600 s. Before any release of the case flag,
+   the deadline (or the case policy's tool use) has to be revisited.
+2. **Cost/latency:** on case 1, D used ~3x the tokens of C; median time per
+   turn so far C ≈ 95 s, D ≈ 220 s (see `study-report.md` once regenerated).
+3. **Ds produced one fallback answer** on case 1 (validator rejected twice).
+4. **The claude CLI answered with `claude-opus-5`, not `claude-opus-5-5`**, in
+   the pilot calls: opus-5-5 wrote only a prompt cache (0 output tokens). The
+   resolver now picks the model that wrote the output and re-derives it from
+   `raw.json` (`record.answering_models`).
+5. **Google arm is a Flash model** (`gemini-3.6-flash`): the Gemini key behind
+   the operator's MCP bridge is free tier, and Pro models have quota 0. This is
+   an asymmetry against Opus / gpt-6-sol (xhigh) and must be stated with any
+   result, or the Google arms redone with a Pro model (paid key, or the
+   consumer app through `--google-channel manual`).
+6. D read no skill on the numeric-lookup smoke case (no false trigger); skill
+   trigger precision/recall per skill is in `study-report.md`.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W8-01 | Bring up the stack, run the comparison pilot on the case set, produce the grading packet for the lab | Logs + packet committed under `evals/investigation/runs/` (or path recorded) | todo |
+| W8-01 | Bring up the stack, run the comparison pilot on the case set, produce the grading packet for the lab | Logs + packet committed under `evals/investigation/runs/` (or path recorded) | **doing** — ToxAgent and OpenAI arms complete; Anthropic and Google arms to finish; packet not built |
 | W8-02 | Paired TAB-Suite regression: flags off vs `scientific_case_v1` + skills on | Paired report; no critical pass→fail | todo |
+
+## Resume here (next session)
+
+State at hand-off: branch `feat/scientific-investigation`, waves 1–6 committed;
+wave 7 and the harness changes below are committed with this document. The
+stack from Wave 8 may still be running (containers `tox-agent-study-{C,D,D0,Ds}`,
+`tox-agent-toxagent-control-1`, `tox-agent-postgres-1`, `tox-agent-toxpred-1`,
+and the OpenCode host runtime); the remaining steps do not need the ToxAgent
+arms, whose records are complete. To free memory:
+`for a in C D D0 Ds; do devops/scripts/study_arm.sh --stop $a; done` and
+`devops/scripts/agent/opencode_local_runtime.sh stop`.
+
+1. **Finish the Anthropic arms** once the Claude plan's session limit has reset
+   (run from `backend/control`, `PYTHONPATH=src:.`):
+   `python -m evals.investigation.run --study pilot-2026-09-25 --systems P_anthropic_bare,B_anthropic_snapshot --claude-model opus --rerun-errors --parallel 1`
+   (snapshots already exist, so no `--toxagent`/`--snapshot-from` is needed).
+2. **Finish the Google arms**: decide Flash vs Pro first (finding 5). With the
+   bridge (quota permitting):
+   `python -m evals.investigation.run --study pilot-2026-09-25 --systems P_google_bare,B_google_snapshot --rerun-errors --parallel 1 --gemini-mcp-command "python3 $HOME/auto-claude-code-research-in-sleep/mcp-servers/gemini-review/server.py" --gemini-mcp-env GEMINI_REVIEW_BACKEND=api --gemini-mcp-env GEMINI_REVIEW_STATE_DIR=$HOME/.aris/state/gemini-review --gemini-mcp-env GEMINI_REVIEW_MODEL=gemini-3.6-flash`
+   — or `--google-channel manual` and answer the prompt files under
+   `runs/pilot-2026-09-25/manual/` by hand (each needs `meta.json` with
+   `model_id_resolved`, `answered_at`, `channel`).
+3. Regenerate the descriptive report: `python -m evals.investigation.report --study pilot-2026-09-25`.
+4. Build the lab packet: `python -m evals.investigation.packet --study pilot-2026-09-25 --packet-id lab-1`
+   (send `runs/pilot-2026-09-25/packets/lab-1/`; the key stays in `keys/`).
+5. Commit the study directories (`runs/pilot-2026-09-25*`, `runs/smoke-2026-09-25`,
+   ~8 MB) once complete.
+6. W8-02: run TAB-Suite `core,regression` against arm C (8011) and arm D (8012)
+   with `python -m evals.runner --runtime opencode --base-url ...` and compare
+   with `evals/paired.py`.
+7. Optional next: W7-04 (corpus-search provider for SciFact through the
+   product); full dev-split SciFact runs.
 
 ## Not in scope of this execution
 

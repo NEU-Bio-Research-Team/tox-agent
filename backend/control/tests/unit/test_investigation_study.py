@@ -184,6 +184,17 @@ async def test_claude_output_records_the_model_that_did_the_work(tmp_path, monke
     assert extra["usage"]["cost_usd"] == 0.01
 
 
+def test_among_ids_matching_the_alias_the_one_that_wrote_the_output_answered():
+    # The 2026-09-25 pilot: opus-5-5 only wrote a prompt cache, opus-5 wrote the answer.
+    usage = {"claude-haiku-4-5": {"outputTokens": 18, "costUSD": 0.001},
+             "claude-opus-5-5": {"outputTokens": 0, "costUSD": 0.006},
+             "claude-opus-5": {"outputTokens": 4464, "costUSD": 0.117}}
+    assert platform_cli._main_model(usage, "opus") == "claude-opus-5"
+    tie = {"claude-opus-5": {"outputTokens": 10, "costUSD": 0.01},
+           "claude-opus-5-5": {"outputTokens": 10, "costUSD": 0.02}}
+    assert platform_cli._main_model(tie, "opus") == "claude-opus-5-5"
+
+
 async def test_a_manual_arm_waits_then_records_the_reported_model(tmp_path):
     store = StudyStore(tmp_path)
     case = next(c for c in CASES if len(c["turns"]) == 2)
@@ -335,3 +346,69 @@ def test_an_out_of_range_grade_is_refused(tmp_path):
                          "usefulness": "NA"})
     with pytest.raises(scorecard_module.GradeError, match="does not allow NA"):
         scorecard_module.read_grades([path], rubric)
+
+
+def test_skill_triggers_are_read_against_each_skills_declared_case_tags():
+    from evals.investigation.report import skill_triggers
+
+    by_id = {c["case_id"]: c for c in CASES}
+    conflict = next(c for c in CASES if "conflicting_evidence" in c["tags"])["case_id"]
+    lookup = next(c for c in CASES if "numeric_lookup" in c["tags"])["case_id"]
+    skill = load_catalog(PACKAGE_ROOT / "agent_profiles").get("assess-conflicting-evidence")
+
+    def record(case_id: str, loaded: list[str]) -> RunRecord:
+        rec = _record(case_id, "D_toxagent_investigator", "text")
+        rec.turns[0].meta = {"skills": {"loaded": [{"skill_id": s} for s in loaded]}}
+        return rec
+
+    result = skill_triggers([record(conflict, []), record(lookup, [skill.skill_id])], by_id, [skill])
+    entry = result[skill.skill_id]
+    assert entry["false_triggers_on_negative_cases"] == [lookup]
+    assert entry["misses"] == [conflict]
+    assert entry["trigger_precision"] == 0.0 and entry["trigger_recall"] == 0.0
+
+
+async def test_the_gemini_bridge_retries_overload_and_records_the_reported_model(monkeypatch):
+    adapter = platform_cli.GeminiMCPAdapter(["python3", "server.py"], {"X": "1"}, pause_s=0)
+    calls = []
+
+    async def fake_call(prompt):
+        calls.append(prompt)
+        if len(calls) == 1:
+            raise RuntimeError("Gemini API failed with HTTP 503: high demand")
+        return {"response": "An answer.", "model": "gemini-x-flash", "backend": "api", "duration_ms": 1200}
+
+    monkeypatch.setattr(adapter, "_call", fake_call)
+    text, model, extra = await adapter.ask("q", Path("."))
+    assert text == "An answer." and model["model_id_resolved"] == "gemini-x-flash"
+    assert len(extra["retried_errors"]) == 1 and len(calls) == 2
+
+    async def quota(prompt):
+        raise RuntimeError("HTTP 404: model not found")
+
+    monkeypatch.setattr(adapter, "_call", quota)
+    with pytest.raises(RuntimeError, match="404"):
+        await adapter.ask("q", Path("."))
+
+
+def _append_many(root: str, worker: int) -> None:
+    store = StudyStore(Path(root))
+    for index in range(25):
+        store.append(_record(f"case-{worker}-{index}", "P_openai_bare", "x" * 20_000))
+
+
+def test_several_processes_can_append_to_one_study_without_interleaving(tmp_path):
+    from concurrent.futures import ProcessPoolExecutor
+
+    with ProcessPoolExecutor(max_workers=4) as pool:
+        list(pool.map(_append_many, [str(tmp_path)] * 4, range(4)))
+    records = StudyStore(tmp_path).records()  # every line parses
+    assert len(records) == 100
+    assert all(len(r.final_text) == 20_000 for r in records)
+
+
+def test_a_manifest_update_merges_instead_of_overwriting(tmp_path):
+    store = StudyStore(tmp_path)
+    store.update_manifest(lambda m: {**m, "systems": {**m.get("systems", {}), "A": {}}})
+    store.update_manifest(lambda m: {**m, "systems": {**m.get("systems", {}), "B": {}}})
+    assert set(store.manifest()["systems"]) == {"A", "B"}
