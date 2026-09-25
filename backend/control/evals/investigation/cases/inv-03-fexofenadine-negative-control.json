@@ -1,0 +1,43 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-03-fexofenadine-negative-control",
+  "tags": [
+    "decision_question",
+    "named",
+    "negative_control",
+    "herg"
+  ],
+  "compound": {
+    "query_name": "fexofenadine",
+    "name_disclosed": true,
+    "pubchem_cid": 3348,
+    "smiles": "CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O",
+    "molecular_formula": "C32H39NO4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/fexofenadine/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "Is hERG likely to block development of fexofenadine (CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O)? We need a recommendation for the next study."
+    }
+  ],
+  "reference": {
+    "type": "known_outcome",
+    "summary": "Fexofenadine, the carboxylic-acid metabolite of terfenadine, is not associated with a statistically significant increase in QT prolongation or torsade de pointes at clinical use.",
+    "sources": [
+      {
+        "citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"
+      }
+    ],
+    "good_behaviours": [
+      "does not raise a false alarm from the model score alone",
+      "does not give false reassurance either: states what evidence the view rests on",
+      "keeps the recommendation within the endpoint and evidence available"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "f29c9b4f37b56a36d85c933f22df87f2f6dd37dbbba69837b5ac1083cf627070"
+}

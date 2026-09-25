@@ -126,13 +126,29 @@ Redfern et al. 2003 (Cardiovasc Res 58(1):32–45) before shipping.
 
 ## Wave 5 — Comparison study harness (A–D + platforms) and lab-ready logging
 
+Result: `backend/control/evals/investigation/` (protocol in its README).
+Ten pilot cases fixed before any run (structures from PubChem with CID and
+retrieval time; reference outcomes checked against their sources and marked
+`pending_lab_verification`; every skill has positive and negative cases).
+Eleven systems: A template, C current, D investigator plus two skill
+ablations, and OpenAI (`codex exec`), Anthropic (`claude -p`, no tools) and
+Google (manual adapter) each bare and with the predictor snapshot. ToxAgent
+arms are checked against the deployment's effective product before anything is
+recorded. Append-only records with exact prompts, raw outputs, *reported* model
+ids, timing, usage/cost and the full product trace; blinded packet with the key
+kept outside; scorecard with case-bootstrap intervals, critical-error rates,
+paired differences and weighted kappa — never a total. Both CLIs smoke-tested
+live: the configured OpenAI model is `gpt-6-sol` through an `sglang` provider,
+and the claude CLI runs a Haiku helper beside the main model, which the
+resolver now accounts for.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W5-01 | `investigation-case-v1` schema; pilot case set built from public records (structures resolved from PubChem at build time, with CID and retrieval time); reference outcomes marked *pending lab verification* | Schema validation test | todo |
-| W5-02 | Systems: A predictor+template, B platform LLM + predictor snapshot, C ToxAgent current (`decision_support`), D ToxAgent investigator (case + skills), P platforms bare (OpenAI via `codex`, Anthropic via `claude -p`, Gemini via manual/bridge ingest) | Each adapter logs prompt, raw output, resolved model id, timings, cost | todo |
-| W5-03 | `investigation-run-v1` JSONL log + run manifest (git, effective product, flags, hashes) | Round-trip tests | todo |
-| W5-04 | Blinded grading packet: anonymised shuffled responses per case, rubric (RETHINK §5.4 dimensions + critical errors), grading sheet CSV, separate unblinding key | Tests: no system identity leaks into the packet | todo |
-| W5-05 | Scorecard ingest: graded sheets → per-dimension results with case-bootstrap intervals, critical errors, cost; never a single score | Tests with synthetic grades | todo |
+| W5-01 | `investigation-case-v1` schema; pilot case set built from public records (structures resolved from PubChem at build time, with CID and retrieval time); reference outcomes marked *pending lab verification* | Schema validation test | done |
+| W5-02 | Systems: A predictor+template, B platform LLM + predictor snapshot, C ToxAgent current (`decision_support`), D ToxAgent investigator (case + skills), P platforms bare (OpenAI via `codex`, Anthropic via `claude -p`, Gemini via manual/bridge ingest) | Each adapter logs prompt, raw output, resolved model id, timings, cost | done |
+| W5-03 | `investigation-run-v1` JSONL log + run manifest (git, effective product, flags, hashes) | Round-trip tests | done |
+| W5-04 | Blinded grading packet: anonymised shuffled responses per case, rubric (RETHINK §5.4 dimensions + critical errors), grading sheet CSV, separate unblinding key | Tests: no system identity leaks into the packet | done |
+| W5-05 | Scorecard ingest: graded sheets → per-dimension results with case-bootstrap intervals, critical errors, cost; never a single score | Tests with synthetic grades | done |
 
 ## Wave 6 — P2: investigation board in the UI
 

@@ -1,0 +1,44 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-04-cisapride-conflicting-assays",
+  "tags": [
+    "conflicting_evidence",
+    "assay_mismatch",
+    "named",
+    "herg"
+  ],
+  "compound": {
+    "query_name": "cisapride",
+    "name_disclosed": true,
+    "pubchem_cid": 6917698,
+    "smiles": "CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F",
+    "molecular_formula": "C23H29ClFN3O4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/cisapride/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "For cisapride (CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?"
+    }
+  ],
+  "reference": {
+    "type": "known_outcome_with_hypothetical_scenario",
+    "summary": "Cisapride was withdrawn from the US market because of torsade de pointes and is a potent hERG blocker in functional (patch-clamp) assays. The colleague's weak binding result is hypothetical: graders should look for a comparison of what the two assays measure and under what conditions, not for acceptance of either result by authority.",
+    "sources": [
+      {
+        "citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"
+      }
+    ],
+    "good_behaviours": [
+      "explains that binding displacement and patch clamp measure different things",
+      "asks for or checks the conditions of both assays",
+      "keeps both results in view and says what would reconcile them",
+      "proposes a test that would separate the explanations"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "2f3949a48be00bd1559563c9041c4092f6c96a838c5c8298429a2867e968e49c"
+}
