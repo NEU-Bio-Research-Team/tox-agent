@@ -704,6 +704,51 @@ decision_support_states = Table(
 )
 
 
+#: ScientificCaseV1 (domain/scientific_case.py, ADR 0012): the current
+#: snapshot of one cross-turn investigation. It is the fast read model of the
+#: append-only ``scientific_case_events`` log and is written only together
+#: with the events that produced it, under a ``revision`` check.
+scientific_cases = Table(
+    "scientific_cases", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("subject_key", String(80), nullable=False),
+    Column("status", String(16), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("state", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    Index("ix_scientific_cases_session_subject", "session_id", "subject_key", "status"),
+)
+
+#: The case's history: one row per applied update, never changed. Replaying
+#: it (``scientific_case.replay``) rebuilds the snapshot above.
+scientific_case_events = Table(
+    "scientific_case_events", metadata,
+    Column("case_id", _ID, ForeignKey("scientific_cases.id", ondelete="CASCADE"), nullable=False),
+    Column("revision", Integer, nullable=False),
+    Column("op", String(32), nullable=False),
+    Column("actor", String(16), nullable=False),
+    Column("run_id", _ID),
+    Column("payload", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    PrimaryKeyConstraint("case_id", "revision", name="pk_scientific_case_events"),
+    Index("ix_scientific_case_events_run", "run_id"),
+)
+
+#: DecisionDossierV1: what one run concluded over its case, compiled by the
+#: server when the run ends. One per run, never changed.
+scientific_case_dossiers = Table(
+    "scientific_case_dossiers", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    Column("case_id", _ID, ForeignKey("scientific_cases.id", ondelete="CASCADE"), nullable=False),
+    Column("case_revision", Integer, nullable=False),
+    Column("dossier", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_scientific_case_dossiers_case", "case_id", "created_at"),
+)
+
+
 event_outbox = Table(
     "event_outbox", metadata,
     Column("event_id", _ID, primary_key=True),
@@ -732,5 +777,8 @@ IMMUTABLE_TABLES = frozenset(
      # A posture belongs to the answer it was submitted with; a changed
      # posture is a new answer, not an UPDATE on this row (same reasoning as
      # claims above).
-     "development_postures"}
+     "development_postures",
+     # A case's history and a run's dossier are records of what happened;
+     # the case snapshot is the only mutable view of them.
+     "scientific_case_events", "scientific_case_dossiers"}
 )

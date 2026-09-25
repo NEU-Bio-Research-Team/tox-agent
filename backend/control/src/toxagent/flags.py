@@ -155,6 +155,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
         remove_by=date(2026, 12, 14),
         removal_condition="paired TAB-Suite ads-plan pack shows no first-pass regression "
                           "and coverage/stop grading improves over flag-off",
+    ),    _flag(
+        "scientific_case_v1",
+        "Keep a ScientificCaseV1 per session and subject across decision_support "
+        "turns: open or continue the case at run start, register "
+        "get_scientific_case/update_scientific_case, record the accepted "
+        "answer's evidence relations in the case ledger, and compile a "
+        "DecisionDossierV1 when the run ends. Off, no case is written and the "
+        "tool surface and prompt are unchanged.",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 25),
+        remove_by=date(2026, 12, 23),
+        removal_condition="paired comparison study (evals/investigation) graded by the lab "
+                          "shows no increase in unsupported claims or false reassurance, and "
+                          "TAB-Suite core has no critical pass->fail with the flag on",
     ),
 )
 

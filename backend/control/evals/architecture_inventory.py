@@ -63,6 +63,13 @@ def build_inventory() -> dict[str, Any]:
     except ImportError:  # pragma: no cover - present from Wave 2 on
         pass
     try:
+        from toxagent.domain import scientific_case
+
+        schemas["scientific_case"] = scientific_case.SCHEMA_VERSION
+        schemas["decision_dossier"] = scientific_case.DOSSIER_SCHEMA_VERSION
+    except ImportError:  # pragma: no cover
+        pass
+    try:
         from toxagent.domain import evidence_ontology
 
         schemas["evidence_ontology"] = evidence_ontology.ONTOLOGY_VERSION

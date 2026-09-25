@@ -69,6 +69,7 @@ Any other target, or any other method, is `not_measured`.
 | `report_orchestrator_v2` | no | backend-report | 2026-12-12 | — |
 | `router_v2` | no | backend-platform | 2026-12-12 | — |
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
+| `scientific_case_v1` | no | backend-scientific | 2026-12-23 | — |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
 
 ## Instruction surfaces

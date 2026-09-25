@@ -64,6 +64,9 @@ from ..schema import (
     runs,
     run_configuration_snapshots,
     run_jobs,
+    scientific_case_dossiers,
+    scientific_case_events,
+    scientific_cases,
     session_settings,
     runtime_bindings,
     runtime_usage_events,
@@ -1366,6 +1369,176 @@ class SqlDecisionStateStore:
                 "the decision-support state changed or is final; re-read and retry",
                 run_id=state.run_id, expected_revision=expected_revision,
             )
+
+
+class SqlScientificCaseStore:
+    """ScientificCaseV1 snapshots, their append-only log, and run dossiers.
+
+    ``append`` is the only write path for a case: it inserts the updates as
+    event rows and moves the snapshot from ``expected_revision`` to the new
+    revision in the same unit of work. A writer that read an older revision
+    loses with ``Conflict`` and must re-read — a lost update here would drop a
+    hypothesis or an evidence entry without anyone noticing, and the event
+    table's ``(case_id, revision)`` key makes the loss impossible even if the
+    snapshot check were bypassed.
+    """
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    @staticmethod
+    def _case(row):
+        from ...domain.scientific_case import ScientificCaseV1
+
+        return ScientificCaseV1.from_dict(row["state"]) if row is not None else None
+
+    async def get(self, case_id: str, *, session_id: str):
+        row = (
+            await self._conn.execute(
+                select(scientific_cases)
+                .where(scientific_cases.c.id == case_id)
+                .where(scientific_cases.c.session_id == session_id)
+            )
+        ).mappings().first()
+        return self._case(row)
+
+    async def open_for_subject(self, session_id: str, subject_key: str):
+        row = (
+            await self._conn.execute(
+                select(scientific_cases)
+                .where(scientific_cases.c.session_id == session_id)
+                .where(scientific_cases.c.subject_key == subject_key)
+                .where(scientific_cases.c.status == "open")
+                .order_by(scientific_cases.c.updated_at.desc())
+                .limit(1)
+            )
+        ).mappings().first()
+        return self._case(row)
+
+    async def list_for_session(self, session_id: str, *, limit: int = 20):
+        rows = (
+            await self._conn.execute(
+                select(scientific_cases)
+                .where(scientific_cases.c.session_id == session_id)
+                .order_by(scientific_cases.c.updated_at.desc())
+                .limit(limit)
+            )
+        ).mappings().all()
+        return [self._case(row) for row in rows]
+
+    async def append(self, case, updates, *, expected_revision: int | None, now: datetime) -> None:
+        """Store ``case`` as the fold of ``updates`` over ``expected_revision``."""
+        if not updates:
+            return
+        first = case.revision - len(updates) + 1
+        if first != (expected_revision or 0) + 1:
+            raise Conflict(
+                "the updates do not continue the case from its expected revision",
+                case_id=case.id, expected_revision=expected_revision, revision=case.revision,
+            )
+        values = {
+            "status": case.status, "revision": case.revision, "state": case.to_dict(),
+            "updated_at": now,
+        }
+        if expected_revision is None:
+            await self._conn.execute(
+                insert(scientific_cases).values(
+                    id=case.id, session_id=case.session_id, subject_key=case.subject_key,
+                    created_at=now, **values,
+                )
+            )
+        else:
+            result = await self._conn.execute(
+                update(scientific_cases)
+                .where(scientific_cases.c.id == case.id)
+                .where(scientific_cases.c.revision == expected_revision)
+                .values(**values)
+            )
+            if result.rowcount != 1:
+                raise Conflict(
+                    "the scientific case changed; re-read and retry",
+                    case_id=case.id, expected_revision=expected_revision,
+                )
+        await self._conn.execute(
+            insert(scientific_case_events),
+            [
+                {
+                    "case_id": case.id, "revision": first + index, "op": item.op,
+                    "actor": item.actor, "run_id": item.run_id,
+                    "payload": {"payload": dict(item.payload), "at": item.at},
+                    "created_at": now,
+                }
+                for index, item in enumerate(updates)
+            ],
+        )
+
+    async def events(self, case_id: str, *, session_id: str):
+        from ...domain.scientific_case import CaseUpdate
+
+        rows = (
+            await self._conn.execute(
+                select(scientific_case_events)
+                .join(scientific_cases, scientific_cases.c.id == scientific_case_events.c.case_id)
+                .where(scientific_case_events.c.case_id == case_id)
+                .where(scientific_cases.c.session_id == session_id)
+                .order_by(scientific_case_events.c.revision)
+            )
+        ).mappings().all()
+        return [
+            CaseUpdate(
+                op=row["op"], payload=dict(row["payload"].get("payload") or {}),
+                actor=row["actor"], at=row["payload"].get("at", ""), run_id=row["run_id"],
+                revision=row["revision"],
+            )
+            for row in rows
+        ]
+
+    async def case_id_for_run(self, run_id: str, *, session_id: str) -> str | None:
+        """The case a run was attached to (its ``attach_run`` event)."""
+        row = (
+            await self._conn.execute(
+                select(scientific_case_events.c.case_id)
+                .join(scientific_cases, scientific_cases.c.id == scientific_case_events.c.case_id)
+                .where(scientific_case_events.c.run_id == run_id)
+                .where(scientific_case_events.c.op == "attach_run")
+                .where(scientific_cases.c.session_id == session_id)
+                .limit(1)
+            )
+        ).first()
+        return row[0] if row is not None else None
+
+    async def put_dossier(self, dossier: Mapping[str, Any], *, now: datetime) -> None:
+        await self._conn.execute(
+            insert(scientific_case_dossiers).values(
+                run_id=dossier["run_id"], case_id=dossier["case_id"],
+                case_revision=dossier["case_revision"], dossier=dict(dossier), created_at=now,
+            )
+        )
+
+    async def get_dossier(self, run_id: str, *, session_id: str):
+        row = (
+            await self._conn.execute(
+                select(scientific_case_dossiers.c.dossier)
+                .join(scientific_cases, scientific_cases.c.id == scientific_case_dossiers.c.case_id)
+                .where(scientific_case_dossiers.c.run_id == run_id)
+                .where(scientific_cases.c.session_id == session_id)
+            )
+        ).first()
+        return dict(row[0]) if row is not None else None
+
+    async def latest_dossier(self, case_id: str, *, session_id: str):
+        row = (
+            await self._conn.execute(
+                select(scientific_case_dossiers.c.dossier)
+                .join(scientific_cases, scientific_cases.c.id == scientific_case_dossiers.c.case_id)
+                .where(scientific_case_dossiers.c.case_id == case_id)
+                .where(scientific_cases.c.session_id == session_id)
+                .order_by(scientific_case_dossiers.c.created_at.desc(),
+                          scientific_case_dossiers.c.case_revision.desc())
+                .limit(1)
+            )
+        ).first()
+        return dict(row[0]) if row is not None else None
 
 
 class SqlDevelopmentPostureStore:

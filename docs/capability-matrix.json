@@ -242,6 +242,13 @@
       "owner": "backend-runtime",
       "remove_by": "2026-12-12"
     },
+    "scientific_case_v1": {
+      "default": false,
+      "description": "Keep a ScientificCaseV1 per session and subject across decision_support turns: open or continue the case at run start, register get_scientific_case/update_scientific_case, record the accepted answer's evidence relations in the case ledger, and compile a DecisionDossierV1 when the run ends. Off, no case is written and the tool surface and prompt are unchanged.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
     "trust_envelope_v1": {
       "default": false,
       "description": "Move provider free text (title, abstract, authors, provider metadata and errors) in evidence tool model views into trust envelopes (tools/trust.py) with provenance, instructions_allowed=false and audit signals. Off, those fields stay flat beside a single untrusted_external_content flag.",

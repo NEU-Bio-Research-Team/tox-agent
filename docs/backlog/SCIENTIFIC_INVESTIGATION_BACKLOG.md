@@ -62,12 +62,19 @@ historical, so no edit there.
 
 ## Wave 2 — P2 core: `ScientificCase` domain and persistence
 
+Result: `domain/scientific_case.py` (pure transitions, append-only log,
+`replay`, dossier compiler, checkpoint), `application/scientific_case_service.py`
+(requested writes fail loudly, bookkeeping writes never break a run), migration
+0020 verified up/down/up on PostgreSQL 16 and by the repository tests on both
+SQLite and PostgreSQL, flag `scientific_case_v1` (off), ADR 0012. Ids use the
+new `scase_` prefix so a superseded kernel `case_` id can never resolve as one.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W2-01 | `domain/scientific_case.py`: pure, replayable transitions over an append-only update log; hypotheses with refutation conditions; evidence ledger (`supports/contradicts/contextual/insufficient`, directness, scope, source class); uncertainty ledger (typed kinds); action log; conditional conclusion; ref coverage separated from quality coverage | Unit tests for every transition and invariant | todo |
-| W2-02 | Persistence: migration 0020 (`scientific_cases`, `scientific_case_events`), revision-checked store, UoW wiring | Migration chain test, SQL store tests (SQLite) | todo |
-| W2-03 | Rollout flag `scientific_case_v1` (default off, owner, remove_by) | Flag rules test passes | todo |
-| W2-04 | ADR 0012: case state on the live path; kernel `CaseState` stays superseded, no second source of truth | ADR committed | todo |
+| W2-01 | `domain/scientific_case.py`: pure, replayable transitions over an append-only update log; hypotheses with refutation conditions; evidence ledger (`supports/contradicts/contextual/insufficient`, directness, scope, source class); uncertainty ledger (typed kinds); action log; conditional conclusion; ref coverage separated from quality coverage | Unit tests for every transition and invariant | done |
+| W2-02 | Persistence: migration 0020 (`scientific_cases`, `scientific_case_events`), revision-checked store, UoW wiring | Migration chain test, SQL store tests (SQLite) | done |
+| W2-03 | Rollout flag `scientific_case_v1` (default off, owner, remove_by) | Flag rules test passes | done |
+| W2-04 | ADR 0012: case state on the live path; kernel `CaseState` stays superseded, no second source of truth | ADR committed | done |
 
 ## Wave 3 — P2: case tools, harness wiring, `DecisionDossier`
 

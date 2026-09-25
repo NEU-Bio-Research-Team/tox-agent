@@ -193,6 +193,8 @@ class UnitOfWork(Protocol):
     attachments: AttachmentStore
     reports: Any
     investigations: Any
+    #: ScientificCaseV1 snapshots, their event log and run dossiers (ADR 0012).
+    scientific_cases: Any
     model_connections: Any
     session_settings: Any
     run_configuration_snapshots: Any
