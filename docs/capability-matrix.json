@@ -245,7 +245,10 @@
     "scientific_case_v1": {
       "default": false,
       "description": "Keep a ScientificCaseV1 per session and subject across decision_support turns: open or continue the case at run start, register get_scientific_case/update_scientific_case, record the accepted answer's evidence relations in the case ledger, and compile a DecisionDossierV1 when the run ends. Off, no case is written and the tool surface and prompt are unchanged.",
-      "gates_tools": [],
+      "gates_tools": [
+        "get_scientific_case",
+        "update_scientific_case"
+      ],
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
@@ -298,7 +301,9 @@
         "submit_grounded_answer"
       ],
       "flag_gated": {
-        "record_decision_plan": "decision_state_plan_tool"
+        "get_scientific_case": "scientific_case_v1",
+        "record_decision_plan": "decision_state_plan_tool",
+        "update_scientific_case": "scientific_case_v1"
       }
     },
     "evidence_research": {

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Final
 
+from ...application import scientific_case_service
 from ...application.submit_answer import SubmitAnswer
 from ...config import PolicySettings
 from ...flags import is_enabled
@@ -55,6 +56,17 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             session_id=context.session_id, run_id=context.run_id, candidate=payload,
             language=context.language,
         )
+        relations = getattr(payload, "evidence_relations", None)
+        if relations and not outcome.is_fallback and is_enabled("scientific_case_v1"):
+            # ADR 0012: an accepted answer's relations join the case ledger as
+            # server entries — after the answer committed, in their own unit of
+            # work, so case bookkeeping can never fail or roll back an answer.
+            await scientific_case_service.advance(
+                database, session_id=context.session_id, run_id=context.run_id,
+                updates_for=scientific_case_service.answer_relation_updates(
+                    relations, run_id=context.run_id
+                ),
+            )
         answer_view = outcome.answer.to_dict()
         model_view = {
             "answer_id": outcome.answer.id,

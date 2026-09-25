@@ -78,12 +78,28 @@ new `scase_` prefix so a superseded kernel `case_` id can never resolve as one.
 
 ## Wave 3 — P2: case tools, harness wiring, `DecisionDossier`
 
+Result: with `scientific_case_v1` on, a `decision_support` run opens or
+continues its session's case for the subject before the prompt is built (the
+server records applicability and unavailable-endpoint uncertainties itself),
+the prompt carries the case checkpoint and a short case policy, the model reads
+and writes the case through two closed tools whose refs are checked against the
+session's artifacts, accepted grounded-answer-v2 relations join the ledger as
+server entries after the answer commits, and the dossier is stored *before* the
+run is marked complete (a PostgreSQL run exposed the race the other order
+leaves). API: `GET /cases`, `/cases/{id}`, `/cases/{id}/events`,
+`/cases/{id}/dossier`, `/runs/{id}/dossier`; `POST /cases/{id}/context`,
+`/cases/{id}/question`, `/cases/{id}:close`. Flag off: tool surface, schema hash
+and prompt unchanged (tested). The effective product records the flag through
+the flag catalogue; a run is linked to its case by its `attach_run` event, so no
+manifest field was needed. Note: grounded-answer-v1 (the default) carries no
+relations, so the investigator arm runs with `answer_draft_v2` on.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W3-01 | Tools `get_scientific_case`, `update_scientific_case` (typed operations; refs validated against artifacts the session really has) in `decision_support`, registered only with the flag | Tool tests; flag-off tool surface/schema hash unchanged | todo |
-| W3-02 | Gateway: open or continue the session's case per `decision_support` run; case checkpoint in context; tool results and accepted answer relations flow into the ledger; run end compiles a `DecisionDossierV1` | Integration test with the scripted runtime across two turns | todo |
-| W3-03 | API: `GET /v1/sessions/{id}/case`, `/case/events`, `/case/dossier`; `POST /case/context` (user-supplied assay/exposure context, recorded as `user_supplied`) | API tests | todo |
-| W3-04 | Effective product and run manifest record the flag and the case id | Manifest tests | todo |
+| W3-01 | Tools `get_scientific_case`, `update_scientific_case` (typed operations; refs validated against artifacts the session really has) in `decision_support`, registered only with the flag | Tool tests; flag-off tool surface/schema hash unchanged | done |
+| W3-02 | Gateway: open or continue the session's case per `decision_support` run; case checkpoint in context; tool results and accepted answer relations flow into the ledger; run end compiles a `DecisionDossierV1` | Integration test with the scripted runtime across two turns | done |
+| W3-03 | API: `GET /v1/sessions/{id}/case`, `/case/events`, `/case/dossier`; `POST /case/context` (user-supplied assay/exposure context, recorded as `user_supplied`) | API tests | done |
+| W3-04 | Effective product and run manifest record the flag and the case id | Manifest tests | done |
 
 ## Wave 4 — P1/P2: scientific skill catalog, loaded on demand
 

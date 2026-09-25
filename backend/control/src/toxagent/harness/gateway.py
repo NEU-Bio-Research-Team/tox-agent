@@ -39,8 +39,8 @@ from ..domain.usage import RuntimeUsageEvent
 from ..flags import is_enabled
 from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
-from ..application import decision_state_service
-from ..domain import decision_state
+from ..application import decision_state_service, scientific_case_service
+from ..domain import decision_state, scientific_case
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
 from .report_profile import compose_report_profile
 from .synthesis_profile import PROFILE_NAME as SYNTHESIS_PROFILE, compose_synthesis_profile
@@ -175,6 +175,12 @@ class AgentRuntimeGateway:
                 context, report_build_id=await self._ensure_report_build(context)
             )
 
+        keeps_case = (
+            context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1")
+        )
+        if keeps_case:
+            # Before the prompt is built, so the turn sees its own case.
+            await self._begin_scientific_case(context)
         system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
         if context.intent is not Intent.DECISION_SUPPORT:
             await self._dispatch(
@@ -198,7 +204,9 @@ class AgentRuntimeGateway:
                 deadline=deadline,
                 instructions_hash=instructions_hash,
                 has_product=self._has_answer,
-                commit=self._commit_product_and_complete,
+                commit=(
+                    self._commit_with_case if keeps_case else self._commit_product_and_complete
+                ),
             )
             run_status = "completed"
         except asyncio.CancelledError:
@@ -209,6 +217,65 @@ class AgentRuntimeGateway:
                 self._db, context.run_id,
                 lambda state: decision_state.finalize(state, run_status=run_status),
             )
+            if keeps_case and run_status != "completed":
+                # A run that ended without committing its answer: the case
+                # records how it ended and the dossier says so. A completed
+                # run did this in _commit_with_case, before it completed.
+                await scientific_case_service.finish_run(
+                    self._db, session_id=context.session_id, run_id=context.run_id,
+                )
+
+    async def _commit_with_case(self, context: RunContext) -> None:
+        """Finish the case and store the dossier, then complete the run.
+
+        In this order so that a client that sees the run complete can read its
+        dossier: the other order leaves a window in which the case has no stop
+        reason. The stop reason is the one the run's state will be finalized
+        with once it completes (``decision_state.finalize`` is pure, so this is
+        a preview of it, not a second source); the state itself is still
+        finalized after the run, exactly as without a case.
+        """
+        stop_reason = None
+        try:
+            async with self._db.unit_of_work() as uow:
+                state = await uow.decision_states.get(context.run_id)
+            if state is not None:
+                stop_reason = decision_state.finalize(state, run_status="completed").stop_reason
+        except Exception:  # noqa: BLE001 - bookkeeping must not stop the run
+            log.exception("could not preview the stop reason", extra={"run_id": context.run_id})
+        await scientific_case_service.finish_run(
+            self._db, session_id=context.session_id, run_id=context.run_id,
+            stop_reason=stop_reason,
+        )
+        await self._commit_product_and_complete(context)
+
+    async def _begin_scientific_case(self, context: RunContext) -> None:
+        """Open or continue the session's case for this subject (ADR 0012).
+
+        Bookkeeping: a failure is logged and the run proceeds without a case,
+        exactly as it would with the flag off.
+        """
+        try:
+            async with self._db.unit_of_work() as uow:
+                session = await uow.sessions.get_unscoped(context.session_id)
+                analysis_id = context.analysis_id or (
+                    session.active_analysis_id if session else None
+                )
+                snapshot = (
+                    await uow.analyses.get(analysis_id, session_id=context.session_id)
+                    if analysis_id else None
+                )
+                await scientific_case_service.open_or_continue(
+                    uow, session_id=context.session_id, analysis_id=analysis_id,
+                    run_id=context.run_id, goal=context.text or "",
+                    subject_refs=[f"analysis:{analysis_id}"] if analysis_id else [],
+                    extra_updates=scientific_case_service.analysis_uncertainties(
+                        snapshot, run_id=context.run_id
+                    ),
+                )
+                await uow.commit()
+        except Exception:  # noqa: BLE001 - bookkeeping must not stop the run
+            log.exception("could not open the scientific case", extra={"run_id": context.run_id})
 
     async def _begin_decision_state(self, context: RunContext) -> None:
         """Open the run's DecisionSupportStateV1 (TAB-Suite Wave 2)."""
@@ -745,6 +812,13 @@ class AgentRuntimeGateway:
                 context.session_id, status=EvidenceStatus.ACCEPTED, limit=5
             )
             checkpoint = SessionCheckpoint()
+            case_summary = ""
+            if context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1"):
+                case = await scientific_case_service.case_for_run(
+                    uow, session_id=context.session_id, run_id=context.run_id
+                )
+                if case is not None:
+                    case_summary = scientific_case.checkpoint_summary(case)
             if context.intent is Intent.DECISION_SUPPORT:
                 # P1-05: memory is scoped to the subject, not the transcript.
                 # Prior decision states for *this* analysis contribute their
@@ -865,6 +939,7 @@ class AgentRuntimeGateway:
             checkpoint=checkpoint,
             pinned=pinned,
             recent_messages=recent,
+            scientific_case=case_summary,
         )
         instructions_hash = None
         if context.intent is Intent.BUILD_REPORT:

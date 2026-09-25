@@ -74,7 +74,7 @@ async def apply_updates(
 
 async def open_or_continue(
     uow, *, session_id: str, analysis_id: str | None, run_id: str, goal: str,
-    subject_refs: Iterable[str],
+    subject_refs: Iterable[str], extra_updates: Sequence[sc.CaseUpdate] = (),
 ) -> sc.ScientificCaseV1:
     """The session's open case for this subject, with this run attached.
 
@@ -95,6 +95,7 @@ async def open_or_continue(
         ))
     updates.append(update("attach_run", actor=sc.Actor.SERVER.value, run_id=run_id, at=now,
                           goal=(goal or "").strip()[:2000]))
+    updates.extend(extra_updates)
     updated, applied = fold(case, updates)
     await uow.scientific_cases.append(
         updated, applied, expected_revision=case.revision if case else None, now=now,
@@ -168,3 +169,101 @@ def answer_relation_updates(relations: Iterable[Any], *, run_id: str) -> Updates
     ]
     at = _now().isoformat()
     return lambda case: sc.updates_from_answer(case, payload, run_id=run_id, at=at)
+
+
+def analysis_uncertainties(snapshot, *, run_id: str) -> list[sc.CaseUpdate]:
+    """What the server already knows is uncertain about the case's subject.
+
+    Deterministic, so recording them on every turn is idempotent (the domain
+    drops an open uncertainty of the same kind and description): an
+    applicability status other than ``ok`` and every requested endpoint this
+    deployment does not serve. Nothing here is a judgement a model made.
+    """
+    if snapshot is None:
+        return []
+    at = _now().isoformat()
+    updates: list[sc.CaseUpdate] = []
+    applicability = (snapshot.predictor_response.get("applicability") or {})
+    status = applicability.get("status")
+    if status and status != "ok":
+        reasons = ", ".join(str(r) for r in applicability.get("reasons") or ()) or "no reason given"
+        updates.append(sc.CaseUpdate(
+            op="record_uncertainty", actor=sc.Actor.SERVER.value, run_id=run_id, at=at,
+            payload={
+                "kind": sc.UncertaintyKind.APPLICABILITY_DOMAIN.value,
+                "severity": sc.Severity.HIGH.value if status == "out_of_domain" else sc.Severity.MEDIUM.value,
+                "description": (
+                    f"The predictor's rule-based applicability check says {status} ({reasons}); "
+                    "its scores for this structure are less reliable."
+                ),
+            },
+        ))
+    for endpoint in snapshot.unavailable_endpoints:
+        updates.append(sc.CaseUpdate(
+            op="record_uncertainty", actor=sc.Actor.SERVER.value, run_id=run_id, at=at,
+            payload={
+                "kind": sc.UncertaintyKind.MISSING_ENDPOINT.value,
+                "severity": sc.Severity.MEDIUM.value,
+                "description": f"The {endpoint} endpoint was requested but is not served by this deployment.",
+            },
+        ))
+    return updates
+
+
+_UNSET = object()
+
+
+async def finish_run(database, *, session_id: str, run_id: str,
+                     stop_reason: Any = _UNSET) -> dict[str, Any] | None:
+    """Record how a run ended in its case, then compile and store its dossier.
+
+    ``stop_reason`` defaults to the run's final DecisionSupportStateV1; the
+    gateway passes it explicitly when it finishes the case just before the run
+    completes. One dossier per run: a second call records nothing new. Never
+    raises — the run has already ended.
+    """
+    from ..domain import explainer_validation
+
+    try:
+        async with database.unit_of_work() as uow:
+            state = await uow.decision_states.get(run_id)
+            answer = await uow.answers.get_for_run(run_id)
+        if stop_reason is _UNSET:
+            stop_reason = state.stop_reason if state is not None else None
+        usage = dict(state.usage) if state is not None else {}
+        answer_id = answer.id if answer is not None else None
+        finished = update("finish_run", actor=sc.Actor.SERVER.value, run_id=run_id,
+                          stop_reason=stop_reason, answer_id=answer_id, usage=usage)
+        case = await advance(database, session_id=session_id, run_id=run_id,
+                             updates_for=lambda _case: [finished])
+        if case is None:
+            return None
+        async with database.unit_of_work() as uow:
+            statements: dict[str, dict[str, Any]] = {}
+            for entry in case.evidence:
+                if entry.source_class != sc.SourceClass.EXPLANATION_FACT.value:
+                    continue
+                if entry.source_ref in statements:
+                    continue
+                observation = await uow.observations.get(
+                    sc.parse_ref(entry.source_ref)[1], session_id=session_id
+                )
+                if observation is None:
+                    continue
+                projection = observation.model_projection
+                statements[entry.source_ref] = explainer_validation.model_view(
+                    projection.get("model_id") or observation.provenance.get("model_id"),
+                    projection.get("endpoint"), projection.get("task"),
+                    projection.get("method") or observation.provenance.get("method"),
+                )
+            dossier = sc.compile_dossier(
+                case, run_id=run_id, stop_reason=stop_reason, answer_id=answer_id,
+                explainer_statements=statements,
+            )
+            if await uow.scientific_cases.get_dossier(run_id, session_id=session_id) is None:
+                await uow.scientific_cases.put_dossier(dossier, now=_now())
+                await uow.commit()
+        return dossier
+    except Exception:  # noqa: BLE001 - the run has ended; bookkeeping must not raise
+        log.exception("could not finish the scientific case", extra={"run_id": run_id})
+        return None

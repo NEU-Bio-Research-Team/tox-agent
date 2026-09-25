@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from toxagent.tools.registry import PROFILES, ToolDefinition, ToolRegistry
+from toxagent.tools.registry import FLAG_GATED_TOOLS, PROFILES, ToolDefinition, ToolRegistry
 
 
 class Args(BaseModel):
@@ -86,7 +86,12 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # the read-your-own-artifacts tools of W2-03/04 — its ceiling is wider
         # on purpose, not an oversight this guardrail should catch.
         ceiling = 10 if name == "decision_support" else 6
-        assert 2 <= len(tools) <= ceiling, f"{name} has {len(tools)} tools"
+        default = tools - set(FLAG_GATED_TOOLS)
+        assert 2 <= len(default) <= ceiling, f"{name} has {len(default)} default tools"
+        # Every flag on at once (ADR 0012: the case and skill tools are cheap
+        # reads/writes of product state, not new capabilities to route among)
+        # still has a ceiling, so a flag cannot become a way around this one.
+        assert len(tools) <= ceiling + 5, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

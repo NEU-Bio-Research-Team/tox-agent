@@ -134,6 +134,33 @@ is missing and why it would change the answer — that is a complete, valid \
 answer, not a reason to fall back to a generic non-answer.
 """
 
+#: ADR 0012. Stated only while scientific_case_v1 is on. It says how to keep
+#: the case, which is the product object; *methods* (weighing conflicting
+#: evidence, reading an attribution) belong in skills, not here.
+SCIENTIFIC_CASE_POLICY = """\
+This turn belongs to a scientific case that persists across the researcher's \
+turns. Read it with get_scientific_case and keep it with update_scientific_case \
+as the investigation record — not a transcript:
+- If the case has no hypotheses for its question yet, add the competing \
+explanations the decision turns on (the model-signal reading and at least one \
+alternative, such as an assay/exposure mismatch or insufficient data), each \
+with what would refute it.
+- When a source you read bears on a hypothesis, record_evidence citing that \
+artifact, with its stance and directness. A predictor score or an attribution \
+highlight is a signal about the model, never independent evidence.
+- Before concluding, look for evidence against the leading hypothesis and log \
+it as record_action with action counterevidence_search, even if it finds \
+nothing.
+- Record what is still unknown as uncertainties. If a fact only the \
+researcher can supply (exposure, assay conditions, an in-house result) would \
+change the conclusion, say so and ask for it.
+- Propose a next test only if its result would discriminate between \
+hypotheses.
+- Before submit_grounded_answer, set_conclusion: what the case can say (each \
+line citing ledger ids), what it cannot say, and what would change it. The case \
+never replaces submit_grounded_answer, which still ends the turn.
+"""
+
 #: Plan section 9.4, restated as an imperative checklist. A live Phase 3 run
 #: (progress log §4.6) reached a candidate with every claim correct and still
 #: fell to the deterministic fallback on its one allowed correction because it
@@ -241,9 +268,13 @@ def build_system_prompt(
     checkpoint: SessionCheckpoint,
     pinned: Sequence[PinnedReference],
     recent_messages: Sequence[Message],
+    scientific_case: str = "",
 ) -> str:
     """Plan section 10.4: product/system role, invariants, profile, checkpoint,
-    pinned references, recent messages — in that order, always."""
+    pinned references, recent messages — in that order, always.
+
+    ``scientific_case`` is the case checkpoint (ADR 0012); empty unless the
+    run is attached to one, and then the case policy is stated with it."""
     sections = [
         PRODUCT_ROLE,
         SCIENTIFIC_INVARIANTS,
@@ -255,9 +286,13 @@ def build_system_prompt(
     ]
     if capability_profile == "decision_support":
         sections.append(DECISION_SUPPORT_POLICY)
+    if scientific_case:
+        sections.append(SCIENTIFIC_CASE_POLICY)
     rendered_checkpoint = checkpoint.render()
     if rendered_checkpoint:
         sections.append(rendered_checkpoint)
+    if scientific_case:
+        sections.append(scientific_case)
     if pinned:
         sections.append("Pinned references:\n" + "\n".join(p.render() for p in pinned))
     rendered_recent = render_recent_messages(recent_messages)

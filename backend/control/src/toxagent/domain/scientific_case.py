@@ -795,6 +795,12 @@ def _attach_run(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
 
 def _finish_run(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     run_id = _run_id(u)
+    current = next((r for r in case.runs if r.run_id == run_id), None)
+    if current is not None and (
+        current.stop_reason, current.answer_id, dict(current.usage)
+    ) == (u.payload.get("stop_reason"), u.payload.get("answer_id"),
+          dict(u.payload.get("usage") or {})):
+        return case  # the same ending recorded twice is one ending
     runs = tuple(
         replace(r, stop_reason=u.payload.get("stop_reason"), answer_id=u.payload.get("answer_id"),
                 usage=dict(u.payload.get("usage") or {}))

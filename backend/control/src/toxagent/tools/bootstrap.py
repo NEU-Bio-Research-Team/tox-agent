@@ -20,6 +20,7 @@ from .definitions import explanation as explanation_tools
 from .definitions import inventory as inventory_tools
 from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
+from .definitions import scientific_case as scientific_case_tools
 from .registry import FLAG_GATED_TOOLS, ToolDefinition, ToolRegistry
 from ..flags import is_enabled
 
@@ -81,8 +82,10 @@ def build_registry(
     # profile's tool list or schema hash.
     for definition in report_synthesis_tools.build(database):
         add(definition)
-    # Gated by decision_state_plan_tool through FLAG_GATED_TOOLS.
+    # Gated by decision_state_plan_tool / scientific_case_v1 through FLAG_GATED_TOOLS.
     for definition in decision_plan_tools.build(database):
+        add(definition)
+    for definition in scientific_case_tools.build(database):
         add(definition)
     if compound_provider is not None:
         for definition in compound_tools.build(database, compound_provider):

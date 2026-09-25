@@ -51,7 +51,7 @@ Any other target, or any other method, is `not_measured`.
 |---|---|---|
 | `analysis` | `create_analysis_snapshot`, `get_analysis_slice`, `submit_grounded_answer` | — |
 | `audit_readonly` | `get_analysis_slice`, `get_evidence_record`, `get_explanation_slice` | — |
-| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `record_decision_plan` (decision_state_plan_tool) |
+| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `get_scientific_case` (scientific_case_v1), `record_decision_plan` (decision_state_plan_tool), `update_scientific_case` (scientific_case_v1) |
 | `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | — |
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
 | `report_qa` | `get_analysis_slice`, `get_attribution`, `submit_grounded_answer` | — |
@@ -69,7 +69,7 @@ Any other target, or any other method, is `not_measured`.
 | `report_orchestrator_v2` | no | backend-report | 2026-12-12 | — |
 | `router_v2` | no | backend-platform | 2026-12-12 | — |
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
-| `scientific_case_v1` | no | backend-scientific | 2026-12-23 | — |
+| `scientific_case_v1` | no | backend-scientific | 2026-12-23 | `get_scientific_case`, `update_scientific_case` |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
 
 ## Instruction surfaces

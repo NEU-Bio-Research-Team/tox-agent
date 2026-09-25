@@ -64,6 +64,8 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
             # decision_state_plan_tool flag (tools/bootstrap.py), so it is
             # absent from tools/list until then.
             "record_decision_plan",
+            # ADR 0012: the cross-turn case, behind scientific_case_v1.
+            "get_scientific_case", "update_scientific_case",
         }
     ),
     #: Read-only audit. Deliberately without submit_grounded_answer: an auditor
@@ -114,6 +116,8 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
 #: the tool is absent from ``tools/list`` and from the profile's schema hash.
 FLAG_GATED_TOOLS: Final[dict[str, str]] = {
     "record_decision_plan": "decision_state_plan_tool",
+    "get_scientific_case": "scientific_case_v1",
+    "update_scientific_case": "scientific_case_v1",
 }
 
 

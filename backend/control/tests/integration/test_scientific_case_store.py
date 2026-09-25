@@ -173,3 +173,39 @@ async def test_a_dossier_is_stored_once_per_run_and_read_back(db):
         with pytest.raises(Exception):
             await uow.scientific_cases.put_dossier(dossier, now=NOW)
             await uow.commit()
+
+
+def test_the_server_records_only_what_it_knows_is_uncertain():
+    from types import SimpleNamespace
+
+    ood = SimpleNamespace(
+        predictor_response={"applicability": {"status": "out_of_domain", "reasons": ["contains boron"]}},
+        unavailable_endpoints=("clintox",),
+    )
+    updates = service.analysis_uncertainties(ood, run_id="run_" + "6" * 32)
+    kinds = [(u.payload["kind"], u.payload["severity"]) for u in updates]
+    assert kinds == [("applicability_domain", "high"), ("missing_endpoint", "medium")]
+    assert "contains boron" in updates[0].payload["description"]
+    fine = SimpleNamespace(predictor_response={"applicability": {"status": "ok"}},
+                           unavailable_endpoints=())
+    assert service.analysis_uncertainties(fine, run_id="run_x") == []
+    assert service.analysis_uncertainties(None, run_id="run_x") == []
+
+
+async def test_recording_the_same_server_uncertainty_every_turn_is_idempotent(db):
+    from types import SimpleNamespace
+
+    session, (first, second) = await seeded(db, runs=2)
+    snapshot = SimpleNamespace(
+        predictor_response={"applicability": {"status": "limited", "reasons": ["rare element"]}},
+        unavailable_endpoints=(),
+    )
+    for run in (first, second):
+        async with db.unit_of_work() as uow:
+            case = await service.open_or_continue(
+                uow, session_id=session.id, analysis_id="ana_" + "a" * 32, run_id=run.id,
+                goal="q", subject_refs=[],
+                extra_updates=service.analysis_uncertainties(snapshot, run_id=run.id),
+            )
+            await uow.commit()
+    assert [u.kind for u in case.uncertainties] == ["applicability_domain"]
