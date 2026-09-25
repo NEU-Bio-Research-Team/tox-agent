@@ -152,10 +152,18 @@ resolver now accounts for.
 
 ## Wave 6 — P2: investigation board in the UI
 
+Result: a third tab, "Điều tra", in the workbench's Sources & Results panel
+(`frontend/src/components/workbench/InvestigationBoard.tsx`): decision question,
+coverage as four separate numbers, hypotheses with evidence for/against (model
+signals labelled as such), open uncertainties, the conditional conclusion and
+what would change it, proposed tests, and a form to file researcher context
+into the open case. The board refreshes on run completion. Vitest 168/168,
+typecheck, policy lint and bundle budget pass.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W6-01 | Case panel: question, hypotheses, evidence for/against, open uncertainties, "what would change the conclusion", next test, history | Vitest component tests; typecheck | todo |
-| W6-02 | User can add context/assay results to the case | Component + API client tests | todo |
+| W6-01 | Case panel: question, hypotheses, evidence for/against, open uncertainties, "what would change the conclusion", next test, history | Vitest component tests; typecheck | done |
+| W6-02 | User can add context/assay results to the case | Component + API client tests | done |
 
 ## Wave 7 — P1: external benchmark adapters
 

@@ -917,3 +917,131 @@ export class ApiError extends Error {
     this.details = body.error.details;
   }
 }
+
+// --- scientific cases (ADR 0012) ---------------------------------------------
+
+export type HypothesisStatus = 'open' | 'supported' | 'weakened' | 'refuted' | 'unresolvable';
+export type EvidenceStance = 'supports' | 'contradicts' | 'contextual' | 'insufficient';
+
+export interface CaseContextItem {
+  id: string;
+  key: string;
+  value: string;
+  note: string;
+  actor: 'user' | 'model' | 'server';
+  run_id: string | null;
+}
+
+export interface CaseHypothesis {
+  id: string;
+  statement: string;
+  kind: string;
+  refutation_condition: string;
+  status: HypothesisStatus;
+  status_reason: string;
+  actor: string;
+  run_id: string | null;
+}
+
+export interface CaseEvidenceEntry {
+  id: string;
+  claim: string;
+  source_class: string;
+  source_ref: string;
+  stance: EvidenceStance;
+  directness: string;
+  hypothesis_ids: string[];
+  locator: string | null;
+  scope: Record<string, string>;
+  actor: string;
+  run_id: string | null;
+}
+
+export interface CaseUncertainty {
+  id: string;
+  kind: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'blocking';
+  hypothesis_ids: string[];
+  status: 'open' | 'resolved';
+  resolution: string;
+  resolving_refs: string[];
+  actor: string;
+  run_id: string | null;
+}
+
+export interface CaseNextTest {
+  id: string;
+  test: string;
+  rationale: string;
+  discriminates: string[];
+  expected_readouts: string[];
+  actor: string;
+  run_id: string | null;
+}
+
+export interface CaseConclusion {
+  can_say: { text: string; evidence_ids: string[] }[];
+  cannot_say: string[];
+  what_would_change: string[];
+  approver: string;
+  run_id: string | null;
+}
+
+/** Ref coverage and quality coverage side by side; never one score. */
+export interface CaseCoverage {
+  hypotheses: number;
+  with_any_source: number;
+  with_independent_direct_evidence: number;
+  with_counterevidence_considered: number;
+  open_uncertainties: number;
+  blocking_uncertainties: number;
+}
+
+export interface ScientificCase {
+  schema_version: string;
+  case_id: string;
+  session_id: string;
+  subject_key: string;
+  question: string;
+  decision_context: string;
+  subject_refs: string[];
+  status: 'open' | 'closed';
+  context: CaseContextItem[];
+  hypotheses: CaseHypothesis[];
+  evidence: CaseEvidenceEntry[];
+  uncertainties: CaseUncertainty[];
+  actions: { id: string; action: string; purpose: string; decision: string; outcome: string; run_id: string | null }[];
+  next_tests: CaseNextTest[];
+  conclusion: CaseConclusion;
+  runs: { run_id: string; goal: string; stop_reason: string | null; answer_id: string | null }[];
+  coverage: CaseCoverage;
+  revision: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScientificCaseSummary {
+  case_id: string;
+  question: string;
+  subject_key: string;
+  subject_refs: string[];
+  status: 'open' | 'closed';
+  revision: number;
+  hypotheses: number;
+  evidence: number;
+  open_uncertainties: number;
+  runs: number;
+  coverage: CaseCoverage;
+  updated_at: string;
+}
+
+export interface ScientificCaseListResponse {
+  cases: ScientificCaseSummary[];
+}
+
+export interface AddCaseContextInput {
+  key: string;
+  value: string;
+  note?: string;
+}

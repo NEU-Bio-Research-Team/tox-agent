@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, FlaskConical, PackageOpen, X } from 'lucide-react';
+import { FileText, FlaskConical, Microscope, PackageOpen, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { ArtifactViewer } from './ArtifactViewer';
+import { InvestigationBoard } from '../workbench/InvestigationBoard';
 import { artifactPath, type ArtifactKind, type ArtifactSelection } from '../../hooks/useArtifactSelection';
 import { buildArtifactPickerOptions } from '../../lib/artifacts';
 import { listAllEvidence } from '../../lib/api/endpoints';
@@ -31,7 +32,7 @@ export function ArtifactsPanel({
   onAskAboutAnalysis?: (analysisId: string) => void;
 }) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'sources' | 'results'>('results');
+  const [activeTab, setActiveTab] = useState<'sources' | 'results' | 'investigation'>('results');
   const evidenceQuery = useQuery({
     queryKey: ['evidence', sessionId],
     queryFn: () => listAllEvidence(sessionId, { status: 'all' }),
@@ -59,9 +60,9 @@ export function ArtifactsPanel({
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'sources' | 'results')} className="flex min-h-0 flex-1 flex-col">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'sources' | 'results' | 'investigation')} className="flex min-h-0 flex-1 flex-col">
       <div className="border-b px-3 py-2" style={{ borderColor: 'var(--border)' }}>
-        <TabsList className="mb-2 grid w-full grid-cols-2"><TabsTrigger value="sources" className="gap-1"><FileText className="h-3.5 w-3.5" />Sources</TabsTrigger><TabsTrigger value="results" className="gap-1"><FlaskConical className="h-3.5 w-3.5" />Results</TabsTrigger></TabsList>
+        <TabsList className="mb-2 grid w-full grid-cols-3"><TabsTrigger value="sources" className="gap-1"><FileText className="h-3.5 w-3.5" />Sources</TabsTrigger><TabsTrigger value="results" className="gap-1"><FlaskConical className="h-3.5 w-3.5" />Results</TabsTrigger><TabsTrigger value="investigation" className="gap-1"><Microscope className="h-3.5 w-3.5" />Điều tra</TabsTrigger></TabsList>
         <TabsContent value="results" className="m-0">
         <Select
           value={currentValue || undefined}
@@ -116,6 +117,9 @@ export function ArtifactsPanel({
             </p>
           </div>
         )}
+      </TabsContent>
+      <TabsContent value="investigation" className="m-0 flex-1 overflow-y-auto p-4">
+        <InvestigationBoard sessionId={sessionId} />
       </TabsContent>
       <TabsContent value="sources" className="m-0 flex-1 overflow-y-auto p-4">
         {selection?.kind === 'evidence' ? <ArtifactViewer sessionId={sessionId} selection={selection} /> : <div className="flex h-full items-center justify-center text-center text-xs" style={{ color: 'var(--text-faint)' }}>Chọn một source để xem passage, metadata và provenance.</div>}

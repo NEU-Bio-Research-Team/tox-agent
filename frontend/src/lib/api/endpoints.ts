@@ -2,6 +2,7 @@ import { apiBlob, apiRequest } from './client';
 import { collectSequencedPages } from './pagination';
 import type {
   AcceptedResponse,
+  AddCaseContextInput,
   AnalysisProjection,
   AtomAttribution,
   AttributionListResponse,
@@ -26,6 +27,8 @@ import type {
   RecognizedStructure,
   ReportArtifact,
   RunDetail,
+  ScientificCase,
+  ScientificCaseListResponse,
   SessionListResponse,
   SessionProjection,
   SessionResponse,
@@ -332,4 +335,22 @@ export interface HealthReady {
 
 export function getHealthReady(): Promise<HealthReady> {
   return apiRequest('/health/ready');
+}
+
+// --- scientific cases (ADR 0012) ---------------------------------------------
+
+export function listScientificCases(sessionId: string): Promise<ScientificCaseListResponse> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases`);
+}
+
+export function getScientificCase(sessionId: string, caseId: string): Promise<ScientificCase> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}`);
+}
+
+/** Researcher-supplied context (an in-house result, an exposure). The next
+ * turn sees it in the case; it is never presented as a model fact. */
+export function addScientificCaseContext(
+  sessionId: string, caseId: string, input: AddCaseContextInput,
+): Promise<ScientificCase> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}/context`, { method: 'POST', body: input });
 }

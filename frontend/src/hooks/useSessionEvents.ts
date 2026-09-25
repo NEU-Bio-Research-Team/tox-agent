@@ -84,6 +84,10 @@ function invalidateQueriesForEvent(
       void queryClient.invalidateQueries({ queryKey: sessionKey(sessionId) });
       void queryClient.invalidateQueries({ queryKey: messagesKey(sessionId) });
       void queryClient.invalidateQueries({ queryKey: sessionsListKey });
+      // A decision-support run may have changed the session's scientific
+      // case (ADR 0012); the investigation board reads it from REST.
+      void queryClient.invalidateQueries({ queryKey: ['cases', sessionId] });
+      void queryClient.invalidateQueries({ queryKey: ['case', sessionId] });
       if (runId) void queryClient.invalidateQueries({ queryKey: runKey(sessionId, runId) });
       return;
 
