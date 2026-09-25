@@ -106,6 +106,18 @@ def intent_lane(intent: str, *, report_orchestrator_v2: bool) -> str:
     return "agentic"
 
 
+def _skills_section(settings: Settings, flags: dict[str, Any]) -> dict[str, Any]:
+    from .skill_catalog import load_catalog
+
+    if flags["scientific_skills_v1"]["enabled"]:
+        mode = "dynamic"
+    elif getattr(settings.runtime, "scientific_skills_static", False):
+        mode = "static"
+    else:
+        mode = "off"
+    return {"mode": mode, **load_catalog(settings.profiles_dir).manifest()}
+
+
 def describe_effective_product(
     settings: Settings,
     *,
@@ -196,6 +208,9 @@ def describe_effective_product(
             "compound_provider": getattr(settings.compound, "provider", None) or None,
             "ocr_configured": bool(settings.ocr.base_url),
         },
+        # ADR 0012 / RETHINK §5.5: which skill arm this deployment runs and
+        # the exact skill texts, so two runs of the ablation can be told apart.
+        "scientific_skills": _skills_section(settings, flags),
         "hashes": {
             **prompt_hashes(settings.profiles_dir),
             **({"tool_registry": registry.schema_hash()} if registry is not None else {}),

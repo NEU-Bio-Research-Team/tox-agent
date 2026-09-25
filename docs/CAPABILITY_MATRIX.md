@@ -51,7 +51,7 @@ Any other target, or any other method, is `not_measured`.
 |---|---|---|
 | `analysis` | `create_analysis_snapshot`, `get_analysis_slice`, `submit_grounded_answer` | — |
 | `audit_readonly` | `get_analysis_slice`, `get_evidence_record`, `get_explanation_slice` | — |
-| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `get_scientific_case` (scientific_case_v1), `record_decision_plan` (decision_state_plan_tool), `update_scientific_case` (scientific_case_v1) |
+| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `get_scientific_case` (scientific_case_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `update_scientific_case` (scientific_case_v1) |
 | `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | — |
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
 | `report_qa` | `get_analysis_slice`, `get_attribution`, `submit_grounded_answer` | — |
@@ -70,6 +70,7 @@ Any other target, or any other method, is `not_measured`.
 | `router_v2` | no | backend-platform | 2026-12-12 | — |
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `scientific_case_v1` | no | backend-scientific | 2026-12-23 | `get_scientific_case`, `update_scientific_case` |
+| `scientific_skills_v1` | no | backend-scientific | 2026-12-23 | `read_scientific_skill`, `read_skill_reference` |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
 
 ## Instruction surfaces
@@ -96,3 +97,15 @@ provider count.
 | `research-toxicology-evidence` | 1149 |
 | `compose-scientific-report` | 2034 |
 | `preflight-report-draft` | 2425 |
+
+## Scientific skills (ADR 0012)
+
+off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.
+
+Dynamic index ≈ 398 tokens; static composition of every active skill ≈ 3654 tokens.
+
+| Skill | Version | Status | Risk | Requires | Tokens (body / with references) |
+|---|---|---|---|---|---|
+| `assess-conflicting-evidence` | 1.0.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 915 / 1727 |
+| `critique-case` | 1.0.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 670 / 683 |
+| `interpret-model-attribution` | 1.0.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 718 / 1238 |

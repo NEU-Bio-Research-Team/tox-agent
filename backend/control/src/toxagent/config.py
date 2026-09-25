@@ -329,6 +329,12 @@ class RuntimeSettings:
     #: ``(runtime_health_check_retries - 1) * runtime_health_check_retry_delay_s``,
     #: negligible against ``turn_deadline_s``.
     runtime_health_check_retry_delay_s: float = 1.0
+    #: The static comparison arm of the skill ablation (RETHINK §5.5): every
+    #: available scientific skill composed into the decision_support prompt,
+    #: the way the report profile composes its skills. An evaluation setting,
+    #: not a product one; ignored while scientific_skills_v1 (the dynamic
+    #: arm) is on.
+    scientific_skills_static: bool = False
 
     @classmethod
     def from_env(cls) -> "RuntimeSettings":
@@ -367,6 +373,9 @@ class RuntimeSettings:
             runtime_health_check_retry_delay_s=_float(
                 "TOXAGENT_RUNTIME_HEALTH_CHECK_RETRY_DELAY_S",
                 cls.runtime_health_check_retry_delay_s,
+            ),
+            scientific_skills_static=_bool(
+                "TOXAGENT_SCIENTIFIC_SKILLS_STATIC", cls.scientific_skills_static
             ),
         )
 

@@ -103,12 +103,26 @@ relations, so the investigator arm runs with `answer_draft_v2` on.
 
 ## Wave 4 — P1/P2: scientific skill catalog, loaded on demand
 
+Result: `application/skill_catalog.py` validates and hashes packages under
+`agent_profiles/scientific_skills` (Agent Skills front matter + ToxAgent
+manifest + declared references; drafts never offered; a skill is offered only
+when every tool it requires is visible, so none can grant a capability). Three
+skills ship: `assess-conflicting-evidence`, `interpret-model-attribution`,
+`critique-case` (all require the case tools). Arms: off (default), static
+(`TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1`), dynamic (flag `scientific_skills_v1`:
+index in the prompt, two closed read tools). Each run's decision state records
+the arm, the skills offered, and every skill/reference read with version and
+content hash; the effective product records the arm and catalog hash; the
+capability matrix lists token cost per skill (dynamic index ≈ 400 tokens vs
+static ≈ 3 650). The 30-fold hERG margin in a reference was checked against
+Redfern et al. 2003 (Cardiovasc Res 58(1):32–45) before shipping.
+
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W4-01 | Skill package format: `SKILL.md` (Agent Skills `name`/`description`) + `skill.manifest.json` (version, owner, allowed profiles, required capabilities, risk tier, eval set) + `references/` | Catalog loader validates, hashes and refuses a skill whose required tools are absent | todo |
-| W4-02 | Skills: `assess-conflicting-evidence`, `interpret-model-attribution`, `critique-case` | Each has a manifest and an eval-set pointer | todo |
-| W4-03 | Tools `list_scientific_skills` (metadata only), `read_scientific_skill` (pinned body + hash), `read_skill_reference` | Tool tests; a skill cannot grant a tool | todo |
-| W4-04 | Arms for ablation: `off` / `static` (bodies composed into the prompt) / `dynamic` (metadata + tools); skills *seen* and *loaded* recorded per run with hashes | Settings + manifest + telemetry tests | todo |
+| W4-01 | Skill package format: `SKILL.md` (Agent Skills `name`/`description`) + `skill.manifest.json` (version, owner, allowed profiles, required capabilities, risk tier, eval set) + `references/` | Catalog loader validates, hashes and refuses a skill whose required tools are absent | done |
+| W4-02 | Skills: `assess-conflicting-evidence`, `interpret-model-attribution`, `critique-case` | Each has a manifest and an eval-set pointer | done |
+| W4-03 | Tools `read_scientific_skill` (pinned body + hash) and `read_skill_reference`; the metadata listing is the prompt index | Tool tests; a skill cannot grant a tool | done |
+| W4-04 | Arms for ablation: `off` / `static` (bodies composed into the prompt) / `dynamic` (metadata + tools); skills *seen* and *loaded* recorded per run with hashes | Settings + manifest + telemetry tests | done |
 
 ## Wave 5 — Comparison study harness (A–D + platforms) and lab-ready logging
 

@@ -169,6 +169,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
         removal_condition="paired comparison study (evals/investigation) graded by the lab "
                           "shows no increase in unsupported claims or false reassurance, and "
                           "TAB-Suite core has no critical pass->fail with the flag on",
+    ),    _flag(
+        "scientific_skills_v1",
+        "The dynamic skill arm: decision_support prompts list the scientific "
+        "skill catalog (names and descriptions) and register "
+        "read_scientific_skill/read_skill_reference, so the model loads a "
+        "skill's pinned instructions only when the situation calls for it. "
+        "Off, no skill is offered (TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 selects "
+        "the static comparison arm instead).",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 25),
+        remove_by=date(2026, 12, 23),
+        removal_condition="per-skill paired ablation (no skill / static / dynamic) shows gain "
+                          "on the skill's positive cases with no rise in unsupported claims, "
+                          "false reassurance or false triggers on its negative cases",
     ),
 )
 

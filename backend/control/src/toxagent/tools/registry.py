@@ -64,8 +64,10 @@ PROFILES: Final[dict[str, frozenset[str]]] = {
             # decision_state_plan_tool flag (tools/bootstrap.py), so it is
             # absent from tools/list until then.
             "record_decision_plan",
-            # ADR 0012: the cross-turn case, behind scientific_case_v1.
+            # ADR 0012: the cross-turn case, behind scientific_case_v1, and
+            # scientific skills read on demand, behind scientific_skills_v1.
             "get_scientific_case", "update_scientific_case",
+            "read_scientific_skill", "read_skill_reference",
         }
     ),
     #: Read-only audit. Deliberately without submit_grounded_answer: an auditor
@@ -118,6 +120,8 @@ FLAG_GATED_TOOLS: Final[dict[str, str]] = {
     "record_decision_plan": "decision_state_plan_tool",
     "get_scientific_case": "scientific_case_v1",
     "update_scientific_case": "scientific_case_v1",
+    "read_scientific_skill": "scientific_skills_v1",
+    "read_skill_reference": "scientific_skills_v1",
 }
 
 

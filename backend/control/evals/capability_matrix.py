@@ -146,6 +146,40 @@ def _report_build_skills() -> dict[str, Any]:
     }
 
 
+def _scientific_skills() -> dict[str, Any]:
+    from toxagent.config import PACKAGE_ROOT
+    from toxagent.harness.prompt_budget import estimate_tokens
+    from toxagent.application.skill_catalog import load_catalog, render_index, render_static
+
+    catalog = load_catalog(PACKAGE_ROOT / "agent_profiles")
+    active = [s for s in catalog.skills if s.status == "active"]
+    return {
+        "loading": (
+            "off by default; dynamic with flag scientific_skills_v1 (an index of names and "
+            "descriptions in the decision_support prompt, bodies and references read on demand "
+            "through read_scientific_skill/read_skill_reference, every read recorded with its "
+            "hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed "
+            "into the prompt, for the ablation only). A skill is offered only when every tool it "
+            "requires is visible to the run."
+        ),
+        "catalog_sha256": catalog.catalog_sha256,
+        "skills": [
+            {
+                "skill_id": skill.skill_id, "version": skill.version, "status": skill.status,
+                "risk_tier": skill.manifest["risk_tier"],
+                "required_capabilities": sorted(skill.required_capabilities),
+                "references": sorted(skill.references),
+                "estimated_tokens_body": estimate_tokens(skill.body),
+                "estimated_tokens_with_references": estimate_tokens(render_static([skill])),
+                "content_sha256": skill.content_sha256,
+            }
+            for skill in catalog.skills
+        ],
+        "estimated_tokens_dynamic_index": estimate_tokens(render_index(active)),
+        "estimated_tokens_static_all": estimate_tokens(render_static(active)),
+    }
+
+
 def _runtime_invariants() -> list[str]:
     from toxagent.harness.context import SCIENTIFIC_INVARIANTS
 
@@ -174,6 +208,7 @@ def build_matrix() -> dict[str, Any]:
             "decision_support": _decision_support_prompt(),
             "report_build": _report_build_skills(),
         },
+        "scientific_skills": _scientific_skills(),
     }
 
 
@@ -269,6 +304,21 @@ def render_markdown(matrix: dict[str, Any]) -> str:
     ]
     for skill, tokens in rb["estimated_tokens_by_skill"].items():
         out.append(f"| `{skill}` | {tokens} |")
+    sk = matrix["scientific_skills"]
+    out += [
+        "", "## Scientific skills (ADR 0012)", "",
+        f"{sk['loading']}", "",
+        f"Dynamic index ≈ {sk['estimated_tokens_dynamic_index']} tokens; static composition of "
+        f"every active skill ≈ {sk['estimated_tokens_static_all']} tokens.", "",
+        "| Skill | Version | Status | Risk | Requires | Tokens (body / with references) |",
+        "|---|---|---|---|---|---|",
+    ]
+    for x in sk["skills"]:
+        out.append(
+            f"| `{x['skill_id']}` | {x['version']} | {x['status']} | {x['risk_tier']} | "
+            f"{_cell(x['required_capabilities'])} | {x['estimated_tokens_body']} / "
+            f"{x['estimated_tokens_with_references']} |"
+        )
     return "\n".join(out) + "\n"
 
 

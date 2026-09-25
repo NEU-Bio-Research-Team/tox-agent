@@ -134,6 +134,10 @@ class DecisionSupportStateV1:
     found_refs: tuple[str, ...] = ()
     stop_reason: str | None = None
     answer_outcome: str | None = None
+    #: ADR 0012: which scientific skills this run was offered and which it
+    #: actually read, each pinned by version and content hash, plus the arm
+    #: (off/static/dynamic). Empty for a run that met no catalog.
+    skills: Mapping[str, Any] = field(default_factory=dict)
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -164,6 +168,7 @@ class DecisionSupportStateV1:
             "found_refs": list(self.found_refs),
             "stop_reason": self.stop_reason,
             "answer_outcome": self.answer_outcome,
+            "skills": dict(self.skills),
             "revision": self.revision,
         }
 
@@ -188,6 +193,7 @@ class DecisionSupportStateV1:
             found_refs=tuple(data.get("found_refs") or ()),
             stop_reason=data.get("stop_reason"),
             answer_outcome=data.get("answer_outcome"),
+            skills=dict(data.get("skills") or {}),
             revision=int(data.get("revision", 0)),
         )
 
@@ -353,6 +359,48 @@ def apply_answer(
             status = proposition.status
         resolved.append(replace(proposition, status=status, artifact_refs=grounded))
     return _next(state, propositions=tuple(resolved), answer_outcome=outcome)
+
+
+def record_skills_offered(
+    state: DecisionSupportStateV1, *, mode: str, offered: Sequence[Mapping[str, str]],
+) -> DecisionSupportStateV1:
+    """The catalog arm and the skills this run was shown (RETHINK §4.8).
+
+    In the static arm every offered skill was composed into the prompt, so it
+    counts as read; in the dynamic arm only a read records one.
+    """
+    if state.stop_reason is not None:
+        return state
+    offered = [dict(item) for item in offered]
+    return _next(state, skills={
+        "mode": mode, "offered": offered,
+        "loaded": list(offered) if mode == "static" else [],
+        "references_loaded": [],
+    })
+
+
+def record_skill_loaded(
+    state: DecisionSupportStateV1, *, pin: Mapping[str, str], reference: str | None = None,
+) -> DecisionSupportStateV1:
+    """A dynamic read of a skill body or one of its references. Idempotent."""
+    if state.stop_reason is not None:
+        return state
+    skills = {
+        "mode": state.skills.get("mode", "dynamic"),
+        "offered": list(state.skills.get("offered") or ()),
+        "loaded": list(state.skills.get("loaded") or ()),
+        "references_loaded": list(state.skills.get("references_loaded") or ()),
+    }
+    if reference is None:
+        if dict(pin) in skills["loaded"]:
+            return state
+        skills["loaded"].append(dict(pin))
+    else:
+        item = {**dict(pin), "reference": reference}
+        if item in skills["references_loaded"]:
+            return state
+        skills["references_loaded"].append(item)
+    return _next(state, skills=skills)
 
 
 def _budget_reached(state: DecisionSupportStateV1) -> bool:

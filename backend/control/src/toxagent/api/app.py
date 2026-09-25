@@ -233,10 +233,13 @@ def create_app(
 
             scheduler.register(Intent.STRUCTURE_RECOGNITION, run_recognize_structure)
 
+        from ..application.skill_catalog import load_catalog
+
         registry = build_registry(
             db, client, analysis, settings.policy,
             research_provider=research_provider, research_settings=settings.research,
             compound_provider=compound_provider, object_store=objects,
+            skill_catalog=load_catalog(settings.profiles_dir),
         )
         runner = ToolRunner(
             registry, db,

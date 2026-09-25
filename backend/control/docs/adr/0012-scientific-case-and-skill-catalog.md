@@ -54,10 +54,13 @@ ADR 0011 removed.
    checked against artifacts the session really has). The server attaches runs,
    records the accepted answer's relations, and finishes runs. The user adds
    context through the API.
-5. **Investigation methods are skills loaded on demand** through closed MCP
-   tools (`list_scientific_skills`, `read_scientific_skill`,
-   `read_skill_reference`), never through the runtime's own `skill`/`read`
-   permissions. A skill is a hash-pinned package (`SKILL.md` +
+5. **Investigation methods are skills loaded on demand.** The prompt carries
+   only an index of names and descriptions (the Agent Skills discovery model);
+   bodies and references are read through two closed MCP tools,
+   `read_scientific_skill` and `read_skill_reference`, never through the
+   runtime's own `skill`/`read` permissions. A separate list tool was dropped:
+   the index already is the listing, and it kept the fully-flagged
+   `decision_support` surface under its ceiling. A skill is a hash-pinned package (`SKILL.md` +
    `skill.manifest.json` + `references/`); it cannot grant a tool, and the
    catalog does not advertise a skill whose required tools the run lacks. Runs
    record the skills they were shown and the ones they loaded.

@@ -43,6 +43,7 @@ from ..application import decision_state_service, scientific_case_service
 from ..domain import decision_state, scientific_case
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
 from .report_profile import compose_report_profile
+from ..application.skill_catalog import load_catalog, render_index, render_static
 from .synthesis_profile import PROFILE_NAME as SYNTHESIS_PROFILE, compose_synthesis_profile
 from .prompt_budget import measure as measure_prompt, split_system_prompt
 from .runtime_profiles import RuntimeProfileRegistry
@@ -135,6 +136,11 @@ class AgentRuntimeGateway:
         # runtime host's own authentication.
         self._secrets = secrets
         self._profiles_dir = profiles_dir
+        # Loaded once and validated: a malformed skill package fails start-up
+        # rather than a run whose record would claim instructions it never got.
+        from ..config import PACKAGE_ROOT
+
+        self._skill_catalog = load_catalog(profiles_dir or PACKAGE_ROOT / "agent_profiles")
         # Which agent and which *real* step cap each intent runs under. Built
         # once: it reads the shipped agent profile files, and those do not
         # change under a running process.
@@ -195,6 +201,14 @@ class AgentRuntimeGateway:
             return
 
         await self._begin_decision_state(context)
+        mode, offered = self._skills_for(profile)
+        if mode != "off":
+            await decision_state_service.advance(
+                self._db, context.run_id,
+                lambda state: decision_state.record_skills_offered(
+                    state, mode=mode, offered=[skill.pin() for skill in offered],
+                ),
+            )
         run_status = "failed"
         try:
             await self._dispatch(
@@ -224,6 +238,28 @@ class AgentRuntimeGateway:
                 await scientific_case_service.finish_run(
                     self._db, session_id=context.session_id, run_id=context.run_id,
                 )
+
+    def _skills_for(self, profile: str) -> tuple[str, tuple]:
+        """The run's skill arm and the skills it offers (RETHINK §5.5).
+
+        ``dynamic`` (flag scientific_skills_v1): an index in the prompt, bodies
+        read on demand. ``static`` (TOXAGENT_SCIENTIFIC_SKILLS_STATIC): every
+        offered skill composed into the prompt. ``off`` otherwise, and for
+        every profile but decision_support. Offered means active, allowed for
+        the profile, and with every required tool visible to this run.
+        """
+        if profile != "decision_support":
+            return "off", ()
+        if is_enabled("scientific_skills_v1"):
+            mode = "dynamic"
+        elif getattr(self._settings, "scientific_skills_static", False):
+            mode = "static"
+        else:
+            return "off", ()
+        offered = self._skill_catalog.available(
+            profile, [tool.name for tool in self._registry.visible_for(profile)]
+        )
+        return (mode, offered) if offered else ("off", ())
 
     async def _commit_with_case(self, context: RunContext) -> None:
         """Finish the case and store the dossier, then complete the run.
@@ -934,12 +970,17 @@ class AgentRuntimeGateway:
         )
         if deadline <= _now():
             raise DeadlineExceeded("the run deadline elapsed before runtime dispatch")
+        skills_mode, offered_skills = self._skills_for(profile)
         prompt = build_system_prompt(
             capability_profile=profile,
             checkpoint=checkpoint,
             pinned=pinned,
             recent_messages=recent,
             scientific_case=case_summary,
+            scientific_skills=(
+                render_index(offered_skills) if skills_mode == "dynamic"
+                else render_static(offered_skills) if skills_mode == "static" else ""
+            ),
         )
         instructions_hash = None
         if context.intent is Intent.BUILD_REPORT:

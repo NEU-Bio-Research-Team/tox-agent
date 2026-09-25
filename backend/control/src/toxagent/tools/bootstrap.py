@@ -21,6 +21,7 @@ from .definitions import inventory as inventory_tools
 from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
 from .definitions import scientific_case as scientific_case_tools
+from .definitions import scientific_skills as scientific_skill_tools
 from .registry import FLAG_GATED_TOOLS, ToolDefinition, ToolRegistry
 from ..flags import is_enabled
 
@@ -40,6 +41,7 @@ def build_registry(
     research_settings: ResearchSettings | None = None,
     compound_provider: CompoundProvider | None = None,
     object_store=None,
+    skill_catalog=None,
     extra: list | None = None,
 ) -> ToolRegistry:
     registry = ToolRegistry()
@@ -86,6 +88,18 @@ def build_registry(
     for definition in decision_plan_tools.build(database):
         add(definition)
     for definition in scientific_case_tools.build(database):
+        add(definition)
+    if skill_catalog is None:
+        from ..config import PACKAGE_ROOT
+        from ..application.skill_catalog import load_catalog
+
+        skill_catalog = load_catalog(PACKAGE_ROOT / "agent_profiles")
+    # Gated by scientific_skills_v1. Visibility is read at call time, from the
+    # finished registry: a skill is readable only if its required tools are.
+    for definition in scientific_skill_tools.build(
+        database, skill_catalog,
+        lambda profile: [tool.name for tool in registry.visible_for(profile)],
+    ):
         add(definition)
     if compound_provider is not None:
         for definition in compound_tools.build(database, compound_provider):

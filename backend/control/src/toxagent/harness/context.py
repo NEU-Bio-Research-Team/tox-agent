@@ -269,12 +269,15 @@ def build_system_prompt(
     pinned: Sequence[PinnedReference],
     recent_messages: Sequence[Message],
     scientific_case: str = "",
+    scientific_skills: str = "",
 ) -> str:
     """Plan section 10.4: product/system role, invariants, profile, checkpoint,
     pinned references, recent messages — in that order, always.
 
     ``scientific_case`` is the case checkpoint (ADR 0012); empty unless the
-    run is attached to one, and then the case policy is stated with it."""
+    run is attached to one, and then the case policy is stated with it.
+    ``scientific_skills`` is the skill catalog section of the run's arm: an
+    index in the dynamic arm, composed skills in the static arm, else empty."""
     sections = [
         PRODUCT_ROLE,
         SCIENTIFIC_INVARIANTS,
@@ -288,6 +291,8 @@ def build_system_prompt(
         sections.append(DECISION_SUPPORT_POLICY)
     if scientific_case:
         sections.append(SCIENTIFIC_CASE_POLICY)
+    if scientific_skills:
+        sections.append(scientific_skills)
     rendered_checkpoint = checkpoint.render()
     if rendered_checkpoint:
         sections.append(rendered_checkpoint)

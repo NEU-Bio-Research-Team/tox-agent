@@ -1,0 +1,16 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "critique-case",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-scientific",
+  "allowed_profiles": ["decision_support"],
+  "required_capabilities": ["get_scientific_case", "update_scientific_case"],
+  "risk_tier": "medium",
+  "output_contract": "a record_action with action critique naming what changed; corrected statuses, evidence and uncertainties; set_conclusion whose can_say lines cite ledger ids, with cannot_say and what_would_change",
+  "eval_set": {
+    "positive_tags": ["decision_question", "go_no_go"],
+    "negative_tags": ["numeric_lookup"]
+  },
+  "references": []
+}
