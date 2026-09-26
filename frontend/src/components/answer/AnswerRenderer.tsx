@@ -4,7 +4,7 @@ import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
 import type { GroundedAnswer } from '../../lib/api/types';
-import { linkifyClaims, CLAIM_LINK_SCHEME } from '../../lib/answerMarkdown';
+import { linkifyClaims, numberEvidenceMarkers, CLAIM_LINK_SCHEME } from '../../lib/answerMarkdown';
 import { ClaimChip } from './ClaimChip';
 import { AnswerSources } from './AnswerSources';
 import { LimitationBlock } from './LimitationBlock';
@@ -48,7 +48,10 @@ function buildComponents(sessionId: string, answer: GroundedAnswer): Components 
 }
 
 export function AnswerRenderer({ answer, sessionId }: { answer: GroundedAnswer; sessionId: string }) {
-  const linkedMarkdown = useMemo(() => linkifyClaims(answer.answer_markdown, answer.claims), [answer]);
+  const linkedMarkdown = useMemo(
+    () => linkifyClaims(numberEvidenceMarkers(answer.answer_markdown, answer.claims), answer.claims),
+    [answer],
+  );
   const components = useMemo(() => buildComponents(sessionId, answer), [sessionId, answer]);
 
   return (

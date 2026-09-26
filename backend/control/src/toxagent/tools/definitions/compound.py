@@ -14,9 +14,11 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...domain.errors import AnalysisNotFound
+from ...application import scientific_case_service
+from ...domain.errors import AnalysisNotFound, ToolDenied
 from ...domain.events import EventType
 from ...domain.observation import Observation, ObservationKind, Producer
+from ...flags import is_enabled
 from ...research.compound import CompoundProvider
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
@@ -44,6 +46,21 @@ def build(database, provider: CompoundProvider) -> list[ToolDefinition]:
             raise AnalysisNotFound(
                 "no such analysis in this session", analysis_id=payload.analysis_id
             )
+        if is_enabled("scientific_case_v1"):
+            # W9-07's data scope covers every lookup that sends the structure
+            # out, not only literature search: a live report build on a case
+            # restricted to internal data sent its SMILES here (2026-09-26).
+            async with database.unit_of_work() as uow:
+                refusal = await scientific_case_service.external_search_refusal(
+                    uow, session_id=context.session_id, analysis_id=snapshot.id,
+                )
+            if refusal is not None:
+                raise ToolDenied(
+                    "the researcher's data scope for this compound does not allow external "
+                    f"lookups ({refusal}); the chemical database was not queried. Describe "
+                    "the compound by its analysed structure only.",
+                    reason="case_data_scope",
+                )
 
         record = await provider.resolve(canonical_smiles=snapshot.canonical_smiles)
         canonical = {**record.to_dict(), "raw": dict(record.raw)}

@@ -39,10 +39,15 @@ from .citations import (
     cited_in_prose,
     validate_basis,
     validate_citations,
+    validate_observation_reference,
     validate_recommendation_basis,
 )
 from .classification import validate_classification
-from .coverage import validate_markdown_numeric_coverage, validate_no_uncited_links
+from .coverage import (
+    cited_fact_values,
+    validate_markdown_numeric_coverage,
+    validate_no_uncited_links,
+)
 from .limitations import required_for_answer
 from .numeric import validate_derived_numeric, validate_field_backed_numeric
 from .prohibited_claims import (
@@ -319,6 +324,7 @@ def _validate_claims(
             )
             violations += validate_basis(claim, has_observation_basis=has_observation_basis)
 
+        violations += validate_observation_reference(claim, context.observations_by_id)
         violations += validate_citations(
             claim, context.evidence_by_id, read_evidence_ids=context.read_evidence_ids
         )
@@ -363,8 +369,14 @@ def _validate_claims(
             validate_no_uncited_links(section.body_markdown), f"sections[{section.section_id}]"
         )
         section_claims = [by_id[cid] for cid in section.claim_ids if cid in by_id]
+        # A section cites through its claims and through [@evd_…] in its prose.
+        cited = {eid for claim in section_claims for eid in claim.citation_ids}
+        cited |= cited_in_prose(section.body_markdown)
         violations += _prefixed(
-            validate_markdown_numeric_coverage(section.body_markdown, section_claims),
+            validate_markdown_numeric_coverage(
+                section.body_markdown, section_claims,
+                claimed_values=cited_fact_values(cited, context.evidence_by_id),
+            ),
             f"sections[{section.section_id}]",
         )
     return violations

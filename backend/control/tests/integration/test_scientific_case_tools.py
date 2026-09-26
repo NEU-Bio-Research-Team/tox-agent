@@ -146,18 +146,36 @@ async def test_an_evidence_ref_must_exist_and_be_of_the_right_kind(db, case_flag
     assert "not an accepted evidence record" in missing["error"]["message"]
 
 
-async def test_a_refused_operation_applies_none_of_the_batch(db, case_flag):
+async def test_a_refused_operation_is_reported_and_the_rest_are_recorded(db, case_flag):
+    """Live e2e, 2026-09-26: all-or-nothing made the model rewrite its whole
+    batch for one wrong id, a minute a round, until the turn hit its deadline."""
     runner, context, _, _ = await scenario(db)
-    refused = await runner.call(context, "update_scientific_case", {"operations": [
+    result = await runner.call(context, "update_scientific_case", {"operations": [
+        {"op": "revise_hypothesis", "hypothesis_id": "h1", "status": "supported",
+         "reason": "no evidence"},
         {"op": "add_hypothesis", "statement": "h", "hypothesis_kind": "other",
          "refutation_condition": "r"},
+        {"op": "record_evidence", "claim": "c", "source_class": "external_experimental",
+         "source_ref": "evidence:evd_" + "9" * 32, "stance": "supports", "hypothesis_ids": ["h1"]},
+    ]})
+    assert result["status"] == "completed", result
+    view = result["model_view"]
+    assert view["applied"] == ["add_hypothesis"]
+    assert [(r["index"], r["op"]) for r in view["refused"]] == [
+        (0, "revise_hypothesis"), (2, "record_evidence")]
+    assert "not an accepted evidence record" in view["refused"][1]["reason"]
+    read = await runner.call(context, "get_scientific_case", {})
+    assert [h["id"] for h in read["model_view"]["hypotheses"]] == ["h1"]
+
+
+async def test_a_batch_with_nothing_valid_applies_nothing(db, case_flag):
+    runner, context, _, _ = await scenario(db)
+    refused = await runner.call(context, "update_scientific_case", {"operations": [
         {"op": "revise_hypothesis", "hypothesis_id": "h1", "status": "supported",
          "reason": "no evidence"},
     ]})
     assert refused["error"]["code"] == "invalid_request"
     assert refused["error"]["message"].startswith("no operation was applied")
-    read = await runner.call(context, "get_scientific_case", {})
-    assert read["model_view"]["hypotheses"] == []
 
 
 async def test_a_run_without_a_case_is_told_so(db, case_flag):

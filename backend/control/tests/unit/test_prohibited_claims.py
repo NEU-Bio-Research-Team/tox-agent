@@ -182,6 +182,10 @@ DENIALS = [
     "Cần xác minh độc lập về tín hiệu hERG và dữ liệu an toàn bổ sung.",
     "We can’t provide one scientifically valid overall toxicity score. This analysis exposes separate endpoints.",
     "Đây là tín hiệu sàng lọc; dự đoán không tự nó thay thế đánh giá an toàn.",
+    # Live e2e, 2026-09-26.
+    "Mô hình dự đoán blocker, nhưng chưa nên diễn giải đây là kết luận về an toàn hay nguy cơ lâm sàng.",
+    "Biên này là tỷ số phơi nhiễm riêng; nó không tự nó là phán quyết an toàn.",
+    "Đây là tỷ số IC50/free Cmax, không phải phán quyết an toàn.",
 ]
 
 VERDICTS = [
@@ -203,6 +207,8 @@ VERDICTS = [
     "Kết quả thử nghiệm an toàn.",
     "Hồ sơ an toàn tốt.",
     "Dữ liệu an toàn cho người dùng.",
+    "Kết luận: hợp chất an toàn.",
+    "Không nên lo, hợp chất an toàn.",
 ]
 
 

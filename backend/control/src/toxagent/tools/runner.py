@@ -330,7 +330,10 @@ class ToolRunner:
             uow.emit(
                 session_id=context.session_id, type=EventType.TOOL_FAILED,
                 entity_type="tool_call", entity_id=context.call_id, run_id=context.run_id,
-                payload={"tool_name": tool_name, "error_code": code},
+                # The message the model was shown, so a refused call can be
+                # diagnosed after the runtime session is gone (live e2e,
+                # 2026-09-26: four invalid_request case updates, no trace why).
+                payload={"tool_name": tool_name, "error_code": code, "message": message[:600]},
             )
             uow.emit(
                 session_id=context.session_id, type=EventType.ACTIVITY_FAILED,

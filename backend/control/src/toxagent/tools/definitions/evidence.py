@@ -122,6 +122,26 @@ class GetEvidenceInput(_Input):
     )
 
 
+def _server_held_names(observations) -> list[str]:
+    """Names the server matched to this structure itself: ChEMBL's preferred
+    name (W9-13) and the compound resolver's. Live e2e, 2026-09-26: with only
+    the SMILES as a name, every paper about terfenadine was "compound_mismatch"
+    although ChEMBL had already named the structure in the same run."""
+    names: list[str] = []
+    for observation in observations:
+        payload = observation.canonical_payload
+        if observation.schema_version == "activity-summary-1":
+            found = [payload.get("molecule_name")]
+        elif observation.schema_version == "compound-record-v1" and payload.get("resolved"):
+            found = [payload.get("preferred_name"), *(payload.get("synonyms") or ())[:5]]
+        else:
+            continue
+        for name in found:
+            if isinstance(name, str) and name.strip() and name.strip() not in names:
+                names.append(name.strip())
+    return names
+
+
 def build(
     database, provider: ResearchProvider, settings: ResearchSettings
 ) -> list[ToolDefinition]:
@@ -194,11 +214,15 @@ def build(
         # model-supplied names would let it search for what it expected.
         # No snapshot means no molecule (W9-08): results are then judged on
         # the endpoint alone, never on names the model supplied.
-        identity = CompoundIdentity(
-            canonical_smiles=snapshot.canonical_smiles,
-            preferred_name=snapshot.canonical_smiles,
-            synonyms=tuple(payload.compound_names or ()),
-        ) if snapshot is not None else None
+        identity = None
+        if snapshot is not None:
+            async with database.unit_of_work() as uow:
+                held = _server_held_names(await uow.observations.list_for_analysis(snapshot.id))
+            identity = CompoundIdentity(
+                canonical_smiles=snapshot.canonical_smiles,
+                preferred_name=held[0] if held else snapshot.canonical_smiles,
+                synonyms=(*held[1:], *(payload.compound_names or ())),
+            )
         retrieved_at = _now()
         envelope_on = is_enabled("trust_envelope_v1")
         model_results: list[dict] = []
@@ -255,12 +279,16 @@ def build(
                             )
                         else:
                             promoted += 1
-                    await uow.evidence.add(final)
-                    uow.emit(
-                        session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
-                        entity_type="evidence", entity_id=final.id, run_id=context.run_id,
-                        payload={"provider": final.provider, "status": final.status.value},
-                    )
+                    stored = await uow.evidence.add_if_absent(final)
+                    if stored is final:
+                        uow.emit(
+                            session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
+                            entity_type="evidence", entity_id=final.id, run_id=context.run_id,
+                            payload={"provider": final.provider, "status": final.status.value},
+                        )
+                    else:  # a parallel search stored it first
+                        final = stored
+                        reused += 1
                 if final.status is EvidenceStatus.ACCEPTED:
                     result_view = final.model_view(fields=_SEARCH_RESULT_FIELDS)
                     result_views.append(result_view)

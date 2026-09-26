@@ -7,6 +7,7 @@ out of the model prompt while being sent only as a remote-MCP secret header.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -354,6 +355,43 @@ async def test_v1_local_mode_creates_and_reaps_only_its_run_workspace(tmp_path: 
 
     assert closed.closed
     assert not workspace.exists()
+    await client.aclose()
+
+
+async def test_v1_local_mode_gives_a_runs_second_session_its_own_workspace(tmp_path: Path):
+    """The claim reviewer (W9-12) opens a second runtime session for a run
+    whose first workspace still exists; reusing the run id made every review
+    fail with "could not create local OpenCode run workspace" on the live host."""
+    settings = RuntimeSettings(
+        kind="opencode",
+        opencode_base_url="http://opencode.test",
+        opencode_directory=str(tmp_path / "opencode-runs"),
+        opencode_create_run_directories=True,
+        provider_id="provider-a",
+        model_id="model-a",
+    )
+    created = iter(["opencode-session-1", "opencode-session-2"])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/session" and request.method == "POST":
+            return httpx.Response(200, json={"id": next(created)})
+        if request.url.path.endswith("/disconnect") or request.method == "DELETE":
+            return httpx.Response(200, json=True)
+        raise AssertionError(f"unexpected request {request.method} {request.url}")
+
+    client = httpx.AsyncClient(base_url="http://opencode.test", transport=httpx.MockTransport(handler))
+    provider = OpenCodeV1Provider(settings, client=client)
+    first = await provider.create_session(_spec())
+    review = await provider.create_session(replace(_spec(), profile="claim_review"))
+    runs = tmp_path / "opencode-runs"
+    assert (runs / _spec().run_id).is_dir()
+    assert (runs / f"{_spec().run_id}-claim-review").is_dir()
+
+    await provider.close(review)
+    assert not (runs / f"{_spec().run_id}-claim-review").exists()
+    assert (runs / _spec().run_id).is_dir()
+    await provider.close(first)
+    assert not (runs / _spec().run_id).exists()
     await client.aclose()
 
 

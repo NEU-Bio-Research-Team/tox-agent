@@ -318,3 +318,32 @@ async def test_a_case_restricted_to_internal_data_cannot_search_outside(db, flag
         )).json()
         assert dossier["data_scope"] == {"external_search": False,
                                          "reason": "unpublished structure", "run_id": None}
+
+
+async def test_a_batch_may_name_a_hypothesis_it_adds_later_in_the_list(db, flags_on):
+    """Live e2e, 2026-09-26: an entry naming "h2" listed before the
+    add_hypothesis that issues h2 refused the whole batch."""
+    state: dict = {}
+
+    async def turn(turn) -> None:
+        state["update"] = await turn.call_tool("update_scientific_case", {"operations": [
+            {"op": "set_conclusion", "cannot_say": ["whether it blocks hERG at exposure"],
+             "what_would_change": ["an in-house patch-clamp IC50"]},
+            {"op": "record_uncertainty", "uncertainty_kind": "missing_exposure",
+             "description": "No free Cmax", "severity": "high", "hypothesis_ids": ["h2"]},
+            {"op": "add_hypothesis", "statement": H1, "hypothesis_kind": "mechanism",
+             "refutation_condition": "An IC50 far above free Cmax"},
+            {"op": "add_hypothesis", "statement": "The signal is an assay artefact",
+             "hypothesis_kind": "assay_or_exposure",
+             "refutation_condition": "Patch clamp agrees with the binding assay"},
+        ]})
+        await turn.call_tool("submit_grounded_answer", _answer(None, "It depends on exposure."))
+
+    async with api_client(db, StubPredictor()) as client:
+        await _install_scripted_runtime(client, turn)
+        session_id = await _new_session(client)
+        await _analyse(client, session_id)
+        await _post(client, session_id, "Should hERG stop us?")
+    assert state["update"]["status"] == "completed", state["update"]
+    case_id = state["update"]["model_view"]["case_id"]
+    assert case_id.startswith("scase_")

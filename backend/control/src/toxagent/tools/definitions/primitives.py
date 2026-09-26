@@ -20,6 +20,7 @@ from typing import Final, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...application import scientific_case_service
+from ...domain import activity_summary
 from ...domain import exposure_margin as em
 from ...domain import scientific_case as sc
 from ...domain.errors import AnalysisNotFound, InvalidRequest, ToolDenied
@@ -178,10 +179,12 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
                         "relevance": "direct", "reason_codes": ["structure_match", "target_match"],
                         "policy_version": RELEVANCE_POLICY_VERSION,
                     })
-                    await uow.evidence.add(final)
-                    uow.emit(session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
-                             entity_type="evidence", entity_id=final.id, run_id=context.run_id,
-                             payload={"provider": "chembl", "status": final.status.value})
+                    stored = await uow.evidence.add_if_absent(final)
+                    if stored is final:
+                        uow.emit(session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
+                                 entity_type="evidence", entity_id=final.id, run_id=context.run_id,
+                                 payload={"provider": "chembl", "status": final.status.value})
+                    final = stored
                 else:
                     final = existing
                 if final.status is EvidenceStatus.ACCEPTED:
@@ -189,18 +192,63 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
                     records.append({"evidence_id": final.id, "title": final.title,
                                     "excerpt": final.abstract_or_excerpt,
                                     "facts": final.normalized_facts})
+            summary = activity_summary.summarize(
+                (record["evidence_id"], record["facts"]) for record in records
+            )
+            # The spread is arithmetic the server does (live e2e, 2026-09-26),
+            # stored so a numeric claim can cite its median like any
+            # calculation; the records stay the citable measurements.
+            observation = Observation.create(
+                session_id=context.session_id, run_id=context.run_id,
+                producer=Producer.CALCULATOR, kind=ObservationKind.CALCULATION,
+                schema_version=activity_summary.METHOD_VERSION,
+                canonical_payload={**summary, "molecule_name": lookup.molecule_name,
+                                   "molecule_chembl_id": lookup.molecule_chembl_id},
+                model_projection={
+                    "calculation": "activity_summary", **summary,
+                    "field_paths": {
+                        f"{kind}.{field}": f"by_type.{kind}.{field}"
+                        for kind, group in summary["by_type"].items()
+                        for field in ("n", "min_nM", "median_nM", "max_nM", "median_p")
+                        if field in group
+                    },
+                },
+                provenance={"method_version": activity_summary.METHOD_VERSION,
+                            "evidence_ids": ids, "molecule_chembl_id": lookup.molecule_chembl_id},
+                now=_now(),
+            )
+            # Tied to the analysis so a later literature search can take the
+            # structure-matched name as the compound's identity.
+            await uow.observations.add(observation, analysis_id=snapshot.id)
             await uow.commit()
+        far = {item["evidence_id"]: (kind, item["fold_from_median"])
+               for kind, group in summary["by_type"].items()
+               for item in group.get("far_from_median", ())}
+        for record in records:
+            if record["evidence_id"] in far:
+                kind, fold = far[record["evidence_id"]]
+                record["far_from_median"] = (
+                    f"{fold:g}-fold from the median of the {kind} values; check units, relation "
+                    "and assay before weighing it against the rest")
         view = {
             "found": True, "molecule_chembl_id": lookup.molecule_chembl_id,
+            "molecule_name": lookup.molecule_name,
             "structure_matches": lookup.structure_matches,
-            "target_chembl_id": lookup.target_chembl_id, "records": records,
+            "target_chembl_id": lookup.target_chembl_id,
+            "summary": {"observation_id": observation.id, **summary},
+            "records": records,
             "note": "Measured values from ChEMBL, each under its own assay conditions; compare "
-                    "them only with their assay type and units. Cite a record by evidence_id.",
+                    "them only with their assay type and units. Read the summary before any "
+                    "single record. Cite a record by evidence_id in citation_ids; cite the "
+                    "summary's numbers through its observation_id and field_paths.",
         }
         return ToolOutput(canonical=view, model_view=view, ui_view=view,
-                          observation_ids=tuple(ids),
+                          # The records count as read (citation_not_read reads
+                          # this list); the summary is the one observation made.
+                          observation_ids=(observation.id, *ids),
                           provenance={"analysis_id": snapshot.id, "provider": "chembl",
-                                      "molecule_chembl_id": lookup.molecule_chembl_id})
+                                      "molecule_chembl_id": lookup.molecule_chembl_id,
+                                      "evidence_ids": ids})
 
     tools = [
         ToolDefinition(
@@ -224,8 +272,10 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
             description=(
                 "Measured IC50/Ki/Kd/EC50 values for the analysed structure (matched by structure, "
                 "which can include stereoisomers; the number of matches is reported) against a "
-                "declared target, from ChEMBL. Each becomes an evidence record you can cite by "
-                "evidence_id; the records are returned whole."
+                "declared target, from ChEMBL, with the molecule's ChEMBL name. Each becomes an "
+                "evidence record you can cite by evidence_id; the records are returned whole, with "
+                "a server-computed summary per measurement type (n, range, median, records far "
+                "from the median) whose numbers a numeric claim can cite."
             ),
             input_model=ChemblActivitiesInput, handler=chembl,
             profiles=frozenset({"decision_support"}),

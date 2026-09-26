@@ -50,6 +50,29 @@ def validate_basis(
     ]
 
 
+def validate_observation_reference(
+    claim: ClaimCandidate, observations_by_id: Mapping[str, object]
+) -> list[Violation]:
+    """A claim of any kind that names an observation must name one this run
+    read. Numeric and classification claims already say so on their own path;
+    the others passed with an unknown id and crashed the compile, which builds
+    a domain ``Claim`` that refuses it (live, 2026-09-26: a report draft put a
+    ChEMBL ``evd_`` id in ``observation_id`` and every submit raised)."""
+    if (not claim.observation_id or claim.kind in {"numeric", "classification"}
+            or claim.observation_id in observations_by_id):
+        return []
+    hint = (" — an evidence record is cited through citation_ids, not observation_id"
+            if claim.observation_id.startswith("evd_") else "")
+    return [
+        Violation(
+            "claim_observation_not_found",
+            f"observation {claim.observation_id!r} was not read by this run{hint}",
+            path=f"claims[{claim.claim_id}].observation_id",
+            actual=claim.observation_id,
+        )
+    ]
+
+
 def validate_citations(
     claim: ClaimCandidate,
     evidence_by_id: Mapping[str, EvidenceRecord],
@@ -71,7 +94,10 @@ def validate_citations(
             violations.append(
                 Violation(
                     "citation_not_found",
-                    f"evidence {evidence_id!r} does not exist in this session",
+                    f"evidence {evidence_id!r} does not exist in this session"
+                    + (" — it is an observation id: name it in observation_id with a "
+                       "field_path, not in citation_ids"
+                       if evidence_id.startswith("obs_") else ""),
                     path=path, actual=evidence_id,
                 )
             )

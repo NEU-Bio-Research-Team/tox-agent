@@ -72,6 +72,41 @@ async def apply_updates(
     return updated
 
 
+async def apply_model_updates(
+    uow, *, case_id: str, session_id: str, updates: Sequence[tuple[int, sc.CaseUpdate]],
+) -> tuple[sc.ScientificCaseV1, list[tuple[int, str, str]]]:
+    """The model's batch, applied operation by operation.
+
+    Each refused operation is returned as ``(index, op, reason)`` and the rest
+    are written. All-or-nothing cost a whole model round per mistake: a model
+    rewrites its entire batch — every operation, every field — to fix one id,
+    about a minute each, and three such rounds ended a live turn at its
+    deadline with nothing recorded (2026-09-26). A refused operation is still
+    refused loudly; it just no longer takes the valid ones with it. Raises
+    ``InvalidCaseUpdate`` when nothing could be applied.
+    """
+    case = await uow.scientific_cases.get(case_id, session_id=session_id)
+    if case is None:
+        raise sc.InvalidCaseUpdate("this session has no such scientific case")
+    current, applied, refused = case, [], []
+    for index, item in updates:
+        try:
+            after = sc.apply(current, item)
+        except sc.InvalidCaseUpdate as exc:
+            refused.append((index, item.op, str(exc)))
+            continue
+        if after is not current:
+            applied.append(replace(item, revision=after.revision))
+            current = after
+    if not applied:
+        if refused:
+            raise sc.InvalidCaseUpdate("; ".join(
+                f"operations[{index}] ({op}): {reason}" for index, op, reason in refused))
+        return case, refused
+    await uow.scientific_cases.append(current, applied, expected_revision=case.revision, now=_now())
+    return current, refused
+
+
 async def open_or_continue(
     uow, *, session_id: str, analysis_id: str | None, run_id: str, goal: str,
     subject_refs: Iterable[str], extra_updates: Sequence[sc.CaseUpdate] = (),

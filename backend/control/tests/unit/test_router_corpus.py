@@ -112,6 +112,8 @@ def test_a_real_research_request_still_routes(text: str) -> None:
         "Build me a report for this molecule.",
         "Generate a report I can download.",
         "Tạo báo cáo đầy đủ cho chất này.",
+        "build report",  # live e2e, 2026-09-26: routed to a chat answer
+        "Please generate report.",
     ],
 )
 def test_a_real_report_build_still_routes(text: str) -> None:

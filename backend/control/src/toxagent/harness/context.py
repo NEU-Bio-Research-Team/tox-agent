@@ -72,7 +72,18 @@ version of it. If you want to show fewer digits than the tool gave you \
 (e.g. render "0.731" for a source of 0.73058...), declare transform: \
 "round:3" (matching the digit count you actually rendered), not "identity". \
 This applies to a comparison claim's own rendered_value too: it must match \
-its declared difference/ratio to the same precision it declares.
+its declared difference/ratio to the same precision it declares. Write for a \
+reader: a model probability to three decimals ("round:3", e.g. 0.680) and a \
+computed ratio such as a margin to at most three significant figures \
+("round:1", e.g. 18.7) — never the tool's full-precision float.
+
+A measured value from an evidence record a claim cites (an IC50 from a \
+ChEMBL record, say) may be written in the prose as the record states it, \
+with its units; it is grounded by that citation, not by a numeric claim. \
+Never write an evidence id (evd_...), an observation id, or any citation \
+marker or note about citations ("[citation]", "[1]", "citations appear on each \
+claim") in answer_markdown: the product numbers and lists each claim's \
+citations itself.
 
 Never write a URL or a markdown link in answer_markdown, including when the \
 user explicitly asks for a link, a PubMed link, or "the source" by name. \

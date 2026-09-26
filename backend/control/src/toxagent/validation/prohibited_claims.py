@@ -154,7 +154,12 @@ _DECLINES_TO_ASSERT = re.compile(
     # "không phải nguy cơ lâm sàng hay kết luận an toàn": a few words may come
     # first, but the noun that makes it a declined conclusion must be there.
     r"|\b(không|chưa)\s+phải\s+(?:là\s+)?(?:[\w-]+\s+){0,6}?(kết\s+luận|tuyên\s+bố|"
-    r"bằng\s+chứng|đánh\s+giá|xác\s+nhận)\b",
+    r"bằng\s+chứng|đánh\s+giá|xác\s+nhận|phán\s+quyết|nhận\s+định)\b"
+    # Live, 2026-09-26: "nó không tự nó là phán quyết an toàn", "chưa nên diễn
+    # giải đây là kết luận về an toàn".
+    r"|\bkhông\s+(?:tự\s+(?:nó\s+|chúng\s+)?)?là\s+(?:một\s+)?(phán\s+quyết|kết\s+luận|"
+    r"bằng\s+chứng|đánh\s+giá|khẳng\s+định)\b"
+    r"|\b(không|chưa)\s+nên\s+(diễn\s+giải|hiểu|xem|coi)\b",
     re.IGNORECASE,
 )
 

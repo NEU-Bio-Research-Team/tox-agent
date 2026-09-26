@@ -1199,6 +1199,28 @@ class SqlEvidenceStore:
     async def add(self, record: EvidenceRecord) -> None:
         await self._conn.execute(insert(evidence_records).values(m.evidence_to_row(record)))
 
+    async def add_if_absent(self, record: EvidenceRecord) -> EvidenceRecord:
+        """Insert ``record`` unless the session already holds its dedupe key,
+        and return whichever record the session now has. Two searches a model
+        issues in parallel can both miss ``find_by_dedupe_key`` for the same
+        paper; a plain insert then failed the second tool call on
+        ``uq_evidence_dedupe`` (live, 2026-09-26)."""
+        if self._conn.dialect.name == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert as dialect_insert
+        else:
+            from sqlalchemy.dialects.sqlite import insert as dialect_insert
+        inserted = await self._conn.execute(
+            dialect_insert(evidence_records)
+            .values(m.evidence_to_row(record))
+            .on_conflict_do_nothing(index_elements=["session_id", "dedupe_key"])
+        )
+        if inserted.rowcount > 0:
+            return record
+        existing = await self.find_by_dedupe_key(record.session_id, record.dedupe_key)
+        if existing is None:  # the conflict was on something other than the dedupe key
+            raise Conflict("evidence record could not be stored", evidence_id=record.id)
+        return existing
+
     async def get(self, evidence_id: str, *, session_id: str) -> EvidenceRecord | None:
         row = (
             await self._conn.execute(

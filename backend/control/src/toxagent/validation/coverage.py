@@ -19,9 +19,10 @@ from __future__ import annotations
 
 import re
 from decimal import ROUND_HALF_EVEN, ROUND_HALF_UP, Decimal, InvalidOperation
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from ..domain.errors import Violation
+from ..domain.evidence import EvidenceRecord
 from .wire import ClaimCandidate
 
 #: A probability/percentage-shaped number embedded in free text: a decimal
@@ -81,25 +82,54 @@ def faithful_rendering(token: str, value: float) -> bool:
     )
 
 
+def cited_fact_values(
+    evidence_ids: Iterable[str], evidence_by_id: Mapping[str, EvidenceRecord]
+) -> tuple[float, ...]:
+    """The numbers in the normalized facts of evidence a claim cites.
+
+    A measured IC50 from ChEMBL lives in an evidence record's
+    ``normalized_facts`` ("standard_value": "56.0"), not in an observation, so
+    no claim can carry it as a ``rendered_value``. Before this, "IC50 56,0 nM"
+    in the prose was refused as an unclaimed number and the model dropped the
+    measurements from its answer altogether (live e2e, 2026-09-26). A number
+    that faithfully renders a fact of a *cited* record is grounded by that
+    citation; a record nobody cites grounds nothing.
+    """
+    values: list[float] = []
+    for evidence_id in sorted(set(evidence_ids)):
+        record = evidence_by_id.get(evidence_id)
+        if record is None:
+            continue
+        for fact in (record.normalized_facts or {}).values():
+            if isinstance(fact, bool):
+                continue
+            try:
+                values.append(float(fact))
+            except (TypeError, ValueError):
+                continue
+    return tuple(values)
+
+
 def validate_markdown_numeric_coverage(
     answer_markdown: str, claims: tuple[ClaimCandidate, ...], *,
     claimed_values: Iterable[float] = (),
 ) -> list[Violation]:
-    """``claimed_values`` are the values of the draft's server-resolved claims
-    (grounded-answer v2 only). There the server, not the model, renders each
-    claim, so the model cannot know the exact string to repeat in its prose; a
-    prose number that faithfully renders one of those values still comes from a
-    claim, which is what this check exists to enforce. The v1 and report paths
-    pass nothing and keep the exact-string rule."""
+    """``claimed_values`` are values a prose number may faithfully render
+    rather than repeat verbatim: those of the draft's server-resolved claims
+    (grounded-answer v2), where the server, not the model, renders each claim,
+    and the facts of evidence the draft cites (``cited_fact_values``). Without
+    them the rule is exact-string against each claim's ``rendered_value``."""
+    # "0,680" in Vietnamese prose is the claim's "0.680": the decimal mark is
+    # the reader's, not a different number (live e2e, 2026-09-26).
     rendered_values = {
-        claim.rendered_value for claim in claims if claim.rendered_value
+        claim.rendered_value.replace(",", ".") for claim in claims if claim.rendered_value
     }
     values = tuple(claimed_values)
     violations: list[Violation] = []
     seen: set[str] = set()
     for match in _NUMERIC_TOKEN.finditer(answer_markdown):
         token = match.group(0)
-        if token in rendered_values or token in seen:
+        if token.replace(",", ".") in rendered_values or token in seen:
             continue
         if any(faithful_rendering(token, value) for value in values):
             continue
@@ -108,7 +138,8 @@ def validate_markdown_numeric_coverage(
             Violation(
                 "unclaimed_numeric_value",
                 f"{token!r} appears in answer_markdown but no claim's rendered_value equals it "
-                "— every predictor-derived number in the prose must come from a claim",
+                "— every predictor-derived number in the prose must come from a claim, and a "
+                "measured value must come from the facts of an evidence record a claim cites",
                 path="answer_markdown",
                 actual=token,
             )

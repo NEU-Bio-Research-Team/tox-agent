@@ -72,6 +72,9 @@ REPORT_BUILD_TERMS: Final[tuple[str, ...]] = (
     "write a report", "write me a report", "produce a report", "create a report",
     "full report", "complete report", "detailed report", "comprehensive report",
     "report document", "download a report", "export a report", "pdf report",
+    # Live e2e, 2026-09-26: the terse imperatives name the making just as well.
+    "build report", "build the report", "generate report", "create report",
+    "create the report", "make a report", "make report", "export report",
     "tạo báo cáo", "lập báo cáo", "viết báo cáo", "xuất báo cáo", "báo cáo đầy đủ",
     "báo cáo chi tiết", "báo cáo hoàn chỉnh",
 )
@@ -218,6 +221,14 @@ def _subject_context(request: RouteRequest) -> tuple[str, ...]:
     if request.analysis_id or request.has_active_analysis or request.molecule_smiles:
         return ()
     return ("analysis_id_or_smiles",)
+
+
+
+def _is_general_question(text: str) -> bool:
+    """A sentence that asks something, not a typed SMILES with a stray "?"
+    ("CCO?"): a question mark and at least four words."""
+    stripped = text.strip()
+    return stripped.endswith("?") and len(stripped.split()) >= 4
 
 
 def route(request: RouteRequest) -> Route:
@@ -498,6 +509,23 @@ def route(request: RouteRequest) -> Route:
             Intent.DECISION_SUPPORT, Lane.AGENTIC, "a question about an existing analysis",
             decision=decide(
                 Intent.DECISION_SUPPORT, confidence="medium", codes=("question_about_active",)
+            ),
+        )
+
+    if request.allow_subjectless_research and _is_general_question(request.text):
+        # Live e2e, 2026-09-26: "Những yếu tố nào làm một chất ức chế hERG in
+        # vitro không gây kéo dài QT trên lâm sàng?" was asked for a SMILES
+        # because it names no literature term. A real question with no
+        # molecule is the subjectless case W9-08 exists for.
+        return Route(
+            Intent.DECISION_SUPPORT,
+            Lane.AGENTIC,
+            "a scientific question with no molecule in the session",
+            needs_snapshot_first=False,
+            decision=decide(
+                Intent.DECISION_SUPPORT,
+                confidence="low",
+                codes=("general_question", "subject_absent"),
             ),
         )
 

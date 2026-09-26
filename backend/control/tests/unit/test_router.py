@@ -97,6 +97,19 @@ def test_a_subject_still_binds_research_when_subjectless_research_is_allowed():
     assert "subject_absent" not in decision.decision.reason_codes
 
 
+def test_a_general_question_with_no_molecule_is_subjectless_research_when_allowed():
+    """Live e2e, 2026-09-26: a science question naming no literature term
+    was asked for a SMILES."""
+    text = "Những yếu tố nào làm một chất ức chế hERG in vitro không gây kéo dài QT trên lâm sàng?"
+    decision = route(RouteRequest(text=text, allow_subjectless_research=True))
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "subject_absent" in decision.decision.reason_codes
+    off = route(RouteRequest(text=text))
+    assert off.clarification.code == "molecule_missing"
+    typo = route(RouteRequest(text="CCO?", allow_subjectless_research=True))
+    assert typo.intent is Intent.CLARIFICATION_REQUIRED
+
+
 def test_attribution_is_mixed_because_the_tool_is_deterministic():
     decision = route(
         RouteRequest(text="which atoms contributed to SR-p53?", has_active_analysis=True)

@@ -24,9 +24,18 @@ from ..domain.answer import (
 from ..domain.errors import Violation
 from ..domain.evidence import EvidenceRecord
 from ..domain.observation import Observation, ObservationKind
-from .citations import validate_basis, validate_citations, validate_recommendation_basis
+from .citations import (
+    validate_basis,
+    validate_citations,
+    validate_observation_reference,
+    validate_recommendation_basis,
+)
 from .classification import validate_classification
-from .coverage import validate_markdown_numeric_coverage, validate_no_uncited_links
+from .coverage import (
+    cited_fact_values,
+    validate_markdown_numeric_coverage,
+    validate_no_uncited_links,
+)
 from .limitations import required_for_answer, text_for
 from .numeric import validate_derived_numeric, validate_field_backed_numeric
 from .prohibited_claims import (
@@ -123,6 +132,7 @@ def validate_candidate(
         # limitation/recommendation kinds carry no field- or citation-basis
         # requirement of their own; they are caveats and proposals, not facts.
 
+        violations += validate_observation_reference(claim, observations_by_id)
         violations += validate_citations(claim, evidence_by_id, read_evidence_ids=read_evidence_ids)
         violations += validate_claim_wording(claim)
 
@@ -130,7 +140,11 @@ def validate_candidate(
     violations += validate_no_hitcount_severity(candidate.claims, candidate.answer_markdown)
     violations += validate_no_uncited_links(candidate.answer_markdown)
     violations += validate_markdown_numeric_coverage(
-        candidate.answer_markdown, candidate.claims, claimed_values=claimed_values,
+        candidate.answer_markdown, candidate.claims,
+        claimed_values=tuple(claimed_values)
+        + cited_fact_values(
+            (eid for claim in candidate.claims for eid in claim.citation_ids), evidence_by_id
+        ),
     )
 
     known_claim_ids = frozenset(by_id)

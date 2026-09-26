@@ -56,3 +56,32 @@ export function linkifyClaims(markdown: string, claims: Claim[]): string {
 
   return result;
 }
+
+/** The order AnswerSources numbers cited evidence in: first appearance. */
+export function citedEvidenceOrder(claims: Claim[]): string[] {
+  const ordered: string[] = [];
+  for (const claim of claims) {
+    for (const id of claim.citation_ids) {
+      if (!ordered.includes(id)) ordered.push(id);
+    }
+  }
+  return ordered;
+}
+
+const EVIDENCE_TOKEN = /\[@?(evd_[0-9a-f]{32})\]|\b(evd_[0-9a-f]{32})\b/g;
+
+/**
+ * A model sometimes writes a raw evidence id into the prose — "[evd_0a24…]"
+ * — which read as noise (live e2e, 2026-09-26). The id becomes the "[n]" of
+ * the matching entry in "Nguồn được trích dẫn"; an id no claim cites is
+ * dropped, since pointing at it would promise a source the list does not show.
+ */
+export function numberEvidenceMarkers(markdown: string, claims: Claim[]): string {
+  const order = citedEvidenceOrder(claims);
+  return markdown
+    .replace(EVIDENCE_TOKEN, (_match, bracketed?: string, bare?: string) => {
+      const index = order.indexOf((bracketed ?? bare)!);
+      return index >= 0 ? `[${index + 1}]` : '';
+    })
+    .replace(/[ \t]+([.,;:])/g, '$1');
+}

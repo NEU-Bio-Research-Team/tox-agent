@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from toxagent.domain.ids import new_id
 from toxagent.validation.coverage import (
+    cited_fact_values,
     validate_markdown_numeric_coverage,
     validate_no_uncited_links,
 )
@@ -143,3 +144,43 @@ def test_claimed_values_only_widen_coverage_when_passed():
     assert not validate_markdown_numeric_coverage(
         prose, claims=(), claimed_values=(0.7999394536018372,)
     )
+
+
+def _chembl_record(value: str):
+    from datetime import datetime, timezone
+
+    from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceType
+
+    record = EvidenceRecord.create(
+        session_id=new_id("ses"), provider="chembl", provider_record_id=f"activity:{value}",
+        source_type=SourceType.DATABASE, title="t",
+        retrieved_at=datetime(2026, 9, 26, tzinfo=timezone.utc),
+        normalized_facts={"standard_type": "IC50", "standard_value": value,
+                          "standard_units": "nM", "pchembl_value": "7.25"},
+    )
+    return record.to_status(EvidenceStatus.NORMALIZED).to_status(EvidenceStatus.ACCEPTED)
+
+
+def test_a_measured_value_of_a_cited_record_may_be_written_in_the_prose():
+    """Live e2e, 2026-09-26: "IC50 56,0 nM" from a cited ChEMBL record was
+    refused, so the answer dropped every measurement."""
+    record = _chembl_record("56.0")
+    cites = claim(kind="scientific", field_path=None, source_value=None, rendered_value=None,
+                  transform="identity", citation_ids=[record.id])
+    values = cited_fact_values(cites.citation_ids, {record.id: record})
+    assert validate_markdown_numeric_coverage(
+        "ChEMBL ghi IC50 56,0 nM (pIC50 7,25).", (cites,), claimed_values=values) == []
+
+
+def test_a_record_nobody_cites_grounds_no_number():
+    record = _chembl_record("56.0")
+    uncited = cited_fact_values([], {record.id: record})
+    violations = validate_markdown_numeric_coverage("IC50 56.0 nM.", (), claimed_values=uncited)
+    assert [v.code for v in violations] == ["unclaimed_numeric_value"]
+
+
+def test_a_decimal_comma_renders_the_claims_decimal_point():
+    """Live e2e, 2026-09-26: "0,680" in Vietnamese prose for a claim rendered
+    "0.680" cost the run its first draft."""
+    assert validate_markdown_numeric_coverage(
+        "Xác suất mô hình là 0,680.", (claim(rendered_value="0.680"),)) == []

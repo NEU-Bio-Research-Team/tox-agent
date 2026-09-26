@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { linkifyClaims, CLAIM_LINK_SCHEME } from './answerMarkdown';
+import { linkifyClaims, numberEvidenceMarkers, CLAIM_LINK_SCHEME } from './answerMarkdown';
 import type { Claim } from './api/types';
 
 function claim(overrides: Partial<Claim> & Pick<Claim, 'claim_id' | 'rendered_value'>): Claim {
@@ -65,5 +65,27 @@ describe('linkifyClaims', () => {
     const c = claim({ claim_id: 'clm_1', rendered_value: '5' });
     const result = linkifyClaims('There are 5 assays.', [c]);
     expect(result).toBe('There are 5 assays.');
+  });
+});
+
+describe('numberEvidenceMarkers', () => {
+  const A = 'evd_0a2416dcd3a04411b3d4123c1e9ed482';
+  const B = 'evd_febaa3eb201d407f9cb51b8e0f166bae';
+  const cites = [
+    claim({ claim_id: 'clm_1', rendered_value: '', kind: 'scientific', citation_ids: [A] }),
+    claim({ claim_id: 'clm_2', rendered_value: '', kind: 'scientific', citation_ids: [B, A] }),
+  ];
+
+  it('turns a raw evidence id into the number the sources list shows', () => {
+    // Live e2e, 2026-09-26: "[evd_…]" was printed verbatim under the answer.
+    expect(numberEvidenceMarkers(`Cơ chế khả dĩ. [${A}] Phụ thuộc thuốc [@${B}].`, cites)).toBe(
+      'Cơ chế khả dĩ. [1] Phụ thuộc thuốc [2].',
+    );
+  });
+
+  it('drops an id no claim cites rather than promise a source that is not listed', () => {
+    expect(numberEvidenceMarkers('Một nguồn khác evd_' + 'c'.repeat(32) + '.', cites)).toBe(
+      'Một nguồn khác.',
+    );
   });
 });

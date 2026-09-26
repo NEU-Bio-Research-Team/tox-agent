@@ -292,3 +292,28 @@ async def test_a_terminal_run_cannot_be_asked_to_cancel(db):
         await uow.commit()
     async with db.unit_of_work() as uow:
         assert await uow.runs.request_cancel(run.id) is False
+
+
+async def test_add_if_absent_returns_the_record_a_parallel_search_stored_first(db):
+    """Live, 2026-09-26: two searches issued in parallel both missed
+    find_by_dedupe_key for the same paper, and the second insert failed the
+    tool call on uq_evidence_dedupe."""
+    from toxagent.domain.evidence import EvidenceRecord, SourceType
+
+    session = await make_session(db)
+
+    def paper() -> EvidenceRecord:
+        return EvidenceRecord.create(
+            session_id=session.id, provider="europepmc", provider_record_id="MED:1",
+            source_type=SourceType.ARTICLE, title="t", retrieved_at=NOW,
+        )
+
+    first, second = paper(), paper()
+    assert first.id != second.id and first.dedupe_key == second.dedupe_key
+    async with db.unit_of_work() as uow:
+        assert await uow.evidence.add_if_absent(first) is first
+        await uow.commit()
+    async with db.unit_of_work() as uow:
+        stored = await uow.evidence.add_if_absent(second)
+        await uow.commit()
+    assert stored.id == first.id

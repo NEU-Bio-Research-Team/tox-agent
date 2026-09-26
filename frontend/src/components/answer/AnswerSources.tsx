@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { listAllEvidence } from '../../lib/api/endpoints';
+import { citedEvidenceOrder } from '../../lib/answerMarkdown';
 import type { Claim, EvidenceRecordView } from '../../lib/api/types';
 
 /**
@@ -26,13 +27,9 @@ export function AnswerSources({
   claims: Claim[];
   sessionId: string;
 }) {
-  // Ordered by first appearance, so the numbering matches reading order.
-  const citedIds: string[] = [];
-  for (const claim of claims) {
-    for (const id of claim.citation_ids) {
-      if (!citedIds.includes(id)) citedIds.push(id);
-    }
-  }
+  // Ordered by first appearance, so the numbering matches reading order (and
+  // the "[n]" numberEvidenceMarkers writes into the prose).
+  const citedIds = citedEvidenceOrder(claims);
 
   const query = useQuery({
     queryKey: ['evidence', sessionId, 'accepted'],

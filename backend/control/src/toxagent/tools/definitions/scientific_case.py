@@ -230,6 +230,27 @@ def _issued(before: sc.ScientificCaseV1, after: sc.ScientificCaseV1) -> dict[str
     }
 
 
+
+#: The order a batch is applied in. Ids are issued as operations apply, so an
+#: entry naming the hypothesis "h2" the same batch adds failed whenever the
+#: model listed the entry first (live e2e, 2026-09-26: "hypothesis_ids names
+#: hypothesis ids this case does not have: ['h2']; known: ['h1']", a whole
+#: correction round of model time). Creation first, then what refers to it;
+#: within a phase the model's own order stands, so ids come out as predicted.
+_PHASE = {
+    "set_question": 0, "add_hypothesis": 0,
+    "record_evidence": 1,
+    "record_uncertainty": 2, "record_action": 2, "propose_next_test": 2,
+    "revise_hypothesis": 3, "resolve_uncertainty": 3,
+    "set_conclusion": 4,
+}
+
+
+def _in_dependency_order(indexed):
+    """``(index, operation)`` pairs, stably sorted by phase."""
+    return sorted(indexed, key=lambda pair: _PHASE.get(pair[1].op, 2))
+
+
 def build(database) -> list[ToolDefinition]:
     async def get_case(context: ToolContext, payload: GetScientificCaseInput) -> ToolOutput:
         async with database.unit_of_work() as uow:
@@ -246,15 +267,22 @@ def build(database) -> list[ToolDefinition]:
                                                 run_id=context.run_id)
             if before is None:
                 raise InvalidRequest("this run is not attached to a scientific case")
-            for index, operation in enumerate(payload.operations):
-                await _check_ref(uow, context, index, operation)
-            updates = [
-                service.update(operation.op, actor=sc.Actor.MODEL.value, run_id=context.run_id,
-                               **_payload(operation))
-                for operation in payload.operations
-            ]
+            refused: list[tuple[int, str, str]] = []
+            updates = []
+            for index, operation in _in_dependency_order(list(enumerate(payload.operations))):
+                try:
+                    await _check_ref(uow, context, index, operation)
+                except InvalidRequest as exc:
+                    refused.append((index, operation.op, exc.message))
+                    continue
+                updates.append((index, service.update(
+                    operation.op, actor=sc.Actor.MODEL.value, run_id=context.run_id,
+                    **_payload(operation))))
             try:
-                after = await service.apply_updates(
+                if not updates:
+                    raise sc.InvalidCaseUpdate("; ".join(
+                        f"operations[{i}] ({op}): {reason}" for i, op, reason in refused))
+                after, refused_here = await service.apply_model_updates(
                     uow, case_id=before.id, session_id=context.session_id, updates=updates,
                 )
             except sc.InvalidCaseUpdate as exc:
@@ -266,12 +294,20 @@ def build(database) -> list[ToolDefinition]:
                     "the case changed while this update was being applied; read it again with "
                     "get_scientific_case and resend",
                 ) from None
+            refused = sorted(refused + refused_here)
             await uow.commit()
+        refused_indexes = {index for index, _, _ in refused}
         view = {
             "case_id": after.id, "revision": after.revision,
-            "applied": [operation.op for operation in payload.operations],
+            "applied": [operation.op for index, operation in enumerate(payload.operations)
+                        if index not in refused_indexes],
             "issued_ids": _issued(before, after), "coverage": after.coverage,
         }
+        if refused:
+            view["refused"] = [{"index": index, "op": op, "reason": reason}
+                               for index, op, reason in refused]
+            view["note"] = ("The other operations are recorded. Resend only the refused ones, "
+                            "corrected, if they still matter; do not resend the whole batch.")
         return ToolOutput(canonical=after.to_dict(), model_view=view, ui_view=view)
 
     return [
@@ -295,8 +331,9 @@ def build(database) -> list[ToolDefinition]:
             name=UPDATE_TOOL,
             title="Update the scientific case",
             description=(
-                "Record what the investigation has established, as 1-10 operations applied "
-                "all-or-nothing. op is one of: set_question; add_hypothesis (statement, "
+                "Record what the investigation has established, as 1-10 operations. Each is "
+                "applied or refused on its own (creations first, the conclusion last); the "
+                "result lists any refused with the reason — resend only those. op is one of: set_question; add_hypothesis (statement, "
                 "hypothesis_kind, refutation_condition); revise_hypothesis (hypothesis_id, status, "
                 "reason — supported/weakened/refuted need a ledger entry of that stance first); "
                 "record_evidence (claim, source_class, source_ref of an artifact you read, stance, "

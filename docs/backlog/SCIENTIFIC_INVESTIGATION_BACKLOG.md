@@ -530,6 +530,49 @@ reach are VERDICTS tests.
 instead of 200 polls (~2 s): the dossier and orchestrated-report e2e runs take
 ~3 s and failed intermittently under a loaded full suite.
 
+### W9-E2E — live end to end with every Wave 9 flag on (2026-09-26)
+
+The first test of the product as a user gets it: the local agent stack at
+`1ffd1a8`, all six Wave 9 flags on (`answer_draft_v2` off, as in W9-A's D),
+driven through the product API the way the UI drives it, in Vietnamese, on
+terfenadine (a withdrawn drug and a potent hERG blocker), aspirin, and a
+literature question with no molecule. None of what follows showed in the
+test suite or in TAB-Suite; each is now a regression test.
+
+Defects fixed:
+
+| Found | Cause | Fix |
+|---|---|---|
+| Report build crashed on submit, three times, no report published | a report claim put a ChEMBL `evd_` id in `observation_id`; the validator only checked it for numeric/classification claims, the compiler refused it | `claim_observation_not_found` for every claim kind, chat and report, with where an evidence id belongs |
+| The claim reviewer (W9-12) failed on every run | its second runtime session reused the run's workspace directory | a run's second session in local mode gets `run_…-<profile>` |
+| A literature search failed with `uq_evidence_dedupe` | two searches issued in parallel both missed the dedupe lookup | `add_if_absent` (`INSERT … ON CONFLICT DO NOTHING`) in both evidence tools |
+| A case restricted to internal data sent its SMILES to the compound database | `resolve_compound_record` did not read the data scope (W9-07 covered search and ChEMBL only) | the scope check there too |
+| Measured IC50s could not be written in an answer | a prose number had to equal a claim's `rendered_value`, which only observations carry | a number faithful to a fact of an evidence record a claim cites is grounded |
+| Answers printed `0.6803638935089111` and `18.666667` | the prompt made `identity` the default and allowed full precision | the prompt asks for `round:3` / three significant figures; `0,680` matches a claim rendered `0.680` |
+| Relevance judged every terfenadine paper `compound_mismatch` | the compound's only name was its SMILES | ChEMBL's and the resolver's structure-matched names are the identity |
+| The model read 3 of 10 ChEMBL records, called 9 agreeing values "inconsistent" over one 56 000 nM record and described 204 nM as more potent than 56 nM | nothing summarised the set | `get_chembl_activities` returns ChEMBL's name and a stored, citable summary per measurement type (n, range, median, a computed finding, records far from the median flagged); `assess-conflicting-evidence` 1.2.0 says one record against many is not a conflict |
+| Safety gate refused three more denials ("không tự nó là phán quyết an toàn", "không phải phán quyết an toàn", "chưa nên diễn giải … là kết luận về an toàn") | missing decline forms | added, with verdicts that must still be refused |
+| `[evd_…]` printed verbatim in chat | the chat renderer knew only report tokens | rendered as the `[n]` of the cited-sources list |
+| Typed "build report" became a chat answer | the phrase list had only "build a report" | terse imperatives added |
+| Four `update_scientific_case` refusals left no trace of why | the runtime session is deleted on close | `tool.failed` carries the message the model was shown |
+| With the message visible: a batch naming "h2" before the `add_hypothesis` that issues it was refused whole | operations applied in the model's list order | a batch applies in dependency order (create, record, relate, change status, conclude), the model's order kept within a step |
+| A literature turn hit its 300 s deadline after three refused case updates (an `h3` never added, a truncated evidence id, a missing `claim`), each a full rewrite of the batch at about a minute | all-or-nothing batches | the model's batch applies operation by operation: refused ones come back with index and reason, the rest are recorded, nothing valid is lost; a batch with nothing valid is still refused whole. Server and API writes stay all-or-nothing |
+| "Những yếu tố nào làm một chất ức chế hERG in vitro không gây kéo dài QT trên lâm sàng?" was asked for a SMILES | with no literature term the router fell through to `molecule_missing` | with `subjectless_research_v1` on, a question (a "?" and four or more words) with no molecule is subjectless research; "CCO?" still asks for a molecule |
+| Told not to write ids, the model wrote "[citation]" instead | the prompt named ids only | the prompt forbids any citation marker or note in the prose |
+
+**Budget finding for the product owner.** The product's default turn cap is
+`TOXAGENT_TURN_DEADLINE_S=180`; every Wave 9 measurement ran with 600, so the
+300 s run cap was the binding one there. On the default a case turn on a real
+drug (ChEMBL, search, three reads, one case write, a reviewer) took 170–190 s
+and one was cut at 180 s. The test deployment runs with 300 to match what was
+measured; the default is not changed here.
+
+Still open, not fixed: the model sometimes still frames a single far record as
+assay dependence even with the summary and the skill (a judgement, left to the
+lab-graded study); it sometimes writes "[1]"-style markers although told not
+to, and nothing ties its numbers to the sources list; `update_scientific_case` refusals now visible in events,
+the one cause seen so far (batch order) is fixed.
+
 ## Resume here (next session)
 
 State at hand-off (2026-09-26): Wave 9 is done — every row of its table,

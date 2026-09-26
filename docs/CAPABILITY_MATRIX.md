@@ -83,13 +83,13 @@ Any other target, or any other method, is `not_measured`.
 Token counts are the deterministic estimate of `harness/prompt_budget.py`, never a
 provider count.
 
-**decision_support** — static: every component is composed into every decision_support turn; about 1758 tokens before any session context.
+**decision_support** — static: every component is composed into every decision_support turn; about 1967 tokens before any session context.
 
 | Component | Estimated tokens |
 |---|---|
 | `product_role` | 240 |
 | `scientific_invariants` | 228 |
-| `answer_format` | 407 |
+| `answer_format` | 616 |
 | `required_limitations_guide` | 182 |
 | `decision_support_policy` | 701 |
 
@@ -107,11 +107,11 @@ provider count.
 
 off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.
 
-Dynamic index ≈ 676 tokens; static composition of every active skill ≈ 12023 tokens.
+Dynamic index ≈ 676 tokens; static composition of every active skill ≈ 12160 tokens.
 
 | Skill | Version | Status | Risk | Requires | Tokens (body / with references) |
 |---|---|---|---|---|---|
-| `assess-conflicting-evidence` | 1.1.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 929 / 1741 |
+| `assess-conflicting-evidence` | 1.2.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 1066 / 1878 |
 | `critique-case` | 1.1.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 769 / 782 |
 | `interpret-model-attribution` | 1.1.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 780 / 1300 |
 | `assemble-report-context` | 1.0.0 | active | low | `get_analysis_bundle`, `get_analysis_slice`, `get_report_context` | 714 / 1570 |

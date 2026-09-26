@@ -153,3 +153,41 @@ async def test_with_the_flag_off_neither_primitive_exists(db, monkeypatch):
         registry = client.app.state.tool_registry
         assert registry.get("compute_exposure_margin") is None
         assert registry.get("get_chembl_activities") is None
+
+
+async def test_the_chembl_name_becomes_the_compound_a_later_search_is_judged_against(db, flags_on):
+    """Live e2e, 2026-09-26: the literature search judged relevance against the
+    SMILES as the compound's only name, so every terfenadine paper was
+    "compound_mismatch" although ChEMBL had named the structure in the run."""
+    from dataclasses import replace
+
+    from tests.support.research import ACCEPTED_HIT, StubResearchProvider
+
+    paper = replace(
+        ACCEPTED_HIT, title="Aspirin and hERG channel block in HEK293 cells",
+        abstract_or_excerpt="Aspirin did not block the hERG potassium channel at 100 µM.",
+    )
+    research = StubResearchProvider(hits=(paper,))
+    state: dict = {}
+
+    class NamedChembl(StubChembl):
+        async def activities(self, *, canonical_smiles: str, target: str, limit: int):
+            found = await super().activities(canonical_smiles=canonical_smiles, target=target,
+                                             limit=limit)
+            return replace(found, molecule_name="ASPIRIN")
+
+    async def script(turn) -> None:
+        state["chembl"] = await turn.call_tool("get_chembl_activities", {
+            "analysis_id": state["analysis_id"], "target": "herg"})
+        state["search"] = await turn.call_tool("search_toxicology_evidence", {
+            "analysis_id": state["analysis_id"], "query": "hERG block", "endpoint": "herg"})
+
+    async with api_client(db, StubPredictor(), chembl_provider=NamedChembl(),
+                          research_provider=research) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        state["analysis_id"] = await _analyse(client, session_id)
+        await _post(client, session_id, "Is hERG a concern?")
+    assert state["chembl"]["model_view"]["molecule_name"] == "ASPIRIN"
+    assert state["search"]["status"] == "completed", state["search"]
+    assert state["search"]["model_view"]["returned"] == 1, state["search"]["model_view"]

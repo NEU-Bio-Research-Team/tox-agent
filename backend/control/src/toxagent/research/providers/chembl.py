@@ -54,6 +54,8 @@ class ActivityLookup:
     hits: tuple[SearchHit, ...]
     #: How many ChEMBL molecules the structure matched; the first is used.
     structure_matches: int = 0
+    #: ChEMBL's preferred name for the matched molecule, when it has one.
+    molecule_name: str | None = None
 
 
 class ChemblActivityProvider:
@@ -110,7 +112,7 @@ class ChemblActivityProvider:
             if row.get("activity_id") is not None and row.get("standard_value") is not None
         )
         return ActivityLookup(molecule_chembl_id=molecule_id, target_chembl_id=target_id, hits=hits,
-                              structure_matches=matches)
+                              structure_matches=matches, molecule_name=found[0].get("pref_name"))
 
     def _hit(self, row: dict[str, Any], *, molecule_id: str, molecule_name: str,
              target_id: str, target_name: str) -> SearchHit:

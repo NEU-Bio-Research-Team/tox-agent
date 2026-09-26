@@ -136,3 +136,42 @@ async def test_closing_a_restricted_case_does_not_lift_the_restriction(db, flags
         assert len(cases) == 2
         newest = next(c for c in cases if c["case_id"] != first["case_id"])
         assert newest["external_search"] is False
+
+
+async def test_a_restricted_case_never_sends_its_structure_to_the_compound_database(db, flags_on):
+    """Live, 2026-09-26: a report build on a case restricted to internal data
+    called resolve_compound_record, which sent the SMILES out unchecked."""
+    from datetime import datetime, timedelta, timezone
+
+    from toxagent.application.policy import Actor
+    from toxagent.tools.definitions import compound
+    from toxagent.tools.definitions.compound import ResolveCompoundInput
+    from toxagent.tools.registry import ToolContext
+    from toxagent.domain.errors import ToolDenied
+
+    class CountingProvider:
+        calls = 0
+
+        async def resolve(self, *, canonical_smiles: str):
+            CountingProvider.calls += 1
+            raise AssertionError("the structure left the deployment")
+
+    async with api_client(db, StubPredictor()) as client:
+        await _install_scripted_runtime(client, _decision_turn)
+        session_id = await _new_session(client)
+        analysis_id = await _analyse(client, session_id)
+        run = await _post(client, session_id, "Should hERG stop us?")
+        case = (await client.get(f"/v1/sessions/{session_id}/cases", headers=AUTH)).json()["cases"][0]
+        await client.post(
+            f"/v1/sessions/{session_id}/cases/{case['case_id']}/scope",
+            json={"external_search": False, "reason": "unpublished structure"}, headers=AUTH,
+        )
+        (tool,) = compound.build(db, CountingProvider())
+        with pytest.raises(ToolDenied):
+            await tool.handler(
+                ToolContext(session_id=session_id, run_id=run["run_id"],
+                            actor=Actor(subject_id="user-1"), profile="report_build",
+                            deadline_at=datetime.now(timezone.utc) + timedelta(minutes=1)),
+                ResolveCompoundInput(analysis_id=analysis_id),
+            )
+        assert CountingProvider.calls == 0
