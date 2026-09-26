@@ -40,7 +40,8 @@ class SystemSpec:
         }
 
 
-_CASE_OFF = {"scientific_case_v1": False, "scientific_skills_v1": False}
+_CASE_OFF = {"scientific_case_v1": False, "scientific_skills_v1": False,
+             "claim_reviewer_v1": False}
 
 SYSTEMS: dict[str, SystemSpec] = {spec.system_id: spec for spec in (
     SystemSpec("A_predictor_template", "A", "predictor", "predictor_template",
@@ -51,17 +52,24 @@ SYSTEMS: dict[str, SystemSpec] = {spec.system_id: spec for spec in (
     SystemSpec("D_toxagent_investigator", "D", "toxagent", "toxagent",
                "ToxAgent case-based investigator, skills loaded on demand",
                required_flags={"scientific_case_v1": True, "scientific_skills_v1": True,
-                               "answer_draft_v2": True},
+                               "answer_draft_v2": True, "claim_reviewer_v1": False},
+               skills_mode="dynamic"),
+    SystemSpec("Dr_toxagent_investigator_reviewer", "D-ablation", "toxagent", "toxagent",
+               "ToxAgent investigator (as D) plus the independent claim-support reviewer "
+               "(W9-12); the reviewer's verdicts are recorded in the run's decision state and "
+               "never change the answer, so it is graded against D on the same cases",
+               required_flags={"scientific_case_v1": True, "scientific_skills_v1": True,
+                               "answer_draft_v2": True, "claim_reviewer_v1": True},
                skills_mode="dynamic"),
     SystemSpec("D0_toxagent_case_no_skills", "D-ablation", "toxagent", "toxagent",
                "ToxAgent case-based investigator without skills",
                required_flags={"scientific_case_v1": True, "scientific_skills_v1": False,
-                               "answer_draft_v2": True},
+                               "answer_draft_v2": True, "claim_reviewer_v1": False},
                skills_mode="off"),
     SystemSpec("Ds_toxagent_case_static_skills", "D-ablation", "toxagent", "toxagent",
                "ToxAgent case-based investigator, every skill composed into the prompt",
                required_flags={"scientific_case_v1": True, "scientific_skills_v1": False,
-                               "answer_draft_v2": True},
+                               "answer_draft_v2": True, "claim_reviewer_v1": False},
                skills_mode="static"),
     SystemSpec("P_openai_bare", "P", "platform", "codex_cli",
                "OpenAI model through the codex CLI, question only", platform="openai"),
@@ -96,6 +104,8 @@ def product_mismatch(spec: SystemSpec, effective_product: Mapping) -> list[str]:
     problems: list[str] = []
     flags = effective_product.get("flags") or {}
     for name, wanted in spec.required_flags.items():
+        if name not in flags and wanted is False:
+            continue  # a deployment that predates a flag has it off
         actual = (flags.get(name) or {}).get("enabled")
         if actual is not wanted:
             problems.append(f"flag {name} is {actual}, the arm needs {wanted}")

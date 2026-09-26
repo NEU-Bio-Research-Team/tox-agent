@@ -218,7 +218,7 @@ class AgentRuntimeGateway:
                 deadline=deadline,
                 instructions_hash=instructions_hash,
                 has_product=self._has_answer,
-                commit=(
+                commit=self._with_claim_review(
                     self._commit_with_case if keeps_case else self._commit_product_and_complete
                 ),
             )
@@ -260,6 +260,91 @@ class AgentRuntimeGateway:
             profile, [tool.name for tool in self._registry.visible_for(profile)]
         )
         return (mode, offered) if offered else ("off", ())
+
+    #: The reviewer's turn gets at most this long, and is skipped when the run
+    #: has less than the floor left: the answer is already accepted, and the
+    #: review must never be what makes the run miss its deadline (W9-12).
+    CLAIM_REVIEW_BUDGET_S = 120
+    CLAIM_REVIEW_FLOOR_S = 45
+
+    def _with_claim_review(self, commit: Callable[[RunContext], Awaitable[None]]):
+        """``commit``, preceded by the independent claim review when its flag is on."""
+        if not is_enabled("claim_reviewer_v1"):
+            return commit
+
+        async def reviewed(context: RunContext) -> None:
+            await self._review_claims(context)
+            await commit(context)
+
+        return reviewed
+
+    async def _review_claims(self, context: RunContext) -> None:
+        """One reviewer turn over the accepted answer (RETHINK §4.4 step 5).
+
+        Bookkeeping: whatever happens, the answer stands and the run proceeds;
+        the state records ``completed``, ``skipped`` (and why) or ``failed``.
+        """
+        import json
+
+        from ..application import claim_review
+
+        def record(review: dict) -> Awaitable:
+            return decision_state_service.advance(
+                self._db, context.run_id,
+                lambda state: decision_state.record_claim_review(state, review),
+            )
+
+        try:
+            async with self._db.unit_of_work() as uow:
+                answer = await uow.answers.get_for_run(context.run_id)
+                run = await uow.runs.get(context.run_id)
+                bundle = (
+                    await claim_review.review_bundle(uow, session_id=context.session_id, answer=answer)
+                    if answer is not None else None
+                )
+            if answer is None or answer.is_fallback:
+                await record({"status": "skipped", "reason": "no model-written answer to review"})
+                return
+            if not bundle["claims"]:
+                await record({"status": "skipped", "reason": "the answer makes no reviewable claim",
+                              "answer_id": answer.id})
+                return
+            now = _now()
+            remaining = (run.deadline_at - now).total_seconds() if run is not None else 0
+            if remaining < self.CLAIM_REVIEW_FLOOR_S:
+                await record({"status": "skipped", "reason": "not enough run budget left",
+                              "remaining_s": int(remaining), "answer_id": answer.id})
+                return
+            deadline = min(run.deadline_at, now + timedelta(seconds=self.CLAIM_REVIEW_BUDGET_S))
+            prompt = (
+                claim_review.REVIEW_INSTRUCTIONS
+                + "\n\nThe claims under review, each with the sources it cites:\n```json\n"
+                + json.dumps(bundle, sort_keys=True, ensure_ascii=False, default=str)
+                + "\n```"
+            )
+
+            async def has_review(_context: RunContext) -> bool:
+                async with self._db.unit_of_work() as uow:
+                    state = await uow.decision_states.get(context.run_id)
+                return bool(state and state.claim_review.get("status") == "completed")
+
+            from dataclasses import replace
+
+            await self._dispatch(
+                replace(context, text="Review the claims listed in your instructions."),
+                system_prompt=prompt, profile="claim_review", deadline=deadline,
+                instructions_hash=content_sha256(claim_review.REVIEW_INSTRUCTIONS),
+                has_product=has_review, commit=_no_commit,
+            )
+            if not await has_review(context):
+                await record({"status": "failed", "reason": "the reviewer submitted no verdicts",
+                              "answer_id": answer.id})
+        except Exception as exc:  # noqa: BLE001 - the answer is accepted; review is an observer
+            log.exception("claim review failed", extra={"run_id": context.run_id})
+            try:
+                await record({"status": "failed", "reason": type(exc).__name__})
+            except Exception:  # noqa: BLE001
+                pass
 
     async def _commit_with_case(self, context: RunContext) -> None:
         """Finish the case and store the dossier, then complete the run.

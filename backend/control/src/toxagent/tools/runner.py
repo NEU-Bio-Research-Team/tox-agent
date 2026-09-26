@@ -27,6 +27,7 @@ from ..domain.provenance import content_sha256
 from ..activities import activity_for_tool
 from . import envelope
 from .definitions.answer import ANSWER_TOOL_NAME
+from .definitions.claim_review import CLAIM_REVIEW_TOOL_NAME
 from ..application.submit_report_draft import (
     SUBMIT_SAVED_TOOL_NAME,
     SUBMIT_TOOL_NAME as REPORT_SUBMIT_TOOL_NAME,
@@ -246,7 +247,8 @@ class ToolRunner:
         required to submit — and, having been handed typed violations, must be
         able to submit the correction those violations describe.
         """
-        if tool_name in {ANSWER_TOOL_NAME, REPORT_SUBMIT_TOOL_NAME, SUBMIT_SAVED_TOOL_NAME}:
+        if tool_name in {ANSWER_TOOL_NAME, REPORT_SUBMIT_TOOL_NAME, SUBMIT_SAVED_TOOL_NAME,
+                         CLAIM_REVIEW_TOOL_NAME}:
             return None
         if context.intent == Intent.BUILD_REPORT.value:
             return self._max_calls_report
@@ -268,7 +270,9 @@ class ToolRunner:
         Only decision_support runs keep one. Recorded after the tool call's own
         commit and never raised: the state observes the run, it cannot fail it.
         """
-        if context.intent != Intent.DECISION_SUPPORT.value:
+        # The reviewer's turn (W9-12) is not the answering agent's work, so
+        # it does not count in the run's usage.
+        if context.intent != Intent.DECISION_SUPPORT.value or context.profile == "claim_review":
             return
         from ..application import decision_state_service
         from ..domain import decision_state as ds

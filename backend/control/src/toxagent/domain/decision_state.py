@@ -138,6 +138,11 @@ class DecisionSupportStateV1:
     #: actually read, each pinned by version and content hash, plus the arm
     #: (off/static/dynamic). Empty for a run that met no catalog.
     skills: Mapping[str, Any] = field(default_factory=dict)
+    #: W9-12 (flag claim_reviewer_v1): an independent reviewer's verdict on
+    #: whether each claim of the accepted answer is supported by the sources
+    #: it cites. Recorded, never applied to the answer: the role stays only if
+    #: it measurably helps (RETHINK §4.4 step 5). Empty without the flag.
+    claim_review: Mapping[str, Any] = field(default_factory=dict)
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -169,6 +174,7 @@ class DecisionSupportStateV1:
             "stop_reason": self.stop_reason,
             "answer_outcome": self.answer_outcome,
             "skills": dict(self.skills),
+            "claim_review": dict(self.claim_review),
             "revision": self.revision,
         }
 
@@ -194,6 +200,7 @@ class DecisionSupportStateV1:
             stop_reason=data.get("stop_reason"),
             answer_outcome=data.get("answer_outcome"),
             skills=dict(data.get("skills") or {}),
+            claim_review=dict(data.get("claim_review") or {}),
             revision=int(data.get("revision", 0)),
         )
 
@@ -401,6 +408,18 @@ def record_skill_loaded(
             return state
         skills["references_loaded"].append(item)
     return _next(state, skills=skills)
+
+
+CLAIM_VERDICTS = ("supported", "partially_supported", "not_supported", "cannot_judge")
+
+
+def record_claim_review(
+    state: DecisionSupportStateV1, review: Mapping[str, Any],
+) -> DecisionSupportStateV1:
+    """Store the reviewer's outcome (completed, skipped or failed). Once."""
+    if state.stop_reason is not None or state.claim_review.get("status") == "completed":
+        return state
+    return _next(state, claim_review=dict(review))
 
 
 def _budget_reached(state: DecisionSupportStateV1) -> bool:

@@ -44,6 +44,7 @@ FINISHING_FAMILIES: Mapping[str, frozenset[str]] = {
     "grounded_answer": frozenset({"submit_grounded_answer"}),
     "report_draft": frozenset({"submit_report_draft", "submit_saved_report_draft"}),
     "report_synthesis": frozenset({"submit_report_synthesis"}),
+    "claim_review": frozenset({"submit_claim_review"}),
 }
 
 #: Tools that change product state without finishing a run.

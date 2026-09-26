@@ -86,6 +86,13 @@
       "tools": [
         "submit_report_synthesis"
       ]
+    },
+    "claim_review": {
+      "description": "An independent reviewer's single turn (W9-12, flag claim_reviewer_v1): judge whether each claim of an accepted answer is supported by the sources it cites, from the sources the server hands it. One tool; no reads, so it cannot redo the answering agent's work.",
+      "read_only": false,
+      "tools": [
+        "submit_claim_review"
+      ]
     }
   },
   "flag_gated_tools": {
@@ -94,6 +101,7 @@
     "read_scientific_skill": "scientific_skills_v1",
     "read_skill_reference": "scientific_skills_v1",
     "record_decision_plan": "decision_state_plan_tool",
+    "submit_claim_review": "claim_reviewer_v1",
     "update_scientific_case": "scientific_case_v1"
   }
 }

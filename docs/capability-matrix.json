@@ -191,6 +191,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-12"
     },
+    "claim_reviewer_v1": {
+      "default": false,
+      "description": "After a decision_support answer is accepted, dispatch one independent reviewer turn (profile claim_review, one tool) that judges from the server-supplied sources whether each claim is supported, and record the verdicts in the run's DecisionSupportStateV1. The answer is never changed. Off, no reviewer turn runs.",
+      "gates_tools": [
+        "submit_claim_review"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
     "decision_state_plan_tool": {
       "default": false,
       "description": "Register record_decision_plan in the decision_support profile, so the model can propose the propositions its answer must resolve. Off, the DecisionSupportStateV1 is still kept (goal, usage, answer resolution, stop reason) but has no model-proposed plan and the tool surface is unchanged.",
@@ -451,6 +460,12 @@
         "get_explanation_slice"
       ],
       "flag_gated": {}
+    },
+    "claim_review": {
+      "default": [],
+      "flag_gated": {
+        "submit_claim_review": "claim_reviewer_v1"
+      }
     },
     "decision_support": {
       "default": [

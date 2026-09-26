@@ -13,6 +13,7 @@ from ..research.compound import CompoundProvider
 from ..research.interfaces import ResearchProvider
 from .definitions import analysis as analysis_tools
 from .definitions import answer as answer_tools
+from .definitions import claim_review as claim_review_tools
 from .definitions import compound as compound_tools
 from .definitions import decision_plan as decision_plan_tools
 from .definitions import evidence as evidence_tools
@@ -101,6 +102,9 @@ def build_registry(
         database, skill_catalog,
         lambda profile: [tool.name for tool in registry.visible_for(profile)],
     ):
+        add(definition)
+    # Gated by claim_reviewer_v1 (W9-12); visible only under claim_review.
+    for definition in claim_review_tools.build(database):
         add(definition)
     # Gated by skill_drafts_v1 (W9-11): a proposal for expert review, never a
     # change to the catalog this or any run is offered.

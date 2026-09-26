@@ -185,6 +185,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "uncited or off-topic claims against the clarification baseline",
     ),
     _flag(
+        "claim_reviewer_v1",
+        "After a decision_support answer is accepted, dispatch one independent "
+        "reviewer turn (profile claim_review, one tool) that judges from the "
+        "server-supplied sources whether each claim is supported, and record "
+        "the verdicts in the run's DecisionSupportStateV1. The answer is never "
+        "changed. Off, no reviewer turn runs.",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 26),
+        remove_by=date(2026, 12, 23),
+        removal_condition="on the same cases and budget, the reviewer's not_supported verdicts "
+                          "agree with the lab's unsupported-claim grades well enough to act on, "
+                          "without raising deadline failures (RETHINK 4.4 step 5)",
+    ),
+    _flag(
         "skill_drafts_v1",
         "Skill drafts for expert review (RETHINK 4.8): register "
         "propose_skill_draft in decision_support and serve /v1/skill-drafts "

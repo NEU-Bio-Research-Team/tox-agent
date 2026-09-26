@@ -51,6 +51,7 @@ Any other target, or any other method, is `not_measured`.
 |---|---|---|
 | `analysis` | `create_analysis_snapshot`, `get_analysis_slice`, `submit_grounded_answer` | — |
 | `audit_readonly` | `get_analysis_slice`, `get_evidence_record`, `get_explanation_slice` | — |
+| `claim_review` | — | `submit_claim_review` (claim_reviewer_v1) |
 | `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `get_scientific_case` (scientific_case_v1), `propose_skill_draft` (skill_drafts_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `update_scientific_case` (scientific_case_v1) |
 | `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | — |
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
@@ -62,6 +63,7 @@ Any other target, or any other method, is `not_measured`.
 | Flag | Default | Owner | Remove by | Gates tools |
 |---|---|---|---|---|
 | `answer_draft_v2` | no | backend-scientific | 2026-12-12 | — |
+| `claim_reviewer_v1` | no | backend-scientific | 2026-12-23 | `submit_claim_review` |
 | `decision_state_plan_tool` | no | backend-scientific | 2026-12-14 | `record_decision_plan` |
 | `evidence_pipeline_v2` | no | backend-scientific | 2026-12-12 | — |
 | `external_worker_mode` | no | platform | 2026-12-12 | — |
