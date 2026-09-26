@@ -495,25 +495,32 @@ provider latency on that night, not the arms.
 
 ## Resume here (next session)
 
-State at hand-off (2026-09-26): the host rebooted; **the whole stack is down**
-(containers exited, OpenCode runtime stopped). Waves 1–7 committed; Wave 8
-work of this session committed with this document.
+State at hand-off (2026-09-26): Wave 9 is done — every row of its table,
+committed on `feat/scientific-investigation` (last code commit `2c2a419`,
+W9-02b). Six default-off flags now exist (`scientific_case_v1`,
+`scientific_skills_v1`, `subjectless_research_v1`, `skill_drafts_v1`,
+`claim_reviewer_v1`, `scientific_primitives_v1`); none is on by default.
 
-1. **Redo the W8-02 diagnostic at 900 s.** Bring up the base stack (compose
-   `postgres` + `toxpred` + `toxagent-control`, OpenCode host runtime), then
-   `devops/scripts/study_arm.sh C 8011 TOXAGENT_TURN_DEADLINE_S=900 TOXAGENT_RUN_DEADLINE_S=900 TOXAGENT_MAX_TOOL_CALLS=40`
-   and the same for D on 8012 plus its three flags; from `backend/control`:
-   `TOXAGENT_EVAL_LIVE_POLL_TRIES=960 python -m evals.runner --runtime opencode --base-url http://127.0.0.1:801{1,2} --packs core,regression --trials 1 --out evals/manifests/live-w8-{C,D}-core-deadline900`
-   (the empty directories of the lost attempt can be overwritten), then
-   `python -m evals.paired` as above. Report it as a diagnostic next to the
-   300 s result, not instead of it.
+**Host limits.** The host has 7.8 GiB. Three arms with three runners at once
+exhausted it and the host rebooted mid-run (the first W9-B attempt was lost).
+Run live arms **one at a time**, restart OpenCode between arms, and stop
+`toxocr` when the packs do not need it (`core,regression` do not): it holds
+~1.8 GiB. A sequential runner with a memory floor is the pattern used for W9-B.
+
+1. **W9-B** — the paired re-run on the W9-02b image (C, C + `answer_draft_v2`,
+   D), one arm at a time → `evals/manifests/live-w9b-{C,Cv2,D}-core/` and
+   paired reports. Record it next to W9-A. (The W8-02 900 s diagnostic is no
+   longer needed: W9-A cut the case arm's cap hits from 15 to 1 at 300 s.)
 2. **Google arms** (deferred from `lab-1`): answer the prompts under
    `runs/pilot-2026-09-25/manual/` in the Gemini app (Pro) with
    `--google-channel manual`, then build a separate packet
    (`--packet-id lab-2 --systems P_google_bare,B_google_snapshot`).
 3. **Send `lab-1`** (`runs/pilot-2026-09-25/packets/lab-1/`) to the lab; keep
    `keys/` local. After grading: `python -m evals.investigation.scorecard`.
-4. Optional: W7-04 compound-claim subset (design in `docs/EXTERNAL_BENCHMARKS.md`);
+   The reviewer arm `Dr` (W9-12) can be added to a later packet so its verdicts
+   are graded against the lab's unsupported-claim grades.
+4. Optional: W7-04 compound-claim subset (the router block is gone with
+   `subjectless_research_v1`; the corpus-search provider is still to build);
    full dev-split SciFact runs.
 
 ## Not in scope of this execution
