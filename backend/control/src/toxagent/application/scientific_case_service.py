@@ -250,12 +250,7 @@ async def finish_run(database, *, session_id: str, run_id: str,
                 )
                 if observation is None:
                     continue
-                projection = observation.model_projection
-                statements[entry.source_ref] = explainer_validation.model_view(
-                    projection.get("model_id") or observation.provenance.get("model_id"),
-                    projection.get("endpoint"), projection.get("task"),
-                    projection.get("method") or observation.provenance.get("method"),
-                )
+                statements[entry.source_ref] = explainer_validation.for_observation(observation)
             dossier = sc.compile_dossier(
                 case, run_id=run_id, stop_reason=stop_reason, answer_id=answer_id,
                 explainer_statements=statements,

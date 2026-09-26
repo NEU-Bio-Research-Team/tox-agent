@@ -126,11 +126,29 @@ def _declines_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS
     return bool(_DECLINES_TO_ASSERT.search(segment))
 
 
+#: Characters of context kept on each side of a flagged phrase.
+_EXCERPT_CONTEXT = 40
+
+
+def _excerpt(text: str, match: re.Match) -> str:
+    """The flagged phrase with a little of its sentence, for ``Violation.actual``.
+
+    Returned to the model so its one correction rewrites the sentence that was
+    flagged rather than guessing, and stored with the rejection event so a gate's
+    false-positive rate can be measured from real drafts (W9-02: before this, a
+    rejected draft's wording was not recoverable from anything the run kept).
+    """
+    start = max(0, match.start() - _EXCERPT_CONTEXT)
+    end = min(len(text), match.end() + _EXCERPT_CONTEXT)
+    return text[start:end].strip()
+
+
 def _scan_unless_declined(
     pattern: re.Pattern, text: str, code: str, message: str, path: str
 ) -> list[Violation]:
-    if any(not _declines_before(text, m.start()) for m in pattern.finditer(text)):
-        return [Violation(code, message, path=path)]
+    for match in pattern.finditer(text):
+        if not _declines_before(text, match.start()):
+            return [Violation(code, message, path=path, actual=_excerpt(text, match))]
     return []
 
 
@@ -143,8 +161,9 @@ def _negated_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS)
 
 
 def _scan(pattern: re.Pattern, text: str, code: str, message: str, path: str) -> list[Violation]:
-    if pattern.search(text):
-        return [Violation(code, message, path=path)]
+    match = pattern.search(text)
+    if match:
+        return [Violation(code, message, path=path, actual=_excerpt(text, match))]
     return []
 
 
@@ -167,8 +186,9 @@ def _scan_unless_negated(
     """Like `_scan`, but a match preceded by a negation cue is not a
     violation — the sentence is denying the prohibited claim, not making it.
     """
-    if matches_unnegated(pattern, text):
-        return [Violation(code, message, path=path)]
+    for match in pattern.finditer(text):
+        if not _negated_before(text, match.start()):
+            return [Violation(code, message, path=path, actual=_excerpt(text, match))]
     return []
 
 

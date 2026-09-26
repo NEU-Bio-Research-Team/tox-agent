@@ -116,3 +116,19 @@ def test_a_stale_analysis_ref_is_not_leaked_into_history_rendering():
     rendered = render_recent_messages((analysis_request,))
 
     assert "c1ccccc1" not in rendered
+
+
+def test_the_answer_format_section_matches_the_registered_answer_schema():
+    """W9-02: v1's rendered_value rules told a v2 model to write numbers it
+    cannot know the rendering of."""
+    from toxagent.harness.context import ANSWER_FORMAT_V2
+
+    common = dict(
+        capability_profile="decision_support", checkpoint=SessionCheckpoint(), pinned=(),
+        recent_messages=(),
+    )
+    v1 = build_system_prompt(**common)
+    v2 = build_system_prompt(**common, answer_schema="grounded-answer-v2")
+    assert ANSWER_FORMAT in v1 and ANSWER_FORMAT_V2 not in v1
+    assert ANSWER_FORMAT_V2 in v2 and ANSWER_FORMAT not in v2
+    assert "rendered_value" not in ANSWER_FORMAT_V2

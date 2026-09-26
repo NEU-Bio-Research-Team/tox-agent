@@ -142,3 +142,13 @@ def test_asserting_clinical_toxicity_for_an_herg_claim_is_still_flagged():
         )
     )
     assert [v.code for v in result] == ["endpoint_substitution_language"]
+
+
+def test_a_flagged_phrase_is_returned_with_its_sentence():
+    """W9-02: the model's correction, and a later diagnosis, see what was flagged."""
+    [violation] = validate_answer_markdown(
+        "Kết quả sàng lọc cho thấy hợp chất này an toàn cho người dùng hằng ngày."
+    )
+    assert violation.code == "safety_verdict_out_of_scope"
+    assert "an toàn" in violation.actual
+    assert violation.to_dict()["actual"] == violation.actual

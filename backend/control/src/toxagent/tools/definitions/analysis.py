@@ -40,13 +40,7 @@ def _validated(view: dict[str, Any], observation: Observation, *, ui: bool = Fal
     attribution persisted before a benchmark ran carries today's statement and
     a new measurement never needs a data migration (RETHINK §2, §4.3).
     """
-    projection = observation.model_projection
-    method = projection.get("method") or observation.provenance.get("method")
-    model_id = projection.get("model_id") or observation.provenance.get("model_id")
-    statement = (explainer_validation.ui_view if ui else explainer_validation.model_view)(
-        model_id, projection.get("endpoint"), projection.get("task"), method,
-    )
-    return {**view, "explainer_validation": statement}
+    return {**view, "explainer_validation": explainer_validation.for_observation(observation, ui=ui)}
 
 
 class _Input(BaseModel):

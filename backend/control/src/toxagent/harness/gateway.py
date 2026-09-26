@@ -981,6 +981,9 @@ class AgentRuntimeGateway:
                 render_index(offered_skills) if skills_mode == "dynamic"
                 else render_static(offered_skills) if skills_mode == "static" else ""
             ),
+            answer_schema=(
+                "grounded-answer-v2" if is_enabled("answer_draft_v2") else "grounded-answer-v1"
+            ),
         )
         instructions_hash = None
         if context.intent is Intent.BUILD_REPORT:

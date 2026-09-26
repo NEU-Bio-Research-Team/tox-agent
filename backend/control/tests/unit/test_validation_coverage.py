@@ -113,3 +113,33 @@ def test_a_hash_prefix_is_not_read_as_a_number():
         "Analysis content hash 3907e013f13c1ce7, weights_sha256=aaa1.2bbb.", claims=()
     )
     assert violations == [], [v.actual for v in violations]
+
+
+# --- W9-02: v2 prose numbers are checked against the claimed values ---------
+
+from toxagent.validation.coverage import faithful_rendering  # noqa: E402
+
+
+def test_faithful_rendering_accepts_a_rounding_to_the_tokens_own_precision():
+    for token in ("0.7999394536018372", "0.800", "0.80", "0.8", "80%", "80.0%", "0,80"):
+        assert faithful_rendering(token, 0.7999394536018372), token
+
+
+def test_faithful_rendering_refuses_a_different_number():
+    for token in ("0.81", "0.79", "79%", "0.7998"):
+        assert not faithful_rendering(token, 0.7999394536018372), token
+
+
+def test_a_non_zero_value_is_never_faithfully_zero():
+    """numeric-11: an inactive assay's small probability is not zero."""
+    assert not faithful_rendering("0%", 0.004)
+    assert not faithful_rendering("0.00", 0.004)
+    assert faithful_rendering("0.0", 0.0)
+
+
+def test_claimed_values_only_widen_coverage_when_passed():
+    prose = "The hERG probability is 0.7999394536018372."
+    assert validate_markdown_numeric_coverage(prose, claims=())
+    assert not validate_markdown_numeric_coverage(
+        prose, claims=(), claimed_values=(0.7999394536018372,)
+    )

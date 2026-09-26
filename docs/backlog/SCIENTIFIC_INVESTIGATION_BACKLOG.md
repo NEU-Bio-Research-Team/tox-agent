@@ -317,6 +317,93 @@ separate "slow" from "wrong", then (b) either a cheaper case policy (fewer
 mandatory case reads/writes per turn) or a budget decision recorded as a
 product choice, re-measured on the same pairing.
 
+## Wave 9 — Pending work after W8-02 (ordered 2026-09-26)
+
+The product owner asked for every remaining item to be done, in an order fixed
+up front. The order follows dependencies found in the code, not the numbering
+of the review that listed them (its number is kept in the ID column):
+
+- **Phase A — let the flag survive regression.** W9-02 first because its
+  diagnosis needed no live run (see below) and its fix is independent. W9-04
+  before W9-01, because a lighter case policy only works once the server, not
+  the model, records what the answer cited. W9-03 last in the phase: the skill
+  description is tuned against the lighter policy. Then the paired re-run.
+- **Phase B — make the case visible.** W9-07 before W9-06/W9-05, because the
+  requester and data scope are case fields both views must show; W9-08 last,
+  since a subjectless case is a new kind of case the other views then handle.
+- **Phase C — "a skill without a backend change"** (RETHINK §4.10), in
+  dependency order: tool permissions from manifests, then report skills in the
+  catalog, then the draft/review flow that relies on both.
+- **Phase D — measured-only additions.** Built behind default-off flags or as
+  experiment scripts, never switched on: whether each stays is decided by the
+  study arm it adds.
+
+| Order | ID | Item | Exit criterion | Status |
+|---|---|---|---|---|
+| 1 | W9-02 | First-pass drop 0.54 → 0.26: diagnose from stored W8-02 data, fix what is a product defect | Violation tally per arm recorded; defect fixed with tests | done — see below |
+| 2 | W9-04 | Case ledger no longer depends on `answer_draft_v2` | With the flag on and v2 off, an accepted answer's cited sources land in the ledger; tests | todo |
+| 3 | W9-01 | Lighter case policy; the run budget for the case arm is a recorded product decision | Fewer mandatory case calls per turn; budget decision in this document; tests | todo |
+| 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | todo |
+| 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | todo |
+| 6 | W9-07 | Case carries requester and permitted data scope (RETHINK §3.1 item 2) | Domain op + API + tool gate respects the scope; tests | todo |
+| 7 | W9-06 | Investigation board shows the case history (`/events`) | Vitest; typecheck | todo |
+| 8 | W9-05 | Dossier becomes the source of chat and report (§4.4.3, §4.9) | Chat answer carries the dossier; report context reads it; tests | todo |
+| 9 | W9-08 | Literature questions without a molecule | Router routes to a subjectless case instead of `research_subject_missing`; tests | todo |
+| 10 | W9-09 | Tool permissions from validated manifests, not only Python `PROFILES` | Profiles generated from a checked manifest; drift test | todo |
+| 11 | W9-10 | Report skills move into the catalog (static arm kept as the default) | `compose_report_profile` reads through the catalog; byte-identical prompt test | todo |
+| 12 | W9-11 | Draft skill flow: create a draft, expert review, promote (§4.8) | API + catalog status transitions; drafts never offered; tests | todo |
+| 13 | W9-12 | Independent claim-support reviewer role (§4.4.5), flag off | Reviewer behind a flag + study arm; tests | todo |
+| 14 | W9-13 | New scientific primitives (§4.7, §4.10): exposure margin, ChEMBL activity lookup | Tools behind a flag, provenance, tests | todo |
+| 15 | W9-14 | OpenCode native `skill()` experiment (§4.9), isolated profile | Experiment script + recorded result | todo |
+
+### W9-02 — why first-pass fell (diagnosed 2026-09-26, no live run)
+
+Source: the `answer.rejected` events of the W8-02 runs and of the earlier
+single-flag runs, read from the local PostgreSQL volume (runs matched by
+`run_id` from each manifest's traces).
+
+**Part of the drop is `answer_draft_v2`, not the case.** First-pass on the
+same 27 tasks answered by both arms: baseline b1 14/27, `answer_draft_v2` only
+(b10) 11/27. On the 13 tasks both W8-02 arms answered: C 9/13, D 3/13. So v2
+alone costs some first-pass, the case arm more.
+
+First-draft refusal codes (generation 1):
+
+| Code | b1 baseline (t2+t3) | b10 v2 only | C | D |
+|---|---|---|---|---|
+| `unclaimed_numeric_value` | 8 | 10 | 4 | 6 |
+| `safety_verdict_out_of_scope` | 4 | 9 | 4 | 6 |
+| `claim_has_no_basis` | 14 | 5 | 6 | 4 |
+| `aggregate_verdict_present` | 4 | 0 | 2 | 3 |
+| `claim_field_path_unresolvable` | 0 | 0 | 0 | 1 (+1 at gen 2 → fallback) |
+
+Three product defects, all fixed:
+
+1. **v2 asked for a number the model cannot know.** Under v2 the server
+   renders an identity claim to at most twelve places (`0.799939453602`); the
+   model copies what the tool printed (`0.7999394536018372`) into its prose, and
+   the coverage check wants the rendered string verbatim. Every such draft was
+   bound to fail. Fix: `{{local_ref}}` placeholders the server fills with the
+   rendered value, and on the v2 path a prose number is covered when it
+   faithfully renders a claimed value at its own precision (never a non-zero
+   value written as zero). v1 and report validation keep the exact rule.
+2. **The system prompt taught v1 under v2.** `ANSWER_FORMAT` (rendered_value,
+   source_value, identity-means-exact) was sent whatever the answer schema;
+   v2 has neither field. There is now `ANSWER_FORMAT_V2`, chosen from the
+   registered schema.
+3. **`qa-06` fell back on a field it was shown.** W1-03 put
+   `explainer_validation` beside every attribution, but it did not resolve as a
+   field, so a claim citing it was refused twice. It is now a derived field of
+   an attribution observation (same lookup the tool view uses).
+
+Not changed, recorded: `safety_verdict_out_of_scope` rises under v2 and the
+case arm, mostly on the Vietnamese tasks (the gate flags a bare "an toàn" /
+"độc hại" unless a decline cue precedes it). The rejected drafts' wording was
+not stored anywhere, so the gate's false-positive rate cannot be measured and
+loosening a safety gate blind is not acceptable. Every wording violation now
+carries the flagged phrase with its sentence in `actual`: the model's one
+correction sees what to rewrite, and the next measurement can measure the gate.
+
 ## Resume here (next session)
 
 State at hand-off (2026-09-26): the host rebooted; **the whole stack is down**

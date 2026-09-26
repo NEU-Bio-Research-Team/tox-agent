@@ -146,6 +146,7 @@ class SubmitAnswer:
             )
 
             issued_ids: Mapping[str, str] = {}
+            claimed_values: tuple[float, ...] = ()
             if isinstance(candidate, GroundedAnswerDraftV2):
                 # The server issues the identifiers and reads the values before
                 # anything is validated, so every check below runs against
@@ -162,12 +163,14 @@ class SubmitAnswer:
                     )
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
+                claimed_values = resolved.claimed_values
 
             result = validate_candidate(
                 candidate,
                 session_id=session_id, run_id=run_id, candidate_generation=generation,
                 observations_by_id=observations_by_id, evidence_by_id=evidence_by_id,
                 language=language, now=_now(), read_evidence_ids=read_evidence_ids,
+                claimed_values=claimed_values,
             )
             result = await self._reject_claim_id_collisions(uow, candidate, result)
 

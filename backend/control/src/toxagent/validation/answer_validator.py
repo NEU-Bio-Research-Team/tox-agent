@@ -62,7 +62,10 @@ def validate_candidate(
     language: str,
     now: datetime,
     read_evidence_ids: frozenset[str] = frozenset(),
+    claimed_values: tuple[float, ...] = (),
 ) -> AnswerValidationResult:
+    """``claimed_values``: see ``coverage.validate_markdown_numeric_coverage``;
+    only the grounded-answer v2 path passes any."""
     violations: list[Violation] = []
 
     by_id = {c.claim_id: c for c in candidate.claims}
@@ -126,7 +129,9 @@ def validate_candidate(
     violations += validate_answer_markdown(candidate.answer_markdown)
     violations += validate_no_hitcount_severity(candidate.claims, candidate.answer_markdown)
     violations += validate_no_uncited_links(candidate.answer_markdown)
-    violations += validate_markdown_numeric_coverage(candidate.answer_markdown, candidate.claims)
+    violations += validate_markdown_numeric_coverage(
+        candidate.answer_markdown, candidate.claims, claimed_values=claimed_values,
+    )
 
     known_claim_ids = frozenset(by_id)
     for index, step in enumerate(candidate.recommended_next_steps):

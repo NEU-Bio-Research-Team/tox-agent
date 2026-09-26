@@ -164,6 +164,21 @@ def model_view(model_id: str | None, endpoint: str | None, task: str | None,
     }
 
 
+def for_observation(observation: Any, *, ui: bool = False) -> dict[str, Any]:
+    """The statement for the method behind one attribution observation.
+
+    Reads the model id and method from the projection first and the
+    provenance second, the same order every tool view uses, so the value a
+    claim resolves to is the value the model was shown.
+    """
+    projection = observation.model_projection
+    method = projection.get("method") or observation.provenance.get("method")
+    model_id = projection.get("model_id") or observation.provenance.get("model_id")
+    return (ui_view if ui else model_view)(
+        model_id, projection.get("endpoint"), projection.get("task"), method,
+    )
+
+
 def ui_view(model_id: str | None, endpoint: str | None, task: str | None,
             method: str | None) -> dict[str, Any]:
     """The model view plus the counts and the result file, for a human reader."""

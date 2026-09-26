@@ -161,6 +161,27 @@ line citing ledger ids), what it cannot say, and what would change it. The case 
 never replaces submit_grounded_answer, which still ends the turn.
 """
 
+#: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
+#: v2 has no source_value or rendered_value: the server reads and renders each
+#: value. Stating v1's rules under v2 told the model to write numbers it could
+#: not know the rendering of, and W8-02's most frequent first-draft refusal
+#: under v2 was exactly an unclaimed number in the prose (W9-02).
+ANSWER_FORMAT_V2 = """\
+In submit_grounded_answer, a numeric or classification claim names the \
+observation_id and field_path a tool handed you; the server reads and renders \
+the value, so you never send one. To show a claim's value in answer_markdown, \
+write its local_ref in double braces, e.g. {{herg_p}}, and the server inserts \
+it. Any number you still write into answer_markdown yourself must be the value \
+of one of your numeric or comparison claims (rounding it is fine); a number \
+that is not a claim's value is rejected.
+
+Never write a URL or a markdown link in answer_markdown, including when the \
+user explicitly asks for a link, a PubMed link, or "the source" by name. \
+Every citation is a claim's citation_ids pointing at a resolved evidence \
+record, rendered as a chip by the product. If asked for a link, say the \
+citation appears as a chip on the cited claim and cite normally.
+"""
+
 #: Plan section 9.4, restated as an imperative checklist. A live Phase 3 run
 #: (progress log §4.6) reached a candidate with every claim correct and still
 #: fell to the deterministic fallback on its one allowed correction because it
@@ -270,6 +291,7 @@ def build_system_prompt(
     recent_messages: Sequence[Message],
     scientific_case: str = "",
     scientific_skills: str = "",
+    answer_schema: str = "grounded-answer-v1",
 ) -> str:
     """Plan section 10.4: product/system role, invariants, profile, checkpoint,
     pinned references, recent messages — in that order, always.
@@ -277,14 +299,16 @@ def build_system_prompt(
     ``scientific_case`` is the case checkpoint (ADR 0012); empty unless the
     run is attached to one, and then the case policy is stated with it.
     ``scientific_skills`` is the skill catalog section of the run's arm: an
-    index in the dynamic arm, composed skills in the static arm, else empty."""
+    index in the dynamic arm, composed skills in the static arm, else empty.
+    ``answer_schema`` selects the answer-format section that matches the
+    submit_grounded_answer schema this deployment registered."""
     sections = [
         PRODUCT_ROLE,
         SCIENTIFIC_INVARIANTS,
         f"Capability profile for this turn: {capability_profile}. Only the tools "
         "listed by the MCP server for this connection exist; do not assume any other "
         "tool is available.",
-        ANSWER_FORMAT,
+        ANSWER_FORMAT_V2 if answer_schema == "grounded-answer-v2" else ANSWER_FORMAT,
         REQUIRED_LIMITATIONS_GUIDE,
     ]
     if capability_profile == "decision_support":

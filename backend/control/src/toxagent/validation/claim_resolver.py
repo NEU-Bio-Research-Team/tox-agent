@@ -21,6 +21,7 @@ this package does: typed, correctable violations naming the exact path.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Mapping
@@ -35,6 +36,11 @@ from .wire_v2 import FIELD_BACKED, GroundedAnswerDraftV2
 #: convention and a model applying it by hand is a number it can mistype.
 _COMMA_DECIMAL_LANGUAGES = frozenset({"vi"})
 
+#: ``{{herg_p}}`` in answer_markdown: "put this claim's value here". The server
+#: renders a claim's value, so it is the only party that knows the exact string;
+#: the model names the claim and the server writes the number (W9-02).
+_PLACEHOLDER = re.compile(r"\{\{\s*([a-z][a-z0-9_]{0,31})\s*\}\}")
+
 
 @dataclass(frozen=True)
 class ResolvedDraft:
@@ -44,6 +50,9 @@ class ResolvedDraft:
     #: wants to report back which claim a violation belongs to in the model's
     #: own vocabulary.
     issued_ids: Mapping[str, str] = None  # type: ignore[assignment]
+    #: The numeric values the server resolved for this draft's claims, for the
+    #: prose coverage check (``coverage.validate_markdown_numeric_coverage``).
+    claimed_values: tuple[float, ...] = ()
 
     @property
     def ok(self) -> bool:
@@ -258,11 +267,25 @@ def resolve_draft(
             rendered_value=render_number(value, claim.transform, language=language),
         )
 
+    # Read from ``claims``, not ``by_id``: a comparison was replaced above.
+    rendered_by_ref = {
+        ref: next((c.rendered_value for c in claims if c.claim_id == claim_id), None)
+        for ref, claim_id in ids_by_ref.items()
+    }
+    answer_markdown, placeholder_violations = _fill_placeholders(
+        draft.answer_markdown, rendered_by_ref
+    )
+    violations.extend(placeholder_violations)
+
     if violations:
         return ResolvedDraft(candidate=None, violations=tuple(violations), issued_ids=ids_by_ref)
 
+    claimed_values = tuple(
+        float(claim.source_value) for claim in claims
+        if claim.kind in ("numeric", "comparison") and _numeric(claim.source_value) is not None
+    )
     candidate = GroundedAnswerCandidate(
-        answer_markdown=draft.answer_markdown,
+        answer_markdown=answer_markdown,
         claims=claims,
         limitations=list(draft.limitations),
         recommended_next_steps=[
@@ -273,7 +296,38 @@ def resolve_draft(
             for step in draft.recommended_next_steps
         ],
     )
-    return ResolvedDraft(candidate=candidate, violations=(), issued_ids=ids_by_ref)
+    return ResolvedDraft(
+        candidate=candidate, violations=(), issued_ids=ids_by_ref, claimed_values=claimed_values,
+    )
+
+
+def _fill_placeholders(
+    markdown: str, rendered_by_ref: Mapping[str, str | None],
+) -> tuple[str, list[Violation]]:
+    """Replace every ``{{local_ref}}`` with that claim's server-rendered value."""
+    violations: list[Violation] = []
+
+    def fill(match: re.Match) -> str:
+        ref = match.group(1)
+        if ref not in rendered_by_ref:
+            violations.append(Violation(
+                "answer_placeholder_unknown",
+                f"answer_markdown names {{{{{ref}}}}} but no claim in this draft has that local_ref",
+                path="answer_markdown", actual=match.group(0),
+            ))
+            return match.group(0)
+        value = rendered_by_ref[ref]
+        if value is None:
+            violations.append(Violation(
+                "answer_placeholder_has_no_value",
+                f"claim {ref!r} carries no value to insert; only numeric, classification and "
+                "comparison claims can fill a placeholder",
+                path="answer_markdown", actual=match.group(0),
+            ))
+            return match.group(0)
+        return value
+
+    return _PLACEHOLDER.sub(fill, markdown), violations
 
 
 def replace_claim(claim: ClaimCandidate, **changes: Any) -> ClaimCandidate:

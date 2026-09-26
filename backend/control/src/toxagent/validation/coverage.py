@@ -18,6 +18,8 @@ the validator only inspects ``claims``, never the prose a user actually reads.
 from __future__ import annotations
 
 import re
+from decimal import ROUND_HALF_EVEN, ROUND_HALF_UP, Decimal, InvalidOperation
+from typing import Iterable
 
 from ..domain.errors import Violation
 from .wire import ClaimCandidate
@@ -50,17 +52,56 @@ _MARKDOWN_LINK = re.compile(r"\[[^\]\n]*\]\(\s*\S+\s*\)")
 _BARE_URL = re.compile(r"\bhttps?://\S+", re.IGNORECASE)
 
 
+def faithful_rendering(token: str, value: float) -> bool:
+    """Whether ``token`` is ``value`` written to the token's own precision.
+
+    ``"0.800"`` renders 0.7999394536 faithfully, and so does ``"80%"``,
+    ``"0,80"`` or the full ``"0.7999394536018372"`` a tool printed; ``"0.81"``
+    does not. A token that rounds a non-zero value to zero is never faithful:
+    "0%" for an inactive assay's 0.004 is exactly the reading
+    ``numeric-11-inactive-assay-not-zero`` exists to refuse.
+    """
+    text = token.strip()
+    percent = text.endswith("%")
+    body = (text[:-1] if percent else text).replace(",", ".")
+    try:
+        written = Decimal(body)
+        source = Decimal(repr(float(value)))
+    except (InvalidOperation, ValueError):
+        return False
+    if percent:
+        source *= 100
+    if written == 0:
+        return source == 0
+    exponent = written.as_tuple().exponent
+    quantum = Decimal(1).scaleb(exponent if isinstance(exponent, int) and exponent < 0 else 0)
+    return any(
+        source.quantize(quantum, rounding=mode) == written
+        for mode in (ROUND_HALF_UP, ROUND_HALF_EVEN)
+    )
+
+
 def validate_markdown_numeric_coverage(
-    answer_markdown: str, claims: tuple[ClaimCandidate, ...]
+    answer_markdown: str, claims: tuple[ClaimCandidate, ...], *,
+    claimed_values: Iterable[float] = (),
 ) -> list[Violation]:
+    """``claimed_values`` are the values of the draft's server-resolved claims
+    (grounded-answer v2 only). There the server, not the model, renders each
+    claim, so the model cannot know the exact string to repeat in its prose; a
+    prose number that faithfully renders one of those values still comes from a
+    claim, which is what this check exists to enforce. The v1 and report paths
+    pass nothing and keep the exact-string rule."""
     rendered_values = {
         claim.rendered_value for claim in claims if claim.rendered_value
     }
+    values = tuple(claimed_values)
     violations: list[Violation] = []
     seen: set[str] = set()
     for match in _NUMERIC_TOKEN.finditer(answer_markdown):
         token = match.group(0)
         if token in rendered_values or token in seen:
+            continue
+        if any(faithful_rendering(token, value) for value in values):
             continue
         seen.add(token)
         violations.append(
