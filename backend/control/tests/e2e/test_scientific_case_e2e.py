@@ -273,3 +273,48 @@ async def test_the_case_ledger_fills_from_a_v1_answer_without_answer_draft_v2(db
         )).json()
         assert len(dossier["unlinked_evidence"]) == 2
         assert len(dossier["predictor_facts"]) == 1
+
+
+async def test_a_case_restricted_to_internal_data_cannot_search_outside(db, flags_on):
+    """W9-07: the researcher's data scope is enforced by the tool, not the prompt."""
+    state: dict = {"analysis_id": "", "prompts": [], "searches": []}
+
+    async def script(turn) -> None:
+        state["prompts"].append(turn.system_prompt)
+        state["searches"].append(await turn.call_tool("search_toxicology_evidence", {
+            "analysis_id": state["analysis_id"], "query": "hERG blockade", "limit": 5,
+        }))
+        await turn.call_tool("submit_grounded_answer", _answer(None, "Noted."))
+
+    provider = StubResearchProvider(hits=[ACCEPTED_HIT])
+    async with api_client(db, StubPredictor(), research_provider=provider) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        state["analysis_id"] = await _analyse(client, session_id)
+        await _post(client, session_id, "Is hERG a concern for this compound?")
+        assert state["searches"][0]["status"] == "completed"
+        case = (await client.get(f"/v1/sessions/{session_id}/cases", headers=AUTH)).json()["cases"][0]
+        assert case["requester"] and case["external_search"] is True
+
+        refused = await client.post(
+            f"/v1/sessions/{session_id}/cases/{case['case_id']}/scope",
+            json={"external_search": False}, headers=AUTH,
+        )
+        assert refused.status_code == 400, refused.text  # a denial needs its reason
+        scoped = await client.post(
+            f"/v1/sessions/{session_id}/cases/{case['case_id']}/scope",
+            json={"external_search": False, "reason": "unpublished structure"}, headers=AUTH,
+        )
+        assert scoped.status_code == 200, scoped.text
+        assert scoped.json()["data_scope"]["external_search"] is False
+
+        second = await _post(client, session_id, "And what should we test next?")
+        assert second["status"] == "completed", second
+        assert state["searches"][1]["error"]["code"] == "tool_denied"
+        assert "unpublished structure" in state["searches"][1]["error"]["message"]
+        assert "does not allow external literature search" in state["prompts"][1]
+        dossier = (await client.get(
+            f"/v1/sessions/{session_id}/runs/{second['run_id']}/dossier", headers=AUTH
+        )).json()
+        assert dossier["data_scope"] == {"external_search": False,
+                                         "reason": "unpublished structure", "run_id": None}

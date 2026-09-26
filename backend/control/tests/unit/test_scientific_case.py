@@ -356,3 +356,33 @@ def test_the_checkpoint_shows_only_the_latest_ledger_entries():
     summary = sc.checkpoint_summary(case, evidence_limit=8)
     assert "Ledger (latest 8 of 12):" in summary
     assert "- e12 " in summary and "- e4 " not in summary
+
+
+# --- W9-07: requester and data scope ------------------------------------------
+
+def test_the_requester_is_recorded_when_the_case_opens():
+    case = opened(requester="user-1")
+    assert case.requester == "user-1"
+    assert case.data_scope.external_search is True
+    assert sc.ScientificCaseV1.from_dict(case.to_dict()) == case
+
+
+def test_only_the_researcher_sets_the_data_scope_and_denial_needs_a_reason():
+    case = opened()
+    with pytest.raises(sc.InvalidCaseUpdate, match="cannot be performed by the model"):
+        sc.apply(case, upd("set_scope", external_search=False, reason="confidential"))
+    with pytest.raises(sc.InvalidCaseUpdate, match="reason is required"):
+        sc.apply(case, upd("set_scope", actor="user", external_search=False))
+    with pytest.raises(sc.InvalidCaseUpdate, match="true or false"):
+        sc.apply(case, upd("set_scope", actor="user", external_search="no"))
+    restricted = sc.apply(case, upd("set_scope", actor="user", external_search=False,
+                                    reason="unpublished structure"))
+    assert restricted.data_scope.external_search is False
+    assert "does not allow external literature search" in sc.checkpoint_summary(restricted)
+    assert "unpublished structure" in sc.checkpoint_summary(restricted)
+    # Setting the same scope again is a no-op, not a new revision.
+    again = sc.apply(restricted, upd("set_scope", actor="user", external_search=False,
+                                     reason="unpublished structure"))
+    assert again is restricted
+    dossier = sc.compile_dossier(restricted, run_id=RUN, stop_reason=None, answer_id=None)
+    assert dossier["data_scope"]["external_search"] is False

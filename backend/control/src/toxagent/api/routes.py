@@ -48,6 +48,7 @@ from .schemas import (
     CancelResponse,
     CaseContextRequest,
     CaseQuestionRequest,
+    CaseScopeRequest,
     CreateSessionRequest,
     CreateReportRequest,
     ExplainRequest,
@@ -930,6 +931,7 @@ def _case_summary(case) -> dict[str, Any]:
         "revision": case.revision, "hypotheses": len(case.hypotheses),
         "evidence": len(case.evidence), "open_uncertainties": len(case.open_uncertainties),
         "runs": len(case.runs), "coverage": case.coverage, "updated_at": case.updated_at,
+        "requester": case.requester, "external_search": case.data_scope.external_search,
     }
 
 
@@ -1043,6 +1045,19 @@ async def set_scientific_case_question(
     if body.decision_context:
         payload["decision_context"] = body.decision_context
     return await _user_case_update(request, principal, session_id, case_id, "set_question", **payload)
+
+
+@router.post("/sessions/{session_id}/cases/{case_id}/scope")
+async def set_scientific_case_scope(
+    request: Request, session_id: str, case_id: str, body: CaseScopeRequest,
+    principal: Actor = Depends(actor),
+):
+    """Set what the case may reach. With external search off, the evidence
+    search tool refuses for every later turn of this case."""
+    return await _user_case_update(
+        request, principal, session_id, case_id, "set_scope",
+        external_search=body.external_search, reason=body.reason or "",
+    )
 
 
 @router.post("/sessions/{session_id}/cases/{case_id}:close")

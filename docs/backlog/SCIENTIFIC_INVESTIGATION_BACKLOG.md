@@ -345,7 +345,7 @@ of the review that listed them (its number is kept in the ID column):
 | 3 | W9-01 | Lighter case policy; the run budget for the case arm is a recorded product decision | Fewer mandatory case calls per turn; budget decision in this document; tests | done (code); effect measured in W9-A — see below |
 | 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | done (text); trigger precision re-measured with the next study run. The eval tags were not changed after seeing the results |
 | 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | todo |
-| 6 | W9-07 | Case carries requester and permitted data scope (RETHINK §3.1 item 2) | Domain op + API + tool gate respects the scope; tests | todo |
+| 6 | W9-07 | Case carries requester and permitted data scope (RETHINK §3.1 item 2) | Domain op + API + tool gate respects the scope; tests | done — `requester` is the session owner, recorded when the case opens; `data_scope.external_search` is set only by the researcher (`POST …/cases/{id}/scope`, a denial needs its reason) and enforced by `search_toxicology_evidence`, which refuses with `tool_denied` for every later turn of the case; the checkpoint and the dossier carry it. The board shows it (W9-06) |
 | 7 | W9-06 | Investigation board shows the case history (`/events`) | Vitest; typecheck | todo |
 | 8 | W9-05 | Dossier becomes the source of chat and report (§4.4.3, §4.9) | Chat answer carries the dossier; report context reads it; tests | todo |
 | 9 | W9-08 | Literature questions without a molecule | Router routes to a subjectless case instead of `research_subject_missing`; tests | todo |

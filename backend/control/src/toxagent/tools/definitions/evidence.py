@@ -31,6 +31,7 @@ from ...research.relevance import (
     RetrievalBudget,
     assess,
 )
+from ...application import scientific_case_service
 from ...flags import is_enabled
 from .. import trust
 from ..registry import ToolContext, ToolDefinition, ToolOutput
@@ -126,6 +127,21 @@ def build(
                 )
         if snapshot is None:
             raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
+        if context.profile == "decision_support" and is_enabled("scientific_case_v1"):
+            # W9-07: the researcher's data scope is a permission. A case that
+            # forbids external search never sends the compound to a provider.
+            async with database.unit_of_work() as uow:
+                refusal = await scientific_case_service.external_search_refusal(
+                    uow, session_id=context.session_id, run_id=context.run_id,
+                )
+            if refusal is not None:
+                raise ToolDenied(
+                    "this case's data scope does not allow external literature search "
+                    f"({refusal}). Answer from the predictor, the session's existing records "
+                    "and what the researcher supplied, and say that external literature was "
+                    "not searched at the researcher's request.",
+                    reason="case_data_scope",
+                )
         if (
             context.profile == "decision_support"
             and used > DECISION_SUPPORT_MAX_SEARCHES_PER_RUN

@@ -75,6 +75,7 @@ async def apply_updates(
 async def open_or_continue(
     uow, *, session_id: str, analysis_id: str | None, run_id: str, goal: str,
     subject_refs: Iterable[str], extra_updates: Sequence[sc.CaseUpdate] = (),
+    requester: str = "",
 ) -> sc.ScientificCaseV1:
     """The session's open case for this subject, with this run attached.
 
@@ -92,6 +93,7 @@ async def open_or_continue(
             "open", actor=sc.Actor.SERVER.value, run_id=run_id, at=now,
             case_id=new_id(SCIENTIFIC_CASE), session_id=session_id, subject_key=key,
             question=(goal or "").strip()[:2000], subject_refs=list(dict.fromkeys(subject_refs)),
+            requester=requester,
         ))
     updates.append(update("attach_run", actor=sc.Actor.SERVER.value, run_id=run_id, at=now,
                           goal=(goal or "").strip()[:2000]))
@@ -219,6 +221,14 @@ async def cited_sources(uow, *, session_id: str, answer) -> list[dict[str, Any]]
             cited.append({"source_class": source_class, "source_id": evidence_id,
                           "claim": claim.text, "locator": None})
     return cited
+
+
+async def external_search_refusal(uow, *, session_id: str, run_id: str) -> str | None:
+    """Why this run's case forbids external search, or ``None`` if it may search."""
+    case = await case_for_run(uow, session_id=session_id, run_id=run_id)
+    if case is None or case.data_scope.external_search:
+        return None
+    return case.data_scope.reason or "the researcher restricted this case to internal data"
 
 
 def analysis_uncertainties(snapshot, *, run_id: str) -> list[sc.CaseUpdate]:

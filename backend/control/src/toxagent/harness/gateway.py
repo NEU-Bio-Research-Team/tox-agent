@@ -308,6 +308,7 @@ class AgentRuntimeGateway:
                     extra_updates=scientific_case_service.analysis_uncertainties(
                         snapshot, run_id=context.run_id
                     ),
+                    requester=session.owner_id if session else "",
                 )
                 await uow.commit()
         except Exception:  # noqa: BLE001 - bookkeeping must not stop the run

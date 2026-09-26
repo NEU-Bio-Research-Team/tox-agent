@@ -331,6 +331,25 @@ class Conclusion:
 
 
 @dataclass(frozen=True, slots=True)
+class DataScope:
+    """What the case may reach (RETHINK §3.1 item 2). The researcher sets it.
+
+    ``external_search`` is the one scope the product can enforce today: whether
+    the compound may be sent to an external literature provider. A confidential
+    structure is the reason to turn it off; the search tool then refuses, so
+    this is a permission, not advice to the model (W9-07).
+    """
+
+    external_search: bool = True
+    reason: str = ""
+    run_id: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"external_search": self.external_search, "reason": self.reason,
+                "run_id": self.run_id}
+
+
+@dataclass(frozen=True, slots=True)
 class RunRecord:
     run_id: str
     goal: str
@@ -374,6 +393,10 @@ class ScientificCaseV1:
     question: str = ""
     decision_context: str = ""
     subject_refs: tuple[str, ...] = ()
+    #: Who the investigation is for: the session owner's subject id, recorded
+    #: by the server when the case opens (RETHINK §3.1 item 2).
+    requester: str = ""
+    data_scope: DataScope = field(default_factory=DataScope)
     status: str = CaseStatus.OPEN.value
     context: tuple[ContextItem, ...] = ()
     hypotheses: tuple[Hypothesis, ...] = ()
@@ -437,6 +460,7 @@ class ScientificCaseV1:
             "case_id": self.id, "session_id": self.session_id, "subject_key": self.subject_key,
             "question": self.question, "decision_context": self.decision_context,
             "subject_refs": list(self.subject_refs), "status": self.status,
+            "requester": self.requester, "data_scope": self.data_scope.to_dict(),
             "context": [c.to_dict() for c in self.context],
             "hypotheses": [h.to_dict() for h in self.hypotheses],
             "evidence": [e.to_dict() for e in self.evidence],
@@ -457,6 +481,8 @@ class ScientificCaseV1:
             id=data["case_id"], session_id=data["session_id"], subject_key=data["subject_key"],
             question=data.get("question", ""), decision_context=data.get("decision_context", ""),
             subject_refs=tuple(data.get("subject_refs") or ()),
+            requester=data.get("requester", ""),
+            data_scope=DataScope(**(data.get("data_scope") or {})),
             status=data.get("status", CaseStatus.OPEN.value),
             context=tuple(ContextItem(**c) for c in data.get("context") or ()),
             hypotheses=tuple(Hypothesis(**h) for h in data.get("hypotheses") or ()),
@@ -592,6 +618,7 @@ def _open(case: ScientificCaseV1 | None, u: CaseUpdate) -> ScientificCaseV1:
         question=_text(p, "question", required=False, limit=2000),
         decision_context=_text(p, "decision_context", required=False),
         subject_refs=tuple(dict.fromkeys(p.get("subject_refs") or ())),
+        requester=_text(p, "requester", required=False, limit=200),
         created_at=u.at,
     )
 
@@ -602,6 +629,17 @@ def _set_question(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         decision_context=_text(u.payload, "decision_context", required=False)
         or case.decision_context,
     )
+
+
+def _set_scope(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    allowed = u.payload.get("external_search")
+    if not isinstance(allowed, bool):
+        raise InvalidCaseUpdate("external_search must be true or false")
+    reason = _text(u.payload, "reason", required=not allowed, limit=500)
+    scope = DataScope(external_search=allowed, reason=reason, run_id=u.run_id)
+    if scope == case.data_scope:
+        return case
+    return replace(case, data_scope=scope)
 
 
 def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
@@ -816,6 +854,8 @@ def _close(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
 
 _OPS = {
     "set_question": (_set_question, {Actor.MODEL, Actor.USER}),
+    #: Only the researcher widens or narrows what the case may reach.
+    "set_scope": (_set_scope, {Actor.USER}),
     "add_context": (_add_context, {Actor.USER}),
     "add_hypothesis": (_add_hypothesis, {Actor.MODEL, Actor.USER}),
     "revise_hypothesis": (_revise_hypothesis, {Actor.MODEL, Actor.USER}),
@@ -1016,6 +1056,8 @@ def compile_dossier(
         "question": case.question,
         "decision_context": case.decision_context,
         "subject_refs": list(case.subject_refs),
+        "requester": case.requester,
+        "data_scope": case.data_scope.to_dict(),
         "context": [c.to_dict() for c in case.context],
         "predictor_facts": entries(
             e for e in case.evidence if e.source_class == SourceClass.PREDICTOR_FACT.value
@@ -1056,6 +1098,12 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
     lines = [f"Open scientific case {case.id} (revision {case.revision})."]
     if case.question:
         lines.append(f"Decision question: {case.question[:400]}")
+    if not case.data_scope.external_search:
+        lines.append(
+            "Data scope: the researcher does not allow external literature search for this "
+            f"case ({case.data_scope.reason[:200]}); work from the predictor, the session's "
+            "existing records and what the researcher supplies."
+        )
     for item in case.context[:limit]:
         lines.append(f"- context {item.id} ({item.actor}): {item.key} = {item.value[:160]}")
     for h in case.hypotheses[:limit]:

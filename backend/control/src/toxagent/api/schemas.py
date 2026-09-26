@@ -48,6 +48,14 @@ class CaseQuestionRequest(_Request):
     decision_context: str | None = Field(default=None, max_length=1000)
 
 
+class CaseScopeRequest(_Request):
+    """What the case may reach (W9-07). Turning external search off needs a
+    reason, which the agent is shown and the dossier keeps."""
+
+    external_search: bool
+    reason: str | None = Field(default=None, max_length=500)
+
+
 class SessionResponse(BaseModel):
     session_id: str
     status: str
