@@ -736,6 +736,20 @@ scientific_case_events = Table(
     Index("ix_scientific_case_events_run", "run_id"),
 )
 
+#: Proposed skills awaiting expert review (domain/skill_draft.py, W9-11). The
+#: whole draft is the ``draft`` document; the columns are what lists filter on.
+skill_drafts = Table(
+    "skill_drafts", metadata,
+    Column("id", _ID, primary_key=True),
+    Column("skill_id", String(64), nullable=False),
+    Column("status", String(16), nullable=False),
+    Column("author_subject", String(200), nullable=False),
+    Column("draft", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Column("updated_at", _TS, nullable=False),
+    Index("ix_skill_drafts_status", "status", "created_at"),
+)
+
 #: DecisionDossierV1: what one run concluded over its case, compiled by the
 #: server when the run ends. One per run, never changed.
 scientific_case_dossiers = Table(

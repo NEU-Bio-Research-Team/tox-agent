@@ -185,6 +185,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "uncited or off-topic claims against the clarification baseline",
     ),
     _flag(
+        "skill_drafts_v1",
+        "Skill drafts for expert review (RETHINK 4.8): register "
+        "propose_skill_draft in decision_support and serve /v1/skill-drafts "
+        "(propose, list, review by an expert who is not the author, withdraw, "
+        "export an approved package). Drafts never reach the catalog a run is "
+        "offered; promotion is a reviewed change to the shipped packages. Off, "
+        "the tool is absent and the routes answer 404.",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 26),
+        remove_by=date(2026, 12, 23),
+        removal_condition="a reviewer has promoted at least one draft through the flow and the "
+                          "model-proposed drafts reviewed so far are judged useful, not noise",
+    ),
+    _flag(
         "scientific_skills_v1",
         "The dynamic skill arm: decision_support prompts list the scientific "
         "skill catalog (names and descriptions) and register "

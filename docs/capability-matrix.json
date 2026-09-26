@@ -262,6 +262,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "skill_drafts_v1": {
+      "default": false,
+      "description": "Skill drafts for expert review (RETHINK 4.8): register propose_skill_draft in decision_support and serve /v1/skill-drafts (propose, list, review by an expert who is not the author, withdraw, export an approved package). Drafts never reach the catalog a run is offered; promotion is a reviewed change to the shipped packages. Off, the tool is absent and the routes answer 404.",
+      "gates_tools": [
+        "propose_skill_draft"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
     "subjectless_research_v1": {
       "default": false,
       "description": "A literature question with no molecule in the session runs as a decision_support turn on a subjectless case, and search_toxicology_evidence accepts a search without an analysis (results are then assessed against the endpoint only). Off, the router asks for a molecule (research_subject_missing) and the search tool's schema is unchanged.",
@@ -457,6 +466,7 @@
       ],
       "flag_gated": {
         "get_scientific_case": "scientific_case_v1",
+        "propose_skill_draft": "skill_drafts_v1",
         "read_scientific_skill": "scientific_skills_v1",
         "read_skill_reference": "scientific_skills_v1",
         "record_decision_plan": "decision_state_plan_tool",

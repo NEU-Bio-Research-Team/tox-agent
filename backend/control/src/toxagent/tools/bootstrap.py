@@ -22,6 +22,7 @@ from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
 from .definitions import scientific_case as scientific_case_tools
 from .definitions import scientific_skills as scientific_skill_tools
+from .definitions import skill_drafts as skill_draft_tools
 from .registry import FLAG_GATED_TOOLS, ToolDefinition, ToolRegistry
 from ..flags import is_enabled
 
@@ -100,6 +101,10 @@ def build_registry(
         database, skill_catalog,
         lambda profile: [tool.name for tool in registry.visible_for(profile)],
     ):
+        add(definition)
+    # Gated by skill_drafts_v1 (W9-11): a proposal for expert review, never a
+    # change to the catalog this or any run is offered.
+    for definition in skill_draft_tools.build(database, skill_catalog):
         add(definition)
     if compound_provider is not None:
         for definition in compound_tools.build(database, compound_provider):

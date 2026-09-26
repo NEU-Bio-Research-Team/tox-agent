@@ -56,6 +56,21 @@ class CaseScopeRequest(_Request):
     reason: str | None = Field(default=None, max_length=500)
 
 
+class SkillDraftRequest(_Request):
+    """A skill package proposed for review (W9-11): the same three parts a
+    shipped skill has, with the manifest's status held at ``draft``."""
+
+    skill_md: str = Field(min_length=1, max_length=20_000)
+    manifest: dict[str, Any]
+    references: dict[str, str] = Field(default_factory=dict)
+    rationale: str = Field(min_length=1, max_length=2000)
+
+
+class SkillDraftReviewRequest(_Request):
+    decision: Literal["approve", "reject"]
+    note: str = Field(min_length=1, max_length=2000)
+
+
 class SessionResponse(BaseModel):
     session_id: str
     status: str

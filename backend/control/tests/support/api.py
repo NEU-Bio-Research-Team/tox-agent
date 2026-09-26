@@ -29,9 +29,12 @@ from toxagent.persistence.sql.database import Database
 USER_TOKEN = "dev-user-token"
 EXPERT_TOKEN = "dev-expert-token"
 OTHER_TOKEN = "dev-other-token"
+#: An expert who is not user-1, for reviews that must not be self-reviews.
+REVIEWER_TOKEN = "dev-reviewer-token"
 AUTH = {"authorization": f"Bearer {USER_TOKEN}"}
 OTHER_AUTH = {"authorization": f"Bearer {OTHER_TOKEN}"}
 EXPERT_AUTH = {"authorization": f"Bearer {EXPERT_TOKEN}"}
+REVIEWER_AUTH = {"authorization": f"Bearer {REVIEWER_TOKEN}"}
 
 
 def settings(**overrides) -> Settings:
@@ -61,6 +64,7 @@ def settings(**overrides) -> Settings:
                 f"{USER_TOKEN}:user-1",
                 f"{EXPERT_TOKEN}:user-1:expert",
                 f"{OTHER_TOKEN}:user-2",
+                f"{REVIEWER_TOKEN}:user-3:expert",
             ),
         ),
         **overrides,

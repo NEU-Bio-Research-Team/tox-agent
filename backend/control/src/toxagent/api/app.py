@@ -235,11 +235,12 @@ def create_app(
 
         from ..application.skill_catalog import load_catalog
 
+        skill_catalog = load_catalog(settings.profiles_dir)
         registry = build_registry(
             db, client, analysis, settings.policy,
             research_provider=research_provider, research_settings=settings.research,
             compound_provider=compound_provider, object_store=objects,
-            skill_catalog=load_catalog(settings.profiles_dir),
+            skill_catalog=skill_catalog,
         )
         runner = ToolRunner(
             registry, db,
@@ -311,6 +312,7 @@ def create_app(
         app.state.ocr = ocr
         app.state.object_store = objects
         app.state.tool_registry = registry
+        app.state.skill_catalog = skill_catalog
         app.state.tool_runner = runner
         app.state.runtime_gateway = None
 

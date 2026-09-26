@@ -67,6 +67,7 @@ from ..schema import (
     scientific_case_dossiers,
     scientific_case_events,
     scientific_cases,
+    skill_drafts,
     session_settings,
     runtime_bindings,
     runtime_usage_events,
@@ -2286,3 +2287,50 @@ def _parse_ts(value: Any) -> datetime:
     if isinstance(value, datetime):
         return value
     return datetime.fromisoformat(str(value))
+
+
+class SqlSkillDraftStore:
+    """Skill drafts awaiting review (W9-11). A save names the status it expects
+    to replace, so two reviewers deciding at once cannot both win."""
+
+    def __init__(self, conn: AsyncConnection) -> None:
+        self._conn = conn
+
+    @staticmethod
+    def _draft(row):
+        from ...domain.skill_draft import SkillDraft
+
+        return SkillDraft.from_dict(row["draft"]) if row is not None else None
+
+    async def add(self, draft, *, now: datetime) -> None:
+        await self._conn.execute(insert(skill_drafts).values(
+            id=draft.id, skill_id=draft.skill_id, status=draft.status,
+            author_subject=draft.author.subject_id, draft=draft.to_dict(),
+            created_at=now, updated_at=now,
+        ))
+
+    async def get(self, draft_id: str):
+        row = (await self._conn.execute(
+            select(skill_drafts).where(skill_drafts.c.id == draft_id)
+        )).mappings().first()
+        return self._draft(row)
+
+    async def list(self, *, status: str | None = None, author_subject: str | None = None,
+                   limit: int = 100):
+        query = select(skill_drafts).order_by(skill_drafts.c.created_at.desc()).limit(limit)
+        if status is not None:
+            query = query.where(skill_drafts.c.status == status)
+        if author_subject is not None:
+            query = query.where(skill_drafts.c.author_subject == author_subject)
+        rows = (await self._conn.execute(query)).mappings().all()
+        return [self._draft(row) for row in rows]
+
+    async def save(self, draft, *, expected_status: str, now: datetime) -> None:
+        result = await self._conn.execute(
+            update(skill_drafts)
+            .where(skill_drafts.c.id == draft.id)
+            .where(skill_drafts.c.status == expected_status)
+            .values(status=draft.status, draft=draft.to_dict(), updated_at=now)
+        )
+        if result.rowcount != 1:
+            raise Conflict("the skill draft changed; re-read it", draft_id=draft.id)

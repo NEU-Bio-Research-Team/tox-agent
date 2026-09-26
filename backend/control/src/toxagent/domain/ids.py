@@ -56,6 +56,8 @@ EVIDENCE_RELATION: Final = "evr"
 #: Deliberately not CASE: that prefix belongs to the superseded kernel's
 #: CaseState, and an id of one must never resolve as the other.
 SCIENTIFIC_CASE: Final = "scase"
+#: A proposed skill awaiting expert review (domain/skill_draft.py, W9-11).
+SKILL_DRAFT: Final = "skd"
 
 PREFIXES: Final[frozenset[str]] = frozenset(
     {
@@ -63,7 +65,7 @@ PREFIXES: Final[frozenset[str]] = frozenset(
         CLAIM, EVENT, RUNTIME_BINDING, ATTACHMENT, TOOL_CALL, CAPABILITY, RUNTIME_USAGE,
         CASE, PLAN, STEP, CONFLICT, GAP, CONNECTION,
         REPORT, REPORT_BUILD, FIGURE, EXPLANATION, SYNTHESIS, RENDERING,
-        PROPOSITION, EVIDENCE_RELATION, SCIENTIFIC_CASE,
+        PROPOSITION, EVIDENCE_RELATION, SCIENTIFIC_CASE, SKILL_DRAFT,
     }
 )
 

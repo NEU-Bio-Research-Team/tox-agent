@@ -195,6 +195,8 @@ class UnitOfWork(Protocol):
     investigations: Any
     #: ScientificCaseV1 snapshots, their event log and run dossiers (ADR 0012).
     scientific_cases: Any
+    #: Skill drafts awaiting expert review (W9-11).
+    skill_drafts: Any
     model_connections: Any
     session_settings: Any
     run_configuration_snapshots: Any
