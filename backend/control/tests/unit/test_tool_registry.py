@@ -89,10 +89,12 @@ def test_every_conversational_profile_is_a_small_closed_set():
         ceiling = 10 if name == "decision_support" else 6
         default = tools - set(FLAG_GATED_TOOLS)
         assert 2 <= len(default) <= ceiling, f"{name} has {len(default)} default tools"
-        # Every flag on at once (ADR 0012: the case and skill tools are cheap
-        # reads/writes of product state, not new capabilities to route among)
-        # still has a ceiling, so a flag cannot become a way around this one.
-        assert len(tools) <= ceiling + 5, f"{name} has {len(tools)} tools with every flag on"
+        # Every flag on at once still has a ceiling, so a flag cannot become a
+        # way around this one. It is wider than the default ceiling because
+        # the flag-gated tools are separate experiments, each measured on its
+        # own arm (ADR 0012 case and skill tools, W9-11 drafts, W9-13
+        # primitives), never meant to ship all at once.
+        assert len(tools) <= ceiling + 8, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

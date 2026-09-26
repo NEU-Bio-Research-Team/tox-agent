@@ -261,6 +261,16 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "scientific_primitives_v1": {
+      "default": false,
+      "description": "Register two scientific primitives in decision_support (RETHINK 4.7, 4.10): compute_exposure_margin (IC50 over free Cmax from concentrations written in the session's sources, stored as a citable observation) and, with a ChEMBL provider configured, get_chembl_activities (measured activities of the analysed structure against hERG, stored as citable evidence). Both honour the researcher's data scope. Off, neither exists.",
+      "gates_tools": [
+        "compute_exposure_margin",
+        "get_chembl_activities"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
     "scientific_skills_v1": {
       "default": false,
       "description": "The dynamic skill arm: decision_support prompts list the scientific skill catalog (names and descriptions) and register read_scientific_skill/read_skill_reference, so the model loads a skill's pinned instructions only when the situation calls for it. Off, no skill is offered (TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 selects the static comparison arm instead).",
@@ -480,6 +490,8 @@
         "submit_grounded_answer"
       ],
       "flag_gated": {
+        "compute_exposure_margin": "scientific_primitives_v1",
+        "get_chembl_activities": "scientific_primitives_v1",
         "get_scientific_case": "scientific_case_v1",
         "propose_skill_draft": "skill_drafts_v1",
         "read_scientific_skill": "scientific_skills_v1",

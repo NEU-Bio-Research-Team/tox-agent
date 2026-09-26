@@ -185,6 +185,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "uncited or off-topic claims against the clarification baseline",
     ),
     _flag(
+        "scientific_primitives_v1",
+        "Register two scientific primitives in decision_support (RETHINK 4.7, "
+        "4.10): compute_exposure_margin (IC50 over free Cmax from concentrations "
+        "written in the session's sources, stored as a citable observation) and, "
+        "with a ChEMBL provider configured, get_chembl_activities (measured "
+        "activities of the analysed structure against hERG, stored as citable "
+        "evidence). Both honour the researcher's data scope. Off, neither exists.",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 26),
+        remove_by=date(2026, 12, 23),
+        removal_condition="on cases that need an exposure margin or measured potency, answers "
+                          "cite the computed/looked-up value with no rise in unsupported claims",
+    ),
+    _flag(
         "claim_reviewer_v1",
         "After a decision_support answer is accepted, dispatch one independent "
         "reviewer turn (profile claim_review, one tool) that judges from the "

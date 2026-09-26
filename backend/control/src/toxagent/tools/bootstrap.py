@@ -19,6 +19,7 @@ from .definitions import decision_plan as decision_plan_tools
 from .definitions import evidence as evidence_tools
 from .definitions import explanation as explanation_tools
 from .definitions import inventory as inventory_tools
+from .definitions import primitives as primitive_tools
 from .definitions import report as report_tools
 from .definitions import report_synthesis as report_synthesis_tools
 from .definitions import scientific_case as scientific_case_tools
@@ -44,6 +45,7 @@ def build_registry(
     compound_provider: CompoundProvider | None = None,
     object_store=None,
     skill_catalog=None,
+    chembl_provider=None,
     extra: list | None = None,
 ) -> ToolRegistry:
     registry = ToolRegistry()
@@ -102,6 +104,10 @@ def build_registry(
         database, skill_catalog,
         lambda profile: [tool.name for tool in registry.visible_for(profile)],
     ):
+        add(definition)
+    # Gated by scientific_primitives_v1 (W9-13); the ChEMBL tool also needs a
+    # configured provider, like the evidence tools.
+    for definition in primitive_tools.build(database, chembl_provider):
         add(definition)
     # Gated by claim_reviewer_v1 (W9-12); visible only under claim_review.
     for definition in claim_review_tools.build(database):

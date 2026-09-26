@@ -113,6 +113,7 @@ def create_app(
     ocr_client: OcrClient | None = None,
     object_store: ObjectStore | None = None,
     create_schema: bool = False,
+    chembl_provider=None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     if research_provider is None:
@@ -236,11 +237,16 @@ def create_app(
         from ..application.skill_catalog import load_catalog
 
         skill_catalog = load_catalog(settings.profiles_dir)
+        chembl = chembl_provider
+        if chembl is None and is_enabled("scientific_primitives_v1"):
+            from ..research.providers.chembl import build_chembl_provider
+
+            chembl = build_chembl_provider(settings.chembl)
         registry = build_registry(
             db, client, analysis, settings.policy,
             research_provider=research_provider, research_settings=settings.research,
             compound_provider=compound_provider, object_store=objects,
-            skill_catalog=skill_catalog,
+            skill_catalog=skill_catalog, chembl_provider=chembl,
         )
         runner = ToolRunner(
             registry, db,

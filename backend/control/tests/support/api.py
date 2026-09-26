@@ -80,6 +80,7 @@ async def api_client(
     research_provider=None,
     ocr_client=None,
     object_store=None,
+    chembl_provider=None,
 ) -> AsyncIterator[httpx.AsyncClient]:
     app = create_app(
         config or settings(),
@@ -88,6 +89,7 @@ async def api_client(
         research_provider=research_provider,
         ocr_client=ocr_client,
         object_store=object_store,
+        chembl_provider=chembl_provider,
     )
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(

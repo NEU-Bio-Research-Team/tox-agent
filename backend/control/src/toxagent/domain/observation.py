@@ -25,6 +25,8 @@ class Producer(str, Enum):
     RESEARCH = "research"
     REPORT_PROJECTION = "report_projection"
     VALIDATOR = "validator"
+    #: A server-side scientific calculation over cited inputs (W9-13).
+    CALCULATOR = "calculator"
 
 
 class ObservationKind(str, Enum):
@@ -33,6 +35,8 @@ class ObservationKind(str, Enum):
     EVIDENCE_SEARCH = "evidence_search"
     EVIDENCE_RECORD = "evidence_record"
     ANALYSIS_SLICE = "analysis_slice"
+    #: The result of a server calculation, e.g. an exposure margin (W9-13).
+    CALCULATION = "calculation"
 
 
 # A model projection that outgrows this is a prompt-budget bug, not a reason to

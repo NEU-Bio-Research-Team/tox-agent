@@ -494,6 +494,39 @@ class CompoundSettings:
 
 
 @dataclass(frozen=True)
+class ChemblSettings:
+    """ChEMBL activity lookup (W9-13, flag scientific_primitives_v1).
+
+    Transport limits mirror ``CompoundSettings`` and are kept separate for the
+    same reason: a different organisation's rate limits. An empty ``provider``
+    means no ChEMBL tool is registered.
+    """
+
+    provider: str = "chembl"
+    base_url: str = "https://www.ebi.ac.uk/chembl/api/data"
+    allowed_hosts: tuple[str, ...] = ("www.ebi.ac.uk",)
+    timeout_s: float = 10.0
+    hard_timeout_s: float = 30.0
+    circuit_failure_threshold: int = 5
+    circuit_reset_after_s: float = 30.0
+    max_response_bytes: int = 2 * 1024 * 1024
+    allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
+    retry_attempts: int = 3
+    retry_backoff_s: float = 0.25
+
+    @classmethod
+    def from_env(cls) -> "ChemblSettings":
+        return cls(
+            provider=_env("TOXAGENT_CHEMBL_PROVIDER", cls.provider),
+            base_url=_env("TOXAGENT_CHEMBL_URL", cls.base_url).rstrip("/"),
+            allowed_hosts=_list("TOXAGENT_CHEMBL_ALLOWED_HOSTS", cls.allowed_hosts),
+            timeout_s=_float("TOXAGENT_CHEMBL_TIMEOUT", cls.timeout_s),
+            hard_timeout_s=_float("TOXAGENT_CHEMBL_HARD_TIMEOUT", cls.hard_timeout_s),
+            max_response_bytes=_int("TOXAGENT_CHEMBL_MAX_RESPONSE_BYTES", cls.max_response_bytes),
+        )
+
+
+@dataclass(frozen=True)
 class OcrSettings:
     """Optical structure recognition (image -> SMILES). Pluggable like
     ``ResearchSettings``: an empty ``base_url`` means no OCR service is
@@ -753,6 +786,7 @@ class Settings:
     log_level: str = "INFO"
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
     worker: WorkerSettings = field(default_factory=WorkerSettings)
+    chembl: ChemblSettings = field(default_factory=ChemblSettings)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -764,6 +798,7 @@ class Settings:
             runtime=RuntimeSettings.from_env(),
             research=ResearchSettings.from_env(),
             compound=CompoundSettings.from_env(),
+            chembl=ChemblSettings.from_env(),
             ocr=OcrSettings.from_env(),
             security=SecuritySettings.from_env(),
             profiles_dir=Path(_env("TOXAGENT_PROFILES_DIR") or PACKAGE_ROOT / "agent_profiles"),

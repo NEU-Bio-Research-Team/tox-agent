@@ -362,7 +362,10 @@ class SubmitAnswer:
         calls = await uow.tool_calls.list_for_run(run_id)
         read: set[str] = set()
         for call in calls:
-            if call["tool_name"] == "get_evidence_record" and call["status"] == "completed":
+            # get_chembl_activities (W9-13) returns each record whole, so a
+            # record it returned has been read, not merely listed.
+            if call["tool_name"] in ("get_evidence_record", "get_chembl_activities") \
+                    and call["status"] == "completed":
                 read.update(call.get("observation_ids") or ())
         return frozenset(read)
 
