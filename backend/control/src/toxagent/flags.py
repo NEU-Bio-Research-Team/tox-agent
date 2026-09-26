@@ -159,8 +159,9 @@ FLAGS: tuple[RolloutFlag, ...] = (
         "scientific_case_v1",
         "Keep a ScientificCaseV1 per session and subject across decision_support "
         "turns: open or continue the case at run start, register "
-        "get_scientific_case/update_scientific_case, record the accepted "
-        "answer's evidence relations in the case ledger, and compile a "
+        "get_scientific_case/update_scientific_case, record what the accepted "
+        "answer cited (and, with answer_draft_v2, its evidence relations) in "
+        "the case ledger, and compile a "
         "DecisionDossierV1 when the run ends. Off, no case is written and the "
         "tool surface and prompt are unchanged.",
         owner="backend-scientific",

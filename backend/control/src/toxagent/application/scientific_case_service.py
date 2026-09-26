@@ -171,6 +171,56 @@ def answer_relation_updates(relations: Iterable[Any], *, run_id: str) -> Updates
     return lambda case: sc.updates_from_answer(case, payload, run_id=run_id, at=at)
 
 
+def answer_ledger_updates(relations: Iterable[Any], cited: Sequence[Mapping[str, Any]], *,
+                          run_id: str) -> UpdatesFor:
+    """An accepted answer's contribution to the ledger, for ``advance_in``.
+
+    Its relations first (they carry a stance), then whatever else it cited
+    (W9-04), so a source the answer both related and cited is one entry.
+    """
+    from_relations = answer_relation_updates(relations, run_id=run_id)
+    at = _now().isoformat()
+
+    def updates_for(case: sc.ScientificCaseV1) -> list[sc.CaseUpdate]:
+        related = list(from_relations(case))
+        related_refs = [str(u.payload.get("source_ref")) for u in related]
+        return related + sc.updates_from_citations(
+            case, cited, run_id=run_id, at=at, skip_refs=related_refs,
+        )
+
+    return updates_for
+
+
+async def cited_sources(uow, *, session_id: str, answer) -> list[dict[str, Any]]:
+    """The sources an accepted answer's claims cite, classed for the ledger."""
+    from ..domain.evidence import SourceType
+    from ..domain.observation import ObservationKind
+
+    cited: list[dict[str, Any]] = []
+    for claim in answer.claims:
+        if claim.observation_id:
+            observation = await uow.observations.get(claim.observation_id, session_id=session_id)
+            source_class = {
+                ObservationKind.PREDICTION: sc.SourceClass.PREDICTOR_FACT.value,
+                ObservationKind.ATTRIBUTION: sc.SourceClass.EXPLANATION_FACT.value,
+            }.get(observation.kind) if observation is not None else None
+            if source_class:
+                cited.append({"source_class": source_class, "source_id": claim.observation_id,
+                              "claim": claim.text, "locator": claim.field_path})
+        for evidence_id in claim.citation_ids:
+            record = await uow.evidence.get(evidence_id, session_id=session_id)
+            if record is None:
+                continue
+            source_class = (
+                sc.SourceClass.EXTERNAL_REGULATORY.value
+                if record.source_type is SourceType.REGULATORY
+                else sc.SourceClass.EXTERNAL_EXPERIMENTAL.value
+            )
+            cited.append({"source_class": source_class, "source_id": evidence_id,
+                          "claim": claim.text, "locator": None})
+    return cited
+
+
 def analysis_uncertainties(snapshot, *, run_id: str) -> list[sc.CaseUpdate]:
     """What the server already knows is uncertain about the case's subject.
 

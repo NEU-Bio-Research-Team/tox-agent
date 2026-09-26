@@ -206,3 +206,70 @@ async def test_with_the_flag_off_there_is_no_case_anywhere(db, monkeypatch):
             f"/v1/sessions/{session_id}/runs/{run['run_id']}/dossier", headers=AUTH
         )
         assert dossier.status_code == 404
+
+
+async def test_the_case_ledger_fills_from_a_v1_answer_without_answer_draft_v2(db, monkeypatch):
+    """W9-04: grounded-answer v1 carries no relations. Before this, a case kept
+    without answer_draft_v2 recorded nothing the answer relied on; now what the
+    answer cited joins the ledger as unlinked context from the server."""
+    monkeypatch.setenv("TOXAGENT_FLAG_SCIENTIFIC_CASE_V1", "1")
+    monkeypatch.delenv("TOXAGENT_FLAG_ANSWER_DRAFT_V2", raising=False)
+    state: dict = {"analysis_id": ""}
+
+    async def script(turn) -> None:
+        found = await turn.call_tool("search_toxicology_evidence", {
+            "analysis_id": state["analysis_id"], "query": "hERG blockade", "limit": 5,
+        })
+        evidence_id = found["model_view"]["results"][0]["evidence_id"]
+        await turn.call_tool("get_evidence_record", {"evidence_id": evidence_id})
+        slice_result = await turn.call_tool("get_analysis_slice", {
+            "analysis_id": state["analysis_id"], "section": "herg",
+            "fields": ["probability_blocker"],
+        })
+        value = slice_result["model_view"]["values"]["probability_blocker"]
+        state["observation_id"] = value["observation_id"]
+        state["evidence_id"] = evidence_id
+        state["answer"] = await turn.call_tool("submit_grounded_answer", {
+            "schema_version": "grounded-answer-v1",
+            "answer_markdown": "The predicted hERG blocker probability is 0.731; "
+                               "a retrieved study reports block in a related series.",
+            "claims": [
+                {"claim_id": "clm_" + "3" * 32, "kind": "numeric",
+                 "text": "The predicted hERG blocker probability is 0.731.",
+                 "observation_id": value["observation_id"], "field_path": value["field_path"],
+                 "source_value": value["value"], "rendered_value": "0.731",
+                 "transform": "round:3"},
+                {"claim_id": "clm_" + "4" * 32, "kind": "scientific",
+                 "text": "A retrieved study reports hERG block in a related series.",
+                 "citation_ids": [evidence_id]},
+            ],
+            "limitations": [{"code": "uncalibrated_probability", "text": ""},
+                            {"code": "evidence_scope_limited", "text": ""}],
+            "recommended_next_steps": [],
+        })
+
+    provider = StubResearchProvider(hits=[ACCEPTED_HIT])
+    async with api_client(db, StubPredictor(), research_provider=provider) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        state["analysis_id"] = await _analyse(client, session_id)
+        run = await _post(client, session_id, "Should hERG stop us developing this compound?")
+        assert run["status"] == "completed", run
+        assert state["answer"]["status"] == "completed", state["answer"]
+
+        case_id = (await client.get(
+            f"/v1/sessions/{session_id}/cases", headers=AUTH
+        )).json()["cases"][0]["case_id"]
+        case = (await client.get(f"/v1/sessions/{session_id}/cases/{case_id}", headers=AUTH)).json()
+        ledger = [(e["actor"], e["source_class"], e["source_ref"], e["stance"], e["hypothesis_ids"])
+                  for e in case["evidence"]]
+        assert ledger == [
+            ("server", "predictor_fact", f"observation:{state['observation_id']}", "contextual", []),
+            ("server", "external_experimental", f"evidence:{state['evidence_id']}", "contextual", []),
+        ]
+        assert case["evidence"][0]["locator"] == "predictions.herg.probability_blocker"
+        dossier = (await client.get(
+            f"/v1/sessions/{session_id}/runs/{run['run_id']}/dossier", headers=AUTH
+        )).json()
+        assert len(dossier["unlinked_evidence"]) == 2
+        assert len(dossier["predictor_facts"]) == 1

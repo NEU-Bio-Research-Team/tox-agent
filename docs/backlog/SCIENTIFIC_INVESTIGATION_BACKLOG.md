@@ -341,7 +341,7 @@ of the review that listed them (its number is kept in the ID column):
 | Order | ID | Item | Exit criterion | Status |
 |---|---|---|---|---|
 | 1 | W9-02 | First-pass drop 0.54 → 0.26: diagnose from stored W8-02 data, fix what is a product defect | Violation tally per arm recorded; defect fixed with tests | done — see below |
-| 2 | W9-04 | Case ledger no longer depends on `answer_draft_v2` | With the flag on and v2 off, an accepted answer's cited sources land in the ledger; tests | todo |
+| 2 | W9-04 | Case ledger no longer depends on `answer_draft_v2` | With the flag on and v2 off, an accepted answer's cited sources land in the ledger; tests | done — chose "v1 writes to the ledger" over merging the flags: what any accepted answer cited becomes unlinked `contextual` server entries (a citation carries no stance), v2 relations still add stance, and a source already held is not recorded twice. Merging would have tied the case to v2's own first-pass cost (W9-02). The lab-1 study arms keep v2 on so their records stay comparable; ADR 0012 amended |
 | 3 | W9-01 | Lighter case policy; the run budget for the case arm is a recorded product decision | Fewer mandatory case calls per turn; budget decision in this document; tests | todo |
 | 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | todo |
 | 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | todo |

@@ -284,6 +284,27 @@ def test_answer_relations_become_server_entries_linked_by_statement():
     assert linked.scope == {"endpoint": "herg", "species": "human"}
 
 
+def test_what_an_answer_cited_becomes_unlinked_context_once():
+    """W9-04: a citation says the answer relied on a source, not its stance."""
+    case = with_hypotheses("A blocks hERG")
+    case = evidence(case)  # the model already recorded evidence:EVD
+    cited = [
+        {"source_class": "predictor_fact", "source_id": OBS, "claim": "p = 0.73",
+         "locator": "predictions.herg.probability_blocker"},
+        {"source_class": "predictor_fact", "source_id": OBS, "claim": "label blocker"},
+        {"source_class": "external_experimental", "source_id": EVD, "claim": "held already"},
+        {"source_class": "external_regulatory", "source_id": EVD2, "claim": "skipped"},
+        {"source_class": "user_supplied", "source_id": "c1", "claim": "never from an answer"},
+    ]
+    updates = sc.updates_from_citations(case, cited, run_id=RUN, at="t",
+                                        skip_refs=[f"evidence:{EVD2}"])
+    assert [u.payload["source_ref"] for u in updates] == [f"observation:{OBS}"]
+    after = sc.apply(case, updates[0])
+    entry = after.evidence[-1]
+    assert (entry.actor, entry.stance, entry.hypothesis_ids) == ("server", "contextual", ())
+    assert entry.locator == "predictions.herg.probability_blocker"
+
+
 def test_the_dossier_keeps_the_three_explanation_layers_apart():
     case = with_hypotheses("A blocks hERG")
     case = evidence(case)

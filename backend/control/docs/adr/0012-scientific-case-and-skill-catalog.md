@@ -52,8 +52,11 @@ ADR 0011 removed.
 4. **The model writes to the case through two closed tools**,
    `get_scientific_case` and `update_scientific_case` (typed operations; refs
    checked against artifacts the session really has). The server attaches runs,
-   records the accepted answer's relations, and finishes runs. The user adds
-   context through the API.
+   records what the accepted answer cited — as unlinked `contextual` entries,
+   for any answer schema — plus, under grounded-answer v2, its relations with
+   their stance, and finishes runs. The user adds context through the API.
+   (Amended 2026-09-26, W9-04: the ledger no longer depends on
+   `answer_draft_v2`; a source already in the ledger is not recorded twice.)
 5. **Investigation methods are skills loaded on demand.** The prompt carries
    only an index of names and descriptions (the Agent Skills discovery model);
    bodies and references are read through two closed MCP tools,

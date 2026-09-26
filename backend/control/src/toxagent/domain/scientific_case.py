@@ -931,6 +931,49 @@ def updates_from_answer(
     return updates
 
 
+def updates_from_citations(
+    case: ScientificCaseV1, cited: Sequence[Mapping[str, Any]], *, run_id: str, at: str,
+    skip_refs: Iterable[str] = (),
+) -> list[CaseUpdate]:
+    """What an accepted answer cited, as server-recorded ledger entries.
+
+    Works for every answer schema (W9-04): grounded-answer v1 carries no
+    relations, so before this a case kept with v1 had a ledger only where the
+    model had written entries itself. A citation says the answer relied on a
+    source, not which way it bears on a hypothesis, so each entry is
+    ``contextual`` and unlinked; the model's own ``record_evidence`` and a v2
+    relation are where a stance comes from. A source the ledger already holds
+    (or ``skip_refs`` is about to add) is not recorded again.
+
+    ``cited`` items: ``source_class``, ``source_id``, ``claim`` and optionally
+    ``locator`` (the field path the answer cited).
+    """
+    held = {e.source_ref for e in case.evidence} | set(skip_refs)
+    updates: list[CaseUpdate] = []
+    for item in cited:
+        source_class = item.get("source_class")
+        source_id = item.get("source_id")
+        if source_class not in REF_KIND or source_class == SourceClass.USER_SUPPLIED.value:
+            continue
+        if not source_id:
+            continue
+        ref = f"{REF_KIND[source_class]}:{source_id}"
+        if ref in held:
+            continue
+        held.add(ref)
+        updates.append(CaseUpdate(
+            op="record_evidence", actor=Actor.SERVER.value, run_id=run_id, at=at,
+            payload={
+                "claim": str(item.get("claim") or "").strip()[:MAX_TEXT] or "(cited by the answer)",
+                "source_class": source_class, "source_ref": ref,
+                "stance": Stance.CONTEXTUAL.value,
+                "directness": Directness.NOT_ASSESSED.value,
+                "locator": item.get("locator"),
+            },
+        ))
+    return updates
+
+
 # ------------------------------------------------------------- the dossier
 
 def compile_dossier(
