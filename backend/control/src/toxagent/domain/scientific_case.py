@@ -619,6 +619,7 @@ def _open(case: ScientificCaseV1 | None, u: CaseUpdate) -> ScientificCaseV1:
         decision_context=_text(p, "decision_context", required=False),
         subject_refs=tuple(dict.fromkeys(p.get("subject_refs") or ())),
         requester=_text(p, "requester", required=False, limit=200),
+        data_scope=DataScope(**p["data_scope"]) if p.get("data_scope") else DataScope(),
         created_at=u.at,
     )
 

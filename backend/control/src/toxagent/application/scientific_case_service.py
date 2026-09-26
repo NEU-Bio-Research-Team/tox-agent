@@ -89,11 +89,18 @@ async def open_or_continue(
     now = _now()
     updates: list[sc.CaseUpdate] = []
     if case is None:
+        # A researcher's restriction outlives the case it was set on: closing
+        # a case must not quietly re-open the compound to external search.
+        previous = await latest_case_for_subject(uow, session_id=session_id, analysis_id=analysis_id)
+        inherited = (
+            previous.data_scope.to_dict()
+            if previous is not None and not previous.data_scope.external_search else None
+        )
         updates.append(update(
             "open", actor=sc.Actor.SERVER.value, run_id=run_id, at=now,
             case_id=new_id(SCIENTIFIC_CASE), session_id=session_id, subject_key=key,
             question=(goal or "").strip()[:2000], subject_refs=list(dict.fromkeys(subject_refs)),
-            requester=requester,
+            requester=requester, **({"data_scope": inherited} if inherited else {}),
         ))
     updates.append(update("attach_run", actor=sc.Actor.SERVER.value, run_id=run_id, at=now,
                           goal=(goal or "").strip()[:2000]))
@@ -223,12 +230,84 @@ async def cited_sources(uow, *, session_id: str, answer) -> list[dict[str, Any]]
     return cited
 
 
-async def external_search_refusal(uow, *, session_id: str, run_id: str) -> str | None:
-    """Why this run's case forbids external search, or ``None`` if it may search."""
-    case = await case_for_run(uow, session_id=session_id, run_id=run_id)
+async def latest_case_for_subject(uow, *, session_id: str,
+                                  analysis_id: str | None) -> sc.ScientificCaseV1 | None:
+    """The session's most recent case about this subject, open or closed."""
+    key = sc.subject_key(analysis_id)
+    for case in await uow.scientific_cases.list_for_session(session_id, limit=200):
+        if case.subject_key == key:
+            return case
+    return None
+
+
+async def external_search_refusal(uow, *, session_id: str, analysis_id: str | None) -> str | None:
+    """Why the researcher forbade external search about this subject, or ``None``.
+
+    Keyed on the subject, not the run: the evidence search tool serves chat
+    turns and both report paths (the orchestrator's server-side search runs the
+    same tool), and a confidential structure is confidential in all of them.
+    """
+    case = await latest_case_for_subject(uow, session_id=session_id, analysis_id=analysis_id)
     if case is None or case.data_scope.external_search:
         return None
-    return case.data_scope.reason or "the researcher restricted this case to internal data"
+    return case.data_scope.reason or "the researcher restricted this compound to internal data"
+
+
+async def dossier_for_analysis(uow, *, session_id: str,
+                               analysis_id: str | None) -> dict[str, Any] | None:
+    """The latest DecisionDossierV1 of the subject's most recent case."""
+    case = await latest_case_for_subject(uow, session_id=session_id, analysis_id=analysis_id)
+    if case is None:
+        return None
+    return await uow.scientific_cases.latest_dossier(case.id, session_id=session_id)
+
+
+def report_dossier_view(dossier: Mapping[str, Any]) -> dict[str, Any]:
+    """The investigation record as a report reads it (RETHINK §4.4.3, §4.9).
+
+    Compact and typed: each hypothesis with its status and the source refs for
+    and against it, the conditional conclusion with the sources of every line,
+    what is still unknown, and the proposed tests. The record is not itself a
+    source: a report cites the observations and evidence records it names.
+    """
+    def refs(entries: Iterable[Mapping[str, Any]]) -> list[str]:
+        return [str(e.get("source_ref")) for e in entries]
+
+    conclusion = dossier.get("conclusion") or {}
+    return {
+        "case_id": dossier.get("case_id"), "run_id": dossier.get("run_id"),
+        "case_revision": dossier.get("case_revision"),
+        "question": dossier.get("question"),
+        "data_scope": dossier.get("data_scope"),
+        "hypotheses": [
+            {"id": h.get("id"), "statement": h.get("statement"), "status": h.get("status"),
+             "refutation_condition": h.get("refutation_condition"),
+             "evidence_for": refs(h.get("evidence_for") or ()),
+             "evidence_against": refs(h.get("evidence_against") or ())}
+            for h in dossier.get("hypotheses") or ()
+        ],
+        "conclusion": {
+            "can_say": [{"text": line.get("text"), "sources": list(line.get("sources") or ())}
+                        for line in conclusion.get("can_say") or ()],
+            "cannot_say": list(conclusion.get("cannot_say") or ()),
+            "what_would_change": list(conclusion.get("what_would_change") or ()),
+        },
+        "open_uncertainties": [
+            {"kind": u.get("kind"), "severity": u.get("severity"), "description": u.get("description")}
+            for u in dossier.get("open_uncertainties") or ()
+        ],
+        "next_tests": [
+            {"test": t.get("test"), "discriminates": list(t.get("discriminates") or ()),
+             "expected_readouts": list(t.get("expected_readouts") or ())}
+            for t in dossier.get("next_tests") or ()
+        ],
+        "coverage": dossier.get("coverage"),
+        "how_to_use": (
+            "The researcher's investigation of this compound so far. Report what it "
+            "concluded and what is still open; cite the observations and evidence "
+            "records its sources name, never the record itself."
+        ),
+    }
 
 
 def analysis_uncertainties(snapshot, *, run_id: str) -> list[sc.CaseUpdate]:

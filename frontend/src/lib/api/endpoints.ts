@@ -7,6 +7,7 @@ import type {
   AtomAttribution,
   AttributionListResponse,
   CancelResponse,
+  DecisionDossier,
   EventListResponse,
   EvidenceListResponse,
   EvidenceRecordView,
@@ -347,6 +348,11 @@ export function listScientificCases(sessionId: string): Promise<ScientificCaseLi
 
 export function getScientificCase(sessionId: string, caseId: string): Promise<ScientificCase> {
   return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}`);
+}
+
+/** The dossier one decision-support run compiled over its case. */
+export function getRunDossier(sessionId: string, runId: string): Promise<DecisionDossier> {
+  return apiRequest(`/v1/sessions/${sessionId}/runs/${runId}/dossier`);
 }
 
 /** The case's history: who changed what, in which run (oldest first). */

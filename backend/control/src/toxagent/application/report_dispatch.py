@@ -346,10 +346,17 @@ class OrchestratedReportBuild:
                 current = await self._load_build(context)
                 return SYNTHESIS_KEY in current.stage_state
 
+            fact_view = inputs.bundle.to_model_view()
+            dossier = await self._case_dossier(context, build)
+            if dossier is not None:
+                # W9-05: the synthesis reads the investigation it reports on.
+                # The facts stay the only source of values; the dossier says
+                # what was concluded and what is open, and names its sources.
+                fact_view = {**fact_view, "case_dossier": dossier}
             await self._gateway.run_report_synthesis(
                 context,
                 report_build_id=build.id,
-                fact_view=inputs.bundle.to_model_view(),
+                fact_view=fact_view,
                 deadline_at=build.deadline_at,
                 has_synthesis=has_synthesis,
             )
@@ -371,6 +378,27 @@ class OrchestratedReportBuild:
             }
 
         return handler
+
+    async def _case_dossier(self, context, build: ReportBuild) -> dict[str, Any] | None:
+        """The analysis's latest dossier as the report reads it, recorded on the
+        build (``case_dossier_ref``) so the report says which one it used."""
+        from ..flags import is_enabled
+        from . import scientific_case_service
+
+        if not is_enabled("scientific_case_v1"):
+            return None
+        async with self._db.unit_of_work() as uow:
+            dossier = await scientific_case_service.dossier_for_analysis(
+                uow, session_id=context.session_id, analysis_id=build.analysis_id,
+            )
+        if dossier is None:
+            return None
+        view = scientific_case_service.report_dossier_view(dossier)
+        ref = {key: view[key] for key in ("case_id", "run_id", "case_revision")}
+        await DatabaseBuildStore(self._db, session_id=context.session_id).save(
+            replace(build, stage_state={**build.stage_state, "case_dossier_ref": ref})
+        )
+        return view
 
     def _validate(self, context):
         async def handler(stage: StageContext) -> dict[str, Any]:

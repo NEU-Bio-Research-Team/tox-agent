@@ -1348,16 +1348,28 @@ class AgentRuntimeGateway:
                     "the run changed before its accepted answer could be committed",
                     status=run.status.value,
                 )
+            parts: list[tuple[PartType, dict]] = [
+                (PartType.TEXT, {"text": answer.answer_markdown}),
+                (PartType.ANSWER_REF, {"answer_id": answer.id}),
+            ]
+            if context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1"):
+                # Stored before the run completes (_commit_with_case), so it
+                # exists here for every completed case run.
+                dossier = await uow.scientific_cases.get_dossier(
+                    context.run_id, session_id=context.session_id
+                )
+                if dossier is not None:
+                    parts.append((PartType.DOSSIER_REF, {
+                        "case_id": dossier["case_id"], "run_id": context.run_id,
+                        "case_revision": dossier.get("case_revision"),
+                    }))
             sequence = await uow.messages.next_sequence(context.session_id)
             reply = Message.create(
                 context.session_id,
                 Role.ASSISTANT,
                 sequence,
                 now=_now(),
-                parts=(
-                    (PartType.TEXT, {"text": answer.answer_markdown}),
-                    (PartType.ANSWER_REF, {"answer_id": answer.id}),
-                ),
+                parts=tuple(parts),
             )
             await uow.messages.add(reply)
             uow.emit(

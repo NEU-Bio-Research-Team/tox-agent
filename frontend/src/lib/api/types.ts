@@ -404,7 +404,7 @@ export interface SessionProjection {
 
 // -- messages -------------------------------------------------------------
 
-export type PartType = 'text' | 'analysis_ref' | 'answer_ref' | 'report_ref' | 'tool_call' | 'error' | 'image_ref';
+export type PartType = 'text' | 'analysis_ref' | 'answer_ref' | 'report_ref' | 'dossier_ref' | 'tool_call' | 'error' | 'image_ref';
 
 /** A predictor number, an explanation, an external record and an agent's own
  * synthesis are four different kinds of claim about the world, and the report is
@@ -1049,6 +1049,30 @@ export interface ScientificCaseSummary {
 
 export interface ScientificCaseListResponse {
   cases: ScientificCaseSummary[];
+}
+
+/** DecisionDossierV1 (ADR 0012): what one run concluded over its case. The
+ * chat answer and the investigation board are views of it (W9-05). Only the
+ * fields the transcript renders are typed here. */
+export interface DossierHypothesis extends CaseHypothesis {
+  evidence_for: CaseEvidenceEntry[];
+  evidence_against: CaseEvidenceEntry[];
+}
+
+export interface DecisionDossier {
+  schema_version: string;
+  case_id: string;
+  case_revision: number;
+  run_id: string;
+  answer_id: string | null;
+  question: string;
+  data_scope: CaseDataScope;
+  hypotheses: DossierHypothesis[];
+  open_uncertainties: CaseUncertainty[];
+  next_tests: CaseNextTest[];
+  conclusion: Omit<CaseConclusion, 'can_say'> & { can_say: { text: string; evidence_ids: string[]; sources: string[] }[] };
+  coverage: CaseCoverage;
+  stop_reason: string | null;
 }
 
 /** One entry of the case's append-only log: the case is the fold of these. */

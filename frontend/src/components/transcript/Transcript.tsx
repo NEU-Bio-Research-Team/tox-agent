@@ -7,6 +7,7 @@ import { ClarificationCard } from './ClarificationCard';
 import { StructureRecognitionCard } from './StructureRecognitionCard';
 import { AnswerBlock } from './AnswerBlock';
 import { ReportBlock } from './ReportBlock';
+import { DossierBlock } from './DossierBlock';
 import { ActivityPresence } from './ActivityPresence';
 import { ReportProgressTimeline } from './ReportProgressTimeline';
 import type { ActivityLive } from '../../lib/api/types';
@@ -228,6 +229,7 @@ function renderAssistant(
   const textPart = message.parts.find((p) => p.type === 'text');
   const answerRefPart = message.parts.find((p) => p.type === 'answer_ref');
   const reportRefPart = message.parts.find((p) => p.type === 'report_ref');
+  const dossierRefPart = message.parts.find((p) => p.type === 'dossier_ref');
 
   if (textPart && isStructureRecognitionContent(textPart.content)) {
     return <StructureRecognitionCard content={textPart.content} onUseSmiles={onUseRecognizedSmiles} />;
@@ -241,6 +243,9 @@ function renderAssistant(
     return (
       <MessageBubble role="assistant">
         <AnswerBlock sessionId={sessionId} answerId={answerRefPart.content.answer_id as string} />
+        {dossierRefPart && (
+          <DossierBlock sessionId={sessionId} runId={dossierRefPart.content.run_id as string} />
+        )}
       </MessageBubble>
     );
   }
