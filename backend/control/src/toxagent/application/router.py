@@ -130,6 +130,9 @@ class RouteRequest:
     analysis_id: str | None = None
     requested_endpoints: tuple[str, ...] = ()
     include_attribution: bool = False
+    #: Flag subjectless_research_v1, passed in so routing stays pure: a
+    #: literature question without a molecule runs instead of asking for one.
+    allow_subjectless_research: bool = False
 
     @property
     def normalised_text(self) -> str:
@@ -372,6 +375,19 @@ def route(request: RouteRequest) -> Route:
     )
     if wants_research:
         missing = _subject_context(request)
+        if missing and request.allow_subjectless_research:
+            return Route(
+                Intent.DECISION_SUPPORT,
+                Lane.AGENTIC,
+                "a literature question with no molecule in the session",
+                needs_snapshot_first=False,
+                decision=decide(
+                    Intent.DECISION_SUPPORT,
+                    confidence="medium",
+                    codes=("research_phrase", "subject_absent"),
+                    matched=research_terms,
+                ),
+            )
         if missing:
             return _clarify(
                 "research_subject_missing",

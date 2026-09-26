@@ -81,6 +81,22 @@ def test_research_without_a_subject_asks_rather_than_searching():
     assert not decision.calls_a_runtime
 
 
+def test_research_without_a_subject_runs_when_subjectless_research_is_allowed():
+    """W9-08, flag subjectless_research_v1: a literature question needs no molecule."""
+    decision = route(RouteRequest(text="find me some literature on hERG and macrolides",
+                                  allow_subjectless_research=True))
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert decision.lane is Lane.AGENTIC
+    assert not decision.needs_snapshot_first
+    assert "subject_absent" in decision.decision.reason_codes
+
+
+def test_a_subject_still_binds_research_when_subjectless_research_is_allowed():
+    decision = route(RouteRequest(text="find me some literature", has_active_analysis=True,
+                                  allow_subjectless_research=True))
+    assert "subject_absent" not in decision.decision.reason_codes
+
+
 def test_attribution_is_mixed_because_the_tool_is_deterministic():
     decision = route(
         RouteRequest(text="which atoms contributed to SR-p53?", has_active_analysis=True)

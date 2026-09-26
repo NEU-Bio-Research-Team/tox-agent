@@ -985,6 +985,11 @@ class AgentRuntimeGateway:
             answer_schema=(
                 "grounded-answer-v2" if is_enabled("answer_draft_v2") else "grounded-answer-v1"
             ),
+            subjectless=(
+                context.intent is Intent.DECISION_SUPPORT
+                and is_enabled("subjectless_research_v1")
+                and not any(p.kind == "analysis" for p in pinned)
+            ),
         )
         instructions_hash = None
         if context.intent is Intent.BUILD_REPORT:

@@ -15,6 +15,7 @@ from typing import Any, Mapping
 from sqlalchemy.exc import DBAPIError
 
 from ..config import PolicySettings
+from ..flags import is_enabled
 from ..domain.attachment import Attachment, RetentionClass
 from ..domain.errors import (
     AdmissionBusy,
@@ -254,6 +255,7 @@ class SubmitMessage:
                     analysis_id=submission.analysis_id,
                     requested_endpoints=submission.endpoints or (),
                     include_attribution=submission.include_attribution,
+                    allow_subjectless_research=is_enabled("subjectless_research_v1"),
                 )
             )
 

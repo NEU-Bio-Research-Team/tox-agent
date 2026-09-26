@@ -171,6 +171,20 @@ cannot say, and what would change it.
 submit_grounded_answer still ends the turn.
 """
 
+#: W9-08 (flag subjectless_research_v1): a literature question with no
+#: molecule in the session. Stated only then, so the model does not go looking
+#: for an analysis that does not exist.
+SUBJECTLESS_RESEARCH_POLICY = """\
+This question names no molecule this session has analysed, so there is no \
+prediction to read. Answer it from the literature: call \
+search_toxicology_evidence without an analysis_id (give an endpoint when the \
+question is about hERG, Tox21 or ClinTox, so results are checked against it), \
+read what you cite with get_evidence_record, and cite only accepted records. \
+Say plainly when the retrieved literature does not settle the question. If the \
+question is really about a specific compound's predicted toxicity, say that the \
+researcher can add the molecule for a prediction.
+"""
+
 #: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
 #: v2 has no source_value or rendered_value: the server reads and renders each
 #: value. Stating v1's rules under v2 told the model to write numbers it could
@@ -302,6 +316,7 @@ def build_system_prompt(
     scientific_case: str = "",
     scientific_skills: str = "",
     answer_schema: str = "grounded-answer-v1",
+    subjectless: bool = False,
 ) -> str:
     """Plan section 10.4: product/system role, invariants, profile, checkpoint,
     pinned references, recent messages — in that order, always.
@@ -323,6 +338,8 @@ def build_system_prompt(
     ]
     if capability_profile == "decision_support":
         sections.append(DECISION_SUPPORT_POLICY)
+        if subjectless:
+            sections.append(SUBJECTLESS_RESEARCH_POLICY)
     if scientific_case:
         sections.append(SCIENTIFIC_CASE_POLICY)
     if scientific_skills:

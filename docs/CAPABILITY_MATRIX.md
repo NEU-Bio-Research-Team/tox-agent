@@ -71,6 +71,7 @@ Any other target, or any other method, is `not_measured`.
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `scientific_case_v1` | no | backend-scientific | 2026-12-23 | `get_scientific_case`, `update_scientific_case` |
 | `scientific_skills_v1` | no | backend-scientific | 2026-12-23 | `read_scientific_skill`, `read_skill_reference` |
+| `subjectless_research_v1` | no | backend-scientific | 2026-12-23 | — |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
 
 ## Instruction surfaces

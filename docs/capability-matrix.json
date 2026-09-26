@@ -262,6 +262,13 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "subjectless_research_v1": {
+      "default": false,
+      "description": "A literature question with no molecule in the session runs as a decision_support turn on a subjectless case, and search_toxicology_evidence accepts a search without an analysis (results are then assessed against the endpoint only). Off, the router asks for a molecule (research_subject_missing) and the search tool's schema is unchanged.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
     "trust_envelope_v1": {
       "default": false,
       "description": "Move provider free text (title, abstract, authors, provider metadata and errors) in evidence tool model views into trust envelopes (tools/trust.py) with provenance, instructions_allowed=false and audit signals. Off, those fields stay flat beside a single untrusted_external_content flag.",

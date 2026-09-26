@@ -171,6 +171,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "shows no increase in unsupported claims or false reassurance, and "
                           "TAB-Suite core has no critical pass->fail with the flag on",
     ),    _flag(
+        "subjectless_research_v1",
+        "A literature question with no molecule in the session runs as a "
+        "decision_support turn on a subjectless case, and "
+        "search_toxicology_evidence accepts a search without an analysis "
+        "(results are then assessed against the endpoint only). Off, the "
+        "router asks for a molecule (research_subject_missing) and the search "
+        "tool's schema is unchanged.",
+        owner="backend-scientific",
+        added_on=date(2026, 9, 26),
+        remove_by=date(2026, 12, 23),
+        removal_condition="a paired run on literature-only questions shows no rise in "
+                          "uncited or off-topic claims against the clarification baseline",
+    ),
+    _flag(
         "scientific_skills_v1",
         "The dynamic skill arm: decision_support prompts list the scientific "
         "skill catalog (names and descriptions) and register "

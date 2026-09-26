@@ -103,6 +103,18 @@ class SearchEvidenceInput(_Input):
     )
 
 
+class SubjectlessSearchEvidenceInput(SearchEvidenceInput):
+    """The search input while ``subjectless_research_v1`` is on (W9-08): a
+    literature question need not be about a molecule the session analysed."""
+
+    analysis_id: str | None = Field(
+        default=None,
+        description="The analysis this search is about. Omit it only when the question names "
+                    "no molecule of this session; results are then assessed against the "
+                    "endpoint alone.",
+    )
+
+
 class GetEvidenceInput(_Input):
     evidence_id: str
     fields: list[str] | None = Field(
@@ -114,8 +126,12 @@ def build(
     database, provider: ResearchProvider, settings: ResearchSettings
 ) -> list[ToolDefinition]:
     async def search_evidence(context: ToolContext, payload: SearchEvidenceInput) -> ToolOutput:
+        subjectless = payload.analysis_id is None
         async with database.unit_of_work() as uow:
-            snapshot = await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
+            snapshot = (
+                None if subjectless
+                else await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
+            )
             if context.profile == "decision_support":
                 # Counted *including* this call: ToolRunner._reserve already
                 # inserted this call's own "running" row before the handler
@@ -125,7 +141,7 @@ def build(
                 used = await uow.tool_calls.count_for_run_and_tool(
                     context.run_id, "search_toxicology_evidence"
                 )
-        if snapshot is None:
+        if snapshot is None and not subjectless:
             raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
         if is_enabled("scientific_case_v1"):
             # W9-07: the researcher's data scope is a permission. A compound
@@ -133,7 +149,8 @@ def build(
             # chat turn or from either report path.
             async with database.unit_of_work() as uow:
                 refusal = await scientific_case_service.external_search_refusal(
-                    uow, session_id=context.session_id, analysis_id=snapshot.id,
+                    uow, session_id=context.session_id,
+                    analysis_id=snapshot.id if snapshot is not None else None,
                 )
             if refusal is not None:
                 raise ToolDenied(
@@ -175,11 +192,13 @@ def build(
         # Assembled from the snapshot the server holds, never from what the
         # model says the molecule is called: a query plan built out of
         # model-supplied names would let it search for what it expected.
+        # No snapshot means no molecule (W9-08): results are then judged on
+        # the endpoint alone, never on names the model supplied.
         identity = CompoundIdentity(
             canonical_smiles=snapshot.canonical_smiles,
             preferred_name=snapshot.canonical_smiles,
             synonyms=tuple(payload.compound_names or ()),
-        )
+        ) if snapshot is not None else None
         retrieved_at = _now()
         envelope_on = is_enabled("trust_envelope_v1")
         model_results: list[dict] = []
@@ -344,7 +363,10 @@ def build(
                 "on a result's evidence_id to read its abstract before citing it; a search "
                 "result alone is not enough detail to support a claim."
             ),
-            input_model=SearchEvidenceInput,
+            input_model=(
+                SubjectlessSearchEvidenceInput if is_enabled("subjectless_research_v1")
+                else SearchEvidenceInput
+            ),
             handler=search_evidence,
             profiles=frozenset({"evidence_research", "decision_support", "report_build"}),
             soft_timeout_s=settings.timeout_s,
