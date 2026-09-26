@@ -289,9 +289,9 @@
   ],
   "schema_version": "capability-matrix-v1",
   "scientific_skills": {
-    "catalog_sha256": "4d90573bd826deacf1bbc3e46997aa8322b741f7e27c029988a9d216e730144d",
-    "estimated_tokens_dynamic_index": 440,
-    "estimated_tokens_static_all": 3829,
+    "catalog_sha256": "b95d0ae81a211ba83ead6f2a839a034d73cf608239be9b84dfbc7b0459d73c08",
+    "estimated_tokens_dynamic_index": 676,
+    "estimated_tokens_static_all": 12023,
     "loading": "off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.",
     "skills": [
       {
@@ -341,6 +341,88 @@
         "skill_id": "interpret-model-attribution",
         "status": "active",
         "version": "1.1.0"
+      },
+      {
+        "content_sha256": "7e102fbd2fec637288f3559385a4f0d90d8390173e5a71e187785f6744674457",
+        "estimated_tokens_body": 714,
+        "estimated_tokens_with_references": 1570,
+        "references": [
+          "report-context-contract.md"
+        ],
+        "required_capabilities": [
+          "get_analysis_bundle",
+          "get_analysis_slice",
+          "get_report_context"
+        ],
+        "risk_tier": "low",
+        "skill_id": "assemble-report-context",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "9dfbf90b01b05104d3aaeda1450478d1b9d141d6b483a0232a5f827c65e561c8",
+        "estimated_tokens_body": 774,
+        "estimated_tokens_with_references": 2019,
+        "references": [
+          "report-schema.md"
+        ],
+        "required_capabilities": [
+          "save_report_draft"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "compose-scientific-report",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "cbcdf55d80283b66402bbc53883db82a6b9eb5558ecd3f5974379a91a28dea01",
+        "estimated_tokens_body": 545,
+        "estimated_tokens_with_references": 1040,
+        "references": [
+          "explanation-policy.md"
+        ],
+        "required_capabilities": [
+          "get_explanation_package",
+          "get_or_create_explanation"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "explain-predictor-results",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "250dc45396d35ac79c18b718106ba55984f823eae6629bf9c676f6a6433bba23",
+        "estimated_tokens_body": 1097,
+        "estimated_tokens_with_references": 2410,
+        "references": [
+          "validation-codes.md"
+        ],
+        "required_capabilities": [
+          "check_saved_report_draft",
+          "patch_saved_report_draft",
+          "save_report_draft",
+          "submit_saved_report_draft"
+        ],
+        "risk_tier": "low",
+        "skill_id": "preflight-report-draft",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "a5dea10946f8ce6b52d5fa693d774ca9a025c95be091cc459d7f2234264621ca",
+        "estimated_tokens_body": 651,
+        "estimated_tokens_with_references": 1140,
+        "references": [
+          "evidence-synthesis-schema.md"
+        ],
+        "required_capabilities": [
+          "get_evidence_record",
+          "search_toxicology_evidence"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "research-toxicology-evidence",
+        "status": "active",
+        "version": "1.0.0"
       }
     ]
   },

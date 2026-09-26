@@ -40,6 +40,11 @@ from ..domain.provenance import content_sha256
 SCHEMA_VERSION = "scientific-skill-catalog-v1"
 MANIFEST_SCHEMA = "scientific-skill-manifest-v1"
 CATALOG_DIR = "scientific_skills"
+#: Every directory the catalog loads, relative to ``agent_profiles``. The
+#: report builder's skills joined in W9-10: they stay where the report profile
+#: composes them from, and are now validated, versioned and pinned like the
+#: scientific ones. ``allowed_profiles`` keeps each set to its own profile.
+CATALOG_DIRS = (CATALOG_DIR, "report_build/skills")
 
 MODES = ("off", "static", "dynamic")
 
@@ -132,8 +137,9 @@ def _front_matter(text: str, where: str) -> tuple[dict[str, str], str]:
     return fields, text[end + len("\n---\n"):].strip()
 
 
-def _load_skill(directory: Path, known_profiles: set[str], known_tools: set[str]) -> Skill:
-    where = f"{CATALOG_DIR}/{directory.name}"
+def _load_skill(directory: Path, known_profiles: set[str], known_tools: set[str],
+                root: str = CATALOG_DIR) -> Skill:
+    where = f"{root}/{directory.name}"
     skill_md = directory / "SKILL.md"
     manifest_path = directory / "skill.manifest.json"
     if not skill_md.is_file() or not manifest_path.is_file():
@@ -211,14 +217,22 @@ def load_catalog(profiles_dir: Path) -> SkillCatalog:
     run's record claim instructions it never received."""
     from ..tools.registry import PROFILES
 
-    root = Path(profiles_dir) / CATALOG_DIR
-    if not root.is_dir():
-        return SkillCatalog()
     known_tools = {tool for tools in PROFILES.values() for tool in tools}
-    skills = tuple(
-        _load_skill(directory, set(PROFILES), known_tools)
-        for directory in sorted(p for p in root.iterdir() if p.is_dir())
-    )
+    loaded: list[Skill] = []
+    for relative in CATALOG_DIRS:
+        root = Path(profiles_dir) / relative
+        if not root.is_dir():
+            continue
+        loaded.extend(
+            _load_skill(directory, set(PROFILES), known_tools, relative)
+            for directory in sorted(p for p in root.iterdir() if p.is_dir())
+        )
+    duplicates = sorted({s.skill_id for s in loaded if [x.skill_id for x in loaded].count(s.skill_id) > 1})
+    if duplicates:
+        raise SkillCatalogError(f"skill ids must be unique across the catalog: {duplicates}")
+    skills = tuple(loaded)
+    if not skills:
+        return SkillCatalog()
     return SkillCatalog(
         skills=skills,
         catalog_sha256=content_sha256([s.pin() for s in skills]),

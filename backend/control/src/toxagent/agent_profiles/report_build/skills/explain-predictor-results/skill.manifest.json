@@ -1,0 +1,25 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "explain-predictor-results",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-report",
+  "allowed_profiles": [
+    "report_build"
+  ],
+  "required_capabilities": [
+    "get_or_create_explanation",
+    "get_explanation_package"
+  ],
+  "risk_tier": "medium",
+  "output_contract": "one explanation package per endpoint or assay, referenced by explanation_id and figure_id, with attribution_not_causality declared",
+  "eval_set": {
+    "positive_tags": [
+      "report_build"
+    ],
+    "negative_tags": []
+  },
+  "references": [
+    "references/explanation-policy.md"
+  ]
+}

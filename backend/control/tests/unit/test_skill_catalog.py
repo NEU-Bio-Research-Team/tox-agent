@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from toxagent.config import PACKAGE_ROOT
+from toxagent.tools.registry import PROFILES
 from toxagent.domain import decision_state as ds
 from toxagent.application import skill_catalog as catalog_module
 from toxagent.application.skill_catalog import SkillCatalogError, load_catalog, render_index, render_static
@@ -20,6 +21,9 @@ def test_the_shipped_catalog_loads_and_every_skill_is_active():
     catalog = load_catalog(SHIPPED)
     assert [s.skill_id for s in catalog.skills] == [
         "assess-conflicting-evidence", "critique-case", "interpret-model-attribution",
+        # W9-10: the report builder's skills, pinned like the scientific ones.
+        "assemble-report-context", "compose-scientific-report", "explain-predictor-results",
+        "preflight-report-draft", "research-toxicology-evidence",
     ]
     assert {s.status for s in catalog.skills} == {"active"}
     for skill in catalog.skills:
@@ -177,3 +181,47 @@ def test_a_dynamic_read_is_recorded_once_with_its_references():
 def test_a_final_state_records_no_more_skills():
     state = ds.finalize(_state(), run_status="cancelled")
     assert ds.record_skill_loaded(state, pin={"skill_id": "a"}) is state
+
+
+# --- W9-10: report skills in the catalog ------------------------------------
+
+REPORT_SKILLS = {
+    "assemble-report-context", "compose-scientific-report", "explain-predictor-results",
+    "preflight-report-draft", "research-toxicology-evidence",
+}
+
+
+def test_report_skills_are_offered_only_to_the_report_builder():
+    catalog = load_catalog(SHIPPED)
+    every_tool = [t for tools in PROFILES.values() for t in tools]
+    decision = {s.skill_id for s in catalog.available("decision_support", every_tool)}
+    report = {s.skill_id for s in catalog.available("report_build", every_tool)}
+    assert decision.isdisjoint(REPORT_SKILLS)
+    assert report == REPORT_SKILLS
+
+
+#: The composed report prompt before W9-10. Moving the skills into the catalog
+#: must not change one byte of what a report run is told.
+REPORT_PROMPT_SHA256 = "9090e20f71725dc14bf0239810b186da79c0daa04018fb2e0a642248bd568ae5"
+
+
+def test_the_report_prompt_is_byte_identical_and_pins_every_skill():
+    from toxagent.harness.report_profile import compose_report_profile
+
+    composed = compose_report_profile(SHIPPED)
+    assert composed.content_sha256 == REPORT_PROMPT_SHA256
+    pins = composed.manifest()["skill_pins"]
+    assert [pin["skill_id"] for pin in pins] == list(composed.skills)
+    assert all(len(pin["content_sha256"]) == 64 for pin in pins)
+
+
+def test_a_report_skill_that_is_not_active_stops_composition(tmp_path):
+    from toxagent.harness.report_profile import ProfileUnavailable, compose_report_profile
+
+    shutil.copytree(SHIPPED / "report_build", tmp_path / "report_build")
+    path = tmp_path / "report_build" / "skills" / "preflight-report-draft" / "skill.manifest.json"
+    data = json.loads(path.read_text())
+    data["status"] = "draft"
+    path.write_text(json.dumps(data))
+    with pytest.raises(ProfileUnavailable, match="not an active catalog skill"):
+        compose_report_profile(tmp_path)

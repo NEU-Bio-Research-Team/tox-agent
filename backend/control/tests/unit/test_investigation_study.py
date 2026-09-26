@@ -67,6 +67,10 @@ def test_building_refuses_a_turn_that_leaks_a_withheld_name():
 def test_every_skill_has_positive_and_negative_cases_to_be_measured_on():
     tags = {tag for case in CASES for tag in case["tags"]}
     for skill in load_catalog(PACKAGE_ROOT / "agent_profiles").skills:
+        # The investigation study measures decision_support skills; the report
+        # builder's skills (W9-10) are measured by the TAB-Suite report packs.
+        if "decision_support" not in skill.allowed_profiles:
+            continue
         eval_set = skill.manifest["eval_set"]
         assert set(eval_set["positive_tags"]) & tags, skill.skill_id
         assert set(eval_set["negative_tags"]) & tags, skill.skill_id

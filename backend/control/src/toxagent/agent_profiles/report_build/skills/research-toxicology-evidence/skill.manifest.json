@@ -1,0 +1,25 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "research-toxicology-evidence",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-report",
+  "allowed_profiles": [
+    "report_build"
+  ],
+  "required_capabilities": [
+    "search_toxicology_evidence",
+    "get_evidence_record"
+  ],
+  "risk_tier": "medium",
+  "output_contract": "bounded searches, every cited record read first, evidence_synthesis entries with relation and scope, absence reported as a gap",
+  "eval_set": {
+    "positive_tags": [
+      "report_build"
+    ],
+    "negative_tags": []
+  },
+  "references": [
+    "references/evidence-synthesis-schema.md"
+  ]
+}
