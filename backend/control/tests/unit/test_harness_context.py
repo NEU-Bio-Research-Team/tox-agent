@@ -132,3 +132,12 @@ def test_the_answer_format_section_matches_the_registered_answer_schema():
     assert ANSWER_FORMAT in v1 and ANSWER_FORMAT_V2 not in v1
     assert ANSWER_FORMAT_V2 in v2 and ANSWER_FORMAT not in v2
     assert "rendered_value" not in ANSWER_FORMAT_V2
+
+
+def test_the_case_policy_asks_for_one_write_and_no_read():
+    """W9-01: the first policy cost ~4.5 extra tool calls per turn in W8-02."""
+    from toxagent.harness.context import SCIENTIFIC_CASE_POLICY
+
+    assert "exactly one update_scientific_case call" in SCIENTIFIC_CASE_POLICY
+    assert "do not need to read it first" in SCIENTIFIC_CASE_POLICY
+    assert "leave the case alone" in SCIENTIFIC_CASE_POLICY

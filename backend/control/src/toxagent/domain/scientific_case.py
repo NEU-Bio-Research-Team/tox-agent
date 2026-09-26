@@ -1046,8 +1046,13 @@ def compile_dossier(
     }
 
 
-def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6) -> str:
-    """What a new turn of this case needs to know, with ids to read the rest."""
+def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit: int = 8) -> str:
+    """What a new turn of this case needs to know, with the ids it writes against.
+
+    Enough that a turn can write its one update without reading the case first
+    (W9-01): every hypothesis and open uncertainty with its id, the most recent
+    ledger entries with theirs, and the conclusion so far.
+    """
     lines = [f"Open scientific case {case.id} (revision {case.revision})."]
     if case.question:
         lines.append(f"Decision question: {case.question[:400]}")
@@ -1062,13 +1067,26 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6) -> str:
     if open_items:
         lines.append("Open uncertainties: " + "; ".join(
             f"{u.id} {u.kind} ({u.severity})" for u in open_items))
+    recent = case.evidence[-evidence_limit:]
+    if recent:
+        hidden = len(case.evidence) - len(recent)
+        lines.append("Ledger" + (f" (latest {len(recent)} of {len(case.evidence)})" if hidden else "") + ":")
+        for e in recent:
+            bears = f" on {','.join(e.hypothesis_ids)}" if e.hypothesis_ids else ""
+            lines.append(f"- {e.id} {e.stance}{bears} [{e.source_class} {e.source_ref}] {e.claim[:140]}")
     if case.next_tests:
         lines.append("Proposed tests: " + "; ".join(t.test[:120] for t in case.next_tests[:3]))
+    if case.conclusion.can_say or case.conclusion.cannot_say:
+        lines.append("Conclusion so far: " + "; ".join(
+            [f"can say: {line.text[:120]} ({','.join(line.evidence_ids)})"
+             for line in case.conclusion.can_say[:3]]
+            + [f"cannot say: {text[:120]}" for text in case.conclusion.cannot_say[:2]]
+        ))
     cov = case.coverage
     lines.append(
         f"Coverage: {cov['with_any_source']}/{cov['hypotheses']} hypotheses have a source; "
         f"{cov['with_independent_direct_evidence']} have direct independent evidence; "
         f"{cov['with_counterevidence_considered']} had counter-evidence considered."
     )
-    lines.append("Read the full case with get_scientific_case; change it with update_scientific_case.")
+    lines.append("Change the case with update_scientific_case; get_scientific_case shows all of it.")
     return "\n".join(lines)

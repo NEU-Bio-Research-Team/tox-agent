@@ -334,3 +334,25 @@ def test_the_checkpoint_names_the_case_and_how_to_read_it():
     case = evidence(with_hypotheses("A blocks hERG"))
     text = sc.checkpoint_summary(case)
     assert CASE_ID in text and "h1 [open]" in text and "get_scientific_case" in text
+
+
+def test_the_checkpoint_carries_the_ids_a_turn_writes_against():
+    """W9-01: one update per turn, without a read first."""
+    case = evidence(with_hypotheses("A blocks hERG"))
+    case = sc.apply(case, upd(
+        "set_conclusion", can_say=[{"text": "IC50 0.1 µM reported", "evidence_ids": ["e1"]}],
+        cannot_say=["whether A blocks at its exposure"],
+    ))
+    summary = sc.checkpoint_summary(case)
+    assert f"- e1 supports on h1 [external_experimental evidence:{EVD}]" in summary
+    assert "can say: IC50 0.1 µM reported (e1)" in summary
+    assert "cannot say: whether A blocks at its exposure" in summary
+
+
+def test_the_checkpoint_shows_only_the_latest_ledger_entries():
+    case = with_hypotheses("A blocks hERG")
+    for index in range(12):
+        case = evidence(case, claim=f"entry {index}")
+    summary = sc.checkpoint_summary(case, evidence_limit=8)
+    assert "Ledger (latest 8 of 12):" in summary
+    assert "- e12 " in summary and "- e4 " not in summary

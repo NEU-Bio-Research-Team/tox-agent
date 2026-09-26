@@ -139,7 +139,10 @@ class CaseOperation(_Input):
 
 
 class UpdateScientificCaseInput(_Input):
-    operations: list[CaseOperation] = Field(min_length=1, max_length=10)
+    #: One call per turn carries the whole update (W9-01), so the cap fits a
+    #: first turn: two or three hypotheses, their evidence, an action, an
+    #: uncertainty and the conclusion.
+    operations: list[CaseOperation] = Field(min_length=1, max_length=16)
 
 
 class GetScientificCaseInput(_Input):

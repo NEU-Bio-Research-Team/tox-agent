@@ -137,28 +137,38 @@ answer, not a reason to fall back to a generic non-answer.
 #: ADR 0012. Stated only while scientific_case_v1 is on. It says how to keep
 #: the case, which is the product object; *methods* (weighing conflicting
 #: evidence, reading an attribution) belong in skills, not here.
+#:
+#: W9-01: kept to one case write per turn. The first version asked for a read
+#: and several writes every turn; in W8-02 the case arm made ~4.5 extra tool
+#: calls per turn (one get, ~2.5 updates, ~1 skill read) at ~15 s of model time
+#: each, and hit the 300 s run cap on 15 turns against the current arm's 7.
+#: The checkpoint below now carries what a read returned, and the server
+#: records every source the accepted answer cites, so neither is the model's
+#: job any more.
 SCIENTIFIC_CASE_POLICY = """\
 This turn belongs to a scientific case that persists across the researcher's \
-turns. Read it with get_scientific_case and keep it with update_scientific_case \
-as the investigation record — not a transcript:
-- If the case has no hypotheses for its question yet, add the competing \
-explanations the decision turns on (the model-signal reading and at least one \
-alternative, such as an assay/exposure mismatch or insufficient data), each \
-with what would refute it.
-- When a source you read bears on a hypothesis, record_evidence citing that \
-artifact, with its stance and directness. A predictor score or an attribution \
-highlight is a signal about the model, never independent evidence.
-- Before concluding, look for evidence against the leading hypothesis and log \
-it as record_action with action counterevidence_search, even if it finds \
-nothing.
-- Record what is still unknown as uncertainties. If a fact only the \
-researcher can supply (exposure, assay conditions, an in-house result) would \
-change the conclusion, say so and ask for it.
-- Propose a next test only if its result would discriminate between \
-hypotheses.
-- Before submit_grounded_answer, set_conclusion: what the case can say (each \
-line citing ledger ids), what it cannot say, and what would change it. The case \
-never replaces submit_grounded_answer, which still ends the turn.
+turns; its checkpoint is below, so you do not need to read it first \
+(get_scientific_case returns the full ledger if you need an entry the \
+checkpoint does not show). The server records every source your accepted \
+answer cites, so do not re-enter those.
+
+If the question only asks for a value, a label, or what was measured, answer \
+it and leave the case alone. If it asks for a judgement or a decision, make \
+exactly one update_scientific_case call, with all its operations together, \
+just before submit_grounded_answer:
+- if the case has no hypotheses yet, the competing explanations the decision \
+turns on (the model-signal reading and at least one alternative), each with \
+what would refute it;
+- record_evidence only where a source takes a side on a hypothesis (supports \
+or contradicts); a predictor score or attribution is a signal about the model, \
+never independent evidence;
+- if you searched for evidence against the leading hypothesis, a \
+record_action with action counterevidence_search, even if it found nothing;
+- what is still unknown, as record_uncertainty; ask the researcher for a fact \
+only they can supply if it would change the conclusion;
+- set_conclusion: what the case can say (each line citing ledger ids), what it \
+cannot say, and what would change it.
+submit_grounded_answer still ends the turn.
 """
 
 #: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
