@@ -1,0 +1,1502 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_fb90cf5ed6794805b8af9ade1500b88d",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_70f1479ece754e8799d7c7eea9e259a6",
+        "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:37:28.084241+00:00",
+        "created_at": "2026-09-25T13:32:28.084241+00:00",
+        "started_at": "2026-09-25T13:32:28.211778+00:00",
+        "ended_at": "2026-09-25T13:34:49.986748+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "ad53fd205184fdafa2afe8d4dfca32382f1398dc232106732685cf312231f6f6"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:32:28.085063+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_e658ccb474bf43cead1e633c6f857ab6",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:32:39.310563+00:00",
+              "tokens": {
+                "input": 5439,
+                "output": 47,
+                "reasoning": 10,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 5496
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_5771462140e5da7b8c01277e881c7edf",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c48352001sB7tBQJ57RlwVA",
+                "step_id": "prt_0d8c49e03001nO3gqHdIVLJe9u",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a5d304157af34e33b388b75f27576686",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:32:46.951766+00:00",
+              "tokens": {
+                "input": 1085,
+                "output": 238,
+                "reasoning": 27,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 5958
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c9a873fa2484d187008b7611d96a2778",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c49e38001ET4Nouz4PJSm15",
+                "step_id": "prt_0d8c4bbdd001f2Trycy3HsFlOq",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_5667c63ac2a84fc9a6a8dd580310233a",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:33:03.378971+00:00",
+              "tokens": {
+                "input": 7906,
+                "output": 694,
+                "reasoning": 29,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8629
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e6c27fd722dec547502762f6233059ed",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c4bc0d001wYzCg3l4I0ri4u",
+                "step_id": "prt_0d8c4fc09001anX6l0wEJw0FSw",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_0649c69cf4f0427da082bda1a923a0e8",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:33:12.468484+00:00",
+              "tokens": {
+                "input": 5888,
+                "output": 211,
+                "reasoning": 64,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 13843
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_2acdf1aa49ad0af9d47f79189be7ff19",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c4fc3c001OKgQf1jcSDqMgT",
+                "step_id": "prt_0d8c51f8b001yDWGeS9UAS0suF",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_57a692bd907d46d0ad2830b2592c806d",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:34:01.060242+00:00",
+              "tokens": {
+                "input": 1357,
+                "output": 2215,
+                "reasoning": 330,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 16702
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_bb9bcccee2f166154e20090ff28762a0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c51fba001zu16zYTSdAq7fL",
+                "step_id": "prt_0d8c5dd5c001kF4MY3xkK2u8qt",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_dac2e33cd4f34fdbb6b6f2ed133b5e5b",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:34:46.567022+00:00",
+              "tokens": {
+                "input": 3077,
+                "output": 2215,
+                "reasoning": 104,
+                "cache_read": 13824,
+                "cache_write": 0,
+                "total": 19220
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_0b4314b934adf9232d218498a2a9cc5e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c5dd89001gY7dma3njHSPd3",
+                "step_id": "prt_0d8c68f14001LEx0LbgPi1qKeF",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e6b72f1e14f34f47b1bf6b91892070b8",
+              "runtime_binding_id": "rtb_c124c9d5be204f0794e928b18f38a0b2",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:34:49.918022+00:00",
+              "tokens": {
+                "input": 3473,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 19349
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8faf8f2835c6a698d1b7d49eb186d6fc",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c68f46001K5cyDwxEP2Zzqw",
+                "step_id": "prt_0d8c69c35001VsbvnrQL95jx6w",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_06c8aaeb1d2c4733982b309cc75e241a",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "40200cc7fa15e936cbcbda15923c106b854280ba3ea2982a9aa647c5eb7d19c0",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:32:39.217986+00:00",
+            "ended_at": "2026-09-25T13:32:39.232100+00:00"
+          },
+          {
+            "call_id": "call_679121e016724f7d85076e47d7e2c77a",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "3885cf97924e2aeb7ddb8ec0d97e1676cbe483fd19ad305a0756ffb1d2b9ea5d",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:32:46.749081+00:00",
+            "ended_at": "2026-09-25T13:32:46.762539+00:00"
+          },
+          {
+            "call_id": "call_24298b2effaa480491ee30c10d35da31",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 28,
+            "arguments_sha256": "898b95c42adb0470f3c163fa78f7c8a6b1f916d335b7d0460455925b0fbff016",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:32:46.814290+00:00",
+            "ended_at": "2026-09-25T13:32:46.843796+00:00"
+          },
+          {
+            "call_id": "call_845c904f9c4a4076b679aa4b7972a303",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 33,
+            "arguments_sha256": "06b39a08595ce34fd280b04aaa211eaba7afd1d9adf833a9c81f361a89fc7e82",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:32:46.838060+00:00",
+            "ended_at": "2026-09-25T13:32:46.871046+00:00"
+          },
+          {
+            "call_id": "call_7d7bc8d7a6794f17afa2c44954b7b008",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "ee06174cef3584277b34c6d2207c067d14ab0360c9219b1e803fae423cb187f2",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:32:46.869438+00:00",
+            "ended_at": "2026-09-25T13:32:46.881232+00:00"
+          },
+          {
+            "call_id": "call_55d78c511de7477ba67f9e887eeff42e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 27,
+            "arguments_sha256": "63fc91c318cbe856dbe080bad44593a6110996f75d6a9ef7e7905621d3e7aee5",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.082324+00:00",
+            "ended_at": "2026-09-25T13:33:02.107816+00:00"
+          },
+          {
+            "call_id": "call_64e51cc8a34c423ea49cec30e31ae66c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 50,
+            "arguments_sha256": "cc8660656a63c145848f8f3bdf75b448a1b6ead06a5a46ac7f3e47b560fda78f",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.153206+00:00",
+            "ended_at": "2026-09-25T13:33:02.198237+00:00"
+          },
+          {
+            "call_id": "call_64dab41b0bee4042a90920ab51c34112",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 57,
+            "arguments_sha256": "61b0764d1e236982fba938c80069f2048483b284ec35e64480b77d0ec47a088b",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.153870+00:00",
+            "ended_at": "2026-09-25T13:33:02.204880+00:00"
+          },
+          {
+            "call_id": "call_85531b140cb147e98e03779d6e3d01ac",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 29,
+            "arguments_sha256": "e08651dc4e056cfc87ba0942f61316deb2fb6bbf4bd808ccce2ce0e148fb3031",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.182260+00:00",
+            "ended_at": "2026-09-25T13:33:02.209341+00:00"
+          },
+          {
+            "call_id": "call_3b10132c7b46470c9c541af78283185d",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 21,
+            "arguments_sha256": "3f7b1ddba2bf3f321bc6e6508bdba2c469acce3527c70edc2a18ff0336e7fe33",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.201665+00:00",
+            "ended_at": "2026-09-25T13:33:02.218659+00:00"
+          },
+          {
+            "call_id": "call_8ead22de75d64d439fea6e9ee325da19",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 95,
+            "arguments_sha256": "ee06174cef3584277b34c6d2207c067d14ab0360c9219b1e803fae423cb187f2",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.312423+00:00",
+            "ended_at": "2026-09-25T13:33:02.402822+00:00"
+          },
+          {
+            "call_id": "call_061740775b664848963b5ed792e4883c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 112,
+            "arguments_sha256": "197aefe853708590886651a4de93ff4afa705f427d47152809eff689345a01c6",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.365020+00:00",
+            "ended_at": "2026-09-25T13:33:02.448462+00:00"
+          },
+          {
+            "call_id": "call_8c2dbb4da1564d1abb20a3109ecc05cb",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 102,
+            "arguments_sha256": "2bf15eeffa97b140326d48fe4fa6dcc3dbfd8040e99eb084ac73a2140e2a645c",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.391644+00:00",
+            "ended_at": "2026-09-25T13:33:02.452903+00:00"
+          },
+          {
+            "call_id": "call_be72c33941cb4a9ba17084021a09b36b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 42,
+            "arguments_sha256": "6919d248edbc66e5550cb6c6746c86034cf78e43c683850f353a2d17f530fcf6",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.425488+00:00",
+            "ended_at": "2026-09-25T13:33:02.462181+00:00"
+          },
+          {
+            "call_id": "call_2d934fb4c8ba4ae3be14e6eb186672bc",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 25,
+            "arguments_sha256": "0eea8f2a7642c93b628312677d5331699650d8bd8760a750c6c242bb0fa8c90e",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.447766+00:00",
+            "ended_at": "2026-09-25T13:33:02.469210+00:00"
+          },
+          {
+            "call_id": "call_80d45059b5314506933f51176caa7af5",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "133c4626fafafbdf5455167f6273a6216bc74b30182b8e382a16f3269c3ba52e",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:02.599593+00:00",
+            "ended_at": "2026-09-25T13:33:02.611443+00:00"
+          },
+          {
+            "call_id": "call_bcec849c61a24a699f5b9cfe496b417c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 130,
+            "arguments_sha256": "c487d627ddb56216a8530db4624acaec2a06ca8dfcfc723df0301f48f40f515a",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:33:03.039260+00:00",
+            "ended_at": "2026-09-25T13:33:03.168360+00:00"
+          },
+          {
+            "call_id": "call_8f3f55b9db9e4076be764c2ecbb05146",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1675,
+            "arguments_sha256": "2b7c0d7780a929c298e738875b067ad6a8cef054541ba54f53a8a9e052533555",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:33:10.742008+00:00",
+            "ended_at": "2026-09-25T13:33:12.414916+00:00"
+          },
+          {
+            "call_id": "call_064ad6ef92124c4c821cec1eb00e8709",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1419,
+            "arguments_sha256": "90369e456e2a5dc0e6d134f60cab1bb9de22393f75eb4946d50b1587bd3e66ba",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:33:10.832785+00:00",
+            "ended_at": "2026-09-25T13:33:12.250330+00:00"
+          },
+          {
+            "call_id": "call_b5e6f04856934788821d63219429a265",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 32,
+            "arguments_sha256": "c455c87925bec359cf8abaad8533751468743fb5615e9002086a4be1242f2f05",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:34:00.967219+00:00",
+            "ended_at": "2026-09-25T13:34:00.997487+00:00"
+          },
+          {
+            "call_id": "call_f2d6aeec21264910a61bc7124535900d",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 44,
+            "arguments_sha256": "f842eddb049a8a70717e93f58edee75d0a19080c123588e595fa8f00decbc1f7",
+            "observation_ids": [
+              "obs_2851dec7d56f43a7a67bb1dc717f7944"
+            ],
+            "started_at": "2026-09-25T13:34:46.467279+00:00",
+            "ended_at": "2026-09-25T13:34:46.509031+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_f7b7c97990f74608afb29c61acd77ecd",
+        "run_id": "run_fb90cf5ed6794805b8af9ade1500b88d",
+        "answer_markdown": "I could not produce a fully grounded answer to that question. Below are the recorded prediction results this session has on file; each figure links to its source observation. Please rephrase the question, or ask about one of these figures directly.",
+        "claims": [
+          {
+            "claim_id": "clm_57ee0d95901648749e9f712a26047421",
+            "kind": "numeric",
+            "text": "Predicted herg probability blocker is 0.217.",
+            "transform": "round:3",
+            "citation_ids": [],
+            "observation_id": "obs_2851dec7d56f43a7a67bb1dc717f7944",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.21694640815258026,
+            "rendered_value": "0.217"
+          },
+          {
+            "claim_id": "clm_9b57d7c0b7fd42258f7b0ff6b4739d1f",
+            "kind": "classification",
+            "text": "The herg label is 'non_blocker'.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_2851dec7d56f43a7a67bb1dc717f7944",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "This probability is a model score, not a calibrated clinical risk. It ranks molecules; it does not estimate how often the effect occurs in people."
+          }
+        ],
+        "recommended_next_steps": [],
+        "candidate_generation": 2,
+        "is_fallback": true,
+        "content_sha256": "b9c8b2b542a7e71835b4461aea08a2309f85225f093644339f372147432a8494",
+        "created_at": "2026-09-25T13:34:46.497945+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_6ae85a03a4b1448188b6732d79433ccb",
+        "run_id": "run_fb90cf5ed6794805b8af9ade1500b88d",
+        "goal": "Can we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?",
+        "subject_refs": [
+          "analysis:ana_a9e44e3f99634bcbbefc8d0b31a23625"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 21,
+          "denied_calls": 0,
+          "failed_calls": 1,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_2851dec7d56f43a7a67bb1dc717f7944"
+        ],
+        "found_refs": [],
+        "stop_reason": "blocked",
+        "answer_outcome": "fallback",
+        "skills": {},
+        "revision": 24
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_6ae85a03a4b1448188b6732d79433ccb",
+  "analysis": {
+    "run": {
+      "run_id": "run_712ee69b24e446df92e08ca0cec38ee8",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_2863a003205842589fd83b3660634b24",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:37:27.017994+00:00",
+      "created_at": "2026-09-25T13:32:27.017994+00:00",
+      "started_at": "2026-09-25T13:32:27.029440+00:00",
+      "ended_at": "2026-09-25T13:32:27.061210+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:32:27.019126+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_a9e44e3f99634bcbbefc8d0b31a23625",
+      "input_smiles": "B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O",
+      "canonical_smiles": "CC(C)C[C@H](NC(=O)[C@H](Cc1ccccc1)NC(=O)c1cnccn1)B(O)O",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.21694640815258026,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.29062190651893616,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.43206915259361267,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.15595905482769012,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.27510717511177063,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.23680557310581207,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.18207761645317078,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.18288762867450714,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.0835905373096466,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.1814471334218979,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.2816884517669678,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.22869011759757996,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.11700492352247238,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "limited",
+        "reasons": [
+          "contains uncommon element(s): B"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "limited",
+          "reasons": [
+            "contains uncommon element(s): B"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "e3d04545-8885-4d13-877f-4be094cd81b2",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 48,
+            "encoded_token_count": 48
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "c315a02abca5d921891d072b62837873678536833843e277560bc372bf648c98"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:32:27.052031+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_c7a0cfa74ef6443a847e1f6fd7de96aa",
+      "title": "Pan-cancer Myc modulator that targets Myc-α-tubulin interaction to drive selective mitotic catastrophe.",
+      "authors": [
+        "Teitel J",
+        "Farah M",
+        "Dziubinski ML",
+        "Lee P",
+        "White A",
+        "Sobeck A",
+        "Colina J",
+        "Takyi-Williams J"
+      ],
+      "published_at": "2025-10-31",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-025-22011-4",
+        "pmid": "41173942",
+        "pmcid": "PMC12578881",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41173942",
+      "abstract_or_excerpt": "MYC overexpression is a well-established cancer vulnerability, yet direct therapeutic targeting of Myc remains a challenge. Here, we identify DL78 as a potent antimitotic agent with selective anticancer activity through its regulation of Myc. DL78 demonstrated broad efficacy by inhibiting growth across nine cancer types and significantly reducing tumor burden in an in vivo model of platinum-resistant high-grade serous ovarian cancer, with no overt toxicity. DL78 preferentially targets chromosomally unstable, MYC-overexpressing cancer cells, a hallmark of high-grade serous ovarian cancer. Mechanistically, DL78 exploits Myc's role in mitotic entry by disrupting its interaction with α-tubulin, leading to sustained mitotic arrest, mitotic catastrophe, and apoptosis while sparing nonmalignant cells. This study establishes a novel paradigm for Myc-targeted therapy by introducing DL78, which induces cancer-selective mitotic catastrophe by disrupting Myc's interaction with α-tubulin rather than its transcriptional activity.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "aa15bee802bcee1c88979a02532690aae51bd2a20e4e4e66699a1cf1be0d9df8"
+    },
+    {
+      "evidence_id": "evd_672eae59c47243a2b8280943bf7f2bf8",
+      "title": "Decoding chemotherapy-induced peripheral neuropathy: ion channels, disease models, and future directions.",
+      "authors": [
+        "Lamberti A",
+        "Villalba-Riquelme E",
+        "Fernández-Carvajal A",
+        "Ferrer-Montiel A"
+      ],
+      "published_at": "2026-06-23",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1762734",
+        "pmid": "42416826",
+        "pmcid": "PMC13338552",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42416826",
+      "abstract_or_excerpt": "Chemotherapy-induced peripheral neuropathy (CIPN) is a significant side effect of cancer treatments like paclitaxel and oxaliplatin, impacting patient quality of life (QoL). Despite much research, its underlying mechanisms remain unclear and effective therapies are lacking. This review evaluates whether current experimental models accurately reflect CIPN, emphasizing recent molecular and cellular findings, especially the role of sensory ion channels. We outline limitations of existing models and propose more translational preclinical approaches to better capture disease complexity and patient variability. Improved models could enhance understanding of chemotherapy effects on peripheral nerves and support the development of interventions to prevent or mitigate CIPN. Prioritizing supportive care that minimizes treatment side effects may ultimately improve outcomes and patient wellbeing.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "bfa3a25135ec71357dbac2b251c7dd0199bb5296cf2145c6de0ac733eeb661e8"
+    },
+    {
+      "evidence_id": "evd_6a4193389438491ebd43afc5ab1dbe99",
+      "title": "Scaffold Hopping in Tuberculosis Drug Discovery: Principles, Applications, and Case Studies.",
+      "authors": [
+        "Kovar O",
+        "Kufa M",
+        "Finger V",
+        "Soukup O",
+        "Kratky M",
+        "Torruellas C",
+        "Roh J",
+        "Korabecny J"
+      ],
+      "published_at": "2025-10-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jmedchem.5c01100",
+        "pmid": "41055946",
+        "pmcid": "PMC12557394",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41055946",
+      "abstract_or_excerpt": "Tuberculosis (TB) imposes a major global health challenge, aggravated by the emergence of drug-resistant <i>Mycobacterium tuberculosis</i> (<i>Mtb</i>) strains. Scaffold hopping, a medicinal chemistry approach that modifies the molecular backbone of known bioactive compounds, has emerged as a promising tool in the development of novel drugs, including TB therapeutics. This perspective provides an insight into the application of scaffold hopping across varying degrees of structural modifications, highlighting successful case studies targeting key <i>Mtb</i> pathways, including energy metabolism, cell wall synthesis, proteasome function, and respiratory processes. Beyond traditional and <i>in silico</i> methods, scaffold hopping has spurred the discovery of compounds with improved pharmacological profiles, such as improved pharmacokinetics, enhanced efficacy, reduced toxicity, and resistance circumvention. The findings support scaffold hopping's potential to address the limitations of current anti-TB drugs as a versatile and innovative approach to accelerate TB drug discovery.",
+      "normalized_facts": {
+        "journal": "Journal of medicinal chemistry",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "fd39674b809b683ae948e7dc78451620efab7efe48a3a9d31c343cac914216e5"
+    },
+    {
+      "evidence_id": "evd_c9ebe646320e465287523635cbf69507",
+      "title": "Integrative analysis of KCNQ1 variants reveals molecular mechanisms of type 1 long QT syndrome pathogenesis.",
+      "authors": [
+        "Brewer KR",
+        "Vanoye CG",
+        "Huang H",
+        "Clowes Moster KR",
+        "Desai RR",
+        "Hayes JB",
+        "Burnette DT",
+        "George AL"
+      ],
+      "published_at": "2025-02-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1073/pnas.2412971122",
+        "pmid": "39969993",
+        "pmcid": "PMC11873829",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39969993",
+      "abstract_or_excerpt": "Loss-of-function (LOF) pathogenic variants in <i>KCNQ1</i> encoding a cardiac potassium channel predispose to sudden cardiac death in type 1 congenital long QT syndrome (LQT1). To determine the spectrum of molecular mechanisms responsible for this life-threatening condition, we used an integrative approach to determine the biophysical, functional, and trafficking properties of 61 KCNQ1 variants distributed throughout all domains of the channel. Impaired trafficking to the plasma membrane was the most common cause of LOF across all channel domains, often but not always coinciding with protein instability. However, many LOF variants, particularly in transmembrane domains, trafficked normally, but when coexpressed with KCNE1 exhibited impaired conductance, altered voltage dependence, or abnormal gating kinetics, highlighting diverse pathogenic mechanisms. This indicates a need for personalized treatment approaches for LQT1. Use of our data to benchmark variant pathogenicity prediction methods demonstrated that prediction accuracy depends on the exact mechanism of pathogenicity associated with a given variant.",
+      "normalized_facts": {
+        "journal": "Proceedings of the National Academy of Sciences of the United States of America",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "ef77d717abfd7f88edc2ad770cb8f3b885d33605cedc24507dd7daa2ca579c2e"
+    },
+    {
+      "evidence_id": "evd_8ed5d667308f4d0aa0b83ee4072a2555",
+      "title": "NUPR1 as a central stress-adaptation node in cancer: integrating metabolic rewiring, cell death, and therapy resistance.",
+      "authors": [
+        "Long T",
+        "Wang Q",
+        "Le Y",
+        "Zhang M",
+        "Sun Y",
+        "Iovanna J",
+        "Li L",
+        "Xu C"
+      ],
+      "published_at": "2026-05-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12929-026-01254-x",
+        "pmid": "42104400",
+        "pmcid": "PMC13156883",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42104400",
+      "abstract_or_excerpt": "Nuclear protein 1 (NUPR1) is an intrinsically disordered, stress-adaptive regulator that sits at the intersection of transcriptional plasticity and proteostatic control, broadly upregulated across malignancies and tightly associated with poor prognosis. Here, we synthesize evidence positioning NUPR1 as a central node of tumor adaptation that integrates metabolic rewiring, proteostatic balance, and cell-death checkpoints into a unified stress-response framework. NUPR1 orchestrates lipogenic and glycolytic programs, sustains lysosomal biogenesis and autophagic flux, and governs cell-fate decisions by restraining apoptosis and ferroptosis through iron and redox control. Beyond tumor-intrinsic roles, NUPR1 remodels the tumor microenvironment by driving immunosuppressive macrophage polarization and amplifying inflammatory signaling, collectively sustaining a pro-survival niche. These circuits underpin broad therapeutic resistance across modalities, spanning chemotherapy, targeted agents, endocrine therapy, and immune checkpoint blockade. We further discuss the development of small-molecule NUPR1 antagonists-including ZZW-115 and emerging chemotypes-that disrupt nuclear trafficking and stress tolerance, alongside formulation strategies to optimize pharmacodynamic potency and safety. Together, these insights establish NUPR1 as a druggable stress-response node and provide a mechanistic framework to overcome resistance and refine adaptive cancer therapy paradigms.",
+      "normalized_facts": {
+        "journal": "Journal of biomedical science",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "f0474551ff350f905bce0460ffb9f614422cff4752bbb0a1fb2f86cd9c614473"
+    },
+    {
+      "evidence_id": "evd_fd63ee598fca414cbfcafe6af8bdc30f",
+      "title": "Pharmacology, Medicinal Chemistry, and Therapeutic Potential of Imidazoline Receptor Ligands.",
+      "authors": [
+        "Kouridaki ME",
+        "Pallàs M",
+        "Escolano C"
+      ],
+      "published_at": "2026-07-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cmdc.70350",
+        "pmid": "42414242",
+        "pmcid": "PMC13342470",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42414242",
+      "abstract_or_excerpt": "The imidazoline receptor (IR) system, comprising the I<sub>1</sub>R, I<sub>2</sub>R, and I<sub>3</sub>R subtypes, consists of binding sites involved in cardiovascular, metabolic, and neurological disorders. This review updates the 2004 compilation by Dardonville and Rozas on IR ligands, emphasizing promising ligands, subtype selectivity, and pharmacological profiling. Representative ligands for each subtype are analyzed to highlight key pharmacological aspects, including affinity, selectivity, and functional activity, integrating findings from preclinical and clinical studies. Critical molecular targets such as Nischarin/IRAS for I<sub>1</sub>R and MAO-B-associated sites for I<sub>2</sub>R are discussed in the context of ligand design and CNS penetration. I<sub>1</sub>R-selective ligands, exemplified by rilmenidine, show improved selectivity over α<sub>2</sub>-adrenoceptors and exhibit antihypertensive, metabolic, and neuroprotective effects. I<sub>2</sub>R ligands display neuroprotective, anti-inflammatory, and analgesic activities, with CR4056 progressing to Phase II trials. PET imaging with [<sup>11</sup>C]BU99008 has validated I<sub>2</sub>R upregulation as a biomarker for neurodegeneration. Overall, the IR system presents therapeutic opportunities: I<sub>1</sub>R for cardiovascular and metabolic disorders, I<sub>2</sub>R for pain and neurodegeneration, and I<sub>3</sub>R for diabetes. Continued ligand optimization and receptor characterization are essential for clinical translation.",
+      "normalized_facts": {
+        "journal": "ChemMedChem",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "ada1ffcf4a602d095bc8d42cb79cdd72176d52ffd0d58fb37126e558911c9331"
+    },
+    {
+      "evidence_id": "evd_e4c23ae6fcba447b802d21b43a1993f3",
+      "title": "From cancer therapy to cardiac safety: the role of proteostasis in drug-induced cardiotoxicity.",
+      "authors": [
+        "Qian X",
+        "Yao M",
+        "Xu J",
+        "Dong N",
+        "Chen S"
+      ],
+      "published_at": "2024-11-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2024.1472387",
+        "pmid": "39611175",
+        "pmcid": "PMC11602306",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39611175",
+      "abstract_or_excerpt": "Drug-induced cardiotoxicity (DICT) poses a significant challenge in the prognosis of cancer patients, particularly with the use of antineoplastic agents like anthracyclines and targeted therapies such as trastuzumab. This review delves into the intricate interplay between drugs and proteins within cardiac cells, focusing on the role of proteostasis as a therapeutic target for mitigating cardiotoxicity. We explore the <i>in vivo</i> modeling of proteostasis, highlighting the complex intracellular environment and the emerging techniques for monitoring proteostasis. Additionally, we discuss how cardiotoxic drugs disrupt protein homeostasis through direct chemical denaturation, endoplasmic reticulum stress, unfolded protein response, chaperone dysfunction, impairment of the proteasome system, and dysregulation of autophagy. Finally, we provide insights into the applications of cardioprotective drugs targeting proteostasis to prevent cardiotoxicity and the adoption of structural proteomics to evaluate potential cardiotoxicity. By gaining a deeper understanding of the role of proteostasis underlying DICT, we can pave the way for the development of targeted therapeutic strategies to safeguard cardiac function while maximizing the therapeutic potential of antineoplastic drugs.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "0b8c49562a3e338f051936f6ac9c5adb92ad80126a7b33676cda7cb1bea1c6ac"
+    },
+    {
+      "evidence_id": "evd_ea132952670146fdb44be105fd5bba96",
+      "title": "Preclinical studies of RA475, a guanidine-substituted spirocyclic candidate RPN13/ADRM1 inhibitor for treatment of ovarian cancer.",
+      "authors": [
+        "Anchoori RK",
+        "Tseng SH",
+        "Tsai HL",
+        "Palande V",
+        "Rudek MA",
+        "Roden RBS"
+      ],
+      "published_at": "2024-07-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1371/journal.pone.0305710",
+        "pmid": "38990850",
+        "pmcid": "PMC11239005",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/38990850",
+      "abstract_or_excerpt": "There is an urgent unmet need for more targeted and effective treatments for advanced epithelial ovarian cancer (EOC). The emergence of drug resistance is a particular challenge, but small molecule covalent inhibitors have promise for difficult targets and appear less prone to resistance. Michael acceptors are covalent inhibitors that form bonds with cysteines or other nucleophilic residues in the target protein. However, many are categorized as pan-assay interference compounds (PAINS) and considered unsuitable as drugs due to their tendency to react non-specifically. Targeting RPN13/ADRM1-mediated substrate recognition and deubiquitination by the proteasome 19S Regulatory Particle (RP) is a promising treatment strategy. Early candidate RPN13 inhibitors (iRPN13) produced a toxic accumulation of very high molecular weight polyubiquitinated substrates, resulting in therapeutic activity in mice bearing liquid or solid tumor models, including ovarian cancer; however, they were not drug-like (PAINS) because of their central piperidone core. Up284 instead has a central spiro-carbon ring. We hypothesized that adding a guanidine moiety to the central ring nitrogen of Up284 would produce a compound, RA475, with improved drug-like properties and therapeutic activity in murine models of ovarian cancer. RA475 produced a rapid accumulation of high molecular polyubiquitinated proteins in cancer cell lines associated with apoptosis, similar to Up284 although it was 3-fold less cytotoxic. RA475 competed binding of biotinylated Up284 to RPN13. RA475 shows improved solubility and distinct pharmacodynamic properties compared to Up284. Specifically, tetraubiquitin firefly luciferase expressed in leg muscle was stabilized in mice more effectively upon IP treatment with RA475 than with Up284. However, pharmacologic analysis showed that RA475 was more rapidly cleared from the circulation, and less orally available than Up284. RA475 shows reduced ability to cross the blood-brain barrier and in vitro inhibition of HERG. Treatment of mice with RA475 profoundly inhibited the intraperitoneal growth of the ID8-luciferase ovarian tumor model. Likewise, RA475 treatment of immunocompetent mice inhibited the growth of spontaneous genetically-engineered peritoneal tumor, as did weekly cisplatin dosing. The combination of RA475 and cisplatin significantly extended survival compared to individual treatments, consistent with synergistic cytotoxicity in vitro. In sum, RA475 is a promising candidate covalent RPN13i with potential utility for treatment of patients with advanced EOC in combination with cisplatin.",
+      "normalized_facts": {
+        "journal": "PloS one",
+        "pub_type": "research-article, Research Support, U.S. Gov't, Non-P.H.S., Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "4f623dbee8b68eebe0c886b50a467c9599a997325f5dbaf6a13e4c33aaf992fe"
+    },
+    {
+      "evidence_id": "evd_c0cdccff1afa4155884738af33bbf05e",
+      "title": "4-phenylbutyric acid re-trafficking hERG/G572R channel protein by modulating the endoplasmic reticulum stress-associated chaperones and endoplasmic reticulum-associated degradation gene.",
+      "authors": [
+        "Tang W",
+        "Cai D",
+        "Fu Y",
+        "Zheng Z",
+        "Huang X",
+        "Khouzam RN",
+        "Song Y",
+        "Lian J"
+      ],
+      "published_at": "2023-08-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.21037/jtd-23-1252",
+        "pmid": "37691654",
+        "pmcid": "PMC10482650",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/37691654",
+      "abstract_or_excerpt": "<h4>Background</h4>Long QT syndrome type 2 (LQT2) is caused by mutations in the <i>KCNH2</i>/human ether-à-go-go-related gene (hERG). Some hERG genetic mutation-associated diseases are alleviated by hERG-specific drug chaperones (glycerol, dimethyl sulfoxide, trimethylamine N-oxide, thapsigargin), delayed rectifier K<sup>+</sup> current (IKr) blockers methanesulfonanilide E4031, the antihistamine astemizole, or the prokinetic drug cisapride, and the anti-arrhythmic drug quinidine. Meanwhile, many <i>in vivo</i> and <i>in vitro</i> studies have reported the efficacy of 4-phenylbutyric acid (4-PBA) in diseases with inherited genetic mutations. This study aims to explore potential therapeutic agents for hERG/G572R mutated ion channel.<h4>Methods</h4>pcDNA3/hERG [wild type (WT)]-FLAG and pcDNA3/hERG (G572R)-FLAG plasmids were transfected into HEK293 cells. A western blot (WB) experiment was conducted to analyze protein expression. Quantitative real-time polymerase chain reaction (qPCR) was used to analyze the messenger RNA (mRNA) expression levels in the WT/G572R heterozygous HEK293 cell model treated with or without 4-PBA. The interaction between WT/G572R and BIP (GRP78), GRP94, and 3-hydroxy-3-methylglutaryl coenzyme A reductase degradation protein 1 (HRD1) was tested by co-immunoprecipitation (co-IP). To investigate the effect of 4-PBA on the WT/G572R channel current, we used electrophysiological assays (patch-clamp electrophysiological recordings).<h4>Results</h4>The results showed that WT/G572R activated the ATF6 pathway in the endoplasmic reticulum stress (ERS), the ERS response markers GRP78, GRP94, and calreticulin (CRT)/calnexin (CNX), and HRD1, which decreased after application of the ERS inhibitor 4-PBA. The results of co-IP confirmed that the ability of hERG interacted with GRP78, GRP94, and HRD1. Moreover, 4-PBA increased the current of WT/G572R and reversed the gating kinetics of the WT/G572R channel.<h4>Conclusions</h4>4-PBA corrects hERG channel transport defects by inhibiting excessive ERS and the endoplasmic reticulum-associated degradation (ERAD)-related gene E3 ubiquitin ligase HRD1. Additionally, 4-PBA improved WT/G572R channel current. 4-PBA is expected to be developed as a new treatment method for LQT2.",
+      "normalized_facts": {
+        "journal": "Journal of thoracic disease",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.382715+00:00",
+      "content_sha256": "091ea49dc6daf1512a9cc18ef5472fcf543d98ffa9b835c6e7896e466af8ac84"
+    },
+    {
+      "evidence_id": "evd_aef8b3edeebf43a1b5242271aa057739",
+      "title": "Identification of potential autophagy inducers through high-throughput and high-content imaging analysis.",
+      "authors": [
+        "Ooka M",
+        "Mitchell L",
+        "Zhao J",
+        "Wei Z",
+        "Zhang L",
+        "Bougie D",
+        "Lin HL",
+        "Fang Y"
+      ],
+      "published_at": "2026-03-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.molpha.2026.100116",
+        "pmid": "41903445",
+        "pmcid": "PMC13168962",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41903445",
+      "abstract_or_excerpt": "Autophagy is a cellular degradation process that plays a critical role in maintaining homeostasis and preventing stress-induced damage, making it a promising therapeutic target for cancer and neurodegenerative diseases. In this study, we utilized mouse embryonic fibroblasts expressing GFP-labeled microtubule-associated protein 1 light chain 3, a widely used biomarker of autophagy activation, to screen 3733 clinically approved or investigational drugs using a high-throughput and high-content screening platform. From the primary screening, 117 compounds were identified as potential autophagy inducers. Subsequent confirmation studies narrowed this group to 5 previously uncharacterized autophagy-inducing candidates for further investigation. Follow-up studies assessed the mechanisms underlying autophagy modulation by these compounds, with a focus on key pathways such as mechanistic target of rapamycin inhibition, endoplasmic reticulum stress activation, and p53 activation. To further explore their therapeutic potential in cancer, we conducted an angiogenesis inhibition assay. This study successfully identified several autophagy inducers that may be repurposed for the treatment of cancer, highlighting their potential for future therapeutic development. SIGNIFICANT STATEMENT: This study identifies novel autophagy inducers from high-throughput screening of approved and investigational drugs. The findings highlight key pathways such as mechanistic target of rapamycin inhibition and endoplasmic reticulum stress activation, and demonstrate the ability of these compounds to inhibit angiogenesis, suggesting their potential for repurposing in cancer therapy.",
+      "normalized_facts": {
+        "journal": "Molecular pharmacology",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "ad746c47f29bfb677b443e31dfc8b0ed17f36df9fe33e807b5d8184578739c16"
+    },
+    {
+      "evidence_id": "evd_4c8e727815f34f31ba83f810cb2bd19c",
+      "title": "High-throughput assay for predicting diarrhea risk using a 2D human intestinal stem cell-derived model.",
+      "authors": [
+        "Pike CM",
+        "Levi JA",
+        "Boone LA",
+        "Peddibhotla S",
+        "Johnson J",
+        "Zwarycz B",
+        "Bunger MK",
+        "Thelin W"
+      ],
+      "published_at": "2025-03-12",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.tiv.2025.106040",
+        "pmid": "40086646",
+        "pmcid": "PMC12412184",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40086646",
+      "abstract_or_excerpt": "Gastrointestinal toxicities (GITs) in clinical trials often lead to dose-limitations that reduce drug efficacy and delay treatment optimization. Preclinical animal models do not accurately replicate human physiology, leaving few options for early detection of GITs, such as diarrhea, before human studies. Chemotherapeutic agents, known to cause clinical diarrhea, frequently target mitotic cells. Therefore, we hypothesized a model utilizing proliferative cell populations derived from human intestinal crypts would predict clinical diarrhea occurrence with high accuracy. Here, we describe the development of a diarrhea prediction assay utilizing RepliGut® Planar, a primary intestinal stem cell-derived platform. To evaluate the ability of this model to predict clinical diarrhea risk, we assessed toxicity of 30 marketed drugs by measuring cell proliferation (EdU incorporation), cell abundance (nuclei quantification), and barrier formation (TEER) in cells derived from three human donors. Dose response curves were generated for each drug, and the IC15 to Cmax ratio was used to identify a threshold for assay positivity. This model accurately predicted diarrhea potential, achieving an accuracy of 91 % for proliferation, 90 % for abundance, and 88 % for barrier formation. In vitro toxicity screening using primary proliferative cells may reduce clinical diarrhea and ultimately lead to safer and more effective treatments for patients.",
+      "normalized_facts": {
+        "journal": "Toxicology in vitro : an international journal published in association with BIBRA",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "39928f9382a6dd99b64c8ef25123b1e6a6340a78291e6abb8c3164f89b1eca3b"
+    },
+    {
+      "evidence_id": "evd_f3b1e74563ad41cea9472b06bf1f1a0a",
+      "title": "In vivo quantitative high-throughput screening for drug discovery and comparative toxicology.",
+      "authors": [
+        "Dranchak PK",
+        "Oliphant E",
+        "Queme B",
+        "Lamy L",
+        "Wang Y",
+        "Huang R",
+        "Xia M",
+        "Tao D"
+      ],
+      "published_at": "2023-03-20",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1242/dmm.049863",
+        "pmid": "36786055",
+        "pmcid": "PMC10067442",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36786055",
+      "abstract_or_excerpt": "Quantitative high-throughput screening (qHTS) pharmacologically evaluates chemical libraries for therapeutic uses, toxicological risk and, increasingly, for academic probe discovery. Phenotypic high-throughput screening assays interrogate molecular pathways, often relying on cell culture systems, historically less focused on multicellular organisms. Caenorhabditis elegans has served as a eukaryotic model organism for human biology by virtue of genetic conservation and experimental tractability. Here, a paradigm enabling C. elegans qHTS using 384-well microtiter plate laser-scanning cytometry is described, in which GFP-expressing organisms revealing phenotype-modifying structure-activity relationships guide subsequent life-stage and proteomic analyses, and Escherichia coli bacterial ghosts, a non-replicating nutrient source, allow compound exposures over two life cycles, mitigating bacterial overgrowth complications. We demonstrate the method with libraries of anti-infective agents, or substances of toxicological concern. Each was tested in seven-point titration to assess the feasibility of nematode-based in vivo qHTS, and examples of follow-up strategies were provided to study organism-based chemotype selectivity and subsequent network perturbations with a physiological impact. We anticipate that this qHTS approach will enable analysis of C. elegans orthologous phenotypes of human pathologies to facilitate drug library profiling for a range of therapeutic indications.",
+      "normalized_facts": {
+        "journal": "Disease models & mechanisms",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Research Support, U.S. Gov't, Non-P.H.S., Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "a98349ebf4a16a10052169a6178d392cad310a3d39eefe55019ded242773e6ab"
+    },
+    {
+      "evidence_id": "evd_f2b9331c781740eb9a50e9d3570252d3",
+      "title": "iGEM as a human iPS cell-based global epigenetic modulation detection assay provides throughput characterization of chemicals affecting DNA methylation.",
+      "authors": [
+        "Otsuka S",
+        "Qin XY",
+        "Wang W",
+        "Ito T",
+        "Nansai H",
+        "Abe K",
+        "Fujibuchi W",
+        "Nakao Y"
+      ],
+      "published_at": "2023-04-24",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-023-33729-4",
+        "pmid": "37095195",
+        "pmcid": "PMC10125974",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/37095195",
+      "abstract_or_excerpt": "Chemical-induced dysregulation of DNA methylation during the fetal period is known to contribute to developmental disorders or increase the risk of certain diseases later in life. In this study, we developed an iGEM (iPS cell-based global epigenetic modulation) detection assay using human induced pluripotent stem (hiPS) cells that express a fluorescently labeled methyl-CpG-binding domain (MBD), which enables a high-throughput screening of epigenetic teratogens/mutagens. 135 chemicals with known cardiotoxicity and carcinogenicity were categorized according to the MBD signal intensity, which reflects the degree of nuclear spatial distribution/concentration of DNA methylation. Further biological characterization through machine-learning analysis that integrated genome-wide DNA methylation, gene expression profiling, and knowledge-based pathway analysis revealed that chemicals with hyperactive MBD signals strongly associated their effects on DNA methylation and expression of genes involved in cell cycle and development. These results demonstrated that our MBD-based integrated analytical system is a powerful framework for detecting epigenetic compounds and providing mechanism insights of pharmaceutical development for sustainable human health.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "f4141f4d3323803554169e81280f2637b6762968d0168822724e2081c5eda027"
+    },
+    {
+      "evidence_id": "evd_6b765e44d74c4e6680d24f28c152a626",
+      "title": "Characterization of human pregnane X receptor activators identified from a screening of the Tox21 compound library.",
+      "authors": [
+        "Lynch C",
+        "Sakamuru S",
+        "Huang R",
+        "Niebler J",
+        "Ferguson SS",
+        "Xia M"
+      ],
+      "published_at": "2020-12-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.bcp.2020.114368",
+        "pmid": "33333074",
+        "pmcid": "PMC9440615",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33333074",
+      "abstract_or_excerpt": "The pregnane X receptor (PXR; NR1I2) is an important nuclear receptor whose main function is to regulate enzymes within drug metabolism. The main drug metabolizing enzyme regulated by PXR, cytochrome P450 (CYP) 3A4, accounts for the metabolism of nearly 50% of all marketed drugs. Recently, PXR has also been identified as playing a role in energy homeostasis, immune response, and cancer. Due to its interaction with these important roles, alongside its drug-drug interaction function, it is imperative to identify compounds which can modulate PXR. In this study, we screened the Tox21 10,000 compound collection to identify hPXR agonists using a stable hPXR-Luc HepG2 cell line. A pharmacological study in the presence of a PXR antagonist was performed to confirm the activity of the chosen potential hPXR agonists in the same cells. Finally, metabolically competent cell lines - HepaRG and HepaRG-PXR-Knockout (KO) - were used to further confirm the potential PXR activators. We identified a group of structural clusters and singleton compounds which included potentially novel hPXR agonists. Of the 21 selected compounds, 11 potential PXR activators significantly induced CYP3A4 mRNA expression in HepaRG cells. All of these compounds lost their induction when treating HepaRG-PXR-KO cells, confirming their PXR activation. Etomidoline presented as a potentially selective agonist of PXR. In conclusion, the current study has identified 11 compounds as potentially novel or not well-characterized PXR activators. These compounds should further be studied for their potential effects on drug metabolism and drug-drug interactions due to the immense implications of being a PXR agonist.",
+      "normalized_facts": {
+        "journal": "Biochemical pharmacology",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "a7123070211ad2d41df651296df78d7665995bd74f208b58531718ea0be6be68"
+    },
+    {
+      "evidence_id": "evd_97a383b8248b449aa63103891e865372",
+      "title": "Identification of Compounds That Inhibit Estrogen-Related Receptor Alpha Signaling Using High-Throughput Screening Assays.",
+      "authors": [
+        "Lynch C",
+        "Zhao J",
+        "Sakamuru S",
+        "Zhang L",
+        "Huang R",
+        "Witt KL",
+        "Merrick BA",
+        "Teng CT"
+      ],
+      "published_at": "2019-02-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/molecules24050841",
+        "pmid": "30818834",
+        "pmcid": "PMC6429183",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/30818834",
+      "abstract_or_excerpt": "The nuclear receptor, estrogen-related receptor alpha (ERRα; NR3B1), plays a pivotal role in energy homeostasis. Its expression fluctuates with the demands of energy production in various tissues. When paired with the peroxisome proliferator-activated receptor γ coactivator 1α (PGC-1α), the PGC/ERR pathway regulates a host of genes that participate in metabolic signaling networks and in mitochondrial oxidative respiration. Unregulated overexpression of ERRα is found in many cancer cells, implicating a role in cancer progression and other metabolism-related diseases. Using high throughput screening assays, we screened the Tox21 10K compound library in stably transfected HEK293 cells containing either the ERRα-reporter or the reporter plus PGC-1α expression plasmid. We identified two groups of antagonists that were potent inhibitors of ERRα activity and/or the PGC/ERR pathway: nine antineoplastic agents and thirteen pesticides. Results were confirmed using gene expression studies. These findings suggest a novel mechanism of action on bioenergetics for five of the nine antineoplastic drugs. Nine of the thirteen pesticides, which have not been investigated previously for ERRα disrupting activity, were classified as such. In conclusion, we demonstrated that high-throughput screening assays can be used to reveal new biological properties of therapeutic and environmental chemicals, broadening our understanding of their modes of action.",
+      "normalized_facts": {
+        "journal": "Molecules (Basel, Switzerland)",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "8e3bbbf780db5e3e5943d07c3fd17e126899422945b52b1a958a1ab69d5e2cbd"
+    },
+    {
+      "evidence_id": "evd_8bdbcd86fc5940f086b66a938c5df19d",
+      "title": "A Gene Expression Biomarker Identifies Chemical Modulators of Estrogen Receptor α in an MCF-7 Microarray Compendium.",
+      "authors": [
+        "Rooney J",
+        "Ryan N",
+        "Liu J",
+        "Houtman R",
+        "van Beuningen R",
+        "Hsieh JH",
+        "Chang G",
+        "Chen S"
+      ],
+      "published_at": "2021-01-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.0c00243",
+        "pmid": "33405908",
+        "pmcid": "PMC10683854",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33405908",
+      "abstract_or_excerpt": "Identification of chemicals that affect hormone-regulated systems will help to predict endocrine disruption. In our previous study, a 46 gene biomarker was found to be an accurate predictor of estrogen receptor (ER) α modulation in chemically treated MCF-7 cells. Here, potential ERα modulators were identified using the biomarker by screening a microarray compendium consisting of ∼1600 gene expression comparisons representing exposure to ∼1200 chemicals. A total of ∼170 chemicals were identified as potential ERα modulators. In the Connectivity Map 2.0 collection, 75 and 39 chemicals were predicted to activate or suppress ERα, and they included 12 and six known ERα agonists and antagonists/selective ERα modulators, respectively. Nineteen and eight of the total number were also identified as active in an ERα transactivation assay carried out in an MCF-7-derived cell line used to screen the Tox21 10K chemical library in agonist or antagonist modes, respectively. Chemicals predicted to modulate ERα in MCF-7 cells were examined further using global and targeted gene expression in wild-type and ERα-null cells, transactivation assays, and cell-free ERα coregulator interaction assays. Environmental chemicals classified as weak and very weak agonists were confirmed to activate ERα including apigenin, kaempferol, and oxybenzone. Novel activators included digoxin, nabumetone, ivermectin, and six progestins. Novel suppressors included emetine, mifepristone, niclosamide, and proscillaridin. Our strategy will be useful to identify environmentally relevant ERα modulators in future high-throughput transcriptomic screens.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "3d5555d5c9a9ea0684c7f7be19cdbb0389432753bf3addf1fca184be05cb001e"
+    },
+    {
+      "evidence_id": "evd_947bc85d74484efbb400944a7366b147",
+      "title": "Identifying Compounds with Genotoxicity Potential Using Tox21 High-Throughput Screening Assays.",
+      "authors": [
+        "Hsieh JH",
+        "Smith-Roe SL",
+        "Huang R",
+        "Sedykh A",
+        "Shockley KR",
+        "Auerbach SS",
+        "Merrick BA",
+        "Xia M"
+      ],
+      "published_at": "2019-06-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.9b00053",
+        "pmid": "31243984",
+        "pmcid": "PMC6740247",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/31243984",
+      "abstract_or_excerpt": "Genotoxicity is a critical component of a comprehensive toxicological profile. The Tox21 Program used five quantitative high-throughput screening (qHTS) assays measuring some aspect of DNA damage/repair to provide information on the genotoxic potential of over 10 000 compounds. Included were assays detecting activation of p53, increases in the DNA repair protein ATAD5, phosphorylation of H2AX, and enhanced cytotoxicity in DT40 cells deficient in DNA-repair proteins REV3 or KU70/RAD54. Each assay measures a distinct component of the DNA damage response signaling network; >70% of active compounds were detected in only one of the five assays. When qHTS results were compared with results from three standard genotoxicity assays (bacterial mutation, <i>in vitro</i> chromosomal aberration, and <i>in vivo</i> micronucleus), a maximum of 40% of known, direct-acting genotoxicants were active in one or more of the qHTS genotoxicity assays, indicating low sensitivity. This suggests that these qHTS assays cannot in their current form be used to replace traditional genotoxicity assays. However, despite the low sensitivity, ranking chemicals by potency of response in the qHTS assays revealed an enrichment for genotoxicants up to 12-fold compared with random selection, when allowing a 1% false positive rate. This finding indicates these qHTS assays can be used to prioritize chemicals for further investigation, allowing resources to focus on compounds most likely to induce genotoxic effects. To refine this prioritization process, models for predicting the genotoxicity potential of chemicals that were active in Tox21 genotoxicity assays were constructed using all Tox21 assay data, yielding a prediction accuracy up to 0.83. Data from qHTS assays related to stress-response pathway signaling (including genotoxicity) were the most informative for model construction. By using the results from qHTS genotoxicity assays, predictions from models based on qHTS data, and predictions from commercial bacterial mutagenicity QSAR models, we prioritized Tox21 chemicals for genotoxicity characterization.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "3237ca7464c8f767f1715f2ab3328eb9b832b19cef43626a4588ddbc0bf08ba0"
+    },
+    {
+      "evidence_id": "evd_dba19df1a39b4ad2a545c57a2df61d8f",
+      "title": "Identification and Profiling of Environmental Chemicals That Inhibit the TGFβ/SMAD Signaling Pathway.",
+      "authors": [
+        "Wei Z",
+        "Sakamuru S",
+        "Zhang L",
+        "Zhao J",
+        "Huang R",
+        "Kleinstreuer NC",
+        "Chen Y",
+        "Shu Y"
+      ],
+      "published_at": "2019-11-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.9b00228",
+        "pmid": "31652400",
+        "pmcid": "PMC7341485",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/31652400",
+      "abstract_or_excerpt": "The transforming growth factor beta (TGFβ) superfamily of secreted signaling molecules and their cognate receptors regulate cell fate and behaviors relevant to many developmental and disease processes. Disruption of TGFβ signaling during embryonic development can, for example, affect morphogenesis and differentiation through complex pathways that may be SMAD (Small Mothers Against Decapentaplegic) dependent or SMAD independent. In the present study, the SMAD Binding Element (SBE)-beta lactamase (<i>bla</i>) HEK 293T cell line, which responds to the activation of the SMAD2/3/4 complex, was used in a quantitative high-throughput screening (qHTS) assay to identify potential TGFβ disruptors in the Tox21 10K compound library. From the primary screening we identified several kinase inhibitors, organometallic compounds, and dithiocarbamates (DTCs) that inhibited TGFβ1-induced SMAD signaling of reporter gene activation independent of cytotoxicity. Counterscreen of SBE antagonists on human embryonic neural stem cells demonstrated cytotoxicity, providing additional evidence to support evaluation of these compounds for developmental toxicity. We profiled the inhibitory patterns of putative SBE antagonists toward other developmental signaling pathways, including wingless-related integration site (WNT), retinoic acid α receptor (RAR), and sonic hedgehog (SHH). The profiling results from SBE-<i>bla</i> assay identify chemicals that disrupt TGFβ/SMAD signaling as part of an integrated qHTS approach for prioritizing putative developmental toxicants.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:33:12.218943+00:00",
+      "content_sha256": "b6691f6e0e70647c35b2d64d65d195d1c45358afc27627dbe80430eeeff8be72"
+    }
+  ],
+  "cases": []
+}

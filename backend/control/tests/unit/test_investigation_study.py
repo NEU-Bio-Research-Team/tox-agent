@@ -368,6 +368,17 @@ def test_skill_triggers_are_read_against_each_skills_declared_case_tags():
     assert entry["trigger_precision"] == 0.0 and entry["trigger_recall"] == 0.0
 
 
+def test_a_platform_refusal_is_told_apart_from_quota_and_transport_failures():
+    from evals.investigation.report import error_class
+
+    assert error_class("claude exited 1: API Error: Opus 5's safeguards flagged this message "
+                       "(https://www.anthropic.com/legal/aup).") == "provider_refusal"
+    assert error_class("claude exited 1: You've hit your session limit") == "quota_or_capacity"
+    assert error_class("gemini: HTTP 429 RESOURCE_EXHAUSTED") == "quota_or_capacity"
+    assert error_class("ConnectError: connection refused") == "other"
+    assert error_class(None) == "other"
+
+
 async def test_the_gemini_bridge_retries_overload_and_records_the_reported_model(monkeypatch):
     adapter = platform_cli.GeminiMCPAdapter(["python3", "server.py"], {"X": "1"}, pause_s=0)
     calls = []

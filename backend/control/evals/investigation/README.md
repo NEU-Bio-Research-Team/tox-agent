@@ -85,6 +85,17 @@ python -m evals.investigation.scorecard --study pilot-2026-09 --packet-id lab-1 
 `turn<k>.meta.json` must contain `model_id_resolved` (as the platform reported
 it), `answered_at` and `channel`; the runner refuses a response without them.
 
+The unblinding key (`runs/<study>/keys/`) is git-ignored so nobody reading the
+repository can unblind a packet. It is not a single point of loss: the same
+study records, systems and seed rebuild the same assignment (checked on
+`pilot-2026-09-25` / `lab-1`: identical key and identical case files).
+
+A platform that declines to answer (a provider safety filter, not quota) is
+retried once like any error; every attempt stays in `records.jsonl`, the report
+counts refusals separately from quota and transport failures, and a response
+still refused after the retry is left out of the packet with its reason in the
+key.
+
 ## Known limits
 
 - Blinding is best effort: style can identify a system.

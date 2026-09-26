@@ -1,0 +1,771 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_8218854a3e454bff8580cf0171341495",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_f37a39505a224cc093c97e81ba36db75",
+        "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T12:35:22.857422+00:00",
+        "created_at": "2026-09-25T12:30:22.857422+00:00",
+        "started_at": "2026-09-25T12:30:22.965885+00:00",
+        "ended_at": "2026-09-25T12:31:50.293756+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "9278f779e5fe6f279b54da10b560981632f084b8fbe3061303220b3914d3b5ec"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:30:22.858224+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_7bebc4ef68f746a48ddd6955b7a4083e",
+              "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:30:37.166758+00:00",
+              "tokens": {
+                "input": 5438,
+                "output": 47,
+                "reasoning": 29,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 5514
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_45014f8145ffae599bb1892c8619794f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88bb1280015QBrw7MMrWCN1g",
+                "step_id": "prt_0d88bd269001aQKR1UUVFowXB0",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_4c324fb050334fec89f9ed8158bf9351",
+              "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:30:46.191591+00:00",
+              "tokens": {
+                "input": 1103,
+                "output": 182,
+                "reasoning": 37,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 5930
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d3dc54918146c40024cabc7ece162289",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88bd286001bBGrzxN4BuWKEC",
+                "step_id": "prt_0d88bf5a2001hoDc2yVmZNxNzG",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8bcc5dee510f47c29f723ae21f7fa7bd",
+              "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:30:53.840166+00:00",
+              "tokens": {
+                "input": 6932,
+                "output": 100,
+                "reasoning": 79,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 7111
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_720c0ef2f7a5ccc8dff3453fe3bae697",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88bf5d1001iYsde0DPFS66Fh",
+                "step_id": "prt_0d88c13890015rg547G7J0fL5V",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_499ab1e336d04bd28a38bcff58d44031",
+              "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:31:25.908485+00:00",
+              "tokens": {
+                "input": 1647,
+                "output": 1160,
+                "reasoning": 446,
+                "cache_read": 5632,
+                "cache_write": 0,
+                "total": 8885
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_bfeb448763d922f3edf787b44131dff4",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88c13ac001DBlcXqp1BVdm9i",
+                "step_id": "prt_0d88c90cf0015kqfBbGRoWUx0U",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_136615ffa3be4b3aa49cd61ed6aa0065",
+              "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:31:47.411850+00:00",
+              "tokens": {
+                "input": 2262,
+                "output": 1014,
+                "reasoning": 24,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 9956
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_cfa192e6ba3c29d64d16370edd0f7066",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88c90ed0018jKScLancVVlF2",
+                "step_id": "prt_0d88ce4ce001a5fUtw89TCQRh9",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_ad4448b6ed4e49339d2fceb61dc6cf35",
+              "runtime_binding_id": "rtb_379eb45813f942449e7a8f0380ac659d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:31:50.254831+00:00",
+              "tokens": {
+                "input": 10088,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 10092
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e1220e2b6927c6cdfea6369bdbe35167",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88ce4e40014gjQEYjp9XwF3m",
+                "step_id": "prt_0d88cefe8001YkR0b3r4ZoM44c",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_a77a3b19b7334d76b4c6af45e0b1d0f8",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 28,
+            "arguments_sha256": "ec53a1b879a29a5626a5c0570774ce1bce49c968949f17265b5a56d0f8e137e0",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:30:37.099517+00:00",
+            "ended_at": "2026-09-25T12:30:37.123983+00:00"
+          },
+          {
+            "call_id": "call_f96fbe7ed1da4157add92702cdd90b82",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 11,
+            "arguments_sha256": "afefbb46b71e2c100714c2b52a2ef191a1ab5039212c319b98366c93d2205a4f",
+            "observation_ids": [
+              "obs_3b9246b0fe7d48dbada04f107f1f4772"
+            ],
+            "started_at": "2026-09-25T12:30:45.975608+00:00",
+            "ended_at": "2026-09-25T12:30:45.985154+00:00"
+          },
+          {
+            "call_id": "call_65ea9968aa5f41849678cb05faa52b20",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "84779231a5f701c21484fdb37ebfc4b155996f002b8eb59c499d304dce1213ea",
+            "observation_ids": [
+              "obs_3b9246b0fe7d48dbada04f107f1f4772"
+            ],
+            "started_at": "2026-09-25T12:30:46.099967+00:00",
+            "ended_at": "2026-09-25T12:30:46.122884+00:00"
+          },
+          {
+            "call_id": "call_eddde87f48d84f96918824d177e16141",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "de91bce38c38fd9ec17b7db82f2dec5c4da516997760a9084e8add168c308340",
+            "observation_ids": [
+              "obs_3b9246b0fe7d48dbada04f107f1f4772"
+            ],
+            "started_at": "2026-09-25T12:30:46.119189+00:00",
+            "ended_at": "2026-09-25T12:30:46.130665+00:00"
+          },
+          {
+            "call_id": "call_9455d0133e0f429ab20cbd4973161adb",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1278,
+            "arguments_sha256": "19fec34d90444d14eb89ea410e97a2113ddd6def73443921bbc4671a89453c6a",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:30:52.526339+00:00",
+            "ended_at": "2026-09-25T12:30:53.802754+00:00"
+          },
+          {
+            "call_id": "call_70bb0906f9774ed4b9aa20efc8bb9724",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 24,
+            "arguments_sha256": "ef9176570eced1105af6c4d0467a44531760b212ba7952cacf8203a15e8315d7",
+            "observation_ids": [
+              "obs_3b9246b0fe7d48dbada04f107f1f4772"
+            ],
+            "started_at": "2026-09-25T12:31:47.276208+00:00",
+            "ended_at": "2026-09-25T12:31:47.299096+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_f8ba5b07f51a4065bef25b862db6cbd6",
+        "run_id": "run_8218854a3e454bff8580cf0171341495",
+        "answer_markdown": "The predictor flags hERG as a concern: Compound X is classified as a **blocker**, with a model score of **0.6803638935089111**. This is an uncalibrated model score, not a clinical risk estimate.\n\nPrioritize:\n- Direct hERG patch-clamp confirmation with concentration-response, using the free-drug exposure range anticipated in development.\n- A broader cardiac ion-channel panel and action-potential assay if hERG activity is confirmed.\n- Early PK and exposure-margin work, followed by in vivo QT/ECG assessment only if the in vitro signal persists at relevant exposures.\n- Medicinal-chemistry profiling of close analogues to reduce hERG activity while retaining the desired pharmacology.\n\nThe model’s applicability status is **ok**, but this is only an element-composition rule and does not establish distributional similarity. These experiments are screening and follow-up risk characterization, not a safety assessment.",
+        "claims": [
+          {
+            "claim_id": "clm_8f42a7c19d6e4b03a5c1f9e7d2b6c8a4",
+            "kind": "classification",
+            "text": "The hERG predictor classifies Compound X as a blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_3b9246b0fe7d48dbada04f107f1f4772",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker"
+          },
+          {
+            "claim_id": "clm_2d7e9a4c6b1f8e03a5d9c2b7f4a6e1d8",
+            "kind": "numeric",
+            "text": "The hERG blocker model score is 0.6803638935089111.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_3b9246b0fe7d48dbada04f107f1f4772",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.6803638935089111,
+            "rendered_value": "0.6803638935089111"
+          },
+          {
+            "claim_id": "clm_6a1e9d3c7b5f2a84e0d6c9b3f7a2e5d1",
+            "kind": "recommendation",
+            "text": "Confirm the signal with direct hERG patch clamp and concentration-response testing before advancing the lead.",
+            "transform": "identity",
+            "citation_ids": []
+          },
+          {
+            "claim_id": "clm_9b4e2a7d1c6f8e03a5d9b2c7f1e6a4d8",
+            "kind": "recommendation",
+            "text": "If hERG activity is confirmed at relevant free-drug exposures, follow with a broader cardiac ion-channel panel, action-potential assay, PK exposure-margin analysis, and appropriate QT/ECG characterization.",
+            "transform": "identity",
+            "citation_ids": []
+          },
+          {
+            "claim_id": "clm_3e7a1c9d5b2f6e84a0d8c4b7f1e5a2d6",
+            "kind": "recommendation",
+            "text": "Profile close analogues to reduce hERG activity while preserving the intended pharmacology.",
+            "transform": "identity",
+            "citation_ids": []
+          },
+          {
+            "claim_id": "clm_4c8a2e7d1f6b9a03d5e0c7b2f4a1d8e6",
+            "kind": "classification",
+            "text": "The rule-based applicability status is ok.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_3b9246b0fe7d48dbada04f107f1f4772",
+            "field_path": "applicability.status",
+            "source_value": "ok"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a model score and is not a calibrated clinical risk estimate."
+          },
+          {
+            "code": "applicability_is_rule_based",
+            "text": "Applicability is based on element-composition rules and does not establish broader distributional similarity."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed assays are screening and follow-up risk characterization, not a safety assessment."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "No compound-specific external evidence was accepted in this run; the recommendation is based on the predictor output and standard follow-up testing logic."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run direct hERG patch-clamp concentration-response testing, then escalate to cardiac ion-channel, action-potential, PK exposure-margin, and QT/ECG characterization if the signal is confirmed.",
+            "basis_claim_ids": [
+              "clm_8f42a7c19d6e4b03a5c1f9e7d2b6c8a4",
+              "clm_2d7e9a4c6b1f8e03a5d9c2b7f4a6e1d8"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "60fe2f6075a2082a069507aa20082c9a806762657bc9abca5fc07b42e945fe1c",
+        "created_at": "2026-09-25T12:31:47.287847+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_9536b53854ba4ecf987f02b602f8607e",
+        "run_id": "run_8218854a3e454bff8580cf0171341495",
+        "goal": "Compound X (CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O) is an early lead in our allergic-rhinitis programme. Is hERG a concern, and what should we test next?",
+        "subject_refs": [
+          "analysis:ana_5836b4b1e736432cb8a29b1eedc7a365"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 1,
+          "tool_calls": 6,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_3b9246b0fe7d48dbada04f107f1f4772"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 9
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_9536b53854ba4ecf987f02b602f8607e",
+  "analysis": {
+    "run": {
+      "run_id": "run_4830cadcc0a343ecac17db034ffac4d2",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_a3219da1cfdd448584af9d9bbb1c98a7",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T12:35:21.804999+00:00",
+      "created_at": "2026-09-25T12:30:21.804999+00:00",
+      "started_at": "2026-09-25T12:30:21.816689+00:00",
+      "ended_at": "2026-09-25T12:30:21.845234+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:30:21.806116+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_5836b4b1e736432cb8a29b1eedc7a365",
+      "input_smiles": "CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O",
+      "canonical_smiles": "CC(C)(C)c1ccc(C(O)CCCN2CCC(C(O)(c3ccccc3)c3ccccc3)CC2)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.6803638935089111,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.2041947990655899,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.45679643750190735,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.021260729059576988,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.5408167839050293,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.35787075757980347,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.6065913438796997,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.3152877986431122,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.12436281144618988,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.44677114486694336,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.6124134659767151,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.49875369668006897,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.4762975573539734,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "030fd2e0-d343-46df-9773-5d447ca5be95",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 59,
+            "encoded_token_count": 59
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "810bc5537c349de7f650a22bc669c7908835f259026a8018dc0994c9503f5c3b"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:30:21.839858+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_fadeb718333c4109b4b8af0f8d6529b5",
+      "title": "Proceedings of the 101st Annual Meeting of The Physiological Society of Japan",
+      "authors": [],
+      "published_at": "2024-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC11077711",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC11077711",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "The journal of physiological sciences : JPS",
+        "pub_type": "Abstract",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:30:53.791101+00:00",
+      "content_sha256": "4615cac2e7dc541332c3d02c0f50392faced02d3252b31879ed248dcb344a2f9"
+    },
+    {
+      "evidence_id": "evd_03bfd1238c3d48a9aa69cc223fdebf4d",
+      "title": "Voltage-gated potassium channels as therapeutic targets.",
+      "authors": [
+        "Wulff H",
+        "Castle NA",
+        "Pardo LA"
+      ],
+      "published_at": "2009-12-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/nrd2983",
+        "pmid": "19949402",
+        "pmcid": "PMC2790170",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/19949402",
+      "abstract_or_excerpt": "The human genome encodes 40 voltage-gated K(+) channels (K(V)), which are involved in diverse physiological processes ranging from repolarization of neuronal and cardiac action potentials, to regulating Ca(2+) signalling and cell volume, to driving cellular proliferation and migration. K(V) channels offer tremendous opportunities for the development of new drugs to treat cancer, autoimmune diseases and metabolic, neurological and cardiovascular disorders. This Review discusses pharmacological strategies for targeting K(V) channels with venom peptides, antibodies and small molecules, and highlights recent progress in the preclinical and clinical development of drugs targeting the K(V)1 subfamily, the K(V)7 subfamily (also known as KCNQ), K(V)10.1 (also known as EAG1 and KCNH1) and K(V)11.1 (also known as HERG and KCNH2) channels.",
+      "normalized_facts": {
+        "journal": "Nature reviews. Drug discovery",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Review, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2009"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:30:53.791101+00:00",
+      "content_sha256": "5bfdd5654e14b82c1615bb24b1d90e978326f8c6a6eb2b2815b7a5bcb0b972cb"
+    },
+    {
+      "evidence_id": "evd_12a4b53ab7ef4fcea23165dd576b5b28",
+      "title": "44th Annual Meeting February 12-16, 2000 New Orleans, Louisiana : February 15, 2000 Tuesday Posters, Part 2",
+      "authors": [],
+      "published_at": "2000-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC1913991",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC1913991",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2000"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:30:53.791101+00:00",
+      "content_sha256": "ccfb0af37d66ac923b233a4c97b4279f7e6699182babb3aaa59d4d10c85e411c"
+    }
+  ],
+  "cases": []
+}

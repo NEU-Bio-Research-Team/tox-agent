@@ -195,7 +195,7 @@ outputs.
 | W7-01 | SciFact `external-native` adapter: official data, label + rationale selection, official metric definitions, dev split only during development | Scorer tests on gold-as-prediction; dev run recorded with denominators | done (subset runs; full dev split not yet run) |
 | W7-02 | BioASQ / AstaBench: adapter plan and access requirements (registration, sandbox, tool corpus) | Documented; not claimed as run | done (documented; blocked: BioASQ registration; AstaBench keys, memory, research profile) |
 | W7-03 | Predictor track (TDC/MoleculeNet) kept separate from agent scores | Documented protocol, no mixing | done (documented) |
-| W7-04 | SciFact *through the product* (`published-data-transfer`): a research provider that searches a fixed corpus, relations read as abstract labels | Adapter + run | todo — the `snapshot` provider serves fixed records per keyword and cannot do this; needs a new corpus-search provider |
+| W7-04 | SciFact *through the product* (`published-data-transfer`): a research provider that searches a fixed corpus, relations read as abstract labels | Adapter + run | blocked (the router runs evidence tools only with a molecule subject — `research_subject_missing` otherwise — and most SciFact claims name none; a compound-claim subset + corpus-search provider is designed in `docs/EXTERNAL_BENCHMARKS.md`) |
 
 ## Wave 8 — Live pilot
 
@@ -206,7 +206,12 @@ from this branch; migration 0020 applied to the local PostgreSQL volume) +
 OpenCode 1.17.11 host runtime (`openai/gpt-5.6-luna`). One control-plane
 container per ToxAgent arm via `devops/scripts/study_arm.sh`, all with
 `TOXAGENT_TURN_DEADLINE_S=600` and `TOXAGENT_MAX_TOOL_CALLS=40`, differing only
-by the arm's flags (verified through `/v1/system/effective-product`):
+by the arm's flags (verified through `/v1/system/effective-product`).
+**Correction (2026-09-26):** the run record has its own deadline,
+`TOXAGENT_RUN_DEADLINE_S` (default 300), which the arms did not raise, so the
+effective cap per turn in the pilot was **300 s**, not 600 s. No pilot turn hit
+it (slowest: Ds 280 s, D 256 s; all 41 ToxAgent turns `completed`), so the
+pilot records stand; W8-02 below is where the cap mattered.
 
 | Arm | Port | Flags / skills |
 |---|---|---|
@@ -223,9 +228,23 @@ Study `backend/control/evals/investigation/runs/pilot-2026-09-25/` (10 cases,
 |---|---|---|---|
 | A_predictor_template, C, D, D0, Ds | 10 each | 0 | — |
 | P_openai_bare, B_openai_snapshot (gpt-6-sol, xhigh, via `sglang` provider) | 10 each | 0 | — |
-| P_anthropic_bare, B_anthropic_snapshot | 2 each | 8 each | claude CLI "session limit" (resets on the Claude plan's schedule) |
-| P_google_bare | 0 | 10 | Gemini HTTP 503 (overload), then 429 (free-tier quota) |
+| B_anthropic_snapshot | 10 | 0 | first pass: 8 "session limit"; reruns 2026-09-26: 1 provider refusal, cleared on retry |
+| P_anthropic_bare | 9 | 1 | first pass: 8 "session limit"; reruns: 4 provider refusals + 1 timeout (900 s); `inv-07-dofetilide-attribution` refused on both reruns and left as refused |
+| P_google_bare | 0 | 10 | Gemini HTTP 503 (overload), then 429 (free-tier quota) — deferred, see below |
 | B_google_snapshot | 1 | 9 | same |
+
+Refusals: `claude -p` returned "Opus 5's safeguards flagged this message …
+`[reasoning_extraction]`" on 5 of 18 rerun calls, for the neutral platform
+prompt (`prompts.py`, which asks for nothing about reasoning). A refusal is
+what a researcher using the platform would get, so each case was retried
+exactly once (as any error), every attempt stays in `records.jsonl`, and the
+study report now counts refusals apart from quota/transport failures
+(`error_attempts_by_class`).
+
+Google arms: **deferred out of `lab-1`** (product owner, 2026-09-26). The key
+behind the bridge is free tier (Flash only, 20 requests/day); they will be run
+later — preferably Pro through the Gemini app with `--google-channel manual` —
+and packed as a separate packet graded with the same rubric.
 
 Findings recorded while running (they are data, not bugs to hide):
 
@@ -247,44 +266,79 @@ Findings recorded while running (they are data, not bugs to hide):
    result, or the Google arms redone with a Pro model (paid key, or the
    consumer app through `--google-channel manual`).
 6. D read no skill on the numeric-lookup smoke case (no false trigger); skill
-   trigger precision/recall per skill is in `study-report.md`.
+   trigger precision/recall per skill is in `study-report.md`. Final pilot:
+   `assess-conflicting-evidence` 2 cases, precision 1.0 / recall 1.0;
+   `interpret-model-attribution` 1 case, 1.0 / 1.0; `critique-case` read on 9
+   of 10 cases, recall 1.0 but precision 0.444 — no read on a declared negative
+   case, so the extra reads are on cases its manifest tags neither way. Either
+   its description invites a read on every case or it is useful broadly; the
+   lab grades on those cases decide which.
+7. Process facts (study report, not quality): median seconds per turn C 78,
+   D 176, D0 173, Ds 184; tokens per arm C 0.61 M, D 1.63 M, D0 1.59 M, Ds
+   2.02 M; fallback answers C 1, D 0, D0 0, Ds 3. Most of D's extra cost comes
+   with the case (D0 ≈ D); static skills add tokens and fallbacks over dynamic.
 
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W8-01 | Bring up the stack, run the comparison pilot on the case set, produce the grading packet for the lab | Logs + packet committed under `evals/investigation/runs/` (or path recorded) | **doing** — ToxAgent and OpenAI arms complete; Anthropic and Google arms to finish; packet not built |
-| W8-02 | Paired TAB-Suite regression: flags off vs `scientific_case_v1` + skills on | Paired report; no critical pass→fail | todo |
+| W8-01 | Bring up the stack, run the comparison pilot on the case set, produce the grading packet for the lab | Logs + packet committed under `evals/investigation/runs/` (or path recorded) | done for 9 systems — packet `runs/pilot-2026-09-25/packets/lab-1/` (10 cases, 89 blinded responses, 1 refused response recorded in the key; no system/vendor name in the packet). The key is git-ignored and rebuilds identically from the records + seed (checked). Google arms deferred to a later packet |
+| W8-02 | Paired TAB-Suite regression: flags off vs `scientific_case_v1` + skills on | Paired report; no critical pass→fail | **doing** — run at the default 300 s run cap: **fails the exit criterion** (1 critical pass→fail); a 900 s diagnostic run was lost to a host reboot and has to be redone |
+
+### W8-02 at the default run cap (2026-09-25)
+
+Arms C (no research flags) and D (`answer_draft_v2`, `scientific_case_v1`,
+`scientific_skills_v1` dynamic), same image, same OpenCode runtime and model,
+`core,regression`, 1 trial, run concurrently. `TOXAGENT_RUN_DEADLINE_S` left at
+its default 300 s (what a deployment gets if the flags are turned on as is).
+Manifests: `evals/manifests/live-w8-{C,D}-core/`; paired report:
+`evals/manifests/paired-w8-C-D-core.json`. Label: `product-regression`.
+
+| | C | D |
+|---|---|---|
+| core pass / fail / skip | 24 / 11 / 15 | 17 / 18 / 15 |
+| regression pack pass / fail / skip | 1 / 0 / 3 | 1 / 1 / 2 |
+| answered trials | 24 | 19 |
+| first-pass rate | 0.54 | 0.26 |
+| runs failed `deadline_exceeded` (300 s) | 7 | 15 |
+
+Paired (36 tasks graded in both): 11 pass→fail, 4 fail→pass, McNemar
+p = 0.12; **critical regression `endpoint-02-no-aggregate-toxicity`** → cutover
+not supported. The effective-product differences outside the three flags
+(tool registry hash, decision-support tool list and schema hash, skills mode)
+are consequences of those flags, not independent confounds.
+
+Reading: 9 of the 11 regressions are runs that hit the 300 s cap before any
+answer (4–19 tool calls, several with no search at all). One (`evsyn-06`)
+produced no committed answer, one (`qa-06`) is a fallback after the validator
+rejected both model drafts (the fallback states predictions only, so its missing
+attribution caveat is correct for what it says). With the case arms taking
+~2.3x C's time per turn in the pilot, the case policy does not fit the default
+run budget. Before the flag can be considered: (a) the 900 s diagnostic to
+separate "slow" from "wrong", then (b) either a cheaper case policy (fewer
+mandatory case reads/writes per turn) or a budget decision recorded as a
+product choice, re-measured on the same pairing.
 
 ## Resume here (next session)
 
-State at hand-off: branch `feat/scientific-investigation`, waves 1–6 committed;
-wave 7 and the harness changes below are committed with this document. The
-stack from Wave 8 may still be running (containers `tox-agent-study-{C,D,D0,Ds}`,
-`tox-agent-toxagent-control-1`, `tox-agent-postgres-1`, `tox-agent-toxpred-1`,
-and the OpenCode host runtime); the remaining steps do not need the ToxAgent
-arms, whose records are complete. To free memory:
-`for a in C D D0 Ds; do devops/scripts/study_arm.sh --stop $a; done` and
-`devops/scripts/agent/opencode_local_runtime.sh stop`.
+State at hand-off (2026-09-26): the host rebooted; **the whole stack is down**
+(containers exited, OpenCode runtime stopped). Waves 1–7 committed; Wave 8
+work of this session committed with this document.
 
-1. **Finish the Anthropic arms** once the Claude plan's session limit has reset
-   (run from `backend/control`, `PYTHONPATH=src:.`):
-   `python -m evals.investigation.run --study pilot-2026-09-25 --systems P_anthropic_bare,B_anthropic_snapshot --claude-model opus --rerun-errors --parallel 1`
-   (snapshots already exist, so no `--toxagent`/`--snapshot-from` is needed).
-2. **Finish the Google arms**: decide Flash vs Pro first (finding 5). With the
-   bridge (quota permitting):
-   `python -m evals.investigation.run --study pilot-2026-09-25 --systems P_google_bare,B_google_snapshot --rerun-errors --parallel 1 --gemini-mcp-command "python3 $HOME/auto-claude-code-research-in-sleep/mcp-servers/gemini-review/server.py" --gemini-mcp-env GEMINI_REVIEW_BACKEND=api --gemini-mcp-env GEMINI_REVIEW_STATE_DIR=$HOME/.aris/state/gemini-review --gemini-mcp-env GEMINI_REVIEW_MODEL=gemini-3.6-flash`
-   — or `--google-channel manual` and answer the prompt files under
-   `runs/pilot-2026-09-25/manual/` by hand (each needs `meta.json` with
-   `model_id_resolved`, `answered_at`, `channel`).
-3. Regenerate the descriptive report: `python -m evals.investigation.report --study pilot-2026-09-25`.
-4. Build the lab packet: `python -m evals.investigation.packet --study pilot-2026-09-25 --packet-id lab-1`
-   (send `runs/pilot-2026-09-25/packets/lab-1/`; the key stays in `keys/`).
-5. Commit the study directories (`runs/pilot-2026-09-25*`, `runs/smoke-2026-09-25`,
-   ~8 MB) once complete.
-6. W8-02: run TAB-Suite `core,regression` against arm C (8011) and arm D (8012)
-   with `python -m evals.runner --runtime opencode --base-url ...` and compare
-   with `evals/paired.py`.
-7. Optional next: W7-04 (corpus-search provider for SciFact through the
-   product); full dev-split SciFact runs.
+1. **Redo the W8-02 diagnostic at 900 s.** Bring up the base stack (compose
+   `postgres` + `toxpred` + `toxagent-control`, OpenCode host runtime), then
+   `devops/scripts/study_arm.sh C 8011 TOXAGENT_TURN_DEADLINE_S=900 TOXAGENT_RUN_DEADLINE_S=900 TOXAGENT_MAX_TOOL_CALLS=40`
+   and the same for D on 8012 plus its three flags; from `backend/control`:
+   `TOXAGENT_EVAL_LIVE_POLL_TRIES=960 python -m evals.runner --runtime opencode --base-url http://127.0.0.1:801{1,2} --packs core,regression --trials 1 --out evals/manifests/live-w8-{C,D}-core-deadline900`
+   (the empty directories of the lost attempt can be overwritten), then
+   `python -m evals.paired` as above. Report it as a diagnostic next to the
+   300 s result, not instead of it.
+2. **Google arms** (deferred from `lab-1`): answer the prompts under
+   `runs/pilot-2026-09-25/manual/` in the Gemini app (Pro) with
+   `--google-channel manual`, then build a separate packet
+   (`--packet-id lab-2 --systems P_google_bare,B_google_snapshot`).
+3. **Send `lab-1`** (`runs/pilot-2026-09-25/packets/lab-1/`) to the lab; keep
+   `keys/` local. After grading: `python -m evals.investigation.scorecard`.
+4. Optional: W7-04 compound-claim subset (design in `docs/EXTERNAL_BENCHMARKS.md`);
+   full dev-split SciFact runs.
 
 ## Not in scope of this execution
 

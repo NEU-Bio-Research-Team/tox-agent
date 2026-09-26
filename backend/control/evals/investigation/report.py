@@ -34,6 +34,23 @@ def _median(values: list[float]) -> float | None:
     return round(statistics.median(values), 1) if values else None
 
 
+#: A platform declining to answer is something a researcher using it would
+#: see, so it is reported apart from quota and transport failures, over every
+#: attempt: a refusal that a rerun got past still happened.
+_ERROR_CLASSES = (
+    ("provider_refusal", ("safeguards flagged", "legal/aup", "usage policy")),
+    ("quota_or_capacity", ("session limit", "rate limit", "429", "503", "quota", "overload")),
+)
+
+
+def error_class(error: str | None) -> str:
+    text = (error or "").lower()
+    for name, needles in _ERROR_CLASSES:
+        if any(needle in text for needle in needles):
+            return name
+    return "other"
+
+
 def skill_triggers(records, cases: dict[str, dict[str, Any]], skills: list[Any]) -> dict[str, Any]:
     """Per skill: on how many cases it was read, against the cases its manifest
     says should (positive tags) and should not (negative tags) trigger it."""
@@ -99,6 +116,9 @@ def build_report(study_dir: Path, *, cases_dir: Path = case_module.CASES_DIR) ->
             "median_turn_seconds": _median(durations),
             "usage_totals": {k: round(sum((r.usage or {}).get(k, 0) for r in ok), 6) for k in usage_keys},
             "errors": {r.case_id: r.error for r in records if r.status == "error"},
+            "error_attempts_by_class": dict(Counter(
+                error_class(r.error) for r in all_records
+                if r.system_id == system_id and r.status == "error")),
         }
         if manifest["systems"][system_id].get("family") == "toxagent":
             turns = [t for r in ok for t in r.turns]
@@ -123,13 +143,16 @@ def build_report(study_dir: Path, *, cases_dir: Path = case_module.CASES_DIR) ->
 def render_markdown(report: dict[str, Any]) -> str:
     lines = [f"# Study report — {report['study_id']}", "",
              report["note"], "",
-             "| System | Arm | ok / error / pending / not run (of expected) | Model(s) | Median s per turn | Usage (reported) |",
-             "|---|---|---|---|---|---|"]
+             "| System | Arm | ok / error / pending / not run (of expected) | Failed attempts by class (all attempts) "
+             "| Model(s) | Median s per turn | Usage (reported) |",
+             "|---|---|---|---|---|---|---|"]
     for system_id, s in report["systems"].items():
         usage = ", ".join(f"{k}={v:g}" for k, v in s["usage_totals"].items()) or "—"
+        failed = ", ".join(f"{k}: {v}" for k, v in sorted(s["error_attempts_by_class"].items())) or "—"
         lines.append(
             f"| `{system_id}` | {s['arm']} | {s['ok']} / {s['error']} / {s['pending']} / {s['not_run']} "
-            f"({s['expected']}) | {', '.join(s['models']) or '—'} | {s['median_turn_seconds'] or '—'} | {usage} |"
+            f"({s['expected']}) | {failed} | {', '.join(s['models']) or '—'} | {s['median_turn_seconds'] or '—'} "
+            f"| {usage} |"
         )
     toxagent = {k: v for k, v in report["systems"].items() if "toxagent" in v}
     if toxagent:

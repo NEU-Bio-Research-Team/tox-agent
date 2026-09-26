@@ -1,0 +1,1166 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_e5ed0f82df664f5aa46e47846f6d7b06",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_2d331847aa3d4062adcb1c1f1897a1c2",
+        "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:02:34.430169+00:00",
+        "created_at": "2026-09-25T12:57:34.430169+00:00",
+        "started_at": "2026-09-25T12:57:34.616417+00:00",
+        "ended_at": "2026-09-25T12:58:46.427938+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "2dc399860ed91fc26450419f12d1484d280e2ebbcec3f54de8fa5ec6805ad881"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [
+              "published",
+              "study"
+            ],
+            "confidence": "high",
+            "reason_codes": [
+              "research_phrase"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:57:34.432261+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_91935eaab3024724bd95ee31585c8e4b",
+              "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:57:50.122550+00:00",
+              "tokens": {
+                "input": 3930,
+                "output": 84,
+                "reasoning": 37,
+                "cache_read": 1536,
+                "cache_write": 0,
+                "total": 5587
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b964425f75d3f110faba222762d29bc0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a49337001j2SChXuhx81Y4R",
+                "step_id": "prt_0d8a4bd20001LZ47aJiahwyq1T",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_fee2b4dee28e4d3d8c0ec73b827176ef",
+              "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:58:02.084308+00:00",
+              "tokens": {
+                "input": 4250,
+                "output": 273,
+                "reasoning": 40,
+                "cache_read": 1536,
+                "cache_write": 0,
+                "total": 6099
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b4128387bebe6f1d7413d2717c9e7289",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a4bd4c0016dqJ6Gd0s0B2Ee",
+                "step_id": "prt_0d8a4ebdc001RmidXsivQPpOz6",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_913844fc70de462f8ad34bb8be906d08",
+              "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:58:11.168200+00:00",
+              "tokens": {
+                "input": 5596,
+                "output": 91,
+                "reasoning": 16,
+                "cache_read": 1536,
+                "cache_write": 0,
+                "total": 7239
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b2b90ac1d250911f8704abd8f396f90e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a4ec26001J2d1Jt3UIPPR0R",
+                "step_id": "prt_0d8a50f5a001Neqoz6Xh6tysv3",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_63935ccb365948d29203885695a43802",
+              "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:58:16.031814+00:00",
+              "tokens": {
+                "input": 7553,
+                "output": 53,
+                "reasoning": 7,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 7613
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7c000a85e1f12f0fe35a0e70f28264a9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a50f780010t9W3cd6p0P7uW",
+                "step_id": "prt_0d8a522590015lhZEx2SpSRmWo",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_19dc2972b0c5465e9e3d80c4744751d6",
+              "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:58:42.403173+00:00",
+              "tokens": {
+                "input": 8364,
+                "output": 875,
+                "reasoning": 389,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 9628
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ff304710b4ba14b0651fba12d031fd46",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a52274001dLeUGpDYm5x7S8",
+                "step_id": "prt_0d8a58953001n0fqOv09W0CZ7D",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e8c7906fd1314ed08dcca987a15daa2d",
+              "runtime_binding_id": "rtb_7316281c5f0442119172d6cc00ccc996",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:58:46.378302+00:00",
+              "tokens": {
+                "input": 2076,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 9760
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_542e2144b5ee6da1974b62b8d03cc965",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a58988001jGZPTlfXnCvZUN",
+                "step_id": "prt_0d8a598e0001hKuWHH5BN2KhRW",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_06a442f39282427ba2829fdeb3d1d5fa",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "21a62764a40529c264cddf8f3cdc764fcba0cce6c5d06ed2c5d67e2babcd5834",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:57:49.956725+00:00",
+            "ended_at": "2026-09-25T12:57:49.972032+00:00"
+          },
+          {
+            "call_id": "call_b85492bc12ed415d811ccdc6b95d2360",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "2400514a5fdec8fc4c4e2acb58eddee6bff5c3404937b966312eb962485fee2d",
+            "observation_ids": [
+              "obs_35c6bfd775424d2a897ebcf2d1435ea4"
+            ],
+            "started_at": "2026-09-25T12:57:59.835821+00:00",
+            "ended_at": "2026-09-25T12:57:59.849820+00:00"
+          },
+          {
+            "call_id": "call_237f17a3fdbe487586f026bc21823fe9",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "610a7e8ba5aadf7df2054692ab736bde0fb7867ee10ccce90675e828fb0460cb",
+            "observation_ids": [
+              "obs_35c6bfd775424d2a897ebcf2d1435ea4"
+            ],
+            "started_at": "2026-09-25T12:57:59.906195+00:00",
+            "ended_at": "2026-09-25T12:57:59.917145+00:00"
+          },
+          {
+            "call_id": "call_4d6892d6f55d48f981e9db8e7c1ba98c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "a0fa3e65866089e0ce067506c6685f71eca2ce6e25ad194cb538db2fa64ab76e",
+            "observation_ids": [
+              "obs_35c6bfd775424d2a897ebcf2d1435ea4"
+            ],
+            "started_at": "2026-09-25T12:57:59.983224+00:00",
+            "ended_at": "2026-09-25T12:58:00.007789+00:00"
+          },
+          {
+            "call_id": "call_de40b6bd01084dcfb715395cdacd5a58",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2054,
+            "arguments_sha256": "b07e7be09d21db8571cd6ee5f0c0923c9b617a1e7acdd612eb7c44b34c92e55f",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:58:00.001039+00:00",
+            "ended_at": "2026-09-25T12:58:02.053704+00:00"
+          },
+          {
+            "call_id": "call_73d5affccb6b4a0792ba670711e6c072",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 3496,
+            "arguments_sha256": "1b08ec6076ba60ab39f9cc361d8c26e5d8d60e0a0fff55d8d7fbb23b98f6e361",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:58:07.645895+00:00",
+            "ended_at": "2026-09-25T12:58:11.139930+00:00"
+          },
+          {
+            "call_id": "call_2be8e459d1804acc9dc0e534eab45e02",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "7aafca3c778d1d2a8a5838dd25416211198c204c6e6a6e05d1b9ac1863d6bacb",
+            "observation_ids": [
+              "evd_3a6e994c40334a3c802f29d050cdc7b7"
+            ],
+            "started_at": "2026-09-25T12:58:15.959667+00:00",
+            "ended_at": "2026-09-25T12:58:15.970291+00:00"
+          },
+          {
+            "call_id": "call_6fcbbfeea82a4faba8d00e75468ae77f",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 37,
+            "arguments_sha256": "317ae1c65841250e5f9120793d05dc696cdf896af06dc2602be1b4f0fb087352",
+            "observation_ids": [
+              "obs_35c6bfd775424d2a897ebcf2d1435ea4"
+            ],
+            "started_at": "2026-09-25T12:58:42.327265+00:00",
+            "ended_at": "2026-09-25T12:58:42.362931+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_007b57b509314ff49ea85549bc31b7e0",
+        "run_id": "run_e5ed0f82df664f5aa46e47846f6d7b06",
+        "answer_markdown": "For **hERG liability triage**, let the **patch-clamp result drive the decision**. It measures the functional endpoint that matters: suppression of hERG/Kv11.1 current. Weak radioligand displacement does not adequately exclude functional block, particularly when block is state-dependent. The published study specifically reports cisapride block in automated patch clamp and supports state-dependent binding involving the hERG pore region. [citation]\n\nThe stored predictor is directionally consistent: it classifies cisapride as a hERG blocker, with a model probability of 0.5364413857460022. This is a model score, not a calibrated clinical risk. The appropriate posture is therefore to treat the compound as requiring hERG liability follow-up, rather than allowing the weak binding result to de-risk it. This conclusion is limited to hERG screening and does not establish clinical safety or a regulatory outcome.",
+        "claims": [
+          {
+            "claim_id": "clm_8f3a1c9d7e2b4a6f0c5d9e1b3a7f2c8d",
+            "kind": "recommendation",
+            "text": "For hERG liability triage, the functional patch-clamp result should drive the decision over weak radioligand displacement.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_3a6e994c40334a3c802f29d050cdc7b7"
+            ]
+          },
+          {
+            "claim_id": "clm_4b7e2d9a6c1f8e3a5d0b7c2f9a4e6d1c",
+            "kind": "scientific",
+            "text": "Patch clamp measures functional hERG current block, and cisapride block can be state-dependent; therefore weak radioligand displacement does not adequately exclude functional block.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_3a6e994c40334a3c802f29d050cdc7b7"
+            ]
+          },
+          {
+            "claim_id": "clm_a6d2f9c1e8b4a7d3f0c5e9b2a1d6f8c4",
+            "kind": "classification",
+            "text": "The stored hERG predictor classifies cisapride as a blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_35c6bfd775424d2a897ebcf2d1435ea4",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker"
+          },
+          {
+            "claim_id": "clm_1e9a5c7d3b6f0a2e8c4d1b7f9a6e3c5d",
+            "kind": "numeric",
+            "text": "The stored hERG blocker probability is 0.5364413857460022.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_35c6bfd775424d2a897ebcf2d1435ea4",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.5364413857460022,
+            "rendered_value": "0.5364413857460022"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a model score, not a calibrated clinical risk."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The cited publication supports the hERG patch-clamp and state-dependence interpretation, but does not validate the colleague's specific radioligand result."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "This is a hERG screening and development-posture recommendation, not a safety, clinical, or regulatory conclusion."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Use the patch-clamp finding as the controlling hERG signal and perform orthogonal follow-up under matched concentration, voltage, state, and exposure conditions before making a development decision.",
+            "basis_claim_ids": [
+              "clm_8f3a1c9d7e2b4a6f0c5d9e1b3a7f2c8d",
+              "clm_4b7e2d9a6c1f8e3a5d0b7c2f9a4e6d1c"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "0c652ffbbe1eb53c34bb031f821f3143f304f531ede1f347015951bf3ec8b8a8",
+        "created_at": "2026-09-25T12:58:42.342986+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_f6871d141c6d4e938ff09d5481829ddf",
+        "run_id": "run_e5ed0f82df664f5aa46e47846f6d7b06",
+        "goal": "For cisapride (CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?",
+        "subject_refs": [
+          "analysis:ana_23ea79a0c4374e4f9b180502c619e1fe"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 8,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 1
+        },
+        "available_refs": [
+          "observation:obs_35c6bfd775424d2a897ebcf2d1435ea4",
+          "evidence:evd_3a6e994c40334a3c802f29d050cdc7b7"
+        ],
+        "found_refs": [
+          "evidence:evd_3a6e994c40334a3c802f29d050cdc7b7"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 11
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_f6871d141c6d4e938ff09d5481829ddf",
+  "analysis": {
+    "run": {
+      "run_id": "run_2ab667cd58434e05961d126d64e678a4",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_efb470af01c1430295dc24dfbcc16be7",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:02:33.341017+00:00",
+      "created_at": "2026-09-25T12:57:33.341017+00:00",
+      "started_at": "2026-09-25T12:57:33.359903+00:00",
+      "ended_at": "2026-09-25T12:57:33.409937+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:57:33.342891+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_23ea79a0c4374e4f9b180502c619e1fe",
+      "input_smiles": "CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F",
+      "canonical_smiles": "COc1cc(N)c(Cl)cc1C(=O)N[C@@H]1CCN(CCCOc2ccc(F)cc2)C[C@@H]1OC",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.5364413857460022,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.34577757120132446,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.2996760606765747,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.6265738010406494,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.4721652567386627,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.357456773519516,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.3532344698905945,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.5159488320350647,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.5341561436653137,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.2862434387207031,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.26783016324043274,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.5820130705833435,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.3901359736919403,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "b2c92fb0-eb10-4354-8f70-c3cca22b1561",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 51,
+            "encoded_token_count": 51
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "ea272016656ef42676bb1964f1d0f5917cf1e8a99c646b968ef0ec0a917ae08f"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:57:33.401717+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_8d3ced4e56fa41beba724f44b8a1486c",
+      "title": "Cardiovascular safety pharmacology: beyond arrhythmic risk assessment.",
+      "authors": [
+        "Fares R",
+        "Champéroux P"
+      ],
+      "published_at": "2025-12-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2025.1623644",
+        "pmid": "41445862",
+        "pmcid": "PMC12722936",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41445862",
+      "abstract_or_excerpt": "Cardiovascular safety pharmacology arose from the need to assess certain forms of drug induced functional cardiotoxicity in toxicology within a regulatory framework. Cardiotoxic effects resulting from direct or indirect pharmacological effects are difficult to apprehend in conventional toxicology studies, whether electrophysiological and/or hemodynamic. The reflex regulatory systems of the cardiovascular system, and in particular the autonomic nervous system, interfere with and very often minimize the functional impact of these pharmacological effects, which are sometimes only visible over a very short time window. Modeling approaches now make it possible to assess key hemodynamic parameters, going beyond blood pressure alone. Non-clinical cardiovascular safety pharmacology must continue to evolve toward a comprehensive framework for arrhythmic risk, in order to improve its translational relevance to humans and better bridge non-clinical QT prolongation data with clinical risk assessment. It also needs to integrate concepts from clinical research, such as Coumel's triangle, autonomic conflict or hidden cardiotoxicity. The ultimate goal of cardiovascular safety pharmacology should extend beyond protecting participants in clinical trials. It should broaden its scope to include patient subpopulations with underlying cardiovascular disease, who are often the most vulnerable to functional cardiotoxic effects. Twenty-five years after their initial publication, the safety pharmacology guidelines are currently undergoing revision. This review aims to foster a more balanced and comprehensive approach to cardiovascular safety pharmacology, beyond arrhythmic risk.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "9e437a48c94a4fc6d66f164e43c20d4e32f2df3383a7aa0677cf5ccdd0d7ea36"
+    },
+    {
+      "evidence_id": "evd_cc230a1a651748b9a2bbd2954f38f78e",
+      "title": "Multi-laboratory comparisons of manual patch clamp hERG data generated using standardized protocols and following ICH S7B Q&amp;A 2.1 best practices.",
+      "authors": [
+        "Alvarez Baron C",
+        "Zhao J",
+        "Yu H",
+        "Ren M",
+        "Thiebaud N",
+        "Guo D",
+        "Vegesna G",
+        "Hsiao CH"
+      ],
+      "published_at": "2025-08-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-025-15761-8",
+        "pmid": "40819150",
+        "pmcid": "PMC12357877",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40819150",
+      "abstract_or_excerpt": "Acute block of hERG channels is the most common mechanism underlying drug-induced QT<sub>C</sub> prolongation and potentially fatal Torsade de Pointes arrhythmia. Updates to ICH E14 Q&As now allow for using negative nonclinical data, including hERG, to support QT<sub>C</sub> risk assessment in late-stage clinical development. To interpret the hERG results, understanding hERG assay reproducibility or hERG data variability is pivotal. Protocol and best practice recommendations have been provided with the goal of minimizing lab-to-lab data differences, but the impact remains unclear. To fill this knowledge gap, hERG data from a HESI-coordinated multi-laboratory study were leveraged. Using standardized protocol and following best practices for patch clamp studies, five laboratories tested 28 drugs using the manual patch clamp technique. Systematic differences in block potencies were observed for data generated by one laboratory for the first 21 drugs, and these differences disappeared for the last seven drugs. Exposure, pharmacological sensitivity of the cell lines, and cell/data qualities were ruled out as the factors underlying systematic differences. All laboratories retested two drugs and obtained results within 1.6X of the initial testings, except for another laboratory that obtained data for one drug that differed from its initial testing by 7.6X. Descriptive statistics and meta-analysis were applied to the dataset to estimate what the distribution in hERG block potencies would be if a laboratory were to test the same drug repeatedly. This measure, or hERG data variability, was ~ 5X. Based on these results, hERG block potency values within 5X of each other should not be considered different, since these values are within the natural data distribution of the hERG assay; laboratory-specific safety margin threshold may be required to account for systematic data differences.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "Comparative Study, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "d657034b4ce8589d04f817edff110a5a9c3eae6c0a14e8d7ee503d1c9bc71b7a"
+    },
+    {
+      "evidence_id": "evd_fac5b6dedc684c82ba86b35a1fad0814",
+      "title": "Integrating drug effects on individual cardiac ionic currents and cardiac action potentials to understand nonclinical translation to clinical ECG changes.",
+      "authors": [
+        "Johannesen L",
+        "Abi-Gerges N",
+        "Sweat K",
+        "Roup A",
+        "Page G",
+        "Baron CA",
+        "Yu H",
+        "Wu WW"
+      ],
+      "published_at": "2025-11-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1674861",
+        "pmid": "41293243",
+        "pmcid": "PMC12640937",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41293243",
+      "abstract_or_excerpt": "Concomitant inhibition of the late Na<sup>+</sup> current (I<sub>NaL</sub>) and/or the L-type Ca<sup>2+</sup> current (I<sub>CaL</sub>) has been hypothesized to mitigate hERG block-mediated QT<sub>C</sub> prolongation. This hypothesis was tested in a clinical trial using drugs selected based on available patch clamp data at the time. The results showed that hERG block-mediated QT<sub>C</sub> prolongation with dofetilide was shortened by co-administration of lidocaine or mexiletine-drugs that inhibit I<sub>NaL.</sub> However, diltiazem, selected as the preferential I<sub>CaL</sub> inhibitor, did not shorten hERG block-mediated QT<sub>C</sub> prolongation by moxifloxacin. Patch clamp results can be sensitive to experimental differences across laboratories. Therefore, this study reexamined the effects of all drugs on I<sub>NaL</sub>, I<sub>CaL</sub>, and hERG current using overexpression cell lines and physiologically relevant experimental protocols aimed at producing drug-channel interaction characteristics in humans. Drug effects on ventricular action potentials (APs) from adult human trabeculae were also tested to better understand the nonclinical and clinical findings. Mexiletine and lidocaine showed similar potencies on inhibiting I<sub>NaL</sub> and I<sub>CaL</sub> in the prior and present patch clamp studies. Both drugs reduced dofetilide-induced AP duration (APD) prolongation, consistent with the clinical data. For diltiazem, the I<sub>CaL</sub> potency and the separation between I<sub>CaL</sub> and hERG potencies (I<sub>CaL</sub>: 1.3 µM; hERG: 8.9 µM; hERG-to-I<sub>CaL</sub> ratio = 7) is much reduced comparing to the prior results (I<sub>CaL</sub>: 112.1 nM; hERG: 6.6 µM; ratio = 59). These new findings are consistent with diltiazem-induced APD shortening and AP triangulation caused by greater reductions in the early rather than late repolarization-a signature of multi-ion channel block. Consistent with this interpretation, nifedipine, which preferentially inhibits I<sub>CaL</sub> over hERG (I<sub>CaL</sub>: 13.2 nM; hERG: 35 μM; ratio = 2,651) caused APD shortening without AP triangulation. Results from this study thus support the following: 1) diltiazem failed to reduce moxifloxacin-induced QT<sub>C</sub> prolongation due to its concomitant hERG block at clinical exposure levels; and 2) the importance of using physiologically relevant protocols to generate ion channel pharmacology and obtaining functional recordings from myocytes to provide a better understanding of nonclinical data translation to clinical ECG signals. Data used in this manuscript, including the original electrophysiology records, may be found at: https://osf.io/69ght/.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "35e175d61f8b5a912ef0554aeeeefdd82b72758af79d05449306427fdbac72c6"
+    },
+    {
+      "evidence_id": "evd_f8b55aace92e45ec826094a8fcc971d6",
+      "title": "hERG Channel Blockade and Antagonistic Interactions of Three Steroidal Alkaloids from &lt;i&gt;Fritillaria&lt;/i&gt; Species.",
+      "authors": [
+        "Lu H",
+        "Hao T",
+        "Zhang Z",
+        "Jiang C",
+        "Xu J",
+        "Stalin A",
+        "Zhao W"
+      ],
+      "published_at": "2025-09-25",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/molecules30193882",
+        "pmid": "41097303",
+        "pmcid": "PMC12526275",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41097303",
+      "abstract_or_excerpt": "The bulb of <i>Fritillaria</i> species called \"Bei Mu\" is a well-known traditional Chinese medicine. We have reported some potential off-target effects of \"Bei Mu\" due to peimine's blockade of hERG (human Ether-a-go-go-Related Gene) channels. This research investigated the modulatory effects of three major alkaloid analogs of \"Bei Mu\" and their cooperative effects on hERG channels using manual whole-cell patch-clamp techniques. Results showed that peiminine and sipeimine blocked hERG currents with IC<sub>50</sub>s of 36.8 ± 2.5 μM and 47.6 ± 9.8 μM, which were close to that of peimine (26.1 ± 3.5 μM). Peiminine-induced blockade increased with increasing depolarizing strengths, durations, and frequencies, which suggested a preferential binding to open or inactivated states. The reduced blockade by the less inactivating S631A mutation supported peiminine's inactivation preference. Molecular docking and dynamics simulations confirmed the hERG-blocking activities of the three alkaloids and provided further insight into potential mechanisms. We also discovered antagonistic effects of the three alkaloids at nearly all concentrations tested, which might help reduce potential cardiotoxicities. To our knowledge, this is the first study to investigate combination effects of chemicals from one herb on hERG channels. In conclusion, peiminine and sipeimine can block hERG channels in a way similar to peimine, but antagonistic effects exist among them.",
+      "normalized_facts": {
+        "journal": "Molecules (Basel, Switzerland)",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "44f2d1f760b288bb72b128c256e829e246d33dbeea756fdf25ec1b757c90b299"
+    },
+    {
+      "evidence_id": "evd_c4916c883f654ea7923f904e31c2a9fb",
+      "title": "Quantifying Risk of Delayed QT Prolongation of Ipatasertib in Preclinical and Clinical Studies in Cancer Patients.",
+      "authors": [
+        "Poon V",
+        "Sutaria D",
+        "Prell R",
+        "Halpern W",
+        "Wong L",
+        "Harris A",
+        "Wilkins J",
+        "Yoshida K"
+      ],
+      "published_at": "2025-07-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70298",
+        "pmid": "40671326",
+        "pmcid": "PMC12267659",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40671326",
+      "abstract_or_excerpt": "QTc prolongation has been associated with torsades de pointes (TdP) and also with other cardiac diseases. We investigated the effect of ipatasertib, a selective serine/threonine kinase (AKT, protein kinase B) inhibitor, on preclinical models of QTc prolongation as well as across two clinical studies. Preclinical in vitro studies suggested that ipatasertib and its metabolite, M1, were unlikely to inhibit human Ether-à-go-go-Related Gene (hERG) channels at the clinically relevant dose. However, clinical evaluation of ipatasertib and its metabolite in the first-in-human study PAM4743g suggested a mild prolongation of the QTc interval, but the effect was delayed, where the maximum change from baseline QTc seemed to occur 2-4 h after time to maximum drug exposure (T<sub>max</sub>). QTc prolongation was further evaluated in a second Phase 1b study, GP42658, with pretreatment QTc measurement for baseline correction and intensive post-baseline QTcF measurements at steady state. The results showed a delayed effect, where peak ΔQTcF occurred 2-4 h after T<sub>max</sub> with a mean of 10.9 ms and an upper 95% CI of 19.1 ms. Although a delayed effect was observed, the overall magnitude of the QTc effect was not large, and taken together, ipatasertib may not pose a substantial proarrhythmic risk (i.e., mean increase of > 20 ms) at the intended therapeutic dose of 400 mg.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Clinical Trial, Phase II, Research Support, Non-U.S. Gov't, research-article, Clinical Trial, Phase I, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "e02fddff572f4f463cf88ea5fd12091c92464c6bcc8dde358926a78ff60a45dd"
+    },
+    {
+      "evidence_id": "evd_3a6e994c40334a3c802f29d050cdc7b7",
+      "title": "Molecular basis for state-dependent drug block of Kv11.1 (human ether-à-go-go-related gene) potassium channels.",
+      "authors": [
+        "Zhou CJ",
+        "Ma JG",
+        "Ng CA",
+        "Hunter MJ",
+        "Perry MD",
+        "Windley M",
+        "Hill AP",
+        "Vandenberg JI"
+      ],
+      "published_at": "2026-08-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.molpha.2026.100150",
+        "pmid": "42727199",
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42727199",
+      "abstract_or_excerpt": "Many structurally and therapeutically diverse drugs block the human ether-à-go-go-related gene (HERG) potassium channel, predisposing patients to an increased risk of arrhythmias and sudden cardiac death. Many of these drugs show state dependence of block, exhibiting a greater preference for block of the inactivated state. Four key residues, ie, T623, S624, Y652, and F656, within the central pore cavity of HERG have been implicated in drug binding. However, whether drugs bind differently to these key residues to dictate preference for binding to the inactivated over the open state is not known. We used the SyncroPatch 384PE, automated patch clamp platform to measure how drug block was impacted by point mutations at these 4 residues when introduced into wild-type (WT) HERG (preferentially occupies the inactivated state) and N588K-HERG (preferentially occupies the open state) channels at depolarized potentials. Mutations to Y652 and F656, which abolished aromatic and hydrophobic characteristics, respectively, reduced drug binding in both WT and N588K backgrounds. The S624A mutation attenuated block by cisapride, astemizole, and quinidine in the WT background but not in the N588K background. We suggest that relative movements between the polar S624 sidechain and the aromatic Y652 sidechains in WT (inactivated) compared with N588K (open) channels can explain preferential binding to the inactivated state. An improved understanding of the structural basis of where and how drugs bind to HERG channels should facilitate efforts to reduce inadvertent HERG drug block during the drug development process. SIGNIFICANCE STATEMENT: A diverse range of drugs block human ether-à-go-go-related gene (HERG) potassium channels, which can have serious side effects, including sudden death. Most problematic drugs bind to the inactivated state of HERG channels. This study shows that the polar side chain of Ser624, at the base of the selectivity filter, is critical for preferential drug block of inactivated compared with open channels. A better understanding of state-dependent drug binding should facilitate efforts to reduce inadvertent HERG drug block.",
+      "normalized_facts": {
+        "journal": "Molecular pharmacology",
+        "pub_type": "Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "ed940a482069e939076debaf9fc35b793d7236eb558064b7add2b5590e3da525"
+    },
+    {
+      "evidence_id": "evd_ff303c43deaa4a2190f3d3af7f38fcf0",
+      "title": "Modeling hERG Channel Liability: From Structural Insight to Highly Accurate Qualitative and Quantitative Models.",
+      "authors": [
+        "Sun H",
+        "Wang Y",
+        "Shen M"
+      ],
+      "published_at": "2026-06-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jcim.6c00163",
+        "pmid": "42313871",
+        "pmcid": "PMC13370879",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42313871",
+      "abstract_or_excerpt": "Drug-induced QT interval prolongation, most commonly resulting from the blockade of a voltage-dependent potassium ion channel encoded by the <i>hERG</i> (<i>human ether-à-go-go-related gene</i>), has been recognized as a critical side-effect of noncardiovascular therapeutic agents. This adverse effect has led to withdrawal of many drugs from the market. Early identification of potential hERG channel blockers is therefore essential to mitigate cardiotoxicity-related attrition during the later, more resource-intensive stages of drug development. In this paper, we aimed at understanding ligand-channel interactions, including a detailed analysis of the cryo-electron microscopy (cryo-EM) structures of hERG channels and pharmacophore models shared among known hERG blockers. The highly adaptive nature of the hERG ligand-binding site may poses challenges for structure-based approaches, such as molecular docking, yet also offers mechanistic insights into a longstanding question: why does hERG interact with such a wide variety of small-molecule drugs? To complement these structural observations, we summarized the benefits and limitations of both quantitative and qualitative models and their applications across various stages of drug discovery. We developed highly predictive classification and regression models built using customized atom-type descriptors. The regression model, trained on a large and curated data set (∼8,000 compounds), achieved an average absolute error (AAE) of 0.383 log units and root-mean-square error of prediction (RMSEP) of 0.548 log units on the test sets. Meanwhile, the classification model demonstrated strong performance as well, with a receiver operating characteristic (ROC) area under the curve (AUC) of 0.88. Validation on an external set of 1,133 compounds resulted in an AAE of 0.50 log units. Together, these complementary modeling strategies can significantly aid in the early assessment of cardiovascular liabilities associated with hERG channel blockade, thereby supporting safer and more efficient drug development.",
+      "normalized_facts": {
+        "journal": "Journal of chemical information and modeling",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "d219abf85dc3f33628388a8c37695f298df23059df236c6d3bf8499a3cee52dc"
+    },
+    {
+      "evidence_id": "evd_94b8c8b2eb8a46a4a002fc4be96c0c9d",
+      "title": "Discovery of a novel broad-spectrum inhibitor against influenza virus A.",
+      "authors": [
+        "Yu R",
+        "Li P",
+        "Shen R",
+        "Fei W"
+      ],
+      "published_at": "2025-08-26",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12985-025-02889-2",
+        "pmid": "40859295",
+        "pmcid": "PMC12379310",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40859295",
+      "abstract_or_excerpt": "The pandemic of influenza A virus (IAV) is on the rise worldwide, however, drug resistance to anti-influenza drugs has been widely found. The viral mutation of IAV highlights the necessitate for discovery of new antiviral agents with broad-spectrum efficacy. Arbidol, an effective pharmaceutical against IAV and other viruses, inhibits viral fusion by targeting a conserved binding region across multiple virus types. The binding area of Arbidol is conserved towards many types of viruses, however, the structural characteristics of Arbidol make it possible human ether-α-go-go related gene (hERG) potassium channel inhibitory. The risk of arrhythmias by Arbidol will limit its further application. Therefore, developing new broad-spectrum antiviral drugs with reduced side effects based on Arbidol's scaffold is imperative. In this study, 50 natural products were screened for effective universal antiviral drug based on the structure-activity relationship between Arbidol and hemagglutinin (HA). Due to the structural characters of Arbidol related to hERG inhibition, the inhibitory activity of Arbidol on hERG channels were also analyzed by patch clamp technology and molecular docking for toxicity and safety evaluation of drug screening and development. The IC50 of Arbidol to hERG was 0.3030 µM. The results showed that Glycyrrhetinic acid has lower binding energy than Arbidol in the binding site. The molecular structure of Glycyrrhetinic acid is more flexible, which avoids significant interactions with hERG. These findings highlight glycyrrhetinic acid as a promising broad-spectrum anti-IAV candidate drug.",
+      "normalized_facts": {
+        "journal": "Virology journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "456111aaec2a822a766ae3ee5806944e3cebcd1d21fdc3fcce97a58079bb855f"
+    },
+    {
+      "evidence_id": "evd_b96a4b3ef878488dab54385c239113b0",
+      "title": "Design, Synthesis, and Evaluation of Diphenylpyrazinyl Amino Cycloalkoxy Acetic Acids as IP Receptor Agonists.",
+      "authors": [
+        "Cai X",
+        "Dai M",
+        "Wang Y",
+        "Liu G",
+        "An X",
+        "Li X",
+        "Huang Y",
+        "Mu Z"
+      ],
+      "published_at": "2026-07-20",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acsmedchemlett.6c00241",
+        "pmid": "42621517",
+        "pmcid": "PMC13488089",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42621517",
+      "abstract_or_excerpt": "To address the pharmacokinetic limitations and moderate potency of current prostanoid IP receptor agonists for treating pulmonary arterial hypertension, we developed a series of conformationally constrained diphenylpyrazinyl amino cycloalkoxy acetic acids. By replacing the flexible side chain of MRE-269 with a rigid cyclic framework, we locked the bioactive conformation, identifying <b>7a-5</b> and its deuterated analog <b>7a-19</b>. Compound <b>7a-19</b> exhibited potent antiaggregatory activity (IC<sub>50</sub> = 0.97 μM), a 7-fold enhancement over MRE-269 (IC<sub>50</sub> = 7.4 μM). Crucially, leveraging the deuterium kinetic isotope effect in rats, <b>7a-19</b> demonstrated an 11-fold increase in systemic exposure (AUC <sub><i>o‑t</i></sub> = 26.7 h μg/mL), a prolonged half-life (<i>t</i> <sub>1/2</sub> = 12.0 h), and excellent oral bioavailability (<i>F</i> = 47.3%). Combined with a clean safety profile in the Mini-Ames assay and a lack of hERG inhibition (IC<sub>50</sub> = 143.1 μM), <b>7a-19</b> stands out as a robust, long-acting lead candidate for PAH therapy.",
+      "normalized_facts": {
+        "journal": "ACS medicinal chemistry letters",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "929d9083693991f7bcedc8436de9e467073abf529aceec3bf308b155a3e5be76"
+    },
+    {
+      "evidence_id": "evd_a81eb067bc47431faf51bd4bc09d35b7",
+      "title": "A Deep-Learning-Based Scoring Framework for Large-Scale Multi-donor Cardiotoxicity Screening.",
+      "authors": [
+        "Vu D",
+        "Kowalczewski A",
+        "Burnett SD",
+        "Sakolish C",
+        "Liu X",
+        "Yang H",
+        "Rusyn I",
+        "Ma Z"
+      ],
+      "published_at": "2026-09-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.34133/csbj.0217",
+        "pmid": "42707586",
+        "pmcid": "PMC13547733",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42707586",
+      "abstract_or_excerpt": "Cardiotoxicity remains a major cause of drug attrition and postmarket withdrawal, yet the vast majority of environmental chemicals to which humans may be exposed remain uncharacterized for cardiotoxicity risk. Human induced pluripotent stem cell (hiPSC)-based testing has been proposed to address this gap. Here, we present an unsupervised deep learning framework for multi-donor cardiotoxicity screening using high-throughput calcium transient recordings from hiPSC-derived cardiomyocytes (hiPSC-CMs). We analyzed data from a library of 1,029 compounds tested in hiPSC-CMs from 5 donors across a concentration range. An autoencoder trained exclusively on baseline signals quantified chemically induced functional perturbations through reconstruction error, bypassing the need for labeled training data while capturing the full spectrum of calcium-handling disruptions. Aggregation of donor-specific scores revealed substantial inter-individual variability in potential cardiotoxicity, underscoring the value of this approach for multi-donor risk prediction. We identified microbiocides, dyes, and pesticides as chemical classes of potential concern, characterized by high toxicity scores and low interdonor variability. This framework establishes a scalable, human-relevant, and genetically diverse platform for cardiotoxicity surveillance across both pharmacological and environmental chemical spaces.",
+      "normalized_facts": {
+        "journal": "Computational and structural biotechnology journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:11.113412+00:00",
+      "content_sha256": "272d333698ed578a3493df45a7a6ddf7947ff1a4904fce94236a22efb1217d5e"
+    },
+    {
+      "evidence_id": "evd_59f9623e7c6742b48ea2b033dcead5ce",
+      "title": "47th Annual Meeting March 1-5, 2003 Henry B. Gonzalez Convention Center, San Antonio, Texas : Wednesday Posters, Part 1",
+      "authors": [],
+      "published_at": "2003-02-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC2304027",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC2304027",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2003"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:02.039190+00:00",
+      "content_sha256": "1cec914e7f9a6157bdbf30b6296659c3ce4ee645066118d3bcf0ffbbec4de833"
+    },
+    {
+      "evidence_id": "evd_f9339a29429349548d88fd084eccf73c",
+      "title": "44th Annual Meeting February 12-16, 2000 New Orleans, Louisiana : February 15, 2000 Tuesday Posters, Part 2",
+      "authors": [],
+      "published_at": "2000-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC1913991",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC1913991",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2000"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:02.039190+00:00",
+      "content_sha256": "ccfb0af37d66ac923b233a4c97b4279f7e6699182babb3aaa59d4d10c85e411c"
+    },
+    {
+      "evidence_id": "evd_4fb29cb858984da1809e7fa93fccaf89",
+      "title": "UEG Week 2013 Poster Presentations",
+      "authors": [],
+      "published_at": "2013-10-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC4070603",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC4070603",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "United European gastroenterology journal",
+        "pub_type": "Abstract",
+        "pub_year": "2013"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:02.039190+00:00",
+      "content_sha256": "43a5f46f53ba7004fd2bbc2dadbbf0f6545368b46b1b9323dc821a813fc9a5dc"
+    },
+    {
+      "evidence_id": "evd_cb802a27b48b4f64b834475487bf6f29",
+      "title": "Kv 11.1 (hERG)-induced cardiotoxicity: a molecular insight from a binding kinetics study of prototypical Kv 11.1 (hERG) inhibitors.",
+      "authors": [
+        "Yu Z",
+        "IJzerman AP",
+        "Heitman LH"
+      ],
+      "published_at": "2014-12-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/bph.12967",
+        "pmid": "25296617",
+        "pmcid": "PMC4301700",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/25296617",
+      "abstract_or_excerpt": "<h4>Background and purpose</h4>Drug-induced arrhythmia due to blockade of the Kv 11.1 channel (also known as the hERG K(+) channel) is a frequent side effect. Previous studies have primarily focused on equilibrium parameters, i.e. affinity or potency, of drug candidates at the channel. The aim of this study was to determine the kinetics of the interaction with the channel for a number of known Kv 11.1 blockers and to explore a possible correlation with the affinity or physicochemical properties of these compounds.<h4>Experimental approach</h4>The affinity and kinetic parameters of 15 prototypical Kv 11.1 inhibitors were evaluated in a number of [(3) H]-dofetilide binding assays. The lipophilicity (logKW - C8 ) and membrane partitioning (logKW - IAM ) of these compounds were determined by means of HPLC analysis.<h4>Key results</h4>A novel [(3) H]-dofetilide competition association assay was set up and validated, which allowed us to determine the binding kinetics of the Kv 11.1 blockers used in this study. Interestingly, the compounds' affinities (Ki values) were correlated to their association rates rather than dissociation rates. Overall lipophilicity or membrane partitioning of the compounds were not correlated to their affinity or rate constants for the channel.<h4>Conclusions and implications</h4>A compound's affinity for the Kv 11.1 channel is determined by its rate of association with the channel, while overall lipophilicity and membrane affinity are not. In more general terms, our findings provide novel insights into the mechanism of action for a compound's activity at the Kv 11.1 channel. This may help to elucidate how Kv 11.1-induced cardiotoxicity is governed and how it can be circumvented in the future.",
+      "normalized_facts": {
+        "journal": "British journal of pharmacology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2015"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:58:02.039190+00:00",
+      "content_sha256": "4c27bfe4557a9a93ad1d3fd3ec8e5967001b3ab74f4ccd3e3b010fd6ffe54aa1"
+    }
+  ],
+  "cases": []
+}

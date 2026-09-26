@@ -1,0 +1,1739 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_eee07544b58048a0ba3fd911e704580b",
+        "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T12:30:43.940602+00:00",
+        "created_at": "2026-09-25T12:25:43.940602+00:00",
+        "started_at": "2026-09-25T12:25:44.194948+00:00",
+        "ended_at": "2026-09-25T12:27:52.798173+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "be770e57ec6c4ea92e075b7f8c11864de32ad8b3b9d43fbe2c547e69d93429bb",
+          "system_prompt_hash": "775938c6f3e4039e1593f2ffbe737cc115155edebc67116dce7f6117d66837a4"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:25:43.942240+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_0a313e2053974fa19b3f6d19cc95a1f1",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:25:55.770193+00:00",
+              "tokens": {
+                "input": 7818,
+                "output": 122,
+                "reasoning": 62,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8002
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d2376b832f344a10934af02dfe7b5cbb",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88763ae0011yQWzyoz9cIJ3y",
+                "step_id": "prt_0d8878734001uRPcFou01qTQTZ",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f6bd0b8099144879a094c838ffef4dcf",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:26:15.571901+00:00",
+              "tokens": {
+                "input": 1589,
+                "output": 842,
+                "reasoning": 57,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10168
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_afada3a1a4a341a7c9d58ba499d729e5",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d887874e001dUkjZ9ZxJv4WUR",
+                "step_id": "prt_0d887d48f001TbbcJEe3DzHVxo",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_9cd543f1e0e84d7dbede98a8c51c8e60",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:26:48.227932+00:00",
+              "tokens": {
+                "input": 2230,
+                "output": 1275,
+                "reasoning": 367,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 12576
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ae857b0b4dbfdbcec0e9c314e27abe89",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d887d4a70015Ao2tTE5R9TwAn",
+                "step_id": "prt_0d888541c001mMumbKKxTvP4cs",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f9303aaeefdc46ae91104b42d22982ba",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:27:03.316005+00:00",
+              "tokens": {
+                "input": 2037,
+                "output": 590,
+                "reasoning": 63,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 13442
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_498213174f494d1ed686c7b6fc0126df",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88854430010AESn5bEHYEI2U",
+                "step_id": "prt_0d8888f0f001AYjY7yv1KONfLw",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_462235bd5c7a42e29617231a34f16b97",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:27:28.839543+00:00",
+              "tokens": {
+                "input": 13628,
+                "output": 914,
+                "reasoning": 322,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 14864
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6de3545c6df65c03e1e7172404622bc9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8888f32001Gmwg0QJiH7rgz7",
+                "step_id": "prt_0d888f2be001gWqI04WiVeelH6",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_5a5a13c70c41434ebf0e38bf3ee193a6",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:27:49.143821+00:00",
+              "tokens": {
+                "input": 2296,
+                "output": 915,
+                "reasoning": 70,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 16081
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_329edba8ff83dab334151c93b6e4e9e3",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d888f2dd001phYMhwiHG23EjC",
+                "step_id": "prt_0d8894213001r7GlNgIoUG0JCA",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_b7fb5880fd7049aebc9a756a239a2468",
+              "runtime_binding_id": "rtb_18810bf7786046e2a1c6f9950e609f03",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:27:52.738500+00:00",
+              "tokens": {
+                "input": 1363,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 16215
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_86f48f153154dcac3d9dfba0a024a5d6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d889422d001W6BRVLyKv0ZMXM",
+                "step_id": "prt_0d889501b0017CTzeg4nIw26xH",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_8b97100728fb4e0491994f6ebf5a7eb3",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "7135fee5090deb33262db936f34b9e071ce2e7c7dd3ea10e826272e0467a1979",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:25:55.616775+00:00",
+            "ended_at": "2026-09-25T12:25:55.632614+00:00"
+          },
+          {
+            "call_id": "call_2875322639c146dc905efac8a621d005",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 33,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:25:55.691063+00:00",
+            "ended_at": "2026-09-25T12:25:55.722147+00:00"
+          },
+          {
+            "call_id": "call_7a4d79c487844af09f3f1c6e4449442a",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:25:55.716344+00:00",
+            "ended_at": "2026-09-25T12:25:55.728902+00:00"
+          },
+          {
+            "call_id": "call_224dc44394624cc7978a6bc2ac302712",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "def057382845911d19738945c4269a50ce693ab3fe73ec6d99387669e3b1ba83",
+            "observation_ids": [
+              "obs_a7a5592a50ee4e698e7bca2cddbde034"
+            ],
+            "started_at": "2026-09-25T12:26:14.241899+00:00",
+            "ended_at": "2026-09-25T12:26:14.255756+00:00"
+          },
+          {
+            "call_id": "call_7ff4b99e70564755aa4f6fe3fd349e4f",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1191,
+            "arguments_sha256": "1a8b8f62d5582f94ba6526d228a1a0542a657de2a7099285eec3f1fa0e727f9c",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:26:14.316922+00:00",
+            "ended_at": "2026-09-25T12:26:15.504439+00:00"
+          },
+          {
+            "call_id": "call_581aad0d8c5d4a80b2b10b3030f525e6",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "4d6465056308f6abd232e31f5a724f4f8a1a8789d4ae91ca17f017b6856a6e8b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:26:14.372197+00:00",
+            "ended_at": "2026-09-25T12:26:14.384976+00:00"
+          },
+          {
+            "call_id": "call_f151fb05446148d5be8ed3de526cab45",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "5f6c07c4a59eb6359fa77d830cc520b18db2c88e02c9cae36b1e449eb6d8ae01",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:26:48.121209+00:00",
+            "ended_at": "2026-09-25T12:26:48.139747+00:00"
+          },
+          {
+            "call_id": "call_976fd226265240749540694a25b5c88c",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "018f9a1b3b4d3fb5eea514eaa9ca2e21311e9b360d1ef87b37e24ef94ff4bae7",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:27:03.261398+00:00",
+            "ended_at": "2026-09-25T12:27:03.279250+00:00"
+          },
+          {
+            "call_id": "call_a52e32d8068b46759f0a915afbe365ee",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 20,
+            "arguments_sha256": "8a097c556c43d120645e2d7ea955b2484c30f738c10afe6bad8d3db433806145",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:27:28.758583+00:00",
+            "ended_at": "2026-09-25T12:27:28.776718+00:00"
+          },
+          {
+            "call_id": "call_05977c83c9734f74a0d3db360d57dff7",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 27,
+            "arguments_sha256": "20d1a6465b9da40bebe201f8b019330899c0e963fa85459cd46b86cff7088a66",
+            "observation_ids": [
+              "obs_a7a5592a50ee4e698e7bca2cddbde034"
+            ],
+            "started_at": "2026-09-25T12:27:49.080294+00:00",
+            "ended_at": "2026-09-25T12:27:49.105638+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_aa1e05bf4cad45d89acbeb5539df9200",
+        "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+        "answer_markdown": "I could not produce a fully grounded answer to that question. Below are the recorded prediction results this session has on file; each figure links to its source observation. Please rephrase the question, or ask about one of these figures directly.",
+        "claims": [
+          {
+            "claim_id": "clm_72b076c7dac24f36bed5c8c2b51d5abc",
+            "kind": "numeric",
+            "text": "Predicted herg probability blocker is 0.680.",
+            "transform": "round:3",
+            "citation_ids": [],
+            "observation_id": "obs_a7a5592a50ee4e698e7bca2cddbde034",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.6803638935089111,
+            "rendered_value": "0.680"
+          },
+          {
+            "claim_id": "clm_e903b3d92d964427b469cdb7a198b1a6",
+            "kind": "classification",
+            "text": "The herg label is 'blocker'.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_a7a5592a50ee4e698e7bca2cddbde034",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker",
+            "rendered_value": "blocker"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "This probability is a model score, not a calibrated clinical risk. It ranks molecules; it does not estimate how often the effect occurs in people."
+          }
+        ],
+        "recommended_next_steps": [],
+        "candidate_generation": 2,
+        "is_fallback": true,
+        "content_sha256": "e488e95b9085500b007a8b2e1d1688cdef23d0b90f411d40f2aa0f0525401ab2",
+        "created_at": "2026-09-25T12:27:49.096367+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_8f9ada60bead44f7b3f8e69277711967",
+        "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+        "goal": "We are evaluating terfenadine (CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O) as a starting point for a new non-sedating antihistamine programme. Should hERG liability stop us from prioritising it, and what would you test next?",
+        "subject_refs": [
+          "analysis:ana_ad5da1928b49445f8764d95194c3b916"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 1,
+          "tool_calls": 10,
+          "denied_calls": 0,
+          "failed_calls": 1,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_a7a5592a50ee4e698e7bca2cddbde034"
+        ],
+        "found_refs": [],
+        "stop_reason": "blocked",
+        "answer_outcome": "fallback",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "references_loaded": []
+        },
+        "revision": 15
+      },
+      "dossier": {
+        "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+        "case_id": "scase_3d31ddc0b1e04b6c9cfcd5013a6b905e",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "Should hERG liability stop prioritising terfenadine as a starting point for a non-sedating antihistamine programme, and what should be tested next?",
+        "answer_id": "ans_aa1e05bf4cad45d89acbeb5539df9200",
+        "conclusion": {
+          "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+          "can_say": [
+            {
+              "text": "The stored hERG predictor flags terfenadine as a blocker; this is sufficient to pause prioritisation pending direct verification, but not to establish real-world cardiac risk.",
+              "sources": [
+                "observation:obs_a7a5592a50ee4e698e7bca2cddbde034"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "Direct concentration-response hERG testing with free-concentration and metabolite coverage is the next discriminating experiment.",
+              "sources": [
+                "observation:obs_a7a5592a50ee4e698e7bca2cddbde034"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "The predictor alone cannot establish clinical risk, a safety verdict, or whether the liability occurs at programme-relevant exposure.",
+            "No compound-specific independent hERG evidence was recovered by the bounded search."
+          ],
+          "what_would_change": [
+            "A direct hERG result showing no meaningful concentration-dependent inhibition at relevant free concentrations would weaken the model-signal hypothesis.",
+            "Reproducible inhibition, especially with an orthogonal cardiac repolarisation signal at relevant exposure, would support deprioritisation."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "status": "open",
+            "context": [],
+            "statement": "The predictor's hERG signal is directionally consistent with a genuine cardiac ion-channel liability that should materially reduce prioritisation.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored hERG predictor reports terfenadine as a blocker with probability_blocker 0.6803638935089111 and threshold 0.4133453071117401.",
+                "scope": {
+                  "compound": "terfenadine",
+                  "endpoint": "hERG",
+                  "use_context": "programme prioritisation"
+                },
+                "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "direct",
+                "source_ref": "observation:obs_a7a5592a50ee4e698e7bca2cddbde034",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Direct hERG patch-clamp testing at relevant free concentrations shows no meaningful inhibition and no concentration-dependent effect."
+          },
+          {
+            "id": "h2",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "status": "open",
+            "context": [],
+            "statement": "The apparent hERG concern could be overstated or poorly predictive for the intended programme because of assay, exposure, metabolism or model-applicability mismatch.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Orthogonal direct hERG and cardiac repolarisation studies reproduce a concentration-dependent effect at exposures relevant to the intended use context."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run blinded direct hERG patch-clamp concentration-response testing on terfenadine, with free-concentration measurement and major metabolite coverage; if positive, follow with an orthogonal cardiac repolarisation assay.",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "rationale": "This directly tests whether the model signal reproduces in the target ion-channel assay and whether the effect occurs at concentrations relevant to the intended programme.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "hERG inhibition potency and maximal inhibition versus concentration",
+              "free parent and metabolite concentrations",
+              "orthogonal cardiac repolarisation action-potential or QT-related readout"
+            ]
+          }
+        ],
+        "stop_reason": "blocked",
+        "subject_refs": [
+          "analysis:ana_ad5da1928b49445f8764d95194c3b916"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored hERG predictor reports terfenadine as a blocker with probability_blocker 0.6803638935089111 and threshold 0.4133453071117401.",
+            "scope": {
+              "compound": "terfenadine",
+              "endpoint": "hERG",
+              "use_context": "programme prioritisation"
+            },
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "direct",
+            "source_ref": "observation:obs_a7a5592a50ee4e698e7bca2cddbde034",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          }
+        ],
+        "decision_context": "Decision is limited to programme prioritisation and next verification tests; not a clinical, safety or regulatory verdict.",
+        "unlinked_evidence": [],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+              "outcome": "The bounded search returned no citable record about terfenadine and hERG; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for independent compound-specific evidence that could contradict or contextualise the model hERG signal before making a prioritisation recommendation.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+              "outcome": "Recommendation will be a conditional hold on prioritisation, not a claim of clinical or general safety; direct hERG testing and exposure information remain decisive.",
+              "purpose": "Check that the recommendation stays within the predictor endpoint, distinguishes model score from experimental evidence, represents the failed counterevidence search, and identifies a discriminating next test.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The predictor probability is an uncalibrated model score; direct concentration-response hERG data and exposure context are unavailable.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No intended exposure, free concentration, metabolite profile or use-context margin was supplied, so translational relevance cannot be judged.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_8f9ada60bead44f7b3f8e69277711967",
+  "analysis": {
+    "run": {
+      "run_id": "run_a2c4cd8d11cd4d179c0766c1cfe3f807",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_b6d67c24de9942eeafb2eb8a8f905f7c",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T12:30:42.878316+00:00",
+      "created_at": "2026-09-25T12:25:42.878316+00:00",
+      "started_at": "2026-09-25T12:25:42.890399+00:00",
+      "ended_at": "2026-09-25T12:25:42.936337+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:25:42.879203+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_ad5da1928b49445f8764d95194c3b916",
+      "input_smiles": "CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O",
+      "canonical_smiles": "CC(C)(C)c1ccc(C(O)CCCN2CCC(C(O)(c3ccccc3)c3ccccc3)CC2)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.6803638935089111,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.2041947990655899,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.45679643750190735,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.021260729059576988,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.5408167839050293,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.35787075757980347,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.6065913438796997,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.3152877986431122,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.12436281144618988,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.44677114486694336,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.6124134659767151,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.49875369668006897,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.4762975573539734,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "849772a5-52c9-4d6c-9fbc-7185149fa1dd",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 59,
+            "encoded_token_count": 59
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "9fa02750b64eb75322604f6c33da14aaae1b8d8179104d8c9abbf561c1813a41"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:25:42.932261+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_32a10f06b2ac403b8a63af5cc7e6290d",
+      "title": "Cardiac Safety of Intranasal Chlorpheniramine: An Exposure-Based Risk Assessment.",
+      "authors": [
+        "Alas-Pineda C",
+        "Pavón-Varela DJ",
+        "Gaitán-Zambrano K",
+        "Ferrer G"
+      ],
+      "published_at": "2026-04-25",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ph19050670",
+        "pmid": "42198344",
+        "pmcid": "PMC13209542",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42198344",
+      "abstract_or_excerpt": "<b>Background:</b> H1-antihistamines are widely used for allergic and upper respiratory conditions; however, several agents included in this class have been associated with cardiac electrophysiological adverse effects, including QT interval prolongation and torsades de pointes (TdP). These effects are largely exposure-dependent and mechanistically linked to inhibition of cardiac ion channels. Chlorpheniramine maleate (CPM), a first-generation H1-antihistamine, has been implicated in arrhythmic events primarily under conditions of increased systemic exposure, prompting interest in whether alternative routes of administration may lower cardiac risk. <b>Methods:</b> This narrative review integrates mechanistic, preclinical, clinical, pharmacokinetic, and regulatory evidence. Information was extracted from PubMed, Google Scholar, and Scielo using search terms such as cardiotoxicity, chlorpheniramine, QT prolongation, intranasal administration, and cardiac arrhythmias, with no language restriction. <b>Results:</b> Comparative pharmacokinetic evidence shows that, on a dose-normalized basis, intranasal and oral chlorpheniramine exhibit comparable bioavailability; however, in a clinical context, intranasal doses (1.12-2.24 mg) are lower than oral daily doses (4-12 mg/day), resulting in a lower systemic exposure (Cmax and AUC) with intranasal administration. Available pharmacovigilance or epidemiological data have not specifically evaluated intranasal chlorpheniramine, and the number of dedicated safety trials remains limited. <b>Conclusions:</b> Preclinical, in vitro, mechanistic studies suggest that intranasal administration of chlorpheniramine should confer superior cardiac safety compared to the oral route. However, clinical data from human studies directly comparing the cardiac safety of intranasal chlorpheniramine versus systemic chlorpheniramine is extremely limited. More data from clinical trials, case-control studies, and regulatory databases are needed to validate these theoretical claims.",
+      "normalized_facts": {
+        "journal": "Pharmaceuticals (Basel, Switzerland)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "32ef4e812fe3673ae21e4062fbabe9092710657c64d945198e8f3f3970218d95"
+    },
+    {
+      "evidence_id": "evd_36c9519c7e7344658279ad1ecc0d041e",
+      "title": "Beyond Body Weight: A Comprehensive Review of Allometric Scaling in Drug Development for Human Dose Predictions.",
+      "authors": [
+        "Mallillin MC",
+        "Silva DA",
+        "Miller NA",
+        "Zhao S",
+        "Salami M",
+        "Löbenberg R",
+        "Davies NM"
+      ],
+      "published_at": "2026-07-03",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/pharmaceutics18070824",
+        "pmid": "42514902",
+        "pmcid": "PMC13414681",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42514902",
+      "abstract_or_excerpt": "Allometric scaling provides a practical framework for predicting human pharmacokinetic (PK) parameters from animal data by relating physiological processes to body size through power-law equations. Despite its simplicity and widespread use in first-in-human (FIH) dose selection, its predictive performance is limited by species-specific differences in absorption, distribution, metabolism, and excretion (ADME). This review summarizes the mathematical foundations, workflows, and diagnostics of allometric scaling, while critically examining where the approach succeeds and where it fails. Core concepts, including clearance, volume of distribution, correction factors, and the rule of exponents, are discussed alongside complementary methods: in vitro-in vivo extrapolation (IVIVE), physiologically based pharmacokinetic (PBPK) modelling, and the Wajima normalized time-course method. Historical clinical failures, including fialuridine, TGN1412, BIA 10-2474, and rofecoxib, illustrate the limits of relying solely on allometry, while thalidomide and the fenfluramine combination exemplify toxicodynamic species-selection failures. Modern advances, including the Extended Clearance Classification System (ECCS), target-mediated drug disposition, FcRn recycling, and emerging artificial intelligence and machine-learning methods, are integrated within a framework. Overall, the review treats allometric scaling as a disciplined starting hypothesis that must be triangulated with mechanistic, experimental, and regulatory evidence to support safer and more reliable human translation.",
+      "normalized_facts": {
+        "journal": "Pharmaceutics",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "d266a468763d75cd51ade66e8edb56596517e33550e6d83941383cca00dbd88f"
+    },
+    {
+      "evidence_id": "evd_d20a4276540e4476966f0e14fbc4bc4a",
+      "title": "Harnessing AlphaFold to reveal hERG channel conformational state secrets.",
+      "authors": [
+        "Ngo K",
+        "Yang PC",
+        "Yarov-Yarovoy V",
+        "Clancy CE",
+        "Vorobyov I"
+      ],
+      "published_at": "2025-07-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.7554/elife.104901",
+        "pmid": "40658102",
+        "pmcid": "PMC12259024",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40658102",
+      "abstract_or_excerpt": "To design safe, selective, and effective new therapies, there must be a deep understanding of the structure and function of the drug target. One of the most difficult problems to solve has been the resolution of discrete conformational states of transmembrane ion channel proteins. An example is K<sub>V</sub>11.1 (hERG), comprising the primary cardiac repolarizing current, <i>I</i><sub>kr</sub>. hERG is a notorious drug anti-target against which all promising drugs are screened to determine potential for arrhythmia. Drug interactions with the hERG inactivated state are linked to elevated arrhythmia risk, and drugs may become trapped during channel closure. While prior studies have applied AlphaFold to predict alternative protein conformations, we show that the inclusion of carefully chosen structural templates can guide these predictions toward distinct functional states. This targeted modeling approach is validated through comparisons with experimental data, including proposed state-dependent structural features, drug interactions from molecular docking, and ion conduction properties from molecular dynamics simulations. Remarkably, AlphaFold not only predicts inactivation mechanisms of the hERG channel that prevent ion conduction but also uncovers novel molecular features explaining enhanced drug binding observed during inactivation, offering a deeper understanding of hERG channel function and pharmacology. Furthermore, leveraging AlphaFold-derived states enhances computational screening by significantly improving agreement with experimental drug affinities, an important advance for hERG as a key drug safety target where traditional single-state models miss critical state-dependent effects. By mapping protein residue interaction networks across closed, open, and inactivated states, we identified critical residues driving state transitions validated by prior mutagenesis studies. This innovative methodology sets a new benchmark for integrating deep learning-based protein structure prediction with experimental validation. It also offers a broadly applicable approach using AlphaFold to predict discrete protein conformations, reconcile disparate data, and uncover novel structure-function relationships, ultimately advancing drug safety screening and enabling the design of safer therapeutics.",
+      "normalized_facts": {
+        "journal": "eLife",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "b05d3c6117d9f0f8ea431507a19d5009b0132a70ffdd1b361392fadebf4f68d5"
+    },
+    {
+      "evidence_id": "evd_6653a2f4d964473ca7e4d4d3fc288a35",
+      "title": "The genetics of drug-induced QT prolongation: evaluating the evidence for pharmacodynamic variants.",
+      "authors": [
+        "Lopez-Medina AI",
+        "Chahal CAA",
+        "Luzum JA"
+      ],
+      "published_at": "2022-06-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2217/pgs-2022-0027",
+        "pmid": "35698903",
+        "pmcid": "PMC9245591",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35698903",
+      "abstract_or_excerpt": "Drug-induced long QT syndrome (diLQTS) is an adverse effect of many commonly prescribed drugs, and it can increase the risk for lethal ventricular arrhythmias. Genetic variants in pharmacodynamic genes have been associated with diLQTS, but the strength of the evidence for each of those variants has not yet been evaluated. Therefore, the purpose of this review was to evaluate the strength of the evidence for pharmacodynamic genetic variants associated with diLQTS using a novel, semiquantitative scoring system modified from the approach used for congenital LQTS. <i>KCNE1-</i>D85N and <i>KCNE2</i>-T8A had definitive and strong evidence for diLQTS, respectively. The high level of evidence for these variants supports current consideration as risk factors for patients that will be prescribed a QT-prolonging drug.",
+      "normalized_facts": {
+        "journal": "Pharmacogenomics",
+        "pub_type": "review-article, Review, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "e2c9291bc95fdc3f335638f7cecee39949b1c4958afaeef8879e65ec58d06da0"
+    },
+    {
+      "evidence_id": "evd_159c11ea65c242f3b89b050a75f37a20",
+      "title": "Pharmacological activation of the hERG K<sup>+</sup> channel for the management of the long QT syndrome: A review.",
+      "authors": [
+        "El Harchi A",
+        "Brincourt O"
+      ],
+      "published_at": "2022-06-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/joa3.12741",
+        "pmid": "35936037",
+        "pmcid": "PMC9347208",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35936037",
+      "abstract_or_excerpt": "In the human heart, the rapid delayed rectifier K<sup>+</sup> current (<i>I</i> <sub>Kr</sub>) contributes significantly to ventricular action potential (AP) repolarization and to set the duration of the QT interval of the surface electrocardiogram (ECG). The pore-forming (α) subunit of the <i>I</i> <sub>Kr</sub> channel is encoded by <i>KCNH2</i> or human ether-à-go-go-related gene 1 (hERG1). Impairment of hERG function through either gene mutation (congenital) or pharmacological blockade by diverse drugs in clinical use (acquired) can cause a prolongation of the AP duration (APD) reflected onto the surface ECG as a prolonged QT interval or Long QT Syndrome (LQTS). LQTS can increase the risk of triggered activity of ventricular cardiomyocytes and associated life-threatening arrhythmia. Current treatments all focus on reducing the incidence of arrhythmia or terminating it after its onset but there is to date no prophylactic treatment for the pharmacological management of LQTS. A new class of hERG modulators (agonists) have been suggested through direct interaction with the hERG channel to shorten the action potential duration (APD) and/or increase the postrepolarisation refractoriness period (PRRP) of ventricular cardiomyocytes protecting thereby against triggered activity and associated arrhythmia. Although promising drug candidates, there remain major obstacles to their clinical development. The aim of this review is to summarize the latest advances as well as the limitations of this proposed pharmacotherapy.",
+      "normalized_facts": {
+        "journal": "Journal of arrhythmia",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "20835458cb2b47beba372662aa2911045ef40dbcddcf53221b79c6ffe6eaeaaf"
+    },
+    {
+      "evidence_id": "evd_173328ca08064cf581e8dac2b3c628f4",
+      "title": "A current understanding of drug-induced QT prolongation and its implications for anticancer therapy.",
+      "authors": [
+        "Roden DM"
+      ],
+      "published_at": "2019-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/cvr/cvz013",
+        "pmid": "30689740",
+        "pmcid": "PMC7967705",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/30689740",
+      "abstract_or_excerpt": "The QT interval, a global index of ventricular repolarization, varies among individuals and is influenced by diverse physiologic and pathophysiologic stimuli such as gender, age, heart rate, electrolyte concentrations, concomitant cardiac disease, and other diseases such as diabetes. Many drugs produce a small but reproducible effect on QT interval but in rare instances this is exaggerated and marked QT prolongation can provoke the polymorphic ventricular tachycardia 'torsades de pointes', which can cause syncope or sudden cardiac death. The generally accepted common mechanism whereby drugs prolong QT is block of a key repolarizing potassium current in heart, IKr, generated by expression of KCNH2, also known as HERG. Thus, evaluation of the potential that a new drug entity may cause torsades de pointes has relied on exposure of normal volunteers or patients to drug at usual and high concentrations, and on assessment of IKr block in vitro. More recent work, focusing on anticancer drugs with QT prolonging liability, is defining new pathways whereby drugs can prolong QT. Notably, the in vitro effects of some tyrosine kinase inhibitors to prolong cardiac action potentials (the cellular correlate of QT) can be rescued by intracellular phosphatidylinositol 3,4,5-trisphosphate, the downstream effector of phosphoinositide 3-kinase. This finding supports a role for inhibition of this enzyme, either directly or by inhibition of upstream kinases, to prolong QT through mechanisms that are being worked out, but include enhanced inward 'late' sodium current during the plateau of the action potential. The definition of non-IKr-dependent pathways to QT prolongation will be important for assessing risk, not only with anticancer therapies but also with other QT prolonging drugs and for generating a refined understanding how variable activity of intracellular signalling systems can modulate QT and associated arrhythmia risk.",
+      "normalized_facts": {
+        "journal": "Cardiovascular research",
+        "pub_type": "review-article, Review, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "e172c4a83777810b1795d8507a147f31458ae3f79e562c31c3a1b64bcc6cddfa"
+    },
+    {
+      "evidence_id": "evd_fa1d9aa902e74a63aff18175eb535b96",
+      "title": "Comparative risk of cardiac arrhythmias associated with acetylcholinesterase inhibitors used in treatment of dementias - A narrative review.",
+      "authors": [
+        "Huang Y",
+        "Alsabbagh MW"
+      ],
+      "published_at": "2020-08-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/prp2.622",
+        "pmid": "32691984",
+        "pmcid": "PMC7372915",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/32691984",
+      "abstract_or_excerpt": "Donepezil, galantamine, and rivastigmine are the three acetylcholinesterase inhibitors (AChEIs), out of a total of only four medications prescribed in the treatment of Alzheimer's Disease (AD) and related dementias. These medications are known to be associated with bradycardia given their mechanism of action of increasing acetylcholine (ACh). However, in March 2015, donepezil was added to the CredibleMeds \"known-risk\" category, a list where medications have a documented risk for acquired long-QT syndrome (ALQTS) and torsades de pointes (TdP) - a malignant ventricular arrhythmia that is a different adverse event than bradycardia (and is not necessarily associated with ACh action). The purpose of this article is to review the three AChEIs, especially with regards to mechanistic differences that may explain why only donepezil poses this risk; several pharmacological mechanisms may explain why. However, from an empirical point-of-view, aside from some case-reports, only a limited number of studies have generated relevant information regarding AChEIs' and electrocardiogram findings; none have specifically compared donepezil against galantamine or rivastigmine for malignant arrhythmias such as TdP. Currently, the choice of one of the three AChEIs for treatment of AD symptoms is primarily dependent upon clinician and patient preference. However, clinicians should be aware of the potential increased risk associated with donepezil. There is a need to examine the comparative risk of malignant arrhythmias among AChEIs users in real-world practice; this may have important implications with regards to changes in AChEI prescribing patterns.",
+      "normalized_facts": {
+        "journal": "Pharmacology research & perspectives",
+        "pub_type": "Comparative Study, review-article, Review, Journal Article",
+        "pub_year": "2020"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "ee3c47e36ee95eb38ce152033a3d522795ceb4a7a10d39326fd49c18f97e68f3"
+    },
+    {
+      "evidence_id": "evd_da3622a6d6b44c2c97cd4d45f226c3ef",
+      "title": "Cardiovascular safety of prokinetic agents: A focus on drug-induced arrhythmias.",
+      "authors": [
+        "Giudicessi JR",
+        "Ackerman MJ",
+        "Camilleri M"
+      ],
+      "published_at": "2018-02-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/nmo.13302",
+        "pmid": "29441683",
+        "pmcid": "PMC6364982",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/29441683",
+      "abstract_or_excerpt": "<h4>Background</h4>Gastrointestinal sensorimotor dysfunction underlies a wide range of esophageal, gastric, and intestinal motility and functional disorders that collectively constitute nearly half of all referrals to gastroenterologists. As a result, substantial effort has been dedicated toward the development of prokinetic agents intended to augment or restore normal gastrointestinal motility. However, the use of several clinically efficacious gastroprokinetic agents, such as cisapride, domperidone, erythromycin, and tegaserod, is associated with unfavorable cardiovascular safety profiles, leading to restrictions in their use.<h4>Purpose</h4>The purpose of this review is to detail the cellular and molecular mechanisms that lead commonly to drug-induced cardiac arrhythmias, specifically drug-induced long QT syndrome, torsades de pointes, and ventricular fibrillation, to examine the cardiovascular safety profiles of several classes of prokinetic agents currently in clinical use, and to explore potential strategies by which the risk of drug-induced cardiac arrhythmia associated with prokinetic agents and other QT interval prolonging medications can be mitigated successfully.",
+      "normalized_facts": {
+        "journal": "Neurogastroenterology and motility",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Review, Journal Article",
+        "pub_year": "2018"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "74f46a03a334c2ae047ca31e5d1e6fa6beee945282a0c7eabebd2362fcf0c9b9"
+    },
+    {
+      "evidence_id": "evd_7659cf6eb356484fa207f0739fbe6f6c",
+      "title": "Sex-Specific Classification of Drug-Induced Torsade de Pointes Susceptibility Using Cardiac Simulations and Machine Learning.",
+      "authors": [
+        "Fogli Iseppe A",
+        "Ni H",
+        "Zhu S",
+        "Zhang X",
+        "Coppini R",
+        "Yang PC",
+        "Srivatsa U",
+        "Clancy CE"
+      ],
+      "published_at": "2021-04-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpt.2240",
+        "pmid": "33772748",
+        "pmcid": "PMC8316283",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33772748",
+      "abstract_or_excerpt": "Torsade de Pointes (TdP), a rare but lethal ventricular arrhythmia, is a toxic side effect of many drugs. To assess TdP risk, safety regulatory guidelines require quantification of hERG channel block in vitro and QT interval prolongation in vivo for all new therapeutic compounds. Unfortunately, these have proven to be poor predictors of torsadogenic risk, and are likely to have prevented safe compounds from reaching clinical phases. Although this has stimulated numerous efforts to define new paradigms for cardiac safety, none of the recently developed strategies accounts for patient conditions. In particular, despite being a well-established independent risk factor for TdP, female sex is vastly under-represented in both basic research and clinical studies, and thus current TdP metrics are likely biased toward the male sex. Here, we apply statistical learning to synthetic data, generated by simulating drug effects on cardiac myocyte models capturing male and female electrophysiology, to develop new sex-specific classification frameworks for TdP risk. We show that (i) TdP classifiers require different features in females vs. males; (ii) male-based classifiers perform more poorly when applied to female data; and (iii) female-based classifier performance is largely unaffected by acute effects of hormones (i.e., during various phases of the menstrual cycle). Notably, when predicting TdP risk of intermediate drugs on female simulated data, male-biased predictive models consistently underestimate TdP risk in women. Therefore, we conclude that pipelines for preclinical cardiotoxicity risk assessment should consider sex as a key variable to avoid potentially life-threatening consequences for the female population.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology and therapeutics",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "bd5e1e5b1d6341a63c87af4da4833064008d561fd87a74c77044738c9beaf447"
+    },
+    {
+      "evidence_id": "evd_a8efb0068faa49518f5976ca5c6a5171",
+      "title": "Assessing Drug-Induced Mitochondrial Toxicity in Cardiomyocytes: Implications for Preclinical Cardiac Safety Evaluation.",
+      "authors": [
+        "Tang X",
+        "Wang Z",
+        "Hu S",
+        "Zhou B"
+      ],
+      "published_at": "2022-06-21",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/pharmaceutics14071313",
+        "pmid": "35890211",
+        "pmcid": "PMC9319223",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35890211",
+      "abstract_or_excerpt": "Drug-induced cardiotoxicity not only leads to the attrition of drugs during development, but also contributes to the high morbidity and mortality rates of cardiovascular diseases. Comprehensive testing for proarrhythmic risks of drugs has been applied in preclinical cardiac safety assessment for over 15 years. However, other mechanisms of cardiac toxicity have not received such attention. Of them, mitochondrial impairment is a common form of cardiotoxicity and is known to account for over half of cardiovascular adverse-event-related black box warnings imposed by the U.S. Food and Drug Administration. Although it has been studied in great depth, mitochondrial toxicity assessment has not yet been incorporated into routine safety tests for cardiotoxicity at the preclinical stage. This review discusses the main characteristics of mitochondria in cardiomyocytes, drug-induced mitochondrial toxicities, and high-throughput screening strategies for cardiomyocytes, as well as their proposed integration into preclinical safety pharmacology. We emphasize the advantages of using adult human primary cardiomyocytes for the evaluation of mitochondrial morphology and function, and the need for a novel cardiac safety testing platform integrating mitochondrial toxicity and proarrhythmic risk assessments in cardiac safety evaluation.",
+      "normalized_facts": {
+        "journal": "Pharmaceutics",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:26:15.460125+00:00",
+      "content_sha256": "b32652354fd2b95192d57cf5f82b7a37f03eb0d9232fd83b87c2610bb99ce001"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_3d31ddc0b1e04b6c9cfcd5013a6b905e",
+        "session_id": "ses_8f9ada60bead44f7b3f8e69277711967",
+        "subject_key": "analysis:ana_ad5da1928b49445f8764d95194c3b916",
+        "question": "Should hERG liability stop prioritising terfenadine as a starting point for a non-sedating antihistamine programme, and what should be tested next?",
+        "decision_context": "Decision is limited to programme prioritisation and next verification tests; not a clinical, safety or regulatory verdict.",
+        "subject_refs": [
+          "analysis:ana_ad5da1928b49445f8764d95194c3b916"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The predictor's hERG signal is directionally consistent with a genuine cardiac ion-channel liability that should materially reduce prioritisation.",
+            "kind": "model_signal",
+            "refutation_condition": "Direct hERG patch-clamp testing at relevant free concentrations shows no meaningful inhibition and no concentration-dependent effect.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          },
+          {
+            "id": "h2",
+            "statement": "The apparent hERG concern could be overstated or poorly predictive for the intended programme because of assay, exposure, metabolism or model-applicability mismatch.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "Orthogonal direct hERG and cardiac repolarisation studies reproduce a concentration-dependent effect at exposures relevant to the intended use context.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored hERG predictor reports terfenadine as a blocker with probability_blocker 0.6803638935089111 and threshold 0.4133453071117401.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_a7a5592a50ee4e698e7bca2cddbde034",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "scope": {
+              "compound": "terfenadine",
+              "endpoint": "hERG",
+              "use_context": "programme prioritisation"
+            },
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "description": "The predictor probability is an uncalibrated model score; direct concentration-response hERG data and exposure context are unavailable.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "description": "No intended exposure, free concentration, metabolite profile or use-context margin was supplied, so translational relevance cannot be judged.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for independent compound-specific evidence that could contradict or contextualise the model hERG signal before making a prioritisation recommendation.",
+            "decision": "answer",
+            "outcome": "The bounded search returned no citable record about terfenadine and hERG; this is a coverage limitation, not evidence of absence.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the recommendation stays within the predictor endpoint, distinguishes model score from experimental evidence, represents the failed counterevidence search, and identifies a discriminating next test.",
+            "decision": "answer",
+            "outcome": "Recommendation will be a conditional hold on prioritisation, not a claim of clinical or general safety; direct hERG testing and exposure information remain decisive.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run blinded direct hERG patch-clamp concentration-response testing on terfenadine, with free-concentration measurement and major metabolite coverage; if positive, follow with an orthogonal cardiac repolarisation assay.",
+            "rationale": "This directly tests whether the model signal reproduces in the target ion-channel assay and whether the effect occurs at concentrations relevant to the intended programme.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "hERG inhibition potency and maximal inhibition versus concentration",
+              "free parent and metabolite concentrations",
+              "orthogonal cardiac repolarisation action-potential or QT-related readout"
+            ],
+            "actor": "model",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The stored hERG predictor flags terfenadine as a blocker; this is sufficient to pause prioritisation pending direct verification, but not to establish real-world cardiac risk.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "Direct concentration-response hERG testing with free-concentration and metabolite coverage is the next discriminating experiment.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "The predictor alone cannot establish clinical risk, a safety verdict, or whether the liability occurs at programme-relevant exposure.",
+            "No compound-specific independent hERG evidence was recovered by the bounded search."
+          ],
+          "what_would_change": [
+            "A direct hERG result showing no meaningful concentration-dependent inhibition at relevant free concentrations would weaken the model-signal hypothesis.",
+            "Reproducible inhibition, especially with an orthogonal cardiac repolarisation signal at relevant exposure, would support deprioritisation."
+          ],
+          "approver": "",
+          "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b"
+        },
+        "runs": [
+          {
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "goal": "We are evaluating terfenadine (CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O) as a starting point for a new non-sedating antihistamine programme. Should hERG liability stop us from prioritising it, and what would you test next?",
+            "stop_reason": "blocked",
+            "answer_id": "ans_aa1e05bf4cad45d89acbeb5539df9200",
+            "usage": {
+              "searches": 1,
+              "tool_calls": 10,
+              "denied_calls": 0,
+              "failed_calls": 1,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-25T12:25:43.964609+00:00",
+        "updated_at": "2026-09-25T12:27:52.778707+00:00"
+      },
+      "events": {
+        "case_id": "scase_3d31ddc0b1e04b6c9cfcd5013a6b905e",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_3d31ddc0b1e04b6c9cfcd5013a6b905e",
+              "question": "We are evaluating terfenadine (CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O) as a starting point for a new non-sedating antihistamine programme. Should hERG liability stop us from prioritising it, and what would you test next?",
+              "session_id": "ses_8f9ada60bead44f7b3f8e69277711967",
+              "subject_key": "analysis:ana_ad5da1928b49445f8764d95194c3b916",
+              "subject_refs": [
+                "analysis:ana_ad5da1928b49445f8764d95194c3b916"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:25:43.964609+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "We are evaluating terfenadine (CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O) as a starting point for a new non-sedating antihistamine programme. Should hERG liability stop us from prioritising it, and what would you test next?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:25:43.964609+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 2
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "Should hERG liability stop prioritising terfenadine as a starting point for a non-sedating antihistamine programme, and what should be tested next?",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "decision_context": "Decision is limited to programme prioritisation and next verification tests; not a clinical, safety or regulatory verdict.",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:14.380385+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The predictor's hERG signal is directionally consistent with a genuine cardiac ion-channel liability that should materially reduce prioritisation.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Direct hERG patch-clamp testing at relevant free concentrations shows no meaningful inhibition and no concentration-dependent effect."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:14.380405+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "can_say": [],
+              "statement": "The apparent hERG concern could be overstated or poorly predictive for the intended programme because of assay, exposure, metabolism or model-applicability mismatch.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Orthogonal direct hERG and cardiac repolarisation studies reproduce a concentration-dependent effect at exposures relevant to the intended use context."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:14.380412+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored hERG predictor reports terfenadine as a blocker with probability_blocker 0.6803638935089111 and threshold 0.4133453071117401.",
+              "scope": {
+                "compound": "terfenadine",
+                "endpoint": "hERG",
+                "use_context": "programme prioritisation"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_a7a5592a50ee4e698e7bca2cddbde034",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:48.133857+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 6
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The bounded search returned no citable record about terfenadine and hERG; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for independent compound-specific evidence that could contradict or contextualise the model hERG signal before making a prioritisation recommendation.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:48.133880+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 7
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "model_calibration",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The predictor probability is an uncalibrated model score; direct concentration-response hERG data and exposure context are unavailable.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:48.133889+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 8
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "No intended exposure, free concentration, metabolite profile or use-context margin was supplied, so translational relevance cannot be judged.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:48.133896+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 9
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run blinded direct hERG patch-clamp concentration-response testing on terfenadine, with free-concentration measurement and major metabolite coverage; if positive, follow with an orthogonal cardiac repolarisation assay.",
+              "can_say": [],
+              "rationale": "This directly tests whether the model signal reproduces in the target ion-channel assay and whether the effect occurs at concentrations relevant to the intended programme.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "hERG inhibition potency and maximal inhibition versus concentration",
+                "free parent and metabolite concentrations",
+                "orthogonal cardiac repolarisation action-potential or QT-related readout"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:26:48.133904+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 10
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Recommendation will be a conditional hold on prioritisation, not a claim of clinical or general safety; direct hERG testing and exposure information remain decisive.",
+              "purpose": "Check that the recommendation stays within the predictor endpoint, distinguishes model score from experimental evidence, represents the failed counterevidence search, and identifies a discriminating next test.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:27:03.271540+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 11
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The stored hERG predictor flags terfenadine as a blocker; this is sufficient to pause prioritisation pending direct verification, but not to establish real-world cardiac risk.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "Direct concentration-response hERG testing with free-concentration and metabolite coverage is the next discriminating experiment.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "The predictor alone cannot establish clinical risk, a safety verdict, or whether the liability occurs at programme-relevant exposure.",
+                "No compound-specific independent hERG evidence was recovered by the bounded search."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A direct hERG result showing no meaningful concentration-dependent inhibition at relevant free concentrations would weaken the model-signal hypothesis.",
+                "Reproducible inhibition, especially with an orthogonal cardiac repolarisation signal at relevant exposure, would support deprioritisation."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:27:03.271576+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 1,
+                "tool_calls": 10,
+                "denied_calls": 0,
+                "failed_calls": 1,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_aa1e05bf4cad45d89acbeb5539df9200",
+              "stop_reason": "blocked"
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:27:52.778707+00:00",
+            "run_id": "run_ce45c927844c444a9d64dd1e2f25a29b",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

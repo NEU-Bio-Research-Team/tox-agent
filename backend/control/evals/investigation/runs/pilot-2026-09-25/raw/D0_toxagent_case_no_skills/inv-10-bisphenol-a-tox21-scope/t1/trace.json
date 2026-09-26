@@ -1,0 +1,2607 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_653b843829324f599cbc584c98f75c57",
+        "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:47:18.283251+00:00",
+        "created_at": "2026-09-25T13:42:18.283251+00:00",
+        "started_at": "2026-09-25T13:42:18.424712+00:00",
+        "ended_at": "2026-09-25T13:44:57.184263+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "c9cdd71db9f947ae26d36016eb8bacbd0cc34642162516eacb10ce1ba9bc9316",
+          "tool_schema_hash": "b76b67ce2cb71f9dda4bf5a3ccbaae907d67b98f45c1b5a65eb97fb8fa8a8f62",
+          "system_prompt_hash": "a9333e79f5e10e2cdadb30e6a15c0c339f262307a37450609c77e0f9c8b90b14"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:42:18.284103+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_3b1cf1af759c43d6a3b270b645ecdf8b",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:29.848336+00:00",
+              "tokens": {
+                "input": 7300,
+                "output": 79,
+                "reasoning": 40,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 7419
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_f5932b70ee1d5d4224a32146d7d26c1c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cd7ac2001l3qKiHbrpW76f7",
+                "step_id": "prt_0d8cda0ce001ddtQxtbdxCEboJ",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_2302109c2e2c4ad78ef00d38a0ecb073",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:32.391374+00:00",
+              "tokens": {
+                "input": 937,
+                "output": 26,
+                "reasoning": 0,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 7619
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_688310b0732bae43a336b9d9b9fd0fc3",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cda11a001uappYse3x1eu0g",
+                "step_id": "prt_0d8cdaabf001jyaM4L7AqcpL6a",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e1aa25ae8e8144e289b0ef6ac69be526",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:48.644273+00:00",
+              "tokens": {
+                "input": 1259,
+                "output": 693,
+                "reasoning": 72,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 8680
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_564f699140c5841d8d0a6b878c41e592",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cdaaec001FjrK7F7cWC13NA",
+                "step_id": "prt_0d8cdea2a001yp6S1gPyV6RwLR",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_0c97cb0261a94029b51bbda25a8270e0",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:52.415869+00:00",
+              "tokens": {
+                "input": 1186,
+                "output": 56,
+                "reasoning": 22,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8944
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8b7d2fb4bd4a7943c869dd152008801d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cdea7d001zeGNk9xLdFNKTp",
+                "step_id": "prt_0d8cdf8f5001ZJuNBD53qGukvz",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_9335f3ba537441d69e78ea0480d3f0a6",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:55.763044+00:00",
+              "tokens": {
+                "input": 505,
+                "output": 53,
+                "reasoning": 26,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 9288
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a2a0925ff3a2af639fbcebcbd9536c56",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cdf927001AFXLcniYNcr3tF",
+                "step_id": "prt_0d8ce060a001ZONGDk8lnZ6m46",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_b604de7a77174b759b3fa0246b516130",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:43:13.149577+00:00",
+              "tokens": {
+                "input": 1367,
+                "output": 709,
+                "reasoning": 23,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 10803
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_986094b284dff3964051a845098341be",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ce0638001HJ3AHN5z0b60po",
+                "step_id": "prt_0d8ce49f6001NKHkQ1NPrMGIRr",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c72ecf3ec58144b8ae139161e1df0c8a",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:43:26.522543+00:00",
+              "tokens": {
+                "input": 6231,
+                "output": 389,
+                "reasoning": 41,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 16389
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_3243262e4fc246c893c1cccbcb00159f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ce4a19001mbaiHP801wXSKR",
+                "step_id": "prt_0d8ce7e33001baVdhAH9QbLI1g",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_98eedee8a3c048709334084008157c9e",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:43:33.174105+00:00",
+              "tokens": {
+                "input": 859,
+                "output": 92,
+                "reasoning": 40,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 16863
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a3a22a5645017f9810fc1642246f239a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ce7e5400187xl8SMNJs7J7D",
+                "step_id": "prt_0d8ce982f001m8nwK4B7tZwbrb",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_02ff1a391a6947cd90abfb3ea8543fb5",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:44:09.924580+00:00",
+              "tokens": {
+                "input": 1831,
+                "output": 1326,
+                "reasoning": 461,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 19490
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_825f95b9f9ecdfc4c8ce8b279fc4080a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ce9866001lmKPSng4fWbnI1",
+                "step_id": "prt_0d8cf27bb001ZAGCau1Wrkhpbm",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_5c02236bce2841559d7868e1d32337e1",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:44:19.648766+00:00",
+              "tokens": {
+                "input": 2798,
+                "output": 345,
+                "reasoning": 25,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 20064
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_932be50b0acb831d095412eaa588c77d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cf27f0001We4LR7R04tCgEj",
+                "step_id": "prt_0d8cf4db8001saHvVuzcnaHlaA",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f74c31553f1747c2986198b32b47a37f",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:44:54.567594+00:00",
+              "tokens": {
+                "input": 1295,
+                "output": 1033,
+                "reasoning": 725,
+                "cache_read": 18944,
+                "cache_write": 0,
+                "total": 21997
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b87209bb4188224cd4c15a0fa7507776",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cf4de4001pdpmN3uXi6FTlr",
+                "step_id": "prt_0d8cfd61f001h8zhE7osQLQZNm",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_561d8e74655d4d82b525915f0d154a6e",
+              "runtime_binding_id": "rtb_49ce2692313f44afb0b3553948796cf6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:44:57.105138+00:00",
+              "tokens": {
+                "input": 2156,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 19968,
+                "cache_write": 0,
+                "total": 22128
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7b452b181a949f0fcc2d8a9dcf86d808",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cfd64d001mWQn8QHU98SOox",
+                "step_id": "prt_0d8cfe009001uGaVy7vIes03GY",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_5cde36002a394899a0c3e22688a7bc3d",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "61a2a4df552487f7940f64c21f564cdecf4bee10fa268f500dfaed210977f72c",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:42:29.753880+00:00",
+            "ended_at": "2026-09-25T13:42:29.766853+00:00"
+          },
+          {
+            "call_id": "call_5c96e2bddf79469d89d6f3d4394300b3",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:42:32.306693+00:00",
+            "ended_at": "2026-09-25T13:42:32.321199+00:00"
+          },
+          {
+            "call_id": "call_a47e64c182694827810af0d96725460c",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 35,
+            "arguments_sha256": "31c3088d687aa4cc73811e5b24a16655007d2f4a6a24535906b1191b02658814",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:42:48.512512+00:00",
+            "ended_at": "2026-09-25T13:42:48.545206+00:00"
+          },
+          {
+            "call_id": "call_5c5cae63243945b7a77aaefa45c25013",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "4587118099047fe3d4eeceb80e3132f27427f74577a7b93427941226bfce1f99",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:42:52.328366+00:00",
+            "ended_at": "2026-09-25T13:42:52.340184+00:00"
+          },
+          {
+            "call_id": "call_c443d90f6e0944979dce6c4666f690b0",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 27,
+            "arguments_sha256": "5e0b7e3070e84a63ed72f89718c5ca3e860acb5bf78959c6334ff6a94d4da6f5",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:42:55.630384+00:00",
+            "ended_at": "2026-09-25T13:42:55.654984+00:00"
+          },
+          {
+            "call_id": "call_4e7db06e3ef6452597e85a4a3f97e2c1",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "2ec6002a9a1b4d1474ec8c649a4f7b46c2ce11e33bdf26e5e368b17fbf5621e0",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.376992+00:00",
+            "ended_at": "2026-09-25T13:43:12.393816+00:00"
+          },
+          {
+            "call_id": "call_e8f2b2defc6a42bb993eb1765c3afeec",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "5e3456bf3edfd4a18991f7a99d173690593b6d049cf06f6bbd74854dde077d3a",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.473533+00:00",
+            "ended_at": "2026-09-25T13:43:12.498135+00:00"
+          },
+          {
+            "call_id": "call_0d52e102538e476d82f366bf1f4bdfc0",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "f4eb799b254826490fcde2cebd470b978148b741f559cf5bf5a3bb04e862c1dd",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.580477+00:00",
+            "ended_at": "2026-09-25T13:43:12.591331+00:00"
+          },
+          {
+            "call_id": "call_116d1add076c4cc7b36bfe159f3a69e3",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 45,
+            "arguments_sha256": "288fa62637afa9ba873f8d24ebba666573011cf7f29e703c134eeaf07689e0fe",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.658250+00:00",
+            "ended_at": "2026-09-25T13:43:12.701929+00:00"
+          },
+          {
+            "call_id": "call_c3c81ea69250425e9dba12f8c6d82a69",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "77c64807885fef5439a9872e16300173d76ae8cf6324b59f5958c430e5322526",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.694391+00:00",
+            "ended_at": "2026-09-25T13:43:12.708919+00:00"
+          },
+          {
+            "call_id": "call_6f23b151f1af45e3b92e1e2b5ef80651",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 23,
+            "arguments_sha256": "bcc587b47581da907ec1877529c8f7729159c8b1faed2dc07a85596267bc7a46",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.752910+00:00",
+            "ended_at": "2026-09-25T13:43:12.774629+00:00"
+          },
+          {
+            "call_id": "call_2adca64f10454e108ef0bf8cd757f61b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "d0223d2a335ef03ae1f42a8aee7c2869d98499be28fb2c3fb5945c96a90f4577",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.811761+00:00",
+            "ended_at": "2026-09-25T13:43:12.826255+00:00"
+          },
+          {
+            "call_id": "call_833073e1157a48ecaf138dee7485a158",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "54fdc04f3af03b764bfd6ffa23ec5e965bab99dde87a83c861c11a40d599ca7c",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.850719+00:00",
+            "ended_at": "2026-09-25T13:43:12.861720+00:00"
+          },
+          {
+            "call_id": "call_9d91b88bb7604dac984d81b9f03dbe86",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 59,
+            "arguments_sha256": "f62bcb31bdd431628cad6b7d8bf0bfb66d351298f448ec4b8a03210cd9995247",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.902597+00:00",
+            "ended_at": "2026-09-25T13:43:12.951861+00:00"
+          },
+          {
+            "call_id": "call_e7d19b72bfa84647b20419d7d605a3df",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 34,
+            "arguments_sha256": "aa14e371869790ee9c9e6267fa8bf3e52688799ab9f18d83edf3e3293a6967b5",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.947223+00:00",
+            "ended_at": "2026-09-25T13:43:12.963751+00:00"
+          },
+          {
+            "call_id": "call_4e83f541de804d3d93ffca5e56cfb6de",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 23,
+            "arguments_sha256": "a79bcdc2c92291a2fbe94c8bc198cee68a2e19be8c09c48497443925c1b98cfd",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:12.947572+00:00",
+            "ended_at": "2026-09-25T13:43:12.968074+00:00"
+          },
+          {
+            "call_id": "call_2cfa03c7f53f425ea3923da5349c1f80",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 44,
+            "arguments_sha256": "8a0957fd51d4bb239c4ce40821f08bdba2a5f375b012dcabab7aa4635af5a0ab",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:13.065141+00:00",
+            "ended_at": "2026-09-25T13:43:13.106773+00:00"
+          },
+          {
+            "call_id": "call_7396a1761da14f60be266980b574de01",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "db5a27a89faa3f180d9cfd66ab5e104ce8f84692198637557cb6f4d95aa8ecb0",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:43:13.102231+00:00",
+            "ended_at": "2026-09-25T13:43:13.113850+00:00"
+          },
+          {
+            "call_id": "call_9e11b4f559694e8d82f0d40ed5941ae2",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1268,
+            "arguments_sha256": "2610988925953a9544f88a97f436119af16b2b156467426d96f20de9e97fc68c",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:43:25.224004+00:00",
+            "ended_at": "2026-09-25T13:43:26.490468+00:00"
+          },
+          {
+            "call_id": "call_162a9d64f30c4dc2b080ab894db4c724",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "0fea3b0f6b8e08c6c02e552c0b0e7c419f95191852899409845f41fa5e686035",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:43:25.363806+00:00",
+            "ended_at": "2026-09-25T13:43:25.377048+00:00"
+          },
+          {
+            "call_id": "call_9b1f627d0936478fb368ac530eaa7e28",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1167,
+            "arguments_sha256": "1d92ae375ed9601a3f2a3ba152c72156d8838f3db50e1dd171c7942d3fb9358e",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:43:31.973573+00:00",
+            "ended_at": "2026-09-25T13:43:33.139611+00:00"
+          },
+          {
+            "call_id": "call_141ab5299ad046a486ecc88614c95797",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 22,
+            "arguments_sha256": "c1fef74dceddf7fa27154df987b4a675948dbb08755155f9bdfc7cbb294783a1",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:44:09.839627+00:00",
+            "ended_at": "2026-09-25T13:44:09.860066+00:00"
+          },
+          {
+            "call_id": "call_9625fd97c5ff4f2abe311c23d2a99735",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "8177e64a54709124525f8d87481492115e24116803abd816dea99fa5e63de46f",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:44:19.557885+00:00",
+            "ended_at": "2026-09-25T13:44:19.574489+00:00"
+          },
+          {
+            "call_id": "call_c355eefc44d84510a81499760466ec26",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 29,
+            "arguments_sha256": "808d2a71b7227f28a2187d16b9af651e766848523f52e98cddf1cf81414932a3",
+            "observation_ids": [
+              "obs_00ea2142b7924915a34d92df8b11ec40"
+            ],
+            "started_at": "2026-09-25T13:44:54.453784+00:00",
+            "ended_at": "2026-09-25T13:44:54.481281+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_56b6a5e7e4ca4e58950b0225b186cfcb",
+        "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+        "answer_markdown": "No. These results do not mean bisphenol A is “toxic overall.” They indicate predicted activity in particular Tox21 assay systems.\n\n**How to read them**\n- The strongest signal is in the estrogen-receptor assays: NR-ER is classified active, while NR-AR is classified inactive. These are separate endpoint results, not a global toxicity label.\n- Other active calls concern different biological systems, including AhR, aromatase, PPAR-gamma, oxidative-stress, DNA-damage, heat-shock, mitochondrial-membrane, and p53-related assays. They should be reviewed assay by assay; the number of active assays is not a severity score.\n- Each probability is an uncalibrated model score. “Active” means the model score crossed that assay’s stored decision threshold; it does not establish potency, dose relevance, mechanism, or human risk.\n- Applicability is marked “ok” only under an element-composition rule. That supports using the output as a screening signal, not proof that the compound is fully represented by the training distribution.\n\nThe practical conclusion is: treat this as a prioritization signal for endpoint-specific confirmation, not as an overall toxicity determination. A useful follow-up is concentration-response testing with controls and orthogonal confirmation for the highest-priority receptor and stress-response signals, interpreted against a defined exposure context.",
+        "claims": [
+          {
+            "claim_id": "clm_f6caf968cc1845ac988fcb8fcbd02183",
+            "kind": "classification",
+            "text": "The model classifies the NR-ER assay as active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_00ea2142b7924915a34d92df8b11ec40",
+            "field_path": "predictions.tox21.assays.NR-ER.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_62bb115e9ab2461d879fc8d0a3b31c62",
+            "kind": "classification",
+            "text": "The model classifies the NR-AR assay as inactive.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_00ea2142b7924915a34d92df8b11ec40",
+            "field_path": "predictions.tox21.assays.NR-AR.active",
+            "source_value": false,
+            "rendered_value": "False"
+          },
+          {
+            "claim_id": "clm_1b8181cd774b428084eeea7bc91f0b22",
+            "kind": "scientific",
+            "text": "Tox21 assays are independent measurements and their active-call count is not a severity score.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_00ea2142b7924915a34d92df8b11ec40",
+            "field_path": "predictions.tox21.assays"
+          },
+          {
+            "claim_id": "clm_fd596a0d352346d5b59ab8973b154f04",
+            "kind": "limitation",
+            "text": "The Tox21 probability outputs are model scores and are not calibrated clinical or population risk estimates.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_00ea2142b7924915a34d92df8b11ec40",
+            "field_path": "predictions.tox21.assays.NR-ER.probability_activity"
+          },
+          {
+            "claim_id": "clm_5140416529c34acaba066822ca1a6fb8",
+            "kind": "classification",
+            "text": "Applicability is classified as ok by an element-rules method, with a caveat that element composition does not confirm broader distributional similarity.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_00ea2142b7924915a34d92df8b11ec40",
+            "field_path": "applicability.status",
+            "source_value": "ok",
+            "rendered_value": "ok"
+          },
+          {
+            "claim_id": "clm_b19246d5c5914a6a843a3a795c703fbc",
+            "kind": "scientific",
+            "text": "The assay outputs alone do not establish overall toxicity, potency at a relevant exposure, mechanism, or human risk.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_00ea2142b7924915a34d92df8b11ec40",
+            "field_path": "predictions.tox21.assays.NR-ER.active"
+          },
+          {
+            "claim_id": "clm_6bf28586cb0e42138d41cf9965d55e57",
+            "kind": "recommendation",
+            "text": "Confirm the highest-priority signals with concentration-response controls, orthogonal assays, and a defined exposure context.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "Model probabilities are not calibrated clinical or population risk estimates."
+          },
+          {
+            "code": "applicability_is_rule_based",
+            "text": "Applicability is based on element rules and does not establish full distributional similarity."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed follow-up is screening and verification, not a safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Confirm the highest-priority receptor and stress-response signals experimentally using concentration-response controls, orthogonal assays, and a defined exposure context.",
+            "basis_claim_ids": [
+              "clm_f6caf968cc1845ac988fcb8fcbd02183",
+              "clm_1b8181cd774b428084eeea7bc91f0b22",
+              "clm_b19246d5c5914a6a843a3a795c703fbc"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "be40f6a828e892b43d5d312c295ac61e393f319b5967036b185a6d7609ad8179",
+        "created_at": "2026-09-25T13:44:54.466935+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_445eb36d983c49c48d075dfd3f98820d",
+        "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+        "goal": "The model reports several Tox21 assay activities for bisphenol A (CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O). Does that mean it is toxic overall, and how should we read those results?",
+        "subject_refs": [
+          "analysis:ana_c54e74696e5e420c8786838656e583c8"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 24,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_00ea2142b7924915a34d92df8b11ec40"
+        ],
+        "found_refs": [
+          "evidence:evd_2670529b2f6c4eb29cc04f36d3475918",
+          "evidence:evd_497c0c1f956b4c84a5b736360f2c58c9",
+          "evidence:evd_e9a2beee21394f55baf4de1f52f30918",
+          "evidence:evd_c65308e3241c46d0998de441f883db55"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 27
+      },
+      "dossier": {
+        "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+        "case_id": "scase_2dbf0995efe04ce195dc886969744270",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 1,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "Interpret the bisphenol A Tox21 assay activities without treating them as an aggregate toxicity label, and determine what they do and do not establish about overall toxicity.",
+        "answer_id": "ans_56b6a5e7e4ca4e58950b0225b186cfcb",
+        "conclusion": {
+          "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+          "can_say": [
+            {
+              "text": "The model indicates activity in multiple independent Tox21 assays, while two androgen-receptor assays are predicted inactive; this is an assay-profile signal, not an aggregate toxicity verdict.",
+              "sources": [
+                "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "observation:obs_00ea2142b7924915a34d92df8b11ec40"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "The result does not establish organism-level toxicity, human risk, potency at a relevant exposure, or mechanism.",
+              "sources": [
+                "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "observation:obs_00ea2142b7924915a34d92df8b11ec40"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e3"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Do not call the compound toxic overall from these outputs alone.",
+            "Do not treat the number of active assays as a severity score.",
+            "Do not interpret model probabilities as calibrated clinical or population risk."
+          ],
+          "what_would_change": [
+            "Compound-specific experimental concentration-response data, assay controls, orthogonal confirmation, and a defined exposure context would determine whether the signals replicate and are relevant."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "status": "open",
+            "context": [
+              {
+                "id": "e3",
+                "actor": "model",
+                "claim": "The applicability result is 'ok' under element_rules_v1, with the explicit caveat that common elements do not confirm distributional similarity beyond element composition.",
+                "scope": {
+                  "compound": "bisphenol A",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+                "stance": "contextual",
+                "locator": "applicability.status; applicability.method; applicability.reasons",
+                "directness": "direct",
+                "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The reported Tox21 activities are model signals for activity in specific assays, and should not be interpreted as proof of overall toxicity.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The predictor marks NR-ER, NR-ER-LBD, NR-AhR, NR-Aromatase, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53 active for this molecule.",
+                "scope": {
+                  "assay": "listed Tox21 assays",
+                  "compound": "bisphenol A",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.*.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The predictor marks NR-AR and NR-AR-LBD inactive, demonstrating that the panel does not produce uniformly positive outputs.",
+                "scope": {
+                  "assay": "NR-AR and NR-AR-LBD",
+                  "compound": "bisphenol A",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.NR-AR.active; predictions.tox21.assays.NR-AR-LBD.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Independent, endpoint-specific evidence establishes that the model outputs are a validated aggregate measure of overall toxicity."
+          },
+          {
+            "id": "h2",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "status": "open",
+            "context": [
+              {
+                "id": "e3",
+                "actor": "model",
+                "claim": "The applicability result is 'ok' under element_rules_v1, with the explicit caveat that common elements do not confirm distributional similarity beyond element composition.",
+                "scope": {
+                  "compound": "bisphenol A",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+                "stance": "contextual",
+                "locator": "applicability.status; applicability.method; applicability.reasons",
+                "directness": "direct",
+                "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The Tox21 signals may not translate directly to real-world hazard because assay context, exposure, potency, and biological relevance are not established by these model outputs alone.",
+            "evidence_for": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The predictor marks NR-AR and NR-AR-LBD inactive, demonstrating that the panel does not produce uniformly positive outputs.",
+                "scope": {
+                  "assay": "NR-AR and NR-AR-LBD",
+                  "compound": "bisphenol A",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.NR-AR.active; predictions.tox21.assays.NR-AR-LBD.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Compound-specific experimental evidence under relevant exposure conditions demonstrates translation from these assays to the claimed real-world toxicity outcome."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Confirm the highest-priority assay signals experimentally with concentration-response controls and compare effective concentrations with a defined exposure scenario.",
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "rationale": "This separates reproducible assay activity from model-only signal and tests whether the signal is relevant at the exposure being considered.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "replicated concentration-response activity in the named assay",
+              "no activity or activity only at concentrations unrelated to the defined exposure",
+              "orthogonal confirmation for receptor or stress-response activity"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_c54e74696e5e420c8786838656e583c8"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The predictor marks NR-ER, NR-ER-LBD, NR-AhR, NR-Aromatase, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53 active for this molecule.",
+            "scope": {
+              "assay": "listed Tox21 assays",
+              "compound": "bisphenol A",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.*.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The predictor marks NR-AR and NR-AR-LBD inactive, demonstrating that the panel does not produce uniformly positive outputs.",
+            "scope": {
+              "assay": "NR-AR and NR-AR-LBD",
+              "compound": "bisphenol A",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.NR-AR.active; predictions.tox21.assays.NR-AR-LBD.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "model",
+            "claim": "The applicability result is 'ok' under element_rules_v1, with the explicit caveat that common elements do not confirm distributional similarity beyond element composition.",
+            "scope": {
+              "compound": "bisphenol A",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "stance": "contextual",
+            "locator": "applicability.status; applicability.method; applicability.reasons",
+            "directness": "direct",
+            "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ]
+          }
+        ],
+        "decision_context": "Decision support for reading model assay outputs and deciding whether additional verification is needed.",
+        "unlinked_evidence": [],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+              "outcome": "",
+              "purpose": "Look for compound-specific evidence that could contradict or qualify the model-signal interpretation.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The outputs do not establish assay concentration, exposure, pharmacokinetics, or translation to organism-level toxicity.",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_445eb36d983c49c48d075dfd3f98820d",
+  "analysis": {
+    "run": {
+      "run_id": "run_7a288da178404e2d917c8e563e6885cc",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_f5bcbaa3525545b6aca85be9abda7936",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:47:17.227202+00:00",
+      "created_at": "2026-09-25T13:42:17.227202+00:00",
+      "started_at": "2026-09-25T13:42:17.237852+00:00",
+      "ended_at": "2026-09-25T13:42:17.259492+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:42:17.228466+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_c54e74696e5e420c8786838656e583c8",
+      "input_smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O",
+      "canonical_smiles": "CC(C)(c1ccc(O)cc1)c1ccc(O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.1595926582813263,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.26272907853126526,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.9885753989219666,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.7485685348510742,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.9703947901725769,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.8764641880989075,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.9993531107902527,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.9255155324935913,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.6153256893157959,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.06942947208881378,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.997345507144928,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.9451116919517517,
+              "active": true,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.7939885258674622,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "c774d197-c343-439c-b4b4-6e6fd1822e81",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 31,
+            "encoded_token_count": 31
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "ec796f54312f59174c512d83d1e4312bb9efc4561745b0e1401ee7808d22b128"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:42:17.255189+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_e61c287c14874042aabc5d5ae46673b2",
+      "title": "Integrating Network Toxicology with Molecular Dynamics Simulations to Reveal Key Targets and Binding Mechanisms of Bisphenol A in Pancreatic Ductal Adenocarcinoma.",
+      "authors": [
+        "Li X",
+        "Wu F",
+        "Zhang Z",
+        "An J",
+        "Zhou G",
+        "Wang Y",
+        "Zhao D",
+        "Chen X"
+      ],
+      "published_at": "2026-07-20",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms27146439",
+        "pmid": "42511782",
+        "pmcid": "PMC13410336",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42511782",
+      "abstract_or_excerpt": "Bisphenol A (BPA) is a potential risk factor for pancreatic ductal adenocarcinoma (PDAC). This study integrated network toxicology, molecular docking, molecular dynamics (MD) simulations, and TCGA clinical data analysis to explore the potential molecular mechanisms linking BPA exposure to PDAC risk. BPA-PDAC intersection targets were identified through multi-database screening, followed by protein-protein interaction (PPI) network construction to screen core hub genes. A total of 10 core hub genes were identified via PPI analysis combined with the Maximal Clique Centrality (MCC) algorithm. Molecular docking demonstrated that ESR1 exhibited one of the strongest binding affinities for BPA (-8.2 kcal/mol), and MD simulations confirmed favorable thermodynamic stability of the BPA-ESR1 complex. TCGA analysis revealed stage-dependent expression patterns: early stages showed downregulation of TP53 and BCL2, whereas advanced stages showed upregulation of BCL2L1, HSP90AA1, and HSP90AB1, while ESR1, HIF1A, and PARP1 remained consistently low. These findings suggest that BPA may promote PDAC progression by disrupting ERα-mediated endocrine signaling and impairing DNA repair through PARP1 interference, providing candidate molecular targets and a hypothesis-generating foundation for pancreatic cancer risk assessment, warranting further experimental validation.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "relevant, but this search's promotion budget of 4 was already spent",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "5553de8436cb8076d29dc7cb85aa779c7ae19dd6898fd59b6403932c64276af9"
+    },
+    {
+      "evidence_id": "evd_2f3f970456cc4aaaa7a3e0ad3ba93040",
+      "title": "Neuroendocrine Disruption of Reproduction by Bisphenols and Phthalates: From Molecular Mechanisms to Reproductive Outcomes.",
+      "authors": [
+        "Gherman Lencu CC",
+        "Gerdanovics CA",
+        "Orășan OH",
+        "Iancu DM",
+        "Gerdanovics A",
+        "Perne MG",
+        "Milaciu MV",
+        "Negrean V"
+      ],
+      "published_at": "2026-08-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms27167311",
+        "pmid": "42653315",
+        "pmcid": "PMC13513600",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42653315",
+      "abstract_or_excerpt": "Bisphenols and phthalates are ubiquitous endocrine-disrupting chemicals with potential effects on reproductive neuroendocrine regulation, particularly during sensitive developmental windows. This review summarizes current evidence on their exposure profile, mechanisms of reproductive disruption, and female- and male-specific reproductive adversities. A structured narrative review was conducted using PubMed/MEDLINE, Scopus, and Web of Science, including experimental, epidemiological, biomonitoring, systematic review, and meta-analytic studies addressing bisphenols, phthalates, fertility, hormonal regulation, gametogenesis, pregnancy outcomes, and reproductive toxicity mechanisms. Bisphenols and phthalates interfere with estrogenic and androgenic signaling, hypothalamic-pituitary-gonadal axis regulation, steroidogenesis, oxidative stress, inflammation, apoptosis, mitochondrial function, and epigenetic regulation. Reported outcomes include impaired ovarian function, altered oocyte development, hormonal imbalance, reduced semen quality, defective spermatogenesis, sperm DNA damage, infertility, and adverse developmental or pregnancy-related effects. However, human evidence remains heterogeneous and limited by observational designs, exposure misclassification, residual confounding, and insufficient mixture assessment. Current evidence supports biological plausibility for bisphenol- and phthalate-related reproductive toxicity, but causal inference remains limited. Prospective studies with repeated biomonitoring, standardized reproductive endpoints, sex- and age-specific analyses, and improved mixture modeling are needed. A precautionary reduction in avoidable exposure appears reasonable, particularly during sensitive reproductive and developmental periods.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "0c58a83824497ccc40b07f0ed7411e4997d5d00ed200b499e29d85720e6f8b27"
+    },
+    {
+      "evidence_id": "evd_2670529b2f6c4eb29cc04f36d3475918",
+      "title": "Research on the influence of bisphenol A on precocious puberty based on network toxicology and molecular dynamics simulation.",
+      "authors": [
+        "Nie R",
+        "Huang F",
+        "Zhan Y",
+        "Li L",
+        "Deng Y",
+        "Tian L",
+        "Luo J",
+        "Liang B"
+      ],
+      "published_at": "2026-07-22",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fendo.2026.1850597",
+        "pmid": "42558309",
+        "pmcid": "PMC13437385",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42558309",
+      "abstract_or_excerpt": "<h4>Purpose</h4>Precocious puberty (PP) is a pediatric endocrine disorder. Bisphenol A (BPA) is an endocrine disruptor. This study aimed to computationally investigate BPA-associated PP targets and mechanisms via network toxicology and molecular dynamics.<h4>Methods</h4>BPA information was obtained from PubChem. Target genes were collected from multiple databases, and PP-related genes were identified via GeneCards and Online Mendelian Inheritance in Man. ProTox was used to predict BPA toxicity. After gene set intersection, gene ontology (GO) and Kyoto Encyclopedia of Genes and Genomes (KEGG) analyses were performed (P < 0.05). A protein-protein interaction (PPI) network was constructed to identify key genes, and a BPA-key gene-pathway network was established. The subcellular localization of key genes was analyzed, followed by molecular docking (score ≤ -5 kcal/mol) and 100-ns GROMACS-based molecular dynamics simulation.<h4>Results</h4>A total of 722 BPA targets and 1,126 potential PP targets were identified using multiple databases. Their intersection gave 99 potential target genes for BPA-induced PP, and further intersection with 16 toxic target genes of BPA resulted in six candidate genes. GO enrichment had 378 pathways, and KEGG enrichment had 18 pathways, with the top 10 being related to processes such as chemical carcinogenesis-receptor activation. The PPI network analysis revealed four key genes. Subcellular localization showed key gene product distribution. Molecular docking revealed a strong binding force, and molecular dynamics simulation further indicated that the complexes formed by BPA and these proteins were structurally stable.<h4>Conclusions</h4>This study identified potential BPA-PP targets, providing a hypothesis-generating basis for future validation.",
+      "normalized_facts": {
+        "journal": "Frontiers in endocrinology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "c175fee962290d22feef898515a35f64c086502f31b444055fac531420cfc99d"
+    },
+    {
+      "evidence_id": "evd_497c0c1f956b4c84a5b736360f2c58c9",
+      "title": "Systematic Screening of Depression-Related Neurotoxicity Across 26 Bisphenols Reveals an ESR1-CREB1-GRIN2B-Associated Mechanism.",
+      "authors": [
+        "Xie L",
+        "Yuan S",
+        "Gan L",
+        "Ma R",
+        "Tang L",
+        "Xu Q",
+        "Li W"
+      ],
+      "published_at": "2026-08-13",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms27167218",
+        "pmid": "42653223",
+        "pmcid": "PMC13512944",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42653223",
+      "abstract_or_excerpt": "Bisphenols (BPs) are widespread environmental endocrine disruptors, but their potential depression-related neurotoxicity has not been systematically assessed. Here, we combined machine learning (ML), network toxicology, molecular docking, and in vivo experiments to screen 26 bisphenols for depression-related neurotoxic risk. We first integrated bisphenol A (BPA)-related targets with depression-related genes to build a chemical-gene-phenotype-disease network and an adverse outcome pathway (AOP) framework. We then used nine ML algorithms to rank the predicted risk of the 26 bisphenols. Molecular docking showed that the predicted high-risk compounds had strong binding affinity for estrogen receptor 1 (ESR1). The AOP analysis further suggested the involvement of the ESR1-cAMP response element-binding protein 1 (CREB1)-glutamate ionotropic receptor N-methyl-D-aspartate type subunit 2B (GRIN2B) pathway. In vivo experiments showed that BPA exposure caused neuronal damage in the cornu ammonis 3 (CA3) region of the rat hippocampus and significantly reduced the messenger RNA (mRNA) expression of the corresponding genes <i>Esr1</i>, <i>Creb1</i>, and <i>Grin2b</i> in hippocampal tissue. Overall, this study screened and prioritized the model-predicted depression-related neurotoxic risk of 26 bisphenols, supports a role for the ESR1-CREB1-GRIN2B pathway in BPA-induced neurotoxicity, and provides mechanistic evidence for bisphenol risk assessment.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "4c6b8a47c16da92a4942d399b5b9576a9e0cae908f0516c84ce4289cf217fd38"
+    },
+    {
+      "evidence_id": "evd_e9a2beee21394f55baf4de1f52f30918",
+      "title": "Bisphenol A and ovarian cancer: emerging evidence and potential biological mechanisms.",
+      "authors": [
+        "Zhang L",
+        "Yu T",
+        "Bian Z",
+        "Mao T",
+        "Xu C"
+      ],
+      "published_at": "2026-08-17",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcell.2026.1899695",
+        "pmid": "42676940",
+        "pmcid": "PMC13527372",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42676940",
+      "abstract_or_excerpt": "This review summarizes current evidence concerning the relationship between bisphenol A (BPA) exposure and ovarian cancer (OC). Human epidemiological studies have mainly examined possible associations between BPA concentrations and OC occurrence, but their cross-sectional or case-control designs do not establish that BPA exposure increases OC risk. Experimental studies in OC cell lines and tumor-bearing animals suggest that BPA may alter tumor-related phenotypes, including proliferation, migration, invasion, angiogenesis, and stemness. These findings concern potential tumor progression rather than patient prognosis. Separate studies in normal ovarian tissue and granulosa cells indicate possible ovarian toxicity, including oxidative stress, apoptosis, and steroidogenic disturbances, but these findings should not be interpreted as direct evidence of OC risk. Mechanistically, BPA exposure has been reported to be associated with changes in endocrine signaling, oxidative processes, metabolism, and epigenetic regulation in selected experimental models. Overall, evidence linking BPA exposure to ovarian-cancer-related outcomes remains limited, and current findings do not establish that BPA causes OC or worsens patient prognosis in humans.",
+      "normalized_facts": {
+        "journal": "Frontiers in cell and developmental biology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "e861c891f83fc87a3c9f7ac42145064d5488cafb6d49a91eb8c002ca1644184d"
+    },
+    {
+      "evidence_id": "evd_c65308e3241c46d0998de441f883db55",
+      "title": "Temporal variability of emerging contaminants and estrogenic activity in sediments of a tropical coastal lagoon.",
+      "authors": [
+        "da Silva de Freitas A",
+        "de Oliveira Santos AD",
+        "Sanson AL",
+        "Ferreira Dos Santos R",
+        "Teresa Lima do Nascimento M",
+        "Gomes G",
+        "Dos Santos Argolo A",
+        "da Cruz Félix L"
+      ],
+      "published_at": "2026-09-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s10661-026-15919-5",
+        "pmid": "42742764",
+        "pmcid": "PMC13578027",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42742764",
+      "abstract_or_excerpt": "The increasing occurrence of emerging contaminants in aquatic environments has raised concerns about their persistence and ecological impacts, particularly in coastal lagoons subjected to anthropogenic pressure. Here, we investigated the occurrence of pharmaceuticals, alkylphenols, bisphenol A (BPA), and steroid estrogens, together with their estrogenic activity, in surface sediments from Maricá Lagoon (Rio de Janeiro, Brazil), testing the hypothesis that contaminant occurrence and biological responses vary between sampling years despite persistent anthropogenic inputs. Surface sediments were collected from seven fixed sites during dry-season campaigns in 2021 and 2023. Grain size distribution was determined by sediment texture analysis, organic contaminants were identified and quantified using gas chromatography-mass spectrometry (GC-MS), and estrogenic activity was assessed using the yeast estrogen screen (YES) bioassay. Chemical analyses detected alkylphenols (4-octylphenol and 4-nonylphenol), BPA, steroid estrogens, and pharmaceutical-related compounds. BPA was the most frequently detected contaminant (0.10-0.465 ng g⁻<sup>1</sup>), followed by 4-octylphenol (0.010-0.390 ng g⁻<sup>1</sup>) and 4-nonylphenol (0.033-0.344 ng g⁻<sup>1</sup>). Station M7 exhibited the greatest contaminant diversity, with 9 of 12 target compounds detected, identifying it as a localized contamination hotspot. Estrogenic activity was detected in selected samples, whereas pronounced cytotoxicity in one sample may have masked estrogenic responses. Comparisons between campaigns revealed temporal variability in contaminant occurrence and biological responses, although several compounds persisted across both years. These findings demonstrate persistent and spatially heterogeneous contamination and highlight the value of integrating targeted chemical analyses with bioanalytical tools to assess contaminant occurrence and biological effects in coastal ecosystems.",
+      "normalized_facts": {
+        "journal": "Environmental monitoring and assessment",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "f3798093161436792939514cd0e03f5615f77d781b83cf75c26862a9cfff6a44"
+    },
+    {
+      "evidence_id": "evd_76d1ae58baa74a00b52410d1d8d72c7a",
+      "title": "Bisphenol A induces ototoxic injury by ferroptosis pathway: integrated analysis of network toxicology, RNA-sequencing and experimental validation.",
+      "authors": [
+        "Li J",
+        "Yang D",
+        "Bai S",
+        "Zeng X",
+        "Zhang P"
+      ],
+      "published_at": "2026-07-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fnmol.2026.1829676",
+        "pmid": "42582382",
+        "pmcid": "PMC13457743",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42582382",
+      "abstract_or_excerpt": "Bisphenol A, a globally utilized plastic monomer, has extensively infiltrated aquatic and atmospheric environments, emerging as a high-priority environmental pollutant. However, its toxicological impact on ototoxic injury and the associated molecular mechanisms remain largely unexplored. In this study, we employed an integrative approach combining network toxicology, RNA sequencing, and cellular phenotyping to systematically elucidate the pathways of Bisphenol A-induced injury. Potential ototoxicity-related targets and Bisphenol A-binding proteins were sourced from databases such as BindingDB, CTD, SwissTargetPrediction, TargetNet, DisGeNET, and GeneCards, resulting in the identification of 55 candidate targets. Functional enrichment analysis revealed significant involvement in autophagy and HIF-1 signaling pathways, while multi-algorithm topology analysis identified CASP3, PTGS2, CYCS, BCL2, TNF, PPARG, NFE2L2, and MAPK3 as key hub proteins. Experimental validation demonstrated that Bisphenol A reduced cell viability and increased lactate dehydrogenase leakage in a concentration-dependent manner. RNA sequencing further revealed a marked activation of the ferroptosis pathway following Bisphenol A exposure. Ferroptotic cell death was further corroborated by increased levels of lipid reactive oxygen species, malondialdehyde, and intracellular Fe<sup>2+</sup>, accompanied by the down-regulation of GPX4, SLC3A2, and FSP-1 expression, as well as the up-regulation of ACSL4, PTGS2, and HO-1 expression. Collectively, our findings indicate that Bisphenol A induces ototoxic injury via the ferroptosis pathway, suggesting that this environmental contaminant may contribute to hearing loss and highlighting potential interventions against Bisphenol A exposure.",
+      "normalized_facts": {
+        "journal": "Frontiers in molecular neuroscience",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "relevant, but this search's promotion budget of 4 was already spent",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "1c5c2654cb1a410fea424c118d95857494d174bbc3a93f6935aebf10910d4e1a"
+    },
+    {
+      "evidence_id": "evd_1ef7f7bcd21b4886ab0e8d23b47e0040",
+      "title": "Cross-study analysis identifies estrogen depletion and exposure duration as key determinants of bisphenol A transcriptomic potency in MCF-7 cells.",
+      "authors": [
+        "Matteo G",
+        "Williams A",
+        "Yauk CL",
+        "Atlas E"
+      ],
+      "published_at": "2026-06-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.toxrep.2026.102305",
+        "pmid": "42404493",
+        "pmcid": "PMC13330514",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42404493",
+      "abstract_or_excerpt": "High-throughput transcriptomics (HTTr) is increasingly used to derive transcriptomic points of departure (tPODs) for chemical screening and prioritization, yet the robustness of these estimates across studies with differing experimental designs remains unclear. Here, we compared tPODs for bisphenol A (BPA) across multiple HTTr studies conducted in MCF-7 breast cancer cells, including datasets from our laboratory and others. Although these studies employed broadly similar approaches, they differed in key methodological features, including estrogen-depletion protocols, exposure duration, and maximum test concentration. Using a standardized downstream bioinformatic workflow, we evaluated the consistency of BPA transcriptomic potency estimates and assessed factors contributing to variability across studies. Overall, five of seven studies yielded BPA potency estimates within a similar concentration range, supporting the utility of HTTr for comparative potency assessment despite some inter-study variability. Notably, studies conducted under estrogen-depleted conditions yielded higher potency estimates relative to those performed under standard culture conditions. Similarly, longer exposure durations were associated with higher potency estimates. These findings indicate that, while tPODs are generally reproducible across HTTr studies, experimental conditions, particularly estrogen depletion and exposure duration, can influence potency estimates in MCF-7 cells. However, these factors were not systematically varied or independently controlled across datasets, and therefore their individual contributions cannot be definitively disentangled in the present analysis. This work highlights the importance of standardizing hormone conditions and exposure durations when applying HTTr to screen estrogenic chemicals. Collectively, these results support the use of HTTr for chemical prioritization while underscoring the need for harmonized experimental design in endocrine-relevant in vitro models.",
+      "normalized_facts": {
+        "journal": "Toxicology reports",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "relevant, but this search's promotion budget of 4 was already spent",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "23e911377f10659d8176bcddd85701191840be13becfc6d5fa8292cda40af7e6"
+    },
+    {
+      "evidence_id": "evd_c01c2ecb4ca64b9bb1f9132b34d809bc",
+      "title": "Environmental estrogens and animal reproductive health: mechanisms, biomarkers, and intervention approaches.",
+      "authors": [
+        "Liang S",
+        "Ma J",
+        "Chen S",
+        "Dong X",
+        "Lu J",
+        "Zhu Y",
+        "Chen L",
+        "Wang Y"
+      ],
+      "published_at": "2026-06-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s40104-026-01427-6",
+        "pmid": "42219524",
+        "pmcid": "PMC13224711",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42219524",
+      "abstract_or_excerpt": "Environmental estrogens, a group of exogenous endocrine-active compounds, are frequently present in animal feed, water, and husbandry environments. These compounds, which include synthetic xenoestrogens, phytoestrogens, and metalloestrogens, can disrupt reproductive physiology and developmental processes in domestic animals. This review examines their effects on key reproductive outcomes such as folliculogenesis, spermatogenesis, gamete quality, and overall fertility. We discuss the underlying molecular mechanisms, focusing on hormone receptor signaling and epigenetic modifications, and highlight the particular relevance of low-dose and developmental stage-specific exposure in breeding populations. Additionally, potential mitigation approaches are outlined, including nutritional strategies, feed management, and genetic or biotechnological interventions aimed at preserving reproductive performance and animal health. This review elucidates the reproductive toxicological mechanisms of environmental estrogens and provides a scientific basis for developing effective prevention and mitigation strategies.",
+      "normalized_facts": {
+        "journal": "Journal of animal science and biotechnology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "fba7a452468092e27e80fe4b370eb8fc521d12b6ff99aeb37113e6ca8e03696b"
+    },
+    {
+      "evidence_id": "evd_1404713008014162ba394b2528de6ce9",
+      "title": "Emerging evidence for skeletal muscle as a target of BPA exposure.",
+      "authors": [
+        "Vaid M",
+        "Dahbur H",
+        "Dahbour H",
+        "Valenzuela IMY"
+      ],
+      "published_at": "2026-06-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12902-026-02355-2",
+        "pmid": "42304305",
+        "pmcid": "PMC13479709",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42304305",
+      "abstract_or_excerpt": "Endocrine disruptors are exogenous chemicals that interfere with hormonal signaling, and among them, bisphenol-A (BPA) is one of the most widely used and globally prevalent. Human exposure to BPA occurs through multiple routes, and measurable levels are detected in the majority of biological samples worldwide. At the molecular level, BPA interacts with several nuclear and membrane receptors, conferring estrogenic and anti-androgenic properties that disrupt endocrine, metabolic, and cardiovascular systems. Although the biological effects of BPA have been extensively studied in reproductive, neural, hepatic, and adipose tissues, its impact on skeletal muscle has been comparatively understudied, despite the central role of this tissue in glucose homeostasis and energy metabolism. In addition, direct human evidence specifically linking BPA exposure to skeletal muscle structure or function remains limited. This review summarizes current evidence regarding the effects of BPA on skeletal muscle structure and function. Experimental studies indicate that BPA disrupts insulin signaling in skeletal muscle by impairing insulin receptor-dependent pathways, reducing Akt phosphorylation and GLUT4 translocation, and promoting inflammatory responses, ultimately leading to insulin resistance and glucose intolerance. Developmental exposure to BPA further alters muscle fiber composition, gene expression, calcium signaling, and excitation-contraction coupling, with persistent effects on muscle phenotype and function. Collectively, the findings reviewed here identify skeletal muscle as a critical, yet underrecognized, target of BPA toxicity and underscore the need for future studies addressing chronic low-dose exposure and long-term outcomes, particularly in human populations.",
+      "normalized_facts": {
+        "journal": "BMC endocrine disorders",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "relevant, but this search's promotion budget of 4 was already spent",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:33.110923+00:00",
+      "content_sha256": "dad60983e576b09581fe739b441d07888f1d092f4b52d75a9bfbabd85d57d6ba"
+    },
+    {
+      "evidence_id": "evd_241c7792ae094c69a9126a008207b2f0",
+      "title": "Toxic Alerts of Endocrine Disruption Revealed by Explainable Artificial Intelligence.",
+      "authors": [
+        "Rosa LCS",
+        "Sarhan M",
+        "Pimentel AS"
+      ],
+      "published_at": "2025-01-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/envhealth.4c00218",
+        "pmid": "40144324",
+        "pmcid": "PMC11934200",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40144324",
+      "abstract_or_excerpt": "The local interpretable model-agnostic explanation method was used to unveil substructures (toxic alerts) that cause endocrine disruption in chemical compounds using machine learning models. The random forest classifier was applied to build explainable models with the TOX21 data sets after data curation. Using these models applied to the EDC and EDKB-FDA data sets, the substructures that cause endocrine disruption in chemical compounds were unveiled, providing stable, more specific, and consistent explanations, which are essential for trust and acceptance of the findings, mainly due to the difficulty of finding relevant experimental evidence for different receptors (androgen, estrogen, aryl hydrocarbon, aromatase, and peroxisome proliferator-activated receptors). This approach is significant because of its contribution to the interpretability of explainable machine learning algorithms, particularly in the context of unveiling substructures associated with endocrine disruption in five targets (androgen receptor, estrogen receptor, aryl hydrocarbon receptors, aromatase receptors, and peroxisome proliferator-activated receptors), thereby advancing the relevant field of environmental toxicology, where a careful evaluation of the potential risks of exposure to new compounds is needed. The specific substructures thiophosphate, sulfamate, anilide, carbamate, sulfamide, and thiocyanate are presented as toxic alerts that cause endocrine disruption to better understand their potential risks and adverse effects on human health and the environment.",
+      "normalized_facts": {
+        "journal": "Environment & health (Washington, D.C.)",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "032fa2219a8b41525e0f81450f2de1c45c71860bf9645f62cc9920b5b30372b8"
+    },
+    {
+      "evidence_id": "evd_01157c009b2b4dd08cf5c0e716533616",
+      "title": "Tox21Enricher-Shiny: an R Shiny application for toxicity functional annotation analysis.",
+      "authors": [
+        "Combs P",
+        "Erickson J",
+        "Hsieh JH",
+        "Guo K",
+        "Nolte S",
+        "Schmitt C",
+        "Auerbach S",
+        "Hur J"
+      ],
+      "published_at": "2023-06-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/ftox.2023.1147608",
+        "pmid": "37441091",
+        "pmcid": "PMC10333489",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/37441091",
+      "abstract_or_excerpt": "Inference of toxicological and mechanistic properties of untested chemicals through structural or biological similarity is a commonly employed approach for initial chemical characterization and hypothesis generation. We previously developed a web-based application, Tox21Enricher-Grails, on the Grails framework that identifies enriched biological/toxicological properties of chemical sets for the purpose of inferring properties of untested chemicals within the set. It was able to detect significantly overrepresented biological (e.g., receptor binding), toxicological (e.g., carcinogenicity), and chemical (e.g., toxicologically relevant chemical substructures) annotations within sets of chemicals screened in the Tox21 platform. Here, we present an R Shiny application version of Tox21Enricher-Grails, Tox21Enricher-Shiny, with more robust features and updated annotations. Tox21Enricher-Shiny allows users to interact with the web application component (available at http://hurlab.med.und.edu/Tox21Enricher/) through a user-friendly graphical user interface or to directly access the application's functions through an application programming interface. This version now supports InChI strings as input in addition to CASRN and SMILES identifiers. Input chemicals that contain certain reactive functional groups (nitrile, aldehyde, epoxide, and isocyanate groups) may react with proteins in cell-based Tox21 assays: this could cause Tox21Enricher-Shiny to produce spurious enrichment analysis results. Therefore, this version of the application can now automatically detect and ignore such problematic chemicals in a user's input. The application also offers new data visualizations, and the architecture has been greatly simplified to allow for simple deployment, version control, and porting. The application may be deployed onto a Posit Connect or Shiny server, and it uses Postgres for database management. As other Tox21-related tools are being migrated to the R Shiny platform, the development of Tox21Enricher-Shiny is a logical transition to use R's strong data analysis and visualization capacities and to provide aesthetic and developmental consistency with other Tox21 applications developed by the Division of Translational Toxicology (DTT) at the National Institute of Environmental Health Sciences (NIEHS).",
+      "normalized_facts": {
+        "journal": "Frontiers in toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "907ebb7a493c33735b4691413f9bdc07f98b3dc2113bc3d45a66c86920c9fae3"
+    },
+    {
+      "evidence_id": "evd_e9dd7408dcbb4736aff35e4d561b33b0",
+      "title": "Update of the risk assessment on emerging and novel brominated flame retardants in food.",
+      "authors": [
+        "EFSA Panel on Contaminants in the Food Chain (CONTAM)",
+        "Knutsen HK",
+        "Åkesson A",
+        "Bampidis V",
+        "Bignami M",
+        "Bodin L",
+        "Chipman JK",
+        "Degen G"
+      ],
+      "published_at": "2026-07-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2903/j.efsa.2026.10187",
+        "pmid": "42516964",
+        "pmcid": "PMC13403159",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42516964",
+      "abstract_or_excerpt": "The European Commission asked EFSA to update its 2012 risk assessment on Emerging and Novel brominated flame retardants (BFRs) in food. Since the previous Opinion, further information was collected for a total of 27 BFRs. The CONTAM Panel concluded that <b>TDBPP</b>, <b>DBPNG</b> and <b>TBNPA</b> are considered genotoxic and carcinogenic. Based on positive in vitro mutagenicity in mammalian cells, <b>DBE-DBCH</b> is considered genotoxic. <b>EBTEBPI</b>, <b>DBDPE</b>, <b>PBB-Acr</b> and <b>TTBP-TAZ</b> are not genotoxic. Insufficient or absent data precluded the Panel to conclude on the genotoxic potential of the remaining BFRs. Reproductive/developmental toxicity and/or neurotoxicity/neurodevelopmental effects were reported for <b>DBNPG</b>, <b>BEH-TEBP</b>, <b>EH-TBB</b>, <b>DBDPE</b> and <b>TDBP-TAZTO</b>. Reference Points were identified for <b>TDBPP</b>, <b>DBNPG</b>, <b>BEH-TEBP</b>, <b>EH-TBB</b>, <b>DBDPE</b> and <b>TDBP-TAZTO</b>. No health-based guidance values could be derived for any of the BFRs. Occurrence data were submitted to EFSA for eight BFRs (<b>BEH-TEBP</b>, <b>EH-TBB</b>, <b>BTBPE</b>, <b>DBDPE</b>, <b>HBB</b>, <b>PBEB</b>, <b>PBT</b>, <b>TBX</b>). Dietary exposure could be estimated only for <b>BTBPE</b> and <b>HBB</b>, due to the lack of quantitative data for the other BFRs. However, no risk characterisation could be performed for these BFRs due to the lack of a Reference Point. Using the limited available information on dietary exposure estimates reported in the scientific literature, risk characterisation could be performed for <b>BEH-TEBP</b>, <b>EH-TBB</b> and <b>DBDPE</b>, and the CONTAM Panel concluded that dietary exposure does not raise a health concern. The Panel considered that the level of certainty was 90% or higher for most of the reported conclusions. Very limited or no information on hazard or exposure were available for <b>HBCYD</b>, <b>TBCO</b>, <b>DBHCTD</b>, <b>HCTBPH</b>, <b>BDBP</b>-<b>TAZTO</b>, <b>DBP</b>-<b>TAZTO</b>, <b>OBTMPI</b>, <b>DBS</b>, <b>HEEHP-TEBP</b>, <b>4'-PeBPO-BDE208</b> or <b>TTBNPP</b>. Recommendations were formulated to address data gaps, including the need for access to original data, and for the collection of biomonitoring data, occurrence data in food, genotoxicity information and toxicological studies to support the identification of a Reference Point.",
+      "normalized_facts": {
+        "journal": "EFSA journal. European Food Safety Authority",
+        "pub_type": "other, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "b0cf1f4d1941514023dfde75285e1d9469f38eaaa10ac5963895bd16626e8f66"
+    },
+    {
+      "evidence_id": "evd_d423a80502aa45b08476a422c6e7a86e",
+      "title": "A Gene Expression Biomarker Identifies Chemical Modulators of Estrogen Receptor α in an MCF-7 Microarray Compendium.",
+      "authors": [
+        "Rooney J",
+        "Ryan N",
+        "Liu J",
+        "Houtman R",
+        "van Beuningen R",
+        "Hsieh JH",
+        "Chang G",
+        "Chen S"
+      ],
+      "published_at": "2021-01-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.0c00243",
+        "pmid": "33405908",
+        "pmcid": "PMC10683854",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33405908",
+      "abstract_or_excerpt": "Identification of chemicals that affect hormone-regulated systems will help to predict endocrine disruption. In our previous study, a 46 gene biomarker was found to be an accurate predictor of estrogen receptor (ER) α modulation in chemically treated MCF-7 cells. Here, potential ERα modulators were identified using the biomarker by screening a microarray compendium consisting of ∼1600 gene expression comparisons representing exposure to ∼1200 chemicals. A total of ∼170 chemicals were identified as potential ERα modulators. In the Connectivity Map 2.0 collection, 75 and 39 chemicals were predicted to activate or suppress ERα, and they included 12 and six known ERα agonists and antagonists/selective ERα modulators, respectively. Nineteen and eight of the total number were also identified as active in an ERα transactivation assay carried out in an MCF-7-derived cell line used to screen the Tox21 10K chemical library in agonist or antagonist modes, respectively. Chemicals predicted to modulate ERα in MCF-7 cells were examined further using global and targeted gene expression in wild-type and ERα-null cells, transactivation assays, and cell-free ERα coregulator interaction assays. Environmental chemicals classified as weak and very weak agonists were confirmed to activate ERα including apigenin, kaempferol, and oxybenzone. Novel activators included digoxin, nabumetone, ivermectin, and six progestins. Novel suppressors included emetine, mifepristone, niclosamide, and proscillaridin. Our strategy will be useful to identify environmentally relevant ERα modulators in future high-throughput transcriptomic screens.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "3d5555d5c9a9ea0684c7f7be19cdbb0389432753bf3addf1fca184be05cb001e"
+    },
+    {
+      "evidence_id": "evd_4f4f650ebc9f472b828ac94e356cfe0c",
+      "title": "Exploring the Biological Activity and Mechanism of Xenoestrogens and Phytoestrogens in Cancers: Emerging Methods and Concepts.",
+      "authors": [
+        "Wang X",
+        "Ha D",
+        "Yoshitake R",
+        "Chan YS",
+        "Sadava D",
+        "Chen S"
+      ],
+      "published_at": "2021-08-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms22168798",
+        "pmid": "34445499",
+        "pmcid": "PMC8395949",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/34445499",
+      "abstract_or_excerpt": "Xenoestrogens and phytoestrogens are referred to as \"foreign estrogens\" that are produced outside of the human body and have been shown to exert estrogen-like activity. Xenoestrogens are synthetic industrial chemicals, whereas phytoestrogens are chemicals present in the plant. Considering that these environmental estrogen mimics potentially promote hormone-related cancers, an understanding of how they interact with estrogenic pathways in human cells is crucial to resolve their possible impacts in cancer. Here, we conducted an extensive literature evaluation on the origins of these chemicals, emerging research techniques, updated molecular mechanisms, and ongoing clinical studies of estrogen mimics in human cancers. In this review, we describe new applications of patient-derived xenograft (PDX) models and single-cell RNA sequencing (scRNA-seq) techniques in shaping the current knowledge. At the molecular and cellular levels, we provide comprehensive and up-to-date insights into the mechanism of xenoestrogens and phytoestrogens in modulating the hallmarks of cancer. At the systemic level, we bring the emerging concept of window of susceptibility (WOS) into focus. WOS is the critical timing during the female lifespan that includes the prenatal, pubertal, pregnancy, and menopausal transition periods, during which the mammary glands are more sensitive to environmental exposures. Lastly, we reviewed 18 clinical trials on the application of phytoestrogens in the prevention or treatment of different cancers, conducted from 2002 to the present, and provide evidence-based perspectives on the clinical applications of phytoestrogens in cancers. Further research with carefully thought-through concepts and advanced methods on environmental estrogens will help to improve understanding for the identification of environmental influences, as well as provide novel mechanisms to guide the development of prevention and therapeutic approaches for human cancers.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "3db2c74ecc0a023443e47945cfb6f1918c46bb0b8f311b6a67d09be37b496551"
+    },
+    {
+      "evidence_id": "evd_fdf5d07b7fa54152a97607737057d778",
+      "title": "Exploration of xenobiotic metabolism within cell lines used for Tox21 chemical screening.",
+      "authors": [
+        "Qu W",
+        "Crizer DM",
+        "DeVito MJ",
+        "Waidyanatha S",
+        "Xia M",
+        "Houck K",
+        "Ferguson SS"
+      ],
+      "published_at": "2021-02-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.tiv.2021.105109",
+        "pmid": "33609632",
+        "pmcid": "PMC10838150",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33609632",
+      "abstract_or_excerpt": "The Tox21 Program has investigated thousands of chemicals with high-throughput screening assays using cell-based assays to link thousands of chemicals to individual molecular targets/pathways. However, these systems have been widely criticized for their suspected lack of 'metabolic competence' to bioactivate or detoxify chemical exposures. In this study, 9 cell line backgrounds used in Tox21 assays (i.e., HepG2, HEK293, Hela, HCT116, ME180, CHO-K1, GH3.TRE-Luc, C3H10T1/2 and MCF7) were evaluated via metabolite formation rates, along with metabolic clearance and metabolite profiling for HepG2, HEK293, and MCF-7aroERE, in comparison to pooled donor (50) suspensions of primary human hepatocytes (PHHs). Using prototype clinical drug substrates for CYP1A2, CYP2B6, and CYP3A4/5, extremely low-to-undetectable CYP450 metabolism was observed (24 h), and consistent with their purported 'lack' of metabolic competence. However, for Phase II metabolizing enzymes and metabolic clearance, surprisingly proficient metabolism was observed for bisphenol AF, bisphenol S, and 7-hydroxycoumarin. Here, comparatively low glucuronidation relative to sulfation was observed in contrast to equivalent levels in PHHs. Overall, while a lack of CYP450 metabolism was confirmed in this benchmarking effort, Tox21 cell lines were not 'incompetent' for xenobiotic metabolism, and displayed surprisingly high proficiency for sulfation that rivaled PHHs. These findings have implications for the interpretation of Tox21 assay data, and establish a framework for evaluating of 'metabolic competence' with in vitro models.",
+      "normalized_facts": {
+        "journal": "Toxicology in vitro : an international journal published in association with BIBRA",
+        "pub_type": "Comparative Study, research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "da9cf765096d8130b376f4794500bc0ccdb4164ddc96cecd77c82a2827fb17a6"
+    },
+    {
+      "evidence_id": "evd_9529339326f441c6b2e6688c74def044",
+      "title": "Emerging concepts and opportunities for endocrine disruptor screening of the non-EATS modalities.",
+      "authors": [
+        "Martyniuk CJ",
+        "Martínez R",
+        "Navarro-Martín L",
+        "Kamstra JH",
+        "Schwendt A",
+        "Reynaud S",
+        "Chalifour L"
+      ],
+      "published_at": "2021-08-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.envres.2021.111904",
+        "pmid": "34418449",
+        "pmcid": "PMC8669078",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/34418449",
+      "abstract_or_excerpt": "Endocrine disrupting chemicals (EDCs) are ubiquitous in the environment and involve diverse chemical-receptor interactions that can perturb hormone signaling. The Organization for Economic Co-operation and Development has validated several EDC-receptor bioassays to detect endocrine active chemicals and has established guidelines for regulatory testing of EDCs. Focus on testing over the past decade has been initially directed to EATS modalities (estrogen, androgen, thyroid, and steroidogenesis) and validated tests for chemicals that exert effects through non-EATS modalities are less established. Due to recognition that EDCs are vast in their mechanisms of action, novel bioassays are needed to capture the full scope of activity. Here, we highlight the need for validated assays that detect non-EATS modalities and discuss major international efforts underway to develop such tools for regulatory purposes, focusing on non-EATS modalities of high concern (i.e., retinoic acid, aryl hydrocarbon receptor, peroxisome proliferator-activated receptor, and glucocorticoid signaling). Two case studies are presented with strong evidence amongst animals and human studies for non-EATS disruption and associations with wildlife and human disease. This includes metabolic syndrome and insulin signaling (case study 1) and chemicals that impact the cardiovascular system (case study 2). This is relevant as obesity and cardiovascular disease represent two of the most significant health-related crises of our time. Lastly, emerging topics related to EDCs are discussed, including recognition of crosstalk between the EATS and non-EATS axis, complex mixtures containing a variety of EDCs, adverse outcome pathways for chemicals acting through non-EATS mechanisms, and novel models for testing chemicals. Recommendations and considerations for evaluating non-EATS modalities are proposed. Moving forward, improved understanding of the non-EATS modalities will lead to integrated testing strategies that can be used in regulatory bodies to protect environmental, animal, and human health from harmful environmental chemicals.",
+      "normalized_facts": {
+        "journal": "Environmental research",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "fa5f09c709d59a1318d9bc5f16178c3cb70cc2404a5b2957d08175cadec0545e"
+    },
+    {
+      "evidence_id": "evd_8d43b12155ec42cbb52e4d380f0eff89",
+      "title": "Systematic Identification of Molecular Targets and Pathways Related to Human Organ Level Toxicity.",
+      "authors": [
+        "Xu T",
+        "Wu L",
+        "Xia M",
+        "Simeonov A",
+        "Huang R"
+      ],
+      "published_at": "2020-11-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.0c00305",
+        "pmid": "33251791",
+        "pmcid": "PMC9460956",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33251791",
+      "abstract_or_excerpt": "The mechanisms leading to organ level toxicities are poorly understood. In this study, we applied an integrated approach to deduce the molecular targets and biological pathways involved in chemically induced toxicity for eight common human organ level toxicity end points (carcinogenicity, cardiotoxicity, developmental toxicity, hepatotoxicity, nephrotoxicity, neurotoxicity, reproductive toxicity, and skin toxicity). Integrated analysis of in vitro assay data, molecular targets and pathway annotations from the literature, and toxicity-molecular target associations derived from text mining, combined with machine learning techniques, were used to generate molecular targets for each of the organ level toxicity end points. A total of 1516 toxicity-related genes were identified and subsequently analyzed for biological pathway coverage, resulting in 206 significant pathways (<i>p</i>-value <0.05), ranging from 3 (e.g., developmental toxicity) to 101 (e.g., skin toxicity) for each toxicity end point. This study presents a systematic and comprehensive analysis of molecular targets and pathways related to various in vivo toxicity end points. These molecular targets and pathways could aid in understanding the biological mechanisms of toxicity and serve as a guide for the design of suitable in vitro assays for more efficient toxicity testing. In addition, these results are complementary to the existing adverse outcome pathway (AOP) framework and can be used to aid in the development of novel AOPs. Our results provide abundant testable hypotheses for further experimental validation.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "91fdaa766bd3ff087c8447d234ceb2f408c7f2a8ddb1108cf7217bdad8fb76f8"
+    },
+    {
+      "evidence_id": "evd_6050ff7739554c00b0f815fe40929bfc",
+      "title": "Obesity III: Obesogen assays: Limitations, strengths, and new directions.",
+      "authors": [
+        "Kassotis CD",
+        "Vom Saal FS",
+        "Babin PJ",
+        "Lagadic-Gossmann D",
+        "Le Mentec H",
+        "Blumberg B",
+        "Mohajer N",
+        "Legrand A"
+      ],
+      "published_at": "2022-04-05",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.bcp.2022.115014",
+        "pmid": "35393121",
+        "pmcid": "PMC9050906",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35393121",
+      "abstract_or_excerpt": "There is increasing evidence of a role for environmental contaminants in disrupting metabolic health in both humans and animals. Despite a growing need for well-understood models for evaluating adipogenic and potential obesogenic contaminants, there has been a reliance on decades-old in vitro models that have not been appropriately managed by cell line providers. There has been a quick rise in available in vitro models in the last ten years, including commercial availability of human mesenchymal stem cell and preadipocyte models; these models require more comprehensive validation but demonstrate real promise in improved translation to human metabolic health. There is also progress in developing three-dimensional and co-culture techniques that allow for the interrogation of a more physiologically relevant state. While diverse rodent models exist for evaluating putative obesogenic and/or adipogenic chemicals in a physiologically relevant context, increasing capabilities have been identified for alternative model organisms such as Drosophila, C. elegans, zebrafish, and medaka in metabolic health testing. These models have several appreciable advantages, including most notably their size, rapid development, large brood sizes, and ease of high-resolution lipid accumulation imaging throughout the organisms. They are anticipated to expand the capabilities of metabolic health research, particularly when coupled with emerging obesogen evaluation techniques as described herein.",
+      "normalized_facts": {
+        "journal": "Biochemical pharmacology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Review, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "7abb7aa0bc7e9e413941d95acf30c13f524ae655877ded9ca300b4306fd09f9b"
+    },
+    {
+      "evidence_id": "evd_9b18e81cf60c417d9cd34ba29ec3517a",
+      "title": "A pragmatic framework for the application of new approach methodologies in one health toxicological risk assessment.",
+      "authors": [
+        "Magurany KA",
+        "Chang X",
+        "Clewell R",
+        "Coecke S",
+        "Haugabrooks E",
+        "Marty S"
+      ],
+      "published_at": "2023-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxsci/kfad012",
+        "pmid": "36782355",
+        "pmcid": "PMC10109535",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36782355",
+      "abstract_or_excerpt": "Globally, industries and regulatory authorities are faced with an urgent need to assess the potential adverse effects of chemicals more efficiently by embracing new approach methodologies (NAMs). NAMs include cell and tissue methods (in vitro), structure-based/toxicokinetic models (in silico), methods that assess toxicant interactions with biological macromolecules (in chemico), and alternative models. Increasing knowledge on chemical toxicokinetics (what the body does with chemicals) and toxicodynamics (what the chemicals do with the body) obtained from in silico and in vitro systems continues to provide opportunities for modernizing chemical risk assessments. However, directly leveraging in vitro and in silico data for derivation of human health-based reference values has not received regulatory acceptance due to uncertainties in extrapolating NAM results to human populations, including metabolism, complex biological pathways, multiple exposures, interindividual susceptibility and vulnerable populations. The objective of this article is to provide a standardized pragmatic framework that applies integrated approaches with a focus on quantitative in vitro to in vivo extrapolation (QIVIVE) to extrapolate in vitro cellular exposures to human equivalent doses from which human reference values can be derived. The proposed framework intends to systematically account for the complexities in extrapolation and data interpretation to support sound human health safety decisions in diverse industrial sectors (food systems, cosmetics, industrial chemicals, pharmaceuticals etc.). Case studies of chemical entities, using new and existing data, are presented to demonstrate the utility of the proposed framework while highlighting potential sources of human population bias and uncertainty, and the importance of Good Method and Reporting Practices.",
+      "normalized_facts": {
+        "journal": "Toxicological sciences : an official journal of the Society of Toxicology",
+        "pub_type": "review-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:43:26.460625+00:00",
+      "content_sha256": "2ffc09857ec94dcfe93f2149eb78c624a2c4ac2a56d2813b59be39733f6a6402"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_2dbf0995efe04ce195dc886969744270",
+        "session_id": "ses_445eb36d983c49c48d075dfd3f98820d",
+        "subject_key": "analysis:ana_c54e74696e5e420c8786838656e583c8",
+        "question": "Interpret the bisphenol A Tox21 assay activities without treating them as an aggregate toxicity label, and determine what they do and do not establish about overall toxicity.",
+        "decision_context": "Decision support for reading model assay outputs and deciding whether additional verification is needed.",
+        "subject_refs": [
+          "analysis:ana_c54e74696e5e420c8786838656e583c8"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The reported Tox21 activities are model signals for activity in specific assays, and should not be interpreted as proof of overall toxicity.",
+            "kind": "model_signal",
+            "refutation_condition": "Independent, endpoint-specific evidence establishes that the model outputs are a validated aggregate measure of overall toxicity.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          },
+          {
+            "id": "h2",
+            "statement": "The Tox21 signals may not translate directly to real-world hazard because assay context, exposure, potency, and biological relevance are not established by these model outputs alone.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "Compound-specific experimental evidence under relevant exposure conditions demonstrates translation from these assays to the claimed real-world toxicity outcome.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The predictor marks NR-ER, NR-ER-LBD, NR-AhR, NR-Aromatase, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53 active for this molecule.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.*.active",
+            "scope": {
+              "assay": "listed Tox21 assays",
+              "compound": "bisphenol A",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          },
+          {
+            "id": "e2",
+            "claim": "The predictor marks NR-AR and NR-AR-LBD inactive, demonstrating that the panel does not produce uniformly positive outputs.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "locator": "predictions.tox21.assays.NR-AR.active; predictions.tox21.assays.NR-AR-LBD.active",
+            "scope": {
+              "assay": "NR-AR and NR-AR-LBD",
+              "compound": "bisphenol A",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          },
+          {
+            "id": "e3",
+            "claim": "The applicability result is 'ok' under element_rules_v1, with the explicit caveat that common elements do not confirm distributional similarity beyond element composition.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "locator": "applicability.status; applicability.method; applicability.reasons",
+            "scope": {
+              "compound": "bisphenol A",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "description": "The outputs do not establish assay concentration, exposure, pharmacokinetics, or translation to organism-level toxicity.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific evidence that could contradict or qualify the model-signal interpretation.",
+            "decision": "continue",
+            "outcome": "",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Confirm the highest-priority assay signals experimentally with concentration-response controls and compare effective concentrations with a defined exposure scenario.",
+            "rationale": "This separates reproducible assay activity from model-only signal and tests whether the signal is relevant at the exposure being considered.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "replicated concentration-response activity in the named assay",
+              "no activity or activity only at concentrations unrelated to the defined exposure",
+              "orthogonal confirmation for receptor or stress-response activity"
+            ],
+            "actor": "model",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The model indicates activity in multiple independent Tox21 assays, while two androgen-receptor assays are predicted inactive; this is an assay-profile signal, not an aggregate toxicity verdict.",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "The result does not establish organism-level toxicity, human risk, potency at a relevant exposure, or mechanism.",
+              "evidence_ids": [
+                "e1",
+                "e3"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Do not call the compound toxic overall from these outputs alone.",
+            "Do not treat the number of active assays as a severity score.",
+            "Do not interpret model probabilities as calibrated clinical or population risk."
+          ],
+          "what_would_change": [
+            "Compound-specific experimental concentration-response data, assay controls, orthogonal confirmation, and a defined exposure context would determine whether the signals replicate and are relevant."
+          ],
+          "approver": "",
+          "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6"
+        },
+        "runs": [
+          {
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "goal": "The model reports several Tox21 assay activities for bisphenol A (CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O). Does that mean it is toxic overall, and how should we read those results?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_56b6a5e7e4ca4e58950b0225b186cfcb",
+            "usage": {
+              "searches": 2,
+              "tool_calls": 24,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 1,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-25T13:42:18.295220+00:00",
+        "updated_at": "2026-09-25T13:44:57.160398+00:00"
+      },
+      "events": {
+        "case_id": "scase_2dbf0995efe04ce195dc886969744270",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_2dbf0995efe04ce195dc886969744270",
+              "question": "The model reports several Tox21 assay activities for bisphenol A (CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O). Does that mean it is toxic overall, and how should we read those results?",
+              "session_id": "ses_445eb36d983c49c48d075dfd3f98820d",
+              "subject_key": "analysis:ana_c54e74696e5e420c8786838656e583c8",
+              "subject_refs": [
+                "analysis:ana_c54e74696e5e420c8786838656e583c8"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:42:18.295220+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "The model reports several Tox21 assay activities for bisphenol A (CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O). Does that mean it is toxic overall, and how should we read those results?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:42:18.295220+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 2
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "Interpret the bisphenol A Tox21 assay activities without treating them as an aggregate toxicity label, and determine what they do and do not establish about overall toxicity.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "decision_context": "Decision support for reading model assay outputs and deciding whether additional verification is needed.",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:42:48.537559+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "status": "open",
+              "can_say": [],
+              "statement": "The reported Tox21 activities are model signals for activity in specific assays, and should not be interpreted as proof of overall toxicity.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Independent, endpoint-specific evidence establishes that the model outputs are a validated aggregate measure of overall toxicity."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:42:48.537597+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "status": "open",
+              "can_say": [],
+              "severity": "high",
+              "statement": "The Tox21 signals may not translate directly to real-world hazard because assay context, exposure, potency, and biological relevance are not established by these model outputs alone.",
+              "cannot_say": [],
+              "description": "The model output does not establish assay concentrations, calibration to human risk, exposure, or endpoint coverage.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Compound-specific experimental evidence under relevant exposure conditions demonstrates translation from these assays to the claimed real-world toxicity outcome."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:42:48.537611+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 5
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "purpose": "Look for compound-specific evidence that could contradict or qualify the model-signal interpretation.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:43:25.372111+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor marks NR-ER, NR-ER-LBD, NR-AhR, NR-Aromatase, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53 active for this molecule.",
+              "scope": {
+                "assay": "listed Tox21 assays",
+                "compound": "bisphenol A",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.*.active",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:44:09.852607+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 7
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor marks NR-AR and NR-AR-LBD inactive, demonstrating that the panel does not produce uniformly positive outputs.",
+              "scope": {
+                "assay": "NR-AR and NR-AR-LBD",
+                "compound": "bisphenol A",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.NR-AR.active; predictions.tox21.assays.NR-AR-LBD.active",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:44:09.852635+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 8
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The applicability result is 'ok' under element_rules_v1, with the explicit caveat that common elements do not confirm distributional similarity beyond element composition.",
+              "scope": {
+                "compound": "bisphenol A",
+                "endpoint": "tox21"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "applicability.status; applicability.method; applicability.reasons",
+              "severity": "medium",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_00ea2142b7924915a34d92df8b11ec40",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "uncertainty_kind": "applicability_domain",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:44:09.852646+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 9
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The outputs do not establish assay concentration, exposure, pharmacokinetics, or translation to organism-level toxicity.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:44:09.852655+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 10
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Confirm the highest-priority assay signals experimentally with concentration-response controls and compare effective concentrations with a defined exposure scenario.",
+              "can_say": [],
+              "rationale": "This separates reproducible assay activity from model-only signal and tests whether the signal is relevant at the exposure being considered.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "replicated concentration-response activity in the named assay",
+                "no activity or activity only at concentrations unrelated to the defined exposure",
+                "orthogonal confirmation for receptor or stress-response activity"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:44:09.852664+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 11
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The model indicates activity in multiple independent Tox21 assays, while two androgen-receptor assays are predicted inactive; this is an assay-profile signal, not an aggregate toxicity verdict.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                },
+                {
+                  "text": "The result does not establish organism-level toxicity, human risk, potency at a relevant exposure, or mechanism.",
+                  "evidence_ids": [
+                    "e1",
+                    "e3"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Do not call the compound toxic overall from these outputs alone.",
+                "Do not treat the number of active assays as a severity score.",
+                "Do not interpret model probabilities as calibrated clinical or population risk."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Compound-specific experimental concentration-response data, assay controls, orthogonal confirmation, and a defined exposure context would determine whether the signals replicate and are relevant."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:44:19.568453+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 2,
+                "tool_calls": 24,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_56b6a5e7e4ca4e58950b0225b186cfcb",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:44:57.160398+00:00",
+            "run_id": "run_5f47a52eb06e472ea3adcef6d93848b6",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

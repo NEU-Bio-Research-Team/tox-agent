@@ -1,0 +1,2454 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_c25f7afa77a44a349dd3b07b87643065",
+        "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:28:49.151887+00:00",
+        "created_at": "2026-09-25T13:23:49.151887+00:00",
+        "started_at": "2026-09-25T13:23:49.356651+00:00",
+        "ended_at": "2026-09-25T13:26:53.129144+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "c9cdd71db9f947ae26d36016eb8bacbd0cc34642162516eacb10ce1ba9bc9316",
+          "tool_schema_hash": "b76b67ce2cb71f9dda4bf5a3ccbaae907d67b98f45c1b5a65eb97fb8fa8a8f62",
+          "system_prompt_hash": "dbe99c7ecc030e2bccb16d929ead6d448e3e2266e65774e78fb9baa873f4b918"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:23:49.153031+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_f9722f6f42854f6bb8ed2d12bcdc39ad",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:24:04.695930+00:00",
+              "tokens": {
+                "input": 7827,
+                "output": 115,
+                "reasoning": 50,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 10552
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7be3055fd72b73ff1bf1bebcdefb12bb",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bc9e050013A2tD3DU9Ma5jt",
+                "step_id": "prt_0d8bcc3cc001KWypnM1lE4r67O",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_b31eb244f07848a1aadba4d75418b9d9",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:24:08.514206+00:00",
+              "tokens": {
+                "input": 8489,
+                "output": 55,
+                "reasoning": 20,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 11124
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_5e10a535dc8ba546ecb1369479dc8b44",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bcc404001VLZ0U4TpRYIz0Y",
+                "step_id": "prt_0d8bcd2bb001eCStBt7dcnFWa0",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_faff23642d3a4b1b977bca22edc94b6f",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:24:28.112756+00:00",
+              "tokens": {
+                "input": 1437,
+                "output": 712,
+                "reasoning": 230,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 13131
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_1e8d1f6361a710e337c8e39f905cef5d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bcd2e8001OxwZ4JLINR4L8O",
+                "step_id": "prt_0d8bd1f49001xAOFlCLX0EERb7",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_838518b881c74f23ae7966c5fdccd6dc",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:24:34.313310+00:00",
+              "tokens": {
+                "input": 1545,
+                "output": 95,
+                "reasoning": 0,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 13416
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8047c6a27c0bc1c724d91374cbcda254",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bd1f6d001LKEmWVRjH38ezv",
+                "step_id": "prt_0d8bd3782001mopebvtHTirPPU",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_59777d81346741a7a74bbd27b2dbd72f",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:24:40.399306+00:00",
+              "tokens": {
+                "input": 11404,
+                "output": 130,
+                "reasoning": 13,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 14107
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b6faa6aa7ce861bd886156a4403e52df",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bd37a4001uo9JZJe3YF1GLl",
+                "step_id": "prt_0d8bd4f47001fpRhJKQWYemLJm",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_21424f1e3f434ff9b99201b2a6bcaa45",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:24:48.239489+00:00",
+              "tokens": {
+                "input": 652,
+                "output": 114,
+                "reasoning": 17,
+                "cache_read": 13824,
+                "cache_write": 0,
+                "total": 14607
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ee2f331af1fbe5c042aa3d74f0c97c8e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bd4f740011194OynqeYEYOE",
+                "step_id": "prt_0d8bd6de6001zUJDQ3JKgPSv3T",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_db0f26ae73504110b425334a0ebd8d64",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:25:25.364600+00:00",
+              "tokens": {
+                "input": 2245,
+                "output": 1723,
+                "reasoning": 138,
+                "cache_read": 13824,
+                "cache_write": 0,
+                "total": 17930
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_08ab12627357ff2ed38285c04735483d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bd6e09001NSxEbqZ37KRQtD",
+                "step_id": "prt_0d8bdfeec001Y43pmSZl56ytJf",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a338c628aba5438cadf660fada6f3e18",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:25:40.020844+00:00",
+              "tokens": {
+                "input": 2281,
+                "output": 569,
+                "reasoning": 114,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 18836
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_728579f7057345d092c57fc938b5dbfc",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bdff1a001ubdB7WQ8ubgWsr",
+                "step_id": "prt_0d8be382e001bA2wbruVd463J3",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_6c9f1666559a482f89ee38aa1b87b447",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:26:14.808500+00:00",
+              "tokens": {
+                "input": 1097,
+                "output": 1524,
+                "reasoning": 196,
+                "cache_read": 17920,
+                "cache_write": 0,
+                "total": 20737
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b65de26141b1ebe34ae40c6bb66ccc8a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8be384f001PGnBJ2ciWFHtYA",
+                "step_id": "prt_0d8bec011001v6mIy99NV81cVA",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_39b6e89a1dbd4430916dfa2217f61c9f",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:26:47.381523+00:00",
+              "tokens": {
+                "input": 3002,
+                "output": 1541,
+                "reasoning": 39,
+                "cache_read": 17920,
+                "cache_write": 0,
+                "total": 22502
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_59c9733b34ca04dee2c5927a0d8862c4",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bec034001WtGGWyxsktgvY2",
+                "step_id": "prt_0d8bf3f4e001FHj2T1Gbaq4VQl",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_995cf6c28d024dd8be4b7c6c92d45d2c",
+              "runtime_binding_id": "rtb_215ea1cb2b9e4534b003d64d0dbf489a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:26:53.057328+00:00",
+              "tokens": {
+                "input": 9829,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 22633
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a0641df6e737f79768c531cb29c523a9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bf3f82001RHXebh145sQQ6V",
+                "step_id": "prt_0d8bf5579001Qz2WyA51DuvATx",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_e34e138fd66d46e3aed9e392f57ae42d",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 22,
+            "arguments_sha256": "8d464ac57c5e7b99eb1b24ec259abfcd8885f94da958276d6221abd80db80ee9",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:24:04.513297+00:00",
+            "ended_at": "2026-09-25T13:24:04.532642+00:00"
+          },
+          {
+            "call_id": "call_b9ecab62712d423f91f6e63b5ddb6018",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:24:04.623228+00:00",
+            "ended_at": "2026-09-25T13:24:04.636879+00:00"
+          },
+          {
+            "call_id": "call_423a00c0f0244013a207e05efe0ba826",
+            "tool_name": "get_attribution",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 48,
+            "arguments_sha256": "80b51b1ccb24c0364ab81bdb6dfda8d9ef8d209b1a3f1cc5761249e6f2bd3ca3",
+            "observation_ids": [
+              "obs_f89af3ab29dc4c1c9f10509fa6f846c1"
+            ],
+            "started_at": "2026-09-25T13:24:08.407224+00:00",
+            "ended_at": "2026-09-25T13:24:08.452631+00:00"
+          },
+          {
+            "call_id": "call_ac9d72d0756d4f8ab63ed32014d17753",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "fa468eb18439ef642201db34b70e2238d59aedc920e81afd08fbf985fbec3f1d",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:24:28.046752+00:00",
+            "ended_at": "2026-09-25T13:24:28.060382+00:00"
+          },
+          {
+            "call_id": "call_d883f493830342169ed328d15acd9c5a",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1756,
+            "arguments_sha256": "4797f321e6fa9cb48390026c8b5817e2dfc4d3af0d64f8aad4dd037711e51076",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:24:32.523288+00:00",
+            "ended_at": "2026-09-25T13:24:34.277470+00:00"
+          },
+          {
+            "call_id": "call_529935cb5c3a43e5a7b7dc94bbeb0f41",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "1b9718705e19a21d9470cdfa9cb0286038e3f30315625ef13e15a2d3c6fcdffe",
+            "observation_ids": [
+              "evd_48eb6066a3bb40efa8e5be7b4cab7836"
+            ],
+            "started_at": "2026-09-25T13:24:40.237742+00:00",
+            "ended_at": "2026-09-25T13:24:40.249476+00:00"
+          },
+          {
+            "call_id": "call_152be2148665491590af1738bd4a279d",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 10,
+            "arguments_sha256": "3451262d9269ce639457b79aafe2c93a5630346d3daefbe100a143bf3d8fb20c",
+            "observation_ids": [
+              "evd_233b5b984d204a93b0f59562bf9d41bc"
+            ],
+            "started_at": "2026-09-25T13:24:40.358427+00:00",
+            "ended_at": "2026-09-25T13:24:40.366415+00:00"
+          },
+          {
+            "call_id": "call_dca7ac489bf74cf7a8948b2bb5d89baf",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "05e0b1f3fd9936612f4fe3817000ae3958f0315b50de3aa36770973f088c1463",
+            "observation_ids": [
+              "evd_48eb6066a3bb40efa8e5be7b4cab7836"
+            ],
+            "started_at": "2026-09-25T13:24:48.065982+00:00",
+            "ended_at": "2026-09-25T13:24:48.075934+00:00"
+          },
+          {
+            "call_id": "call_2f3332f13e544fb8a5be8b45d00b8ee4",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "3dedda17d0faef4e8b1f4d8cef0e302a4537a78782239f82bb46de5bb33b6fca",
+            "observation_ids": [
+              "evd_233b5b984d204a93b0f59562bf9d41bc"
+            ],
+            "started_at": "2026-09-25T13:24:48.138876+00:00",
+            "ended_at": "2026-09-25T13:24:48.149134+00:00"
+          },
+          {
+            "call_id": "call_4417fee9fe134df8af7382b86e0e2e07",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "2b87b55a208307666cc4a96211fa0845e050e8fc219af13ff4869186cb860d21",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:25:25.288488+00:00",
+            "ended_at": "2026-09-25T13:25:25.307312+00:00"
+          },
+          {
+            "call_id": "call_9f5194d9600b46b5ad991b1206b63740",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "2bee398088641d8e7d80a7dd9282f94b4d85986c6155d365b0e63cf944d7b9e7",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:25:39.950568+00:00",
+            "ended_at": "2026-09-25T13:25:39.965031+00:00"
+          },
+          {
+            "call_id": "call_088de4e6df1443249c50c7753bd62690",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 53,
+            "arguments_sha256": "6eded75b2e24eba1c02d625ca8b2107089021b1018713e041f27a936ccdf4e78",
+            "observation_ids": [
+              "obs_f89af3ab29dc4c1c9f10509fa6f846c1"
+            ],
+            "started_at": "2026-09-25T13:26:47.206327+00:00",
+            "ended_at": "2026-09-25T13:26:47.257972+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_c5337682c82d49039476d9b933774e64",
+        "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+        "answer_markdown": "The model’s attribution points mainly to:\n\n- The central tertiary-amine/ether linker, especially the `N` and `O` tokens.\n- The sulfonamide-bearing aryl regions, especially the `S` tokens and nearby atoms.\n- Several adjacent linker and aromatic atoms also rank highly, so this is not a single-group explanation.\n\nThis is only what the model’s gradient uses for its hERG score. Its measured faithfulness was not better than random-atom controls, so the highlights are not reliable evidence of a causal structural feature.\n\nNo: the attribution does not tell us how dofetilide blocks hERG. Direct experimental literature supports dofetilide inhibition of KV11.1/hERG, and shows that membrane environment can alter its sensitivity, but that does not identify the highlighted atoms as the binding site or establish pore interaction, access state, or blocking kinetics.\n\nA discriminating follow-up would test matched analogues that selectively modify the linker versus sulfonamide regions in hERG patch clamp, paired with channel-mutant and state-dependent protocols.",
+        "claims": [
+          {
+            "claim_id": "clm_28b045a14a6c420e9f0e852ebf6eb42a",
+            "kind": "scientific",
+            "text": "The hERG model attribution points mainly to the tertiary-amine/ether linker and sulfonamide-bearing aryl regions, with additional nearby linker and aromatic atoms contributing.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "field_path": "top_tokens"
+          },
+          {
+            "claim_id": "clm_75c17cd4aba5428bb048ce2f1f217224",
+            "kind": "scientific",
+            "text": "The attribution is not established as a faithful causal explanation because its validation found no advantage over random controls.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "field_path": "explainer_validation.faithfulness_vs_random_control"
+          },
+          {
+            "claim_id": "clm_cf762db568e241aa8a2f46cc1a63ab37",
+            "kind": "scientific",
+            "text": "The attribution does not identify dofetilide’s hERG binding site or blocking mechanism.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_48eb6066a3bb40efa8e5be7b4cab7836"
+            ],
+            "observation_id": "obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "field_path": "explainer_validation.reading"
+          },
+          {
+            "claim_id": "clm_4d2aff15ac4f4b219a48bb4ba65b6aa9",
+            "kind": "scientific",
+            "text": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_233b5b984d204a93b0f59562bf9d41bc",
+              "evd_48eb6066a3bb40efa8e5be7b4cab7836"
+            ]
+          },
+          {
+            "claim_id": "clm_8b7054efc0924aebb50088a25f4efc0b",
+            "kind": "recommendation",
+            "text": "Use matched-analogue hERG patch-clamp experiments with channel-mutant and state-dependent protocols to test whether the highlighted regions track potency or blocking kinetics.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "attribution_not_causality",
+            "text": "Attribution shows which input features moved this model’s score; it does not establish molecular mechanism."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The cited experiments support narrow hERG/KV11.1 findings under their reported systems and conditions, not a complete binding-mechanism conclusion."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed analogue and electrophysiology work is a mechanistic verification experiment, not a safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run matched-analogue hERG patch clamp with channel-mutant and access-state measurements.",
+            "basis_claim_ids": [
+              "clm_28b045a14a6c420e9f0e852ebf6eb42a",
+              "clm_cf762db568e241aa8a2f46cc1a63ab37"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "848a7a724643d7ae12f6acb9edc6ab4de338ce5c684aa7a20516278771b95b09",
+        "created_at": "2026-09-25T13:26:47.223101+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_05a1d02718b841d397074acbf7539ee8",
+        "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+        "goal": "Which part of dofetilide's structure (CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C) drives the model's hERG prediction, and does that tell us how it blocks the channel?",
+        "subject_refs": [
+          "analysis:ana_9dc3bec6a8b04a918c19741b93b26a58"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The model attribution points mainly to the tertiary-amine/ether linker and sulfonamide-bearing aryl regions.",
+            "required_sources": [
+              "explanation"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The attribution does not identify dofetilide’s hERG binding site or blocking mechanism.",
+            "required_sources": [
+              "explanation"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p3",
+            "question": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+            "required_sources": [
+              "evidence"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+              "evidence:evd_233b5b984d204a93b0f59562bf9d41bc"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p4",
+            "question": "Matched-analogue patch clamp and mutant/state-dependent experiments are needed to connect highlighted regions to mechanism.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 4,
+          "resolved": 3
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 1,
+          "tool_calls": 12,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 4
+        },
+        "available_refs": [
+          "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+          "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+          "evidence:evd_233b5b984d204a93b0f59562bf9d41bc"
+        ],
+        "found_refs": [
+          "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+          "evidence:evd_233b5b984d204a93b0f59562bf9d41bc"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "static",
+          "loaded": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "references_loaded": []
+        },
+        "revision": 16
+      },
+      "dossier": {
+        "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+        "case_id": "scase_4778730436444c6fbb8024c374895868",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 0,
+          "with_independent_direct_evidence": 1
+        },
+        "question": "Which part of dofetilide's structure drives the model's hERG prediction, and does that identify its channel-blocking mechanism?",
+        "answer_id": "ans_c5337682c82d49039476d9b933774e64",
+        "conclusion": {
+          "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+          "can_say": [
+            {
+              "text": "The model's gradient attribution concentrates on the tertiary-amine/ether linker region and sulfonamide-bearing aryl regions, with mixed signed contributions.",
+              "sources": [
+                "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "This attribution does not establish a blocking mechanism; direct studies support dofetilide-related KV11.1 inhibition, while membrane environment can alter dofetilide sensitivity.",
+              "sources": [
+                "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+                "evidence:evd_233b5b984d204a93b0f59562bf9d41bc"
+              ],
+              "evidence_ids": [
+                "e2",
+                "e3"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "The highlighted groups cause hERG block.",
+            "The attribution identifies the binding site, pore interactions, state dependence, or clinical electrophysiologic effect."
+          ],
+          "what_would_change": [
+            "Matched-analogue hERG patch-clamp data combined with channel-mutant and access-state experiments that link the highlighted substitutions to potency, kinetics, or state dependence."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "status": "open",
+            "context": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The hERG attribution ranks the token-level regions around the tertiary amine, ether oxygen, and sulfonamide sulfur/adjacent atoms among the strongest model contributions, with mixed signed directions.",
+                "scope": {
+                  "compound": "dofetilide",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+                "stance": "contextual",
+                "locator": "top_tokens",
+                "directness": "direct",
+                "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+                "source_class": "explanation_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "statement": "The hERG model score is driven mainly by learned patterns involving the tertiary amine/ether linker and sulfonamide-bearing aryl groups.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A complete, validated attribution or controlled structural perturbation shows those regions do not materially affect the model score."
+          },
+          {
+            "id": "h2",
+            "kind": "mechanism",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "status": "open",
+            "context": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "A recent hERG study reports that changing membrane cholesterol altered dofetilide sensitivity in whole-cell current recordings, indicating that channel inhibition can depend on membrane environment as well as compound-channel interaction.",
+                "scope": {
+                  "assay": "whole-cell current",
+                  "species": "HEK293 cells",
+                  "compound": "dofetilide",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+                "stance": "contextual",
+                "locator": "abstract_or_excerpt:Results; abstract_or_excerpt:Conclusions",
+                "directness": "direct",
+                "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The highlighted model features identify the physical mechanism by which dofetilide blocks hERG.",
+            "evidence_for": [
+              {
+                "id": "e3",
+                "actor": "model",
+                "claim": "An ex vivo rabbit-heart study identifies dofetilide as a KV11.1 blocker and observes prolonged ventricular action potential duration under its tested conditions.",
+                "scope": {
+                  "dose": "10 nM",
+                  "assay": "ex vivo Langendorff",
+                  "species": "rabbit heart",
+                  "compound": "dofetilide",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+                "stance": "supports",
+                "locator": "abstract_or_excerpt:Methods and results",
+                "directness": "direct",
+                "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Direct channel experiments show that changing or testing the highlighted features does not establish the proposed binding interaction or block mechanism."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Test matched dofetilide analogues that selectively alter the tertiary amine/ether linker or sulfonamide groups in hERG patch clamp, paired with channel-mutant and access-state protocols.",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "rationale": "This separates whether the model-sensitive substructures track functional potency from whether they identify a specific channel interaction.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "Change in hERG current inhibition and potency across matched analogues",
+              "Mutant- and state-dependence of block",
+              "Association/dissociation kinetics"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_9dc3bec6a8b04a918c19741b93b26a58"
+        ],
+        "case_revision": 19,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [],
+        "decision_context": "Interpret a stored hERG attribution without treating it as mechanistic evidence.",
+        "unlinked_evidence": [
+          {
+            "id": "e4",
+            "actor": "server",
+            "claim": "The model attribution points mainly to the tertiary-amine/ether linker and sulfonamide-bearing aryl regions.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "source_class": "explanation_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e5",
+            "actor": "server",
+            "claim": "The attribution does not identify dofetilide’s hERG binding site or blocking mechanism.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "source_class": "explanation_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e6",
+            "actor": "server",
+            "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+            "scope": {
+              "species": "HEK293 cells",
+              "endpoint": "herg"
+            },
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+            "source_class": "external_experimental",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e7",
+            "actor": "server",
+            "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+            "scope": {
+              "dose": "10 nM",
+              "species": "rabbit heart",
+              "endpoint": "herg"
+            },
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+            "source_class": "external_experimental",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "outcome": "The retrieved direct studies support dofetilide-related KV11.1 inhibition but also show membrane-environment dependence; they do not validate the highlighted atoms as a binding mechanism.",
+              "purpose": "Look for evidence that would contradict a simple interpretation of the attribution as the channel-blocking mechanism.",
+              "decision": "answer",
+              "hypothesis_ids": []
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "outcome": "Keep the structural interpretation as a model signal only; retain the mechanistic claim as unresolved; include the attribution-faithfulness limitation and the discriminating experiment.",
+              "purpose": "Check that the conclusion stays within model attribution and direct hERG evidence, does not treat saliency as mechanism, and states the unresolved validation gap.",
+              "decision": "answer",
+              "hypothesis_ids": []
+            }
+          ],
+          "model_attribution": [
+            {
+              "id": "e1",
+              "actor": "model",
+              "claim": "The hERG attribution ranks the token-level regions around the tertiary amine, ether oxygen, and sulfonamide sulfur/adjacent atoms among the strongest model contributions, with mixed signed directions.",
+              "scope": {
+                "compound": "dofetilide",
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "contextual",
+              "locator": "top_tokens",
+              "directness": "direct",
+              "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+              "source_class": "explanation_fact",
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "explainer_validation": {
+                "reading": "On the measured panel the highlighted atoms did not move this score more than deleting random atoms. Present highlights only as what the model's gradient points at, say that their faithfulness is not established, and never as mechanism or as evidence for or against a hazard.",
+                "determinism": "passed",
+                "measured_on": "2026-09-09",
+                "schema_version": "explainer-validation-v1",
+                "spelling_invariance": "passed",
+                "faithfulness_vs_random_control": "not_better_than_random_control"
+              }
+            },
+            {
+              "id": "e4",
+              "actor": "server",
+              "claim": "The model attribution points mainly to the tertiary-amine/ether linker and sulfonamide-bearing aryl regions.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "direct",
+              "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+              "source_class": "explanation_fact",
+              "hypothesis_ids": [],
+              "explainer_validation": {
+                "reading": "On the measured panel the highlighted atoms did not move this score more than deleting random atoms. Present highlights only as what the model's gradient points at, say that their faithfulness is not established, and never as mechanism or as evidence for or against a hazard.",
+                "determinism": "passed",
+                "measured_on": "2026-09-09",
+                "schema_version": "explainer-validation-v1",
+                "spelling_invariance": "passed",
+                "faithfulness_vs_random_control": "not_better_than_random_control"
+              }
+            },
+            {
+              "id": "e5",
+              "actor": "server",
+              "claim": "The attribution does not identify dofetilide’s hERG binding site or blocking mechanism.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "direct",
+              "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+              "source_class": "explanation_fact",
+              "hypothesis_ids": [],
+              "explainer_validation": {
+                "reading": "On the measured panel the highlighted atoms did not move this score more than deleting random atoms. Present highlights only as what the model's gradient points at, say that their faithfulness is not established, and never as mechanism or as evidence for or against a hazard.",
+                "determinism": "passed",
+                "measured_on": "2026-09-09",
+                "schema_version": "explainer-validation-v1",
+                "spelling_invariance": "passed",
+                "faithfulness_vs_random_control": "not_better_than_random_control"
+              }
+            }
+          ],
+          "scientific_evidence": [
+            {
+              "id": "e2",
+              "actor": "model",
+              "claim": "A recent hERG study reports that changing membrane cholesterol altered dofetilide sensitivity in whole-cell current recordings, indicating that channel inhibition can depend on membrane environment as well as compound-channel interaction.",
+              "scope": {
+                "assay": "whole-cell current",
+                "species": "HEK293 cells",
+                "compound": "dofetilide",
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "contextual",
+              "locator": "abstract_or_excerpt:Results; abstract_or_excerpt:Conclusions",
+              "directness": "direct",
+              "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h2"
+              ]
+            },
+            {
+              "id": "e3",
+              "actor": "model",
+              "claim": "An ex vivo rabbit-heart study identifies dofetilide as a KV11.1 blocker and observes prolonged ventricular action potential duration under its tested conditions.",
+              "scope": {
+                "dose": "10 nM",
+                "assay": "ex vivo Langendorff",
+                "species": "rabbit heart",
+                "compound": "dofetilide",
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "supports",
+              "locator": "abstract_or_excerpt:Methods and results",
+              "directness": "direct",
+              "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h2"
+              ]
+            },
+            {
+              "id": "e6",
+              "actor": "server",
+              "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+              "scope": {
+                "species": "HEK293 cells",
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "direct",
+              "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            },
+            {
+              "id": "e7",
+              "actor": "server",
+              "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+              "scope": {
+                "dose": "10 nM",
+                "species": "rabbit heart",
+                "endpoint": "herg"
+              },
+              "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "direct",
+              "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            }
+          ]
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "explainer_faithfulness",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The attribution validation says the highlighted atoms did not move the score more than random atoms on the measured panel.",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "missing_data",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The stored attribution and retrieved records do not establish which atoms form the binding interaction or the access state and kinetics of block.",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_05a1d02718b841d397074acbf7539ee8",
+  "analysis": {
+    "run": {
+      "run_id": "run_5fd17d7e2a0e477b95ab6de48cbcf1d9",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_90ba45fe561247d08164540fc8b54c22",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:28:48.097069+00:00",
+      "created_at": "2026-09-25T13:23:48.097069+00:00",
+      "started_at": "2026-09-25T13:23:48.107799+00:00",
+      "ended_at": "2026-09-25T13:23:48.133388+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:23:48.098246+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_9dc3bec6a8b04a918c19741b93b26a58",
+      "input_smiles": "CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C",
+      "canonical_smiles": "CN(CCOc1ccc(NS(C)(=O)=O)cc1)CCc1ccc(NS(C)(=O)=O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.6591137647628784,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.5098633766174316,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.32700031995773315,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.05259270593523979,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.223422572016716,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.05524938181042671,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.040142808109521866,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.059463053941726685,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.02161540277302265,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.12169278413057327,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.1345190703868866,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.1395236700773239,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.05382399260997772,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "52e0fb3a-0cfb-4f53-911c-ca86d85b000a",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 53,
+            "encoded_token_count": 53
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "4243db6cb6dc7bc60dfd1c46a3ff279dfa0a55c4533b69ab8dc6e68d0cdd4a56"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:23:48.128860+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_2b250737d142435ba6af293f265e8828",
+      "title": "Lipid-dependent regulation of Kv10.1 in cancer: implications of membrane remodeling for channel function and pharmacology.",
+      "authors": [
+        "Phuong NV",
+        "Stary-Weinzinger A"
+      ],
+      "published_at": "2026-09-03",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1905919",
+        "pmid": "42756067",
+        "pmcid": "PMC13582267",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42756067",
+      "abstract_or_excerpt": "The voltage-gated potassium channel Kv10.1 (Eag1), which is abnormally overexpressed across a wide range of tumor types, is a promising therapeutic target for cancer treatment. However, the clinical development of Kv10.1 inhibitors is currently constrained by severe off-target cardiotoxicity resulting from unintended inhibition of the structurally homologous Kv11.1 (hERG) channel. In this review, we examined cancer-associated membrane lipid remodelling and its implications for the lipid-dependent regulation of both channels. Emerging evidence suggests that membrane lipids play a critical role in regulating voltage-gated potassium channels and that, despite their substantial structural similarity, Kv10.1 and Kv11.1 are modulated by distinct lipid-dependent mechanisms. In particular, we highlighted their differential responses to key membrane constituents, including phosphatidylinositol 4,5-bisphosphate (PIP2), cholesterol, and polyunsaturated fatty acids (PUFAs). These observations suggest that the surrounding membrane environment may represent an additional and largely underexplored factor influencing channel function. We further discuss how disease-associated lipid remodeling in cancer may contribute to altered Kv10.1 activity and highlight the possibility that such changes could influence pharmacological responses. Although the underlying mechanisms remain incompletely understood, this perspective points to an underexplored dimension in potassium channel biology that may inform future therapeutic strategies.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "d698b71e5c1fad39ff3f290abc755c78cb3a53bfbbe9b28d38dc17fa9e632c80"
+    },
+    {
+      "evidence_id": "evd_79d284dd839e412d947eac345a6fb5ac",
+      "title": "From allergy to arrhythmia - electrophysiological basis for the antiarrhythmic properties of antazoline.",
+      "authors": [
+        "Wiedmann F",
+        "Prodanova A",
+        "Kraft M",
+        "Weitkamp FM",
+        "Paasche A",
+        "Goetz C",
+        "Schmidt C"
+      ],
+      "published_at": "2026-03-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1780526",
+        "pmid": "41971091",
+        "pmcid": "PMC13066279",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41971091",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Antazoline, a first-generation H<sub>1</sub>-antihistamine, has shown rapid and effective antiarrhythmic action, particularly in recent-onset paroxysmal atrial fibrillation. Despite clinical use in some countries, the underlying electrophysiological mechanisms remain incompletely understood, and concerns about potential proarrhythmic effects persist. Here, we aim to systematically characterize the ion channel interaction profile of antazoline and assess its molecular mode of action.<h4>Methods</h4>Electrophysiological measurements were performed using the two-electrode voltage clamp technique on 22 cardiac ion channels, expressed in <i>Xenopus laevis</i> oocytes.<h4>Results</h4>Antazoline strongly inhibited hERG (IC<sub>50</sub> end-pulse: 43.3 µM; peak-tail: 162.6 µM) and hKir3.1/3.4 (IC<sub>50</sub>: 52.8 µM) in a concentration- and state-dependent manner. Block of hERG was attenuated by Y652A and F656A pore mutations, implicating classical aromatic binding residues. Positive rate dependence and open- and inactivated-state as well as partial closed-state inhibition were observed. In contrast, hK<sub>2P</sub>17.1 was significantly activated.<h4>Discussion</h4>Antazoline exhibits a distinct multichannel profile in a heterologous expression system, combining potent inhibition of hERG and hK<sub>ir</sub>3.1/3.4 with activation of hK<sub>2P</sub>17.1. The combined modulation of these channels suggests a potential atrial-preferential electrophysiological profile, while hERG inhibition indicates a need for careful evaluation of ventricular repolarization safety.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "524f482801ff3c3f7fd91c10a12917ce5331606731453304385fdd5e911efd79"
+    },
+    {
+      "evidence_id": "evd_48eb6066a3bb40efa8e5be7b4cab7836",
+      "title": "Effect of the Membrane Environment on Pharmacologic Inhibition of hERG K&lt;sup&gt;+&lt;/sup&gt; Channel Activity.",
+      "authors": [
+        "Fiore CM",
+        "Quigley K",
+        "Vorobyov I",
+        "Clancy CE",
+        "Harvey RD"
+      ],
+      "published_at": "2025-01-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.jacep.2024.11.016",
+        "pmid": "39895450",
+        "pmcid": "PMC12043409",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39895450",
+      "abstract_or_excerpt": "<h4>Background</h4>hERG encodes K<sub>V</sub>11.1 voltage-gated K<sup>+</sup> channels, which generate the rapidly activating delayed rectifier K<sup>+</sup> current that contributes to repolarization of the cardiac action potential. In addition to being targeted by many class III antiarrhythmic agents, these channels are also inhibited by a multitude of other pharmacological compounds, which can produce acquired long QT syndrome, leading to polymorphic ventricular tachycardia. While most drugs are thought to interact with a hydrophilic binding site in the channel pore, it has been postulated that some compounds act by perturbing the membrane environment or acting at hydrophobic sites accessed through the plasma membrane.<h4>Objectives</h4>Because hERG channels reside in cholesterol rich lipid raft domains, we hypothesized that disrupting the membrane environment by depleting cholesterol might alter inhibition of channel activity by certain drugs.<h4>Methods</h4>We tested our hypothesis by examining the effect that depleting membrane cholesterol with methyl-β-cyclodextrin has on the ability of several compounds to inhibit hERG channels expressed in HEK293 cells.<h4>Results</h4>We found that cholesterol depletion significantly increased the sensitivity of the whole cell current to inhibition by ibutilide, while decreasing the currents sensitivity to dofetilide and amiodarone at negative membrane potentials.<h4>Conclusions</h4>These results support the idea that the lipid environment of the plasma membrane plays a role in the ability of certain drugs to inhibit hERG channel activity. Differences in membrane cholesterol content may affect the ability of some hERG channel blockers to produce arrhythmogenic behavior.",
+      "normalized_facts": {
+        "journal": "JACC. Clinical electrophysiology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "d68ac0ce775c0ba6575d16c89bebbaecc634dab841f71ff85c2cee5b3b01d1aa"
+    },
+    {
+      "evidence_id": "evd_0e09e25bd2514c5ea7f4ce53f15217d5",
+      "title": "Harnessing AlphaFold to reveal hERG channel conformational state secrets.",
+      "authors": [
+        "Ngo K",
+        "Yang PC",
+        "Yarov-Yarovoy V",
+        "Clancy CE",
+        "Vorobyov I"
+      ],
+      "published_at": "2025-07-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.7554/elife.104901",
+        "pmid": "40658102",
+        "pmcid": "PMC12259024",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40658102",
+      "abstract_or_excerpt": "To design safe, selective, and effective new therapies, there must be a deep understanding of the structure and function of the drug target. One of the most difficult problems to solve has been the resolution of discrete conformational states of transmembrane ion channel proteins. An example is K<sub>V</sub>11.1 (hERG), comprising the primary cardiac repolarizing current, <i>I</i><sub>kr</sub>. hERG is a notorious drug anti-target against which all promising drugs are screened to determine potential for arrhythmia. Drug interactions with the hERG inactivated state are linked to elevated arrhythmia risk, and drugs may become trapped during channel closure. While prior studies have applied AlphaFold to predict alternative protein conformations, we show that the inclusion of carefully chosen structural templates can guide these predictions toward distinct functional states. This targeted modeling approach is validated through comparisons with experimental data, including proposed state-dependent structural features, drug interactions from molecular docking, and ion conduction properties from molecular dynamics simulations. Remarkably, AlphaFold not only predicts inactivation mechanisms of the hERG channel that prevent ion conduction but also uncovers novel molecular features explaining enhanced drug binding observed during inactivation, offering a deeper understanding of hERG channel function and pharmacology. Furthermore, leveraging AlphaFold-derived states enhances computational screening by significantly improving agreement with experimental drug affinities, an important advance for hERG as a key drug safety target where traditional single-state models miss critical state-dependent effects. By mapping protein residue interaction networks across closed, open, and inactivated states, we identified critical residues driving state transitions validated by prior mutagenesis studies. This innovative methodology sets a new benchmark for integrating deep learning-based protein structure prediction with experimental validation. It also offers a broadly applicable approach using AlphaFold to predict discrete protein conformations, reconcile disparate data, and uncover novel structure-function relationships, ultimately advancing drug safety screening and enabling the design of safer therapeutics.",
+      "normalized_facts": {
+        "journal": "eLife",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "b05d3c6117d9f0f8ea431507a19d5009b0132a70ffdd1b361392fadebf4f68d5"
+    },
+    {
+      "evidence_id": "evd_7d4e656c658a4c80a947631d6b901250",
+      "title": "Delayed Repolarization Caused by hERG Block With Different Drug Modalities Can Be Detected in Stem Cell-Derived Cardiomyocytes: Incubation Time Matters.",
+      "authors": [
+        "Qu Y",
+        "Guo W",
+        "Wu B",
+        "Cui J",
+        "Gao B",
+        "Nichols JV",
+        "Vargas HM"
+      ],
+      "published_at": "2025-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70283",
+        "pmid": "40848285",
+        "pmcid": "PMC12374734",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40848285",
+      "abstract_or_excerpt": "The intrinsic characteristics of oligonucleotides pose a challenge for their assessment in conventional primary in vitro cardiac models, which were designed for the acute application of small molecule agents and are not suitable for transfection and extended culture periods. Conversely, human-induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CM) offer a viable platform for the evaluation of agents over prolonged application and recording times. Our previous experiments demonstrated that a chronic protocol of 48 h is necessary to discern the functional effects of a siRNA targeting hERG in a stable cell line heterologously expressing hERG. To investigate whether a targeted hERG siRNA induces delayed repolarization in hiPSC-CM, we recorded field potentials (FPs) using a multielectrode array. FP duration (FPD) prolongation was noted as early as 10 min after exposure to moxifloxacin, whereas pentamidine required 24 h to induce FPD prolongation. Transfection with hERG-targeting siRNA reduced mRNA expression at 6 h post-transfection. However, FPD prolongation was only observed after 24 h post-transfection, with significantly larger effects at 48 h, which is indicative of the time needed for turnover of the hERG protein on the plasma membrane. Our findings provide compelling evidence that MEA recordings in hiPSC-CM can accurately detect disruptions in cardiac repolarization due to various mechanisms that impair hERG channel function, including direct channel blockade, inhibition of protein trafficking, and gene silencing via siRNA. The findings also indicate that indirect mechanisms of hERG knockdown, including gene silencing, require assessment at least 48 h following treatment to detect delayed repolarization in the hiPSC-CM model.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "20e63ac4b247017c6158c8e1aeab924185e5abec207e121009ed2c0a7e62a4e0"
+    },
+    {
+      "evidence_id": "evd_233b5b984d204a93b0f59562bf9d41bc",
+      "title": "Na&lt;sub&gt;V&lt;/sub&gt;1.5 or K&lt;sub&gt;Ca&lt;/sub&gt;2 channel blockade does not increase arrhythmia risk in hypokalemic rabbit hearts, unlike K&lt;sub&gt;V&lt;/sub&gt;11.1 inhibition with dofetilide.",
+      "authors": [
+        "Yan Y",
+        "Abildgaard L",
+        "Skarsfeldt MA",
+        "Bomholtz SH",
+        "Sørensen U",
+        "Holst AG",
+        "Grunnet M",
+        "Diness JG"
+      ],
+      "published_at": "2025-05-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.ijcha.2025.101699",
+        "pmid": "40476174",
+        "pmcid": "PMC12138558",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40476174",
+      "abstract_or_excerpt": "<h4>Aims</h4>The small conductance calcium activated potassium channel (<i>KCNN1-3</i>; K<sub>Ca</sub>2.1-3) is recognized as a possible new anti-arrhythmic drug target for treatment of atrial fibrillation (AF). The aim of this study is to investigate potential ventricular effects of K<sub>Ca</sub>2 channel inhibition under normal, bradycardic and hypokalemic conditions and compare these to classical class I and III anti-arrhythmic drugs.<h4>Methods and results</h4>Rabbit hearts were isolated, AV-ablated, mounted in an ex vivo Langendorff preparation and perfused with normokalemic (4 mM K<sup>+</sup>) Krebs-Henseleit solution, followed by perfusion with drug (AP14145 3 µM; AP30663 1.5 µM; dofetilide 10 nM; flecainide 1.5 µM) or vehicle control. The perfusion was then changed to hypokalemic solution (2.5 mM K<sup>+</sup>) in presence of drug. Changes in ventricular action potential duration were assessed by monophasic action potential recordings. Neither of the K<sub>Ca</sub>2 channel inhibitors (AP14145 or AP30663) or flecainide (Na<sub>V</sub>1.5 inhibitor) prolonged ventricular action potential duration (APD90) or increased pro-arrhythmic markers, whereas dofetilide (K<sub>V</sub>11.1 blocker) prolonged APD and increased the susceptibility to ventricular arrhythmia.<h4>Conclusions</h4>These findings suggests that K<sub>Ca</sub>2 channels have minimal importance for ventricular repolarization in healthy rabbit hearts under both normo- and hypokalemic conditions.",
+      "normalized_facts": {
+        "journal": "International journal of cardiology. Heart & vasculature",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "3504f31e3da5fc8e2cb54dd997a2e8b32a26608ee67eeae3b85a17a3e2f70e8e"
+    },
+    {
+      "evidence_id": "evd_0beffcde3b0d444e9acb202b94bf3b4b",
+      "title": "Stereoselective block of the hERG potassium channel by the Class Ia antiarrhythmic drug disopyramide.",
+      "authors": [
+        "Zhang Y",
+        "El Harchi A",
+        "James AF",
+        "Oiki S",
+        "Dempsey CE",
+        "Hancox JC"
+      ],
+      "published_at": "2024-11-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00018-024-05498-4",
+        "pmid": "39607488",
+        "pmcid": "PMC11604869",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39607488",
+      "abstract_or_excerpt": "Potassium channels encoded by human Ether-à-go-go-Related Gene (hERG) are inhibited by diverse cardiac and non-cardiac drugs. Disopyramide is a chiral Class Ia antiarrhythmic that inhibits hERG at clinical concentrations. This study evaluated effects of disopyramide enantiomers on hERG current (I<sub>hERG</sub>) from hERG expressing HEK 293 cells at 37 °C. S(+) and R(-) disopyramide inhibited wild-type (WT) I<sub>hERG</sub> with IC<sub>50</sub> values of 3.9 µM and 12.9 µM respectively. The attenuated-inactivation mutant N588K had little effect on the action of S(+) disopyramide but the IC<sub>50</sub> for the R(-) enantiomer was ~ 15-fold that for S(+) disopyramide. The enhanced inactivation mutant N588E only slightly increased the potency of R(-) disopyramide. S6 mutation Y652A reduced S(+) disopyramide potency more than that of R(-) disopyramide (respective IC<sub>50</sub> values ~ 49-fold and 11-fold their WT controls). The F656A mutation also exerted a stronger effect on S(+) than R(-) disopyramide, albeit with less IC<sub>50</sub> elevation. A WT-Y652A tandem dimer exhibited a sensitivity to the enantiomers that was intermediate between that of WT and Y652A, suggesting Y652 groups on adjacent subunits contribute to the binding. Moving the Y (normally at site 652) one residue in the N- terminal (up) direction in N588K hERG markedly increased the blocking potency of R(-) disopyramide. Molecular dynamics simulations using a hERG pore model produced different binding modes for S(+) and R(-) disopyramide consistent with the experimental observations. In conclusion, S(+) disopyramide interacts more strongly with S6 aromatic binding residues on hERG than does R(-) disopyramide, whilst optimal binding of the latter is more reliant on intact inactivation.",
+      "normalized_facts": {
+        "journal": "Cellular and molecular life sciences : CMLS",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "b27cf8cfec7c2a65e38e4450cea7400d145b1390964e837e27bf26912e56a94d"
+    },
+    {
+      "evidence_id": "evd_8fa33d106c0a47c299f50fc247435589",
+      "title": "High-throughput screening identifies a trafficking corrector for long QT syndrome-associated KCNQ1 variants.",
+      "authors": [
+        "Moster KRC",
+        "Vanoye CG",
+        "Chang-Gonzalez AC",
+        "Romaine IM",
+        "Stefanski KM",
+        "Wilkinson MC",
+        "Bauer JA",
+        "Hasaka TP"
+      ],
+      "published_at": "2026-01-08",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1172/jci.insight.201297",
+        "pmid": "41505221",
+        "pmcid": "PMC13041670",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41505221",
+      "abstract_or_excerpt": "Congenital long QT syndrome (LQTS) promotes risk for life-threatening cardiac arrhythmia and sudden death in children and young adults. Pathogenic variants in the voltage-gated potassium channel KCNQ1 are the most frequently discovered genetic cause. Most LQTS-associated KCNQ1 variants cause loss of function secondary to impaired trafficking of the channel to the plasma membrane. There are currently no therapeutic approaches that address this underlying molecular defect. Using a high-throughput screening paradigm, we identified VU0494372, a small molecule that increases total and cell surface levels and trafficking efficiency of WT KCNQ1 as well as three LQTS-associated variants. Additionally, 16-hour treatment of cells with VU0494372 increased IKs (KCNQ1-KCNE1 current) for WT KCNQ1 and the LQTS-associated variant V207M in cells coexpressing KCNE1. VU0494372 had no impact on KCNQ1 transcription, degradation, or thermal stability, and increased the rate of KCNQ1 reaching the cell surface. We identified a potential direct interaction site with KCNQ1 at or near the binding site of the KCNQ1 potentiator ML277. Together, these findings demonstrate that small molecules can increase the expression levels and cell surface trafficking efficiency of KCNQ1 and introduce a potential new pharmacological approach for treating LQTS.",
+      "normalized_facts": {
+        "journal": "JCI insight",
+        "pub_type": "research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "d5184536e2a6ebae32e070007ce2e39cf74b7afc5cc7bbd7ed8adf824d6e1dfa"
+    },
+    {
+      "evidence_id": "evd_32b8a2f1c3894079a681b2a351aab988",
+      "title": "AttenhERG: a reliable and interpretable graph neural network framework for predicting hERG channel blockers.",
+      "authors": [
+        "Yang T",
+        "Ding X",
+        "McMichael E",
+        "Pun FW",
+        "Aliper A",
+        "Ren F",
+        "Zhavoronkov A",
+        "Ding X"
+      ],
+      "published_at": "2024-12-23",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s13321-024-00940-y",
+        "pmid": "39716240",
+        "pmcid": "PMC11668031",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39716240",
+      "abstract_or_excerpt": "Cardiotoxicity, particularly drug-induced arrhythmias, poses a significant challenge in drug development, highlighting the importance of early-stage prediction of human ether-a-go-go-related gene (hERG) toxicity. hERG encodes the pore-forming subunit of the cardiac potassium channel. Traditional methods are both costly and time-intensive, necessitating the development of computational approaches. In this study, we introduce AttenhERG, a novel graph neural network framework designed to predict hERG channel blockers reliably and interpretably. AttenhERG demonstrates improved performance compared to existing methods with an AUROC of 0.835, showcasing its efficacy in accurately predicting hERG activity across diverse datasets. Additionally, uncertainty evaluation analysis reveals the model's reliability, enhancing its utility in drug discovery and safety assessment. Case studies illustrate the practical application of AttenhERG in optimizing compounds for hERG toxicity, highlighting its potential in rational drug design.Scientific contributionAttenhERG is a breakthrough framework that significantly improves the interpretability and accuracy of predicting hERG channel blockers. By integrating uncertainty estimation, AttenhERG demonstrates superior reliability compared to benchmark models. Two case studies, involving APH1A and NMT1 inhibitors, further emphasize AttenhERG's practical application in compound optimization.",
+      "normalized_facts": {
+        "journal": "Journal of cheminformatics",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "7a8d3fe0ed2ec3f0298ed3d13b50e238ec95cce1329c458ca0abd9c3e5c6928c"
+    },
+    {
+      "evidence_id": "evd_1150d6b8bd084759a81cc4fb4ddd76f5",
+      "title": "Stereoselective block of the hERG potassium channel by the Class Ia antiarrhythmic drug disopyramide.",
+      "authors": [
+        "Zhang Y",
+        "Harchi AE",
+        "James A",
+        "Oiki S",
+        "Dempsey C",
+        "Hancox J"
+      ],
+      "published_at": "2024-08-22",
+      "source_type": "article",
+      "source_quality_tier": "secondary",
+      "identifier": {
+        "doi": "10.21203/rs.3.rs-4770098/v1",
+        "pmid": null,
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PPR/PPR899274",
+      "abstract_or_excerpt": "<title>Abstract</title>  <p>Potassium channels encoded by human Ether-à-go-go-Related Gene (hERG) are inhibited by diverse cardiac and non-cardiac drugs. Disopyramide is a chiral Class Ia antiarrhythmic that inhibits hERG at clinical concentrations. This study evaluated effects of disopyramide enantiomers on hERG current (IhERG) from hERG expressing HEK 293 cells at 37oC. S(+) and R(-) disopyramide inhibited wild-type (WT) IhERG with IC50 values of 3.9 µM and 12.9 µM respectively. The attenuated-inactivation mutant N588K had little effect on the action of S(+) disopyramide but the IC50 for the R(-) enantiomer was ~15-fold that for S(+) disopyramide. The enhanced inactivation mutant N588E only slightly increased the potency of R(-) disopyramide. S6 mutation Y652A reduced S(+) disopyramide potency more than that of R(-) disopyramide (respective IC50 values ~49-fold and 11-fold their WT controls). The F656A mutation also exerted a stronger effect on S(+) than R(-) disopyramide, albeit with less IC50 elevation. A WT‑Y652A tandem dimer exhibited a sensitivity to the enantiomers that was intermediate between that of WT and Y652A, suggesting Y652 groups on adjacent subunits contribute to the binding. Moving the Y (normally at site 652) one residue in the N- terminal (up) direction in N588K hERG markedly increased the blocking potency of R(-) disopyramide. Molecular dynamics simulations using a hERG pore model produced different binding modes for S(+) and R(-) disopyramide consistent with the experimental observations. In conclusion, S(+) disopyramide interacts more strongly with S6 aromatic binding residues on hERG than does R(-) disopyramide, whilst optimal binding of the latter is more reliant on intact inactivation.</p>",
+      "normalized_facts": {
+        "journal": null,
+        "pub_type": "Preprint",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:24:34.247269+00:00",
+      "content_sha256": "c47eef8c67a0fdd0d2df6e3c79468fb300dc20d70883360886bb6782a92fb199"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_4778730436444c6fbb8024c374895868",
+        "session_id": "ses_05a1d02718b841d397074acbf7539ee8",
+        "subject_key": "analysis:ana_9dc3bec6a8b04a918c19741b93b26a58",
+        "question": "Which part of dofetilide's structure drives the model's hERG prediction, and does that identify its channel-blocking mechanism?",
+        "decision_context": "Interpret a stored hERG attribution without treating it as mechanistic evidence.",
+        "subject_refs": [
+          "analysis:ana_9dc3bec6a8b04a918c19741b93b26a58"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The hERG model score is driven mainly by learned patterns involving the tertiary amine/ether linker and sulfonamide-bearing aryl groups.",
+            "kind": "model_signal",
+            "refutation_condition": "A complete, validated attribution or controlled structural perturbation shows those regions do not materially affect the model score.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "h2",
+            "statement": "The highlighted model features identify the physical mechanism by which dofetilide blocks hERG.",
+            "kind": "mechanism",
+            "refutation_condition": "Direct channel experiments show that changing or testing the highlighted features does not establish the proposed binding interaction or block mechanism.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The hERG attribution ranks the token-level regions around the tertiary amine, ether oxygen, and sulfonamide sulfur/adjacent atoms among the strongest model contributions, with mixed signed directions.",
+            "source_class": "explanation_fact",
+            "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "top_tokens",
+            "scope": {
+              "compound": "dofetilide",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "e2",
+            "claim": "A recent hERG study reports that changing membrane cholesterol altered dofetilide sensitivity in whole-cell current recordings, indicating that channel inhibition can depend on membrane environment as well as compound-channel interaction.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "abstract_or_excerpt:Results; abstract_or_excerpt:Conclusions",
+            "scope": {
+              "assay": "whole-cell current",
+              "species": "HEK293 cells",
+              "compound": "dofetilide",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "e3",
+            "claim": "An ex vivo rabbit-heart study identifies dofetilide as a KV11.1 blocker and observes prolonged ventricular action potential duration under its tested conditions.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "abstract_or_excerpt:Methods and results",
+            "scope": {
+              "dose": "10 nM",
+              "assay": "ex vivo Langendorff",
+              "species": "rabbit heart",
+              "compound": "dofetilide",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "e4",
+            "claim": "The model attribution points mainly to the tertiary-amine/ether linker and sulfonamide-bearing aryl regions.",
+            "source_class": "explanation_fact",
+            "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "e5",
+            "claim": "The attribution does not identify dofetilide’s hERG binding site or blocking mechanism.",
+            "source_class": "explanation_fact",
+            "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "e6",
+            "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "species": "HEK293 cells",
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "e7",
+            "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "dose": "10 nM",
+              "species": "rabbit heart",
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "explainer_faithfulness",
+            "description": "The attribution validation says the highlighted atoms did not move the score more than random atoms on the measured panel.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "u2",
+            "kind": "missing_data",
+            "description": "The stored attribution and retrieved records do not establish which atoms form the binding interaction or the access state and kinetics of block.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for evidence that would contradict a simple interpretation of the attribution as the channel-blocking mechanism.",
+            "decision": "answer",
+            "outcome": "The retrieved direct studies support dofetilide-related KV11.1 inhibition but also show membrane-environment dependence; they do not validate the highlighted atoms as a binding mechanism.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the conclusion stays within model attribution and direct hERG evidence, does not treat saliency as mechanism, and states the unresolved validation gap.",
+            "decision": "answer",
+            "outcome": "Keep the structural interpretation as a model signal only; retain the mechanistic claim as unresolved; include the attribution-faithfulness limitation and the discriminating experiment.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Test matched dofetilide analogues that selectively alter the tertiary amine/ether linker or sulfonamide groups in hERG patch clamp, paired with channel-mutant and access-state protocols.",
+            "rationale": "This separates whether the model-sensitive substructures track functional potency from whether they identify a specific channel interaction.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "Change in hERG current inhibition and potency across matched analogues",
+              "Mutant- and state-dependence of block",
+              "Association/dissociation kinetics"
+            ],
+            "actor": "model",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The model's gradient attribution concentrates on the tertiary-amine/ether linker region and sulfonamide-bearing aryl regions, with mixed signed contributions.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "This attribution does not establish a blocking mechanism; direct studies support dofetilide-related KV11.1 inhibition, while membrane environment can alter dofetilide sensitivity.",
+              "evidence_ids": [
+                "e2",
+                "e3"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "The highlighted groups cause hERG block.",
+            "The attribution identifies the binding site, pore interactions, state dependence, or clinical electrophysiologic effect."
+          ],
+          "what_would_change": [
+            "Matched-analogue hERG patch-clamp data combined with channel-mutant and access-state experiments that link the highlighted substitutions to potency, kinetics, or state dependence."
+          ],
+          "approver": "",
+          "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e"
+        },
+        "runs": [
+          {
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "goal": "Which part of dofetilide's structure (CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C) drives the model's hERG prediction, and does that tell us how it blocks the channel?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_c5337682c82d49039476d9b933774e64",
+            "usage": {
+              "searches": 1,
+              "tool_calls": 12,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 4
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 1,
+          "with_counterevidence_considered": 0,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0
+        },
+        "revision": 19,
+        "created_at": "2026-09-25T13:23:49.170660+00:00",
+        "updated_at": "2026-09-25T13:26:53.106387+00:00"
+      },
+      "events": {
+        "case_id": "scase_4778730436444c6fbb8024c374895868",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_4778730436444c6fbb8024c374895868",
+              "question": "Which part of dofetilide's structure (CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C) drives the model's hERG prediction, and does that tell us how it blocks the channel?",
+              "session_id": "ses_05a1d02718b841d397074acbf7539ee8",
+              "subject_key": "analysis:ana_9dc3bec6a8b04a918c19741b93b26a58",
+              "subject_refs": [
+                "analysis:ana_9dc3bec6a8b04a918c19741b93b26a58"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:23:49.170660+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "Which part of dofetilide's structure (CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C) drives the model's hERG prediction, and does that tell us how it blocks the channel?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:23:49.170660+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 2
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "Which part of dofetilide's structure drives the model's hERG prediction, and does that identify its channel-blocking mechanism?",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "decision_context": "Interpret a stored hERG attribution without treating it as mechanistic evidence.",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:24:28.055901+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The hERG model score is driven mainly by learned patterns involving the tertiary amine/ether linker and sulfonamide-bearing aryl groups.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A complete, validated attribution or controlled structural perturbation shows those regions do not materially affect the model score."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:24:28.055926+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "mechanism",
+              "can_say": [],
+              "statement": "The highlighted model features identify the physical mechanism by which dofetilide blocks hERG.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Direct channel experiments show that changing or testing the highlighted features does not establish the proposed binding interaction or block mechanism."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:24:28.055935+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The hERG attribution ranks the token-level regions around the tertiary amine, ether oxygen, and sulfonamide sulfur/adjacent atoms among the strongest model contributions, with mixed signed directions.",
+              "scope": {
+                "compound": "dofetilide",
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "top_tokens",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+              "evidence_ids": [],
+              "source_class": "explanation_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300850+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "A recent hERG study reports that changing membrane cholesterol altered dofetilide sensitivity in whole-cell current recordings, indicating that channel inhibition can depend on membrane environment as well as compound-channel interaction.",
+              "scope": {
+                "assay": "whole-cell current",
+                "species": "HEK293 cells",
+                "compound": "dofetilide",
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "abstract_or_excerpt:Results; abstract_or_excerpt:Conclusions",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+              "evidence_ids": [],
+              "source_class": "external_experimental",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300876+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 7
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "An ex vivo rabbit-heart study identifies dofetilide as a KV11.1 blocker and observes prolonged ventricular action potential duration under its tested conditions.",
+              "scope": {
+                "dose": "10 nM",
+                "assay": "ex vivo Langendorff",
+                "species": "rabbit heart",
+                "compound": "dofetilide",
+                "endpoint": "herg"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "abstract_or_excerpt:Methods and results",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+              "evidence_ids": [],
+              "source_class": "external_experimental",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300884+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 8
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "explainer_faithfulness",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The attribution validation says the highlighted atoms did not move the score more than random atoms on the measured panel.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300903+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 9
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_data",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The stored attribution and retrieved records do not establish which atoms form the binding interaction or the access state and kinetics of block.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300913+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 10
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The retrieved direct studies support dofetilide-related KV11.1 inhibition but also show membrane-environment dependence; they do not validate the highlighted atoms as a binding mechanism.",
+              "purpose": "Look for evidence that would contradict a simple interpretation of the attribution as the channel-blocking mechanism.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300922+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 11
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Test matched dofetilide analogues that selectively alter the tertiary amine/ether linker or sulfonamide groups in hERG patch clamp, paired with channel-mutant and access-state protocols.",
+              "can_say": [],
+              "rationale": "This separates whether the model-sensitive substructures track functional potency from whether they identify a specific channel interaction.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "Change in hERG current inhibition and potency across matched analogues",
+                "Mutant- and state-dependence of block",
+                "Association/dissociation kinetics"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:25.300930+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 12
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Keep the structural interpretation as a model signal only; retain the mechanistic claim as unresolved; include the attribution-faithfulness limitation and the discriminating experiment.",
+              "purpose": "Check that the conclusion stays within model attribution and direct hERG evidence, does not treat saliency as mechanism, and states the unresolved validation gap.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:39.960071+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 13
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The model's gradient attribution concentrates on the tertiary-amine/ether linker region and sulfonamide-bearing aryl regions, with mixed signed contributions.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "This attribution does not establish a blocking mechanism; direct studies support dofetilide-related KV11.1 inhibition, while membrane environment can alter dofetilide sensitivity.",
+                  "evidence_ids": [
+                    "e2",
+                    "e3"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "The highlighted groups cause hERG block.",
+                "The attribution identifies the binding site, pore interactions, state dependence, or clinical electrophysiologic effect."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Matched-analogue hERG patch-clamp data combined with channel-mutant and access-state experiments that link the highlighted substitutions to potency, kinetics, or state dependence."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:25:39.960103+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 14
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The model attribution points mainly to the tertiary-amine/ether linker and sulfonamide-bearing aryl regions.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+              "source_class": "explanation_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:47.250333+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 15
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The attribution does not identify dofetilide’s hERG binding site or blocking mechanism.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_f89af3ab29dc4c1c9f10509fa6f846c1",
+              "source_class": "explanation_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:47.250333+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 16
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+              "scope": {
+                "species": "HEK293 cells",
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "evidence:evd_48eb6066a3bb40efa8e5be7b4cab7836",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:47.250333+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 17
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "Experimental studies support dofetilide-related KV11.1/hERG inhibition and report that membrane environment can alter dofetilide sensitivity.",
+              "scope": {
+                "dose": "10 nM",
+                "species": "rabbit heart",
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "evidence:evd_233b5b984d204a93b0f59562bf9d41bc",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:47.250333+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 18
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 1,
+                "tool_calls": 12,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 4
+              },
+              "answer_id": "ans_c5337682c82d49039476d9b933774e64",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:53.106387+00:00",
+            "run_id": "run_a09a6a6eed7e45ee9e692524d623f38e",
+            "revision": 19
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,423 @@
+{
+  "schema_version": "investigation-study-report-v1",
+  "study_id": "pilot-2026-09-25",
+  "case_set_sha256": "d9d01277ddd366cb234354357bd2f987701f30a0510eac676fd684096abf10bf",
+  "environment": {
+    "git_commit": "afbb0b1403b09a7533089bee6ba62295acc5b81c",
+    "git_branch": "feat/scientific-investigation",
+    "git_dirty_tracked": true,
+    "host": "LAPTOP-T7GOJFP2",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.10.20",
+    "pid": 607823
+  },
+  "systems": {
+    "A_predictor_template": {
+      "arm": "A",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [],
+      "median_turn_seconds": 0.0,
+      "usage_totals": {},
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "B_anthropic_snapshot": {
+      "arm": "B",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 19,
+      "models": [
+        "claude-opus-5",
+        "claude-opus-5-5"
+      ],
+      "median_turn_seconds": 67.3,
+      "usage_totals": {
+        "cache_creation_input_tokens": 48927,
+        "cache_read_input_tokens": 14985,
+        "cost_usd": 1.049917,
+        "input_tokens": 52,
+        "output_tokens": 26094
+      },
+      "errors": {},
+      "error_attempts_by_class": {
+        "quota_or_capacity": 8,
+        "provider_refusal": 1
+      }
+    },
+    "B_google_snapshot": {
+      "arm": "B",
+      "expected": 10,
+      "ok": 1,
+      "error": 9,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 20,
+      "models": [
+        "gemini-3.6-flash"
+      ],
+      "median_turn_seconds": 15.9,
+      "usage_totals": {
+        "duration_ms": 15859
+      },
+      "errors": {
+        "inv-02-terfenadine-anonymous": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 27.57532199s.",
+        "inv-03-fexofenadine-negative-control": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 27.369364914s.",
+        "inv-04-cisapride-conflicting-assays": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 43.166143052s.",
+        "inv-05-astemizole-inhouse-contradicts": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 26.38969043s.",
+        "inv-06-aspirin-numeric-lookup": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 48.894600029s.",
+        "inv-07-dofetilide-attribution": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 11.388082509s.",
+        "inv-08-moxifloxacin-exposure": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 32.556596653s.",
+        "inv-09-bortezomib-applicability": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 53.559651265s.",
+        "inv-10-bisphenol-a-tox21-scope": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 11.454443965s."
+      },
+      "error_attempts_by_class": {
+        "quota_or_capacity": 9
+      }
+    },
+    "B_openai_snapshot": {
+      "arm": "B",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [
+        "gpt-6-sol"
+      ],
+      "median_turn_seconds": 64.9,
+      "usage_totals": {
+        "cached_input_tokens": 1985536,
+        "input_tokens": 2386408,
+        "output_tokens": 21482,
+        "reasoning_output_tokens": 11498
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "C_toxagent_current": {
+      "arm": "C",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "median_turn_seconds": 78.1,
+      "usage_totals": {
+        "tokens_cache_read": 327168,
+        "tokens_cache_write": 0,
+        "tokens_input": 253260,
+        "tokens_output": 24730,
+        "tokens_reasoning": 7019,
+        "tokens_total": 612177
+      },
+      "errors": {},
+      "error_attempts_by_class": {},
+      "toxagent": {
+        "turns": 11,
+        "fallback_turns": 1,
+        "median_tool_calls_per_turn": 8,
+        "stop_reasons": {
+          "insufficient_evidence": 10,
+          "blocked": 1
+        },
+        "tool_use": {
+          "get_artifact_inventory": 11,
+          "get_analysis_slice": 45,
+          "search_toxicology_evidence": 16,
+          "get_evidence_record": 13,
+          "submit_grounded_answer": 14,
+          "get_attribution": 1,
+          "get_analysis_bundle": 2
+        }
+      }
+    },
+    "D0_toxagent_case_no_skills": {
+      "arm": "D-ablation",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "median_turn_seconds": 172.8,
+      "usage_totals": {
+        "tokens_cache_read": 1134592,
+        "tokens_cache_write": 0,
+        "tokens_input": 385859,
+        "tokens_output": 58578,
+        "tokens_reasoning": 10310,
+        "tokens_total": 1589339
+      },
+      "errors": {},
+      "error_attempts_by_class": {},
+      "toxagent": {
+        "turns": 11,
+        "fallback_turns": 0,
+        "median_tool_calls_per_turn": 14,
+        "stop_reasons": {
+          "sufficient": 3,
+          "insufficient_evidence": 6,
+          "budget_exhausted": 2
+        },
+        "tool_use": {
+          "get_artifact_inventory": 11,
+          "get_scientific_case": 11,
+          "get_analysis_slice": 47,
+          "update_scientific_case": 33,
+          "search_toxicology_evidence": 25,
+          "get_evidence_record": 17,
+          "submit_grounded_answer": 14,
+          "get_attribution": 1,
+          "get_analysis_bundle": 3
+        }
+      }
+    },
+    "D_toxagent_investigator": {
+      "arm": "D",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "median_turn_seconds": 176.4,
+      "usage_totals": {
+        "tokens_cache_read": 1152000,
+        "tokens_cache_write": 0,
+        "tokens_input": 400215,
+        "tokens_output": 66476,
+        "tokens_reasoning": 12783,
+        "tokens_total": 1631474
+      },
+      "errors": {},
+      "error_attempts_by_class": {},
+      "toxagent": {
+        "turns": 11,
+        "fallback_turns": 0,
+        "median_tool_calls_per_turn": 13,
+        "stop_reasons": {
+          "sufficient": 4,
+          "insufficient_evidence": 6,
+          "budget_exhausted": 1
+        },
+        "tool_use": {
+          "get_artifact_inventory": 11,
+          "get_scientific_case": 12,
+          "get_analysis_slice": 44,
+          "search_toxicology_evidence": 19,
+          "read_scientific_skill": 13,
+          "get_evidence_record": 12,
+          "update_scientific_case": 36,
+          "submit_grounded_answer": 15,
+          "read_skill_reference": 1,
+          "get_analysis_bundle": 3,
+          "get_attribution": 1
+        }
+      },
+      "skill_triggers": {
+        "assess-conflicting-evidence": {
+          "cases_read": [
+            "inv-04-cisapride-conflicting-assays",
+            "inv-05-astemizole-inhouse-contradicts"
+          ],
+          "positive_cases": [
+            "inv-04-cisapride-conflicting-assays",
+            "inv-05-astemizole-inhouse-contradicts"
+          ],
+          "negative_cases": [
+            "inv-06-aspirin-numeric-lookup"
+          ],
+          "trigger_precision": 1.0,
+          "trigger_recall": 1.0,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "critique-case": {
+          "cases_read": [
+            "inv-01-terfenadine-named-go-nogo",
+            "inv-02-terfenadine-anonymous",
+            "inv-03-fexofenadine-negative-control",
+            "inv-04-cisapride-conflicting-assays",
+            "inv-05-astemizole-inhouse-contradicts",
+            "inv-07-dofetilide-attribution",
+            "inv-08-moxifloxacin-exposure",
+            "inv-09-bortezomib-applicability",
+            "inv-10-bisphenol-a-tox21-scope"
+          ],
+          "positive_cases": [
+            "inv-01-terfenadine-named-go-nogo",
+            "inv-02-terfenadine-anonymous",
+            "inv-03-fexofenadine-negative-control",
+            "inv-08-moxifloxacin-exposure"
+          ],
+          "negative_cases": [
+            "inv-06-aspirin-numeric-lookup"
+          ],
+          "trigger_precision": 0.444,
+          "trigger_recall": 1.0,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "interpret-model-attribution": {
+          "cases_read": [
+            "inv-07-dofetilide-attribution"
+          ],
+          "positive_cases": [
+            "inv-07-dofetilide-attribution"
+          ],
+          "negative_cases": [
+            "inv-04-cisapride-conflicting-assays",
+            "inv-05-astemizole-inhouse-contradicts",
+            "inv-06-aspirin-numeric-lookup"
+          ],
+          "trigger_precision": 1.0,
+          "trigger_recall": 1.0,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        }
+      }
+    },
+    "Ds_toxagent_case_static_skills": {
+      "arm": "D-ablation",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "median_turn_seconds": 184.3,
+      "usage_totals": {
+        "tokens_cache_read": 1483776,
+        "tokens_cache_write": 0,
+        "tokens_input": 452323,
+        "tokens_output": 71068,
+        "tokens_reasoning": 12365,
+        "tokens_total": 2019532
+      },
+      "errors": {},
+      "error_attempts_by_class": {},
+      "toxagent": {
+        "turns": 11,
+        "fallback_turns": 3,
+        "median_tool_calls_per_turn": 12,
+        "stop_reasons": {
+          "blocked": 3,
+          "insufficient_evidence": 5,
+          "sufficient": 1,
+          "budget_exhausted": 2
+        },
+        "tool_use": {
+          "get_artifact_inventory": 11,
+          "get_scientific_case": 11,
+          "get_analysis_slice": 43,
+          "update_scientific_case": 35,
+          "search_toxicology_evidence": 23,
+          "get_evidence_record": 16,
+          "submit_grounded_answer": 15,
+          "get_analysis_bundle": 3,
+          "get_attribution": 1
+        }
+      }
+    },
+    "P_anthropic_bare": {
+      "arm": "P",
+      "expected": 10,
+      "ok": 9,
+      "error": 1,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 22,
+      "models": [
+        "claude-opus-5",
+        "claude-opus-5-5"
+      ],
+      "median_turn_seconds": 36.4,
+      "usage_totals": {
+        "cache_creation_input_tokens": 18262,
+        "cache_read_input_tokens": 0,
+        "cost_usd": 0.612086,
+        "input_tokens": 40,
+        "output_tokens": 19217
+      },
+      "errors": {
+        "inv-07-dofetilide-attribution": "RuntimeError: claude exited 1: API Error: Opus 5's safeguards flagged this message (https://www.anthropic.com/legal/aup). This sometimes happens with safe, normal conversations. Claude Code can't respond to this message with Opus 5.\n\nTry rephrasing the request in a new session or change your model.\n\nLearn more: https://support.claude.com/en/articles/16049681\n\nDetails: `[reasoning_extraction]`\n\nRequest ID: req_011CfQVN4eps9uDNKHaE1L6x\n\nMessage ID: msg_011CfQVN77fKk18vZgYWe8DD"
+      },
+      "error_attempts_by_class": {
+        "quota_or_capacity": 8,
+        "provider_refusal": 4,
+        "other": 1
+      }
+    },
+    "P_google_bare": {
+      "arm": "P",
+      "expected": 10,
+      "ok": 0,
+      "error": 10,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 20,
+      "models": [],
+      "median_turn_seconds": null,
+      "usage_totals": {},
+      "errors": {
+        "inv-01-terfenadine-named-go-nogo": "RuntimeError: Gemini API failed with HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+        "inv-02-terfenadine-anonymous": "RuntimeError: Gemini API failed with HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+        "inv-03-fexofenadine-negative-control": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 34.286126284s.",
+        "inv-04-cisapride-conflicting-assays": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 37.992994061s.",
+        "inv-05-astemizole-inhouse-contradicts": "RuntimeError: Gemini API failed with HTTP 503: This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.",
+        "inv-06-aspirin-numeric-lookup": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 37.769374827s.",
+        "inv-07-dofetilide-attribution": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 59.825265863s.",
+        "inv-08-moxifloxacin-exposure": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 22.291296217s.",
+        "inv-09-bortezomib-applicability": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 42.680955038s.",
+        "inv-10-bisphenol-a-tox21-scope": "RuntimeError: Gemini API failed with HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash\nPlease retry in 4.725693298s."
+      },
+      "error_attempts_by_class": {
+        "quota_or_capacity": 10
+      }
+    },
+    "P_openai_bare": {
+      "arm": "P",
+      "expected": 10,
+      "ok": 10,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 10,
+      "models": [
+        "gpt-6-sol"
+      ],
+      "median_turn_seconds": 82.9,
+      "usage_totals": {
+        "cached_input_tokens": 2361216,
+        "input_tokens": 2831210,
+        "output_tokens": 23920,
+        "reasoning_output_tokens": 13025
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    }
+  },
+  "note": "Process description only; quality is graded by the lab."
+}

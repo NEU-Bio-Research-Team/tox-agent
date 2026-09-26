@@ -1,0 +1,2839 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_7f8eb182282e418ba983df4ab2d9fe16",
+        "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:31:54.572404+00:00",
+        "created_at": "2026-09-25T13:26:54.572404+00:00",
+        "started_at": "2026-09-25T13:26:54.717169+00:00",
+        "ended_at": "2026-09-25T13:29:38.943674+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "be770e57ec6c4ea92e075b7f8c11864de32ad8b3b9d43fbe2c547e69d93429bb",
+          "system_prompt_hash": "55e1e7d8f17222f3a94d7cad2ef0887abc4f32af38a406b540ff0ba7a97e1387"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [
+              "studies"
+            ],
+            "confidence": "high",
+            "reason_codes": [
+              "research_phrase"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:26:54.573303+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_c441dfcd0809455d96530592dac1075f",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:27:06.059131+00:00",
+              "tokens": {
+                "input": 7840,
+                "output": 150,
+                "reasoning": 57,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8047
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_08267658c09b39036a1522c27c3e85f6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bf605f001qtIuApw071S5Sj",
+                "step_id": "prt_0d8bf88430012VzATHAhwWPn9l",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_ec578d58753245d986f2ecb1d58a393f",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:27:26.678237+00:00",
+              "tokens": {
+                "input": 1656,
+                "output": 906,
+                "reasoning": 99,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10341
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_3e87abe455126666c4ac37eda07e6c6a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bf88770013ovyiS3iSFdHgz",
+                "step_id": "prt_0d8bfd8cd001A3C3Nln1TB2zW7",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f4d5d3c063f44d7f88b267bcc2a7be39",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:27:36.744859+00:00",
+              "tokens": {
+                "input": 7966,
+                "output": 275,
+                "reasoning": 0,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 10801
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ea8d95fdd9a3c118b3d9d8f6ed70974a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8bfd8fb0014byO1D2F1RHFyF",
+                "step_id": "prt_0d8c00020001ouQw2zXKD7NML9",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_0afe2f4cf4ce450ea66463dc7f5d3d3d",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:27:48.466397+00:00",
+              "tokens": {
+                "input": 3050,
+                "output": 365,
+                "reasoning": 80,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 13223
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_901637b0a5a30182a130fabf0552c269",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c0004e001pFFntqK400JSl3",
+                "step_id": "prt_0d8c02dea001j7cNRTLJG6gnhC",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_45274c8e87cf456196708ca9dad34992",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:28:21.035807+00:00",
+              "tokens": {
+                "input": 4569,
+                "output": 1261,
+                "reasoning": 355,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 17961
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_258a26a8669b7a99f3a826e084ae5fd8",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c02e19001RPlLfOQj5Nykq2",
+                "step_id": "prt_0d8c0ad24001VO45dmAba0uZLf",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_bf02b489352e46e896be24cd90097fed",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:28:41.327538+00:00",
+              "tokens": {
+                "input": 2301,
+                "output": 594,
+                "reasoning": 394,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 19161
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b113d640fd59a70dbe2e4aeed16a10c4",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c0ad53001oUMmiV9U4DYU0U",
+                "step_id": "prt_0d8c0fc66001s3juLXzYfOeUEX",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c529379ed164467d835023a4c9e76eca",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:29:14.150276+00:00",
+              "tokens": {
+                "input": 1426,
+                "output": 1048,
+                "reasoning": 596,
+                "cache_read": 17920,
+                "cache_write": 0,
+                "total": 20990
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8351554d05797a6961284b9d48e94df2",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c0fc9c0013Myq4PnkEgUYCc",
+                "step_id": "prt_0d8c17c9e001PbRTbst8Wmg9kl",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e151f9fb0e3e443388a1d39828d98b64",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:29:35.630259+00:00",
+              "tokens": {
+                "input": 2389,
+                "output": 1038,
+                "reasoning": 23,
+                "cache_read": 18944,
+                "cache_write": 0,
+                "total": 22394
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8ec2d7776e6c5b60fbb1af4ee7fbcfd6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c17cd3001M2CmiIpAYR7U1H",
+                "step_id": "prt_0d8c1d085001ZVPcF5ePWb5hoU",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_938a3ef66fd2480ab0c22815d924c288",
+              "runtime_binding_id": "rtb_ae387c7f25d74795a5f015ef46481a91",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:29:38.806066+00:00",
+              "tokens": {
+                "input": 1529,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 20992,
+                "cache_write": 0,
+                "total": 22525
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_70a0d15c8a1fd31960ae895caa528e58",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c1d0b5001RX7W57F7xftLtB",
+                "step_id": "prt_0d8c1dcee0016QVwoGIQTFuuAh",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_9faa5faebedc4ca79629627842986fb9",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "dfa73cd84b3e65c4719b5e4549da553fed437f192ab4667217a5c03ddaf7e1ac",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:05.880212+00:00",
+            "ended_at": "2026-09-25T13:27:05.892661+00:00"
+          },
+          {
+            "call_id": "call_6f93cf4e75a1470b9f6654841fcba42f",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:05.948436+00:00",
+            "ended_at": "2026-09-25T13:27:05.959815+00:00"
+          },
+          {
+            "call_id": "call_1b2fe7f9415b43ce8009836c6d5b1f2b",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:05.984385+00:00",
+            "ended_at": "2026-09-25T13:27:05.995397+00:00"
+          },
+          {
+            "call_id": "call_6de663430964412fb913e2d5be22da95",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "918b15f2295315076ce1e5a888bafe5dbff136515ad6e0f81221404962715db1",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:26.558187+00:00",
+            "ended_at": "2026-09-25T13:27:26.575256+00:00"
+          },
+          {
+            "call_id": "call_8865e0c20b1344839a87cf32c2eb9001",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "9f1bc801df6db859d1bb4c207d51556af48f50d70170a46ed1cfc04adc958a27",
+            "observation_ids": [
+              "obs_c35c8ec9e0a94aacbe843e07690cfb39"
+            ],
+            "started_at": "2026-09-25T13:27:34.799781+00:00",
+            "ended_at": "2026-09-25T13:27:34.813478+00:00"
+          },
+          {
+            "call_id": "call_9891dc7bcbc94f4eb41308a39b322096",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1797,
+            "arguments_sha256": "c8a680d164266c7e676b0c9657ed9a257637d3b4bd960a0d5d8176c83091184b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:34.917424+00:00",
+            "ended_at": "2026-09-25T13:27:36.712935+00:00"
+          },
+          {
+            "call_id": "call_5978369b9ace461891162844051acc86",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1367,
+            "arguments_sha256": "e0a4a7ba868522c956b927009d58df0503fa87686bbea96adf451235f86ec209",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:35.102516+00:00",
+            "ended_at": "2026-09-25T13:27:36.468139+00:00"
+          },
+          {
+            "call_id": "call_925b56ec77124deb87ceed9242b6f026",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1044,
+            "arguments_sha256": "2e122334af643871790ec7373c2a833f407c13eb8c1785d42f719d814ad4f35e",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:46.988064+00:00",
+            "ended_at": "2026-09-25T13:27:48.030374+00:00"
+          },
+          {
+            "call_id": "call_129099ac9e874906870f361a07102708",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1324,
+            "arguments_sha256": "077fad936198f5ac50141477389d4b06628df0119030f8088a633c35af197358",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:47.080680+00:00",
+            "ended_at": "2026-09-25T13:27:48.401665+00:00"
+          },
+          {
+            "call_id": "call_e083cbd8ceef4bf2aae7467da2ab6534",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "tool_denied",
+            "duration_ms": 14,
+            "arguments_sha256": "5a15671feb3d0de31aaa1ee9508a07fa12da3d994e19363a74298ad52716ad73",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:27:47.110685+00:00",
+            "ended_at": "2026-09-25T13:27:47.122680+00:00"
+          },
+          {
+            "call_id": "call_f3fd7630cfc242ec8e65ebc25dd62dc4",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "1fece4a3b7d7de13373e72693c8a2b65bd6f25e4ac746a10eda9f6a95c85295e",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:28:20.960689+00:00",
+            "ended_at": "2026-09-25T13:28:20.977050+00:00"
+          },
+          {
+            "call_id": "call_93502e11190847d5b62927b75c0f2440",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "8b42526a436677e7523eef3ed3548e377b4a6fa9be0da2d93c5b2be19f8a1357",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:28:41.247142+00:00",
+            "ended_at": "2026-09-25T13:28:41.260723+00:00"
+          },
+          {
+            "call_id": "call_e6dfc1de12e347b7914d5afc992798de",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 41,
+            "arguments_sha256": "edc8c9b5780cdd4fbbb166cf5a3dcb1c0b23fe6d41fef7b528dc7e945e8b79d4",
+            "observation_ids": [
+              "obs_c35c8ec9e0a94aacbe843e07690cfb39"
+            ],
+            "started_at": "2026-09-25T13:29:35.527403+00:00",
+            "ended_at": "2026-09-25T13:29:35.567372+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_19ff98368bff4364b3440a2a915ee956",
+        "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+        "answer_markdown": "The concern is **conditional, not decidable from the patch-clamp concentration alone**. The fixed model labels moxifloxacin `non_blocker` and gives a blocker score of **0.143**; this is an uncalibrated model signal, not a clinical exposure or QT-risk estimate.\n\nWhat would settle therapeutic relevance:\n- measured human **unbound** plasma exposure, including peak and accumulation scenarios;\n- hERG concentration-response data from a standardized assay reported on a free-concentration basis;\n- the resulting exposure margin, including relevant interaction and organ-impairment scenarios;\n- exposure-matched ECG/QTc data, ideally therapeutic and supratherapeutic.\n\nUntil those are linked, keep the hERG finding as a screening concern and do not use it to claim or dismiss clinical risk. The bounded external search in this run did not establish a directly applicable compound-specific exposure relationship.",
+        "claims": [
+          {
+            "claim_id": "clm_f744b181a93b4cd09a8b53ffc2c8f2a7",
+            "kind": "classification",
+            "text": "The fixed predictor labels moxifloxacin as a hERG non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_5e7c50394e5b429192002c0610c5bf8c",
+            "kind": "numeric",
+            "text": "The fixed predictor's hERG blocker score is 0.143.",
+            "transform": "round:3",
+            "citation_ids": [],
+            "observation_id": "obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.14254340529441833,
+            "rendered_value": "0.143"
+          },
+          {
+            "claim_id": "clm_03da77e4219f45088405f9d39082fa8c",
+            "kind": "scientific",
+            "text": "The predictor output does not establish whether the reported in-vitro hERG finding is relevant at therapeutic exposure; that requires an exposure-to-effect comparison.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_4edadb23705f4e899df8cbc96d55e7f0",
+            "kind": "limitation",
+            "text": "Therapeutic relevance cannot be decided until free human exposure, assay comparability, and exposure-matched electrophysiology are linked.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_9b88c0a80d9f441da6c08a8eaa82e281",
+            "kind": "recommendation",
+            "text": "Prioritize a standardized free-concentration hERG concentration-response study linked to human unbound exposure and therapeutic/supratherapeutic QTc data.",
+            "transform": "identity",
+            "citation_ids": [],
+            "input_claim_ids": [
+              "clm_03da77e4219f45088405f9d39082fa8c",
+              "clm_4edadb23705f4e899df8cbc96d55e7f0"
+            ]
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG score is a model score, not a calibrated clinical probability."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed exposure comparison and ECG/QTc work are verification steps, not a safety assessment."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The bounded external search did not establish a directly applicable compound-specific exposure relationship; a missing retrieved record is not evidence of absence."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Obtain free human Cmax and exposure distributions, reproduce hERG concentration-response under matched assay conditions, and compare with exposure-matched QTc/ECG measurements.",
+            "basis_claim_ids": [
+              "clm_03da77e4219f45088405f9d39082fa8c",
+              "clm_4edadb23705f4e899df8cbc96d55e7f0"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "4e1d985536963ee683d339af6b3bb8808f4c237c7a14ec0f71d9b38f5b39f109",
+        "created_at": "2026-09-25T13:29:35.541775+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_0999144808cc424ab8da5b014f8ab628",
+        "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+        "goal": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?",
+        "subject_refs": [
+          "analysis:ana_146d7b60a22d4439b6716ed07112e5d2"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The fixed predictor provides a hERG model signal but does not establish therapeutic-exposure relevance.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "Therapeutic relevance requires linking free exposure, assay potency, and exposure-matched electrophysiology.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 5,
+          "tool_calls": 13,
+          "denied_calls": 1,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39"
+        ],
+        "found_refs": [
+          "evidence:evd_98886f2aad3245df94d910cec0c3c8b0",
+          "evidence:evd_663d956ba00d4a5584bd29b887f7e8a7",
+          "evidence:evd_47890db2023c44cb9d78529810aa3d46",
+          "evidence:evd_8ed3056ec8404c3bbab0db3a2a194594",
+          "evidence:evd_9b1afad1687e4c459555d05c002dcb4b",
+          "evidence:evd_50b197b38f7a41eda24170a15f717d23",
+          "evidence:evd_533e44bb738a4d97b0fc17621d88a426",
+          "evidence:evd_59892de700e44563a84f6f5d397457c5",
+          "evidence:evd_93126eddeecc4bec9addcf63698c10ac",
+          "evidence:evd_ef663073dd234edd8abf29d576a4b5c7",
+          "evidence:evd_3834deda68a8476c8ab614861bb076b7",
+          "evidence:evd_29750c7db4524b1bba060d8e7bd1c764",
+          "evidence:evd_8784147595fd463fa54182d042a5b6ac",
+          "evidence:evd_289521c4955940c9855294e7e919aaab",
+          "evidence:evd_d959a4381a7c442ba74639ddb0902a35",
+          "evidence:evd_68ea70b3699d43248a8cf8d459380579"
+        ],
+        "stop_reason": "budget_exhausted",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "references_loaded": []
+        },
+        "revision": 18
+      },
+      "dossier": {
+        "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+        "case_id": "scase_c0b59786d1c94c38b205d65ed925b4cc",
+        "context": [],
+        "coverage": {
+          "hypotheses": 3,
+          "with_any_source": 3,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 1,
+          "with_counterevidence_considered": 3,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?",
+        "answer_id": "ans_19ff98368bff4364b3440a2a915ee956",
+        "conclusion": {
+          "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+          "can_say": [
+            {
+              "text": "The fixed predictor provides a model signal about hERG classification, but it does not establish whether therapeutic exposure is relevant.",
+              "sources": [
+                "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "Therapeutic relevance cannot be decided from a reported tens-of-micromolar patch-clamp concentration alone because the free-exposure margin and assay comparability are unresolved.",
+              "sources": [
+                "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "ToxAgent",
+          "cannot_say": [
+            "Do not infer a clinical QT or torsade risk, or dismiss concern, from the predictor output or the unspecified patch-clamp result.",
+            "Do not treat the bounded literature-search outcome as evidence that no relevant study exists."
+          ],
+          "what_would_change": [
+            "A matched, free-concentration hERG concentration-response result linked to measured human unbound exposure and exposure-matched QTc/ECG data.",
+            "A clearly applicable compound-specific clinical or translational dataset showing the exposure-response relationship."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "mechanism",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "status": "open",
+            "context": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The fixed predictor output is a model signal, not independent experimental evidence of clinical relevance.",
+                "scope": {
+                  "compound": "moxifloxacin",
+                  "endpoint": "hERG"
+                },
+                "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+                "stance": "contextual",
+                "locator": "predictions.herg.probability_blocker; predictions.herg.label",
+                "directness": "direct",
+                "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2",
+                  "h3"
+                ]
+              }
+            ],
+            "statement": "The hERG block signal could be relevant at therapeutic exposure if unbound concentrations approach the active concentration range or if exposure-related cardiac electrophysiology effects are observed.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Human therapeutic unbound exposure remains well below the active concentration range and adequately powered clinical or translational data show no exposure-related electrophysiologic signal."
+          },
+          {
+            "id": "h2",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "status": "open",
+            "context": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The fixed predictor output is a model signal, not independent experimental evidence of clinical relevance.",
+                "scope": {
+                  "compound": "moxifloxacin",
+                  "endpoint": "hERG"
+                },
+                "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+                "stance": "contextual",
+                "locator": "predictions.herg.probability_blocker; predictions.herg.label",
+                "directness": "direct",
+                "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2",
+                  "h3"
+                ]
+              }
+            ],
+            "statement": "The patch-clamp concentration signal may not translate directly to therapeutic concern because free human exposure, assay conditions, channel state, and clinical electrophysiology are not yet linked.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Compound-specific free human exposure and matched hERG/clinical electrophysiology data establish a consistent exposure-response relationship."
+          },
+          {
+            "id": "h3",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "status": "open",
+            "context": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The fixed predictor output is a model signal, not independent experimental evidence of clinical relevance.",
+                "scope": {
+                  "compound": "moxifloxacin",
+                  "endpoint": "hERG"
+                },
+                "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+                "stance": "contextual",
+                "locator": "predictions.herg.probability_blocker; predictions.herg.label",
+                "directness": "direct",
+                "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2",
+                  "h3"
+                ]
+              }
+            ],
+            "statement": "The available information is insufficient to decide therapeutic relevance without compound-specific exposure and cardiac safety context.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "The needed exposure margins and clinically relevant electrophysiology evidence are available and internally consistent."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a compound-specific integrated exposure comparison: reproduce hERG inhibition under a standardized temperature-controlled patch-clamp protocol with free-concentration reporting, then compare the concentration-response curve with measured human unbound Cmax across therapeutic, high-exposure, and interaction/organ-impairment scenarios, alongside exposure-matched QTc/ECG data.",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "rationale": "This directly tests whether the active free concentration range overlaps clinically relevant exposure and whether the in vitro signal translates to cardiac repolarization.",
+            "discriminates": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "expected_readouts": [
+              "free-concentration hERG IC50 or concentration-response curve",
+              "human unbound Cmax and exposure distribution",
+              "exposure-response for QTc and other ECG measures",
+              "effect of relevant drug interactions and organ impairment"
+            ]
+          }
+        ],
+        "stop_reason": "budget_exhausted",
+        "subject_refs": [
+          "analysis:ana_146d7b60a22d4439b6716ed07112e5d2"
+        ],
+        "case_revision": 15,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The fixed predictor output is a model signal, not independent experimental evidence of clinical relevance.",
+            "scope": {
+              "compound": "moxifloxacin",
+              "endpoint": "hERG"
+            },
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "stance": "contextual",
+            "locator": "predictions.herg.probability_blocker; predictions.herg.label",
+            "directness": "direct",
+            "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The fixed predictor provides a hERG model signal but does not establish therapeutic-exposure relevance.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The fixed predictor provides a hERG model signal but does not establish therapeutic-exposure relevance.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "search_toxicology_evidence",
+              "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+              "outcome": "",
+              "purpose": "Find compound-specific hERG, exposure, QT, and regulatory or clinical evidence, including evidence that could argue against therapeutic relevance.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+              "outcome": "Search coverage was insufficient to establish or dismiss therapeutic relevance.",
+              "purpose": "Look for compound-specific clinical or translational evidence that would weaken the concern; the bounded search returned no clearly matching accepted record suitable to resolve the exposure question.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ]
+            },
+            {
+              "id": "a3",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+              "outcome": "The conclusion is conditional; no independent direct evidence resolves therapeutic relevance, and the blocking exposure uncertainty remains open.",
+              "purpose": "Check that the conclusion remains limited to the model signal and the unresolved exposure/assay questions, and does not turn the model output into a clinical or safety verdict.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "status": "open",
+            "severity": "blocking",
+            "resolution": "",
+            "description": "The therapeutic unbound plasma concentration range, protein binding, tissue distribution, and the free concentration corresponding to the reported patch-clamp potency are not available in the case.",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "assay_mismatch",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The patch-clamp protocol, temperature, ionic conditions, endpoint definition, equilibration time, and whether potency is expressed as free or total concentration are unspecified.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_0999144808cc424ab8da5b014f8ab628",
+  "analysis": {
+    "run": {
+      "run_id": "run_aeb286f002424a688f1482bbb9bdafeb",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_e2efb734b67341b4963a9e72d43df172",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:31:53.520902+00:00",
+      "created_at": "2026-09-25T13:26:53.520902+00:00",
+      "started_at": "2026-09-25T13:26:53.530819+00:00",
+      "ended_at": "2026-09-25T13:26:53.557597+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:26:53.521735+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_146d7b60a22d4439b6716ed07112e5d2",
+      "input_smiles": "COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O",
+      "canonical_smiles": "COc1c(N2C[C@@H]3CCCN[C@@H]3C2)c(F)cc2c(=O)c(C(=O)O)cn(C3CC3)c12",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.14254340529441833,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.7929943203926086,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.2799506187438965,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.3516481816768646,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.5250524282455444,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.29065704345703125,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.25407832860946655,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.489885538816452,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.4063534140586853,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.6900485754013062,
+              "active": true,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.3181741237640381,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.3984413146972656,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.5965786576271057,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "a663f397-92af-45b2-b16d-262dada88fcb",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 55,
+            "encoded_token_count": 55
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "4f8c562f289da75db11f386c3d57ddb15af8eb4dd08d6db590be74448bfd57ee"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:26:53.553434+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_29750c7db4524b1bba060d8e7bd1c764",
+      "title": "No QTcF Prolongation with Sepiapterin: Results From a Thorough QT Study in Healthy Subjects at Therapeutic and Supratherapeutic Doses.",
+      "authors": [
+        "Gao L",
+        "Xue H",
+        "Darpo B",
+        "Ingalls K",
+        "Kaushik D",
+        "Smith N",
+        "Kong R",
+        "Golden L"
+      ],
+      "published_at": "2026-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/jcph.70149",
+        "pmid": "41532446",
+        "pmcid": "PMC12801174",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41532446",
+      "abstract_or_excerpt": "Sepiapterin and its major metabolite 6R-L-erythro-5,6,7,8-tetrahydrobiopterin (BH<sub>4</sub>) bind to distinct variants of phenylalanine hydroxylase (PAH), which converts excess phenylalanine to tyrosine, thereby stabilizing, enhancing, and prolonging PAH activity. Sepiapterin was recently approved in Europe and the USA for the treatment of hyperphenylalaninemia patients with phenylketonuria, an inherent metabolic disease caused by PAH deficiency. A thorough QT study of sepiapterin in healthy volunteers at therapeutic (60 mg/kg) and supratherapeutic (120 mg/kg) doses was conducted to assess potential cardiovascular risks. Thirty-two participants were randomized into one of 12 sequences and received single doses of sepiapterin (60 or 120 mg/kg), moxifloxacin 400 mg, or placebo in separate periods. Sepiapterin had no effect on heart rate or cardiac conduction (PR/QRS interval). Saturable sepiapterin absorption was observed, which resulted in less than dose-proportional increase of sepiapterin and BH<sub>4</sub> and limited the maximum plasma concentrations clinically achievable. Using concentration-QT analysis, the placebo-corrected change from baseline in QT interval corrected using Fridericia's formula (ΔΔQTcF) was -2.11 (90% CI: -3.44, -0.79) ms at geometric mean baseline-corrected BH<sub>4</sub> C<sub>max</sub> (728 ng/mL) and -1.9 (-3.25, -0.56) ms at sepiapterin C<sub>max</sub> (2.08 ng/mL) at the supratherapeutic dose of 120 mg/kg. An effect on ΔΔQTcF exceeding 10 ms was excluded within the observed concentration range of baseline-corrected BH<sub>4</sub> up to 1088 ng/mL and sepiapterin up to 5.77 ng/mL. The consistency of results from this study and the previous concentration-QTc analysis based on pooled data from multiple clinical studies demonstrated the reliability of using concentration-QTc for assessing cardiovascular risks in early clinical development.",
+      "normalized_facts": {
+        "journal": "Journal of clinical pharmacology",
+        "pub_type": "research-article, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.379371+00:00",
+      "content_sha256": "67d722a4397b9085df6527c0f4538150badc9850a4adc7b9b339f4f47e906a6f"
+    },
+    {
+      "evidence_id": "evd_8784147595fd463fa54182d042a5b6ac",
+      "title": "Effects of Cipepofol on Cardiac Depolarization and Repolarization in Healthy Subjects: A Single-Center, Randomized, Placebo and Positive-Controlled Thorough QT Study.",
+      "authors": [
+        "Kleiman R",
+        "Rudo T",
+        "Daley W",
+        "Hu M",
+        "Yan P",
+        "Zhou R",
+        "Hou J"
+      ],
+      "published_at": "2026-01-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2147/dddt.s565051",
+        "pmid": "41858914",
+        "pmcid": "PMC12998329",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41858914",
+      "abstract_or_excerpt": "<h4>Background</h4>Cipepofol (HSK3486), a gamma-aminobutyric acid type A (GABAA) receptor agonist, has garnered considerable attention as a potential alternative to propofol. This study aimed to evaluate the effects of a single intravenous (IV) bolus dose of cipepofol (0.4 mg/kg) on QTc interval in healthy subjects.<h4>Patients and methods</h4>This was a single-center, randomized, blinded (except for moxifloxacin), placebo- and positive-controlled study with a six-sequence, three-period crossover study. Subjects were randomized to 1 of 3 treatment groups in each period: Group A (placebo); Group B (single dose of 0.4 g moxifloxacin, positive control); and Group C (cipepofol [HSK3486], 0.4 mg/kg via IV bolus). The primary endpoint was the change-from-baseline in QTc interval, corrected for heart rate (HR) using the individual QT correction method (QTcI) - ΔQTcI. Secondary endpoints included change-from-baseline in other electrocardiographic (ECG) parameters. Safety/tolerability and pharmacokinetics of cipepofol were also assessed.<h4>Results</h4>Forty-eight subjects were randomized, and demographic characteristics were comparable across the six sequences. The LS mean placebo-corrected ΔQTcI (ΔΔQTcI) interval following cipepofol bolus ranged from -1.7 to 4.1 milliseconds. The upper bound of the two-sided 90% confidence interval for ΔΔQTcI interval remained < 10 milliseconds at all post-dose timepoints. In addition, no clinically significant effects of cipepofol were observed on the PR interval or QRS interval (ventricular depolarization time). Assay sensitivity was successfully demonstrated by the expected QTc interval prolongation within 2-4 h post-moxifloxacin administration. No subjects in the cipepofol treatment period developed a new QTcI interval >480 or an increase in QTcI interval from baseline >60 milliseconds. All adverse events were mild to moderate in severity, and no serious adverse events or deaths occurred.<h4>Conclusion</h4>Cipepofol exhibited no clinically relevant effects on the QTc interval or other ECG parameters, and was safe and well tolerated in healthy subjects.<h4>Clinical trial registration</h4>This study was registered on ClinicalTrials.gov (NCT06379867).",
+      "normalized_facts": {
+        "journal": "Drug design, development and therapy",
+        "pub_type": "Randomized Controlled Trial, Journal Article, case-report",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.379371+00:00",
+      "content_sha256": "17f960921f8fcce42d1f4c441683a3e663b8f30d76db5ba5296274db12691990"
+    },
+    {
+      "evidence_id": "evd_3834deda68a8476c8ab614861bb076b7",
+      "title": "A Randomized, Double-Blinded, Placebo-Controlled QTc Study to Evaluate BIA 28-6156 Effect on Cardiac Repolarization in Healthy Volunteers.",
+      "authors": [
+        "Peixoto I",
+        "Hilt D",
+        "Carvalho T",
+        "Reis J",
+        "Gama H",
+        "Holenz J"
+      ],
+      "published_at": "2026-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpdd.70055",
+        "pmid": "41957689",
+        "pmcid": "PMC13065933",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41957689",
+      "abstract_or_excerpt": "Mutations in the GBA1 gene, encoding beta-glucocerebrosidase (GCase), are the most common genetic risk factor for Parkinson's Disease (PD). BIA 28-6156, an allosteric activator of GCase, is under development for the treatment of GBA-associated PD. This Phase 1, randomized, double-blind, placebo-controlled, crossover study assessed the impact of BIA 28-6156 on QT interval corrected (QTc) for heart rate (HR) based on the Fridericia correction (QTcF) in 37 healthy subjects. Participants received single doses of 60 or 150 mg BIA 28-6156, 400 mg moxifloxacin, or placebo in a cross-over design. The relationship between BIA 28-6156 plasma levels and QTcF changes (ΔQTcF) was analyzed to exclude a ΔΔQTcF > 10 ms. Heart rate, PR, and QRS intervals, electrocardiogram (ECG) waveform morphology, and adverse events (AEs) were also evaluated. The concentration-QTc analysis indicated no effect on ΔΔQTcF exceeding 10 ms up to BIA 28-6156 plasma levels of ≈7150 ng/mL. No clinically significant effects on ECG parameters were observed, and BIA 28-6156 was generally well tolerated, with no deaths or serious AEs. This study concluded that BIA 28-6156 has no clinically relevant impact on ECG parameters, confirming a negative thorough QT/QTc study.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology in drug development",
+        "pub_type": "research-article, Clinical Trial, Phase I, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.379371+00:00",
+      "content_sha256": "bf97322a197d3b609db65e56f5113981a7661f4154455b3c1cd85a376cff32a2"
+    },
+    {
+      "evidence_id": "evd_289521c4955940c9855294e7e919aaab",
+      "title": "A Phase I Study to Evaluate the Safety, Tolerability, and Pharmacokinetics of Fenebrutinib and Effect on the QT/QTc Interval in Healthy Participants.",
+      "authors": [
+        "Xu Y",
+        "Kawakatsu S",
+        "Kuruvilla D",
+        "Ratchford JN",
+        "Qi Q",
+        "Sierzega M",
+        "Pan L",
+        "Yu J"
+      ],
+      "published_at": "2026-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70518",
+        "pmid": "41781339",
+        "pmcid": "PMC12960056",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41781339",
+      "abstract_or_excerpt": "Fenebrutinib is a Bruton's tyrosine kinase inhibitor under investigation for the treatment of multiple sclerosis. The goal of this study was to investigate the effect of fenebrutinib on cardiac repolarization (QT interval) as well as its safety, tolerability, and pharmacokinetics in healthy participants. Part A was a randomized, double-blind, placebo-controlled, single-ascending dose study of therapeutic (400 mg) and supratherapeutic (700 mg) doses of fenebrutinib. Part B was a randomized, double-blind, single-dose, four-way crossover study that included both therapeutic and supratherapeutic fenebrutinib doses, a positive control (moxifloxacin 400 mg), and placebo. The QT interval was corrected for heart rate using the Fridericia formula (QTcF). Part A (n = 16) showed that both doses were well tolerated, with no serious adverse events (AEs), AEs of special interest, or Grade ≥ 2 AEs. In Part B (n = 85), all upper bounds (UBs) of one-sided 95% confidence intervals (CIs) for the least squares mean placebo-adjusted ΔQTcF (ΔΔQTcF) values were < 10 ms; maximum observed values were 5.3 and 8.2 ms at 1 h after the therapeutic and supratherapeutic doses, respectively. All predefined timepoints after moxifloxacin administration had a 99% CI lower bound of ΔΔQTcF of > 5 ms, which confirmed assay sensitivity. In the regression analysis, UBs of one-sided 95% CIs for ΔΔQTcF at the maximum concentration of fenebrutinib were < 10 ms: 4.4 and 7.8 ms with the therapeutic and supratherapeutic doses, respectively. Overall, both doses of fenebrutinib had no clinically meaningful impact on QT interval and were well tolerated, supporting fenebrutinib's favorable safety profile and continued clinical development.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Clinical Trial, Phase I, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.379371+00:00",
+      "content_sha256": "cc21304a05afb5e9cc67ffee94d31223315f050233785f0c71886169168f34d8"
+    },
+    {
+      "evidence_id": "evd_d959a4381a7c442ba74639ddb0902a35",
+      "title": "Evaluation of Rusfertide, a Hepcidin Mimetic, on Cardiac Repolarization: A Randomized, Placebo- and Positive-Controlled Crossover Thorough QT Study in Healthy Participants.",
+      "authors": [
+        "Modi NB",
+        "Dinh P",
+        "Xue H",
+        "Darpo B"
+      ],
+      "published_at": "2025-09-30",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.clinthera.2025.09.002",
+        "pmid": "41033871",
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41033871",
+      "abstract_or_excerpt": "<h4>Purpose</h4>Rusfertide, a hepcidin mimetic, is in clinical development for the treatment of polycythemia vera. This study evaluated the effect of rusfertide on cardiac repolarization.<h4>Methods</h4>A positive-controlled, randomized, double-blind, crossover study was conducted in healthy adults. Subjects received subcutaneous rusfertide 90 mg, matching subcutaneous placebo, and oral moxifloxacin. Subjects underwent continuous 12-lead Holter recording during each period. A central laboratory extracted up to 10 replicate electrocardiograms (ECGs) at each time point prior to and following treatment, paired with pharmacokinetic sampling. The primary analysis for Fridericia corrected QT interval (QTcF) was a mixed model for repeated measures with change from baseline QTcF (ΔQTcF) as the dependent variable; period, sequence, time, treatment, and time-by-treatment interaction as fixed effects; and baseline QTcF as a covariate. The relationship between rusfertide and metabolite concentrations and change-from-baseline QTcF was quantified using linear mixed-effects modeling.<h4>Findings</h4>Mean age and body mass index were 40.1 years and 25.4 mg/m<sup>2</sup>, respectively, with a slight majority of female (57%) and White (60%) subjects. Mean rusfertide plasma concentrations increased rapidly, with median peak of 4 hours. The geometric mean rusfertide peak concentration (C<sub>max</sub>) was 1100 ng/mL. Rusfertide did not have a clinically relevant effect on heart rate (HR) or cardiac conduction (PR and QRS interval). The least squares (LS) mean ΔQTcF on rusfertide closely followed the placebo pattern, and LS mean placebo-corrected ΔQTcF (ΔΔQTcF) varied from -2.0 to 1.8 ms. After 400 mg oral moxifloxacin, an increase of LS mean ΔΔQTcF was observed with a peak of 12.4, 12.4, and 11.2 ms at 2, 3, and 4 hours, respectively, with all three lower bounds of the 2-sided 90% confidence interval greater than 5 ms. Estimated population slope of the rusfertide concentration-QTc relationship was not statistically significant: 0.00042 ms per ng/mL (90% confidence interval [CI]: -0.001172 to 0.002013; P = 0.6624). Predicted ΔΔQTcF at the geometric mean C<sub>max</sub> was 0.04 ms (90% CI: -1.21 to 1.29). Overall, 24 of 60 subjects (40.0%) experienced treatment-emergent adverse events (TEAEs). All TEAEs were mild. TEAEs noted in ≥5% subjects were headache, nausea, injection site erythema, injection site pain, and influenza-like illness. There were no clinically significant changes in clinical laboratory, vital signs, ECG, or physical examination findings.<h4>Implications</h4>Rusfertide had no clinically relevant effect on HR, cardiac conduction, or QTc. Rusfertide was well tolerated. An effect on ΔΔQTcF exceeding 10 ms could be excluded within the observed rusfertide plasma concentrations up to approximately 2130 ng/mL.",
+      "normalized_facts": {
+        "journal": "Clinical therapeutics",
+        "pub_type": "Randomized Controlled Trial, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.379371+00:00",
+      "content_sha256": "6a4f420c9d8c703ae1c60ed9344d79b92555408f67e4f49d0d2cd7a4566cc1b0"
+    },
+    {
+      "evidence_id": "evd_68ea70b3699d43248a8cf8d459380579",
+      "title": "Multifactorial Torsades de Pointes in a Multiple Myeloma Patient.",
+      "authors": [
+        "Tanousian A",
+        "Campeanu IJ",
+        "Reddy BH"
+      ],
+      "published_at": "2026-04-21",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.jaccas.2026.107844",
+        "pmid": "42012424",
+        "pmcid": "PMC13221829",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42012424",
+      "abstract_or_excerpt": "<h4>Background</h4>In patients with cancer, arrhythmic risk is compounded by concomitant QT interval-prolonging supportive medications, electrolyte derangements, cardiotoxic antineoplastic agents, thromboembolism, and underlying cardiac disease.<h4>Case summary</h4>We present a 61-year-old woman with IgG lambda multiple myeloma who, after 17 months of maintenance therapy with lenalidomide and bortezomib, experienced an out-of-hospital ventricular fibrillation arrest followed by in-hospital torsades de pointes (TdP).<h4>Discussion</h4>This case reinforces that TdP in patients with cancer is multifactorial and that all QT interval-prolonging agents, including supportive medications, require systematic surveillance.<h4>Take-home messages</h4>TdP in patients with cancer is almost always multifactorial. The convergence of QT interval-prolonging supportive medications, electrolyte derangements, hemodynamic instability, and critical illness creates the highest arrhythmic risk. A large real-world electronic health record analysis identified lenalidomide as a potentially QTc interval-prolonging agent in clinical populations, with hypertension as a significant effect modifier. Oncologists should not dismiss the contribution of lenalidomide to prolonged QT interval in complex patients.",
+      "normalized_facts": {
+        "journal": "JACC. Case reports",
+        "pub_type": "Journal Article, Case Reports, case-report",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.379371+00:00",
+      "content_sha256": "4e4a3bfb70bec2d7b9f0e1148672a36fd3a02b2945423b7002d4e1b377ec2d15"
+    },
+    {
+      "evidence_id": "evd_ef663073dd234edd8abf29d576a4b5c7",
+      "title": "Legacy hERG study data in contemporary integrated risk assessments - mitigating the risk of protocol and positive control article differences.",
+      "authors": [
+        "Daniels RW",
+        "Kramer JW",
+        "Abernathy MM",
+        "Best DD",
+        "Brimecombe JC",
+        "Leishman DJ"
+      ],
+      "published_at": "2025-07-17",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.vascn.2025.108387",
+        "pmid": "40683363",
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40683363",
+      "abstract_or_excerpt": "Testing new molecules against the hERG potassium channel has been a routine component of secondary pharmacology assessments for more than a quarter of a century. In 2005, the ICH S7B guidance required a GLP hERG study prior to first administration of new chemical entities to man. In 2022, the ICH S7B Q&As introduced some 'best practice' recommendations for the hERG assessment. A required component of a QTc integrated risk assessment is an evaluation of how well the hERG assessment met the 'best practice' recommendations. For studies conducted under the 2005 ICH S7B guidance, it is unclear how to assess the differences between study protocols. Many sponsors had been conducting the GLP hERG assay in a manner which was largely compliant with these recommendations but differed subtly in the recording temperature, the voltage-clamp protocol employed and/or in the positive control used in the assay ('Legacy Protocol'). This led many sponsors to consider repeating their earlier hERG assessment using the 'best practice' ('Revised Protocol') recommendations. The current analyses sought to examine whether the differences in practice warranted retesting the compounds or could dispel a concern that prior practice had been less sensitive. The three key positive control articles, dofetilide, moxifloxacin and ondansetron were compared under the 'Legacy Protocol' and best practice 'Revised Protocol'. Furthermore, two prior positive control articles, terfenadine and cisapride, were tested under both protocols. Terfenadine data under the 'Legacy Protocol' were available from separate studies (n = 6) dating from 2003 to 2025. Terfenadine was also tested in four studies using the 'Revised Protocol' in 2023. In addition, the hERG inhibition data for 3627 single concentration positive control article tests with 60 nM terfenadine from studies conducted from 2002 to 2018 were collated. There was no difference for the 3 positive control articles tested under the two different protocols for pooled hERG safety margin. Similarly, the pooled hERG IC<sub>50</sub> values for terfenadine under the two protocols were not different, although the variability in hERG potency was greater under the 'Revised Protocol'. The inhibition of hERG current for 60 nM terfenadine in the 3627 historical examples was also consistent with predictions based on the hERG IC<sub>50</sub> and Hill slope data under the two protocols. Based on the similarity between results collected under 'Legacy' and 'Revised' protocols we conclude that if the 'Legacy Protocol' has been used and the positive control examined was 60 nM terfenadine, there appears to be no need to repeat the hERG assessment.",
+      "normalized_facts": {
+        "journal": "Journal of pharmacological and toxicological methods",
+        "pub_type": "Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.005123+00:00",
+      "content_sha256": "3bc1575caef9ccf52774be128ba217407741f4cda3333ccd03e25c59feb4454a"
+    },
+    {
+      "evidence_id": "evd_59892de700e44563a84f6f5d397457c5",
+      "title": "Integrating drug effects on individual cardiac ionic currents and cardiac action potentials to understand nonclinical translation to clinical ECG changes.",
+      "authors": [
+        "Johannesen L",
+        "Abi-Gerges N",
+        "Sweat K",
+        "Roup A",
+        "Page G",
+        "Baron CA",
+        "Yu H",
+        "Wu WW"
+      ],
+      "published_at": "2025-11-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1674861",
+        "pmid": "41293243",
+        "pmcid": "PMC12640937",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41293243",
+      "abstract_or_excerpt": "Concomitant inhibition of the late Na<sup>+</sup> current (I<sub>NaL</sub>) and/or the L-type Ca<sup>2+</sup> current (I<sub>CaL</sub>) has been hypothesized to mitigate hERG block-mediated QT<sub>C</sub> prolongation. This hypothesis was tested in a clinical trial using drugs selected based on available patch clamp data at the time. The results showed that hERG block-mediated QT<sub>C</sub> prolongation with dofetilide was shortened by co-administration of lidocaine or mexiletine-drugs that inhibit I<sub>NaL.</sub> However, diltiazem, selected as the preferential I<sub>CaL</sub> inhibitor, did not shorten hERG block-mediated QT<sub>C</sub> prolongation by moxifloxacin. Patch clamp results can be sensitive to experimental differences across laboratories. Therefore, this study reexamined the effects of all drugs on I<sub>NaL</sub>, I<sub>CaL</sub>, and hERG current using overexpression cell lines and physiologically relevant experimental protocols aimed at producing drug-channel interaction characteristics in humans. Drug effects on ventricular action potentials (APs) from adult human trabeculae were also tested to better understand the nonclinical and clinical findings. Mexiletine and lidocaine showed similar potencies on inhibiting I<sub>NaL</sub> and I<sub>CaL</sub> in the prior and present patch clamp studies. Both drugs reduced dofetilide-induced AP duration (APD) prolongation, consistent with the clinical data. For diltiazem, the I<sub>CaL</sub> potency and the separation between I<sub>CaL</sub> and hERG potencies (I<sub>CaL</sub>: 1.3 µM; hERG: 8.9 µM; hERG-to-I<sub>CaL</sub> ratio = 7) is much reduced comparing to the prior results (I<sub>CaL</sub>: 112.1 nM; hERG: 6.6 µM; ratio = 59). These new findings are consistent with diltiazem-induced APD shortening and AP triangulation caused by greater reductions in the early rather than late repolarization-a signature of multi-ion channel block. Consistent with this interpretation, nifedipine, which preferentially inhibits I<sub>CaL</sub> over hERG (I<sub>CaL</sub>: 13.2 nM; hERG: 35 μM; ratio = 2,651) caused APD shortening without AP triangulation. Results from this study thus support the following: 1) diltiazem failed to reduce moxifloxacin-induced QT<sub>C</sub> prolongation due to its concomitant hERG block at clinical exposure levels; and 2) the importance of using physiologically relevant protocols to generate ion channel pharmacology and obtaining functional recordings from myocytes to provide a better understanding of nonclinical data translation to clinical ECG signals. Data used in this manuscript, including the original electrophysiology records, may be found at: https://osf.io/69ght/.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.005123+00:00",
+      "content_sha256": "35e175d61f8b5a912ef0554aeeeefdd82b72758af79d05449306427fdbac72c6"
+    },
+    {
+      "evidence_id": "evd_efe5e86bd1bf4f129e7529e474f2250d",
+      "title": "Novel Bacterial Topoisomerase Inhibitors: A New Front in an Old War.",
+      "authors": [
+        "Mann CA",
+        "Dewar JM",
+        "Osheroff N"
+      ],
+      "published_at": "2026-06-03",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.jmb.2026.169892",
+        "pmid": "42242421",
+        "pmcid": "PMC13370809",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42242421",
+      "abstract_or_excerpt": "Antibacterial agents have transformed modern medicine. However, the rise of antimicrobial resistance threatens these advances, creating an urgent need for new antibacterial classes with novel mechanisms of action to be developed. The bacterial type II topoisomerases, gyrase and topoisomerase IV, are validated targets for antibacterial drug discovery. Fluoroquinolones have historically exploited these targets with great clinical success despite their growing resistance. This review examines gyrase and topoisomerase IV as antibacterial targets and the emergence and evolution of fluoroquinolone resistance. It will focus on the development of the Novel Bacterial Topoisomerase Inhibitors (NBTIs), a mechanistically distinct class of agents designed to overcome the limitations of fluoroquinolones. We cover the development of NBTI scaffolds, highlighting key structural features (DNA-binding motif, central linker, secondary amine, and enzyme-binding motif) that govern potency, selectivity, and safety. Particular emphasis is placed on optimization strategies used to balance antibacterial efficacy with cardiovascular safety by mitigating hERG potassium channel inhibition, a common roadblock in the clinical pursuit of NBTI development. Advances from both industrial and academic discovery programs illustrate how subtle modulation of basicity, polarity, and conformational rigidity has enabled improved pharmacological profiles. The clinical translation of this class is exemplified by gepotidacin, the first-in-class triazaacenaphthylene approved in March 2025, which demonstrates balanced dual-targeting of gyrase and topoisomerase IV and maintains activity against fluoroquinolone-resistant pathogens. Ongoing clinical development of next-generation NBTIs, including BWC0977, underscores the continued promise of this class. Collectively, these efforts highlight NBTIs as a critical and expanding weapon in the fight against antimicrobial resistance.",
+      "normalized_facts": {
+        "journal": "Journal of molecular biology",
+        "pub_type": "research-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.005123+00:00",
+      "content_sha256": "e291181ffb0a06b076df75cddfbda0b6e6cdc94d2ecff23364eeb880228b675b"
+    },
+    {
+      "evidence_id": "evd_93126eddeecc4bec9addcf63698c10ac",
+      "title": "Modelling of clinical TQT studies outcomes from preclinical cardiovascular safety pharmacology studies using the one-step QTc model.",
+      "authors": [
+        "Champéroux P",
+        "Fares R",
+        "Leishman D"
+      ],
+      "published_at": "2025-10-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1619547",
+        "pmid": "41142234",
+        "pmcid": "PMC12549647",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41142234",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Retrospective translational analyses have shown a high rate of false negatives between clinical thorough QT studies (TQT) and preclinical cardiovascular safety pharmacology studies. The aim of this work was to model the results of clinical TQT studies from cardiovascular safety pharmacology studies conducted on a large set of reference drugs in beagle dogs by implanted telemetry.<h4>Methods</h4>All preclinical studies were based on a standard four-animal crossover design comparing the vehicle to the reference drug. The model used was based on the one-step QTc correction model. This model was adapted in order to apply the same statistical method in preclinical studies as in clinical trials.<h4>Results</h4>The sensitivity of the model made it possible to detect QTc prolongation of at least 5 ms with all reference hERG blockers known to cause QT prolongation in humans. Modelling of moxifloxacin (10 mg/kg, po) effects was in agreement with data published from clinical TQT studies with moxifloxacin 400 mg showing a QTc prolongation greater than 5 ms between 1 and 4 hours post-dose. This study shows a noticeable reduction in the risk of false negatives with several references drugs associated with a phenomenon of concealed QTc prolongation. Moreover, several reference drugs did change the slope of the QT/HR slope justifying the principles of the one-step QTc model.<h4>Conclusion</h4>Modelling results of TQT studies with the one-step QTc model for applying the same statistical approach as in the clinic can improve the translational value of preclinical cardiovascular safety pharmacology studies and reduce the risk of false negatives.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:48.005123+00:00",
+      "content_sha256": "34b70a25bade364a6e8e9459c1cb25afd2a45aaed7dbc77fb6964b18dfb81d92"
+    },
+    {
+      "evidence_id": "evd_edac28c970b64c7cb678736f22223d4e",
+      "title": "Exploring the Role of Metabolites in Torsadogenic Risk Assessment: A Text-Mining Approach.",
+      "authors": [
+        "Bilgin E",
+        "Tuğcu G",
+        "Aydın A"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.4274/tjps.galenos.2026.43334",
+        "pmid": "42678219",
+        "pmcid": "PMC13533023",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42678219",
+      "abstract_or_excerpt": "<h4>Objectives</h4>Torsades de pointes (TdP) is a life-threatening ventricular arrhythmia often caused by the inadvertent inhibition of the human ether-à-go-go-related gene (hERG). Conventional pre-market evaluations, which emphasize parent molecules, often yield inaccurate predictions due to the multifaceted nature of TdP. This study aimed to investigate the role of metabolites and their interplay with parent molecules in the manifestation of TdP.<h4>Materials and methods</h4>A literature-based text-mining approach was employed, using the adverse outcome pathway-helpFinder tool. The analysis scrutinized 64 selected active ingredients, categorized by their torsadogenic risks, to evaluate the distinct proarrhythmic contributions of their metabolites.<h4>Results</h4>This text-mining exploration revealed qualitative evidence that metabolites variably modulate TdP vulnerability. Specifically, certain metabolites can independently exacerbate proarrhythmic profiles, whereas others do not inhibit hERG and therefore represent safer therapeutic alternatives than their parent molecules.<h4>Conclusion</h4>Metabolites play a paramount role in altering the torsadogenic risk profile of pharmaceutical products. Incorporating comprehensive metabolite data into cardiac safety evaluations is essential for a more accurate risk assessment and should be considered in future pharmaceutical development.",
+      "normalized_facts": {
+        "journal": "Turkish journal of pharmaceutical sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "d2b9f9d69cee47c43fbceed8f1e606da0614a110f78ba4d116f844110ef6e4c2"
+    },
+    {
+      "evidence_id": "evd_8ed3056ec8404c3bbab0db3a2a194594",
+      "title": "Safety, Tolerability, Pharmacokinetics, Food Effect of Ribitol, and Its Effect on QTcF in Healthy Adults: First-in-Human, Randomized, Double-Blind (Sponsor Unblinded), Placebo-Controlled Studies.",
+      "authors": [
+        "Gretler DD",
+        "Hutchaleelaha A",
+        "Sinha U",
+        "Rickert K",
+        "Sproule D"
+      ],
+      "published_at": "2026-08-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpdd.70082",
+        "pmid": "42530151",
+        "pmcid": "PMC13422016",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42530151",
+      "abstract_or_excerpt": "Limb-girdle muscle dystrophy Type R9 (LGMDR9), also known as LGMD Type 2I, is a rare genetic disease caused by partial loss of function of fukutin-related protein (FKRP) enzyme which glycosylates alpha-dystroglycan, thereby stabilizing myocytes during contraction. Hypoglycosylation leads to progressive muscle injury and impaired function including loss of ambulation. Ribitol is an endogenous pentose alcohol and precursor to CDP-ribitol, the substrate of FKRP. This first-in-human study demonstrated that ribitol was well tolerated when administered as single or multiple oral doses over 6 days to healthy adults. PK demonstrated dose-proportional increases in exposure from 0.5 to 15 g (therapeutic dose 9 and 12 g BID for patients weighing >30 to ≤50 kg and >50 kg, respectively); t<sub>½</sub> was 9-13 h. A high-fat meal did not affect overall oral bioavailability; indicating ribitol may be taken without regard to food intake. A dedicated QT study using ribitol 21 g revealed no concentration-dependent QTcF prolongation and clinically significant QTcF prolongation was excluded over the entire range of exposures in the study, up to 351.9 µg/mL. Assay sensitivity was demonstrated with the expected effect of moxifloxacin. These results support further development of ribitol for the treatment of LGMDR9.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology in drug development",
+        "pub_type": "research-article, Clinical Trial, Phase I, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "398831beb88f2b53bb809d0f251c5c512751110f4cfb160fc6e375b3e63ca036"
+    },
+    {
+      "evidence_id": "evd_bd28755b919d429390cd91658d00e827",
+      "title": "Does Changing the Context of Use Change the Value Proposition of CiPA?",
+      "authors": [
+        "Benson CT",
+        "Leishman DJ"
+      ],
+      "published_at": "2026-04-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpt.70289",
+        "pmid": "41960719",
+        "pmcid": "PMC13339264",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41960719",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Clinical pharmacology and therapeutics",
+        "pub_type": "other, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "e40075df27440c454b3e8bee86df2c5b293c7a753a7b097eebb608a1b11e7aca"
+    },
+    {
+      "evidence_id": "evd_9b1afad1687e4c459555d05c002dcb4b",
+      "title": "Thorough QT Study on the Effect of Therapeutic and Supratherapeutic Dosing of Givinostat in Healthy Volunteers.",
+      "authors": [
+        "Mercuri E",
+        "Byrne B",
+        "Willis T",
+        "Bourke J",
+        "Bettica P",
+        "Cazzaniga S",
+        "Xue H",
+        "Darpo B"
+      ],
+      "published_at": "2026-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpdd.70047",
+        "pmid": "41866661",
+        "pmcid": "PMC13006724",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41866661",
+      "abstract_or_excerpt": "Givinostat is a class I/II histone deacetylase inhibitor indicated for Duchenne muscular dystrophy (DMD). The study evaluated the effect of therapeutic and supratherapeutic givinostat doses on the QT/QTc interval. Healthy volunteers received each treatment-givinostat hydrochloride monohydrate oral suspension as a therapeutic (100 mg) or supratherapeutic (300 mg) dose, placebo oral suspension, or moxifloxacin oral tablet (positive control, 400 mg)-according to a block randomization scheme. Cardiodynamic assessments were paired with pharmacokinetic samples. A small, clinically non-relevant effect on mean placebo-corrected, change-from-baseline QTcF (∆∆QTcF) of 5.5 ms was seen after givinostat 100-mg dose. Clinically relevant QTc prolongation was observed with the supratherapeutic dose, with a mild ∆∆QTcF increase of 13.6 ms. A delay of ≈3 h between T<sub>max</sub> and the largest effect on the QTc interval was seen for both doses. In the concentration-QTc analysis, an E<sub>max</sub> model captured the data better than the prespecified linear model and showed that an effect on ∆∆QTcF exceeding 10 ms could be excluded within the full range of observed givinostat concentrations in this study and up to ≈745 ng/mL. Givinostat at the maximum labeled dose (up to 53.2 mg twice daily for DMD) is not expected to pose a QT prolongation risk.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology in drug development",
+        "pub_type": "research-article, Clinical Trial, Phase I, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "de34868213880ff6bdecd39dcc396ded78207eb6934a2bf2045db58fca9941af"
+    },
+    {
+      "evidence_id": "evd_218e1f39f64541439f8742694be956c9",
+      "title": "Drug Safety Assessment Based on Target Affinity, Drug Exposure and Plasma Protein Binding: Drug-Induced Cardiotoxicity from a Translational Pharmacology Perspective.",
+      "authors": [
+        "Catozzi S",
+        "Sips F",
+        "Totis N",
+        "Bisotti MA",
+        "Stathopoulos S",
+        "Torchia M",
+        "Emili L",
+        "Carbone V"
+      ],
+      "published_at": "2026-05-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms27104563",
+        "pmid": "42196540",
+        "pmcid": "PMC13207947",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42196540",
+      "abstract_or_excerpt": "Cardiac safety assessment is an integral part of drug discovery and development. Drug candidates that adversely affect cardiac or hemodynamic function should be discontinued early unless a favorable benefit-risk ratio for patients can be justified. In this hypothesis-generating work, we aimed to develop a conceptual framework for informing early safety risk assessment based on in vitro drug affinities to pharmacological targets. For illustration, we used the drug-induced cardiotoxicity rank (DICTrank) data comprising 1318 drugs with cardiac safety concerns according to FDA labeling. The data was enriched with information on affinity to the most plausible mechanistic targets, clinical drug exposure, and human plasma protein binding. We descriptively identified 18 target classes potentially associated with elevated cardiovascular risk: potassium channels (accounting alone for 20% of the 'most concern' safety group); adrenergic, dopamine, serotonin, androgen, sex hormone, and opioid receptors; cyclooxygenase; sodium and calcium channels; muscarinic and glucocorticoid receptors; phosphodiesterase; topoisomerase; angiotensin-converting enzyme; angiotensin II type 1 receptor; monoamine transporters, and acetylcholinesterase. Overall, 80% of the 'most concern' drugs compared with only 12% of the 'no concern' drugs were associated with these targets in this exploratory descriptive analysis. Concentration-response analyses revealed differences in target potency and free drug exposure that appeared associated with variability in the severity of cardiotoxicity among drugs acting on the same target. This framework demonstrates how in vitro data can be used to benchmark new compounds early in development, enabling the timely discontinuation of candidates associated with substantial risk.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "18cfc0a998342cc2bc0f58c98492be014b022d85ff053f88ab0e17698190fb89"
+    },
+    {
+      "evidence_id": "evd_50b197b38f7a41eda24170a15f717d23",
+      "title": "Bedaquiline, Pretomanid, Linezolid, and Moxifloxacin: Mechanisms of Action, Drug Interactions, Adverse Effects and Use in Special Situations.",
+      "authors": [
+        "Arbex MA"
+      ],
+      "published_at": "2026-04-30",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/microorganisms14051015",
+        "pmid": "42197401",
+        "pmcid": "PMC13210163",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42197401",
+      "abstract_or_excerpt": "Tuberculosis (TB) remains a critical global public health challenge, requiring therapeutic strategies that ensure high cure rates while minimizing bacillary transmission. The 2022 World Health Organization (WHO) update for drug-resistant TB treatment prioritized a novel, 6-month, all-oral regimen composed of bedaquiline, pretomanid, linezolid, and moxifloxacin (BPaLM) as the preferred treatment for rifampicin- and multidrug-resistant tuberculosis (RR-/MDR-TB). However, the clinical success of this shortened therapy is intrinsically linked to managing complex drug-drug interactions and treatment-emergent adverse effects which may necessitate regimen modifications. This article provides a comprehensive pharmacological review of the BPaLM components, detailing their mechanisms of action, pharmacokinetics (absorption, metabolism, and excretion), and safety profiles. Furthermore, we analyze critical drug interactions-including those involving food and antacids-and provide evidence-based guidance for special clinical populations, such as pregnant and breastfeeding women, and patients with hepatic or renal impairment. Mastery of these pharmacological nuances is essential for clinicians to optimize treatment adherence and ensure improved treatment completion rates and reduced resistance emergence.",
+      "normalized_facts": {
+        "journal": "Microorganisms",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "fb9fcf025c80c1790754dc3a454d20b20e622d7eab41c68217302af605d08508"
+    },
+    {
+      "evidence_id": "evd_24b9d6d68e954b6b8f4e2e339c8bbcd8",
+      "title": "Exposure-QTc modeling of bedaquiline, pretomanid, and clofazimine in adults with tuberculosis.",
+      "authors": [
+        "Abdelwahab MT",
+        "Svensson EM",
+        "Diacon AH",
+        "Conradie A",
+        "Olugbosi M",
+        "Dawson R",
+        "Maartens G",
+        "Denti P"
+      ],
+      "published_at": "2026-03-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1128/aac.01399-25",
+        "pmid": "41801043",
+        "pmcid": "PMC13041299",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41801043",
+      "abstract_or_excerpt": "Drug resistance (DR) poses a critical challenge to global efforts to manage tuberculosis (TB). Limited information is available on the combined cardiotoxicity of bedaquiline (BDQ), pretomanid (Pa), and clofazimine (CFZ), key drugs in current DR-TB treatment regimens. All of those prolong the QT interval. We aimed to describe this interaction to predict possible toxicities with established and novel dosing regimens to identify patients at higher risk of QT prolongation. The data for this analysis were obtained from an early-bactericidal activity study in drug-susceptible-TB of several TB drugs. We developed a competitive interaction model to evaluate combined concentration-QTc effect of all three drugs. The model was developed using ECG-matched PK measurements (105 patients, 2,062 observations). The model identified a maximum QT increase by all three drugs of 44.5 ms with respective EC50 values for BDQ, Pa, and CFZ of 0.57, 0.903, and 26.9 mg/L. For patients aged 70 years with non-black ancestry, at risk of increased BDQ exposure, simulations showed that 39.1% had a drug-induced QT change >30 ms after the loading period; this was 29.4% for following BDQ 400 mg daily regimen (part of UNITE4TB program). Reassuringly, no simulations resulted in a QTcF >500 ms, and less than 1% exceeded 480 ms or a change from baseline of >60 ms. We present a joint concentration-QT model of BDQ, Pa, and CFZ. The competitive interaction model serves as a tool to predict possible combined exposure-induced QT prolongation of these drugs in different dosing regimen and identify patients at high risk of significant QT-prolongation.",
+      "normalized_facts": {
+        "journal": "Antimicrobial agents and chemotherapy",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "690ffe5afa74bae8b34b94da1df851f1ee80cc355afa5145f3f21174e8c5955b"
+    },
+    {
+      "evidence_id": "evd_533e44bb738a4d97b0fc17621d88a426",
+      "title": "Results of a Phase 1 Study Assessing the Effect of CIN-102, a Novel Formulation of the Dopamine Receptor Antagonist Domperidone Designed to Treat Gastroparesis, on Cardiac Repolarization in Healthy Volunteers.",
+      "authors": [
+        "Bond M",
+        "Murphy B",
+        "Doran B",
+        "Darpo B",
+        "Xue H",
+        "Vrishabhendra L",
+        "Isaacsohn J"
+      ],
+      "published_at": "2026-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpdd.70039",
+        "pmid": "41797689",
+        "pmcid": "PMC12969247",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41797689",
+      "abstract_or_excerpt": "CIN-102 is a deuterated form of domperidone in development for the treatment of acute, recurrent gastroparesis. This thorough QT study assessed the effects of CIN-102 on cardiac repolarization in 62 healthy volunteers. In this 4-period randomized crossover study, participants were administered single doses of 30-mg CIN-102 (representing therapeutic exposures), 100-mg CIN-102 (representing supratherapeutic exposures), placebo, and moxifloxacin (positive control). Continuous 12-lead electrocardiograms (ECGs) and time-matched blood samples were collected to determine plasma levels of deuterated domperidone and its major metabolites. The primary endpoint was placebo-corrected change-from-baseline QTc corrected by Fridericia's formula (ΔΔQTcF). By-time-point and concentration-QTc analyses excluded an effect on ΔΔQTcF exceeding 10 ms for both doses of CIN-102 at all time points up to deuterated domperidone plasma concentrations of ≈92  ng/mL (≈6 times the therapeutic steady-state concentration). There were no clinically relevant effects of CIN-102 on heart rate or cardiac conduction, and no deaths or serious adverse events occurred. This thorough QT study demonstrated that at doses producing therapeutic and supratherapeutic exposures, CIN-102 does not have a clinically meaningful effect on ECG parameters, including QT interval. This modified formulation of domperidone provides a potential gastroparesis treatment while decreasing the risk of QT prolongation associated with the traditional formulation of domperidone.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology in drug development",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Clinical Trial, Phase I, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "58ac3d9a31bad8e10a21124bdeda9421de0d89e186e8cc69da6219c3217fc112"
+    },
+    {
+      "evidence_id": "evd_94a1e7d75eef4273b1f67821b98fb230",
+      "title": "An Integrated Nonclinical and Clinical Risk Assessment of the Effects of Investigational ATRi Tuvusertib on QTc Interval in Patients With Solid Tumors.",
+      "authors": [
+        "Mukker JK",
+        "Yap TA",
+        "Tolcher AW",
+        "de Bono JS",
+        "Plummer R",
+        "Grosser G",
+        "van Amsterdam C",
+        "Schieferstein H"
+      ],
+      "published_at": "2026-02-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70496",
+        "pmid": "41667943",
+        "pmcid": "PMC12890571",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41667943",
+      "abstract_or_excerpt": "Tuvusertib is an investigational, orally administered inhibitor of ATR protein kinase, currently in Phase II clinical development. Here, we present an integrated nonclinical and clinical assessment of the effect of tuvusertib on QTc interval. In vitro inhibition by tuvusertib of the hERG potassium channel was evaluated, and in vivo ECG assessments evaluated the effect on QTc in dogs. PK-matched triplicate ECGs in patients receiving tuvusertib in Part A1 of the Phase I DDRiver Solid Tumors 301 study (N = 55; dosing regimens: 5-270 mg QD, 180-220 mg QD 2 weeks on/1 week off, or 150 mg BID 4 days on/3 days off) contributed to concentration-QTc analyses via linear mixed-effects modeling. In vitro, tuvusertib inhibited hERG with an IC<sub>50</sub> of 2.83 μM, which is ~2.5 times its steady-state unbound C<sub>max</sub> at the clinical RDE (180 mg QD 2 weeks on/1 week off). In vivo, tuvusertib did not affect QTc up to 5 mg/kg/day in dogs (unbound C<sub>max</sub> comparable to that at clinical RDE). In patients with advanced solid tumors receiving tuvusertib at up to threefold higher plasma concentrations than at the RDE, the risk for clinically relevant QTc prolongation was assessed to be low (upper limit of 90% CI of model-predicted ΔQTcF < 20 ms). There was no relationship between tuvusertib plasma concentration and RR interval, suggesting no effect on HR. Early integrated concentration-QTc assessments of tuvusertib monotherapy in Phase I were crucial in informing the low risk for clinically relevant QTc prolongation, thereby facilitating efficient evaluation of investigational tuvusertib combination strategies in ongoing clinical development.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Multicenter Study, Clinical Trial, Phase I, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "ea392d5b1f185e6b86fdcbfc371466c040e00feec74f0b56212567fd5d4ff751"
+    },
+    {
+      "evidence_id": "evd_a8f18b93d9c34e639fa7cf0181455a0d",
+      "title": "Thorough QT/QTc Clinical Study to Evaluate the Effect of Remdesivir on Cardiac Repolarization in Healthy Participants.",
+      "authors": [
+        "Peng CC",
+        "Duan R",
+        "Abdelghany M",
+        "Davies S",
+        "Xiao D",
+        "Kwan A",
+        "Ruiz-Garcia A"
+      ],
+      "published_at": "2026-06-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70645",
+        "pmid": "42316440",
+        "pmcid": "PMC13279458",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42316440",
+      "abstract_or_excerpt": "QT interval prolongation associated with drug administration is an important consideration in drug development. Patients with COVID-19 are at increased risk for cardiac complications, and QT interval prolongation correlates with higher mortality. This Phase 1 study evaluated the safety, tolerability, pharmacokinetics, and potential effects on QT interval corrected for heart rate (QTc) of a single supratherapeutic intravenous dose of remdesivir (600 mg; 3 times the loading dose [200 mg] of the approved regimen) in healthy participants, as well as the safety of its solubilizing excipient sulfobutylether-β-cyclodextrin. The study included 2 cohorts: a dose-selection cohort (sentinel cohort), followed by a partially blinded, randomized, placebo- and positive-controlled, 3-period, 6-treatment sequence, single-dose crossover cohort (TQT cohort). The clinical endpoints were adverse events (AEs), laboratory abnormalities, plasma pharmacokinetic parameters of remdesivir and its metabolites, ΔΔQTcF (baseline-adjusted, placebo-corrected QT interval corrected for heart rate using the Fridericia formula) at each postdose time point, and the relationship between ΔΔQTcF and plasma concentrations of remdesivir by concentration-QT analysis. Sixty participants completed the study. Plasma pharmacokinetics of remdesivir and its metabolites showed no significant differences between cohorts. Sulfobutylether-β-cyclodextrin was cleared within 24 h, with no pharmacokinetic non-linearities observed. The study found no clinically relevant QTc prolongation from remdesivir at a supratherapeutic dose (ΔΔQTcF < 10 ms). Most AEs were Grade 1 or 2 in severity. No serious AEs or deaths were reported. These findings suggest that a single 600-mg intravenous dose of remdesivir is generally safe and well tolerated and does not lead to QTc prolongation of safety concern.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Clinical Trial, Phase I, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.681757+00:00",
+      "content_sha256": "0681b43f75c049ab66927a402a24398d3383f8a6d5612b0fc8f5591e6d393af9"
+    },
+    {
+      "evidence_id": "evd_f3f275126fee494185ed9e994e1eb4d8",
+      "title": "Early preclinical development of &lt;i&gt;Mycobacterium&lt;/i&gt; &lt;i&gt;tuberculosis&lt;/i&gt; amino acid biosynthesis pathway inhibitor DRILS-1398 as a potential anti-TB drug.",
+      "authors": [
+        "Biswas D",
+        "Edwin RK",
+        "Kumar KS",
+        "Alam A",
+        "Kumar D",
+        "Chakraborty S",
+        "Bulusu G",
+        "Ahmad FJ"
+      ],
+      "published_at": "2025-04-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.isci.2025.112537",
+        "pmid": "40487435",
+        "pmcid": "PMC12144419",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40487435",
+      "abstract_or_excerpt": "The search for new anti-tubercular agents is vital for the fight against <i>Mycobacterium tuberculosis</i>, particularly given the rise of drug-resistant strains. DRILS-1398, a pyrazolo[4,3-<i>d</i>]pyrimidine derivative, was discovered as a potent inhibitor of <i>M.tb</i> chorismate mutase (<i>M.tb</i>-CM) with an IC<sub>50</sub> = 3.0 ± 0.2 <i>μ</i>M (<i>n</i> = 3) and IC<sub>90</sub> = 10 <i>μ</i>M. The compound demonstrated efficacy against multi-drug resistant <i>M.tb</i> strains (MIC = 4 μg/mL, ∼10.0 μM) and effective inhibition of intracellular <i>M.tb</i> in THP-1 macrophages. With favorable pharmacokinetics, moderate stability <i>in vitro</i>, and a promising safety profile, DRILS-1398 showed no toxicity at doses up to 500 mg/kg b.w./day when dosed orally daily once for 7 consecutive days in mice. Both DRILS-1398 and its formulation DRILS-1398(F) were successful in clearing <i>M.tb</i> infection from the lungs and spleen in murine models. These findings suggest DRILS-1398 as a promising lead candidate for developing a first-in-class anti-tubercular drug.",
+      "normalized_facts": {
+        "journal": "iScience",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "94dd89fe7a668a26d0a3898a1020ba0186e954a8b047f868b4ffb1796762eaf2"
+    },
+    {
+      "evidence_id": "evd_8243c22345144ebe8e483737fe9f7c4d",
+      "title": "The Challenges of Predicting Drug-Induced QTc Prolongation in Humans.",
+      "authors": [
+        "Valentin JP",
+        "Hoffmann P",
+        "Ortemann-Renon C",
+        "Koerner J",
+        "Pierson J",
+        "Gintant G",
+        "Willard J",
+        "Garnett C"
+      ],
+      "published_at": "2022-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxsci/kfac013",
+        "pmid": "35148401",
+        "pmcid": "PMC9041548",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35148401",
+      "abstract_or_excerpt": "The content of this article derives from a Health and Environmental Sciences Institute (HESI) consortium with a focus to improve cardiac safety during drug development. A detailed literature review was conducted to evaluate the concordance between nonclinical repolarization assays and the clinical thorough QT (TQT) study. Food and Drug Administration and HESI developed a joint database of nonclinical and clinical data, and a retrospective analysis of 150 anonymized drug candidates was reviewed to compare the performance of 3 standard nonclinical assays with clinical TQT study findings as well as investigate mechanism(s) potentially responsible for apparent discrepancies identified. The nonclinical assays were functional (IKr) current block (Human ether-a-go-go related gene), action potential duration, and corrected QT interval in animals (in vivo corrected QT). Although these nonclinical assays demonstrated good specificity for predicting negative clinical QT prolongation, they had relatively poor sensitivity for predicting positive clinical QT prolongation. After review, 28 discordant TQT-positive drugs were identified. This article provides an overview of direct and indirect mechanisms responsible for QT prolongation and theoretical reasons for lack of concordance between clinical TQT studies and nonclinical assays. We examine 6 specific and discordant TQT-positive drugs as case examples. These were derived from the unique HESI/Food and Drug Administration database. We would like to emphasize some reasons for discordant data including, insufficient or inadequate nonclinical data, effects of the drug on other cardiac ion channels, and indirect and/or nonelectrophysiological effects of drugs, including altered heart rate. We also outline best practices that were developed based upon our evaluation.",
+      "normalized_facts": {
+        "journal": "Toxicological sciences : an official journal of the Society of Toxicology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "7b65698ab1ab71689f304e1f1812c150efccefeb133fa8b009efa0bb01a649df"
+    },
+    {
+      "evidence_id": "evd_e5d2355dea9843e4a2f1d31f1629846e",
+      "title": "Cardiac sodium channel inhibition by lamotrigine: In vitro characterization and clinical implications.",
+      "authors": [
+        "Ingleby-Talecki L",
+        "van Dijkman SC",
+        "Oosterholt SP",
+        "Della Pasqua O",
+        "Winter C",
+        "Cunnington M",
+        "Rebar L",
+        "Forero-Schwanhaeuser S"
+      ],
+      "published_at": "2022-05-31",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.13311",
+        "pmid": "35579204",
+        "pmcid": "PMC9372421",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35579204",
+      "abstract_or_excerpt": "Lamotrigine, approved for use as an antiseizure medication as well as the treatment of bipolar disorder, inhibits sodium channels in the brain to reduce repetitive neuronal firing and pathological release of glutamate. The shared homology of sodium channels and lack of selectivity associated with channel blocking agents can cause slowing of cardiac conduction and increased proarrhythmic potential. The Vaughan-Williams classification system differentiates sodium channel blockers using biophysical properties of binding. As such, Class Ib inhibitors, including mexiletine, do not slow cardiac conduction as measured by the electrocardiogram, at therapeutically relevant exposure. Our goal was to characterize the biophysical properties of Na<sub>V</sub> 1.5 block and to support the observed clinical safety of lamotrigine. We used HEK-293 cells stably expressing the hNa<sub>V</sub> 1.5 channel and voltage clamp electrophysiology to quantify the potency (half-maximal inhibitory concentration) against peak and late channel current, on-/off-rate binding kinetics, voltage-dependence, and tonic block of the cardiac sodium channel by lamotrigine; and compared to clinically relevant Class Ia (quinidine), Ib (mexiletine), and Ic (flecainide) inhibitors. Lamotrigine blocked peak and late Na<sub>V</sub> 1.5 current at therapeutically relevant exposure, with rapid kinetics and biophysical properties similar to the class Ib inhibitor mexiletine. However, no clinically meaningful prolongation in QRS or PR interval was observed in healthy subjects in a new analysis of a previously reported thorough QT clinical trial (SCA104648). In conclusion, the weak Na<sub>V</sub> 1.5 block and rapid kinetics do not translate into clinically relevant conduction slowing at therapeutic exposure and support the clinical safety of lamotrigine in patients suffering from epilepsy and bipolar disorder.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "39ab36c7cc1e8a98a5243d7a7a7fd53ba761cbdadab4d149ec0b124e32dcfd35"
+    },
+    {
+      "evidence_id": "evd_de9879bbec7140148c673511fe17700a",
+      "title": "ECG Evaluation as Part of the Clinical Pharmacology Strategy in the Development of New Drugs: A Review of Current Practices and Opportunities Based on Five Case Studies.",
+      "authors": [
+        "Darpo B",
+        "Borin M",
+        "Ferber G",
+        "Galluppi GR",
+        "Hopkins SC",
+        "Landry I",
+        "Lo A",
+        "Rege B"
+      ],
+      "published_at": "2022-07-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/jcph.2095",
+        "pmid": "35665514",
+        "pmcid": "PMC9796926",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35665514",
+      "abstract_or_excerpt": "The International Conference on Harmonization (ICH) E14 document was revised in 2015 to allow concentration-corrected QT interval (C-QTc) analysis to be applied to data from early clinical pharmacology studies to exclude a small drug-induced effect on QTc. Provided sufficiently high concentrations of the drug are obtained in the first-in-human (FIH) study, this approach can be used to obviate the need for a designated thorough QT (TQT) study. The E14 revision has resulted in a steady reduction in the number of TQT studies and an increased use of FIH studies to evaluate electrocardiogram (ECG) effects of drugs in development. In this review, five examples from different sponsors are shared in which C-QTc analysis was performed on data from FIH studies. Case 1 illustrates a clearly negative C-QTc evaluation, despite observations of QTc prolongation at high concentrations in nonclinical studies. In case 2 C-QTc analysis of FIH data was performed prior to full pharmacokinetic characterization in patients, and the role of nonclinical assays in an integrated risk assessment is discussed. Case 3 illustrates a positive clinical C-QTc relationship, despite negative nonclinical assays. Case 4 demonstrates a strategy for characterizing the C-QTc relationship for a nonracemic therapy and formulation optimization, and case 5 highlights an approach to perform a preliminary C-QTc analysis early in development and postpone the definitive analysis until proof of efficacy is demonstrated. The strategy of collecting and storing ECG data from FIH studies to enable an informed decision on whether and when to apply C-QTc analysis to obviate the need for a TQT study is described.",
+      "normalized_facts": {
+        "journal": "Journal of clinical pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "6a6e19e743b5ce5d5c71f5e03c2bf522c69ef4cbaff5731cbdd6b48bb911354d"
+    },
+    {
+      "evidence_id": "evd_1b5957706b094b119fadc35d2ff1e383",
+      "title": "Cardiotoxic Potential of Hydroxychloroquine, Chloroquine and Azithromycin in Adult Human Primary Cardiomyocytes.",
+      "authors": [
+        "Jordaan P",
+        "Dumotier B",
+        "Traebert M",
+        "Miller PE",
+        "Ghetti A",
+        "Urban L",
+        "Abi-Gerges N"
+      ],
+      "published_at": "2021-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxsci/kfaa194",
+        "pmid": "33483756",
+        "pmcid": "PMC7928616",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33483756",
+      "abstract_or_excerpt": "Substantial efforts have been recently committed to develop coronavirus disease-2019 (COVID-19) medications, and Hydroxychloroquine alone or in combination with Azithromycin has been promoted as a repurposed treatment. Although these drugs may increase cardiac toxicity risk, cardiomyocyte mechanisms underlying this risk remain poorly understood in humans. Therefore, we evaluated the proarrhythmia risk and inotropic effects of these drugs in the cardiomyocyte contractility-based model of the human heart. We found Hydroxychloroquine to have a low proarrhythmia risk, whereas Chloroquine and Azithromycin were associated with high risk. Hydroxychloroquine proarrhythmia risk changed to high with low level of K+, whereas high level of Mg2+ protected against proarrhythmic effect of high Hydroxychloroquine concentrations. Moreover, therapeutic concentration of Hydroxychloroquine caused no enhancement of elevated temperature-induced proarrhythmia. Polytherapy of Hydroxychloroquine plus Azithromycin and sequential application of these drugs were also found to influence proarrhythmia risk categorization. Hydroxychloroquine proarrhythmia risk changed to high when combined with Azithromycin at therapeutic concentration. However, Hydroxychloroquine at therapeutic concentration impacted the cardiac safety profile of Azithromycin and its proarrhythmia risk only at concentrations above therapeutic level. We also report that Hydroxychloroquine and Chloroquine, but not Azithromycin, decreased contractility while exhibiting multi-ion channel block features, and Hydroxychloroquine's contractility effect was abolished by Azithromycin. Thus, this study has the potential to inform clinical studies evaluating repurposed therapies, including those in the COVID-19 context. Additionally, it demonstrates the translational value of the human cardiomyocyte contractility-based model as a key early discovery path to inform decisions on novel therapies for COVID-19, malaria, and inflammatory diseases.",
+      "normalized_facts": {
+        "journal": "Toxicological sciences : an official journal of the Society of Toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "783bd505b2a79975388b8d3a5c09b4f7467ddfb527777c26e5eba9334cc03136"
+    },
+    {
+      "evidence_id": "evd_47890db2023c44cb9d78529810aa3d46",
+      "title": "Pharmacokinetic-pharmacodynamic modelling of drug-induced QTc interval prolongation in man: prediction from in vitro human ether-à-go-go-related gene binding and functional inhibition assays and conscious dog studies.",
+      "authors": [
+        "Dubois VF",
+        "Casarotto E",
+        "Danhof M",
+        "Della Pasqua O"
+      ],
+      "published_at": "2016-09-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/bph.13558",
+        "pmid": "27427789",
+        "pmcid": "PMC5055135",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/27427789",
+      "abstract_or_excerpt": "<h4>Background and purpose</h4>Functional measures of human ether-à-go-go-related gene (hERG; Kv 11.1) channel inhibition have been prioritized as an in vitro screening tool for candidate molecules. However, it is unclear how these results can be translated to humans. Here, we explore how data on drug binding and functional inhibition in vitro relate to QT prolongation in vivo. Using cisapride, sotalol and moxifloxacin as paradigm compounds, we assessed the relationship between drug concentrations, binding, functional measures and in vivo effects in preclinical species and humans.<h4>Experimental approach</h4>Pharmacokinetic-pharmacodynamic modelling was used to characterize the drug effects in hERG functional patch clamp, hERG radio-labelled dofetilide displacement experiments and QT interval in conscious dogs. Data were analysed in parallel to identify potential correlations between pharmacological activity in vitro and in vivo.<h4>Key results</h4>An Emax model could not be used due to large variability in the functional patch clamp assay. Dofetilide displacement revealed that binding curves are unrelated to the in vivo potency estimates for QTc prolongation in dogs and humans. Mean in vitro potency estimates ranged from 99.9 nM for cisapride to 1030 μM for moxifloxacin.<h4>Conclusions and implications</h4>The lack of standardized protocols for in vitro assays leads to significant differences in experimental conditions, making the assessment of in vitro-in vivo correlations unreliable. Identification of an accurate safety window during the screening of candidate molecules requires a quantitative framework that disentangles system- from drug-specific properties under physiological conditions, enabling translation of the results to humans. Similar considerations will be relevant for the comprehensive in vitro pro-arrhythmia assay initiative.",
+      "normalized_facts": {
+        "journal": "British journal of pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2016"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "5bce6b7765efc81fe51265db759aa60fbaf71c624558f7981ee31d6f8f14882a"
+    },
+    {
+      "evidence_id": "evd_98886f2aad3245df94d910cec0c3c8b0",
+      "title": "Delayed Repolarization Caused by hERG Block With Different Drug Modalities Can Be Detected in Stem Cell-Derived Cardiomyocytes: Incubation Time Matters.",
+      "authors": [
+        "Qu Y",
+        "Guo W",
+        "Wu B",
+        "Cui J",
+        "Gao B",
+        "Nichols JV",
+        "Vargas HM"
+      ],
+      "published_at": "2025-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70283",
+        "pmid": "40848285",
+        "pmcid": "PMC12374734",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40848285",
+      "abstract_or_excerpt": "The intrinsic characteristics of oligonucleotides pose a challenge for their assessment in conventional primary in vitro cardiac models, which were designed for the acute application of small molecule agents and are not suitable for transfection and extended culture periods. Conversely, human-induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CM) offer a viable platform for the evaluation of agents over prolonged application and recording times. Our previous experiments demonstrated that a chronic protocol of 48 h is necessary to discern the functional effects of a siRNA targeting hERG in a stable cell line heterologously expressing hERG. To investigate whether a targeted hERG siRNA induces delayed repolarization in hiPSC-CM, we recorded field potentials (FPs) using a multielectrode array. FP duration (FPD) prolongation was noted as early as 10 min after exposure to moxifloxacin, whereas pentamidine required 24 h to induce FPD prolongation. Transfection with hERG-targeting siRNA reduced mRNA expression at 6 h post-transfection. However, FPD prolongation was only observed after 24 h post-transfection, with significantly larger effects at 48 h, which is indicative of the time needed for turnover of the hERG protein on the plasma membrane. Our findings provide compelling evidence that MEA recordings in hiPSC-CM can accurately detect disruptions in cardiac repolarization due to various mechanisms that impair hERG channel function, including direct channel blockade, inhibition of protein trafficking, and gene silencing via siRNA. The findings also indicate that indirect mechanisms of hERG knockdown, including gene silencing, require assessment at least 48 h following treatment to detect delayed repolarization in the hiPSC-CM model.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "20e63ac4b247017c6158c8e1aeab924185e5abec207e121009ed2c0a7e62a4e0"
+    },
+    {
+      "evidence_id": "evd_663d956ba00d4a5584bd29b887f7e8a7",
+      "title": "A Thorough QT Study to Assess the Effects of Milvexian on Cardiac Repolarization in Healthy Participants.",
+      "authors": [
+        "Zannikos P",
+        "Park J",
+        "Dari A",
+        "Takhtoukh S",
+        "Levesque P",
+        "Plotnikov AN",
+        "Mitra A",
+        "Ajavon-Hartmann A"
+      ],
+      "published_at": "2026-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpdd.70015",
+        "pmid": "41549794",
+        "pmcid": "PMC12813654",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41549794",
+      "abstract_or_excerpt": "Milvexian is an oral factor XIa inhibitor in development for prevention of major thromboembolic conditions. This randomized, double-blind, placebo- and positive-controlled, multiple-dose, four-period crossover study assessed the cardic safety of milvexian (including effects on the QT interval of the electrocardiogram), with a supporting in vitro component. Sixty-six participants were enrolled. In each treatment period, participants received milvexian (100 or 200 mg) or placebo every 12 h for 4 days. A single-dose moxifloxacin (400 mg) served as a positive control. Electrocardiographs and time-matched pharmacokinetic samples were collected during each period. In mixed-effects models, the upper limit of the two-sided 90% confidence interval for the least squares means for change from baseline QTc (Fridericia [QTcF], as the primary correction method) for milvexian versus placebo (ΔΔQTc) was ˂10 ms at all time points after each milvexian regimen. In addition, there was no apparent relationship between ΔΔQTcF and plasma milvexian concentrations. Moxifloxacin response confirmed assay sensitivity. Milvexian inhibited human ether-a-go-go-related gene potassium, sodium, and L-type calcium ion channel currents with weak-to-moderate potency at concentrations exceeding the highest mean unbound maximum plasma concentrations of TQT study participants. Milvexian regimens were safe and well tolerated. These data indicate that milvexian does not prolong the QTc interval at clinically relevant concentrations.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology in drug development",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Randomized Controlled Trial, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "0c3b4c4974f15c2a9ad891f54edf670e428f6209820a8982f43c1e35217f43eb"
+    },
+    {
+      "evidence_id": "evd_e2cb307c9ba3447aaba867de141b9e1a",
+      "title": "Nutritional Factors and Arrhythmic Risk in Long QT Syndrome: A Narrative Review of Mechanistic and Clinical Evidence.",
+      "authors": [
+        "Mazzanti A",
+        "Floriano M",
+        "Kukavica D",
+        "Trancuccio A",
+        "Priori SG"
+      ],
+      "published_at": "2025-09-22",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.advnut.2025.100525",
+        "pmid": "40992506",
+        "pmcid": "PMC12593210",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40992506",
+      "abstract_or_excerpt": "Long QT syndrome (LQTS) is an umbrella term for a group of genetic cardiac channelopathies characterized by prolonged ventricular repolarization and increased risk of life-threatening arrhythmias. Although β-blockers and lifestyle modifications remain central to management, specific dietary components may influence repolarization and arrhythmic risk, particularly in genetically predisposed individuals. This review summarizes mechanistic and clinical evidence on the electrophysiological effects of selected nutrients, food constituents, and supplements-including grapefruit juice, licorice, over-the-counter products, and energy drinks. Gene-nutrient interactions and their impact on ion channel function, drug metabolism, and electrolyte balance are discussed. The second part of the review outlines genotype-specific considerations, such as potassium supplementation and dietary guidance for rare forms of LQTS, including Andersen-Tawil and Timothy syndromes. Clinical data are presented in tabular format to facilitate interpretation. By integrating mechanistic and clinical data, the review aims to support dietary counseling and inform clinical decision making in the management of LQTS.",
+      "normalized_facts": {
+        "journal": "Advances in nutrition (Bethesda, Md.)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "136e40c9ef60f205d9496c78fb840a8acf21abd27bc70646ae1c2dd5cf259742"
+    },
+    {
+      "evidence_id": "evd_73f60b40866e452a849e6cce9d2164ba",
+      "title": "Intracellular uptake of agents that block the hERG channel can confound the assessment of QT interval prolongation and arrhythmic risk.",
+      "authors": [
+        "Burashnikov A",
+        "Barajas-Martinez H",
+        "Cox R",
+        "Demitrack MA",
+        "Fossler MJ",
+        "Kramer M",
+        "Kleiman RB",
+        "Kowey P"
+      ],
+      "published_at": "2021-09-02",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.hrthm.2021.08.028",
+        "pmid": "34481984",
+        "pmcid": "PMC8629933",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/34481984",
+      "abstract_or_excerpt": "<h4>Background</h4>Oliceridine is a biased ligand at the μ-opioid receptor recently approved for the treatment of acute pain. In a thorough QT study, corrected QT (QTc) prolongation displayed peaks at 2.5 and 60 minutes after a supratherapeutic dose. The mean plasma concentration peaked at 5 minutes, declining rapidly thereafter.<h4>Objective</h4>The purpose of this study was to examine the basis for the delayed effect of oliceridine to prolong the QTc interval.<h4>Methods</h4>Repolarization parameters and tissue accumulation of oliceridine were evaluated in rabbit left ventricular wedge preparations over a period of 5 hours. The effects of oliceridine on ion channel currents were evaluated in human embryonic kidney and Chinese hamster ovary cells. Quinidine was used as a control.<h4>Results</h4>Oliceridine and quinidine produced a progressive prolongation of the QTc interval and action potential duration over a period of 5 hours, paralleling slow progressive tissue uptake of the drugs. Oliceridine caused modest prolongation of these parameters, whereas quinidine produced a prominent prolongation of action potential duration and QTc interval as well as development of early afterdepolarization (after 2 hours), resulting in a high torsades de pointes score. The 50% inhibitory concentration values for the oliceridine inhibition of the rapidly activating delayed rectifier current (human ether a-go-go current) and late sodium channel current were 2.2 and 3.45 μM when assessed after traditional acute exposure but much lower after 3 hours of drug exposure.<h4>Conclusion</h4>Our findings suggest that a gradual increase of intracellular access of drugs to the hERG channels as a result of their intracellular uptake and accumulation can significantly delay effects on repolarization, thus confounding the assessment of QT interval prolongation and arrhythmic risk when studied acutely. The multi-ion channel effects of oliceridine, late sodium channel current inhibition in particular, point to a low risk of devloping torsades de pointes.",
+      "normalized_facts": {
+        "journal": "Heart rhythm",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:27:36.439053+00:00",
+      "content_sha256": "69f733b88cbad5000cc9647ac3bfb94a52c661b079490689958b893693ff17f3"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_c0b59786d1c94c38b205d65ed925b4cc",
+        "session_id": "ses_0999144808cc424ab8da5b014f8ab628",
+        "subject_key": "analysis:ana_146d7b60a22d4439b6716ed07112e5d2",
+        "question": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_146d7b60a22d4439b6716ed07112e5d2"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The hERG block signal could be relevant at therapeutic exposure if unbound concentrations approach the active concentration range or if exposure-related cardiac electrophysiology effects are observed.",
+            "kind": "mechanism",
+            "refutation_condition": "Human therapeutic unbound exposure remains well below the active concentration range and adequately powered clinical or translational data show no exposure-related electrophysiologic signal.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          },
+          {
+            "id": "h2",
+            "statement": "The patch-clamp concentration signal may not translate directly to therapeutic concern because free human exposure, assay conditions, channel state, and clinical electrophysiology are not yet linked.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "Compound-specific free human exposure and matched hERG/clinical electrophysiology data establish a consistent exposure-response relationship.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          },
+          {
+            "id": "h3",
+            "statement": "The available information is insufficient to decide therapeutic relevance without compound-specific exposure and cardiac safety context.",
+            "kind": "data_insufficient",
+            "refutation_condition": "The needed exposure margins and clinically relevant electrophysiology evidence are available and internally consistent.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The fixed predictor output is a model signal, not independent experimental evidence of clinical relevance.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "locator": "predictions.herg.probability_blocker; predictions.herg.label",
+            "scope": {
+              "compound": "moxifloxacin",
+              "endpoint": "hERG"
+            },
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          },
+          {
+            "id": "e2",
+            "claim": "The fixed predictor provides a hERG model signal but does not establish therapeutic-exposure relevance.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "description": "The therapeutic unbound plasma concentration range, protein binding, tissue distribution, and the free concentration corresponding to the reported patch-clamp potency are not available in the case.",
+            "severity": "blocking",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          },
+          {
+            "id": "u2",
+            "kind": "assay_mismatch",
+            "description": "The patch-clamp protocol, temperature, ionic conditions, endpoint definition, equilibration time, and whether potency is expressed as free or total concentration are unspecified.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "search_toxicology_evidence",
+            "purpose": "Find compound-specific hERG, exposure, QT, and regulatory or clinical evidence, including evidence that could argue against therapeutic relevance.",
+            "decision": "continue",
+            "outcome": "",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          },
+          {
+            "id": "a2",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific clinical or translational evidence that would weaken the concern; the bounded search returned no clearly matching accepted record suitable to resolve the exposure question.",
+            "decision": "continue",
+            "outcome": "Search coverage was insufficient to establish or dismiss therapeutic relevance.",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          },
+          {
+            "id": "a3",
+            "action": "critique",
+            "purpose": "Check that the conclusion remains limited to the model signal and the unresolved exposure/assay questions, and does not turn the model output into a clinical or safety verdict.",
+            "decision": "continue",
+            "outcome": "The conclusion is conditional; no independent direct evidence resolves therapeutic relevance, and the blocking exposure uncertainty remains open.",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a compound-specific integrated exposure comparison: reproduce hERG inhibition under a standardized temperature-controlled patch-clamp protocol with free-concentration reporting, then compare the concentration-response curve with measured human unbound Cmax across therapeutic, high-exposure, and interaction/organ-impairment scenarios, alongside exposure-matched QTc/ECG data.",
+            "rationale": "This directly tests whether the active free concentration range overlaps clinically relevant exposure and whether the in vitro signal translates to cardiac repolarization.",
+            "discriminates": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "expected_readouts": [
+              "free-concentration hERG IC50 or concentration-response curve",
+              "human unbound Cmax and exposure distribution",
+              "exposure-response for QTc and other ECG measures",
+              "effect of relevant drug interactions and organ impairment"
+            ],
+            "actor": "model",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The fixed predictor provides a model signal about hERG classification, but it does not establish whether therapeutic exposure is relevant.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "Therapeutic relevance cannot be decided from a reported tens-of-micromolar patch-clamp concentration alone because the free-exposure margin and assay comparability are unresolved.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Do not infer a clinical QT or torsade risk, or dismiss concern, from the predictor output or the unspecified patch-clamp result.",
+            "Do not treat the bounded literature-search outcome as evidence that no relevant study exists."
+          ],
+          "what_would_change": [
+            "A matched, free-concentration hERG concentration-response result linked to measured human unbound exposure and exposure-matched QTc/ECG data.",
+            "A clearly applicable compound-specific clinical or translational dataset showing the exposure-response relationship."
+          ],
+          "approver": "ToxAgent",
+          "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52"
+        },
+        "runs": [
+          {
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "goal": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?",
+            "stop_reason": "budget_exhausted",
+            "answer_id": "ans_19ff98368bff4364b3440a2a915ee956",
+            "usage": {
+              "searches": 5,
+              "tool_calls": 13,
+              "denied_calls": 1,
+              "failed_calls": 0,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 3,
+          "with_any_source": 3,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 3,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 1
+        },
+        "revision": 15,
+        "created_at": "2026-09-25T13:26:54.585233+00:00",
+        "updated_at": "2026-09-25T13:29:38.916188+00:00"
+      },
+      "events": {
+        "case_id": "scase_c0b59786d1c94c38b205d65ed925b4cc",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_c0b59786d1c94c38b205d65ed925b4cc",
+              "question": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?",
+              "session_id": "ses_0999144808cc424ab8da5b014f8ab628",
+              "subject_key": "analysis:ana_146d7b60a22d4439b6716ed07112e5d2",
+              "subject_refs": [
+                "analysis:ana_146d7b60a22d4439b6716ed07112e5d2"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:54.585233+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:26:54.585233+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "mechanism",
+              "can_say": [],
+              "statement": "The hERG block signal could be relevant at therapeutic exposure if unbound concentrations approach the active concentration range or if exposure-related cardiac electrophysiology effects are observed.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Human therapeutic unbound exposure remains well below the active concentration range and adequately powered clinical or translational data show no exposure-related electrophysiologic signal."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:27:26.568734+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "can_say": [],
+              "statement": "The patch-clamp concentration signal may not translate directly to therapeutic concern because free human exposure, assay conditions, channel state, and clinical electrophysiology are not yet linked.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Compound-specific free human exposure and matched hERG/clinical electrophysiology data establish a consistent exposure-response relationship."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:27:26.568759+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "statement": "The available information is insufficient to decide therapeutic relevance without compound-specific exposure and cardiac safety context.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "The needed exposure margins and clinically relevant electrophysiology evidence are available and internally consistent."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:27:26.568768+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 5
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "search_toxicology_evidence",
+              "can_say": [],
+              "purpose": "Find compound-specific hERG, exposure, QT, and regulatory or clinical evidence, including evidence that could argue against therapeutic relevance.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:27:26.568777+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The fixed predictor output is a model signal, not independent experimental evidence of clinical relevance.",
+              "scope": {
+                "compound": "moxifloxacin",
+                "endpoint": "hERG"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "predictions.herg.probability_blocker; predictions.herg.label",
+              "statement": "The fixed predictor assigns moxifloxacin a hERG blocker probability and label, which describes the model output but does not establish therapeutic exposure risk.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:20.971205+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 7
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "Search coverage was insufficient to establish or dismiss therapeutic relevance.",
+              "purpose": "Look for compound-specific clinical or translational evidence that would weaken the concern; the bounded search returned no clearly matching accepted record suitable to resolve the exposure question.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:20.971234+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 8
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "blocking",
+              "cannot_say": [],
+              "description": "The therapeutic unbound plasma concentration range, protein binding, tissue distribution, and the free concentration corresponding to the reported patch-clamp potency are not available in the case.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:20.971244+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 9
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "assay_mismatch",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The patch-clamp protocol, temperature, ionic conditions, endpoint definition, equilibration time, and whether potency is expressed as free or total concentration are unspecified.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:20.971251+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 10
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run a compound-specific integrated exposure comparison: reproduce hERG inhibition under a standardized temperature-controlled patch-clamp protocol with free-concentration reporting, then compare the concentration-response curve with measured human unbound Cmax across therapeutic, high-exposure, and interaction/organ-impairment scenarios, alongside exposure-matched QTc/ECG data.",
+              "can_say": [],
+              "rationale": "This directly tests whether the active free concentration range overlaps clinically relevant exposure and whether the in vitro signal translates to cardiac repolarization.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "hypothesis_ids": [],
+              "expected_readouts": [
+                "free-concentration hERG IC50 or concentration-response curve",
+                "human unbound Cmax and exposure distribution",
+                "exposure-response for QTc and other ECG measures",
+                "effect of relevant drug interactions and organ impairment"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:20.971260+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 11
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "The conclusion is conditional; no independent direct evidence resolves therapeutic relevance, and the blocking exposure uncertainty remains open.",
+              "purpose": "Check that the conclusion remains limited to the model signal and the unresolved exposure/assay questions, and does not turn the model output into a clinical or safety verdict.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [
+                "e1"
+              ],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:41.255329+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 12
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The fixed predictor provides a model signal about hERG classification, but it does not establish whether therapeutic exposure is relevant.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "Therapeutic relevance cannot be decided from a reported tens-of-micromolar patch-clamp concentration alone because the free-exposure margin and assay comparability are unresolved.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "approver": "ToxAgent",
+              "cannot_say": [
+                "Do not infer a clinical QT or torsade risk, or dismiss concern, from the predictor output or the unspecified patch-clamp result.",
+                "Do not treat the bounded literature-search outcome as evidence that no relevant study exists."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A matched, free-concentration hERG concentration-response result linked to measured human unbound exposure and exposure-matched QTc/ECG data.",
+                "A clearly applicable compound-specific clinical or translational dataset showing the exposure-response relationship."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:28:41.255359+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 13
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The fixed predictor provides a hERG model signal but does not establish therapeutic-exposure relevance.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_c35c8ec9e0a94aacbe843e07690cfb39",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:29:35.559976+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 14
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 5,
+                "tool_calls": 13,
+                "denied_calls": 1,
+                "failed_calls": 0,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_19ff98368bff4364b3440a2a915ee956",
+              "stop_reason": "budget_exhausted"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:29:38.916188+00:00",
+            "run_id": "run_7ec8a4ba64994e77ae09e394a5f3fd52",
+            "revision": 15
+          }
+        ]
+      }
+    }
+  ]
+}

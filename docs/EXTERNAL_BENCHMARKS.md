@@ -9,7 +9,7 @@ reported as another, and none is merged into a single ToxAgent score.
 | Benchmark | Measures | Status | Label when run |
 |---|---|---|---|
 | SciFact | claim verification with rationales | **Adapter runs** (`backend/control/evals/external/scifact`) | `external-native` (full dev) / `external-native-subset` |
-| SciFact through the product | the product's own evidence-relation step | Designed, not built | `published-data-transfer` |
+| SciFact through the product | the product's own evidence-relation step | Blocked: the router needs a molecule subject; compound-claim subset designed below | `published-data-transfer` |
 | BioASQ Task b | biomedical QA: documents, snippets, exact and ideal answers | Blocked: registration | `external-native` only via the official evaluation |
 | AstaBench LitQA2-FT, PaperFindingBench | literature agent: search, full text, answer | Blocked: environment, keys, research profile | `external-native` for a declared research profile |
 | TDC ADMET hERG, MoleculeNet Tox21 | the predictor | Protocol below; not an agent score | predictor track |
@@ -33,6 +33,31 @@ labels. The product selects no rationale sentences, so only
 `abstract_label_only` is defined, and the change of task format makes the
 result `published-data-transfer`. Needs: a fixture writer for the snapshot
 provider and a mapping from relations to SUPPORT/CONTRADICT/NEI.
+
+**Blocked as designed (checked 2026-09-25).** The router sends a literature
+question to the evidence tools only when it has a subject: with no molecule
+submitted and no active analysis it answers `research_subject_missing`
+(`application/router.py`, `wants_research` branch) and no tool runs. Most
+SciFact claims name no single compound ("0-dimensional biomaterials show
+inductive properties"), so feeding them to the product would measure the
+router's clarification, not the evidence step; attaching an unrelated molecule
+to make the question route would be a fabricated subject. The `snapshot`
+provider is also the wrong fit even with a subject: it serves fixed records per
+keyword, while the product writes its own queries. A defensible transfer is:
+
+1. select the SciFact claims that name one small molecule resolvable on PubChem
+   (name → CID → SMILES, recorded with retrieval time), and report how many of
+   the split that leaves;
+2. serve the full corpus through a new corpus-search provider (lexical ranking
+   over all 5,183 abstracts, corpus pinned by SHA-256), so retrieval is the
+   product's own;
+3. submit molecule + claim, read the accepted answer's relations per abstract
+   as SUPPORT / CONTRADICT, absent as NEI, and score `abstract_label_only`
+   with the ported metrics on that subset.
+
+The subset changes the claim distribution, so the result can only be compared
+with the stand-alone judges re-run on the same subset, never with full-split
+numbers.
 
 ## BioASQ Task b (blocked on registration)
 

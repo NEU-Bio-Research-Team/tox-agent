@@ -1,0 +1,118 @@
+{
+  "case_id": "inv-09-bortezomib-applicability",
+  "computed_at": "2026-09-25T12:25:41.765124+00:00",
+  "deployment_effective_product_hash": "8aebd28d32cccf725e82d622c0044b4a76d015d570ec0dfff5050cc268c2ed31",
+  "analysis_run_status": "completed",
+  "snapshot": {
+    "canonical_smiles": "CC(C)C[C@H](NC(=O)[C@H](Cc1ccccc1)NC(=O)c1cnccn1)B(O)O",
+    "requested_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "unavailable_endpoints": [],
+    "predictions": {
+      "herg": {
+        "measurement": "hERG channel blockade liability",
+        "probability_blocker": 0.21694640815258026,
+        "label": "non_blocker",
+        "threshold": 0.4133453071117401,
+        "threshold_source": "artifact",
+        "model_id": "herg-tox21-chemberta-v1"
+      },
+      "tox21": {
+        "measurement": "Twelve independent Tox21 assay activities",
+        "task_order_version": "tox21-12task-v1",
+        "model_id": "herg-tox21-chemberta-v1",
+        "assays": {
+          "NR-AR": {
+            "probability_activity": 0.29062190651893616,
+            "active": false,
+            "threshold": 0.9399998188018799,
+            "threshold_source": "artifact"
+          },
+          "NR-ER": {
+            "probability_activity": 0.43206915259361267,
+            "active": false,
+            "threshold": 0.5099999308586121,
+            "threshold_source": "artifact"
+          },
+          "NR-AhR": {
+            "probability_activity": 0.15595905482769012,
+            "active": false,
+            "threshold": 0.6799998879432678,
+            "threshold_source": "artifact"
+          },
+          "SR-ARE": {
+            "probability_activity": 0.27510717511177063,
+            "active": false,
+            "threshold": 0.49999991059303284,
+            "threshold_source": "artifact"
+          },
+          "SR-HSE": {
+            "probability_activity": 0.23680557310581207,
+            "active": false,
+            "threshold": 0.5099999308586121,
+            "threshold_source": "artifact"
+          },
+          "SR-MMP": {
+            "probability_activity": 0.18207761645317078,
+            "active": false,
+            "threshold": 0.5399999022483826,
+            "threshold_source": "artifact"
+          },
+          "SR-p53": {
+            "probability_activity": 0.18288762867450714,
+            "active": false,
+            "threshold": 0.34999996423721313,
+            "threshold_source": "artifact"
+          },
+          "SR-ATAD5": {
+            "probability_activity": 0.0835905373096466,
+            "active": false,
+            "threshold": 0.47999992966651917,
+            "threshold_source": "artifact"
+          },
+          "NR-AR-LBD": {
+            "probability_activity": 0.1814471334218979,
+            "active": false,
+            "threshold": 0.489999920129776,
+            "threshold_source": "artifact"
+          },
+          "NR-ER-LBD": {
+            "probability_activity": 0.2816884517669678,
+            "active": false,
+            "threshold": 0.6799998879432678,
+            "threshold_source": "artifact"
+          },
+          "NR-Aromatase": {
+            "probability_activity": 0.22869011759757996,
+            "active": false,
+            "threshold": 0.7099998593330383,
+            "threshold_source": "artifact"
+          },
+          "NR-PPAR-gamma": {
+            "probability_activity": 0.11700492352247238,
+            "active": false,
+            "threshold": 0.4199999272823334,
+            "threshold_source": "artifact"
+          }
+        }
+      }
+    },
+    "applicability": {
+      "method": "element_rules_v1",
+      "status": "limited",
+      "reasons": [
+        "contains uncommon element(s): B"
+      ],
+      "chemical_guard": {
+        "method": "element_rules_v1",
+        "status": "limited",
+        "reasons": [
+          "contains uncommon element(s): B"
+        ]
+      },
+      "similarity_domain": null
+    }
+  }
+}

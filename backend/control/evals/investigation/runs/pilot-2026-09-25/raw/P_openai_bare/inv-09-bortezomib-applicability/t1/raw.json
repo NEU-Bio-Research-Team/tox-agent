@@ -1,0 +1,389 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nCan we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?",
+    "events": [
+      {
+        "type": "thread.started",
+        "thread_id": "01a0d8c9-bf29-76a1-a5ed-e562fa8fa490"
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_0",
+          "type": "error",
+          "message": "Codex is ignoring 2 unrecognized configuration settings. Check for typos or deprecated settings.\n  user (/home/minhquang/.codex/config.toml): `provider` is ignored.\n  user (/home/minhquang/.codex/config.toml): `providers` is ignored."
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_1",
+          "type": "error",
+          "message": "Codex is ignoring 2 unrecognized configuration settings. Check for typos or deprecated settings.\n  user (/home/minhquang/.codex/config.toml): `provider` is ignored.\n  user (/home/minhquang/.codex/config.toml): `providers` is ignored."
+        }
+      },
+      {
+        "type": "turn.started"
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_2",
+          "type": "agent_message",
+          "text": "I’ll check the available prediction outputs and the evidence for bortezomib’s assay behavior, then assess how much weight to give each result."
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "item_3",
+          "type": "command_execution",
+          "command": "/bin/bash -lc \"rg --files -g '\"'!.*'\"'\"",
+          "aggregated_output": "",
+          "exit_code": null,
+          "status": "in_progress"
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_3",
+          "type": "command_execution",
+          "command": "/bin/bash -lc \"rg --files -g '\"'!.*'\"'\"",
+          "aggregated_output": "error building bubblewrap command: mountinfo path is not absolute\n",
+          "exit_code": 1,
+          "status": "failed"
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "item_4",
+          "type": "mcp_tool_call",
+          "server": "codex",
+          "tool": "list_mcp_resource_templates",
+          "arguments": {},
+          "result": null,
+          "error": null,
+          "status": "in_progress"
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "item_5",
+          "type": "mcp_tool_call",
+          "server": "codex",
+          "tool": "list_mcp_resources",
+          "arguments": {},
+          "result": null,
+          "error": null,
+          "status": "in_progress"
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "item_6",
+          "type": "command_execution",
+          "command": "/bin/bash -c pwd",
+          "aggregated_output": "",
+          "exit_code": null,
+          "status": "in_progress"
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_6",
+          "type": "command_execution",
+          "command": "/bin/bash -c pwd",
+          "aggregated_output": "error building bubblewrap command: mountinfo path is not absolute\n",
+          "exit_code": 1,
+          "status": "failed"
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_4",
+          "type": "mcp_tool_call",
+          "server": "codex",
+          "tool": "list_mcp_resource_templates",
+          "arguments": {},
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"resourceTemplates\":[]}"
+              }
+            ],
+            "structured_content": null
+          },
+          "error": null,
+          "status": "completed"
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_5",
+          "type": "mcp_tool_call",
+          "server": "codex",
+          "tool": "list_mcp_resources",
+          "arguments": {},
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"resources\":[{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"title\":\"Canva\",\"description\":\"Bring your Canva design workflow into Codex and create, refine, and review designs through natural conversation.\\n\\nWhat Canva can do: \\nCreate designs: Turn a brief, outline, or draft copy into a presentation, doc, poster, flyer, social post, resume, and more. \\nGenerate images: Create photos, illustrations, icons, and graphics from a prompt, or restyle an image you already have. \\nRemove backgrounds: Lift the subject out of an image onto a transparent background. Upload files: Bring attachments and files from your chat into Canva to use in your designs. \\nResize for social media: Adapt a design for Facebook, Instagram, and LinkedIn in one step. \\nBulk create: Generate multiple designs from spreadsheet data using a brand template. \\nEdit designs: Update text, media, and formatting, or reposition and resize elements. \\nGet design feedback: Receive structured feedback on visual hierarchy, layout, readability, consistency, and accessibility. \\nImplement feedback: Review comment threads and apply clear, actionable changes. Brand check: Check colors, fonts, logo usage, and copy against your Brand Kit.\\n\\nOnce installed, describe what you want in plain language or invoke Canva directly with @Canva.\\n\\nTry prompts like:\\n\\n@Canva, create a pitch deck from this outline.\\n@Canva, make an Instagram post announcing our Friday sale.\\n@Canva, generate an illustration of a lighthouse at dawn.\\n@Canva, remove the background from this photo.\\n@Canva, upload this PDF and turn it into a presentation.\\n@Canva, resize this design for social media.\\n@Canva, create designs from this spreadsheet using my brand template.\\n@Canva, update the headline in this design.\\n@Canva, implement the feedback in the comment threads.\\n@Canva, check this design against my Brand Kit.\\nRequirements: Connect your Canva account to use the plugin. Bulk Create requires an eligible Canva Enterprise plan. Design and image generation use Canva AI credits.\\n\\nWant to take a more hands-on approach? Instantly open your design in Canva's powerful editor for the final touches.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_version\":\"16.0.0\",\"apps\":[\"app://connector_68df33b1a2d081918778431a9cfca8ba\"],\"skills\":[\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-brand-check\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-branded-presentation\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-bulk-create\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-translate-design\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-edit-design\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-design-feedback\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-implement-feedback\",\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-resize-for-social-media\"],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_connector_68df33b1a2d081918778431a9cfca8ba/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"title\":\"Default templates\",\"description\":\"OpenAI default document, presentation, and spreadsheet templates.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_version\":\"0.1.1\",\"apps\":[\"app://connector_openai_default_templates\"],\"skills\":[\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-analytics-dashboard\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-business-review\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-design-report\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-experiment-analysis\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-financial-budget\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-investment-committee-memo\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-legal-memorandum\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-market-trends-report\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-minimal-letterhead\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-operating-calendar\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-operating-review\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-project-kickoff\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-project-tracker\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-sales-pipeline\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-simple-dark-mode\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-simple-light-mode\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-strategy-memorandum\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-system-design\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-team-alignment\",\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-three-statement-forecast\"],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_connector_1p_1a69035c238881919c4190932b2df699\",\"name\":\"plugin_connector_1p_1a69035c238881919c4190932b2df699\",\"title\":\"GitHub\",\"description\":\"Inspect repositories, triage pull requests and issues, debug CI, and publish changes through a hybrid GitHub connector and CLI workflow.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_1a69035c238881919c4190932b2df699\",\"plugin_name\":\"github\",\"plugin_release_id\":\"pluginrel_6a90d44e3d248191a661e26ffba27931\",\"plugin_release_version\":\"0.1.12-5f7cd798dc99\",\"apps\":[\"app://connector_76869538009648d5b282a4bb21c3d157\"],\"skills\":[],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_connector_1p_1a69035c238881919c4190932b2df699/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"title\":\"Higgsfield\",\"description\":\"Create images, videos, branded content, and websites with Higgsfield in ChatGPT. Start with an idea, product photo, or reference image, then choose from Viral and Marketing Studio presets, creative recipes, or image and video models. Refine your results through conversation.\\n\\nWith Higgsfield, you can:\\n\\n• Browse Viral presets with /effects and Marketing Studio presets with /product, /motion, or /marketing-studio. Explore creative recipes and named workflows such as /hero-shot, /reel-cover, and /genjutsu.\\n\\n• Generate images and videos from text or reference images. Turn a product photo into image ads in different styles, short video ads with different hooks, or a complete set of promotional content.\\n\\n• Create UGC product videos, reviews, unboxings, tutorials, fashion try-ons, faceless explainers, and episodes with a consistent AI presenter. Write scripts, generate narration, and add subtitles.\\n\\n• Use Ad Multiplier to create targeted variations of an existing video, or edit footage with animated text, layouts, transitions, motion graphics, and effects.\\n\\n• Build and deploy websites, web apps, and browser games. Refine the design and update your hosted project through chat.\\n\\nConnect your Higgsfield account to get started.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_version\":\"2.1.0\",\"apps\":[\"app://asdk_app_6a3293e129088191abf0875820e839da\"],\"skills\":[\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ad-multiplier\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ai-host-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/faceless-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/higgsfield\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/motion-craft\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/narrator\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/subtitles\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/thumbnail-generation\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-product-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-review-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-try-on-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-tutorial-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-unboxing-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-website-video\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/video-editing\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/website-builder\",\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/youtube-script\"],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_asdk_app_6a3293e129088191abf0875820e839da/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://Plugin_52b7f269362c819190348f32a2f9e7a9\",\"name\":\"Plugin_52b7f269362c819190348f32a2f9e7a9\",\"title\":\"Microsoft Power BI\",\"description\":\"Use Power BI, a Microsoft Fabric service, to explore reports, build visuals, and publish dashboards in your local desktop browser.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"Plugin_52b7f269362c819190348f32a2f9e7a9\",\"plugin_name\":\"power-bi\",\"plugin_release_id\":\"pluginrel_6a9b29c394548191aadab033e9a5af60\",\"plugin_release_version\":\"0.1.4\",\"apps\":[],\"skills\":[\"skill://Plugin_52b7f269362c819190348f32a2f9e7a9/power-bi\"],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://Plugin_52b7f269362c819190348f32a2f9e7a9/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_connector_1p_b3438d6beb9081918fba3625bc988128\",\"name\":\"plugin_connector_1p_b3438d6beb9081918fba3625bc988128\",\"title\":\"Plugin Management\",\"description\":\"Discover relevant plugins and manage app connections, permissions, and dependencies.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_b3438d6beb9081918fba3625bc988128\",\"plugin_name\":\"plugin-management\",\"plugin_release_id\":\"pluginrel_6a7e9f7d0ef08191b97b213bb9e118ef\",\"plugin_release_version\":\"0.1.0\",\"apps\":[\"app://connector_openai_plugin_management\"],\"skills\":[\"skill://plugin_connector_1p_b3438d6beb9081918fba3625bc988128/plugin-management\"],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_connector_1p_b3438d6beb9081918fba3625bc988128/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_connector_1p_689987207de08191979cf68eca2941c6\",\"name\":\"plugin_connector_1p_689987207de08191979cf68eca2941c6\",\"title\":\"Sites\",\"description\":\"Build and deploy websites with Sites. Use of Sites is subject to the ChatGPT Sites Terms (https://openai.com/policies/chatgpt-sites-terms/), and you are responsible for your website content.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_689987207de08191979cf68eca2941c6\",\"plugin_name\":\"sites\",\"plugin_release_id\":\"pluginrel_6ab16e1886d4819187539bf76c3e0ab0\",\"plugin_release_version\":\"0.1.71\",\"apps\":[\"app://connector_20205bf7d4e99a89d7154bb849718324\"],\"skills\":[\"skill://plugin_connector_1p_689987207de08191979cf68eca2941c6/sites-building\",\"skill://plugin_connector_1p_689987207de08191979cf68eca2941c6/sites-hosting\",\"skill://plugin_connector_1p_689987207de08191979cf68eca2941c6/sites-preview-troubleshooting\"],\"requires_executor\":true,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_connector_1p_689987207de08191979cf68eca2941c6/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"plugin://plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b\",\"name\":\"plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b\",\"title\":\"Tarot\",\"description\":\"Kick-start your tarot reading right inside ChatGPT. Ask AI Tarot to shuffle digital tarot cards, lay a three-card spread, and return clear, private divination insights—no ads or waiting rooms.\\n\\nHow to Use Tarot in ChatGPT\\n\\n1. Connect: Connect the Tarot app to ChatGPT.\\n2. Trigger: Type Commands: Simply type \\\"@\\\" then choose the Tarot app, or type “Tarot” (followed by a space) in the chat box.\\n3. Create: You are ready to go! Try asking specifically:\\n\\\"Pull tarot cards for my love life.\\\"\\n\\\"Draw three tarot cards and interpret the spread for my upcoming week.\\\"\\n“Provide a three-card tarot reading on balancing work and health.”\\n\\nWant to dive deeper? Keep asking follow-ups in chat or open the full app for richer symbolism and saved readings.\",\"mimeType\":\"mcp/plugin\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b\",\"plugin_name\":\"app-6943a2c078b0819188de39e4fe168d9b\",\"plugin_release_id\":\"pluginrel_2c870f405e948191ad4d8ba7c147a565\",\"plugin_release_version\":\"1.0.0\",\"apps\":[\"app://asdk_app_6943a2c078b0819188de39e4fe168d9b\"],\"skills\":[],\"requires_executor\":false,\"mcp_servers\":[],\"contents\":[\"bundle\"],\"bundle\":\"plugin://plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b/bundle\"}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-edit-design\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-edit-design\",\"title\":\"canva-edit-design\",\"description\":\"Make edits to an existing Canva design — change or fix text, replace/insert/delete images and videos, reformat text (size, weight, style, color, alignment, lists, line height), reposition or resize elements, and update the title. Use when the user wants to change, edit, update, fix, translate, replace, or reformat content in a specific Canva design. This is the safe edit engine that other Canva skills (e.g. implement-feedback) build on.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b83c5881919ab85851eed4061f\",\"skill_name\":\"canva-edit-design\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-branded-presentation\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-branded-presentation\",\"title\":\"canva-branded-presentation\",\"description\":\"Create on-brand Canva presentations from an outline or brief. Use when the user asks to create a branded presentation, make an on-brand deck, turn an outline into slides, or generate a presentation from a brief. Input can be text directly in the message, a Canva design ID, a reference to a Canva doc by name, or a Canva design link (e.g., https://www.canva.com/design/...).\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b710ac8191af6bdb4342cd2df3\",\"skill_name\":\"canva-branded-presentation\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-design-feedback\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-design-feedback\",\"title\":\"canva-design-feedback\",\"description\":\"Read a Canva design and return structured, actionable design feedback — visual hierarchy, copy/messaging, layout & spacing, consistency, readability, and accessibility. Read-only; makes no changes to the design. Use when the user asks to \\\"review my design\\\", \\\"give me feedback on this\\\", \\\"critique my deck/poster/flyer\\\", \\\"how can I improve this design\\\", or \\\"what's wrong with this slide\\\".\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b89d0c8191af185cc55b20e651\",\"skill_name\":\"canva-design-feedback\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-analytics-dashboard\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-analytics-dashboard\",\"title\":\"Analytics Dashboard\",\"description\":\"Create a spreadsheet using the Analytics Dashboard template and its retained reference file. Use when the user selects or names Analytics Dashboard. Monitor acquisition, engagement, retention, revenue, and conversion funnel KPIs with charts.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbd081918551b9ff949b0dcd\",\"skill_name\":\"artifact-template-analytics-dashboard\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-business-review\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-business-review\",\"title\":\"Business Review\",\"description\":\"Create a presentation using the Business Review template and its retained reference file. Use when the user selects or names Business Review. Review business performance, KPIs, segment results, strategic priorities, decisions, and outlook.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbdc8191a3080f71992db75f\",\"skill_name\":\"artifact-template-business-review\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-design-report\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-design-report\",\"title\":\"Design Report\",\"description\":\"Create a document using the Design Report template and its retained reference file. Use when the user selects or names Design Report. Produce design reports with an executive summary, key findings, implications, recommendations, and appendix.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbe08191918c70c8437a0f90\",\"skill_name\":\"artifact-template-design-report\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-experiment-analysis\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-experiment-analysis\",\"title\":\"Experiment Analysis\",\"description\":\"Create a document using the Experiment Analysis template and its retained reference file. Use when the user selects or names Experiment Analysis. Analyze experiments with hypotheses, methodology, results, interpretation, limitations, and next steps.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbe88191a5da52bf989269b8\",\"skill_name\":\"artifact-template-experiment-analysis\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-financial-budget\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-financial-budget\",\"title\":\"Financial Budget\",\"description\":\"Create a spreadsheet using the Financial Budget template and its retained reference file. Use when the user selects or names Financial Budget. Model actuals, budget and scenario forecasts, variances, cash runway, and departmental plans.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbec8191ab9fb1dfa916b101\",\"skill_name\":\"artifact-template-financial-budget\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-investment-committee-memo\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-investment-committee-memo\",\"title\":\"Investment Committee Memo\",\"description\":\"Create a document using the Investment Committee Memo template and its retained reference file. Use when the user selects or names Investment Committee Memo. Prepare investment committee memos with the thesis, transaction details, financial analysis, risks, and recommendation.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbf08191b1e46e0069bf9d39\",\"skill_name\":\"artifact-template-investment-committee-memo\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-legal-memorandum\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-legal-memorandum\",\"title\":\"Legal Memorandum\",\"description\":\"Create a document using the Legal Memorandum template and its retained reference file. Use when the user selects or names Legal Memorandum. Draft legal memoranda with the issue, brief answer, relevant facts, analysis, and conclusion.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fdbf4819196907b35a4560c72\",\"skill_name\":\"artifact-template-legal-memorandum\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-market-trends-report\",\"name\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f/artifact-template-market-trends-report\",\"title\":\"Market Trends Report\",\"description\":\"Create a presentation using the Market Trends Report template and its retained reference file. Use when the user selects or names Market Trends Report. Communicate market or industry trends, supporting evidence, implications, and recommended responses.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_1p_2330815c823c8191941e5dc465bb899f\",\"plugin_name\":\"openai-templates\",\"plugin_release_id\":\"pluginrel_6a6ced4ebc8c8191bf7c17972c03db1c\",\"plugin_release_skill_id\":\"pluginrsk_6a6ced4fd…3862 tokens truncated…-create\",\"title\":\"canva-bulk-create\",\"description\":\"Bulk-create Canva designs from tabular data using a brand template with autofill fields, producing one design per row. Use when users say \\\"bulk create designs from this CSV\\\", \\\"generate one design per row\\\", \\\"create a design for each product\\\", \\\"batch generate from a template\\\", or \\\"autofill a template from a spreadsheet\\\". Accepts any tabular data source — uploaded files, pasted tables, JSON, or URLs.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b774ec8191be52841a70ce2597\",\"skill_name\":\"canva-bulk-create\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-translate-design\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-translate-design\",\"title\":\"canva-translate-design\",\"description\":\"Translate all text in a Canva design to another language, creating a translated copy. Faster than manually copying and editing each text box in Canva's editor. Use when users say \\\"translate my design to [language]\\\", \\\"make a Spanish/French/etc version\\\", or \\\"localize my Canva design\\\".\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b7d830819181064ba588c6330c\",\"skill_name\":\"canva-translate-design\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-implement-feedback\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-implement-feedback\",\"title\":\"canva-implement-feedback\",\"description\":\"Implement reviewer feedback on a Canva design. Reads all comment threads, synthesises what reviewers want, makes the clear-cut changes directly, and flags anything that needs a human decision. Use when the user asks to \\\"implement feedback on my deck\\\", \\\"address comments on a design\\\", \\\"apply review feedback\\\", \\\"fix the comments on my presentation\\\", or \\\"implement the feedback\\\".\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b900e481918f5f5c09d04b88bb\",\"skill_name\":\"canva-implement-feedback\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-resize-for-social-media\",\"name\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba/canva-resize-for-social-media\",\"title\":\"canva-resize-for-social-media\",\"description\":\"Resize a Canva design into multiple social media formats (Facebook post, Facebook story, Instagram post, Instagram story, LinkedIn post). Use this skill when users want to resize Canva designs specifically for multiple social media platforms in one operation, rather than resizing to a single format manually.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_connector_68df33b1a2d081918778431a9cfca8ba\",\"plugin_name\":\"canva\",\"plugin_release_id\":\"pluginrel_bf5422bbfc10819193a31275adbacce3\",\"plugin_release_skill_id\":\"pluginrsk_6ab360b967c481919a7038fa4a6ff80c\",\"skill_name\":\"canva-resize-for-social-media\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ad-multiplier\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ad-multiplier\",\"title\":\"Ad Multiplier\",\"description\":\"Create ordered independent edits from one supplied 4-30 second video with Ad Multiplier while preserving motion, timing, audio, and untargeted text. Activate for \\\"ad multiplier\\\", \\\"multiply my video or ad\\\", or several edits of one clip that replace, add, remove, or change people, products, objects, clothing, backgrounds, attributes, or targeted text. Do not use for ordinary generation, Marketing Studio presets, simple edits, out-of-range sources, or Cartesian asset combinations.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e7f653081919bc276916d4f38cb\",\"skill_name\":\"ad-multiplier\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ai-host-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ai-host-video\",\"title\":\"AI Host Video\",\"description\":\"Produce a complete channel episode with one consistent AI presenter, supporting visuals and a measured final edit. Activate when the current request authorizes that complete episode. An earlier episode plan does not make a later standalone avatar greeting, test take or short clip an episode request. Exclude clip-only generation, faceless video, product UGC, script-only writing and publishing existing footage.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e80031081918ca43dcfd018afae\",\"skill_name\":\"ai-host-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/faceless-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/faceless-video\",\"title\":\"Faceless Video\",\"description\":\"Use only when the user asks to produce a finished multi-scene narrator-led\\nvideo and explicitly requests a faceless channel, YouTube automation, narrated\\nexplainer/story/education, documentary, Picture Story, narrated stills,\\nframe-by-frame story, storybook or myth retelling, or kids song video. Topic alone is never enough: a generic video of/about something,\\nincluding a historical topic, uses ordinary video generation. Do not use for\\nbrowsing or listing faceless presets: call get_faceless_channel_presets directly\\nwithout loading this skill. Also exclude planning or ideas, single clips, silent animation, image-to-video, footage\\nedits, ads, product demos, UGC, or any video with a visible on-camera presenter\\nor talking head. This workflow requires a consistent\\nnon-photoreal style, reusable assets, narrator voiceover, and burned subtitles.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e80e1308191a47708d00e78a2ad\",\"skill_name\":\"faceless-video\",\"contents\":[\"assets\",\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/higgsfield\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/higgsfield\",\"title\":\"Higgsfield Presets\",\"description\":\"Resolve and execute named Higgsfield presets and slash commands, or browse Viral and Marketing Studio preset galleries. Resolve a named preset before loading production workflows suggested by its name, including cover or unboxing workflows; only returned instructions can request those helpers. Also route named /MODEL_NAME invocations. Ordinary model questions, media generation and Marketing Studio brand-kit records use direct tools. Mentioning Higgsfield alone, quoted/translated commands and explicitly negated commands are not invocations.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e81837881918ece333c87439c8a\",\"skill_name\":\"higgsfield\",\"contents\":[],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/motion-craft\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/motion-craft\",\"title\":\"Motion Craft\",\"description\":\"Design concrete motion tracks for native Higgsedit compositions: frame choreography, timed text entrances, shared timelines and counters. Use for authoring how a native composition animates. General animation ideas, UI advice and CSS or JavaScript snippets do not activate this skill. Use video-editing for project assembly, footage edits and rendering.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e82159c81919fbb43ef4e7429a3\",\"skill_name\":\"motion-craft\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/narrator\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/narrator\",\"title\":\"Narrator\",\"description\":\"Produce duration-constrained voice takes or a photo-based presenter overlay on an existing video. Use for explicit narrator invocation, numbered takes fitted to fixed video windows, a locked-voice story read with explicitly requested duration/pause measurement and retries, or compositing a consenting person as the narrator in a supplied video. Story length, a chosen voice or asking for one audio file does not imply timing and retry requirements. Exclude ordinary TTS, unconstrained voiceovers and story/audiobook reads, voice cloning, generic dubbing, music and native speech in a newly generated UGC video.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e82e12c81918794002b2f6e7ced\",\"skill_name\":\"narrator\",\"contents\":[\"assets\",\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/subtitles\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/subtitles\",\"title\":\"Subtitles\",\"description\":\"Use only when the current requested output is a video with speech captions permanently burned into its pixels, including restyling those captions or an explicit caption-burning step in a production workflow. Translating or correcting subtitle words is a text task and must not activate this skill, even in a conversation about a captioned video. Exclude transcription, SRT/VTT files, soft subtitle tracks and video analysis. Missing video is an intake gap only after the user has requested burned-in video output.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e8449608191b848f29bd9338c50\",\"skill_name\":\"subtitles\",\"contents\":[\"assets\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/thumbnail-generation\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/thumbnail-generation\",\"title\":\"Thumbnail Generation\",\"description\":\"Create or revise finished YouTube/Instagram thumbnails and video cover images. Require a request to make or change the image; critique, readability analysis, title ideas and channel planning alone stay text. Named Higgsfield presets are resolved by higgsfield first: do not load this workflow merely because a slash token names a cover. For presets, load it only when the resolved instructions request it. Exclude generic images, complete videos, video edits and title cards within footage.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e84dffc8191b9f87b477ea8afa3\",\"skill_name\":\"thumbnail-generation\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-product-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-product-video\",\"title\":\"UGC Product Video\",\"description\":\"Produce a finished product-only UGC video with off-screen voiceover; a person may appear only as auxiliary hands, cropped body, or POV. Require UGC or casual creator-style intent together with product-only, no creator on camera, no talking head, or product-as-hero framing. Product-only or faceless framing alone does not qualify a generic commercial. Exclude silent or no-narration requests even when labeled UGC; use ordinary video generation instead. Its off-screen voice is native Seedance audio: do not activate narrator or call separate audio-generation tools. Missing product or duration is an intake gap. Do not use for creator-led reviews, unboxings, tutorials, try-ons, SaaS or website walkthroughs, generic ads, scripts, or footage edits.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e85779c8191a3f3e496e7a4c75a\",\"skill_name\":\"ugc-product-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-review-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-review-video\",\"title\":\"UGC Review Video\",\"description\":\"Produce a finished brand-authorized UGC-style talking-head video in which one consenting adult or generated adult creator demonstrates a product or delivers user-supplied copy. Use for explicit UGC, creator-video, TikTok-style product showcase, or review-style requests that can be rendered without fabricated experience or endorsement; a product is optional, while a missing duration is an intake gap. Do not use for testimonials, impersonation, product-only ads without an on-camera speaker, off-screen voiceover, unboxing-led videos, step-by-step tutorials, try-ons, SaaS or website walkthroughs, generic ads, script-only requests, or edits of existing footage.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e86110481919b1173ebd82b4b58\",\"skill_name\":\"ugc-review-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":false}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-try-on-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-try-on-video\",\"title\":\"UGC Try-On Video\",\"description\":\"Produce a finished UGC try-on video where one consenting adult or generated adult creator wears and poses with a garment, footwear item, bag, jewelry piece, or wearable accessory while showing fit and texture. Use when try-on, wearing, OOTD, fit-check, or video-of-me-wearing intent is explicit. Do not load this skill for a text-only script, outline, shot list, or advice, even if it mentions UGC, OOTD, or try-on; those requests need writing, not the video-production workflow. Missing product, duration, or creator input is an intake gap. Do not use for reviews without a try-on, unboxings, tutorials, product-only ads, SaaS walkthroughs, generic ads, or footage edits.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad75a671848191b6e957b594fe149d\",\"skill_name\":\"ugc-try-on-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-tutorial-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-tutorial-video\",\"title\":\"UGC Tutorial Video\",\"description\":\"Produce a UGC tutorial where one visible creator demonstrates realistic step-by-step use of a specific product and every step has a baked \\\"Step N — Heading\\\" label. Use when tutorial, how-to, or step-by-step intent and creator/UGC framing are explicit. Missing product or duration is an intake gap. Do not use for ordinary reviews, unboxings, try-ons, product-only ads, SaaS walkthroughs, generic ads, scripts, or footage edits.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e873ba881919d66e818cb081478\",\"skill_name\":\"ugc-tutorial-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-unboxing-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-unboxing-video\",\"title\":\"UGC Unboxing Video\",\"description\":\"Produce a creator-led UGC unboxing video: a visible creator opens a package and reacts to its reveal. Require both the creator-led format and an unboxing, haul or PR-drop arc. Opening a package, showing its contents or focusing on packaging alone does not request a creator performance; use ordinary video generation for a product-only reveal. Exclude scripts, still images, footage edits and other UGC formats. Named preset commands such as /unboxing use the Higgsfield preset resolver. Missing assets after a valid format match are intake gaps.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e87d8588191a16e92111b71580b\",\"skill_name\":\"ugc-unboxing-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-website-video\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/ugc-website-video\",\"title\":\"UGC Website Video\",\"description\":\"Produce a finished creator-led UGC video about a website, web app, online service, store, or product page, using real captured screenshots while a talking-head creator narrates. Use for SaaS UGC, site tours, app tours, or requests where the supplied page must appear. Do not load this skill for text-only scripts, outlines, or walkthrough plans, even if they mention UGC or SaaS; do not use it merely as a scriptwriting reference. Missing URL or duration is an intake gap. Do not use for product-only ads, unboxings, tutorials, try-ons, website editing, generated UI, scripts, or footage edits.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e8867bc8191bc2c1df46fb3d9ef\",\"skill_name\":\"ugc-website-video\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/video-editing\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/video-editing\",\"title\":\"Video Editing\",\"description\":\"Edit footage and motion graphics with Higgsedit.\\nActivate only for a requested edit or graphics deliverable:\\ncuts, soundtrack changes, overlays and animated title cards.\\nDo not activate when the user only asks to analyze, summarize, describe,\\ncritique or review a video, including scene-by-scene breakdowns.\\nTimeline inspection is supporting work for a requested edit, not a standalone\\nactivation trigger. Exclude standalone still cards, image-to-video photo\\nanimation without native composition, generative restyling,\\ntranscription and subtitle text work. For speech-caption burning, use subtitles.\\nObject replacements or targeted clip variants use ad-multiplier.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e891d608191895df3f3507ad79e\",\"skill_name\":\"video-editing\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/website-builder\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/website-builder\",\"title\":\"Website Builder\",\"description\":\"Build and publish a complete website, web app or browser game on Higgsfield, or edit/redeploy an existing Higgsfield-hosted site. Use when the requested deliverable is that hosted product or a change to it. Components, snippets and fixes for a user's existing local codebase remain repository work; mentioning React, a website or a UI element does not request a hosted build. Exclude copywriting, external-site review, standalone media and read-only site administration. After a valid activation, collect missing product type and scope.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e89bf808191b8c6c85d2661b9e7\",\"skill_name\":\"website-builder\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://plugin_asdk_app_6a3293e129088191abf0875820e839da/youtube-script\",\"name\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da/youtube-script\",\"title\":\"YouTube Script\",\"description\":\"Write a complete YouTube script with a full spoken body in one of six genres: business/finance, tech review, commentary, documentary, true crime or explainer. Includes hook options, timestamps, production cues and a retention map. Use for full scripts, not hook-only requests, ad copy or finished video production; ai-host-video may call this skill for its script-writing stage.\\n\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"plugin_asdk_app_6a3293e129088191abf0875820e839da\",\"plugin_name\":\"app-6a3293e129088191abf0875820e839da\",\"plugin_release_id\":\"pluginrel_8c6fad6c8b4c8191aa01848571c267d9\",\"plugin_release_skill_id\":\"pluginrsk_6aad6e8a51208191a83b33797ea8f175\",\"skill_name\":\"youtube-script\",\"contents\":[\"references\"],\"allow_implicit_invocation\":true}},{\"server\":\"codex_apps\",\"uri\":\"skill://Plugin_52b7f269362c819190348f32a2f9e7a9/power-bi\",\"name\":\"Plugin_52b7f269362c819190348f32a2f9e7a9/power-bi\",\"title\":\"power-bi\",\"description\":\"Explore reports, build visuals, and publish dashboards through Power BI in your browser. Use for Microsoft Power BI account tasks in desktop-local Work or browser-enabled desktop Codex. This is a browser workflow, not API integration or local application automation.\",\"mimeType\":\"mcp/skill\",\"_meta\":{\"plugin_id\":\"Plugin_52b7f269362c819190348f32a2f9e7a9\",\"plugin_name\":\"power-bi\",\"plugin_release_id\":\"pluginrel_6a9b29c394548191aadab033e9a5af60\",\"plugin_release_skill_id\":\"pluginrsk_6a9b29c411388191ac817c2b94900500\",\"skill_name\":\"power-bi\",\"contents\":[],\"allow_implicit_invocation\":true}}]}"
+              }
+            ],
+            "structured_content": null
+          },
+          "error": null,
+          "status": "completed"
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-c131ed1d-7941-4429-a4bf-d0bde4eaf606",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-c131ed1d-7941-4429-a4bf-d0bde4eaf606",
+          "type": "web_search",
+          "query": "bortezomib hERG inhibition patch clamp IC50 QT clinical prescribing information ...",
+          "action": {
+            "type": "search",
+            "queries": [
+              "bortezomib hERG inhibition patch clamp IC50 QT clinical prescribing information",
+              "bortezomib Tox21 assay activity PubChem Tox21 nuclear receptor stress response",
+              "bortezomib boronic acid hERG machine learning applicability domain Tox21 predictions"
+            ]
+          }
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-d7296638-6f75-4f78-93f4-3f1b26295262",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-d7296638-6f75-4f78-93f4-3f1b26295262",
+          "type": "web_search",
+          "query": "VELCADE prescribing information QT prolongation bortezomib cardiac electrophysiology FDA ...",
+          "action": {
+            "type": "search",
+            "queries": [
+              "VELCADE prescribing information QT prolongation bortezomib cardiac electrophysiology FDA",
+              "bortezomib hERG patch clamp direct inhibition study",
+              "bortezomib PubChem hERG thallium influx assay Tox21",
+              "FDA bortezomib label QT prolongation 2025"
+            ]
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_9",
+          "type": "agent_message",
+          "text": "I found bortezomib in the public Tox21 compound collection. The key distinction is that a predicted assay label is different from measured ion channel activity or a clinical cardiac outcome. I’m checking the direct evidence before drawing that line."
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-447270f0-629b-4834-863b-051a663aed14",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-447270f0-629b-4834-863b-051a663aed14",
+          "type": "web_search",
+          "query": "\"bortezomib\" \"hERG\" \"IC50\" ...",
+          "action": {
+            "type": "search",
+            "queries": [
+              "\"bortezomib\" \"hERG\" \"IC50\"",
+              "\"bortezomib\" \"hERG\" Tox21 thallium",
+              "\"bortezomib\" \"Tox21\" cytotoxicity assay",
+              "\"bortezomib\" \"Tox21\" \"FXR\" cytotoxicity"
+            ]
+          }
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-1a886258-3fa9-4c72-98ec-67d30570d784",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-1a886258-3fa9-4c72-98ec-67d30570d784",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-30d06e30-6679-4e75-877f-272581447a32",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-30d06e30-6679-4e75-877f-272581447a32",
+          "type": "web_search",
+          "query": "'bortezomib were inconclusive'",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-04bb61f8-6e01-42f5-9f9f-a1a4b5171ce4",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-04bb61f8-6e01-42f5-9f9f-a1a4b5171ce4",
+          "type": "web_search",
+          "query": "site:pubchem.ncbi.nlm.nih.gov/bioassay bortezomib hERG ...",
+          "action": {
+            "type": "search",
+            "queries": [
+              "site:pubchem.ncbi.nlm.nih.gov/bioassay bortezomib hERG",
+              "site:pubchem.ncbi.nlm.nih.gov \"bortezomib\" \"hERG\"",
+              "\"bortezomib\" \"hERG inhibition\"",
+              "\"bortezomib\" \"potassium channel\" \"hERG\" patch clamp"
+            ]
+          }
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-91f473a3-9b68-4868-81f7-08eaeeeb8c02",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-91f473a3-9b68-4868-81f7-08eaeeeb8c02",
+          "type": "web_search",
+          "query": "ICH S7B E14 Q&A best practice hERG assay patch clamp integrated risk assessment FDA ...",
+          "action": {
+            "type": "search",
+            "queries": [
+              "ICH S7B E14 Q&A best practice hERG assay patch clamp integrated risk assessment FDA",
+              "FDA hERG manual patch clamp assay recommendation concentration response drug development ICH S7B",
+              "Tox21 assay cytotoxicity confounding reporter gene signals qHTS official"
+            ]
+          }
+        }
+      },
+      {
+        "type": "item.started",
+        "item": {
+          "id": "exec-72ce2b4a-6166-43ec-87ba-fe626e2ba7f6",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "exec-72ce2b4a-6166-43ec-87ba-fe626e2ba7f6",
+          "type": "web_search",
+          "query": "",
+          "action": {
+            "type": "other"
+          }
+        }
+      },
+      {
+        "type": "item.completed",
+        "item": {
+          "id": "item_16",
+          "type": "agent_message",
+          "text": "I would use the predictions to **prioritize experiments, not to clear or condemn bortezomib**. I haven’t seen the model’s scores, cutoffs, or training data, so I can’t assess those particular outputs.\n\nFor **hERG**, a predicted negative result would not clear cardiac risk, and a positive result would not establish direct hERG block. Bortezomib’s [prescribing information](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1521d321-e724-4ffc-adad-34bf4f44fac7) reports cardiac failure and isolated QT prolongation, while stating that causality for the QT cases is unestablished. I’d check for measured, concentration dependent hERG patch clamp data and compare potency with relevant *unbound* exposure, alongside the clinical ECG evidence. [FDA guidance](https://www.fda.gov/regulatory-information/search-fda-guidance-documents/e14-and-s7b-clinical-and-nonclinical-evaluation-qtqtc-interval-prolongation-and-proarrhythmic) treats these as an integrated assessment.\n\nFor **Tox21**, interpret each predicted endpoint as an assay hypothesis, not an overall toxicity verdict. The assays measure pathway or cell responses under specific conditions. Bortezomib is a particularly good reason to inspect viability controls: in a [Tox21 FXR study](https://pmc.ncbi.nlm.nih.gov/articles/PMC4894417/), its apparent antagonist activity was judged *inconclusive* because it occurred at or near cytotoxic concentrations.\n\nBefore using either prediction in a decision, I’d verify the exact stereochemical structure and assay endpoint, check whether bortezomib or duplicate records appeared in training, and review the model’s applicability domain and measured assay curves."
+        }
+      },
+      {
+        "type": "turn.completed",
+        "usage": {
+          "input_tokens": 566149,
+          "cached_input_tokens": 496128,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2835,
+          "reasoning_output_tokens": 1411
+        }
+      }
+    ],
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 566149,
+      "cached_input_tokens": 496128,
+      "output_tokens": 2835,
+      "reasoning_output_tokens": 1411
+    },
+    "exit_code": 0
+  }
+]

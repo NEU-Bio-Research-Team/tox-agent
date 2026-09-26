@@ -1,0 +1,1216 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_2bcd6da865fb4a19ba7f282b8f15f9fe",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_1e58a4100b444fb4ae11fd9f5c7bfec7",
+        "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:45:21.681005+00:00",
+        "created_at": "2026-09-25T13:40:21.681005+00:00",
+        "started_at": "2026-09-25T13:40:21.804824+00:00",
+        "ended_at": "2026-09-25T13:42:16.595934+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "fe9500e19e8526b4ecc019b9a6b80a9951edb1cd076b7fc9140d99cf5458eb11"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:40:21.682579+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_733b16ea0c594e5e85c62bde3dde8745",
+              "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:40:33.003164+00:00",
+              "tokens": {
+                "input": 5412,
+                "output": 49,
+                "reasoning": 54,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 5515
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ecdba0232fd3e5c35f7fd9608ecfcb92",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cbbbbc0017a2DV12xm7vMuo",
+                "step_id": "prt_0d8cbd862001340hiMm5JjZftE",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e8e2f6c717cc468aa59053e1603c2ac5",
+              "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:40:38.574289+00:00",
+              "tokens": {
+                "input": 1087,
+                "output": 58,
+                "reasoning": 78,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 5831
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_bff104cb505c4059f1e843598527ce1a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cbd891001b93R9xQu4CWI80",
+                "step_id": "prt_0d8cbee25001V3NCNGq5XWj86x",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_acb4f4cbb17f45e59b74ccfe8e44dd5f",
+              "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:40:57.688219+00:00",
+              "tokens": {
+                "input": 2030,
+                "output": 718,
+                "reasoning": 45,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 7401
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_68d2b392b8280a3226550d3dd2e7a8e9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cbee5a001NEwUj9DzvvtIsA",
+                "step_id": "prt_0d8cc38d0001fUEUleONczR5Aq",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_33d5bcbc24874827aac5f0b55ea40ce3",
+              "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:41:17.079957+00:00",
+              "tokens": {
+                "input": 12588,
+                "output": 110,
+                "reasoning": 100,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 12798
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_cf8ae22cd87512e61be14947f19cc693",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cc3902001Vf9aliPXEu6v67",
+                "step_id": "prt_0d8cc848d001HysA6o7Hbc20Po",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f652d07f7a0f449b9886340fdc76b53f",
+              "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:13.794217+00:00",
+              "tokens": {
+                "input": 1187,
+                "output": 2048,
+                "reasoning": 907,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 15918
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c0fc3584fca7bea8c33faa7f6fe7a4b4",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cc84bb001NDUnNvuhKUeDDv",
+                "step_id": "prt_0d8cd621b001Iv04YBRUm5WBPs",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e612b4fffb8d45fb8f9aa9d8e3255bd5",
+              "runtime_binding_id": "rtb_a3143690c35c4678a7e66d8cbb0e85c8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:42:16.546959+00:00",
+              "tokens": {
+                "input": 3251,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 16055
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c655c879476bf59832295f85bdec104f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cd62430017xVaYCWPq4LpVT",
+                "step_id": "prt_0d8cd6cd9001hVQToSDeRgTkIY",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_00c51b09cbcc42c6b222d8ad8a6b2ffc",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 21,
+            "arguments_sha256": "6731abc5ee85da394b7b691c330e5111549b4fb9635672bbfc579531e69dd86e",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:40:32.875570+00:00",
+            "ended_at": "2026-09-25T13:40:32.893951+00:00"
+          },
+          {
+            "call_id": "call_8d628af22119485d8b994c1ac056645d",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "5170a2abc41c7c5017dde2de4cf6fa1fcaf85fb835f6467d03bf538125b20edb",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:38.453289+00:00",
+            "ended_at": "2026-09-25T13:40:38.464557+00:00"
+          },
+          {
+            "call_id": "call_d97e9be2989345aca2a2b0792d6e49de",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "83cfbd586b48b354092c22f76274ec24e2ed594c5b917dfe54396bab2de8c7cb",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.499342+00:00",
+            "ended_at": "2026-09-25T13:40:56.513062+00:00"
+          },
+          {
+            "call_id": "call_e6145408f00f41fd9b9ebecee9b419c6",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 30,
+            "arguments_sha256": "7accd69d20ab07fd6a40bb59da28c01b9b5c4ef93a8db34c4209e51603414d7f",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.626236+00:00",
+            "ended_at": "2026-09-25T13:40:56.656500+00:00"
+          },
+          {
+            "call_id": "call_96ca78772759474a95f653c58eac6526",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "a333aac49a41018a682a6e3184f89700abc975301a5406407b47c8442ffad89b",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.654445+00:00",
+            "ended_at": "2026-09-25T13:40:56.666791+00:00"
+          },
+          {
+            "call_id": "call_caa38257a95143ccbc5b25434134e238",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 28,
+            "arguments_sha256": "7a6f08b70f9bffa86e5e99644e443195c9caf3fc99612e95e11c2b606c08d8ee",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.727699+00:00",
+            "ended_at": "2026-09-25T13:40:56.752580+00:00"
+          },
+          {
+            "call_id": "call_e5b5c169cd03438285236d07b8b2cf56",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "5a4c12c35692c6f43ae111b2068e84bf354d2502d2a85acfde4809e750664700",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.747490+00:00",
+            "ended_at": "2026-09-25T13:40:56.761311+00:00"
+          },
+          {
+            "call_id": "call_7250fa94e2b9443fb5cdbede21d6319f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "bd403a23657861be56b014b3d8d0cbf94a96b3c2d4bacc9ffb78c57883fb6c18",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.877861+00:00",
+            "ended_at": "2026-09-25T13:40:56.889433+00:00"
+          },
+          {
+            "call_id": "call_9acbc6eff0e34f038dbcb6663375b27e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 28,
+            "arguments_sha256": "94fce382342c36a8b1a490a3485bbe490c8a05d7368ed8ead6a70453dc2dd399",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.921911+00:00",
+            "ended_at": "2026-09-25T13:40:56.944978+00:00"
+          },
+          {
+            "call_id": "call_8369a6a88ba04ec38f6de2e8506ac1fb",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "a3f0ef5ed2200f8aead2b60c24931ccf5c2f2780fee19cff0cde0468f497cf7a",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:56.939968+00:00",
+            "ended_at": "2026-09-25T13:40:56.955447+00:00"
+          },
+          {
+            "call_id": "call_a244fe3b0e2340f18a3235d8bc0589a2",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "6c6c1eff9ad693f7bb555130e1e60b1cf9526919830c87ef9b6ea71dc20b258d",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:57.151747+00:00",
+            "ended_at": "2026-09-25T13:40:57.163181+00:00"
+          },
+          {
+            "call_id": "call_7d99500e923d439a8c8101a36e8cda5e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "f9ad220665f43efb8fb3e4a93c48549a7b0017c9e01e0a044a7f9798758ad14e",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:57.203344+00:00",
+            "ended_at": "2026-09-25T13:40:57.227301+00:00"
+          },
+          {
+            "call_id": "call_80e70e26c269413ab9bac9b71dbd027d",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "8bc52de2c741e7f04cc8461b8277b28bcd9535c8e29929fed35f1b0c270c7873",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:57.231542+00:00",
+            "ended_at": "2026-09-25T13:40:57.246649+00:00"
+          },
+          {
+            "call_id": "call_34112429e04d491ebdf5b9824d3497dc",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "991d2bed68cbcaf1752808dbf209ddb976228556e5484e3009cafdaf067df793",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:40:57.620447+00:00",
+            "ended_at": "2026-09-25T13:40:57.631176+00:00"
+          },
+          {
+            "call_id": "call_1073223a37244edd8c58192efc907ff5",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2262,
+            "arguments_sha256": "c35aed91189a1dc15cb1b87f76e587a86e6d49b0b20bbdbdde16af7458c4fe70",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:41:14.778323+00:00",
+            "ended_at": "2026-09-25T13:41:17.038818+00:00"
+          },
+          {
+            "call_id": "call_312ad9f0d75f4424a159180d723eac1c",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 44,
+            "arguments_sha256": "1c10f91d11675ca6ecf21540791e1e1662e78872c8bc7138400c365195db9209",
+            "observation_ids": [
+              "obs_289d0f9f0e9b4ff6a101b0e408418d37"
+            ],
+            "started_at": "2026-09-25T13:42:13.696066+00:00",
+            "ended_at": "2026-09-25T13:42:13.738877+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_488a339a17af48c49e2b8685be15aec0",
+        "run_id": "run_2bcd6da865fb4a19ba7f282b8f15f9fe",
+        "answer_markdown": "No. These results do **not** establish that bisphenol A is “toxic overall.” Tox21 assays are separate, mechanism-oriented activity screens; they do not combine into a toxicity or severity score, and each reported probability is an uncalibrated model score rather than a clinical risk.\n\nFor this molecule, the model classifies activity in `NR-AhR`, `NR-Aromatase`, `NR-ER`, `NR-ER-LBD`, `NR-PPAR-gamma`, `SR-ARE`, `SR-ATAD5`, `SR-HSE`, `SR-MMP`, and `SR-p53`; it classifies `NR-AR` and `NR-AR-LBD` as inactive. Read each result independently: it is a signal that the corresponding assay endpoint may be active, not proof of a biological mechanism, in-vivo toxicity, exposure-related harm, or disease risk.\n\nThe appropriate interpretation is therefore: BPA shows a broad set of **model-predicted assay activities that warrant endpoint-specific verification**, while this output alone cannot support an overall toxicity or safety conclusion. Any follow-up screening would remain a hazard-characterization step, not a safety assessment.",
+        "claims": [
+          {
+            "claim_id": "clm_7e4a1c9f03b64d28a5f9c7e1b2d8406a",
+            "kind": "scientific",
+            "text": "Tox21 assays are separate measurements and do not form an overall toxicity or severity score.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AhR.active"
+          },
+          {
+            "claim_id": "clm_b2d7f4a8613e49c0a5d8e1f6c9b3047a",
+            "kind": "classification",
+            "text": "NR-AhR is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AhR.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_91c6e5a7d2f84b30b9e1c6a5f7d8042b",
+            "kind": "classification",
+            "text": "NR-Aromatase is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-Aromatase.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_4a8f2d6b1c9e47f0a3d5b7e2c8f1046a",
+            "kind": "classification",
+            "text": "NR-ER is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-ER.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_d6b1e9f3a7c24d80b5e2f8a1c4d9076b",
+            "kind": "classification",
+            "text": "NR-ER-LBD is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-ER-LBD.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_3f7a9c2e5b1d46f8a0e4c6b9d2f8137a",
+            "kind": "classification",
+            "text": "NR-PPAR-gamma is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-PPAR-gamma.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_a5e8c1f4b7d0392a6f1e3c9b8d2a7045",
+            "kind": "classification",
+            "text": "SR-ARE is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.SR-ARE.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_8b3d6f1a9e2c47d0b5f8a4e6c1d9037b",
+            "kind": "classification",
+            "text": "SR-ATAD5 is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.SR-ATAD5.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_c9f2a7e4b1d6380f5a8c3e6b9d2047a1",
+            "kind": "classification",
+            "text": "SR-HSE is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.SR-HSE.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_2e6b9a1c4f7d3085b3a8c0e5f9d2146b",
+            "kind": "classification",
+            "text": "SR-MMP is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.SR-MMP.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_f1a4d8c6b9e2370f5a2c7d1b8e40396a",
+            "kind": "classification",
+            "text": "SR-p53 is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.SR-p53.active",
+            "source_value": true
+          },
+          {
+            "claim_id": "clm_6d9a2f4b7c1e8035a8f3c6e0b2d9147a",
+            "kind": "classification",
+            "text": "NR-AR is classified inactive.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AR.active",
+            "source_value": false
+          },
+          {
+            "claim_id": "clm_e3b7c1a9f5d2468b0e4a7c2f6d918305",
+            "kind": "classification",
+            "text": "NR-AR-LBD is classified inactive.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AR-LBD.active",
+            "source_value": false
+          },
+          {
+            "claim_id": "clm_0f8c3a6e1b5d4792a7e9c4f0b6d21835",
+            "kind": "limitation",
+            "text": "The activity probabilities are uncalibrated model scores and should not be interpreted as clinical risk probabilities.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AhR.probability_activity"
+          },
+          {
+            "claim_id": "clm_5a1e7d3c9b4f2608e6d2a0c7f8b91345",
+            "kind": "limitation",
+            "text": "Endpoint-specific screening signals do not establish in-vivo toxicity, exposure-related harm, or safety.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AhR.active"
+          },
+          {
+            "claim_id": "clm_4d8f1b6a3c7e9025b0a6d9f2e1c8437b",
+            "kind": "recommendation",
+            "text": "Endpoint-specific verification is the appropriate follow-up scope; it is not a safety assessment.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_289d0f9f0e9b4ff6a101b0e408418d37",
+            "field_path": "predictions.tox21.assays.NR-AhR.active"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The model's activity probabilities are not calibrated clinical or real-world risk probabilities."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Any proposed endpoint verification is hazard characterization, not a safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "If a decision is required, verify the individual flagged endpoints with fit-for-purpose experimental and exposure-context evidence.",
+            "basis_claim_ids": [
+              "clm_7e4a1c9f03b64d28a5f9c7e1b2d8406a",
+              "clm_4d8f1b6a3c7e9025b0a6d9f2e1c8437b"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "28f34151b8215710cbe8697675374692aa3553437ab8daa07accfada92107de4",
+        "created_at": "2026-09-25T13:42:13.718096+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_f4e4f346fddf4265a5fd13489108f4c9",
+        "run_id": "run_2bcd6da865fb4a19ba7f282b8f15f9fe",
+        "goal": "The model reports several Tox21 assay activities for bisphenol A (CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O). Does that mean it is toxic overall, and how should we read those results?",
+        "subject_refs": [
+          "analysis:ana_0f7f7a4fbc964cf080bb6b2eb0f2c193"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 1,
+          "tool_calls": 16,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_289d0f9f0e9b4ff6a101b0e408418d37"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 19
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_f4e4f346fddf4265a5fd13489108f4c9",
+  "analysis": {
+    "run": {
+      "run_id": "run_c8b555863f7c48829cf6446992cf77e2",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_5a57e26804d94ebbac4aaa679fdffe01",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:45:20.619466+00:00",
+      "created_at": "2026-09-25T13:40:20.619466+00:00",
+      "started_at": "2026-09-25T13:40:20.632047+00:00",
+      "ended_at": "2026-09-25T13:40:20.662694+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:40:20.620781+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_0f7f7a4fbc964cf080bb6b2eb0f2c193",
+      "input_smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O",
+      "canonical_smiles": "CC(C)(c1ccc(O)cc1)c1ccc(O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.1595926582813263,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.26272907853126526,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.9885753989219666,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.7485685348510742,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.9703947901725769,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.8764641880989075,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.9993531107902527,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.9255155324935913,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.6153256893157959,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.06942947208881378,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.997345507144928,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.9451116919517517,
+              "active": true,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.7939885258674622,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "e1dd87e0-0b5f-41aa-b58c-d07d3f8962db",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 31,
+            "encoded_token_count": 31
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "d7dfe6a46767c0c04715a98e2ea4697f7f5950a565f64fdd79d35f1e069b7407"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:40:20.656406+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_bcafe0781d7247b1880e2c677fe35408",
+      "title": "Update of the risk assessment on emerging and novel brominated flame retardants in food.",
+      "authors": [
+        "EFSA Panel on Contaminants in the Food Chain (CONTAM)",
+        "Knutsen HK",
+        "Åkesson A",
+        "Bampidis V",
+        "Bignami M",
+        "Bodin L",
+        "Chipman JK",
+        "Degen G"
+      ],
+      "published_at": "2026-07-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2903/j.efsa.2026.10187",
+        "pmid": "42516964",
+        "pmcid": "PMC13403159",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42516964",
+      "abstract_or_excerpt": "The European Commission asked EFSA to update its 2012 risk assessment on Emerging and Novel brominated flame retardants (BFRs) in food. Since the previous Opinion, further information was collected for a total of 27 BFRs. The CONTAM Panel concluded that <b>TDBPP</b>, <b>DBPNG</b> and <b>TBNPA</b> are considered genotoxic and carcinogenic. Based on positive in vitro mutagenicity in mammalian cells, <b>DBE-DBCH</b> is considered genotoxic. <b>EBTEBPI</b>, <b>DBDPE</b>, <b>PBB-Acr</b> and <b>TTBP-TAZ</b> are not genotoxic. Insufficient or absent data precluded the Panel to conclude on the genotoxic potential of the remaining BFRs. Reproductive/developmental toxicity and/or neurotoxicity/neurodevelopmental effects were reported for <b>DBNPG</b>, <b>BEH-TEBP</b>, <b>EH-TBB</b>, <b>DBDPE</b> and <b>TDBP-TAZTO</b>. Reference Points were identified for <b>TDBPP</b>, <b>DBNPG</b>, <b>BEH-TEBP</b>, <b>EH-TBB</b>, <b>DBDPE</b> and <b>TDBP-TAZTO</b>. No health-based guidance values could be derived for any of the BFRs. Occurrence data were submitted to EFSA for eight BFRs (<b>BEH-TEBP</b>, <b>EH-TBB</b>, <b>BTBPE</b>, <b>DBDPE</b>, <b>HBB</b>, <b>PBEB</b>, <b>PBT</b>, <b>TBX</b>). Dietary exposure could be estimated only for <b>BTBPE</b> and <b>HBB</b>, due to the lack of quantitative data for the other BFRs. However, no risk characterisation could be performed for these BFRs due to the lack of a Reference Point. Using the limited available information on dietary exposure estimates reported in the scientific literature, risk characterisation could be performed for <b>BEH-TEBP</b>, <b>EH-TBB</b> and <b>DBDPE</b>, and the CONTAM Panel concluded that dietary exposure does not raise a health concern. The Panel considered that the level of certainty was 90% or higher for most of the reported conclusions. Very limited or no information on hazard or exposure were available for <b>HBCYD</b>, <b>TBCO</b>, <b>DBHCTD</b>, <b>HCTBPH</b>, <b>BDBP</b>-<b>TAZTO</b>, <b>DBP</b>-<b>TAZTO</b>, <b>OBTMPI</b>, <b>DBS</b>, <b>HEEHP-TEBP</b>, <b>4'-PeBPO-BDE208</b> or <b>TTBNPP</b>. Recommendations were formulated to address data gaps, including the need for access to original data, and for the collection of biomonitoring data, occurrence data in food, genotoxicity information and toxicological studies to support the identification of a Reference Point.",
+      "normalized_facts": {
+        "journal": "EFSA journal. European Food Safety Authority",
+        "pub_type": "other, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "b0cf1f4d1941514023dfde75285e1d9469f38eaaa10ac5963895bd16626e8f66"
+    },
+    {
+      "evidence_id": "evd_3f8fe02b0b8d4c9987871245a92eee66",
+      "title": "Advances in ecotoxicological research using planarians: a comprehensive review.",
+      "authors": [
+        "Pan S",
+        "Guo C",
+        "Zhang H",
+        "Cen H",
+        "Zhang Q",
+        "Dai F",
+        "Li C",
+        "Yang Q"
+      ],
+      "published_at": "2026-05-26",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s11356-026-37849-y",
+        "pmid": "42189469",
+        "pmcid": "PMC13253666",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42189469",
+      "abstract_or_excerpt": "Planarians, distinguished by their extraordinary regenerative capacity and ecological role as benthic predators, have emerged as a transformative model in ecotoxicology. This review provides a comprehensive synthesis of research on the effects of diverse classes of pollutants, including metals, pesticides, pharmaceuticals, personal care products, nanomaterials, and a dedicated category of \"other pollutants,\" namely biotoxins and physical stressors, on these organisms. We introduce a novel conceptual framework of \"regenerative toxicology,\" which focuses on how contaminants impair an organism's innate self-repair mechanisms. Our analysis reveals a convergent toxicity pattern: despite differing initial targets, most pollutants induced oxidative stress, which triggered cellular responses, including apoptosis, ultimately disrupting neoblast function and leading to failures in regeneration, behavior, and reproduction. A key advancement of this study is its emphasis on ecological realism and complex exposure scenarios. We critically evaluate the sensitivity of planarians to real-world environmental samples and highlight the significant implications of combined toxicity, such as the \"Trojan horse\" effect, in which microplastics increase the bioavailability of co-pollutants such as metals. This review further integrates methodological innovations, from multi-endpoint behavioral assays to multi-omics and AI-driven predictive modelling, while underscoring the urgent need for standardization in culture and testing methods. By bridging molecular mechanisms with individual and potential population-level outcomes, the planarian model offers a unique, cost-effective platform for assessing the sublethal and long-term hazards of environmental pollution. This review establishes planarians as an indispensable tool for elucidating the consequences of contaminants on tissue homeostasis and ecosystem health, thereby informing more robust environmental risk assessments.",
+      "normalized_facts": {
+        "journal": "Environmental science and pollution research international",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "56028ad45b3cc41c3e723382b4dc92e0832a1db57388e8976e2921c420e3a55a"
+    },
+    {
+      "evidence_id": "evd_def435e033884d43ab31fe3f4165d18e",
+      "title": "A pragmatic framework for the application of new approach methodologies in one health toxicological risk assessment.",
+      "authors": [
+        "Magurany KA",
+        "Chang X",
+        "Clewell R",
+        "Coecke S",
+        "Haugabrooks E",
+        "Marty S"
+      ],
+      "published_at": "2023-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxsci/kfad012",
+        "pmid": "36782355",
+        "pmcid": "PMC10109535",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36782355",
+      "abstract_or_excerpt": "Globally, industries and regulatory authorities are faced with an urgent need to assess the potential adverse effects of chemicals more efficiently by embracing new approach methodologies (NAMs). NAMs include cell and tissue methods (in vitro), structure-based/toxicokinetic models (in silico), methods that assess toxicant interactions with biological macromolecules (in chemico), and alternative models. Increasing knowledge on chemical toxicokinetics (what the body does with chemicals) and toxicodynamics (what the chemicals do with the body) obtained from in silico and in vitro systems continues to provide opportunities for modernizing chemical risk assessments. However, directly leveraging in vitro and in silico data for derivation of human health-based reference values has not received regulatory acceptance due to uncertainties in extrapolating NAM results to human populations, including metabolism, complex biological pathways, multiple exposures, interindividual susceptibility and vulnerable populations. The objective of this article is to provide a standardized pragmatic framework that applies integrated approaches with a focus on quantitative in vitro to in vivo extrapolation (QIVIVE) to extrapolate in vitro cellular exposures to human equivalent doses from which human reference values can be derived. The proposed framework intends to systematically account for the complexities in extrapolation and data interpretation to support sound human health safety decisions in diverse industrial sectors (food systems, cosmetics, industrial chemicals, pharmaceuticals etc.). Case studies of chemical entities, using new and existing data, are presented to demonstrate the utility of the proposed framework while highlighting potential sources of human population bias and uncertainty, and the importance of Good Method and Reporting Practices.",
+      "normalized_facts": {
+        "journal": "Toxicological sciences : an official journal of the Society of Toxicology",
+        "pub_type": "review-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "2ffc09857ec94dcfe93f2149eb78c624a2c4ac2a56d2813b59be39733f6a6402"
+    },
+    {
+      "evidence_id": "evd_6f30ecf5d64647e3b042ec548f7a48c8",
+      "title": "The use of evidence from high-throughput screening and transcriptomic data in human health risk assessments.",
+      "authors": [
+        "Mezencev R",
+        "Subramaniam R"
+      ],
+      "published_at": "2019-08-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.taap.2019.114706",
+        "pmid": "31400414",
+        "pmcid": "PMC9624462",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/31400414",
+      "abstract_or_excerpt": "High throughput screening (HTS) and functional genomics (toxicogenomics) have opened new avenues in toxicity testing. Their advantages include the potential for developing short-term in vivo bioassays and in vitro assays in order to keep pace with the growing backlog of chemicals that need to be evaluated for potential human health risk. In addition, these approaches have the potential to address some of the difficulties that arise with interpreting traditional rodent bioassays, such as the relevance of apical outcomes induced by chemical exposure in animals to humans. The wealth of information associated with the HTS and toxicogenomic data can inform human health risk assessment primarily through (i) insight into potential mechanism of action, (ii) prediction of adverse outcomes of chemical exposures, and (iii) dose-response assessment for derivation of toxicity values. In this article we outline current and expected future progress in these three directions and argue for increased role of HTS and toxicogenomic data in chemical risk assessment. We conclude that these approaches can help fulfill the NRC vision for toxicity testing in the 21st century and we discuss specific examples of chemicals whose health assessments can potentially benefit from available HTS or toxicogenomic data.",
+      "normalized_facts": {
+        "journal": "Toxicology and applied pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "8b17c2ffc182266c32c3de8cbd042174f44b769216843faf8bb54fe948afa091"
+    },
+    {
+      "evidence_id": "evd_fe06ae5c81d94ab08bafb3f868ee16be",
+      "title": "8&lt;sup&gt;th&lt;/sup&gt; German Pharm-Tox Summit 2023 : Abstracts of the 89. Jahrestagung der Deutschen Gesellschaft für Experimentelle und Klinische Pharmakologie und Toxikologie (DGPT) in Zusammenarbeit mit der AGAH.",
+      "authors": [],
+      "published_at": "2023-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00210-023-02397-6",
+        "pmid": "36856776",
+        "pmcid": "PMC9975855",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36856776",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Naunyn-Schmiedeberg's archives of pharmacology",
+        "pub_type": "abstract, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "4a686598ba25521b47540a88f8b8060c5a9bdfe62598eed0972cf9f88b124d44"
+    },
+    {
+      "evidence_id": "evd_c2c44c8b495e4291bd134ed63f1ee78e",
+      "title": "Abstracts of the 88th Annual Meeting of the German Society for Experimental and Clinical Pharmacology and Toxicology (DGPT).",
+      "authors": [],
+      "published_at": "2022-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00210-022-02205-7",
+        "pmid": "35254480",
+        "pmcid": "PMC8899446",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35254480",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Naunyn-Schmiedeberg's archives of pharmacology",
+        "pub_type": "abstract, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "002c85141318f894b47339f39963544d14076062dd19f85dfc7c88308c9a774b"
+    },
+    {
+      "evidence_id": "evd_031cce4ddb5749088fc09f1085f36f9d",
+      "title": "Potential Toxicity of Complex Mixtures in Surface Waters from a Nationwide Survey of United States Streams: Identifying in Vitro Bioactivities and Causative Chemicals.",
+      "authors": [
+        "Blackwell BR",
+        "Ankley GT",
+        "Bradley PM",
+        "Houck KA",
+        "Makarov SS",
+        "Medvedev AV",
+        "Swintek J",
+        "Villeneuve DL"
+      ],
+      "published_at": "2018-12-21",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.est.8b05304",
+        "pmid": "30548063",
+        "pmcid": "PMC6467772",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/30548063",
+      "abstract_or_excerpt": "While chemical analysis of contaminant mixtures remains an essential component of environmental monitoring, bioactivity-based assessments using in vitro systems increasingly are used in the detection of biological effects. Historically, in vitro assessments focused on a few biological pathways, for example, aryl hydrocarbon receptor (AhR) or estrogen receptor (ER) activities. High-throughput screening (HTS) technologies have greatly increased the number of biological targets and processes that can be rapidly assessed. Here we screened extracts of surface waters from a nationwide survey of United States streams for bioactivities associated with 69 different end points using two multiplexed HTS assays. Bioactivity of extracts from 38 streams was evaluated and compared with concentrations of over 700 analytes to identify chemicals contributing to observed effects. Eleven primary biological end points were detected. Pregnane X receptor (PXR) and AhR-mediated activities were the most commonly detected. Measured chemicals did not completely account for AhR and PXR responses. Surface waters with AhR and PXR effects were associated with low intensity, developed land cover. Likewise, elevated bioactivities frequently associated with wastewater discharges included endocrine-related end points ER and glucocorticoid receptor. These results underscore the value of bioassay-based monitoring of environmental mixtures for detecting biological effects that could not be ascertained solely through chemical analyses.",
+      "normalized_facts": {
+        "journal": "Environmental science & technology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Research Support, U.S. Gov't, Non-P.H.S., Journal Article",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "b725e037cc57ff83765cbb8fa02c0af7b6b0012a0a7d201a02b6b7f32e09462a"
+    },
+    {
+      "evidence_id": "evd_172309c6091e4041bb01ef98abb54360",
+      "title": "Guidance for the identification of endocrine disruptors in the context of Regulations (EU) No 528/2012 and (EC) No 1107/2009.",
+      "authors": [
+        "European Chemical Agency (ECHA) and European Food Safety Authority (EFSA) with the technical support of the Joint Research Centre (JRC)",
+        "Andersson N",
+        "Arena M",
+        "Auteri D",
+        "Barmaz S",
+        "Grignard E",
+        "Kienzler A",
+        "Lepper P"
+      ],
+      "published_at": "2018-06-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2903/j.efsa.2018.5311",
+        "pmid": "32625944",
+        "pmcid": "PMC7009395",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/32625944",
+      "abstract_or_excerpt": "This Guidance describes how to perform hazard identification for endocrine-disrupting properties by following the scientific criteria which are outlined in Commission Delegated Regulation (EU) 2017/2100 and Commission Regulation (EU) 2018/605 for biocidal products and plant protection products, respectively.",
+      "normalized_facts": {
+        "journal": "EFSA journal. European Food Safety Authority",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2018"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "fb8ddedcf9ff21fd5732eca09544cc81078e91bef1f285ed322c4c1062ce5bf4"
+    },
+    {
+      "evidence_id": "evd_684cf98c671544b1ab5db2aeba6df0ae",
+      "title": "An ecotoxicological view on neurotoxicity assessment.",
+      "authors": [
+        "Legradi JB",
+        "Di Paolo C",
+        "Kraak MHS",
+        "van der Geest HG",
+        "Schymanski EL",
+        "Williams AJ",
+        "Dingemans MML",
+        "Massei R"
+      ],
+      "published_at": "2018-12-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12302-018-0173-x",
+        "pmid": "30595996",
+        "pmcid": "PMC6292971",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/30595996",
+      "abstract_or_excerpt": "The numbers of potential neurotoxicants in the environment are raising and pose a great risk for humans and the environment. Currently neurotoxicity assessment is mostly performed to predict and prevent harm to human populations. Despite all the efforts invested in the last years in developing novel in vitro or in silico test systems, in vivo tests with rodents are still the only accepted test for neurotoxicity risk assessment in Europe. Despite an increasing number of reports of species showing altered behaviour, neurotoxicity assessment for species in the environment is not required and therefore mostly not performed. Considering the increasing numbers of environmental contaminants with potential neurotoxic potential, eco-neurotoxicity should be also considered in risk assessment. In order to do so novel test systems are needed that can cope with species differences within ecosystems. In the field, online-biomonitoring systems using behavioural information could be used to detect neurotoxic effects and effect-directed analyses could be applied to identify the neurotoxicants causing the effect. Additionally, toxic pressure calculations in combination with mixture modelling could use environmental chemical monitoring data to predict adverse effects and prioritize pollutants for laboratory testing. Cheminformatics based on computational toxicological data from in vitro and in vivo studies could help to identify potential neurotoxicants. An array of in vitro assays covering different modes of action could be applied to screen compounds for neurotoxicity. The selection of in vitro assays could be guided by AOPs relevant for eco-neurotoxicity. In order to be able to perform risk assessment for eco-neurotoxicity, methods need to focus on the most sensitive species in an ecosystem. A test battery using species from different trophic levels might be the best approach. To implement eco-neurotoxicity assessment into European risk assessment, cheminformatics and in vitro screening tests could be used as first approach to identify eco-neurotoxic pollutants. In a second step, a small species test battery could be applied to assess the risks of ecosystems.",
+      "normalized_facts": {
+        "journal": "Environmental sciences Europe",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2018"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:41:17.007958+00:00",
+      "content_sha256": "826e4769a5391920a02990b57f1cb564de5fa61ad44e5c01bc50bb15f54916f0"
+    }
+  ],
+  "cases": []
+}
