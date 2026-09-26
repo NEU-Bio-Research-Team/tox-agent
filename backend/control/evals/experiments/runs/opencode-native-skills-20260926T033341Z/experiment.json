@@ -1,0 +1,255 @@
+{
+  "schema_version": "opencode-native-skills-experiment-v1",
+  "started_at": "20260926T033341Z",
+  "binary_version": "1.17.11",
+  "model": "openai/gpt-5.6-luna",
+  "agent": "skill-probe",
+  "config": {
+    "$schema": "https://opencode.ai/config.json",
+    "skills": {
+      "paths": [
+        "/tmp/ocskill-liswnjnk/project/.opencode/skills"
+      ]
+    },
+    "agent": {
+      "skill-probe": {
+        "description": "Isolated probe of native skill discovery (W9-14).",
+        "mode": "primary",
+        "permission": {
+          "*": "deny",
+          "read": "deny",
+          "edit": "deny",
+          "glob": "deny",
+          "grep": "deny",
+          "list": "deny",
+          "bash": "deny",
+          "task": "deny",
+          "webfetch": "deny",
+          "websearch": "deny",
+          "skill": {
+            "*": "deny",
+            "assess-conflicting-evidence": "allow",
+            "critique-case": "allow",
+            "interpret-model-attribution": "allow"
+          }
+        }
+      }
+    }
+  },
+  "config_sha256": "8c9d0b0dd8af85d855d5471d648e2ebcbdaf1aae6c19a824ef3913e1a12208ed",
+  "catalog_pins": [
+    {
+      "skill_id": "assess-conflicting-evidence",
+      "version": "1.1.0",
+      "content_sha256": "54ffd33dbb247fc89fbb65d9a9643f8e7c31226ed9f7d227b384cb6c906c1a70"
+    },
+    {
+      "skill_id": "critique-case",
+      "version": "1.1.0",
+      "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+    },
+    {
+      "skill_id": "interpret-model-attribution",
+      "version": "1.1.0",
+      "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "pos-conflict",
+      "expect": "assess-conflicting-evidence",
+      "text": "For cisapride, a colleague's radioligand binding screen showed only weak hERG displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?"
+    },
+    {
+      "id": "pos-attribution",
+      "expect": "interpret-model-attribution",
+      "text": "Our toxicity model's attribution highlights the basic amine of dofetilide as driving its hERG score. Does that tell us how dofetilide blocks the channel?"
+    },
+    {
+      "id": "pos-critique",
+      "expect": "critique-case",
+      "text": "Compound A has an in-house hERG IC50 of 30 µM and a free Cmax of 50 nM at the intended dose. Should we prioritise it for the next study, and what would you test next?"
+    },
+    {
+      "id": "neg-lookup",
+      "expect": null,
+      "text": "What does the abbreviation hERG stand for? One line."
+    },
+    {
+      "id": "neg-arithmetic",
+      "expect": null,
+      "text": "Round 0.73064 to three decimals. Reply with the number only."
+    }
+  ],
+  "agent_visible": true,
+  "turns": [
+    {
+      "prompt_id": "pos-conflict",
+      "expected_skill": "assess-conflicting-evidence",
+      "skill_calls": [],
+      "skills_loaded": [],
+      "other_tool_calls": [],
+      "hit": false,
+      "tokens": {
+        "total": 3900,
+        "input": 3530,
+        "output": 199,
+        "reasoning": 171,
+        "cache": {
+          "write": 0,
+          "read": 0
+        }
+      },
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "seconds": 25.0,
+      "text": "The **potent patch-clamp result should drive the decision**, especially for cardiac safety.\n\n- **Patch clamp measures function**: inhibition of hERG-mediated current, the endpoint directly relevant to delayed repolarization and QT prolongation.\n- **Radioligand binding measures occupancy/displacement**, not whether channel current is inhibited. hERG block can be state-dependent, use-dependent, or affected by channel conformation and membrane environment, so weak binding displacement does not exclude potent functional block.\n- Compare the patch-clamp potency with **free therapeutic plasma exposure**, accounting for temperature, voltage protocol, cell system, and compound form. A small exposure margin should be treated as a risk signal.\n\nThus, do not average the two results or let the binding screen overrule the functional assay. Confirm with a controlled hERG patch-clamp experiment if needed, but until then use the potent functional block for risk assessment and prioritise follow-up QT/proarrhythmia evaluation."
+    },
+    {
+      "prompt_id": "pos-attribution",
+      "expected_skill": "interpret-model-attribution",
+      "skill_calls": [],
+      "skills_loaded": [],
+      "other_tool_calls": [],
+      "hit": false,
+      "tokens": {
+        "total": 3699,
+        "input": 1832,
+        "output": 140,
+        "reasoning": 191,
+        "cache": {
+          "write": 0,
+          "read": 1536
+        }
+      },
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "seconds": 10.7,
+      "text": "No. The attribution only says the model relied heavily on the basic amine when predicting dofetilide’s hERG liability. It does not show that the amine binds the channel, causes block, or identifies the binding mode.\n\nAt most, it suggests a hypothesis: the amine’s ionization, charge, or contribution to molecular conformation may be relevant to the model’s prediction. The established mechanism should be supported independently, for example by state-dependent electrophysiology, concentration–response measurements, and hERG pore-mutagenesis studies. Also check the explainer’s faithfulness validation; even a validated attribution remains a model signal, not mechanistic evidence."
+    },
+    {
+      "prompt_id": "pos-critique",
+      "expected_skill": "critique-case",
+      "skill_calls": [],
+      "skills_loaded": [],
+      "other_tool_calls": [],
+      "hit": false,
+      "tokens": {
+        "total": 3938,
+        "input": 1885,
+        "output": 217,
+        "reasoning": 300,
+        "cache": {
+          "write": 0,
+          "read": 1536
+        }
+      },
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "seconds": 17.6,
+      "text": "Yes, conditionally. The hERG IC50/Cmax margin is approximately:\n\n`30 µM / 0.05 µM = 600-fold`\n\nThat is reassuring for hERG-mediated risk, assuming both values are comparable and the free Cmax captures the true peak exposure. It is not, by itself, a complete cardiac safety margin.\n\n**Next testing:**\n1. Confirm hERG concentration-response in an orthogonal, physiologically relevant patch-clamp assay, including measured free concentrations and relevant metabolites.\n2. Run cardiovascular telemetry with toxicokinetic exposure coverage, assessing QT/QTc, heart rate, blood pressure, and arrhythmias.\n3. If needed, add Nav1.5/Cav1.2 profiling to identify non-hERG cardiac liabilities.\n\nI would prioritise Compound A for the next study unless other data show high accumulation, active metabolites, or exposure substantially above the stated free Cmax. The decision would change if the confirmatory assay showed materially greater potency or telemetry showed QT prolongation at clinically relevant unbound exposure."
+    },
+    {
+      "prompt_id": "neg-lookup",
+      "expected_skill": null,
+      "skill_calls": [],
+      "skills_loaded": [],
+      "other_tool_calls": [],
+      "hit": true,
+      "tokens": {
+        "total": 2531,
+        "input": 976,
+        "output": 19,
+        "reasoning": 0,
+        "cache": {
+          "write": 0,
+          "read": 1536
+        }
+      },
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "seconds": 2.1,
+      "text": "hERG stands for **human Ether-à-go-go-Related Gene**."
+    },
+    {
+      "prompt_id": "neg-arithmetic",
+      "expected_skill": null,
+      "skill_calls": [],
+      "skills_loaded": [],
+      "other_tool_calls": [],
+      "hit": true,
+      "tokens": {
+        "total": 2523,
+        "input": 980,
+        "output": 7,
+        "reasoning": 0,
+        "cache": {
+          "write": 0,
+          "read": 1536
+        }
+      },
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "seconds": 1.9,
+      "text": "0.731"
+    }
+  ],
+  "tool_ids": [
+    "invalid",
+    "question",
+    "bash",
+    "read",
+    "glob",
+    "grep",
+    "edit",
+    "write",
+    "task",
+    "webfetch",
+    "todowrite",
+    "websearch",
+    "skill",
+    "apply_patch"
+  ],
+  "skill_tool_description": "Load a specialized skill when the task at hand matches one of the skills listed in the system prompt.\n\nUse this tool to inject the skill's instructions and resources into current conversation. The output may contain detailed workflow guidance as well as references to scripts, files, etc in the same directory as the skill.\n\nThe skill name must match one of the skills listed in your system prompt.\n",
+  "discovered_skills_raw": {
+    "status": 200,
+    "body": [
+      {
+        "name": "customize-opencode",
+        "description": "Use ONLY when the user is editing or creating opencode's own configuration: opencode.json, opencode.jsonc, files under .opencode/, or files under ~/.config/opencode/. Also use when creating or fixing opencode agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring opencode itself.",
+        "location": "<built-in>",
+        "content": "<!--\n  Built-in skill. Name and description are registered in code at\n  packages/core/src/plugin/skill.ts\n  and CUSTOMIZE_OPENCODE_SKILL_DESCRIPTION). The body below becomes the\n  skill's content.\n-->\n\n# Customizing opencode\n\nopencode validates its own config strictly and refuses to start when a field\nis wrong. The shapes below cover the common surface area, but they are a\n**summary, not the source of truth**.\n\n## Full schema reference\n\nThe authoritative list of every config option — with field types, enums,\ndefaults, and descriptions — lives in the published JSON Schema:\n\n**<https://opencode.ai/config.json>**\n\nIf a field is not documented in this skill, or you need to confirm an exact\nshape before writing config, **fetch that URL and read the schema directly**\nrather than guessing. opencode hard-fails on invalid config, so the cost of a\nwrong shape is a broken startup.\n\nIndependently, every `opencode.json` should declare\n`\"$schema\": \"https://opencode.ai/config.json\"` so the user's editor catches\nmistakes as they type.\n\n## Applying changes\n\nConfig is loaded once when opencode starts and is not hot-reloaded. After\nsaving changes to `opencode.json`, an agent file, a skill, a plugin, or any\nother config-time file, **tell the user to quit and restart opencode** for\nthe changes to take effect. The running session will keep using the\nalready-loaded config until then.\n\n## Where files live\n\n| Scope                         | Path                                                                                                                      |\n| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |\n| Project config                | `./opencode.json`, `./opencode.jsonc`, or `.opencode/opencode.json` (opencode walks up from the cwd to the worktree root) |\n| Global config                 | `~/.config/opencode/opencode.json` (NOT `~/.opencode/`)                                                                   |\n| Project agents                | `.opencode/agent/<name>.md` or `.opencode/agents/<name>.md`                                                               |\n| Global agents                 | `~/.config/opencode/agent(s)/<name>.md`                                                                                   |\n| Project commands              | `.opencode/command/<name>.md` or `.opencode/commands/<name>.md`                                                           |\n| Global commands               | `~/.config/opencode/command(s)/<name>.md`                                                                                 |\n| Project skills                | `.opencode/skill(s)/<name>/SKILL.md`                                                                                      |\n| Global skills                 | `~/.config/opencode/skill(s)/<name>/SKILL.md`                                                                             |\n| External skills (auto-loaded) | `~/.claude/skills/<name>/SKILL.md`, `~/.agents/skills/<name>/SKILL.md`                                                    |\n\nConfigs from each scope are deep-merged. Project overrides global. Unknown\ntop-level keys in `opencode.json` are rejected with `ConfigInvalidError`.\n\n## opencode.json\n\nEvery field is optional.\n\n```json\n{\n  \"$schema\": \"https://opencode.ai/config.json\",\n  \"username\": \"string\",\n  \"model\": \"provider/model-id\",\n  \"small_model\": \"provider/model-id\",\n  \"default_agent\": \"agent-name\",\n  \"shell\": \"/bin/zsh\",\n  \"logLevel\": \"DEBUG\" | \"INFO\" | \"WARN\" | \"ERROR\",\n  \"share\": \"manual\" | \"auto\" | \"disabled\",\n  \"autoupdate\": true | false | \"notify\",\n  \"snapshot\": true,\n  \"instructions\": [\"AGENTS.md\", \"docs/style.md\"],\n\n  \"skills\": {\n    \"paths\": [\".opencode/skills\", \"/abs/path/to/skills\"],\n    \"urls\": [\"https://example.com/.well-known/skills/\"]\n  },\n\n  \"references\": {\n    \"docs\": {\n      \"path\": \"../docs\",\n      \"description\": \"Use for product behavior and documentation conventions\"\n    },\n    \"sdk\": {\n      \"repository\": \"owner/sdk\",\n      \"branch\": \"main\",\n      \"description\": \"Use for SDK implementation details\",\n      \"hidden\": true\n    }\n  },\n\n  \"agent\": {\n    \"my-agent\": {\n      \"model\": \"anthropic/claude-sonnet-4-6\",\n      \"mode\": \"subagent\",\n      \"description\": \"...\",\n      \"permission\": { \"edit\": \"deny\" }\n    }\n  },\n\n  \"command\": {\n    \"deploy\": { \"description\": \"...\", \"template\": \"...\" }\n  },\n\n  \"provider\": {\n    \"anthropic\": { \"options\": { \"apiKey\": \"...\" } }\n  },\n  \"disabled_providers\": [\"openai\"],\n  \"enabled_providers\": [\"anthropic\"],\n\n  \"mcp\": {\n    \"playwright\": {\n      \"type\": \"local\",\n      \"command\": [\"npx\", \"-y\", \"@playwright/mcp\"],\n      \"enabled\": true,\n      \"env\": {}\n    },\n    \"remote-thing\": {\n      \"type\": \"remote\",\n      \"url\": \"https://...\",\n      \"headers\": { \"Authorization\": \"Bearer ...\" }\n    }\n  },\n\n  \"plugin\": [\n    \"opencode-gemini-auth\",\n    \"opencode-foo@1.2.3\",\n    \"./local-plugin.ts\",\n    [\"opencode-bar\", { \"option\": \"value\" }]\n  ],\n\n  \"permission\": {\n    \"edit\": \"deny\",\n    \"bash\": { \"git *\": \"allow\", \"*\": \"ask\" }\n  },\n\n  \"formatter\": false,\n  \"lsp\": false,\n\n  \"experimental\": {\n    \"primary_tools\": [\"edit\"],\n    \"mcp_timeout\": 30000\n  },\n\n  \"tool_output\": { \"max_lines\": 200, \"max_bytes\": 8192 },\n\n  \"compaction\": { \"auto\": true, \"tail_turns\": 15 }\n}\n```\n\nShape notes worth being explicit about:\n\n- `model` always carries a provider prefix: `\"anthropic/claude-sonnet-4-6\"`.\n- `skills` is an object with `paths` and/or `urls`, not an array.\n- `references` is an object keyed by alias. Each value is a local path, Git repository, or string shorthand.\n- `agent` is an object keyed by agent name, not an array.\n- `command` is an object keyed by command name, not an array.\n- `plugin` is an array of strings or `[name, options]` tuples, not an object.\n- `mcp[name].command` is an array of strings, never a single string. `type` is required.\n- `permission` is either a string action or an object keyed by tool name.\n\n## Skills\n\nopencode's skill loader scans for `**/SKILL.md` inside skill directories. The\nfile is named `SKILL.md` exactly, and lives in its own folder named after the\nskill:\n\n```\n.opencode/skills/my-skill/SKILL.md\n```\n\nFrontmatter:\n\n```markdown\n---\nname: my-skill\ndescription: One sentence covering what this skill does AND when to trigger it. Front-load the literal keywords or filenames the user is likely to say.\n---\n\n# My Skill\n\n(skill body in markdown: instructions, examples, references)\n```\n\n- `name` is required, lowercase hyphen-separated, up to 64 chars, and matches the folder name.\n- `description` is effectively required: skills without one are filtered out and never surfaced to the model. Cover both _what_ the skill does and _when_ to use it. Write in third person (\"Use when...\", not \"I help with...\"). Front-load concrete trigger keywords and filenames; gate with \"Use ONLY when...\" if the skill should stay quiet on adjacent topics.\n- Optional: `license`, `compatibility`, `metadata` (string-string map).\n\nRegister skills from non-default locations via `skills.paths` (scanned\nrecursively for `**/SKILL.md`) and `skills.urls` (each URL serves a list of\nskills).\n\n## References\n\nReferences make local directories and Git repositories outside the active\nproject available as supporting context. Configure them under `references`,\nkeyed by the alias used in `@` autocomplete:\n\n```json\n{\n  \"references\": {\n    \"docs\": {\n      \"path\": \"../product-docs\",\n      \"description\": \"Use for product behavior and terminology\"\n    },\n    \"effect\": {\n      \"repository\": \"Effect-TS/effect\",\n      \"branch\": \"main\",\n      \"description\": \"Use for Effect implementation details\"\n    }\n  }\n}\n```\n\nLocal `path` values may be relative to the declaring config, absolute, or use\n`~/`. Git `repository` values accept Git URLs, host/path references, and GitHub\n`owner/repo` shorthand; `branch` is optional. Both forms support optional\n`description` and `hidden` fields.\n\n- Only references with a `description` are advertised to agents in system context.\n- `hidden: true` removes a reference from TUI `@` autocomplete only. It remains available to agents and by direct path.\n- Reference directories are automatically allowed through the external-directory boundary; normal read/edit/tool permissions still apply.\n- String shorthand is supported: use `\"docs\": \"../docs\"` for local paths or `\"effect\": \"Effect-TS/effect\"` for Git repositories.\n\n## Agents\n\nTwo ways to define an agent. Use the file form for anything non-trivial.\n\n### Inline (in `opencode.json`)\n\n```json\n{\n  \"agent\": {\n    \"my-reviewer\": {\n      \"description\": \"Reviews PRs for style violations.\",\n      \"mode\": \"subagent\",\n      \"model\": \"anthropic/claude-sonnet-4-6\",\n      \"permission\": { \"edit\": \"deny\", \"bash\": \"ask\" },\n      \"prompt\": \"You are a strict PR reviewer...\"\n    }\n  }\n}\n```\n\n### File\n\n```\n.opencode/agent/my-reviewer.md      OR     .opencode/agents/my-reviewer.md\n```\n\n```markdown\n---\ndescription: Reviews PRs for style violations.\nmode: subagent\nmodel: anthropic/claude-sonnet-4-6\npermission:\n  edit: deny\n  bash: ask\n---\n\nYou are a strict PR reviewer. Focus on...\n```\n\nThe file body becomes the agent's `prompt`. Do not also put `prompt:` in the\nfrontmatter.\n\n`mode` is one of `\"primary\"`, `\"subagent\"`, `\"all\"`.\n\nAllowed top-level frontmatter fields: `name, model, variant, description, mode,\nhidden, color, steps, options, permission, disable, temperature, top_p`. Any\nunknown field is silently routed into `options`.\n\nTo disable a built-in agent: `agent: { build: { disable: true } }`, or in a\nfile, `disable: true` in frontmatter.\n\n`default_agent` must point to a non-hidden, primary-mode agent.\n\n### Built-in agents\n\nopencode ships with `build`, `plan`, `general`, `explore`. Hidden internal agents:\n`compaction`, `title`, `summary`. To override a built-in's fields, define the\nsame key in `agent: { <name>: { ... } }`.\n\n## Commands\n\nopencode's command loader scans for `**/*.md` inside command directories. The\nfile is named after the command, and lives directly inside the `command` folder:\n\n```\n.opencode/command/deploy.md\n```\n\nFrontmatter:\n\n```markdown\n---\ndescription: One sentence describing what the command does.\nagent: build\nmodel: anthropic/claude-sonnet-4-6\n---\n\n(command body in markdown: the prompt opencode runs, with $ARGUMENTS for the user's input)\n```\n\n- `template` is the command body — everything below the frontmatter — and is required: it is the prompt opencode runs when the command is invoked. Do not also put a `template:` key in the frontmatter.\n- `$ARGUMENTS` is replaced with everything the user typed after the command; `$1`, `$2`, … pull individual positional arguments.\n- Optional: `description`, `agent`, `model`, `variant`, `subtask`.\n\n## Plugins\n\n`plugin:` is an array. Each entry is one of:\n\n```json\n\"plugin\": [\n  \"opencode-gemini-auth\",            // npm spec, latest\n  \"opencode-foo@1.2.3\",              // npm spec, pinned\n  \"./local-plugin.ts\",               // file path, relative to the declaring config\n  \"file:///abs/path/plugin.js\",      // file URL\n  [\"opencode-bar\", { \"key\": \"val\" }] // tuple form with options\n]\n```\n\nAuto-discovered plugins (no config entry needed): any `*.ts` or `*.js` file in\n`.opencode/plugin/` or `.opencode/plugins/`.\n\nA plugin module exports `default` (or any named export) of type\n`Plugin = (input: PluginInput, options?) => Promise<Hooks>`. The export is a\nfunction, not a plain object literal, and the function returns an object\n(return `{}` if there is nothing to register).\n\n```ts\nimport type { Plugin } from \"@opencode-ai/plugin\"\n\nexport default (async ({ client, project, directory, $ }) => {\n  return {\n    config: (cfg) => {\n      // cfg is the live merged config; mutate fields here.\n    },\n    \"tool.execute.before\": async (input, output) => {\n      // mutate output.args before the tool runs\n    },\n  }\n}) satisfies Plugin\n```\n\nHook surface (mutate `output` in place; return `void`):\n\n- `event(input)`: every bus event\n- `config(cfg)`: once on init with the merged config\n- `chat.message`, `chat.params`, `chat.headers`\n- `tool.execute.before`, `tool.execute.after`\n- `tool.definition`\n- `command.execute.before`\n- `shell.env`\n- `permission.ask`\n- `experimental.chat.messages.transform`, `experimental.chat.system.transform`,\n  `experimental.session.compacting`, `experimental.compaction.autocontinue`,\n  `experimental.text.complete`\n\nSpecial object-shaped (not callbacks): `tool: { my_tool: { ... } }`,\n`auth: { ... }`, `provider: { ... }`.\n\n## MCP servers\n\n`mcp:` is an object keyed by server name. Each server is discriminated by\n`type`:\n\n```json\n{\n  \"mcp\": {\n    \"playwright\": {\n      \"type\": \"local\",\n      \"command\": [\"npx\", \"-y\", \"@playwright/mcp\"],\n      \"enabled\": true,\n      \"env\": { \"BROWSER\": \"chromium\" }\n    },\n    \"github\": {\n      \"type\": \"remote\",\n      \"url\": \"https://...\",\n      \"enabled\": true,\n      \"headers\": { \"Authorization\": \"Bearer {env:GITHUB_TOKEN}\" }\n    },\n    \"old-server\": { \"enabled\": false }\n  }\n}\n```\n\n`command` is an array of strings. `type` is required. Use `enabled: false` to\ndisable a server inherited from a parent config. String values such as header\ntokens support `{env:VAR}` interpolation (and `{file:path}`); the shell-style\n`${VAR}` is not substituted.\n\n## Permissions\n\n```json\n\"permission\": {\n  \"edit\": \"deny\",\n  \"bash\": { \"git *\": \"allow\", \"rm *\": \"deny\", \"*\": \"ask\" },\n  \"external_directory\": { \"~/secrets/**\": \"deny\", \"*\": \"allow\" }\n}\n```\n\nActions: `\"allow\"`, `\"ask\"`, `\"deny\"`.\n\nPer-tool value forms: `\"allow\"` shorthand (treated as `{\"*\": \"allow\"}`), or an\nobject `{ pattern: action }`. Within an object, **insertion order matters**.\nopencode evaluates the LAST matching rule, so put broad rules first and narrow\nrules last.\n\n`permission: \"allow\"` (a string at the top level) is shorthand for \"allow\neverything\" and is rarely what the user wants.\n\nKnown permission keys: `read, edit, glob, grep, list, bash, task,\nexternal_directory, todowrite, question, webfetch, websearch, lsp, doom_loop,\nskill`. Some of these (`todowrite,\nquestion, webfetch, websearch, doom_loop`) only accept a flat\naction, not a per-pattern object.\n\n`external_directory` patterns are filesystem paths (use `~/`, absolute paths,\nor globs like `~/projects/**`).\n\nPer-agent `permission:` overrides top-level `permission:`. Plan Mode lives on\nthe `plan` agent's permission ruleset (`edit: deny *`).\n\n## Escape hatches\n\nWhen a user's config is broken and opencode won't start, these env vars help:\n\n- `OPENCODE_DISABLE_PROJECT_CONFIG=1`: skip the project's local `opencode.json`\n  and start from globals only. Run from the project directory, opencode loads,\n  the user edits the broken file, then they restart without the flag.\n- `OPENCODE_CONFIG=/path/to/file.json`: load an additional explicit config.\n- `OPENCODE_CONFIG_CONTENT='{\"$schema\":\"https://opencode.ai/config.json\"}'`:\n  inject inline JSON as a final local-scope merge.\n- `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`: skip default plugins.\n- `OPENCODE_PURE=1`: skip external plugins entirely.\n- `OPENCODE_DISABLE_EXTERNAL_SKILLS=1`,\n  `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`: skip the external skill scans under\n  `~/.claude/` and `~/.agents/`.\n\n## When proposing edits\n\n- Validate against the schema before writing. If you are unsure of a field's\n  exact shape, or the field is not covered in this skill, fetch\n  `https://opencode.ai/config.json` and read the schema rather than guessing.\n- Preserve `$schema` and any existing fields the user did not ask to change.\n- For agent, command, skill, and plugin definitions, prefer creating new files\n  in the correct location over inlining everything in `opencode.json`.\n- If the user's existing config is malformed, point them at the env-var escape\n  hatches above so they can edit from inside opencode without breaking their\n  session.\n- After saving any config change, remind the user to quit and restart opencode\n  — running sessions keep using the already-loaded config.\n"
+      },
+      {
+        "name": "assess-conflicting-evidence",
+        "description": "Use when sources in the case disagree about the same hypothesis, or when a retrieved study seems to contradict the predictor's signal. Helps decide whether the disagreement is real or a difference of compound, endpoint, assay, species or exposure, what to record, and when to ask the researcher instead of searching again.",
+        "location": "/tmp/ocskill-liswnjnk/project/.opencode/skills/assess-conflicting-evidence/SKILL.md",
+        "content": "\n# Assess conflicting evidence\n\nTwo sources that look contradictory usually disagree because they measured\ndifferent things. Your job is to find out which, not to pick a winner so the\nanswer reads cleanly.\n\n## When this applies\n\n- Two ledger entries bear on the same hypothesis with opposite stances.\n- A retrieved record points one way and the predictor's score the other.\n- The researcher's own result disagrees with the literature.\n\nIt does not apply to a question that only asks for a predicted value, or when\nevery source agrees. Do not load it for those.\n\n## Questions that usually settle it\n\nWork through what the sources you already hold can answer; the order below is\nthe one that most often resolves a conflict early, not a script.\n\n1. **Same compound?** The compound itself, a salt or prodrug, a structural\n   analogue, or a class statement. Only the first is `direct`.\n2. **Same endpoint?** For hERG, a binding displacement assay, a thallium-flux\n   assay and patch clamp measure different things (see the reference). A\n   Tox21 assay call is an in-vitro reporter readout, not an in-vivo effect.\n3. **Same system?** Species, cell line, in vitro vs in vivo, temperature.\n4. **Same exposure?** A potency number means little without the concentration\n   the compound reaches. For hERG, compare the IC50 with the *free* plasma\n   Cmax where it is known.\n5. **Same measure?** An IC50 and a percent inhibition at one concentration are\n   not comparable without the concentration.\n\nRead the records' metadata (`get_evidence_record`) before searching for more\nabstracts that say the same thing. A new source is worth its budget only if it\ncan separate the explanations you already have.\n\n## Signs to change direction\n\n- **The conflict dissolves on scope.** Record each source with its `scope`\n  (endpoint, species, assay, dose) and the stance it has *within* that scope.\n  An analogue's result against a direct result is `contextual` for the direct\n  hypothesis, not `contradicts`.\n- **Exposure decides it and nobody has it.** Record an uncertainty of kind\n  `missing_exposure` (severity `blocking` if the conclusion turns on it) and\n  ask the researcher. Searching the literature for the programme's own\n  exposure is wasted budget.\n- **Two direct sources really disagree.** Keep both in the ledger, leave the\n  hypothesis `open` or mark it `unresolvable` with the reason, record a\n  `conflicting_sources` uncertainty, and propose the test that would separate\n  them (`discriminates` naming both hypotheses).\n- **Only the model disagrees with direct experimental data.** The experiment\n  wins on its own scope; the score is a `predictor_fact`, a signal about the\n  model. Say so plainly.\n\n## When to stop\n\nStop searching when the remaining disagreement is explained by scope, or when\nthe only thing that would settle it is data the researcher has to supply.\nRecord the reason with `record_action` (decision `answer` or `ask_user`).\n\n## What to leave in the case\n\nIn the turn's one `update_scientific_case` call:\n\n- `record_evidence` for each source that bears on the conflict, with `scope`\n  and honest `directness`.\n- An uncertainty for what is still unresolved, linked to the hypotheses.\n- A hypothesis status change only with a ledger entry of that stance behind it.\n- If a test would settle it: `propose_next_test` with expected readouts.\n"
+      },
+      {
+        "name": "interpret-model-attribution",
+        "description": "Use when the question asks why the model scored a compound the way it did, or before any atom/token highlight is used in a conclusion. Helps state what an attribution can and cannot show, read its explainer_validation verdict, and record it in the case without turning a highlight into a mechanism.",
+        "location": "/tmp/ocskill-liswnjnk/project/.opencode/skills/interpret-model-attribution/SKILL.md",
+        "content": "\n# Interpret a model attribution\n\nAn attribution answers one narrow question: which parts of the input moved\n*this model's* score for *this endpoint*. It is not a mechanism, not evidence\nthat a hazard exists, and not a check on the score itself.\n\n## When this applies\n\n- The researcher asks why the prediction came out as it did, or which part of\n  the structure \"drives\" the risk.\n- You are about to mention highlighted atoms or tokens in an answer or in the\n  case conclusion.\n\nNot needed when the question is only about the predicted value, or when no\nattribution exists and none is asked for.\n\n## What to check before you say anything\n\n1. **Which model and head.** The attribution belongs to the model id and the\n   endpoint (and Tox21 assay) it was computed for. It says nothing about\n   another endpoint.\n2. **The explainer's verdict.** Every attribution carries\n   `explainer_validation`. Read `faithfulness_vs_random_control`:\n   - `not_better_than_random_control`: on the measured panel the highlighted\n     atoms did not move the score more than random atoms. Say that the\n     highlight's faithfulness is not established.\n   - `not_measured`: nobody has checked it for this target or method.\n   - `better_than_random_control`: still a model signal only.\n3. **Status.** A `partial` attribution is incomplete; do not treat its top\n   tokens as a complete list.\n4. **Applicability.** If the analysis is `limited` or `out_of_domain`, the\n   score being explained is itself less reliable.\n\n## How to word it\n\nSay \"the model's gradient attribution concentrates on …\" — never \"this group\ncauses …\" or \"the toxicophore is …\". If the highlighted region overlaps a\nknown structural alert, that overlap is at most a *hypothesis*\n(`add_hypothesis` with kind `mechanism`) that needs independent evidence; the\nattribution cannot support it on its own.\n\n## Signs to change direction\n\n- The researcher wants a mechanism: say that attribution cannot provide one\n  and look for experimental or literature evidence instead, or propose a test.\n- The conclusion leans on the highlight: move that line to `cannot_say`, or\n  back it with an independent source.\n\n## What to leave in the case\n\nIf the question is only about the model, leave the case alone: the server\nrecords the attribution your answer cites. When the attribution bears on a\ndecision the case is weighing, in the turn's one `update_scientific_case` call:\n\n- `record_evidence` with `source_class` `explanation_fact`, the attribution's\n  observation ref, stance `contextual` (a highlight does not support or refute\n  a hypothesis about the compound), and the endpoint in `scope`.\n- When the attribution matters to the question and its verdict is\n  `not_better_than_random_control` or `not_measured`: `record_uncertainty`\n  with kind `explainer_faithfulness`.\n- Declare the `attribution_not_causality` limitation in the answer.\n"
+      },
+      {
+        "name": "critique-case",
+        "description": "Use when your answer will recommend a course of action for the compound — go/no-go, prioritisation, or which study to run next. A self-review of the case before concluding, for claims without sources, model signals used as evidence, indirect sources treated as direct, conflicts left unrepresented, missing counter-evidence and conclusions wider than the evidence. Not for questions that only ask what the model predicts, why it scored a compound, or whether a prediction can be relied on.",
+        "location": "/tmp/ocskill-liswnjnk/project/.opencode/skills/critique-case/SKILL.md",
+        "content": "\n# Critique the case before concluding\n\nReview the case as a sceptical colleague would, before you commit to a\nconclusion. Its checkpoint is in your context; `get_scientific_case` returns\nthe full ledger if an entry you need is not shown. The aim is a conclusion no\nwider than its evidence, not a longer answer.\n\n## When this applies\n\n- The question asks for a decision or a recommendation: stop or continue,\n  prioritise or not, which test to run next.\n- New evidence arrived this turn that could change an earlier recommendation.\n\nSkip it when the answer recommends nothing: a lookup (\"what is the predicted\nprobability?\"), an explanation of the model (\"which atoms drove the score?\"),\nor a question about how far a prediction can be trusted. Those need their own\nlimits stated, not a review of a conclusion.\n\n## The review\n\nFor each item, the fix is in the case, not in softer wording.\n\n1. **Every \"can say\" line traces to the ledger.** A line with only a\n   predictor or explanation fact behind it says something about the model, and\n   must be worded so. A line with nothing behind it moves to `cannot_say` or\n   becomes a hypothesis.\n2. **Independent evidence.** Which hypotheses rest only on model signals?\n   Coverage reports `with_independent_direct_evidence`; if it is zero for the\n   hypothesis your conclusion depends on, the conclusion is conditional and\n   must say on what.\n3. **Directness.** Are analogue, class-level or mechanistic entries doing the\n   work of direct ones? Re-record them honestly if not.\n4. **Counter-evidence.** Did anyone look for evidence against the leading\n   hypothesis (`with_counterevidence_considered`)? If not, and budget remains,\n   look now; if you cannot, say the search was not done.\n5. **Conflicts.** Is every disagreement between sources recorded, with scope?\n   (Load `assess-conflicting-evidence` if it is not straightforward.)\n6. **Scope of the claim.** Does the conclusion stay within the endpoints,\n   assays and exposure the evidence covers? No safety, regulatory or clinical\n   verdict; no aggregate risk.\n7. **Open uncertainties.** Is any `blocking` uncertainty still open? Then the\n   conclusion is \"cannot decide until …\", and the answer names what is needed.\n8. **What would change it.** Is there at least one concrete observation that\n   would change the conclusion? If a test would supply it, is it proposed, and\n   does it discriminate between hypotheses?\n\n## What to leave in the case\n\nAll of it in the turn's one `update_scientific_case` call:\n\n- Corrections: `revise_hypothesis`, re-recorded evidence, new uncertainties.\n- A `record_action` with action `critique` and what the review changed.\n- Then `set_conclusion` with `can_say` lines citing ledger ids, `cannot_say`,\n  and `what_would_change`.\n"
+      }
+    ]
+  },
+  "discovered_skills": [
+    "assess-conflicting-evidence",
+    "critique-case",
+    "customize-opencode",
+    "interpret-model-attribution"
+  ],
+  "summary": {
+    "positive_hits": "0/3",
+    "negative_clean": "2/2",
+    "denied_skill_calls": 0,
+    "non_skill_tool_calls": 0
+  }
+}
