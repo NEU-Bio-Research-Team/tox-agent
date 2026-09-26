@@ -128,7 +128,7 @@ def describe_effective_product(
     """The effective product configuration, secret-free."""
     from .. import __version__
     from ..harness.runtime_profiles import registry_from_settings
-    from ..tools.registry import PROFILES, ToolRegistry
+    from ..tools.registry import PROFILE_MANIFEST, PROFILES, ToolRegistry
 
     flags = flag_snapshot(today)
     orchestrated = flags["report_orchestrator_v2"]["enabled"]
@@ -168,6 +168,8 @@ def describe_effective_product(
         "flags": flags,
         "expired_flags": sorted(name for name, f in flags.items() if f["expired"]),
         "intents": intents,
+        # W9-09: the permission manifest every profile above was read from.
+        "tool_profiles": PROFILE_MANIFEST.summary(),
         "runtime": {
             "kind": runtime.kind,
             "provider_id": runtime.provider_id,
