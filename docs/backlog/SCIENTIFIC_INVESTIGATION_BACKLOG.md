@@ -344,7 +344,7 @@ of the review that listed them (its number is kept in the ID column):
 | 2 | W9-04 | Case ledger no longer depends on `answer_draft_v2` | With the flag on and v2 off, an accepted answer's cited sources land in the ledger; tests | done — chose "v1 writes to the ledger" over merging the flags: what any accepted answer cited becomes unlinked `contextual` server entries (a citation carries no stance), v2 relations still add stance, and a source already held is not recorded twice. Merging would have tied the case to v2's own first-pass cost (W9-02). The lab-1 study arms keep v2 on so their records stay comparable; ADR 0012 amended |
 | 3 | W9-01 | Lighter case policy; the run budget for the case arm is a recorded product decision | Fewer mandatory case calls per turn; budget decision in this document; tests | done (code); effect measured in W9-A — see below |
 | 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | done (text); trigger precision re-measured with the next study run. The eval tags were not changed after seeing the results |
-| 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | todo |
+| 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | done — see below: no critical regression, D cut by the cap once (was 15) |
 | 6 | W9-07 | Case carries requester and permitted data scope (RETHINK §3.1 item 2) | Domain op + API + tool gate respects the scope; tests | done — `requester` is the session owner, recorded when the case opens; `data_scope.external_search` is set only by the researcher (`POST …/cases/{id}/scope`, a denial needs its reason) and enforced by `search_toxicology_evidence`, which refuses with `tool_denied` for every later turn of the case; the checkpoint and the dossier carry it. The board shows it (W9-06) |
 | 7 | W9-06 | Investigation board shows the case history (`/events`) | Vitest; typecheck | done — history newest first (op, who, which turn, what), fetched only when opened and refetched when the revision changes; the board also shows the requester and the data scope and lets the researcher restrict/lift external search (W9-07). Vitest 171/171, typecheck, policy lint, bundle budget |
 | 8 | W9-05 | Dossier becomes the source of chat and report (§4.4.3, §4.9) | Chat answer carries the dossier; report context reads it; tests | done — a case run's reply carries a `dossier_ref` part and the transcript renders a compact dossier under the answer; both report paths read the subject's latest dossier (`get_report_context.case_dossier`, and the orchestrator's synthesis prompt), and an orchestrated build records `case_dossier_ref`. The dossier is shown as the investigation record, never as a citable source. Found on the way: the W9-07 search gate is now keyed on the compound, so both report paths honour a restriction too, and a new case inherits a restriction from the closed one |
@@ -432,6 +432,37 @@ that ask about the model (inv-07 attribution, inv-09 reliability, inv-10 Tox21
 scope). Its description began "Use before setting the case conclusion", and the
 old policy set a conclusion every turn. It now triggers on answers that
 recommend a course of action and says it is not for questions about the model.
+
+### W9-A — the paired re-run after Phase A (2026-09-26)
+
+Same protocol as W8-02 (`core,regression`, 1 trial, both arms concurrently,
+same image and OpenCode runtime `openai/gpt-5.6-luna`, turn deadline 600 s,
+**run cap left at the default 300 s**). Image built at `e075328` (Phase A).
+D is now `scientific_case_v1` + `scientific_skills_v1` **without**
+`answer_draft_v2` (W9-04 removed the need). Manifests:
+`evals/manifests/live-w9a-{C,D}-core/`; paired report
+`evals/manifests/paired-w9a-C-D-core.json`, run with the two flags and their
+four direct consequences (tool registry hash, decision-support tool list and
+schema hash, skills mode) declared as the change under test. Label:
+`product-regression`.
+
+| | C (W8-02) | D (W8-02) | C (W9-A) | D (W9-A) |
+|---|---|---|---|---|
+| pass / fail / skip | 25 / 11 / 18 | 18 / 19 / 17 | 26 / 10 / 18 | **29 / 7 / 18** |
+| runs cut by the 300 s cap | 7 | 15 | 1 | **1** |
+| tool calls per run | 5.6 | 10.3 | 6.2 | 8.4 |
+| case/skill calls per run | — | 4.16 | — | **1.13** |
+| first-pass (answered) | 0.54 | 0.26 | 0.52 | 0.47 |
+| fallback rate | — | — | 0.03 | 0.07 |
+
+Paired (36 tasks): 4 fail→pass (`adv-01`, `endpoint-06`, `endpoint-08`,
+`qa-04`), 1 pass→fail (`evsyn-08`: the answer accepted after correction cited
+no evidence although the run read two records; not critical), McNemar
+p = 0.375, **no critical regression, no confound** → the TAB-Suite part of the
+flag's removal condition now holds on this run. The flag stays **off**: the
+other part is the lab-graded comparison study, and one trial is one trial.
+C's own deadline failures also fell (7 → 1), so part of W8-02's cap hits was
+provider latency on that night, not the arms.
 
 ## Resume here (next session)
 
