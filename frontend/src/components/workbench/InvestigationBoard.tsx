@@ -1,7 +1,10 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { addScientificCaseContext, getScientificCase, listScientificCases } from '../../lib/api/endpoints';
-import type { CaseEvidenceEntry, HypothesisStatus, ScientificCase } from '../../lib/api/types';
+import {
+  addScientificCaseContext, getScientificCase, getScientificCaseEvents, listScientificCases,
+  setScientificCaseScope,
+} from '../../lib/api/endpoints';
+import type { CaseEvidenceEntry, HypothesisStatus, ScientificCase, ScientificCaseEvent } from '../../lib/api/types';
 
 /**
  * The investigation board (ADR 0012, RETHINK §4.4 step 4): the session's
@@ -9,6 +12,9 @@ import type { CaseEvidenceEntry, HypothesisStatus, ScientificCase } from '../../
  * hypotheses with the evidence for and against each, what is still unknown,
  * what would change the conclusion, and the proposed next test. The researcher
  * can add context (an in-house result, an exposure); the next turn sees it.
+ * It also shows who the case is for, what data it may reach (the researcher
+ * can restrict it to internal data), and the case's history: every change,
+ * by whom and in which turn (W9-06, W9-07).
  *
  * Coverage numbers are shown side by side and never combined: "has a source"
  * is not "has direct independent evidence".
@@ -45,6 +51,44 @@ const SEVERITY_LABEL: Record<string, string> = {
   low: 'thấp', medium: 'trung bình', high: 'cao', blocking: 'chặn kết luận',
 };
 
+const OP_LABEL: Record<string, string> = {
+  open: 'mở hồ sơ',
+  set_question: 'đặt câu hỏi',
+  set_scope: 'đặt phạm vi dữ liệu',
+  add_context: 'thêm bối cảnh',
+  add_hypothesis: 'thêm giả thuyết',
+  revise_hypothesis: 'cập nhật giả thuyết',
+  record_evidence: 'ghi bằng chứng',
+  record_uncertainty: 'ghi điều chưa biết',
+  resolve_uncertainty: 'giải quyết điều chưa biết',
+  record_action: 'ghi hành động',
+  propose_next_test: 'đề xuất phép thử',
+  set_conclusion: 'đặt kết luận',
+  attach_run: 'bắt đầu lượt',
+  finish_run: 'kết thúc lượt',
+  close: 'đóng hồ sơ',
+};
+
+const ACTOR_LABEL: Record<ScientificCaseEvent['actor'], string> = {
+  user: 'nhà nghiên cứu', model: 'mô hình', server: 'máy chủ',
+};
+
+/** The first readable field of an update, for a one-line history entry. */
+function eventSummary(event: ScientificCaseEvent): string {
+  const p = event.payload;
+  if (event.op === 'set_scope') {
+    return p.external_search ? 'cho phép tìm tài liệu bên ngoài' : `chỉ dữ liệu nội bộ — ${String(p.reason ?? '')}`;
+  }
+  if (event.op === 'revise_hypothesis') return `${String(p.hypothesis_id)} → ${String(p.status)}: ${String(p.reason ?? '')}`;
+  if (event.op === 'add_context') return `${String(p.key)}: ${String(p.value)}`;
+  if (event.op === 'finish_run') return String(p.stop_reason ?? 'không có lý do dừng');
+  for (const key of ['statement', 'claim', 'question', 'description', 'test', 'action', 'goal']) {
+    const value = p[key];
+    if (typeof value === 'string' && value) return value;
+  }
+  return '';
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
@@ -69,6 +113,86 @@ function EvidenceLine({ entry }: { entry: CaseEvidenceEntry }) {
         </p>
       )}
     </li>
+  );
+}
+
+function CaseHistory({ sessionId, data }: { sessionId: string; data: ScientificCase }) {
+  const [open, setOpen] = useState(false);
+  const events = useQuery({
+    queryKey: ['case-events', sessionId, data.case_id, data.revision],
+    queryFn: () => getScientificCaseEvents(sessionId, data.case_id),
+    enabled: open,
+  });
+  const rows = [...(events.data?.events ?? [])].reverse();
+  return (
+    <Section title="Lịch sử hồ sơ">
+      <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
+        className="text-xs underline" style={{ color: 'var(--accent-blue)' }}>
+        {open ? 'Ẩn lịch sử' : `Xem lịch sử (${data.revision} thay đổi)`}
+      </button>
+      {open && events.isLoading && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang tải lịch sử…</p>}
+      {open && events.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được lịch sử.</p>}
+      {open && rows.length > 0 && (
+        <ol className="space-y-1 text-xs" aria-label="Lịch sử hồ sơ" style={{ color: 'var(--text)' }}>
+          {rows.map((event) => (
+            <li key={event.revision} className="rounded-md p-2" style={{ backgroundColor: 'var(--surface-alt)' }}>
+              <p>
+                <span className="font-medium">#{event.revision} {OP_LABEL[event.op] ?? event.op}</span>
+                {' · '}{ACTOR_LABEL[event.actor] ?? event.actor}
+                {event.run_id ? ` · ${event.run_id.slice(0, 12)}…` : ''}
+              </p>
+              {eventSummary(event) && <p style={{ color: 'var(--text-muted)' }}>{eventSummary(event)}</p>}
+              <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>{new Date(event.at).toLocaleString('vi-VN')}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Section>
+  );
+}
+
+function CaseScope({ sessionId, data }: { sessionId: string; data: ScientificCase }) {
+  const queryClient = useQueryClient();
+  const [reason, setReason] = useState('');
+  const scope = data.data_scope;
+  const update = useMutation({
+    mutationFn: (externalSearch: boolean) => setScientificCaseScope(sessionId, data.case_id, {
+      external_search: externalSearch, ...(externalSearch ? {} : { reason: reason.trim() }),
+    }),
+    onSuccess: () => {
+      setReason('');
+      void queryClient.invalidateQueries({ queryKey: ['case', sessionId, data.case_id] });
+      void queryClient.invalidateQueries({ queryKey: ['cases', sessionId] });
+    },
+  });
+  return (
+    <Section title="Người yêu cầu và phạm vi dữ liệu">
+      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Người yêu cầu: {data.requester || 'không ghi nhận'}</p>
+      <p className="text-xs" style={{ color: 'var(--text)' }}>
+        {scope.external_search
+          ? 'Được phép tìm tài liệu bên ngoài cho hợp chất này.'
+          : `Chỉ dùng dữ liệu nội bộ: ${scope.reason}. Tác tử không được gửi hợp chất tới nguồn tài liệu bên ngoài.`}
+      </p>
+      {data.status === 'open' && (scope.external_search ? (
+        <form className="flex gap-2" aria-label="Giới hạn phạm vi dữ liệu"
+          onSubmit={(event) => { event.preventDefault(); if (reason.trim()) update.mutate(false); }}>
+          <input className="min-w-0 flex-1 rounded-md border px-2 py-1 text-xs"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            placeholder="Lý do (vd. cấu trúc chưa công bố)" aria-label="Lý do giới hạn"
+            value={reason} onChange={(event) => setReason(event.target.value)} />
+          <button type="submit" disabled={!reason.trim() || update.isPending}
+            className="shrink-0 rounded-md border px-2 py-1 text-xs disabled:opacity-50" style={{ borderColor: 'var(--border)' }}>
+            Chỉ dùng dữ liệu nội bộ
+          </button>
+        </form>
+      ) : (
+        <button type="button" disabled={update.isPending} onClick={() => update.mutate(true)}
+          className="rounded-md border px-2 py-1 text-xs disabled:opacity-50" style={{ borderColor: 'var(--border)' }}>
+          Cho phép tìm tài liệu bên ngoài
+        </button>
+      ))}
+      {update.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không đổi được phạm vi dữ liệu.</p>}
+    </Section>
   );
 }
 
@@ -100,6 +224,8 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
         <p className="text-sm" style={{ color: 'var(--text)' }}>{data.question || 'Chưa ghi câu hỏi.'}</p>
         {data.decision_context && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{data.decision_context}</p>}
       </Section>
+
+      <CaseScope sessionId={sessionId} data={data} />
 
       <Section title="Độ phủ bằng chứng">
         <ul className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--text-muted)' }} aria-label="Độ phủ bằng chứng">
@@ -204,6 +330,8 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
           </form>
         )}
       </Section>
+
+      <CaseHistory sessionId={sessionId} data={data} />
 
       <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>
         Hồ sơ {data.case_id} · phiên bản {data.revision} · {data.runs.length} lượt điều tra

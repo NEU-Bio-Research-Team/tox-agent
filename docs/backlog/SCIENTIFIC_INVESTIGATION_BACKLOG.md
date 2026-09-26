@@ -162,7 +162,7 @@ typecheck, policy lint and bundle budget pass.
 
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
-| W6-01 | Case panel: question, hypotheses, evidence for/against, open uncertainties, "what would change the conclusion", next test, history | Vitest component tests; typecheck | done |
+| W6-01 | Case panel: question, hypotheses, evidence for/against, open uncertainties, "what would change the conclusion", next test, history | Vitest component tests; typecheck | done — **correction 2026-09-26:** the history part was not built (the board never called `/events`); marked done too early. Built in W9-06 |
 | W6-02 | User can add context/assay results to the case | Component + API client tests | done |
 
 ## Wave 7 — P1: external benchmark adapters
@@ -346,7 +346,7 @@ of the review that listed them (its number is kept in the ID column):
 | 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | done (text); trigger precision re-measured with the next study run. The eval tags were not changed after seeing the results |
 | 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | todo |
 | 6 | W9-07 | Case carries requester and permitted data scope (RETHINK §3.1 item 2) | Domain op + API + tool gate respects the scope; tests | done — `requester` is the session owner, recorded when the case opens; `data_scope.external_search` is set only by the researcher (`POST …/cases/{id}/scope`, a denial needs its reason) and enforced by `search_toxicology_evidence`, which refuses with `tool_denied` for every later turn of the case; the checkpoint and the dossier carry it. The board shows it (W9-06) |
-| 7 | W9-06 | Investigation board shows the case history (`/events`) | Vitest; typecheck | todo |
+| 7 | W9-06 | Investigation board shows the case history (`/events`) | Vitest; typecheck | done — history newest first (op, who, which turn, what), fetched only when opened and refetched when the revision changes; the board also shows the requester and the data scope and lets the researcher restrict/lift external search (W9-07). Vitest 171/171, typecheck, policy lint, bundle budget |
 | 8 | W9-05 | Dossier becomes the source of chat and report (§4.4.3, §4.9) | Chat answer carries the dossier; report context reads it; tests | todo |
 | 9 | W9-08 | Literature questions without a molecule | Router routes to a subjectless case instead of `research_subject_missing`; tests | todo |
 | 10 | W9-09 | Tool permissions from validated manifests, not only Python `PROFILES` | Profiles generated from a checked manifest; drift test | todo |

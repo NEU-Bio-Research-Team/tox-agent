@@ -28,7 +28,9 @@ import type {
   ReportArtifact,
   RunDetail,
   ScientificCase,
+  ScientificCaseEventsResponse,
   ScientificCaseListResponse,
+  SetCaseScopeInput,
   SessionListResponse,
   SessionProjection,
   SessionResponse,
@@ -345,6 +347,21 @@ export function listScientificCases(sessionId: string): Promise<ScientificCaseLi
 
 export function getScientificCase(sessionId: string, caseId: string): Promise<ScientificCase> {
   return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}`);
+}
+
+/** The case's history: who changed what, in which run (oldest first). */
+export function getScientificCaseEvents(
+  sessionId: string, caseId: string,
+): Promise<ScientificCaseEventsResponse> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}/events`);
+}
+
+/** What the case may reach. With external search off, the agent's literature
+ * search is refused for every later turn of the case. */
+export function setScientificCaseScope(
+  sessionId: string, caseId: string, input: SetCaseScopeInput,
+): Promise<ScientificCase> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}/scope`, { method: 'POST', body: input });
 }
 
 /** Researcher-supplied context (an in-house result, an exposure). The next

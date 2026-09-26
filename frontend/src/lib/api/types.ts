@@ -998,6 +998,13 @@ export interface CaseCoverage {
   blocking_uncertainties: number;
 }
 
+/** What the case may reach (W9-07); set only by the researcher. */
+export interface CaseDataScope {
+  external_search: boolean;
+  reason: string;
+  run_id: string | null;
+}
+
 export interface ScientificCase {
   schema_version: string;
   case_id: string;
@@ -1006,6 +1013,8 @@ export interface ScientificCase {
   question: string;
   decision_context: string;
   subject_refs: string[];
+  requester: string;
+  data_scope: CaseDataScope;
   status: 'open' | 'closed';
   context: CaseContextItem[];
   hypotheses: CaseHypothesis[];
@@ -1034,10 +1043,32 @@ export interface ScientificCaseSummary {
   runs: number;
   coverage: CaseCoverage;
   updated_at: string;
+  requester: string;
+  external_search: boolean;
 }
 
 export interface ScientificCaseListResponse {
   cases: ScientificCaseSummary[];
+}
+
+/** One entry of the case's append-only log: the case is the fold of these. */
+export interface ScientificCaseEvent {
+  op: string;
+  payload: Record<string, unknown>;
+  actor: 'user' | 'model' | 'server';
+  at: string;
+  run_id: string | null;
+  revision: number;
+}
+
+export interface ScientificCaseEventsResponse {
+  case_id: string;
+  events: ScientificCaseEvent[];
+}
+
+export interface SetCaseScopeInput {
+  external_search: boolean;
+  reason?: string;
 }
 
 export interface AddCaseContextInput {

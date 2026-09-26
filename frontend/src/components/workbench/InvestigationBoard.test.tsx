@@ -2,12 +2,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const { listScientificCases, getScientificCase, addScientificCaseContext } = vi.hoisted(() => ({
+const {
+  listScientificCases, getScientificCase, addScientificCaseContext, getScientificCaseEvents,
+  setScientificCaseScope,
+} = vi.hoisted(() => ({
   listScientificCases: vi.fn(),
   getScientificCase: vi.fn(),
   addScientificCaseContext: vi.fn(),
+  getScientificCaseEvents: vi.fn(),
+  setScientificCaseScope: vi.fn(),
 }));
-vi.mock('../../lib/api/endpoints', () => ({ listScientificCases, getScientificCase, addScientificCaseContext }));
+vi.mock('../../lib/api/endpoints', () => ({
+  listScientificCases, getScientificCase, addScientificCaseContext, getScientificCaseEvents,
+  setScientificCaseScope,
+}));
 
 import { InvestigationBoard } from './InvestigationBoard';
 import type { ScientificCase } from '../../lib/api/types';
@@ -20,6 +28,8 @@ const CASE: ScientificCase = {
   question: 'Should hERG stop us developing compound A?',
   decision_context: '',
   subject_refs: ['analysis:ana_1'],
+  requester: 'user-1',
+  data_scope: { external_search: true, reason: '', run_id: null },
   status: 'open',
   context: [{ id: 'c1', key: 'patch_clamp_ic50', value: '30 µM', note: '', actor: 'user', run_id: null }],
   hypotheses: [
@@ -68,6 +78,62 @@ describe('InvestigationBoard', () => {
     listScientificCases.mockReset();
     getScientificCase.mockReset();
     addScientificCaseContext.mockReset();
+    getScientificCaseEvents.mockReset();
+    setScientificCaseScope.mockReset();
+  });
+
+  const summary = { ...CASE, hypotheses: 1, evidence: 2, open_uncertainties: 1, runs: 1, external_search: true };
+
+  it('shows the case history, newest first, only when asked', async () => {
+    listScientificCases.mockResolvedValue({ cases: [summary] });
+    getScientificCase.mockResolvedValue(CASE);
+    getScientificCaseEvents.mockResolvedValue({ case_id: 'scase_1', events: [
+      { op: 'open', payload: { question: 'Should hERG stop us?' }, actor: 'server', at: '2026-09-25T00:00:00Z', run_id: 'run_1', revision: 1 },
+      { op: 'add_context', payload: { key: 'patch_clamp_ic50', value: '30 µM' }, actor: 'user', at: '2026-09-25T01:00:00Z', run_id: null, revision: 2 },
+      { op: 'revise_hypothesis', payload: { hypothesis_id: 'h1', status: 'weakened', reason: 'weak block' }, actor: 'model', at: '2026-09-25T02:00:00Z', run_id: 'run_2', revision: 3 },
+    ] });
+    renderBoard();
+
+    await screen.findByText('Should hERG stop us developing compound A?');
+    expect(getScientificCaseEvents).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /Xem lịch sử/ }));
+    const history = await screen.findByRole('list', { name: 'Lịch sử hồ sơ' });
+    const items = history.querySelectorAll('li');
+    expect(items).toHaveLength(3);
+    expect(items[0]).toHaveTextContent('#3 cập nhật giả thuyết · mô hình');
+    expect(items[0]).toHaveTextContent('h1 → weakened: weak block');
+    expect(items[1]).toHaveTextContent('#2 thêm bối cảnh · nhà nghiên cứu');
+    expect(items[2]).toHaveTextContent('#1 mở hồ sơ · máy chủ');
+  });
+
+  it('lets the researcher restrict the case to internal data, with a reason', async () => {
+    listScientificCases.mockResolvedValue({ cases: [summary] });
+    getScientificCase.mockResolvedValue(CASE);
+    setScientificCaseScope.mockResolvedValue(CASE);
+    renderBoard();
+
+    expect(await screen.findByText('Người yêu cầu: user-1')).toBeInTheDocument();
+    const restrict = screen.getByRole('button', { name: 'Chỉ dùng dữ liệu nội bộ' });
+    expect(restrict).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Lý do giới hạn'), { target: { value: 'unpublished structure' } });
+    fireEvent.click(restrict);
+    await waitFor(() => expect(setScientificCaseScope).toHaveBeenCalledWith(
+      'ses_1', 'scase_1', { external_search: false, reason: 'unpublished structure' },
+    ));
+  });
+
+  it('states a restricted scope and can lift it', async () => {
+    const restricted = { ...CASE, data_scope: { external_search: false, reason: 'unpublished structure', run_id: null } };
+    listScientificCases.mockResolvedValue({ cases: [{ ...summary, external_search: false }] });
+    getScientificCase.mockResolvedValue(restricted);
+    setScientificCaseScope.mockResolvedValue(CASE);
+    renderBoard();
+
+    expect(await screen.findByText(/Chỉ dùng dữ liệu nội bộ: unpublished structure/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Cho phép tìm tài liệu bên ngoài' }));
+    await waitFor(() => expect(setScientificCaseScope).toHaveBeenCalledWith(
+      'ses_1', 'scase_1', { external_search: true },
+    ));
   });
 
   it('shows the case: question, evidence for and against, unknowns and what would change it', async () => {
