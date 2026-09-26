@@ -53,6 +53,10 @@ attribution cannot support it on its own.
 
 ## What to leave in the case
 
+If the question is only about the model, leave the case alone: the server
+records the attribution your answer cites. When the attribution bears on a
+decision the case is weighing, in the turn's one `update_scientific_case` call:
+
 - `record_evidence` with `source_class` `explanation_fact`, the attribution's
   observation ref, stance `contextual` (a highlight does not support or refute
   a hypothesis about the compound), and the endpoint in `scope`.

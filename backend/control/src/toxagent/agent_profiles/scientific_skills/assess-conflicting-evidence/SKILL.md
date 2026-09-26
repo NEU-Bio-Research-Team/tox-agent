@@ -65,6 +65,8 @@ Record the reason with `record_action` (decision `answer` or `ask_user`).
 
 ## What to leave in the case
 
+In the turn's one `update_scientific_case` call:
+
 - `record_evidence` for each source that bears on the conflict, with `scope`
   and honest `directness`.
 - An uncertainty for what is still unresolved, linked to the hypotheses.

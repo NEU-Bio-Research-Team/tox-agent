@@ -1,22 +1,25 @@
 ---
 name: critique-case
-description: Use before setting the case conclusion or answering a decision question (go/no-go, prioritisation, what to test next). A self-review of the case for claims without sources, model signals used as evidence, indirect sources treated as direct, conflicts left unrepresented, missing counter-evidence and conclusions wider than the evidence.
+description: Use when your answer will recommend a course of action for the compound — go/no-go, prioritisation, or which study to run next. A self-review of the case before concluding, for claims without sources, model signals used as evidence, indirect sources treated as direct, conflicts left unrepresented, missing counter-evidence and conclusions wider than the evidence. Not for questions that only ask what the model predicts, why it scored a compound, or whether a prediction can be relied on.
 ---
 
 # Critique the case before concluding
 
-Read the case with `get_scientific_case` and review it as a sceptical
-colleague would, before you commit to a conclusion. The aim is a conclusion no
+Review the case as a sceptical colleague would, before you commit to a
+conclusion. Its checkpoint is in your context; `get_scientific_case` returns
+the full ledger if an entry you need is not shown. The aim is a conclusion no
 wider than its evidence, not a longer answer.
 
 ## When this applies
 
-- You are about to `set_conclusion` or answer a question that asks for a
-  decision or a recommendation.
-- New evidence arrived this turn that could change an earlier conclusion.
+- The question asks for a decision or a recommendation: stop or continue,
+  prioritise or not, which test to run next.
+- New evidence arrived this turn that could change an earlier recommendation.
 
-Skip it for a lookup ("what is the predicted probability?") that decides
-nothing.
+Skip it when the answer recommends nothing: a lookup ("what is the predicted
+probability?"), an explanation of the model ("which atoms drove the score?"),
+or a question about how far a prediction can be trusted. Those need their own
+limits stated, not a review of a conclusion.
 
 ## The review
 
@@ -47,6 +50,8 @@ For each item, the fix is in the case, not in softer wording.
    does it discriminate between hypotheses?
 
 ## What to leave in the case
+
+All of it in the turn's one `update_scientific_case` call:
 
 - Corrections: `revise_hypothesis`, re-recorded evidence, new uncertainties.
 - A `record_action` with action `critique` and what the review changed.

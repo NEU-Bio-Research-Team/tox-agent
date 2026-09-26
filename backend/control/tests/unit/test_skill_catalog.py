@@ -27,6 +27,15 @@ def test_the_shipped_catalog_loads_and_every_skill_is_active():
         assert "SKILL.md" in skill.file_hashes
 
 
+def test_critique_case_triggers_on_recommendations_not_on_model_questions():
+    """W9-03: the pilot read critique-case on 9 of 10 cases (precision 0.44);
+    the extra reads were attribution, reliability and scope questions."""
+    skill = next(s for s in load_catalog(SHIPPED).skills if s.skill_id == "critique-case")
+    assert "recommend a course of action" in skill.description
+    assert "Not for questions that only ask what the model predicts" in skill.description
+    assert skill.version == "1.1.0"
+
+
 def test_loading_twice_gives_the_same_hashes():
     assert load_catalog(SHIPPED).catalog_sha256 == load_catalog(SHIPPED).catalog_sha256
 

@@ -102,10 +102,10 @@ provider count.
 
 off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.
 
-Dynamic index ≈ 398 tokens; static composition of every active skill ≈ 3654 tokens.
+Dynamic index ≈ 440 tokens; static composition of every active skill ≈ 3829 tokens.
 
 | Skill | Version | Status | Risk | Requires | Tokens (body / with references) |
 |---|---|---|---|---|---|
-| `assess-conflicting-evidence` | 1.0.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 915 / 1727 |
-| `critique-case` | 1.0.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 670 / 683 |
-| `interpret-model-attribution` | 1.0.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 718 / 1238 |
+| `assess-conflicting-evidence` | 1.1.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 929 / 1741 |
+| `critique-case` | 1.1.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 769 / 782 |
+| `interpret-model-attribution` | 1.1.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 780 / 1300 |

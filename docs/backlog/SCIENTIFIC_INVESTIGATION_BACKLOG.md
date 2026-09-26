@@ -342,8 +342,8 @@ of the review that listed them (its number is kept in the ID column):
 |---|---|---|---|---|
 | 1 | W9-02 | First-pass drop 0.54 → 0.26: diagnose from stored W8-02 data, fix what is a product defect | Violation tally per arm recorded; defect fixed with tests | done — see below |
 | 2 | W9-04 | Case ledger no longer depends on `answer_draft_v2` | With the flag on and v2 off, an accepted answer's cited sources land in the ledger; tests | done — chose "v1 writes to the ledger" over merging the flags: what any accepted answer cited becomes unlinked `contextual` server entries (a citation carries no stance), v2 relations still add stance, and a source already held is not recorded twice. Merging would have tied the case to v2's own first-pass cost (W9-02). The lab-1 study arms keep v2 on so their records stay comparable; ADR 0012 amended |
-| 3 | W9-01 | Lighter case policy; the run budget for the case arm is a recorded product decision | Fewer mandatory case calls per turn; budget decision in this document; tests | todo |
-| 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | todo |
+| 3 | W9-01 | Lighter case policy; the run budget for the case arm is a recorded product decision | Fewer mandatory case calls per turn; budget decision in this document; tests | done (code); effect measured in W9-A — see below |
+| 4 | W9-03 | `critique-case` description triggers on its cases only | Description rewritten against the pilot's trigger data; catalog tests | done (text); trigger precision re-measured with the next study run. The eval tags were not changed after seeing the results |
 | 5 | W9-A | Paired TAB-Suite re-run C vs D after Phase A | Paired report next to the 300 s result | todo |
 | 6 | W9-07 | Case carries requester and permitted data scope (RETHINK §3.1 item 2) | Domain op + API + tool gate respects the scope; tests | todo |
 | 7 | W9-06 | Investigation board shows the case history (`/events`) | Vitest; typecheck | todo |
@@ -403,6 +403,35 @@ not stored anywhere, so the gate's false-positive rate cannot be measured and
 loosening a safety gate blind is not acceptable. Every wording violation now
 carries the flagged phrase with its sentence in `actual`: the model's one
 correction sees what to rewrite, and the next measurement can measure the gate.
+
+### W9-01 — a lighter case policy, and the budget decision
+
+Measured on W8-02's D runs (tool_calls table): per turn about one
+`get_scientific_case`, 2.5 `update_scientific_case` (8 of 78 refused, each a
+retry) and one skill read, on top of C's tools, at roughly 15 s of model time
+per step. The case policy asked for all of it.
+
+Changes: the checkpoint in the prompt now carries every hypothesis and open
+uncertainty id, the latest eight ledger entries with their ids, and the
+conclusion so far, so a turn can write without reading first. The policy asks
+for **no case write on a lookup** and **exactly one** `update_scientific_case`
+(up to 16 operations) before answering a judgement question; the server
+records what the answer cites (W9-04), so the model records only entries that
+take a side. The three skills say the same.
+
+**Budget decision (product owner's delegate, 2026-09-26): the run budget is not
+raised.** The case flag has to fit the default `TOXAGENT_RUN_DEADLINE_S=300`,
+because that is what a deployment gets when the flag is turned on. If W9-A
+still shows the case arm cut by the cap more often than C, the next step is a
+further policy cut, and a raise is proposed only with its measured cost.
+
+**W9-03.** The pilot read `critique-case` on 9 of 10 cases: all four positive
+cases, and five cases tagged neither way — two decision-like (inv-04 which
+result should drive the decision, inv-05 how concerned should we be) and three
+that ask about the model (inv-07 attribution, inv-09 reliability, inv-10 Tox21
+scope). Its description began "Use before setting the case conclusion", and the
+old policy set a conclusion every turn. It now triggers on answers that
+recommend a course of action and says it is not for questions about the model.
 
 ## Resume here (next session)
 
