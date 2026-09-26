@@ -493,11 +493,48 @@ other part is the lab-graded comparison study, and one trial is one trial.
 C's own deadline failures also fell (7 → 1), so part of W8-02's cap hits was
 provider latency on that night, not the arms.
 
+### W9-B — the paired re-run on the W9-02b image (2026-09-26)
+
+Three arms, **one at a time** (see Host limits below): C, C + `answer_draft_v2`,
+D. Manifests `evals/manifests/live-w9b-{C,Cv2,D}-core/`; paired reports
+`paired-w9b-C-Cv2-core.json` and `paired-w9b-C-D-core.json`.
+
+| | C | C + v2 | D |
+|---|---|---|---|
+| pass (of 36 paired) | 18 | 15 | 26 |
+| runs cut by the 300 s cap | 15 | 18 | 8 |
+
+C → D: 11 fixes, 3 regressions, McNemar p = 0.057; C → C + v2: 3 fixes, 6
+regressions, p = 0.51. **The pass/fail of this run does not judge the fixes.**
+Cap hits rose in every arm, C included, whose policy did not change (W9-A: 1),
+so provider latency on the night dominates. All four critical regressions
+(`adv-01`, `evsyn-02` under C + v2; `adv-05`, `endpoint-01` under D) are
+runs cut by the cap, with no answer to grade.
+
+What the run does measure is validator behaviour per draft, which latency does
+not touch: `answer_placeholder_has_no_value` fell from 26 to 0, and C + v2's
+first-draft refusals from 24 to 9.
+
+**W9-02c — the gate on W9-B's flagged sentences.** Five sentences were still
+refused by the safety/aggregate gates, all of them false positives. Four are
+now let through, narrowly: "an toàn" as the tail of a closed list of noun heads
+("dữ liệu / đánh giá / bối cảnh / hồ sơ / biên an toàn") is a noun phrase, not
+a verdict — unless a verbal marker makes the head a verb ("được đánh giá an
+toàn") or a predicate follows ("hồ sơ an toàn tốt", "… an toàn cho người");
+"không tự nó thay thế" declines; and typographic apostrophes ("can’t") negate
+like ASCII ones. The fifth ("… và an toàn in vivo") stays refused, on purpose.
+Each fixed sentence is a DENIALS test; the verdicts the exemption must not
+reach are VERDICTS tests.
+
+`wait_for_run` in the test support now waits on a 60 s wall-clock deadline
+instead of 200 polls (~2 s): the dossier and orchestrated-report e2e runs take
+~3 s and failed intermittently under a loaded full suite.
+
 ## Resume here (next session)
 
 State at hand-off (2026-09-26): Wave 9 is done — every row of its table,
-committed on `feat/scientific-investigation` (last code commit `2c2a419`,
-W9-02b). Six default-off flags now exist (`scientific_case_v1`,
+committed on `feat/scientific-investigation`; W9-B measured and W9-02c
+(the gate fixes it found) committed. Six default-off flags now exist (`scientific_case_v1`,
 `scientific_skills_v1`, `subjectless_research_v1`, `skill_drafts_v1`,
 `claim_reviewer_v1`, `scientific_primitives_v1`); none is on by default.
 
@@ -507,10 +544,10 @@ Run live arms **one at a time**, restart OpenCode between arms, and stop
 `toxocr` when the packs do not need it (`core,regression` do not): it holds
 ~1.8 GiB. A sequential runner with a memory floor is the pattern used for W9-B.
 
-1. **W9-B** — the paired re-run on the W9-02b image (C, C + `answer_draft_v2`,
-   D), one arm at a time → `evals/manifests/live-w9b-{C,Cv2,D}-core/` and
-   paired reports. Record it next to W9-A. (The W8-02 900 s diagnostic is no
-   longer needed: W9-A cut the case arm's cap hits from 15 to 1 at 300 s.)
+1. **W9-C (optional)** — repeat C and D on the W9-02c image, one arm at a
+   time, on a quieter night: W9-B's cap hits (C 15) make its pass/fail
+   unusable. Check cap hits first; if C alone is above W9-A's, the night is
+   too slow to judge anything.
 2. **Google arms** (deferred from `lab-1`): answer the prompts under
    `runs/pilot-2026-09-25/manual/` in the Gemini app (Pro) with
    `--google-channel manual`, then build a separate packet

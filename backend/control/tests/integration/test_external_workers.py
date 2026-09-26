@@ -249,7 +249,7 @@ async def test_an_api_process_and_a_worker_process_over_one_database(db, monkeyp
         }
 
         async with worker_app.router.lifespan_context(worker_app):
-            finished = await wait_for_run(client, session_id, run_id, tries=500)
+            finished = await wait_for_run(client, session_id, run_id)
         assert finished["status"] == "completed"
         async with db.unit_of_work() as uow:
             assert await uow.run_jobs.get(run_id) is None

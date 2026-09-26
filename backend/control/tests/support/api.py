@@ -99,19 +99,25 @@ async def api_client(
             yield client
 
 
-async def wait_for_run(client: httpx.AsyncClient, session_id: str, run_id: str, *, tries: int = 200):
+async def wait_for_run(client: httpx.AsyncClient, session_id: str, run_id: str, *, timeout: float = 60.0):
     """Poll the run until it is terminal.
 
     Runs are asynchronous by design (202 + a run id), so a test that asserts on
-    the outcome has to wait for it the same way a client would.
+    the outcome has to wait for it the same way a client would. The budget is
+    wall-clock, not a count of polls: a count of 200 was ~2 s, and the longer
+    runs (dossier, orchestrated report) crossed it when the full suite loaded
+    the host.
     """
     import asyncio
+    import time
 
-    for _ in range(tries):
+    deadline = time.monotonic() + timeout
+    while True:
         response = await client.get(f"/v1/sessions/{session_id}/runs/{run_id}", headers=AUTH)
         response.raise_for_status()
         body = response.json()
         if body["status"] in ("completed", "failed", "cancelled"):
             return body
+        if time.monotonic() >= deadline:
+            raise AssertionError(f"run {run_id} never reached a terminal state in {timeout:g} s")
         await asyncio.sleep(0.01)
-    raise AssertionError(f"run {run_id} never reached a terminal state")

@@ -177,6 +177,11 @@ DENIALS = [
     "An overall toxicity score cannot be provided: this analysis reports separate endpoints.",
     "The model reports hERG and Tox21 outputs as separate measurements rather than an aggregate toxicity score.",
     "A single overall toxicity score is not available for this molecule.",
+    # W9-B, the image with the W9-02b gates.
+    "Các nguồn về chất ô nhiễm chỉ cung cấp bối cảnh an toàn, không thay thế hồ sơ dược chất cụ thể.",
+    "Cần xác minh độc lập về tín hiệu hERG và dữ liệu an toàn bổ sung.",
+    "We can’t provide one scientifically valid overall toxicity score. This analysis exposes separate endpoints.",
+    "Đây là tín hiệu sàng lọc; dự đoán không tự nó thay thế đánh giá an toàn.",
 ]
 
 VERDICTS = [
@@ -189,6 +194,15 @@ VERDICTS = [
     "Không có tín hiệu hERG đáng kể, nhưng hợp chất an toàn cho người.",
     "The overall toxicity is low.",
     "Its aggregate risk is moderate, so no further testing is needed.",
+    "Hợp chất có độ an toàn cao.",
+    "Hợp chất được đánh giá là an toàn.",
+    "Theo dữ liệu hiện có, hợp chất an toàn.",
+    # The W9-B noun-phrase exemption must not reach these.
+    "Hợp chất được đánh giá an toàn.",
+    "Hợp chất đã được đánh giá an toàn cho người.",
+    "Kết quả thử nghiệm an toàn.",
+    "Hồ sơ an toàn tốt.",
+    "Dữ liệu an toàn cho người dùng.",
 ]
 
 

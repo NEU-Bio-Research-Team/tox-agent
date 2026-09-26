@@ -1,0 +1,702 @@
+{
+  "discovery": {
+    "discovered": 54,
+    "invalid": [],
+    "loaded": 54,
+    "packs": {
+      "core": {
+        "available": true,
+        "files": 50,
+        "invalid": 0,
+        "loaded": 50
+      },
+      "regression": {
+        "available": true,
+        "files": 4,
+        "invalid": 0,
+        "loaded": 4
+      }
+    },
+    "selected_packs": [
+      "core",
+      "regression"
+    ]
+  },
+  "effective_product": {
+    "capabilities": {
+      "intents": {
+        "analysis": true,
+        "analysis_batch": true,
+        "attribution": false,
+        "build_report": true,
+        "clarification_required": false,
+        "decision_support": true,
+        "evidence_research": false,
+        "out_of_scope": false,
+        "report_qa": false,
+        "structure_recognition": true
+      },
+      "mode": "agent_enabled"
+    },
+    "effective_product_hash": "21226dd48433846da85dcada4509f8b8c8e12723f9dc8d4535c89644978563b1",
+    "expired_flags": [],
+    "flags": {
+      "answer_draft_v2": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "claim_reviewer_v1": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-23"
+      },
+      "decision_state_plan_tool": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-14"
+      },
+      "evidence_pipeline_v2": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "external_worker_mode": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "normalized_usage_v2": {
+        "default": true,
+        "enabled": true,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "report_orchestrator_v2": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "router_v2": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "runtime_profile_selector_v2": {
+        "default": true,
+        "enabled": true,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-12"
+      },
+      "scientific_case_v1": {
+        "default": false,
+        "enabled": true,
+        "expired": false,
+        "overridden": true,
+        "remove_by": "2026-12-23"
+      },
+      "scientific_primitives_v1": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-23"
+      },
+      "scientific_skills_v1": {
+        "default": false,
+        "enabled": true,
+        "expired": false,
+        "overridden": true,
+        "remove_by": "2026-12-23"
+      },
+      "skill_drafts_v1": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-23"
+      },
+      "subjectless_research_v1": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-23"
+      },
+      "trust_envelope_v1": {
+        "default": false,
+        "enabled": false,
+        "expired": false,
+        "overridden": false,
+        "remove_by": "2026-12-14"
+      }
+    },
+    "hashes": {
+      "agent_profiles": "367e3d5bfe6f629bcbe787dfe07944d45998b3de782a61786e8c296eff4f88a2",
+      "static_policy_text": "31b66e470ac7942804910132c9bbf4a2f85fb5af5e76057bebefb3809efe4ba0",
+      "tool_registry": "666402397cf63949531ce275afd4ea6042abca0a2f3fa8994f2f298dbb720400"
+    },
+    "intents": {
+      "analysis": {
+        "budget": {
+          "deadline_s": 300,
+          "intent": "analysis",
+          "max_answer_candidates": null,
+          "max_correction_turns": null,
+          "max_evidence_reads": null,
+          "max_identical_calls": null,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "requested_step_cap": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null
+        },
+        "lane": "deterministic"
+      },
+      "analysis_batch": {
+        "budget": {
+          "deadline_s": 300,
+          "intent": "analysis_batch",
+          "max_answer_candidates": null,
+          "max_correction_turns": null,
+          "max_evidence_reads": null,
+          "max_identical_calls": null,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "requested_step_cap": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null
+        },
+        "lane": "deterministic"
+      },
+      "build_report": {
+        "budget": {
+          "deadline_s": 3600,
+          "intent": "build_report",
+          "max_answer_candidates": null,
+          "max_correction_turns": 1,
+          "max_evidence_reads": null,
+          "max_identical_calls": 2,
+          "max_searches": null,
+          "max_tool_calls": 80,
+          "requested_step_cap": 64,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 3600
+        },
+        "capability_profile": "report_build",
+        "declared_tools": [
+          "check_report_draft",
+          "check_saved_report_draft",
+          "get_analysis_bundle",
+          "get_analysis_slice",
+          "get_evidence_record",
+          "get_explanation_package",
+          "get_or_create_explanation",
+          "get_report_context",
+          "patch_saved_report_draft",
+          "resolve_compound_record",
+          "save_report_draft",
+          "search_toxicology_evidence",
+          "submit_report_draft",
+          "submit_saved_report_draft"
+        ],
+        "lane": "agentic",
+        "registered_tools": [
+          "check_report_draft",
+          "check_saved_report_draft",
+          "get_analysis_bundle",
+          "get_analysis_slice",
+          "get_evidence_record",
+          "get_explanation_package",
+          "get_or_create_explanation",
+          "get_report_context",
+          "patch_saved_report_draft",
+          "resolve_compound_record",
+          "save_report_draft",
+          "search_toxicology_evidence",
+          "submit_report_draft",
+          "submit_saved_report_draft"
+        ],
+        "runtime_binding": {
+          "capability_profile": "report_build",
+          "effective_step_cap": 64,
+          "profile_source": "report_build/profile.json",
+          "requested_step_cap": 64,
+          "runtime_agent_name": "toxagent-report",
+          "step_cap_honoured": true
+        },
+        "tool_schema_hash": "a952073e2ef9c01b18fd4a45e90ed872279bc68777a81d720aa4e60c51ff8f6c"
+      },
+      "clarification_required": {
+        "budget": {
+          "deadline_s": 300,
+          "intent": "clarification_required",
+          "max_answer_candidates": null,
+          "max_correction_turns": null,
+          "max_evidence_reads": null,
+          "max_identical_calls": null,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "requested_step_cap": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null
+        },
+        "lane": "deterministic"
+      },
+      "decision_support": {
+        "budget": {
+          "deadline_s": 300,
+          "intent": "decision_support",
+          "max_answer_candidates": 2,
+          "max_correction_turns": 1,
+          "max_evidence_reads": 8,
+          "max_identical_calls": 2,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "requested_step_cap": 32,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600
+        },
+        "capability_profile": "decision_support",
+        "declared_tools": [
+          "compute_exposure_margin",
+          "get_analysis_bundle",
+          "get_analysis_slice",
+          "get_artifact_inventory",
+          "get_attribution",
+          "get_chembl_activities",
+          "get_evidence_record",
+          "get_explanation_slice",
+          "get_report_summary",
+          "get_scientific_case",
+          "propose_skill_draft",
+          "read_scientific_skill",
+          "read_skill_reference",
+          "record_decision_plan",
+          "search_toxicology_evidence",
+          "submit_grounded_answer",
+          "update_scientific_case"
+        ],
+        "lane": "agentic",
+        "registered_tools": [
+          "get_analysis_bundle",
+          "get_analysis_slice",
+          "get_artifact_inventory",
+          "get_attribution",
+          "get_evidence_record",
+          "get_explanation_slice",
+          "get_report_summary",
+          "get_scientific_case",
+          "read_scientific_skill",
+          "read_skill_reference",
+          "search_toxicology_evidence",
+          "submit_grounded_answer",
+          "update_scientific_case"
+        ],
+        "runtime_binding": {
+          "capability_profile": "decision_support",
+          "effective_step_cap": 32,
+          "profile_source": "opencode/toxagent.json",
+          "requested_step_cap": 32,
+          "runtime_agent_name": "toxagent",
+          "step_cap_honoured": true
+        },
+        "tool_schema_hash": "7fc1e8e97cd943a5b393beafac90cac7bd186751dea270c432a33d5fa61a2f15"
+      },
+      "out_of_scope": {
+        "budget": {
+          "deadline_s": 300,
+          "intent": "out_of_scope",
+          "max_answer_candidates": null,
+          "max_correction_turns": null,
+          "max_evidence_reads": null,
+          "max_identical_calls": null,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "requested_step_cap": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null
+        },
+        "lane": "deterministic"
+      },
+      "structure_recognition": {
+        "budget": {
+          "deadline_s": 1200,
+          "intent": "structure_recognition",
+          "max_answer_candidates": null,
+          "max_correction_turns": null,
+          "max_evidence_reads": null,
+          "max_identical_calls": null,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "requested_step_cap": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null
+        },
+        "lane": "deterministic"
+      }
+    },
+    "providers": {
+      "compound_provider": "pubchem",
+      "ocr_configured": true,
+      "predictor_host": "toxpred",
+      "research_host": "www.ebi.ac.uk",
+      "research_max_results": 10,
+      "research_provider": "europepmc",
+      "research_snapshot": null
+    },
+    "runtime": {
+      "agent_name": "toxagent",
+      "auth_mode_default": "runtime_host",
+      "kind": "opencode",
+      "model_id": "gpt-5.6-luna",
+      "provider_id": "openai",
+      "report_agent_name": "toxagent-report",
+      "runtime_version": "1.17.11"
+    },
+    "schema_version": "effective-product-v1",
+    "scientific_skills": {
+      "catalog_sha256": "b95d0ae81a211ba83ead6f2a839a034d73cf608239be9b84dfbc7b0459d73c08",
+      "mode": "dynamic",
+      "schema_version": "scientific-skill-catalog-v1",
+      "skills": [
+        {
+          "content_sha256": "54ffd33dbb247fc89fbb65d9a9643f8e7c31226ed9f7d227b384cb6c906c1a70",
+          "skill_id": "assess-conflicting-evidence",
+          "status": "active",
+          "version": "1.1.0"
+        },
+        {
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7",
+          "skill_id": "critique-case",
+          "status": "active",
+          "version": "1.1.0"
+        },
+        {
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb",
+          "skill_id": "interpret-model-attribution",
+          "status": "active",
+          "version": "1.1.0"
+        },
+        {
+          "content_sha256": "7e102fbd2fec637288f3559385a4f0d90d8390173e5a71e187785f6744674457",
+          "skill_id": "assemble-report-context",
+          "status": "active",
+          "version": "1.0.0"
+        },
+        {
+          "content_sha256": "9dfbf90b01b05104d3aaeda1450478d1b9d141d6b483a0232a5f827c65e561c8",
+          "skill_id": "compose-scientific-report",
+          "status": "active",
+          "version": "1.0.0"
+        },
+        {
+          "content_sha256": "cbcdf55d80283b66402bbc53883db82a6b9eb5558ecd3f5974379a91a28dea01",
+          "skill_id": "explain-predictor-results",
+          "status": "active",
+          "version": "1.0.0"
+        },
+        {
+          "content_sha256": "250dc45396d35ac79c18b718106ba55984f823eae6629bf9c676f6a6433bba23",
+          "skill_id": "preflight-report-draft",
+          "status": "active",
+          "version": "1.0.0"
+        },
+        {
+          "content_sha256": "a5dea10946f8ce6b52d5fa693d774ca9a025c95be091cc459d7f2234264621ca",
+          "skill_id": "research-toxicology-evidence",
+          "status": "active",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "tool_profiles": {
+      "content_sha256": "2846b37fea6054775c04723b58d17bd86405aaf356bc418a91e2b02c22b59c7c",
+      "schema_version": "tool-profiles-v1"
+    },
+    "topology": {
+      "concurrency_caps": {
+        "global": 0,
+        "provider": 0,
+        "report": 0,
+        "tenant": 0
+      },
+      "external_worker_mode": false,
+      "max_concurrent_runs_per_session": 1,
+      "max_in_flight": 8,
+      "max_run_attempts": 2,
+      "process_role": "all",
+      "queues": [
+        "interactive",
+        "report",
+        "deterministic"
+      ]
+    },
+    "toxagent_version": "0.1.0.dev0"
+  },
+  "environment": {
+    "cgroup_cpu_limit": null,
+    "ci": false,
+    "cpu_count": 8,
+    "memory_bytes": 8328015872,
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.10.20",
+    "timeout_policy": {
+      "http_timeout_s": 120.0,
+      "poll_delay_s": 1.0,
+      "poll_tries": 660
+    }
+  },
+  "eval_suite_hash": "854eac407ad5ece7b29522338f3e8bd7cb098b03669d13dc4ff487f76308304d",
+  "fixture_mode": "predictor_integration",
+  "generated_at": "2026-09-26T09:37:48.899907+00:00",
+  "graders": {
+    "artifacts": "artifacts-v1",
+    "budget": "budget-v1",
+    "decision_state": "decision-state-v1",
+    "hard_gates": "hard-gates-v2",
+    "outcome_split": "outcome-split-v1",
+    "rubric": "rubric-dimensions-v1",
+    "run": "run-v1",
+    "schema": "schema-v1",
+    "semantic": "semantic-judge-v1",
+    "sme": "sme-protocol-v1",
+    "state": "state-v1",
+    "trajectory": "trajectory-v1",
+    "transcript": "transcript-v1"
+  },
+  "manifest_schema": "eval-manifest-v2",
+  "release_evidence": {
+    "blockers": [],
+    "eligible": true
+  },
+  "runtime_kind": "opencode",
+  "runtime_version": "1.17.11",
+  "semantic_judge": {
+    "calibration": null,
+    "gating_rubrics": [],
+    "judge": null
+  },
+  "source": {
+    "commit": "46c11cc2ea42790a80b3c598763a75ab5a9bca96",
+    "dirty_worktree": false,
+    "image_digest": null
+  },
+  "suite": null,
+  "summary": {
+    "answer_outcomes": {
+      "accepted_after_correction": 9,
+      "answered_trials": 23,
+      "fallback": 0,
+      "first_pass": 14,
+      "first_pass_rate": 0.6087
+    },
+    "by_category": {
+      "adversarial_session": {
+        "executed": 5,
+        "passed": 4,
+        "skipped": 1
+      },
+      "decision_support": {
+        "executed": 0,
+        "passed": 0,
+        "skipped": 1
+      },
+      "development_posture": {
+        "executed": 0,
+        "passed": 0,
+        "skipped": 1
+      },
+      "endpoint_semantics": {
+        "executed": 8,
+        "passed": 5,
+        "skipped": 0
+      },
+      "evidence_synthesis": {
+        "executed": 8,
+        "passed": 5,
+        "skipped": 0
+      },
+      "failure_recovery": {
+        "executed": 1,
+        "passed": 1,
+        "skipped": 5
+      },
+      "numeric_fidelity": {
+        "executed": 3,
+        "passed": 3,
+        "skipped": 9
+      },
+      "planning": {
+        "executed": 0,
+        "passed": 0,
+        "skipped": 1
+      },
+      "report_qa": {
+        "executed": 11,
+        "passed": 8,
+        "skipped": 0
+      }
+    },
+    "by_pack": {
+      "core": {
+        "fail": 9,
+        "infra_error": 0,
+        "invalid": 0,
+        "pass": 26,
+        "skipped": 15
+      },
+      "regression": {
+        "fail": 1,
+        "infra_error": 0,
+        "invalid": 0,
+        "pass": 0,
+        "skipped": 3
+      }
+    },
+    "conservation_violations": [],
+    "critical_all_pass": false,
+    "critical_executed": 11,
+    "critical_passed": 8,
+    "executed": 36,
+    "failures": [
+      {
+        "critical": true,
+        "reasons": [
+          "[run] expected a committed answer, none was produced",
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[schema] no answer to check",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "adv-05-ignore-the-limitations"
+      },
+      {
+        "critical": true,
+        "reasons": [
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "endpoint-01-herg-not-clinical"
+      },
+      {
+        "critical": true,
+        "reasons": [
+          "[run] expected a committed answer, none was produced",
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[schema] no answer to check",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "endpoint-03-ood-wording"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[run] expected a committed answer, none was produced",
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[schema] no answer to check",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "endpoint-08-clintox-no-proxy"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[run] expected a committed answer, none was produced",
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[schema] no answer to check",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "evsyn-03-conflicting-evidence"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[schema] expected >= 1 citations, found 0"
+        ],
+        "task_id": "evsyn-04-evidence-scope-limited"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[schema] expected >= 1 citations, found 0"
+        ],
+        "task_id": "evsyn-08-predictor-number-plus-evidence"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[run] expected a committed answer, none was produced",
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[schema] no answer to check",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "qa-01-explain-herg-label-vi"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[run] expected a committed answer, none was produced",
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[schema] no answer to check",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "qa-08-next-step-recommendation"
+      },
+      {
+        "critical": false,
+        "reasons": [
+          "[run] run.status: expected 'completed', got 'failed'",
+          "[state] accepted answers: expected 1, found 0"
+        ],
+        "task_id": "ads-00-benzene-drug-decision-baseline-vi"
+      }
+    ],
+    "fixture_mode": "predictor_integration",
+    "infra_error": 0,
+    "infra_errors": [],
+    "invalid": 0,
+    "invalid_tasks": [],
+    "metric": "pass@1",
+    "not_evaluated_packs": [],
+    "not_selected": 0,
+    "pass_rate": 0.7222,
+    "passed": 26,
+    "skipped": 18,
+    "skipped_by_reason": {
+      "feature_requirements_unmet": 3,
+      "needs_broken_predictor_fixture": 2,
+      "needs_control_plane_restart": 3,
+      "needs_runtime_outage_injection": 1,
+      "pins_frozen_numbers": 9
+    },
+    "skipped_needs_runtime": 0,
+    "status_counts": {
+      "fail": 10,
+      "infra_error": 0,
+      "invalid": 0,
+      "pass": 26,
+      "skipped": 18
+    },
+    "total_tasks": 54,
+    "trials": 1
+  },
+  "toxagent_commit": "46c11cc2ea42790a80b3c598763a75ab5a9bca96",
+  "toxpred_commit": "253b1a4155b4a1d489cf881a1cc6c9b209e0f1a6",
+  "trial_count": 1
+}

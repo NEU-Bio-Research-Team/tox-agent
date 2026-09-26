@@ -150,7 +150,7 @@ async def _build_report(client, session_id: str, analysis_id: str) -> dict:
         headers=AUTH,
     )
     assert accepted.status_code == 202, accepted.text
-    return await wait_for_run(client, session_id, accepted.json()["run_id"], tries=1000)
+    return await wait_for_run(client, session_id, accepted.json()["run_id"])
 
 
 async def _events(client, session_id: str) -> list[dict]:

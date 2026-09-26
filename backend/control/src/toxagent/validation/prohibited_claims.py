@@ -147,7 +147,7 @@ _DECLINES_TO_ASSERT = re.compile(
     r"|\bnot\s+(?:(?:a|an|the)\s+)?(?:[\w-]+\s+){0,3}?(?:determination|finding|conclusion|"
     r"verdict|claim|assessment|statement|confirmation|proof|diagnosis)\b"
     r"|\bnot\s+(?:as\s+)?evidence\s+(?:that|of|for)\b"
-    r"|\bkhông\s+(?:tự\s+)?(đưa\s+ra|kết\s+luận|khẳng\s+định|tuyên\s+bố|nói|chứng\s+minh|"
+    r"|\bkhông\s+(?:tự\s+(?:nó\s+|chúng\s+)?)?(đưa\s+ra|kết\s+luận|khẳng\s+định|tuyên\s+bố|nói|chứng\s+minh|"
     r"xác\s+nhận|suy\s+ra|thay\s+thế|đảm\s+bảo|cho\s+biết)\b"
     r"|\b(không|chưa)\s+(đủ\s+để|thể)\s+(kết\s+luận|suy\s+ra|khẳng\s+định|xác\s+nhận|"
     r"chứng\s+minh|đánh\s+giá)\b"
@@ -157,6 +157,49 @@ _DECLINES_TO_ASSERT = re.compile(
     r"bằng\s+chứng|đánh\s+giá|xác\s+nhận)\b",
     re.IGNORECASE,
 )
+
+
+#: Vietnamese nouns that make "an toàn" part of a noun phrase — "dữ liệu an
+#: toàn" (safety data), "đánh giá an toàn" (a safety assessment), "biên an
+#: toàn" (a safety margin) — rather than a predicate about the compound. A
+#: closed list, from the flagged sentences of W9-B. "độ/tính/mức độ an toàn" are
+#: deliberately absent: "hợp chất có độ an toàn cao" is a verdict. So are
+#: "nghiên cứu" and "thử nghiệm", which read as verbs as often as nouns.
+_SAFETY_NOUN_HEAD = re.compile(
+    r"(?:dữ\s+liệu|đánh\s+giá|hồ\s+sơ|bối\s+cảnh|biên|ngưỡng|thông\s+tin|"
+    r"dược\s+lý|khía\s+cạnh|vấn\s+đề)\s+$",
+    re.IGNORECASE,
+)
+
+#: A marker that turns the head into a verb: "được đánh giá an toàn" is
+#: "assessed as safe", a verdict, not "a safety assessment".
+_VERBAL_MARKER = re.compile(
+    r"\b(?:được|bị|vẫn|đều|cũng)\s+$", re.IGNORECASE
+)
+
+#: What follows "an toàn" when it is the predicate after all: "hồ sơ an toàn
+#: tốt", "dữ liệu an toàn cho người" — the phrase is being judged, not named.
+_SAFETY_PREDICATE_AFTER = re.compile(
+    r"^\s+(?:cho|với|khi|đối\s+với|tốt|thuận\s+lợi|chấp\s+nhận\s+được|đảm\s+bảo)\b",
+    re.IGNORECASE,
+)
+
+
+def _safety_noun_phrase(text: str, match: re.Match) -> bool:
+    """Whether a matched "an toàn" is part of a noun phrase (W9-B)."""
+    if not match.group(0).lower().startswith("an"):
+        return False
+    before = text[max(0, match.start() - 40):match.start()]
+    head = _SAFETY_NOUN_HEAD.search(before)
+    if head is None or _VERBAL_MARKER.search(before[:head.start()]):
+        return False
+    return not _SAFETY_PREDICATE_AFTER.match(text[match.end():match.end() + 24])
+
+
+def _normalized(text: str) -> str:
+    """Typographic apostrophes as ASCII, so "can’t" negates like "can't".
+    Same length, so match offsets still point into the original text."""
+    return text.replace("\u2019", "'").replace("\u2018", "'")
 
 
 def _declines_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS) -> bool:
@@ -184,8 +227,11 @@ def _excerpt(text: str, match: re.Match) -> str:
 def _scan_unless_declined(
     pattern: re.Pattern, text: str, code: str, message: str, path: str
 ) -> list[Violation]:
-    for match in pattern.finditer(text):
-        if not _declines_before(text, match.start()):
+    norm = _normalized(text)
+    for match in pattern.finditer(norm):
+        if _safety_noun_phrase(norm, match):
+            continue
+        if not _declines_before(norm, match.start()):
             return [Violation(code, message, path=path, actual=_excerpt(text, match))]
     return []
 
@@ -221,7 +267,8 @@ def matches_unnegated(pattern: re.Pattern, text: str) -> bool:
     or it re-flags the same false positives audit_5_9.md's §4.7 fix already
     closed here.
     """
-    return any(not _negated(text, match) for match in pattern.finditer(text))
+    norm = _normalized(text)
+    return any(not _negated(norm, match) for match in pattern.finditer(norm))
 
 
 def _scan_unless_negated(
@@ -230,8 +277,9 @@ def _scan_unless_negated(
     """Like `_scan`, but a match preceded by a negation cue is not a
     violation — the sentence is denying the prohibited claim, not making it.
     """
-    for match in pattern.finditer(text):
-        if not _negated(text, match):
+    norm = _normalized(text)
+    for match in pattern.finditer(norm):
+        if not _negated(norm, match):
             return [Violation(code, message, path=path, actual=_excerpt(text, match))]
     return []
 
