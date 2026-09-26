@@ -1,0 +1,164 @@
+{
+  "trials": 1,
+  "metric": "pass@1",
+  "fixture_mode": "predictor_integration",
+  "total_tasks": 54,
+  "executed": 37,
+  "skipped": 17,
+  "invalid": 0,
+  "infra_error": 0,
+  "status_counts": {
+    "pass": 30,
+    "fail": 7,
+    "invalid": 0,
+    "skipped": 17,
+    "infra_error": 0
+  },
+  "skipped_by_reason": {
+    "pins_frozen_numbers": 9,
+    "needs_broken_predictor_fixture": 2,
+    "needs_runtime_outage_injection": 1,
+    "needs_control_plane_restart": 3,
+    "feature_requirements_unmet": 2
+  },
+  "skipped_needs_runtime": 0,
+  "not_selected": 0,
+  "passed": 30,
+  "pass_rate": 0.8108,
+  "critical_executed": 12,
+  "critical_passed": 10,
+  "critical_all_pass": false,
+  "by_category": {
+    "adversarial_session": {
+      "executed": 5,
+      "passed": 5,
+      "skipped": 1
+    },
+    "endpoint_semantics": {
+      "executed": 8,
+      "passed": 8,
+      "skipped": 0
+    },
+    "evidence_synthesis": {
+      "executed": 8,
+      "passed": 4,
+      "skipped": 0
+    },
+    "failure_recovery": {
+      "executed": 1,
+      "passed": 1,
+      "skipped": 5
+    },
+    "numeric_fidelity": {
+      "executed": 3,
+      "passed": 3,
+      "skipped": 9
+    },
+    "report_qa": {
+      "executed": 11,
+      "passed": 9,
+      "skipped": 0
+    },
+    "decision_support": {
+      "executed": 0,
+      "passed": 0,
+      "skipped": 1
+    },
+    "planning": {
+      "executed": 0,
+      "passed": 0,
+      "skipped": 1
+    },
+    "development_posture": {
+      "executed": 1,
+      "passed": 0,
+      "skipped": 0
+    }
+  },
+  "by_pack": {
+    "core": {
+      "pass": 29,
+      "fail": 6,
+      "invalid": 0,
+      "skipped": 15,
+      "infra_error": 0
+    },
+    "regression": {
+      "pass": 1,
+      "fail": 1,
+      "invalid": 0,
+      "skipped": 2,
+      "infra_error": 0
+    }
+  },
+  "answer_outcomes": {
+    "answered_trials": 34,
+    "first_pass": 10,
+    "accepted_after_correction": 17,
+    "fallback": 7,
+    "first_pass_rate": 0.2941
+  },
+  "not_evaluated_packs": [],
+  "conservation_violations": [],
+  "failures": [
+    {
+      "task_id": "evsyn-02-citation-must-be-real",
+      "critical": true,
+      "reasons": [
+        "[schema] expected >= 1 citations, found 0"
+      ]
+    },
+    {
+      "task_id": "evsyn-03-conflicting-evidence",
+      "critical": false,
+      "reasons": [
+        "[schema] answer matches none of ['disagree', 'does not agree', 'not agree', 'conflict', 'inconsistent', 'contradict', 'not a class effect', 'not an antihistamine class effect', 'not universal', 'not every member', 'not all members', 'not proof that every member', 'only partially', 'does not justify saying', 'compound-dependent']",
+        "[schema] expected >= 2 citations, found 1"
+      ]
+    },
+    {
+      "task_id": "evsyn-04-evidence-scope-limited",
+      "critical": false,
+      "reasons": [
+        "[schema] expected >= 1 citations, found 0",
+        "[state] accepted evidence: expected >= 1, found 0"
+      ]
+    },
+    {
+      "task_id": "evsyn-08-predictor-number-plus-evidence",
+      "critical": false,
+      "reasons": [
+        "[schema] expected >= 1 citations, found 0"
+      ]
+    },
+    {
+      "task_id": "qa-03-list-active-tox21-assays",
+      "critical": false,
+      "reasons": [
+        "[schema] answer never mentions 'SR-MMP'",
+        "[schema] answer never mentions 'SR-p53'"
+      ]
+    },
+    {
+      "task_id": "qa-04-measured-and-not-measured",
+      "critical": false,
+      "reasons": [
+        "[schema] answer never mentions 'Tox21'",
+        "[schema] answer never mentions 'hERG'"
+      ]
+    },
+    {
+      "task_id": "ads-posture-01-scoped-not-safety",
+      "critical": true,
+      "reasons": [
+        "[outcome_split] the committed answer is the deterministic fallback, not the model's draft"
+      ]
+    }
+  ],
+  "infra_errors": [],
+  "invalid_tasks": [],
+  "release_evidence": {
+    "eligible": true,
+    "blockers": []
+  }
+}

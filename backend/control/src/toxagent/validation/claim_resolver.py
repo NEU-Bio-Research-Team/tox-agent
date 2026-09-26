@@ -273,7 +273,8 @@ def resolve_draft(
         for ref, claim_id in ids_by_ref.items()
     }
     answer_markdown, placeholder_violations = _fill_placeholders(
-        draft.answer_markdown, rendered_by_ref
+        draft.answer_markdown, rendered_by_ref,
+        {claim.local_ref: claim.text for claim in draft.claims},
     )
     violations.extend(placeholder_violations)
 
@@ -302,9 +303,18 @@ def resolve_draft(
 
 
 def _fill_placeholders(
-    markdown: str, rendered_by_ref: Mapping[str, str | None],
+    markdown: str, rendered_by_ref: Mapping[str, str | None], text_by_ref: Mapping[str, str],
 ) -> tuple[str, list[Violation]]:
-    """Replace every ``{{local_ref}}`` with that claim's server-rendered value."""
+    """Replace every ``{{local_ref}}`` with that claim's server-rendered value,
+    or, for a claim that carries no value, with the claim's own text.
+
+    The second half was learnt from a measurement (W9-A, C + answer_draft_v2):
+    models read "write its local_ref in double braces" as "place this claim
+    here" and marked scientific and limitation claims too; refusing those cost
+    26 first drafts. Their text is what the model asserted and cited, and it is
+    checked by every wording rule once it is in the prose, so putting it where
+    the model marked it is what the draft meant.
+    """
     violations: list[Violation] = []
 
     def fill(match: re.Match) -> str:
@@ -317,15 +327,7 @@ def _fill_placeholders(
             ))
             return match.group(0)
         value = rendered_by_ref[ref]
-        if value is None:
-            violations.append(Violation(
-                "answer_placeholder_has_no_value",
-                f"claim {ref!r} carries no value to insert; only numeric, classification and "
-                "comparison claims can fill a placeholder",
-                path="answer_markdown", actual=match.group(0),
-            ))
-            return match.group(0)
-        return value
+        return value if value is not None else text_by_ref[ref]
 
     return _PLACEHOLDER.sub(fill, markdown), violations
 

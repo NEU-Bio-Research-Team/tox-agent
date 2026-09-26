@@ -404,6 +404,35 @@ loosening a safety gate blind is not acceptable. Every wording violation now
 carries the flagged phrase with its sentence in `actual`: the model's one
 correction sees what to rewrite, and the next measurement can measure the gate.
 
+### W9-02b — what the first re-measurement found (2026-09-26)
+
+An extra arm, C + `answer_draft_v2` on the Phase A image
+(`evals/manifests/live-w9a-Cv2-core/`, paired with W9-A's C in
+`paired-w9a-C-Cv2-core.json`), showed that the W9-02 fix removed
+`unclaimed_numeric_value` entirely but **introduced a new first-draft refusal**:
+`answer_placeholder_has_no_value`, 26 times. Models read "write its local_ref in
+double braces" as "place this claim here" and marked scientific and limitation
+claims too. First-pass under v2 was 0.29 with a 0.21 fallback rate. Fixed: a
+placeholder of a claim without a value inserts the claim's own text (what the
+model asserted, still checked by every wording rule), and the prompt and tool
+description say which claims carry a value.
+
+The same runs were the first with the flagged sentence stored (W9-02). Of the
+safety/aggregate refusals across C, D and C + v2, **every one but one was the
+model denying a verdict** ("does not mean the compound is unsafe", "not
+evidence that the compound is safe", "an overall toxicity score cannot be
+provided", "không đủ để kết luận an toàn", "không phải đánh giá an toàn hoàn
+chỉnh"); the one exception ("… cho thấy biên an toàn phù hợp", a conditional
+safety margin) stays refused. The gates now read denials the way these
+sentences write them: a wider window cut at clause boundaries (so "not toxic,
+but the compound is safe" is still refused), declining verbs such as "does not
+mean/show", "not a … conclusion/finding/determination", "not (as) evidence
+that", the Vietnamese forms ("không đủ để kết luận", "không phải … đánh giá /
+kết luận / bằng chứng", "không (tự) chứng minh"), negation after an aggregate
+phrase ("score cannot be provided"), and "rather than". The real sentences are
+regression tests that must pass; asserted verdicts in both languages are tests
+that must still be refused. The TAB-Suite hard gates reuse the same functions.
+
 ### W9-01 — a lighter case policy, and the budget decision
 
 Measured on W8-02's D runs (tool_calls table): per turn about one

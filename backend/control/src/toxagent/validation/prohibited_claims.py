@@ -87,11 +87,40 @@ _SEVERITY_FROM_COUNT = re.compile(
 _NEGATION_CUE = re.compile(
     r"\b(not|no|never|without|lacks?|isn't|aren't|wasn't|weren't|doesn't|don't|"
     r"does\s+not|do\s+not|did\s+not|didn't|cannot|can't|couldn't|"
-    r"none\s+of|no\s+such|not\s+provide[sd]?|không)\b",
+    r"none\s+of|no\s+such|not\s+provide[sd]?|không|"
+    # "separate measurements rather than an aggregate score" (W9-02b).
+    r"rather\s+than|instead\s+of|thay\s+vì)\b",
     re.IGNORECASE,
 )
 
-_NEGATION_WINDOW_CHARS = 48
+#: A negation that follows the phrase it denies: "an overall toxicity score
+#: cannot be provided", "một điểm độc tính tổng hợp không có" (W9-02b). Up to
+#: three words may sit between them ("score", "is", "for this molecule").
+_NEGATED_AFTER = re.compile(
+    r"^\W*(?:[\w-]+\s+){0,3}?(?:cannot|can't|could\s+not|is\s+not|isn't|are\s+not|"
+    r"aren't|was\s+not|wasn't|does\s+not|doesn't|do\s+not|don't|will\s+not|won't|"
+    r"không|chưa)\b",
+    re.IGNORECASE,
+)
+
+#: W9-02b: the first measurement of these gates with the flagged sentence
+#: stored (W9-A) found almost every flag was a denial whose cue sat more than
+#: 48 characters back ("… the stored status is ok, which does not mean the
+#: compound is unsafe"). The window is wider, and a clause boundary now ends it
+#: as well as a sentence boundary, so "not toxic, but the compound is safe"
+#: is still caught.
+_NEGATION_WINDOW_CHARS = 80
+_CLAUSE_BOUNDARY = re.compile(r"[.;\n]|\b(?:but|however|yet|nhưng|tuy\s+nhiên|song)\b",
+                              re.IGNORECASE)
+
+
+def _same_clause_before(text: str, start: int, window: int) -> str:
+    """The text before ``start`` back to the nearest clause boundary."""
+    segment = text[max(0, start - window):start]
+    last = None
+    for last in _CLAUSE_BOUNDARY.finditer(segment):
+        pass
+    return segment[last.end():] if last is not None else segment
 
 #: Cues that say the *product* is declining to make the verdict, not that a
 #: verdict is being made about something negative (P1-5).
@@ -106,24 +135,33 @@ _NEGATION_WINDOW_CHARS = 48
 #: The audit's case: "Mô hình không đưa ra kết luận an toàn cho người" was
 #: refused as a safety verdict when it is the opposite of one.
 _DECLINES_TO_ASSERT = re.compile(
-    r"\b(cannot|can't|could\s+not|couldn't|does\s+not|doesn't|do\s+not|don't|"
-    r"will\s+not|won't|is\s+not\s+able\s+to|are\s+not\s+able\s+to)\s+"
-    r"(say|state|tell|conclude|determine|assert|claim|establish|provide|issue|make)\b"
+    r"\b(cannot|can't|could\s+not|couldn't|does\s+not|doesn't|do\s+not|don't|did\s+not|"
+    r"will\s+not|won't|is\s+not\s+able\s+to|are\s+not\s+able\s+to)\s+(be\s+)?(used\s+to\s+)?"
+    r"(say|state|tell|conclude|determine|assert|claim|establish|provide|issue|make|"
+    # W9-02b: "does not mean/imply/show …" declines the reading that follows.
+    r"mean|imply|indicate|show|prove|demonstrate|infer|confirm|support)\b"
     r"|\bmakes?\s+no\s+(claim|statement|assertion|verdict)\b"
     r"|\bno\s+(such\s+)?(verdict|conclusion|claim)\b"
-    r"|\bkhông\s+(đưa\s+ra|kết\s+luận|khẳng\s+định|tuyên\s+bố|nói)\b"
-    r"|\bkhông\s+phải\s+(là\s+)?(kết\s+luận|tuyên\s+bố)\b",
+    # "not a determination / finding / conclusion that …", "not evidence that".
+    # Up to three words may qualify the noun: "not a clinical diagnosis".
+    r"|\bnot\s+(?:(?:a|an|the)\s+)?(?:[\w-]+\s+){0,3}?(?:determination|finding|conclusion|"
+    r"verdict|claim|assessment|statement|confirmation|proof|diagnosis)\b"
+    r"|\bnot\s+(?:as\s+)?evidence\s+(?:that|of|for)\b"
+    r"|\bkhông\s+(?:tự\s+)?(đưa\s+ra|kết\s+luận|khẳng\s+định|tuyên\s+bố|nói|chứng\s+minh|"
+    r"xác\s+nhận|suy\s+ra|thay\s+thế|đảm\s+bảo|cho\s+biết)\b"
+    r"|\b(không|chưa)\s+(đủ\s+để|thể)\s+(kết\s+luận|suy\s+ra|khẳng\s+định|xác\s+nhận|"
+    r"chứng\s+minh|đánh\s+giá)\b"
+    # "không phải nguy cơ lâm sàng hay kết luận an toàn": a few words may come
+    # first, but the noun that makes it a declined conclusion must be there.
+    r"|\b(không|chưa)\s+phải\s+(?:là\s+)?(?:[\w-]+\s+){0,6}?(kết\s+luận|tuyên\s+bố|"
+    r"bằng\s+chứng|đánh\s+giá|xác\s+nhận)\b",
     re.IGNORECASE,
 )
 
 
 def _declines_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS) -> bool:
-    """Whether the product declines to assert, within the same sentence."""
-    segment = text[max(0, start - window):start]
-    boundary = max(segment.rfind("."), segment.rfind("\n"))
-    if boundary != -1:
-        segment = segment[boundary + 1:]
-    return bool(_DECLINES_TO_ASSERT.search(segment))
+    """Whether the product declines to assert, within the same clause."""
+    return bool(_DECLINES_TO_ASSERT.search(_same_clause_before(text, start, window)))
 
 
 #: Characters of context kept on each side of a flagged phrase.
@@ -153,11 +191,17 @@ def _scan_unless_declined(
 
 
 def _negated_before(text: str, start: int, window: int = _NEGATION_WINDOW_CHARS) -> bool:
-    segment = text[max(0, start - window):start]
-    boundary = max(segment.rfind("."), segment.rfind("\n"))
-    if boundary != -1:
-        segment = segment[boundary + 1:]
-    return bool(_NEGATION_CUE.search(segment))
+    return bool(_NEGATION_CUE.search(_same_clause_before(text, start, window)))
+
+
+def _negated_after(text: str, end: int, window: int = 40) -> bool:
+    segment = text[end:end + window]
+    cut = _CLAUSE_BOUNDARY.search(segment)
+    return bool(_NEGATED_AFTER.search(segment[:cut.start()] if cut else segment))
+
+
+def _negated(text: str, match: re.Match) -> bool:
+    return _negated_before(text, match.start()) or _negated_after(text, match.end())
 
 
 def _scan(pattern: re.Pattern, text: str, code: str, message: str, path: str) -> list[Violation]:
@@ -177,7 +221,7 @@ def matches_unnegated(pattern: re.Pattern, text: str) -> bool:
     or it re-flags the same false positives audit_5_9.md's §4.7 fix already
     closed here.
     """
-    return any(not _negated_before(text, match.start()) for match in pattern.finditer(text))
+    return any(not _negated(text, match) for match in pattern.finditer(text))
 
 
 def _scan_unless_negated(
@@ -187,7 +231,7 @@ def _scan_unless_negated(
     violation — the sentence is denying the prohibited claim, not making it.
     """
     for match in pattern.finditer(text):
-        if not _negated_before(text, match.start()):
+        if not _negated(text, match):
             return [Violation(code, message, path=path, actual=_excerpt(text, match))]
     return []
 

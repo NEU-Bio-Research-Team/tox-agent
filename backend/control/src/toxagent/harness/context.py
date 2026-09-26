@@ -193,11 +193,13 @@ researcher can add the molecule for a prediction.
 ANSWER_FORMAT_V2 = """\
 In submit_grounded_answer, a numeric or classification claim names the \
 observation_id and field_path a tool handed you; the server reads and renders \
-the value, so you never send one. To show a claim's value in answer_markdown, \
-write its local_ref in double braces, e.g. {{herg_p}}, and the server inserts \
-it. Any number you still write into answer_markdown yourself must be the value \
-of one of your numeric or comparison claims (rounding it is fine); a number \
-that is not a claim's value is rejected.
+the value, so you never send one. To show a numeric, classification or \
+comparison claim's value in answer_markdown, write its local_ref in double \
+braces, e.g. {{herg_p}}, and the server inserts the value (for any other claim, \
+a placeholder inserts the claim's text; writing the sentence yourself is \
+equally fine). Any number you still write into answer_markdown yourself must \
+be the value of one of your numeric or comparison claims (rounding it is \
+fine); a number that is not a claim's value is rejected.
 
 Never write a URL or a markdown link in answer_markdown, including when the \
 user explicitly asks for a link, a PubMed link, or "the source" by name. \

@@ -119,18 +119,19 @@ async def test_a_placeholder_naming_no_claim_is_a_correctable_violation(db):
     assert "answer_placeholder_unknown" in _codes(exc_info)
 
 
-async def test_a_placeholder_for_a_claim_without_a_value_is_refused(db):
+async def test_a_placeholder_for_a_claim_without_a_value_inserts_its_text(db):
+    """W9-A: models mark scientific claims with placeholders too; refusing them
+    cost 26 first drafts in the C + answer_draft_v2 run."""
     session, run, observation = await rig(db)
     draft = GroundedAnswerDraftV2(
-        answer_markdown="See {{note}}.",
+        answer_markdown="Note: {{note}}",
         claims=[ClaimCandidateV2(
             local_ref="note", kind="scientific", text="The score is a model output.",
             observation_id=observation.id, field_path="predictions.herg.probability_blocker",
         )],
     )
-    with pytest.raises(AnswerValidationFailed) as exc_info:
-        await _submit(db, session, run, draft)
-    assert "answer_placeholder_has_no_value" in _codes(exc_info)
+    outcome = await _submit(db, session, run, draft)
+    assert outcome.answer.answer_markdown == "Note: The score is a model output."
 
 
 async def test_the_explainer_verdict_shown_beside_an_attribution_is_citable(db):

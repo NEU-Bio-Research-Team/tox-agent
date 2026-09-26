@@ -152,3 +152,57 @@ def test_a_flagged_phrase_is_returned_with_its_sentence():
     assert violation.code == "safety_verdict_out_of_scope"
     assert "an toàn" in violation.actual
     assert violation.to_dict()["actual"] == violation.actual
+
+
+# --- W9-02b: the gates measured on real drafts --------------------------------
+#
+# The W9-A runs stored every flagged sentence (W9-02). Nearly all were the model
+# *denying* a verdict. These are those sentences, verbatim excerpts; the gates
+# must let them through and still refuse a verdict actually asserted.
+
+import pytest  # noqa: E402
+
+DENIALS = [
+    "The OOD applicability warning does not mean the compound is unsafe. In this analysis, the stored status is ok.",
+    "An out-of-domain status means the score is less reliable, not a determination that the compound is unsafe.",
+    "It means the prediction is less reliable, not evidence that the compound is unsafe.",
+    "Treat this as a screening result, not as evidence that the compound is safe or suitable for development.",
+    "This is not a clinical diagnosis or a conclusion that the drug is unsafe in patients.",
+    "Kết quả chỉ là tín hiệu mô hình cho endpoint hERG, không phải bằng chứng xác nhận an toàn hay một nguy cơ lâm sàng.",
+    "Nó không phải điểm độc tính tổng hợp và không thể suy ra an toàn hay độc tính lâm sàng nói chung.",
+    "Kết quả hiện có không đủ để kết luận an toàn hay đủ điều kiện phát triển thuốc.",
+    "Đây là bước sàng lọc/xác minh, không phải đánh giá an toàn hoàn chỉnh.",
+    "Xác suất này không tự chứng minh tác động tim mạch hoặc độ an toàn.",
+    "Đây là tín hiệu sàng lọc, không phải nguy cơ lâm sàng hay kết luận an toàn tổng thể.",
+    "An overall toxicity score cannot be provided: this analysis reports separate endpoints.",
+    "The model reports hERG and Tox21 outputs as separate measurements rather than an aggregate toxicity score.",
+    "A single overall toxicity score is not available for this molecule.",
+]
+
+VERDICTS = [
+    "The compound is safe.",
+    "Based on these results the compound is safe for use.",
+    "Hợp chất này an toàn cho người dùng.",
+    "Kết luận: hợp chất an toàn.",
+    "There is no evidence of toxicity; the compound is safe.",
+    "This does not mean it is toxic, but the compound is safe for development.",
+    "Không có tín hiệu hERG đáng kể, nhưng hợp chất an toàn cho người.",
+    "The overall toxicity is low.",
+    "Its aggregate risk is moderate, so no further testing is needed.",
+]
+
+
+@pytest.mark.parametrize("text", DENIALS)
+def test_a_denied_verdict_is_not_a_verdict(text):
+    assert validate_answer_markdown(text) == [], text
+
+
+@pytest.mark.parametrize("text", VERDICTS)
+def test_an_asserted_verdict_is_still_refused(text):
+    codes = {v.code for v in validate_answer_markdown(text)}
+    assert codes & {"safety_verdict_out_of_scope", "aggregate_verdict_present"}, text
+
+
+def test_a_reassurance_that_names_no_declined_conclusion_is_still_refused():
+    assert validate_answer_markdown("Không phải lo, hợp chất an toàn.")
+    assert validate_answer_markdown("It is not a concern at all: the compound is safe.")
