@@ -23,6 +23,29 @@ documents photos/
 backend/predictor/registry/artifacts/
 backend/predictor/research/test_data/
 
+# Pure-data JSON. tree-sitter-json yields no symbols for a data file, so each of
+# these is stamped in the manifest with no node in the graph and re-queued on
+# every run as a "prior failed extraction" (graphify #2543) — 113 files did
+# that. Only the data files are listed: the 10 JSON files that *do* carry
+# structure (task/case JSON *schemas*, agent_profiles/*/profile.json,
+# opencode/toxagent.json, package.json, tsconfig*.json) stay indexed.
+backend/control/evals/investigation/cases/
+backend/control/evals/investigation/case_specs.json
+backend/control/evals/investigation/rubric.json
+backend/control/evals/regression/tasks/
+backend/control/evals/tasks/
+backend/control/evals/packs/*.json
+backend/control/evals/packs/*/tasks/
+backend/predictor/evals/benchmark/manifests/
+backend/predictor/evals/benchmark/results/
+backend/predictor/evals/bioactivity/manifests/
+skill.manifest.json
+docs/capability-matrix.json
+docs/architecture-inventory.json
+docs/audit/regression_guards.json
+.claude/settings.json
+.claude/settings.local.json
+
 # Caches and local state.
 .graphify/
 graphify-out/
