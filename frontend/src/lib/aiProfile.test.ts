@@ -6,13 +6,13 @@
  * predictor-only deployment, where there is no runtime at all, and in an agent
  * deployment with no profiles configured — two states where nothing would run.
  *
- * The wording is the fix, so it is what is tested. The popover around it is
- * Radix's, and Radix's trigger needs the Pointer Capture API that jsdom does
- * not implement.
+ * The wording is the fix, so it is what is tested. It now labels the default
+ * profile choice in Settings; the per-session popover it used to live in is
+ * gone, and profileForSession below decides what a session is pinned to.
  */
 import { describe, expect, it } from 'vitest';
 
-import { describeAgentProfileChoice } from './SessionConfigPopover';
+import { describeAgentProfileChoice, profileForSession } from './aiProfile';
 
 describe('predictor-only deployment', () => {
   const choice = describeAgentProfileChoice({ agentEnabled: false, readyProfileCount: 0 });
@@ -64,5 +64,30 @@ describe('before /health/ready answers', () => {
     // "default runtime" either.
     expect(choice.defaultOptionLabel).toBe('Chưa cấu hình AI');
     expect(choice.disabled).toBe(false);
+  });
+});
+
+describe('profileForSession', () => {
+  const ready = ['conn_a', 'conn_b'];
+
+  it('pins the Settings default while it is ready', () => {
+    expect(profileForSession({ defaultProfileId: 'conn_a', currentProfileId: 'conn_b', readyProfileIds: ready })).toBe('conn_a');
+  });
+
+  it('honours an explicit choice of the server runtime', () => {
+    expect(profileForSession({ defaultProfileId: null, currentProfileId: 'conn_b', readyProfileIds: ready })).toBeNull();
+  });
+
+  it('keeps what the session had when no default was ever chosen', () => {
+    // A profile pinned through the old per-session popover must survive the
+    // popover's removal.
+    expect(profileForSession({ defaultProfileId: undefined, currentProfileId: 'conn_b', readyProfileIds: ready })).toBe('conn_b');
+  });
+
+  it('unpins a profile that is no longer ready, whichever way it was chosen', () => {
+    // A deleted or failed profile left pinned would fail every run, and there
+    // is no per-session control left to unpin it.
+    expect(profileForSession({ defaultProfileId: 'conn_gone', currentProfileId: null, readyProfileIds: ready })).toBeNull();
+    expect(profileForSession({ defaultProfileId: undefined, currentProfileId: 'conn_gone', readyProfileIds: ready })).toBeNull();
   });
 });

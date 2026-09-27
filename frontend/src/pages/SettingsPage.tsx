@@ -7,8 +7,9 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { Button } from '../components/ui/button';
 import { getToken, setToken, API_BASE_URL } from '../lib/api/client';
-import { getDeveloperModeEnabled, getExpertModeEnabled, setDeveloperModeEnabled, setExpertModeEnabled } from '../lib/preferences';
-import { createModelConnection, deleteModelConnection, listModelConnections, listSupportedProviders, testModelConnection, type SupportedProvider } from '../lib/api/endpoints';
+import { getDefaultAiProfileId, getDeveloperModeEnabled, getExpertModeEnabled, setDefaultAiProfileId, setDeveloperModeEnabled, setExpertModeEnabled } from '../lib/preferences';
+import { createModelConnection, deleteModelConnection, getHealthReady, listModelConnections, listSupportedProviders, testModelConnection, type HealthReady, type SupportedProvider } from '../lib/api/endpoints';
+import { describeAgentProfileChoice } from '../lib/aiProfile';
 import { ApiError, type ModelConnection } from '../lib/api/types';
 
 // The provider list comes from the server (I13). The hardcoded one here
@@ -16,6 +17,11 @@ import { ApiError, type ModelConnection } from '../lib/api/types';
 // has no adapter for, with a blank default base URL — so the form could be
 // filled in correctly, save, and then fail every capability probe with
 // "capability probing requires an explicit base_url".
+//
+// The form asks only for what the provider needs. The authentication mode
+// follows from whether a key was given (a provider that accepts none says so
+// in `auth_modes`), a display name defaults server-side, and a base URL is
+// asked for only when the provider has no fixed endpoint.
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -25,33 +31,44 @@ export function SettingsPage() {
   const [providers, setProviders] = useState<SupportedProvider[]>([]);
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
-  const [authMode, setAuthMode] = useState<ModelConnection['auth_mode']>('api_key');
   const [credential, setCredential] = useState('');
   const [providerError, setProviderError] = useState<string | null>(null);
+  const [defaultProfileId, setDefaultProfileIdState] = useState(getDefaultAiProfileId());
+  const [health, setHealth] = useState<HealthReady | null>(null);
 
   const refreshConnections = () => listModelConnections().then((result) => setConnections(result.connections)).catch(() => setProviderError('Không tải được danh sách AI provider.'));
   useEffect(() => { void refreshConnections(); }, []);
+  useEffect(() => { void getHealthReady().then(setHealth).catch(() => setHealth(null)); }, []);
   useEffect(() => {
     void listSupportedProviders()
       .then((result) => {
         setProviders(result.providers);
         const first = result.providers[0];
-        if (first) { setProvider(first.provider_id); setBaseUrl(first.default_base_url ?? ''); }
+        if (first) setProvider(first.provider_id);
       })
       .catch(() => setProviderError('Không tải được danh sách provider được hỗ trợ.'));
   }, []);
 
   const selected = providers.find((item) => item.provider_id === provider) ?? null;
+  const keyOptional = selected?.auth_modes.includes('none') ?? false;
+  const readyConnections = connections.filter((item) => item.status === 'ready');
+  const profileChoice = describeAgentProfileChoice({
+    agentEnabled: health ? health.mode === 'agent_enabled' : null,
+    readyProfileCount: readyConnections.length,
+  });
+  // A default that was deleted or stopped passing its test is not in force;
+  // useSessionProfileSync falls back to the server runtime for it.
+  const defaultInForce = readyConnections.some((item) => item.connection_id === defaultProfileId) ? defaultProfileId! : '';
 
   const addProvider = async () => {
     if (!provider.trim() || !model.trim()) { setProviderError('Chọn provider và nhập model.'); return; }
-    if (authMode === 'api_key' && !credential.trim()) { setProviderError('Nhập API key để tạo kết nối này.'); return; }
+    if (!keyOptional && !credential.trim()) { setProviderError('Nhập API key để tạo kết nối này.'); return; }
     if (selected?.base_url_required && !baseUrl.trim()) { setProviderError(`${selected.display_name} cần Base URL.`); return; }
+    const authMode: ModelConnection['auth_mode'] = credential.trim() ? 'api_key' : 'none';
     try {
-      await createModelConnection({ provider_id: provider.trim(), model_id: model.trim(), display_name: displayName.trim() || undefined, auth_mode: authMode, base_url: baseUrl.trim() || undefined, credential: authMode === 'api_key' ? credential : undefined });
-      setCredential(''); setModel(''); setDisplayName(''); setProviderError(null); await refreshConnections();
+      await createModelConnection({ provider_id: provider.trim(), model_id: model.trim(), auth_mode: authMode, base_url: selected?.base_url_required ? baseUrl.trim() : undefined, credential: authMode === 'api_key' ? credential : undefined });
+      setCredential(''); setModel(''); setBaseUrl(''); setProviderError(null); await refreshConnections();
     } catch (error) {
       // The server's message says what is wrong and often what to pick
       // instead; replacing it with one generic sentence is what left a user
@@ -93,15 +110,33 @@ export function SettingsPage() {
         </Card>
 
         <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <CardHeader><CardTitle className="text-base">Developer diagnostics</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between gap-4"><div><Label htmlFor="developer-mode">Hiện Run Details</Label><p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>Hiện liên kết trace, runtime, usage và raw event trong từng run. Không đưa tool trace vào transcript thông thường.</p></div><Switch id="developer-mode" checked={developerMode} onCheckedChange={(checked) => { setDeveloperMode(checked); setDeveloperModeEnabled(checked); }} /></div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <CardHeader><CardTitle className="text-base">AI Providers</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">AI</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="default-ai-profile">Profile dùng cho các phiên</Label>
+              <select
+                id="default-ai-profile"
+                className="mt-1 h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                disabled={profileChoice.disabled}
+                value={defaultInForce}
+                onChange={(event) => {
+                  const next = event.target.value || null;
+                  setDefaultAiProfileId(next);
+                  setDefaultProfileIdState(next);
+                }}
+              >
+                <option value="">{profileChoice.defaultOptionLabel}</option>
+                {readyConnections.map((connection) => (
+                  <option key={connection.connection_id} value={connection.connection_id}>
+                    {connection.display_name || `${connection.provider_id} · ${connection.model_id}`}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>
+                {profileChoice.notice ?? 'Áp dụng cho run tiếp theo của mọi phiên. Chỉ profile đã Test thành công mới chọn được.'}
+              </p>
+            </div>
+
             {connections.length === 0 ? <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có provider nào. API key chỉ được gửi khi tạo kết nối và không bao giờ trả lại giao diện.</p> : connections.map((connection) => (
               <div key={connection.connection_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm" style={{ borderColor: 'var(--border)' }}>
                 <div><p className="font-medium">{connection.display_name}</p><p className="text-xs" style={{ color: 'var(--text-faint)' }}>{connection.provider_id} · {connection.model_id} · {connection.status === 'ready' ? 'Connected ✓' : connection.status === 'failed' ? 'Connection failed' : 'Chưa kiểm tra'} · Credential saved {connection.has_credential ? '✓' : '—'}</p></div>
@@ -109,28 +144,34 @@ export function SettingsPage() {
               </div>
             ))}
             <div className="grid gap-2 sm:grid-cols-2">
-              <select aria-label="AI provider" value={provider} onChange={(e) => { const next = e.target.value; setProvider(next); setBaseUrl(providers.find((item) => item.provider_id === next)?.default_base_url ?? ''); }} className="h-9 rounded-md border bg-transparent px-3 text-sm">
+              <select aria-label="AI provider" value={provider} onChange={(e) => { setProvider(e.target.value); setBaseUrl(''); }} className="h-9 rounded-md border bg-transparent px-3 text-sm">
                 {providers.map((item) => <option key={item.provider_id} value={item.provider_id}>{item.display_name}</option>)}
               </select>
               <input aria-label="AI model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model (gpt-...)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
-              <input aria-label="AI profile name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Tên profile (optional)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
-              <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={selected?.base_url_required ? 'Base URL (bắt buộc)' : 'Base URL (để trống dùng mặc định)'} className="h-9 rounded-md border bg-transparent px-3 text-sm" />
-              <select aria-label="AI authentication" value={authMode} onChange={(e) => setAuthMode(e.target.value as ModelConnection['auth_mode'])} className="h-9 rounded-md border bg-transparent px-3 text-sm"><option value="api_key">API key</option><option value="local">Local / no credential</option><option value="none">No authentication</option></select>
-              {authMode === 'api_key' && <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder="API key" className="h-9 rounded-md border bg-transparent px-3 text-sm" autoComplete="new-password" />}
+              <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder={keyOptional ? 'API key (bỏ trống nếu server không cần)' : 'API key'} className="h-9 rounded-md border bg-transparent px-3 text-sm" autoComplete="new-password" />
+              {selected?.base_url_required && <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="Base URL (bắt buộc)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />}
             </div>
+            {selected?.note && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>{selected.note}</p>}
             {providerError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>{providerError}</p>}
             <Button size="sm" onClick={() => void addProvider()}>Add provider</Button>
           </CardContent>
         </Card>
 
-        <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <CardHeader>
-            <CardTitle className="text-base">Chế độ chuyên gia</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
+        <details className="rounded-xl border px-6 py-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <summary className="cursor-pointer text-base font-semibold">Nâng cao</summary>
+          <div className="mt-4 space-y-5">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <Label htmlFor="expert-mode">Hiện tuỳ chọn threshold override</Label>
+                <Label htmlFor="developer-mode">Hiện Run Details</Label>
+                <p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>
+                  Hiện liên kết trace, runtime, usage và raw event trong từng run. Không đưa tool trace vào transcript thông thường.
+                </p>
+              </div>
+              <Switch id="developer-mode" checked={developerMode} onCheckedChange={(checked) => { setDeveloperMode(checked); setDeveloperModeEnabled(checked); }} />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Label htmlFor="expert-mode">Chế độ chuyên gia: threshold override</Label>
                 <p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>
                   Chỉ hiển thị control; backend vẫn từ chối (403 forbidden) nếu token của bạn
                   không có role <code>expert</code>. Bật control ở đây không tự cấp quyền.
@@ -145,8 +186,8 @@ export function SettingsPage() {
                 }}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </details>
           </div>
         </div>
       </div>

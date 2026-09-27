@@ -1,17 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Hash, ImageUp, PenTool, Send, Settings2, X } from 'lucide-react';
+import { Gauge, Hash, ImageUp, PenTool, Plus, Send, X } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { ImageUploadDialog, type StagedImage } from './ImageUploadDialog';
-import type { Endpoint, IntentHint } from '../../lib/api/types';
-import { quickPredictCapabilities, type SendMessageInput } from '../../lib/api/endpoints';
-import { getDraft, getEndpointSelection, getExpertModeEnabled, setDraft, setEndpointSelection } from '../../lib/preferences';
+import type { SendMessageInput } from '../../lib/api/endpoints';
+import { getDraft, getExpertModeEnabled, setDraft } from '../../lib/preferences';
 import { looksLikeSmiles, suggestMolecule } from '../../lib/smiles';
 
 export { looksLikeSmiles };
@@ -34,31 +30,6 @@ function StructureEditorLoadingDialog() {
   );
 }
 
-const INTENT_OPTIONS: Array<{ value: IntentHint; label: string }> = [
-  { value: 'auto', label: 'Tự động (router quyết định)' },
-  { value: 'analyze', label: 'Phân tích phân tử' },
-  { value: 'ask_report', label: 'Hỏi về báo cáo hiện tại' },
-  { value: 'research_evidence', label: 'Tìm bằng chứng khoa học' },
-  { value: 'request_attribution', label: 'Attribution' },
-  { value: 'build_report', label: 'Tạo báo cáo đầy đủ' },
-];
-
-/** Explanation is a separate choice from prediction (I03).
- *
- * The composer used to hardcode `required` whenever a SMILES was present,
- * which made the Tox21 assay list a precondition for *any* prediction: typing
- * `CCO` on the default endpoints could not be sent at all, and the reason was
- * buried in an advanced popover. Prediction is the product; an explanation is
- * something the user asks for.
- */
-type ExplanationMode = 'none' | 'on_demand' | 'required';
-
-const EXPLANATION_OPTIONS: Array<{ value: ExplanationMode; label: string }> = [
-  { value: 'on_demand', label: 'Giải thích khi cần' },
-  { value: 'none', label: 'Chỉ dự đoán' },
-  { value: 'required', label: 'Bắt buộc kèm giải thích' },
-];
-
 export interface AnalysisContext {
   analysisId: string;
   label: string;
@@ -70,14 +41,30 @@ export interface SmilesPrefill {
   signal: number;
 }
 
+export interface TextPrefill {
+  text: string;
+  /** Same role as SmilesPrefill.signal. */
+  signal: number;
+}
+
+/**
+ * Text, one attach menu, send.
+ *
+ * The composer used to expose the router's own choices — an intent select, an
+ * explanation-mode radio group, and an advanced popover of endpoints and Tox21
+ * assays. Each had a default that was right for nearly every message (`auto`,
+ * `on_demand`, the deployment's default endpoints), and the one combination
+ * that was not — a required Tox21 explanation with no assay — could only be
+ * reached through them. The router decides the intent; an explanation is
+ * something the user asks for in words (I03).
+ */
 export function MessageComposer({
   sessionId,
   hasActiveAnalysis,
   disabled,
   focusSmilesSignal,
-  openDrawSignal,
-  openImageSignal,
   smilesPrefill,
+  textPrefill,
   structureRecognitionAvailable,
   analysisContext,
   onClearAnalysisContext,
@@ -88,15 +75,13 @@ export function MessageComposer({
   sessionId: string;
   hasActiveAnalysis: boolean;
   disabled: boolean;
-  /** Bumped by the parent to imperatively focus the SMILES field — e.g. when
-   * a "Nhập SMILES" clarification button is pressed. */
+  /** Bumped by the parent to open and focus the SMILES field — e.g. when a
+   * "Nhập SMILES" clarification button is pressed. */
   focusSmilesSignal?: number;
-  /** Bumped by the parent's empty-state hero cards to open the draw/image
-   * dialogs from outside the composer, mirroring focusSmilesSignal. */
-  openDrawSignal?: number;
-  openImageSignal?: number;
   /** Recognition/edit actions can fill the field, but never submit it. */
   smilesPrefill?: SmilesPrefill;
+  /** An example prompt picked from the empty state. Fills, never submits. */
+  textPrefill?: TextPrefill;
   /** `GET /health/ready`'s `capabilities.structure_recognition` — a
    * deployment fact (is `TOXAGENT_OCR_URL` configured?), not a permanent
    * limitation, so the upload dialog's copy must not hardcode "unsupported". */
@@ -110,64 +95,57 @@ export function MessageComposer({
 }) {
   const [text, setTextState] = useState(() => getDraft(sessionId));
   const [smiles, setSmiles] = useState('');
-  const [intentHint, setIntentHint] = useState<IntentHint>('auto');
-  const [endpoints, setEndpoints] = useState<Endpoint[]>(() => getEndpointSelection() ?? ['herg', 'tox21']);
-  const [tox21Tasks, setTox21Tasks] = useState<string[]>([]);
-  // `on_demand`, not `required`: a prediction is the product and an
-  // explanation is something the user asks for (I03).
-  const [explanationMode, setExplanationMode] = useState<ExplanationMode>('on_demand');
+  const [smilesFieldOpen, setSmilesFieldOpen] = useState(false);
+  const [smilesFocusRequest, setSmilesFocusRequest] = useState(0);
+  // A molecule detected in the text that the user removed from the chip: the
+  // message then goes as text only.
+  const [dismissedDetection, setDismissedDetection] = useState<string | null>(null);
   // Some input methods use Enter to accept a candidate. Without this the
   // composer submitted a half-typed draft mid-composition (I21).
   const [composing, setComposing] = useState(false);
   const [thresholdHerg, setThresholdHerg] = useState('');
   const [clientMessageId, setClientMessageId] = useState(() => crypto.randomUUID());
+  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [drawDialogOpen, setDrawDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [stagedImage, setStagedImage] = useState<StagedImage | null>(null);
   const expertMode = getExpertModeEnabled();
   const smilesInputRef = useRef<HTMLInputElement>(null);
-  const capabilities = useQuery({ queryKey: ['predict-capabilities'], queryFn: quickPredictCapabilities, staleTime: 5 * 60_000 });
-  const endpointCapabilities = capabilities.data?.endpoints ?? [];
-
-  useEffect(() => {
-    if (!capabilities.data) return;
-    const enabled = new Set(capabilities.data.endpoints?.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.id) ?? capabilities.data.served_endpoints);
-    setEndpoints((current) => {
-      const compatible = current.filter((endpoint) => enabled.has(endpoint));
-      const fallback = capabilities.data!.default_endpoints?.filter((endpoint) => enabled.has(endpoint)) ?? [];
-      const next = compatible.length ? compatible : fallback;
-      return next.length ? next : compatible;
-    });
-  }, [capabilities.data]);
-
-  useEffect(() => { setEndpointSelection(endpoints); }, [endpoints]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const setText = (next: string) => {
     setTextState(next);
     setDraft(sessionId, next);
   };
 
+  const openSmilesField = () => {
+    setSmilesFieldOpen(true);
+    setSmilesFocusRequest((n) => n + 1);
+  };
+
+  // Runs after the render that mounted the field, so the ref is set.
   useEffect(() => {
-    if (focusSmilesSignal !== undefined) smilesInputRef.current?.focus();
+    if (smilesFocusRequest > 0) smilesInputRef.current?.focus();
+  }, [smilesFocusRequest]);
+
+  useEffect(() => {
+    if (focusSmilesSignal !== undefined) openSmilesField();
     // Only the signal changing should trigger a focus, not every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusSmilesSignal]);
 
   useEffect(() => {
-    if (openDrawSignal !== undefined) setDrawDialogOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openDrawSignal]);
-
-  useEffect(() => {
-    if (openImageSignal !== undefined) setImageDialogOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openImageSignal]);
-
-  useEffect(() => {
     if (!smilesPrefill) return;
     setSmiles(smilesPrefill.smiles);
-    smilesInputRef.current?.focus();
+    openSmilesField();
   }, [smilesPrefill]);
+
+  useEffect(() => {
+    if (!textPrefill) return;
+    setText(textPrefill.text);
+    textareaRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textPrefill]);
 
   // Releases the object URL backing whichever image is staged when the
   // composer unmounts (e.g. the user switches sessions) without sending or
@@ -184,34 +162,25 @@ export function MessageComposer({
   // is what produced `research_subject_missing` and silent text loss.
   const suggestion = suggestMolecule(text);
   const trimmedSmilesField = smiles.trim();
-  const effectiveSmiles = trimmedSmilesField || suggestion.smiles || '';
-  const wantsFreshSmiles = effectiveSmiles.length > 0;
-  // Ambiguity is a question for the user, not a coin flip. The SMILES field
-  // is the answer, so the block clears as soon as it is filled in.
+  const detectedSmiles = suggestion.smiles && suggestion.smiles !== dismissedDetection ? suggestion.smiles : '';
+  const effectiveSmiles = trimmedSmilesField || detectedSmiles;
+  // Ambiguity is a question for the user, not a coin flip. Picking one of the
+  // candidates fills the SMILES field, which clears the block.
   const ambiguousMolecule = !trimmedSmilesField && suggestion.candidates.length > 1;
-
-  // Only an explicitly required explanation needs an assay, and only for
-  // Tox21 (I03). `on_demand` — the default — sends without one.
-  const needsTox21Target =
-    wantsFreshSmiles &&
-    explanationMode === 'required' &&
-    endpoints.includes('tox21') &&
-    tox21Tasks.length === 0;
+  const smilesFieldVisible = smilesFieldOpen || trimmedSmilesField.length > 0;
 
   const hasSomethingToSend =
     text.trim().length > 0 || trimmedSmilesField.length > 0 || stagedImage !== null;
-  const canSend = !disabled && !needsTox21Target && !ambiguousMolecule && hasSomethingToSend;
-
-  /** Shown next to the send button, never hidden in the popover. */
-  const blockedReason = needsTox21Target
-    ? 'Chọn ít nhất một assay Tox21 trong Tuỳ chọn nâng cao, hoặc đổi sang “Giải thích khi cần”.'
-    : ambiguousMolecule
-      ? `Câu này có ${suggestion.candidates.length} chuỗi giống SMILES. Nhập chuỗi bạn muốn phân tích vào ô SMILES.`
-      : null;
+  const canSend = !disabled && !ambiguousMolecule && hasSomethingToSend;
 
   const clearStagedImage = () => {
     if (stagedImage) URL.revokeObjectURL(stagedImage.previewUrl);
     setStagedImage(null);
+  };
+
+  const closeSmilesField = () => {
+    setSmiles('');
+    setSmilesFieldOpen(false);
   };
 
   const handleSend = async () => {
@@ -222,30 +191,21 @@ export function MessageComposer({
     // one keeps both, which is what `research_subject_missing` needed and what
     // stops `hello` from silently becoming a molecule (I04).
     const effectiveText =
-      !trimmedSmilesField && suggestion.isBareMolecule ? '' : trimmedText;
+      !trimmedSmilesField && detectedSmiles && suggestion.isBareMolecule ? '' : trimmedText;
 
     const input: SendMessageInput = {
       client_message_id: clientMessageId,
-      intent_hint: intentHint,
+      intent_hint: 'auto',
       content: effectiveText ? [{ type: 'text', text: effectiveText }] : undefined,
       molecule: effectiveSmiles ? { smiles: effectiveSmiles } : undefined,
       // Sent for an image too (I09). An image is an input, not a different
-      // product: without this the one input a user cannot type fell back to
-      // the server defaults for endpoints, model and explanation.
+      // product. Endpoints are left to the deployment's defaults, which is
+      // what the server applies when none are requested.
       analysis_options: effectiveSmiles || stagedImage
         ? {
-            endpoints,
             threshold_overrides:
               expertMode && thresholdHerg.trim() ? { herg: Number(thresholdHerg) } : null,
-            explanation_mode: explanationMode,
-            // Targets only mean something when an explanation was asked for.
-            explanation_targets:
-              explanationMode === 'none'
-                ? []
-                : [
-                    ...(endpoints.includes('herg') ? [{ endpoint: 'herg' as const }] : []),
-                    ...tox21Tasks.map((task) => ({ endpoint: 'tox21' as const, task })),
-                  ],
+            explanation_mode: 'on_demand',
           }
         : undefined,
       // A new molecule in the same send always wins — the chip targets a
@@ -258,13 +218,9 @@ export function MessageComposer({
     const accepted = await onSend(input);
     if (accepted) {
       setText('');
-      setSmiles('');
+      closeSmilesField();
+      setDismissedDetection(null);
       clearStagedImage();
-      // The hint describes *this* message, not the conversation. Leaving it
-      // set made the next message inherit it silently: a "tạo báo cáo" sent
-      // after a research question routed to evidence_research and never
-      // reached the report build at all.
-      setIntentHint('auto');
       // A fresh id for the *next* message; a failed send above keeps this
       // one so a retry of unedited content reuses the same idempotency key
       // instead of risking a duplicate if the original request actually
@@ -273,13 +229,26 @@ export function MessageComposer({
     }
   };
 
+  const attachItem = (label: string, Icon: typeof Hash, onSelect: () => void) => (
+    <button
+      type="button"
+      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--purple-50)]"
+      onClick={() => {
+        setAttachMenuOpen(false);
+        onSelect();
+      }}
+    >
+      <Icon className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+      {label}
+    </button>
+  );
+
+  const chipStyle = { backgroundColor: 'var(--accent-blue-muted)', color: 'var(--accent-blue)', width: 'fit-content' } as const;
+
   return (
     <div className="ta-glass rounded-[var(--radius-floating)] border p-3 shadow-[var(--shadow-float)] transition-shadow focus-within:shadow-[0_0_0_3px_var(--purple-glow),var(--shadow-float)]" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line-strong)' }}>
       {analysisContext && (
-        <div
-          className="mb-2 flex items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-xs font-medium"
-          style={{ backgroundColor: 'var(--accent-blue-muted)', color: 'var(--accent-blue)', width: 'fit-content' }}
-        >
+        <div className="mb-2 flex items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-xs font-medium" style={chipStyle}>
           <span>Đang hỏi về {analysisContext.label}</span>
           {onClearAnalysisContext && (
             <button
@@ -313,6 +282,7 @@ export function MessageComposer({
         </div>
       )}
       <Textarea
+        ref={textareaRef}
         placeholder={hasActiveAnalysis ? 'Hỏi về kết quả này…' : 'Nhập SMILES hoặc mô tả yêu cầu…'}
         value={text}
         onChange={(event) => setText(event.target.value)}
@@ -331,177 +301,111 @@ export function MessageComposer({
         rows={2}
         className="min-h-12 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
       />
-      <div className="flex flex-wrap items-center gap-1.5 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1.5 px-2 text-xs"
-          onClick={() => smilesInputRef.current?.focus()}
-        >
-          <Hash className="h-3.5 w-3.5" />
-          SMILES
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1.5 px-2 text-xs"
-          onClick={() => setImageDialogOpen(true)}
-        >
-          <ImageUp className="h-3.5 w-3.5" />
-          Ảnh
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1.5 px-2 text-xs"
-          onClick={() => setDrawDialogOpen(true)}
-        >
-          <PenTool className="h-3.5 w-3.5" />
-          Vẽ cấu trúc
-        </Button>
-      </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Input
-          ref={smilesInputRef}
-          placeholder="SMILES (tuỳ chọn)"
-          value={smiles}
-          onChange={(event) => setSmiles(event.target.value)}
-          className="h-8 max-w-[220px] font-mono text-xs"
-        />
 
-        <Select value={intentHint} onValueChange={(value) => setIntentHint(value as IntentHint)}>
-          <SelectTrigger className="h-8 w-[200px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {INTENT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Explanation is its own choice, in the main bar rather than behind
-            the advanced popover: it decides whether an assay is required, so
-            hiding it is what made the block unexplainable (I03).
-
-            Native radios rather than a listbox — three short, mutually
-            exclusive options that are worth seeing at a glance, and they come
-            with keyboard and screen-reader behaviour for free. */}
-        <fieldset
-          className="flex items-center gap-0.5 rounded-md border p-0.5"
-          style={{ borderColor: 'var(--line)' }}
-        >
-          <legend className="sr-only">Chế độ giải thích</legend>
-          {EXPLANATION_OPTIONS.map((option) => (
-            <label
-              key={option.value}
-              className="cursor-pointer rounded px-2 py-1 text-[11px] leading-none transition-colors"
-              style={
-                explanationMode === option.value
-                  ? { backgroundColor: 'var(--accent-blue-muted)', color: 'var(--accent-blue)' }
-                  : { color: 'var(--text-muted)' }
-              }
-            >
-              <input
-                type="radio"
-                name="explanation-mode"
-                className="sr-only"
-                value={option.value}
-                checked={explanationMode === option.value}
-                onChange={() => setExplanationMode(option.value)}
+      {(smilesFieldVisible || (detectedSmiles && !trimmedSmilesField) || ambiguousMolecule) && (
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          {smilesFieldVisible && (
+            <div className="flex items-center gap-1 rounded-full py-0.5 pl-2.5 pr-1" style={chipStyle}>
+              <Hash className="h-3 w-3 shrink-0" />
+              <Input
+                ref={smilesInputRef}
+                aria-label="SMILES"
+                placeholder="SMILES"
+                value={smiles}
+                onChange={(event) => setSmiles(event.target.value)}
+                className="h-6 w-[220px] border-0 bg-transparent px-1 font-mono text-xs shadow-none focus-visible:ring-0"
               />
-              {option.label}
-            </label>
-          ))}
-        </fieldset>
+              <button type="button" onClick={closeSmilesField} aria-label="Bỏ SMILES" className="rounded-full p-0.5 hover:opacity-70">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+          {detectedSmiles && !trimmedSmilesField && (
+            <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs" style={chipStyle}>
+              <Hash className="h-3 w-3 shrink-0" />
+              <span className="max-w-[260px] truncate font-mono">{detectedSmiles}</span>
+              <button
+                type="button"
+                onClick={() => setDismissedDetection(detectedSmiles)}
+                aria-label="Không phân tích chuỗi này như phân tử"
+                className="rounded-full hover:opacity-70"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+          {ambiguousMolecule && (
+            <>
+              <p role="status" className="text-[11px] leading-snug" style={{ color: 'var(--text-muted)' }}>
+                Câu này có {suggestion.candidates.length} chuỗi giống SMILES. Chọn chuỗi cần phân tích:
+              </p>
+              {suggestion.candidates.map((candidate) => (
+                <button
+                  key={candidate}
+                  type="button"
+                  onClick={() => {
+                    setSmiles(candidate);
+                    setSmilesFieldOpen(true);
+                  }}
+                  className="rounded-full border px-2.5 py-0.5 font-mono text-xs hover:bg-[var(--purple-50)]"
+                  style={{ borderColor: 'var(--line)' }}
+                >
+                  {candidate}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
 
-        <Popover>
+      <div className="flex items-center gap-1.5 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
+        <Popover open={attachMenuOpen} onOpenChange={setAttachMenuOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Tuỳ chọn nâng cao">
-              <Settings2 className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Thêm SMILES, ảnh hoặc bản vẽ">
+              <Plus className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 space-y-3">
-            <div>
-              <p className="mb-1.5 text-xs font-medium" style={{ color: 'var(--text)' }}>
-                Endpoint (khi có SMILES mới)
-              </p>
-              {endpointCapabilities.map((endpoint) => (
-                <label key={endpoint.id} className="flex items-center gap-2 py-1 text-xs" title={endpoint.blocked_reason ?? undefined}>
-                  <Checkbox
-                    checked={endpoints.includes(endpoint.id)}
-                    disabled={!endpoint.enabled}
-                    onCheckedChange={(checked) =>
-                      setEndpoints((prev) => {
-                        const next = checked ? [...prev, endpoint.id] : prev.filter((item) => item !== endpoint.id);
-                        return next.length ? next : prev;
-                      })
-                    }
-                  />
-                  <span className={endpoint.enabled ? '' : 'text-muted-foreground'}>{endpoint.display_name}</span>
-                  {!endpoint.enabled && <span className="text-[10px] text-muted-foreground">không khả dụng</span>}
-                </label>
-              ))}
-            </div>
-            {endpoints.includes('tox21') && endpointCapabilities.find((endpoint) => endpoint.id === 'tox21')?.tasks.length ? (
-              <div>
-                <p className="mb-1 text-xs font-medium">
-                  Assay Tox21 để giải thích{' '}
-                  <span className="font-normal text-muted-foreground">
-                    {explanationMode === 'required'
-                      ? '(bắt buộc chọn ít nhất một)'
-                      : '(tuỳ chọn — chỉ bắt buộc khi “Bắt buộc kèm giải thích”)'}
-                  </span>
-                </p>
-                <div className="grid grid-cols-2 gap-x-2">
-                  {endpointCapabilities.find((endpoint) => endpoint.id === 'tox21')!.tasks.map((task) => (
-                    <label key={task} className="flex items-center gap-1.5 py-0.5 text-xs">
-                      <Checkbox checked={tox21Tasks.includes(task)} onCheckedChange={(checked) => setTox21Tasks((current) => checked ? [...current, task] : current.filter((item) => item !== task))} />
-                      {task}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            {expertMode && (
-              <div>
-                <Label htmlFor="herg-threshold" className="text-xs">
-                  hERG threshold override (expert — backend từ chối nếu token không có role expert)
-                </Label>
-                <Input
-                  id="herg-threshold"
-                  className="mt-1 h-8 text-xs"
-                  placeholder="vd. 0.3"
-                  value={thresholdHerg}
-                  onChange={(event) => setThresholdHerg(event.target.value)}
-                />
-              </div>
-            )}
+          <PopoverContent align="start" className="w-48 p-1">
+            {attachItem('SMILES', Hash, openSmilesField)}
+            {attachItem('Ảnh', ImageUp, () => setImageDialogOpen(true))}
+            {attachItem('Vẽ cấu trúc', PenTool, () => setDrawDialogOpen(true))}
           </PopoverContent>
         </Popover>
 
-        {/* Next to the action it blocks, not inside the popover the user
-            would have to already suspect (I03). */}
-        {blockedReason && (
-          <p
-            role="status"
-            className="ml-auto max-w-[320px] text-right text-[11px] leading-snug"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {blockedReason}
-          </p>
+        {expertMode && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 px-2 text-xs"
+                aria-label="Ngưỡng hERG (chuyên gia)"
+              >
+                <Gauge className="h-3.5 w-3.5" />
+                {thresholdHerg.trim() ? `hERG ${thresholdHerg.trim()}` : null}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-64">
+              <Label htmlFor="herg-threshold" className="text-xs">
+                hERG threshold override (expert — backend từ chối nếu token không có role expert)
+              </Label>
+              <Input
+                id="herg-threshold"
+                className="mt-1 h-8 text-xs"
+                placeholder="vd. 0.3"
+                value={thresholdHerg}
+                onChange={(event) => setThresholdHerg(event.target.value)}
+              />
+            </PopoverContent>
+          </Popover>
         )}
+
         <Button
           onClick={() => void handleSend()}
           disabled={!canSend}
           variant="primary-gloss"
           size="icon-circle"
-          className={blockedReason ? '' : 'ml-auto'}
+          className="ml-auto"
           aria-label="Gửi"
         >
           <Send className="h-3.5 w-3.5" />
@@ -515,7 +419,7 @@ export function MessageComposer({
             onOpenChange={setDrawDialogOpen}
             onConfirm={(drawnSmiles) => {
               setSmiles(drawnSmiles);
-              smilesInputRef.current?.focus();
+              openSmilesField();
             }}
           />
         </Suspense>

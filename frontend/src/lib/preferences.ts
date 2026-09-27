@@ -3,6 +3,7 @@ const DEVELOPER_MODE_KEY = 'toxagent.developer_mode';
 const DRAFT_KEY_PREFIX = 'toxagent.draft.';
 const LAYOUT_KEY = 'toxagent.layout.v1';
 const ENDPOINT_SELECTION_KEY = 'toxagent.endpoint_selection.v1';
+const DEFAULT_AI_PROFILE_KEY = 'toxagent.default_ai_profile.v1';
 
 /** Section 7.6: only presentation preferences persist, versioned so a future
  * shape change can migrate or drop the key instead of crashing on old JSON.
@@ -111,7 +112,24 @@ export function setDraft(sessionId: string, text: string): void {
   }
 }
 
-export function getEndpointSelection(): Array<'herg' | 'tox21' | 'clintox'> | null {
+/** The AI provider profile new runs use. Replaces the per-session picker in
+ * the workbench header: the Settings page is the one place a user chooses a
+ * profile. `null` is an explicit choice of the deployment's own runtime;
+ * `undefined` means the user never chose, so sessions keep what they had. */
+export function getDefaultAiProfileId(): string | null | undefined {
+  try {
+    const raw = localStorage.getItem(DEFAULT_AI_PROFILE_KEY);
+    return raw === null ? undefined : raw || null;
+  } catch {
+    return undefined;
+  }
+}
+
+export function setDefaultAiProfileId(profileId: string | null): void {
+  try { localStorage.setItem(DEFAULT_AI_PROFILE_KEY, profileId ?? ''); } catch { /* best effort */ }
+}
+
+export function getEndpointSelection():Array<'herg' | 'tox21' | 'clintox'> | null {
   try {
     const value = JSON.parse(localStorage.getItem(ENDPOINT_SELECTION_KEY) ?? 'null');
     return Array.isArray(value)

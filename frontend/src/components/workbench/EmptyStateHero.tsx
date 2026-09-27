@@ -1,81 +1,42 @@
-import { Hash, ImageUp, PenTool } from 'lucide-react';
-
-interface InputOption {
-  key: 'smiles' | 'image' | 'draw';
-  icon: typeof Hash;
-  title: string;
-  description: string;
-  badge?: string;
-}
-
-const OPTIONS: InputOption[] = [
-  {
-    key: 'smiles',
-    icon: Hash,
-    title: 'Nhập SMILES',
-    description: 'Dán chuỗi SMILES để phân tích hERG, Tox21 và ClinTox.',
-  },
-  {
-    key: 'image',
-    icon: ImageUp,
-    title: 'Tải ảnh cấu trúc',
-    description: 'Tải ảnh cấu trúc hoá học lên để nhận diện.',
-  },
-  {
-    key: 'draw',
-    icon: PenTool,
-    title: 'Vẽ cấu trúc',
-    description: 'Vẽ cấu trúc 2D bằng công cụ có sẵn và chuyển thành SMILES.',
-  },
+/** Example requests. Each is a sentence with exactly one molecule in it, so
+ * the composer keeps the question and extracts the SMILES (I04). */
+export const EMPTY_STATE_EXAMPLES = [
+  'Phân tích aspirin CC(=O)Oc1ccccc1C(=O)O',
+  'Caffeine CN1C=NC2=C1C(=O)N(C(=O)N2C)C có nguy cơ ức chế hERG không?',
+  'CC(=O)Nc1ccc(O)cc1 có tín hiệu Tox21 nào đáng chú ý?',
 ];
 
-export function EmptyStateHero({
-  onPickSmiles,
-  onPickImage,
-  onPickDraw,
-}: {
-  onPickSmiles: () => void;
-  onPickImage: () => void;
-  onPickDraw: () => void;
-}) {
-  const handlers: Record<InputOption['key'], () => void> = {
-    smiles: onPickSmiles,
-    image: onPickImage,
-    draw: onPickDraw,
-  };
-
+/**
+ * One line of guidance and a few example prompts. The input methods (SMILES,
+ * image, drawing) live in the composer's attach menu; repeating them here as
+ * cards gave the same three actions two entry points.
+ */
+export function EmptyStateHero({ onPickExample }: { onPickExample: (text: string) => void }) {
   return (
-    <div className="flex min-h-[420px] flex-col items-center justify-center gap-7 px-4 py-10 text-center">
+    <div className="flex min-h-[420px] flex-col items-center justify-center gap-6 px-4 py-10 text-center">
       <div className="flex max-w-xl flex-col items-center gap-3">
         <h1 className="text-[32px] font-semibold tracking-tight" style={{ color: 'var(--ink)' }}>
           Bạn muốn phân tích gì?
         </h1>
         <p className="text-sm md:text-base" style={{ color: 'var(--ink-secondary)' }}>
-          Dán SMILES, tải ảnh cấu trúc hoặc vẽ phân tử để bắt đầu một phân tích có thể kiểm tra.
+          Nhập câu hỏi kèm SMILES, hoặc dùng nút + để thêm ảnh hay vẽ cấu trúc.
         </p>
       </div>
 
-      <div className="flex w-full max-w-xl flex-wrap justify-center gap-2">
-        {OPTIONS.map((option) => (
-          <button
-            key={option.key}
-            type="button"
-            onClick={handlers[option.key]}
-            className="group flex items-center gap-2 rounded-full border px-4 py-2.5 text-left transition-colors hover:bg-[var(--purple-50)]"
-            style={{ backgroundColor: 'var(--surface-solid)', borderColor: 'var(--line)' }}
-          >
-            <span
-              className="flex h-7 w-7 items-center justify-center rounded-full"
-              style={{ backgroundColor: 'var(--purple-100)' }}
+      <ul className="flex w-full max-w-xl flex-col gap-2" aria-label="Ví dụ">
+        {EMPTY_STATE_EXAMPLES.map((example) => (
+          <li key={example}>
+            <button
+              type="button"
+              onClick={() => onPickExample(example)}
+              className="w-full rounded-xl border px-4 py-2.5 text-left text-sm transition-colors hover:bg-[var(--purple-50)]"
+              style={{ backgroundColor: 'var(--surface-solid)', borderColor: 'var(--line)', color: 'var(--ink)' }}
             >
-              <option.icon className="h-4 w-4" style={{ color: 'var(--purple-600)' }} />
-            </span>
-            <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: 'var(--ink)' }}>
-              {option.title}
-            </span>
-          </button>
+              {example}
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

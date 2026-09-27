@@ -6,7 +6,8 @@
  * - I03: `explanation_mode` was hardcoded to `required` whenever a SMILES was
  *   present, so the Tox21 assay list became a precondition for *any*
  *   prediction. Typing `CCO` on the default endpoints could not be sent, and
- *   the reason lived in an advanced popover.
+ *   the reason lived in an advanced popover. The composer now exposes neither
+ *   the mode nor the assay list: it always sends `on_demand`.
  * - I04: a bare word matched the SMILES heuristic and the composer then
  *   replaced the user's text with it; a sentence containing a molecule
  *   matched nothing and reached the backend with no subject.
@@ -19,26 +20,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MessageComposer } from './MessageComposer';
 import type { SendMessageInput } from '../../lib/api/endpoints';
-
-vi.mock('../../lib/api/endpoints', async () => {
-  const actual = await vi.importActual<Record<string, unknown>>('../../lib/api/endpoints');
-  return {
-    ...actual,
-    quickPredictCapabilities: vi.fn(async () => ({
-      capability_version: 'predict-capabilities-v2',
-      endpoints: [
-        { id: 'herg', display_name: 'hERG', enabled: true, tasks: [], blocked_reason: null },
-        {
-          id: 'tox21',
-          display_name: 'Tox21',
-          enabled: true,
-          tasks: ['NR-AR', 'SR-MMP'],
-          blocked_reason: null,
-        },
-      ],
-    })),
-  };
-});
 
 type SendSpy = ReturnType<typeof makeSendSpy>;
 
@@ -62,10 +43,6 @@ function renderComposer(onSend: SendSpy) {
 }
 
 const sendButton = () => screen.getByRole('button', { name: 'Gửi' });
-
-async function chooseExplanationMode(label: string) {
-  await userEvent.click(screen.getByRole('radio', { name: label }));
-}
 const textbox = () => screen.getByPlaceholderText('Nhập SMILES hoặc mô tả yêu cầu…');
 
 beforeEach(() => {
@@ -88,29 +65,25 @@ describe('I03 — prediction does not require an explanation target', () => {
     expect(input.analysis_options?.explanation_mode).toBe('on_demand');
   });
 
-  it('blocks an explicitly required Tox21 explanation with no assay, and says why next to the button', async () => {
+  it('leaves endpoints to the deployment default and exposes no router controls', async () => {
     const onSend = makeSendSpy();
     renderComposer(onSend);
 
-    await userEvent.type(textbox(), 'CCO');
-    await chooseExplanationMode('Bắt buộc kèm giải thích');
-
-    await waitFor(() => expect(sendButton()).toBeDisabled());
-    expect(screen.getByRole('status').textContent).toMatch(/assay Tox21/i);
-  });
-
-  it('sends nothing for explanation targets when the user asked for prediction only', async () => {
-    const onSend = makeSendSpy();
-    renderComposer(onSend);
+    // The intent select, explanation radios and endpoint/assay checkboxes are
+    // gone: the router decides the intent, the server applies its default
+    // endpoints, and an explanation is asked for in words.
+    expect(screen.queryByRole('radio')).toBeNull();
+    expect(screen.queryByRole('combobox')).toBeNull();
+    expect(screen.queryByRole('checkbox')).toBeNull();
 
     await userEvent.type(textbox(), 'CCO');
-    await chooseExplanationMode('Chỉ dự đoán');
     await userEvent.click(sendButton());
 
     await waitFor(() => expect(onSend).toHaveBeenCalled());
     const input = onSend.mock.calls[0][0];
-    expect(input.analysis_options?.explanation_mode).toBe('none');
-    expect(input.analysis_options?.explanation_targets).toEqual([]);
+    expect(input.intent_hint).toBe('auto');
+    expect(input.analysis_options?.endpoints).toBeUndefined();
+    expect(input.analysis_options?.explanation_targets).toBeUndefined();
   });
 });
 
@@ -160,15 +133,15 @@ describe('I04 — the question survives the molecule', () => {
 
     await userEvent.type(textbox(), 'Compare CCO and c1ccccc1');
     await waitFor(() => expect(sendButton()).toBeDisabled());
-    expect(screen.getByRole('status').textContent).toMatch(/ô SMILES/);
+    expect(screen.getByRole('status').textContent).toMatch(/Chọn chuỗi/);
   });
 
-  it('unblocks the ambiguous case as soon as the SMILES field is filled in', async () => {
+  it('unblocks the ambiguous case once the user picks one candidate', async () => {
     const onSend = makeSendSpy();
     renderComposer(onSend);
 
     await userEvent.type(textbox(), 'Compare CCO and c1ccccc1');
-    await userEvent.type(screen.getByPlaceholderText('SMILES (tuỳ chọn)'), 'CCO');
+    await userEvent.click(screen.getByRole('button', { name: 'CCO' }));
 
     await waitFor(() => expect(sendButton()).not.toBeDisabled());
     await userEvent.click(sendButton());
@@ -176,6 +149,72 @@ describe('I04 — the question survives the molecule', () => {
     const input = onSend.mock.calls[0][0];
     expect(input.molecule).toEqual({ smiles: 'CCO' });
     expect(input.content).toEqual([{ type: 'text', text: 'Compare CCO and c1ccccc1' }]);
+  });
+});
+
+describe('the molecule chip', () => {
+  it('shows the detected molecule, and removing it sends the text alone', async () => {
+    const onSend = makeSendSpy();
+    renderComposer(onSend);
+
+    await userEvent.type(textbox(), 'Phân tích CCO giúp tôi');
+    await userEvent.click(screen.getByRole('button', { name: 'Không phân tích chuỗi này như phân tử' }));
+    await userEvent.click(sendButton());
+
+    await waitFor(() => expect(onSend).toHaveBeenCalled());
+    const input = onSend.mock.calls[0][0];
+    expect(input.molecule).toBeUndefined();
+    expect(input.analysis_options).toBeUndefined();
+    expect(input.content).toEqual([{ type: 'text', text: 'Phân tích CCO giúp tôi' }]);
+  });
+
+  it('keeps a dismissed bare molecule as text rather than dropping it', async () => {
+    const onSend = makeSendSpy();
+    renderComposer(onSend);
+
+    await userEvent.type(textbox(), 'CCO');
+    await userEvent.click(screen.getByRole('button', { name: 'Không phân tích chuỗi này như phân tử' }));
+    await userEvent.click(sendButton());
+
+    await waitFor(() => expect(onSend).toHaveBeenCalled());
+    expect(onSend.mock.calls[0][0].content).toEqual([{ type: 'text', text: 'CCO' }]);
+  });
+
+  it('opens an explicit SMILES field from the attach menu', async () => {
+    const onSend = makeSendSpy();
+    renderComposer(onSend);
+
+    expect(screen.queryByRole('textbox', { name: 'SMILES' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Thêm SMILES, ảnh hoặc bản vẽ' }));
+    await userEvent.click(screen.getByRole('button', { name: 'SMILES' }));
+    const field = screen.getByRole('textbox', { name: 'SMILES' });
+    await waitFor(() => expect(field).toHaveFocus());
+
+    await userEvent.type(field, 'c1ccccc1');
+    await userEvent.click(sendButton());
+    await waitFor(() => expect(onSend).toHaveBeenCalled());
+    expect(onSend.mock.calls[0][0].molecule).toEqual({ smiles: 'c1ccccc1' });
+  });
+});
+
+describe('threshold override', () => {
+  it('is hidden unless expert mode is on', () => {
+    renderComposer(makeSendSpy());
+    expect(screen.queryByRole('button', { name: 'Ngưỡng hERG (chuyên gia)' })).toBeNull();
+  });
+
+  it('is offered, and sent, in expert mode', async () => {
+    window.localStorage.setItem('toxagent.expert_mode', '1');
+    const onSend = makeSendSpy();
+    renderComposer(onSend);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ngưỡng hERG (chuyên gia)' }));
+    await userEvent.type(screen.getByLabelText(/hERG threshold override/), '0.3');
+    await userEvent.type(textbox(), 'CCO');
+    await userEvent.click(sendButton());
+
+    await waitFor(() => expect(onSend).toHaveBeenCalled());
+    expect(onSend.mock.calls[0][0].analysis_options?.threshold_overrides).toEqual({ herg: 0.3 });
   });
 });
 

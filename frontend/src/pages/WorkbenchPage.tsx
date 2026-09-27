@@ -8,9 +8,8 @@ import { WorkspaceHeader } from '../components/shell/WorkspaceHeader';
 import { Button } from '../components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../components/ui/sheet';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../components/ui/resizable';
-import { MessageComposer, type AnalysisContext, type SmilesPrefill } from '../components/workbench/MessageComposer';
+import { MessageComposer, type AnalysisContext, type SmilesPrefill, type TextPrefill } from '../components/workbench/MessageComposer';
 import { EmptyStateHero } from '../components/workbench/EmptyStateHero';
-import { SessionConfigPopover } from '../components/workbench/SessionConfigPopover';
 import { Transcript } from '../components/transcript/Transcript';
 import {
   getHealthReady,
@@ -26,6 +25,7 @@ import { useSessionEvents } from '../hooks/useSessionEvents';
 import { useArtifactSelectionFromUrl, artifactPath } from '../hooks/useArtifactSelection';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useStickToBottom } from '../hooks/useStickToBottom';
+import { useSessionProfileSync } from '../hooks/useSessionProfileSync';
 import { getLayoutPreferences, setLayoutPreferences, clampArtifactsWidth } from '../lib/preferences';
 import {
   addPendingSend,
@@ -82,11 +82,10 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
 
   // Undefined until first bumped — MessageComposer's effects fire on
   // "!== undefined", so starting these at a real number (e.g. 0) would fire
-  // every one of them, including the two dialogs, on the very first mount.
+  // every one of them on the very first mount.
   const [focusSmilesSignal, setFocusSmilesSignal] = useState<number>();
-  const [openDrawSignal, setOpenDrawSignal] = useState<number>();
-  const [openImageSignal, setOpenImageSignal] = useState<number>();
   const [smilesPrefill, setSmilesPrefill] = useState<SmilesPrefill>();
+  const [textPrefill, setTextPrefill] = useState<TextPrefill>();
   const [analysisContext, setAnalysisContext] = useState<AnalysisContext | null>(null);
   // Section 8.2.1's UI state: none of this is a durable preference (7.6) —
   // it resets whenever the session itself changes (WorkbenchView remounts
@@ -103,6 +102,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
     initialData: initial,
   });
   const session = sessionQuery.data ?? initial;
+  const profileSynced = useSessionProfileSync(sessionId);
 
   const messagesQuery = useQuery({
     queryKey: ['messages', sessionId],
@@ -261,7 +261,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
         title={session.title ?? 'Phiên mới'}
         sessionId={session.session_id}
         status={status}
-        actions={<><SessionConfigPopover sessionId={sessionId} />{artifactsButton}</>}
+        actions={artifactsButton}
         onRename={async (title) => { await renameMutation.mutateAsync(title); }}
       />
       {/* UI-01: `min-h-0` is what lets `flex-1` actually shrink inside a
@@ -284,9 +284,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
           )}
           {messagesQuery.data && messagesQuery.data.messages.length === 0 && pendingSends.length === 0 && (
             <EmptyStateHero
-              onPickSmiles={() => setFocusSmilesSignal((n) => (n ?? 0) + 1)}
-              onPickImage={() => setOpenImageSignal((n) => (n ?? 0) + 1)}
-              onPickDraw={() => setOpenDrawSignal((n) => (n ?? 0) + 1)}
+              onPickExample={(text) => setTextPrefill((current) => ({ text, signal: (current?.signal ?? 0) + 1 }))}
             />
           )}
           {messagesQuery.data && (messagesQuery.data.messages.length > 0 || pendingSends.length > 0) && (
@@ -335,15 +333,15 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
               hasActiveAnalysis={Boolean(session.active_analysis)}
               disabled={sendMutation.isPending || activeRunBusy}
               focusSmilesSignal={focusSmilesSignal}
-              openDrawSignal={openDrawSignal}
-              openImageSignal={openImageSignal}
               smilesPrefill={smilesPrefill}
+              textPrefill={textPrefill}
               structureRecognitionAvailable={structureRecognitionAvailable}
               analysisContext={analysisContext}
               onClearAnalysisContext={() => setAnalysisContext(null)}
               onSend={async (input) => {
                 setPendingSends((current) => addPendingSend(current, pendingSendFromInput(input)));
                 try {
+                  await profileSynced();
                   await sendMutation.mutateAsync(input);
                   setAnalysisContext(null);
                   return true;
