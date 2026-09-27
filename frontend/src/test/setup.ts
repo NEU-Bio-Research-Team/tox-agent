@@ -59,6 +59,20 @@ if (typeof HTMLCanvasElement !== 'undefined') {
   ) as unknown as HTMLCanvasElement['toDataURL'];
 }
 
+// jsdom has no top layer, so no element is ever `:popover-open` or `:modal`.
+// Floating UI (under every Radix popover) asks exactly that on each position
+// update, and jsdom's selector engine answers those two pseudo-classes by
+// recursing through the tree: one open popover made every later test in the
+// same file take seconds. Answering `false` is what a real top-layer-less
+// document would say, not a shortcut around a behaviour under test.
+if (typeof Element !== 'undefined') {
+  const nativeMatches = Element.prototype.matches;
+  Element.prototype.matches = function matches(this: Element, selectors: string) {
+    if (selectors === ':popover-open' || selectors === ':modal') return false;
+    return nativeMatches.call(this, selectors);
+  };
+}
+
 // An unexpected console.error fails the test that produced it.
 //
 // React reports a great deal through console.error and nothing else: an
