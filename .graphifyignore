@@ -1,0 +1,30 @@
+# What the knowledge graph is about: the product and its documents.
+#
+# Graphify already honours .gitignore (node_modules/, .venv/, build output).
+# These are tracked-or-present paths that would add volume without adding
+# meaning: superseded code, measurement records, datasets and scans.
+
+# Superseded implementation, kept only for reference (docs/WORKSPACE_LAYOUT.md).
+legacy/
+
+# Measurement evidence: run records, manifests, packets, fixtures. Thousands of
+# JSON/JSONL/Markdown artefacts that record *results*, not structure. The code
+# that produces them (evals/*.py) is indexed.
+backend/control/evals/manifests/
+backend/control/evals/investigation/runs/
+backend/control/evals/experiments/runs/
+backend/control/evals/external/scifact/runs/
+backend/control/evals/fixtures/
+backend/control/tests/fixtures/
+
+# Datasets, model artefacts and scanned material.
+data/
+documents photos/
+backend/predictor/registry/artifacts/
+backend/predictor/research/test_data/
+
+# Caches and local state.
+.graphify/
+graphify-out/
+.pytest_cache/
+.ruff_cache/
