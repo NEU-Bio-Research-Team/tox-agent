@@ -1,6 +1,6 @@
 # Bioactivity branch — V1 fixed-target runbook
 
-Implements phases P0–P2 of `TOXAGENT_BIOACTIVITY_BENCHMARK_PLAN_VI.md`: the
+Implements phases P0–P2 of `docs/spec/TOXAGENT_BIOACTIVITY_BENCHMARK_PLAN_VI.md`: the
 `toxact-chembl37-hq-v1` data contract, the four frozen split views, and the
 B0–B2 baselines with the full metric suite.
 

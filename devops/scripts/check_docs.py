@@ -7,7 +7,7 @@ Two checks, both of which the audit found failing (I32):
 2. Operational documents name no path that the relocation removed.
 
 The second check is deliberately narrow. Historical records — the progress
-log, the spec plans, the refactor audit, anything under docs/archive — are
+log, the spec plans, the refactor audit, the audit records — are
 evidence of what was true when written and must not be edited to match today's
 tree; they are exempt, and `docs/README.md` marks them as historical instead.
 A runbook is not evidence: someone follows it, so a dead path there is a bug.
@@ -24,7 +24,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: Historical records. Exempt from the stale-path check, never from links.
 HISTORICAL = (
-    "docs/archive/",
     "docs/spec/",
     "docs/refactor/",
     "docs/audit/",
@@ -33,8 +32,6 @@ HISTORICAL = (
     # An analysis of the pre-refactor monolith. Its inventory of what
     # model_server/ contained is the finding, not a stale reference.
     "docs/BM1_explainer_benchmark_analysis.md",
-    # A source plan, on the same footing as docs/spec.
-    "new_plan.md",
     # An ADR records a decision as it was made. Both of these name a path the
     # relocation retired *because that is what existed at the time* — 0006
     # describes what the pre-refactor monolith did, 0007 describes a profile

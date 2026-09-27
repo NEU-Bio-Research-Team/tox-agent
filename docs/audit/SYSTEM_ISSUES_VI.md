@@ -474,7 +474,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I32 — Tài liệu vận hành và bằng chứng lịch sử chưa theo layout hiện tại
 
-**P2 · Nguồn · K01.** Nguồn: [docs/DEVELOPMENT.md](../../docs/DEVELOPMENT.md), [docs/runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md](../../docs/runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md), [docs/refactor/PREDICTOR_ONLY_STATUS_VI.md](../../docs/refactor/PREDICTOR_ONLY_STATUS_VI.md), [docs/unified-v2/BASELINE.md](../../docs/unified-v2/BASELINE.md).
+**P2 · Nguồn · K01.** Nguồn: [docs/DEVELOPMENT.md](../../docs/DEVELOPMENT.md), `docs/runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md` (removed 2026-09-27), [docs/refactor/PREDICTOR_ONLY_STATUS_VI.md](../../docs/refactor/PREDICTOR_ONLY_STATUS_VI.md), [docs/unified-v2/BASELINE.md](../../docs/unified-v2/BASELINE.md).
 
 **Bằng chứng và điều kiện:** Nhiều command/path còn model_server, deploy root, predictor-only hoặc artifact path cũ. Báo cáo progress tổng hợp nhiều thời điểm, có mục đã được mục sau sửa.
 

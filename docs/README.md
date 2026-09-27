@@ -60,8 +60,6 @@ Three statuses, and they mean different things:
 | [`runbooks/TOXAGENT_DATABASE_MIGRATION_RUNBOOK.md`](runbooks/TOXAGENT_DATABASE_MIGRATION_RUNBOOK.md) | Current | Forward-only migration policy |
 | [`runbooks/EXPERIMENT_RUNBOOK.md`](runbooks/EXPERIMENT_RUNBOOK.md) | Current | Research-side reproducibility |
 | [`runbooks/CHAT_PERSISTENCE_E2E_CHECKLIST.md`](runbooks/CHAT_PERSISTENCE_E2E_CHECKLIST.md) | Historical | Written against Firestore; acceptance moves to SQL/REST/SSE under K07/K08 |
-| [`runbooks/CICD_AUTO_DEPLOY_MASTER_PLAN.md`](runbooks/CICD_AUTO_DEPLOY_MASTER_PLAN.md) | Historical | Single-backend/Firestore/ADK topology, replaced by K12 |
-| [`runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md`](runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md) | **Superseded** | Pre-refactor monolith deployment. Replacement is K12 (#22). |
 
 ## Plans and specifications
 
@@ -87,8 +85,6 @@ open, and audit findings.
 | `unified-v2/ARCHITECTURE.md`, `unified-v2/DECISIONS.md`, `unified-v2/MIGRATION.md` | Current — typed boundary invariants |
 | `unified-v2/BASELINE.md`, `unified-v2/IMPLEMENTATION_STATUS.md` | Historical — G0–G12 evidence at the time of writing |
 | `refactor/PREDICTOR_ONLY_STATUS_VI.md` | Historical — audit of the monolith it replaced |
-| `archive/` | Historical — ADK checklist, v1.0 overview, brainstorms |
-| `slides/README.md` | Historical — deck source document was removed at `b79036d` |
 
 ## Test numbers cited anywhere in these documents
 
