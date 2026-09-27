@@ -23,12 +23,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: Historical records. Exempt from the stale-path check, never from links.
+#: The plan, audit, progress, runbook, `unified-v2` and `refactor` documents
+#: were removed on 2026-09-27, so their exemptions went with them; `docs/spec/`
+#: stays because the cleanup plan itself lives there.
 HISTORICAL = (
     "docs/spec/",
-    "docs/refactor/",
-    "docs/audit/",
-    "docs/unified-v2/BASELINE.md",
-    "docs/unified-v2/IMPLEMENTATION_STATUS.md",
     # An analysis of the pre-refactor monolith. Its inventory of what
     # model_server/ contained is the finding, not a stale reference.
     "docs/BM1_explainer_benchmark_analysis.md",

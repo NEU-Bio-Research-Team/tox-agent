@@ -51,40 +51,30 @@ Three statuses, and they mean different things:
 | [`artifacts/clintox-smilesgnn-v1.md`](artifacts/clintox-smilesgnn-v1.md) | Current | **Blocked** artifact — records why v1 cannot be served (I07) |
 | `BM1_explainer_benchmark_analysis.md` | Historical | Explainer analysis of the pre-refactor monolith |
 
-## Runbooks
-
-| Document | Status | Scope |
-|---|---|---|
-| [`runbooks/DOCKER_TEST_RUNBOOK.md`](runbooks/DOCKER_TEST_RUNBOOK.md) | Current | Build and smoke-test the predictor image |
-| [`runbooks/TOXAGENT_OPERATIONS_RUNBOOK.md`](runbooks/TOXAGENT_OPERATIONS_RUNBOOK.md) | Current | Secrets, outages, stuck runs, backup |
-| [`runbooks/TOXAGENT_DATABASE_MIGRATION_RUNBOOK.md`](runbooks/TOXAGENT_DATABASE_MIGRATION_RUNBOOK.md) | Current | Forward-only migration policy |
-| [`runbooks/EXPERIMENT_RUNBOOK.md`](runbooks/EXPERIMENT_RUNBOOK.md) | Current | Research-side reproducibility |
-| [`runbooks/CHAT_PERSISTENCE_E2E_CHECKLIST.md`](runbooks/CHAT_PERSISTENCE_E2E_CHECKLIST.md) | Historical | Written against Firestore; acceptance moves to SQL/REST/SSE under K07/K08 |
-
-## Plans and specifications
-
-Source documents. Held immutable so a later report cannot be read back into an
-earlier one. The current consolidated view is the audit pair.
+## Internal documents
 
 **These live in the development repository and are not part of a customer
 distribution** — `devops/handoff_allowlist.json` withholds them, and the names
-below are deliberately not links so a handed-over clone has no dead ones. They
-are internal because they describe work that is not delivered, decisions still
-open, and audit findings.
+below are deliberately not links so a handed-over clone has no dead ones.
 
 | Document | Status |
 |---|---|
-| `audit/SYSTEM_ISSUES_VI.md` | Current — the 32 issues, I01–I32 |
-| `audit/REMAINING_IMPLEMENTATION_PLAN_VI.md` | Current — packages K01–K13 |
-| `audit/K01_BASELINE.md`, `audit/K02_MEASURED_AFTER_FIXES.md`, `audit/K03_DRILLS.md` | Current — what was measured, and when |
-| `spec/` | Historical — rebuild, capabilities, quick-predict, UI, landing, handoff, GPU plans |
-| `spec/TOXAGENT_AGENTIC_LAYER_PROGRESS_VI.md` | Historical — a running log. Later entries correct earlier ones; do not sum runs or carry a score forward to a newer HEAD. |
 | `RETHINK_TOXAGENT_AGENTIC_RESEARCH_EVALUATION_VI.md` | Current — research and design proposal for the agent's scientific role, external benchmarks, and evaluation protocol; observed-state claims are pinned to commit `ad66022`. |
 | `backlog/SCIENTIFIC_INVESTIGATION_BACKLOG.md` | Current — execution backlog and status for the RETHINK proposal, wave by wave |
+| `EXTERNAL_BENCHMARKS.md` | Current — which published benchmark runs, which is blocked and on what, and the label each result may carry |
+| `spec/WORKSPACE_AND_UI_SIMPLIFICATION_PLAN.md` | Current — the workspace cleanup and UI simplification plan, with its execution log |
 | `CAPABILITY_MATRIX.md`, `capability-matrix.json` | Current — **Generated** by `python -m evals.capability_matrix --write`: served/blocked models, explainer validation, tool profiles, flags, instruction cost |
-| `unified-v2/ARCHITECTURE.md`, `unified-v2/DECISIONS.md`, `unified-v2/MIGRATION.md` | Current — typed boundary invariants |
-| `unified-v2/BASELINE.md`, `unified-v2/IMPLEMENTATION_STATUS.md` | Historical — G0–G12 evidence at the time of writing |
-| `refactor/PREDICTOR_ONLY_STATUS_VI.md` | Historical — audit of the monolith it replaced |
+
+**Removed 2026-09-27, at the product owner's request:** the process
+documentation — the plan, audit, progress, review, runbook, `unified-v2` and
+`refactor` documents (40 files). They recorded work that is finished; what they
+established lives in the commits that did it, in the ADRs
+([`../backend/control/docs/adr/`](../backend/control/docs/adr/)) and in the
+backlog. `git log --diff-filter=D -- docs/` names them, and
+`git show <commit>^:<path>` still reads any one of them. Documents that ship to
+a customer, the ADRs and the generated artifacts above were kept. A citation to
+one of these paths in a code comment or a task fixture is provenance — what the
+author read at the time — and was left as written.
 
 ## Test numbers cited anywhere in these documents
 
