@@ -195,7 +195,7 @@ outputs.
 | W7-01 | SciFact `external-native` adapter: official data, label + rationale selection, official metric definitions, dev split only during development | Scorer tests on gold-as-prediction; dev run recorded with denominators | done (subset runs; full dev split not yet run) |
 | W7-02 | BioASQ / AstaBench: adapter plan and access requirements (registration, sandbox, tool corpus) | Documented; not claimed as run | done (documented; blocked: BioASQ registration; AstaBench keys, memory, research profile) |
 | W7-03 | Predictor track (TDC/MoleculeNet) kept separate from agent scores | Documented protocol, no mixing | done (documented) |
-| W7-04 | SciFact *through the product* (`published-data-transfer`): a research provider that searches a fixed corpus, relations read as abstract labels | Adapter + run | blocked (the router runs evidence tools only with a molecule subject — `research_subject_missing` otherwise — and most SciFact claims name none; a compound-claim subset + corpus-search provider is designed in `docs/EXTERNAL_BENCHMARKS.md`) |
+| W7-04 | SciFact *through the product* (`published-data-transfer`): a research provider that searches a fixed corpus, relations read as abstract labels | Adapter + run | adapter done in Wave 10 (the router block was removed by W9-08); live run outstanding |
 
 ## Wave 8 — Live pilot
 
@@ -281,7 +281,7 @@ Findings recorded while running (they are data, not bugs to hide):
 | ID | Item | Exit criterion | Status |
 |---|---|---|---|
 | W8-01 | Bring up the stack, run the comparison pilot on the case set, produce the grading packet for the lab | Logs + packet committed under `evals/investigation/runs/` (or path recorded) | done for 9 systems — packet `runs/pilot-2026-09-25/packets/lab-1/` (10 cases, 89 blinded responses, 1 refused response recorded in the key; no system/vendor name in the packet). The key is git-ignored and rebuilds identically from the records + seed (checked). Google arms deferred to a later packet |
-| W8-02 | Paired TAB-Suite regression: flags off vs `scientific_case_v1` + skills on | Paired report; no critical pass→fail | **doing** — run at the default 300 s run cap: **fails the exit criterion** (1 critical pass→fail); a 900 s diagnostic run was lost to a host reboot and has to be redone |
+| W8-02 | Paired TAB-Suite regression: flags off vs `scientific_case_v1` + skills on | Paired report; no critical pass→fail | done — at the default 300 s run cap this run **failed** the criterion (1 critical pass→fail, 9 of 11 regressions cut by the cap). Phase A fixed the cause and **W9-A met the criterion** on the same pairing (no critical regression, cap hits 15 → 1). The flag stays off pending the lab grades |
 
 ### W8-02 at the default run cap (2026-09-25)
 
@@ -573,13 +573,50 @@ lab-graded study); it sometimes writes "[1]"-style markers although told not
 to, and nothing ties its numbers to the sources list; `update_scientific_case` refusals now visible in events,
 the one cause seen so far (batch order) is fixed.
 
+## Wave 10 — SciFact through the product (W7-04, 2026-09-27)
+
+The last item of the RETHINK doc that was buildable without the product
+owner's credentials. W9-08 removed the router block Wave 7 recorded, so the
+transfer no longer needs a compound-claim subset or a fabricated molecule
+subject: a claim is asked as a question on a subjectless case, over the whole
+dev split if wanted.
+
+Three pieces, all default-off by construction (the provider is a deployment
+choice; the two flags it needs are default-off flags):
+
+| ID | Item | Exit criterion | Status |
+|---|---|---|---|
+| W10-01 | Corpus research provider: BM25 over a local corpus, pinned by SHA-256, recorded in the effective product | Provider tests (pin refused, ranking deterministic, malformed record refused); `research_corpus` in the effective product | done — `research/providers/corpus.py`, `TOXAGENT_RESEARCH_PROVIDER=corpus`. The pin is **required**: a benchmark corpus is licensed material that cannot live in this repository, so without it nothing ties a number to the abstracts that produced it. Ties break by record id, so a rerun ranks identically |
+| W10-02 | The product's own relations become readable | `GET /v1/sessions/{id}/runs/{run_id}/evidence-relations`; test | done — the relations an accepted v2 answer proposed and the server resolved were stored and invisible to every client. Proposition text stays in the run's `decision-state`, keyed by the same `proposition_id` |
+| W10-03 | Transfer adapter and scorer | Adapter refuses a deployment that cannot measure it; mapping tests; only the defined metric computed | done — `evals/external/scifact/product.py`. `supports`/`contradicts` become SUPPORT/CONTRADICT; a `contextual`/`insufficient` relation is the product declining, i.e. absent (NEI); two propositions disagreeing about one abstract leave it unlabelled and are reported. Only `abstract_label_only` is computed — the other three official metrics are named as not computed, never reported as zero |
+| W10-04 | Live run | Manifest + metrics under `evals/external/scifact/runs/` | **todo** — needs a control plane on the corpus provider with `answer_draft_v2` + `subjectless_research_v1` and a model runtime; one arm at a time on this host. The whole path is covered on the scripted runtime (`tests/e2e/test_scifact_through_the_product.py`) |
+
+Why the label can only be `published-data-transfer`: the task format changes
+(a claim becomes a question, because the product answers questions and does not
+classify), retrieval is the product's own BM25 rather than the benchmark's
+oracle/TF-IDF setting, and no rationale sentences are selected. It compares
+only with `run.py` judges re-run over the same claim ids — recorded as
+`compare_with` in the manifest — never with a published full-split number.
+
+**Ranker sanity check on the real release (2026-09-27, not a result).** The
+corpus built from the pinned release is 5,183 abstracts; it loads in 0.45 s and
+answers a query in 11 ms median, so serving it costs a turn nothing. With the
+claim text used verbatim as the query, the gold abstract is top-1 for 17 and in
+the top 5 for 19 of the first 20 dev claims that have gold evidence. That says
+the ranker is not random — **it is not a retrieval score**: in the study the
+product writes its own queries, which is the thing being measured.
+
 ## Resume here (next session)
 
-State at hand-off (2026-09-26): Wave 9 is done — every row of its table,
-committed on `feat/scientific-investigation`; W9-B measured and W9-02c
-(the gate fixes it found) committed. Six default-off flags now exist (`scientific_case_v1`,
-`scientific_skills_v1`, `subjectless_research_v1`, `skill_drafts_v1`,
-`claim_reviewer_v1`, `scientific_primitives_v1`); none is on by default.
+State at hand-off (2026-09-27): every buildable item of the RETHINK doc is
+done and committed on `feat/scientific-investigation` — Waves 1–9 in full, and
+Wave 10's adapter for the one Wave 7 item that was blocked. What remains is
+**live runs and the four items below that need the product owner's credentials
+or a decision**; none of them is code. Six default-off flags exist
+(`scientific_case_v1`, `scientific_skills_v1`, `subjectless_research_v1`,
+`skill_drafts_v1`, `claim_reviewer_v1`, `scientific_primitives_v1`); none is on
+by default, and the corpus provider (W10-01) is a deployment choice, never a
+default.
 
 **Host limits.** The host has 7.8 GiB. Three arms with three runners at once
 exhausted it and the host rebooted mid-run (the first W9-B attempt was lost).
@@ -599,9 +636,16 @@ Run live arms **one at a time**, restart OpenCode between arms, and stop
    `keys/` local. After grading: `python -m evals.investigation.scorecard`.
    The reviewer arm `Dr` (W9-12) can be added to a later packet so its verdicts
    are graded against the lab's unsupported-claim grades.
-4. Optional: W7-04 compound-claim subset (the router block is gone with
-   `subjectless_research_v1`; the corpus-search provider is still to build);
-   full dev-split SciFact runs.
+4. **W10-04 — the SciFact transfer run** (needs a control plane on the corpus
+   provider with `answer_draft_v2` + `subjectless_research_v1`, and a model
+   runtime; see `evals/external/scifact/README.md`). Worth pairing with a
+   `run.py` judge run over the same claim ids, which is what `--compare-with`
+   records. Also outstanding: the full dev split for `run.py` (the recorded
+   runs are 50-claim subsets).
+5. **Still blocked on the product owner, not on code:** a BioASQ account
+   (registration), AstaBench keys and a host with more memory, and a paid or
+   consumer-app Gemini channel for the Google arms. Each is documented in
+   `docs/EXTERNAL_BENCHMARKS.md` with what it would then measure.
 
 ## Not in scope of this execution
 

@@ -924,6 +924,29 @@ async def get_decision_state(
     return state.to_dict()
 
 
+@router.get("/sessions/{session_id}/runs/{run_id}/evidence-relations")
+async def list_evidence_relations(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """What the run judged each source to say about each proposition.
+
+    The relations an accepted grounded-answer-v2 draft proposed and the server
+    resolved (``domain/evidence_relation.py``) were stored and never readable:
+    a client could see the answer and the sources it cited, but not the
+    product's own ``supports``/``contradicts`` assessment. The proposition text
+    is in the same run's ``decision-state``, keyed by ``proposition_id``.
+    Empty for a run whose answer schema carries no relations (W7-04).
+    """
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        relations = await uow.evidence_relations.list_for_run(run_id)
+    return {"evidence_relations": [relation.to_dict() for relation in relations]}
+
+
 # --- scientific cases (ADR 0012) ---------------------------------------------
 
 def _case_summary(case) -> dict[str, Any]:

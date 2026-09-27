@@ -32,6 +32,16 @@ def build_provider(settings: ResearchSettings) -> ResearchProvider | None:
         return SnapshotResearchProvider(
             Path(settings.snapshot_path), fault=settings.snapshot_fault
         )
+    if settings.provider == "corpus":
+        # A pinned local corpus, ranked (research/providers/corpus.py): the
+        # transfer benchmarks where the product must write its own queries.
+        from .corpus import CorpusResearchProvider
+
+        if not settings.corpus_path:
+            raise ValueError("TOXAGENT_RESEARCH_CORPUS_PATH is required for the corpus provider")
+        return CorpusResearchProvider(
+            Path(settings.corpus_path), sha256=settings.corpus_sha256
+        )
     raise ValueError(f"unknown research provider: {settings.provider!r}")
 
 

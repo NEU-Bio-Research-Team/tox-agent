@@ -162,7 +162,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I06 — Session Config ghi Runtime mặc định khi không có runtime
 
-**P2 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/SessionConfigPopover.tsx](../../frontend/src/components/workbench/SessionConfigPopover.tsx).
+**P2 · Nguồn · K03.** Nguồn: [frontend/src/lib/aiProfile.ts](../../frontend/src/lib/aiProfile.ts) và [frontend/src/hooks/useSessionProfileSync.ts](../../frontend/src/hooks/useSessionProfileSync.ts) — `SessionConfigPopover` đã bị xóa (B3), phần chữ và test của I06 chuyển sang hai tệp này.
 
 **Bằng chứng và điều kiện:** ai_profile_id null được hiển thị Runtime mặc định; popover không xác thực khả dụng runtime từ health.
 

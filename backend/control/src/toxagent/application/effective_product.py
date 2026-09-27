@@ -207,6 +207,14 @@ def describe_effective_product(
                  "fault": settings.research.snapshot_fault or None}
                 if settings.research.provider == "snapshot" else None
             ),
+            # A benchmark over a local corpus says so, and says which corpus:
+            # the pin is what ties a recorded number to the abstracts it ranked
+            # (research/providers/corpus.py).
+            "research_corpus": (
+                {"path_name": Path(settings.research.corpus_path).name,
+                 "sha256": settings.research.corpus_sha256 or None}
+                if settings.research.provider == "corpus" else None
+            ),
             "compound_provider": getattr(settings.compound, "provider", None) or None,
             "ocr_configured": bool(settings.ocr.base_url),
         },

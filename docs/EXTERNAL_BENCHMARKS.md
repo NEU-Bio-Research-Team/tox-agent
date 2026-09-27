@@ -1,15 +1,15 @@
 # External benchmarks: what runs, what is blocked, and on what
 
-Status of RETHINK §5.1 (backlog Wave 7) as of 2026-09-25. The labels are the
-ones RETHINK §5.2 defines: `external-native` (benchmark data, split and scorer
-unchanged), `published-data-transfer` (published data turned into ToxAgent
-questions), `product-regression` (TAB-Suite). No result from one label is ever
-reported as another, and none is merged into a single ToxAgent score.
+Status of RETHINK §5.1 (backlog Waves 7 and 10) as of 2026-09-27. The labels
+are the ones RETHINK §5.2 defines: `external-native` (benchmark data, split and
+scorer unchanged), `published-data-transfer` (published data turned into
+ToxAgent questions), `product-regression` (TAB-Suite). No result from one label
+is ever reported as another, and none is merged into a single ToxAgent score.
 
 | Benchmark | Measures | Status | Label when run |
 |---|---|---|---|
 | SciFact | claim verification with rationales | **Adapter runs** (`backend/control/evals/external/scifact`) | `external-native` (full dev) / `external-native-subset` |
-| SciFact through the product | the product's own evidence-relation step | Blocked: the router needs a molecule subject; compound-claim subset designed below | `published-data-transfer` |
+| SciFact through the product | the product's own retrieval and evidence-relation step | **Adapter runs, not yet run live** (`evals/external/scifact/product.py`) | `published-data-transfer` |
 | BioASQ Task b | biomedical QA: documents, snippets, exact and ideal answers | Blocked: registration | `external-native` only via the official evaluation |
 | AstaBench LitQA2-FT, PaperFindingBench | literature agent: search, full text, answer | Blocked: environment, keys, research profile | `external-native` for a declared research profile |
 | TDC ADMET hERG, MoleculeNet Tox21 | the predictor | Protocol below; not an agent score | predictor track |
@@ -23,41 +23,40 @@ random predictions over the dev split). A judge there is a *model* used as a
 stand-alone verifier, reported under the model's name. The first run is recorded
 in `docs/backlog/SCIENTIFIC_INVESTIGATION_BACKLOG.md` (Wave 7).
 
-## SciFact through the product (next)
+## SciFact through the product (adapter built 2026-09-27, W7-04)
 
-To measure ToxAgent rather than a model: load each claim's candidate abstracts
-(oracle or TF-IDF top-k) into the `snapshot` research provider, ask the
-decision-support arm whether the literature supports the claim, and read the
-accepted answer's `evidence_relations` (grounded-answer-v2) as abstract-level
-labels. The product selects no rationale sentences, so only
-`abstract_label_only` is defined, and the change of task format makes the
-result `published-data-transfer`. Needs: a fixture writer for the snapshot
-provider and a mapping from relations to SUPPORT/CONTRADICT/NEI.
+`evals/external/scifact/product.py` measures ToxAgent rather than a model:
 
-**Blocked as designed (checked 2026-09-25).** The router sends a literature
-question to the evidence tools only when it has a subject: with no molecule
-submitted and no active analysis it answers `research_subject_missing`
-(`application/router.py`, `wants_research` branch) and no tool runs. Most
-SciFact claims name no single compound ("0-dimensional biomaterials show
-inductive properties"), so feeding them to the product would measure the
-router's clarification, not the evidence step; attaching an unrelated molecule
-to make the question route would be a fabricated subject. The `snapshot`
-provider is also the wrong fit even with a subject: it serves fixed records per
-keyword, while the product writes its own queries. A defensible transfer is:
+1. the pinned release's 5,183 abstracts are written as a
+   `research-corpus-v1` file and served by the new **corpus provider**
+   (`research/providers/corpus.py`): BM25 over the local corpus, no network, the
+   file pinned by SHA-256 and the pin recorded in the effective product. The
+   product writes its own queries, so retrieval is the product's, not the
+   benchmark's oracle or TF-IDF setting;
+2. each claim is asked as a question, and answered on a **subjectless case**
+   (`subjectless_research_v1`, W9-08) — the router block that made this
+   impossible in Wave 7 is gone, so no compound subset and no fabricated
+   molecule subject is needed, and the claim distribution is unchanged;
+3. the accepted answer's `evidence_relations` (`answer_draft_v2`) are read back
+   through `GET /v1/sessions/{id}/runs/{run_id}/evidence-relations` and mapped
+   per abstract: `supports` → SUPPORT, `contradicts` → CONTRADICT, everything
+   else absent (NEI). Two propositions disagreeing about one abstract leave it
+   unlabelled and are reported, never resolved by a rule.
 
-1. select the SciFact claims that name one small molecule resolvable on PubChem
-   (name → CID → SMILES, recorded with retrieval time), and report how many of
-   the split that leaves;
-2. serve the full corpus through a new corpus-search provider (lexical ranking
-   over all 5,183 abstracts, corpus pinned by SHA-256), so retrieval is the
-   product's own;
-3. submit molecule + claim, read the accepted answer's relations per abstract
-   as SUPPORT / CONTRADICT, absent as NEI, and score `abstract_label_only`
-   with the ported metrics on that subset.
+Only `abstract_label_only` is computed: the product selects no rationale
+sentences, so the other three official metrics are **left out rather than
+reported as zero**. The run refuses to start against a deployment that is not
+serving the pinned corpus or has either flag off, because such a run would
+write a file of zeros that looks like a result.
 
-The subset changes the claim distribution, so the result can only be compared
-with the stand-alone judges re-run on the same subset, never with full-split
-numbers.
+The label is `published-data-transfer` — the task format changed and retrieval
+is not the benchmark's. It compares only with `run.py` judges re-run over the
+same claim ids (recorded in the manifest as `compare_with`), never with a
+published full-split number.
+
+Not yet run live: it needs a deployment with the corpus provider, both flags and
+a model runtime. The path is covered end to end on the scripted runtime
+(`tests/e2e/test_scifact_through_the_product.py`).
 
 ## BioASQ Task b (blocked on registration)
 

@@ -412,6 +412,12 @@ class ResearchSettings:
     #: injected fault (research/providers/snapshot.py). Benchmarks only.
     snapshot_path: str = ""
     snapshot_fault: str = ""
+    #: provider=corpus only (W7-04): a ``research-corpus-v1`` JSONL ranked with
+    #: BM25 instead of a network provider, pinned by hash because a benchmark
+    #: corpus is licensed material that does not live in this repository
+    #: (research/providers/corpus.py). Benchmarks only.
+    corpus_path: str = ""
+    corpus_sha256: str = ""
 
     @classmethod
     def from_env(cls) -> "ResearchSettings":
@@ -434,6 +440,8 @@ class ResearchSettings:
             ),
             snapshot_path=_env("TOXAGENT_RESEARCH_SNAPSHOT_PATH"),
             snapshot_fault=_env("TOXAGENT_RESEARCH_SNAPSHOT_FAULT"),
+            corpus_path=_env("TOXAGENT_RESEARCH_CORPUS_PATH"),
+            corpus_sha256=_env("TOXAGENT_RESEARCH_CORPUS_SHA256"),
         )
 
 
