@@ -7,7 +7,7 @@ that keep them meaningful.
 
 ```bash
 # Once. Freezes the evaluation split; needs DeepChem and PyTDC.
-PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/build_split_manifest.py
+PYTHONPATH=backend/predictor python backend/predictor/research/benchmark/build_split_manifest.py
 
 # Every time. Needs only the frozen manifest and the artifact.
 PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/run_benchmark.py

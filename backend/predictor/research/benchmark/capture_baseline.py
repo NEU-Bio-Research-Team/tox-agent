@@ -6,7 +6,7 @@ probabilities of the currently-servable models over the golden panel. Raw floats
 are stored, not labels, so a refactor can be checked for numeric parity rather
 than for agreement after thresholding.
 
-Run:  PYTHONPATH=backend/predictor python backend/predictor/evals/benchmark/capture_baseline.py
+Run:  PYTHONPATH=backend/predictor python backend/predictor/research/benchmark/capture_baseline.py
 """
 from __future__ import annotations
 
@@ -21,10 +21,12 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
-ROOT = Path(__file__).resolve().parents[5]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "backend" / "predictor"))
 
-OUT_DIR = Path(__file__).resolve().parent
+#: The frozen outputs live with the benchmark that reads them, not beside this
+#: research-side generator.
+OUT_DIR = ROOT / "backend" / "predictor" / "evals" / "benchmark"
 MANIFEST = OUT_DIR / "manifests" / "baseline-e6882b2.json"
 GOLDEN = OUT_DIR / "golden" / "baseline_predictions.json"
 PANEL = OUT_DIR / "fixtures" / "golden_panel.json"

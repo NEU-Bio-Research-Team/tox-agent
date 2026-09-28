@@ -23,10 +23,10 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
-ROOT = Path(__file__).resolve().parents[5]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "backend" / "predictor"))
 
-OUT = Path(__file__).resolve().parent / "manifests" / "eval-split-v1.json"
+OUT = ROOT / "backend" / "predictor" / "evals" / "benchmark" / "manifests" / "eval-split-v1.json"
 CACHE_DIR = str(ROOT / "data")
 SPLIT_TYPE = "scaffold"
 SEED = 42

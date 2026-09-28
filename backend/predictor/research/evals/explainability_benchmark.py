@@ -319,7 +319,7 @@ def _explain_tox21_gatv2(samples):
 
     model, task_names = load_tox21_gatv2_model(
         model_dir=PROJECT_ROOT / ".data" / "models" / "tox21_gatv2_model",
-        config_path=PROJECT_ROOT / "backend" / "predictor" / "configs" / "tox21_gatv2_config.yaml",
+        config_path=PROJECT_ROOT / "backend" / "predictor" / "research" / "configs" / "tox21_gatv2_config.yaml",
         device=DEVICE,
     )
     print(f"  Loaded tox21_gatv2_model ({len(task_names)} tasks)")

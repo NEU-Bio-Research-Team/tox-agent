@@ -22,7 +22,7 @@ pytestmark = pytest.mark.golden
 
 def _requirements_met() -> tuple[bool, str]:
     if not GOLDEN.exists():
-        return False, "baseline not captured — run backend/predictor/evals/benchmark/capture_baseline.py"
+        return False, "baseline not captured — run backend/predictor/research/benchmark/capture_baseline.py"
     if not MANIFEST.exists():
         return False, "artifact manifest missing"
     try:

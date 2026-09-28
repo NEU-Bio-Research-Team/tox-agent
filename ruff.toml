@@ -34,9 +34,6 @@ ignore = [
 # Scripts put sys.path setup before their imports on purpose.
 "**/scripts/**" = ["E402"]
 "backend/predictor/evals/**" = ["E402"]
-# Frozen research-era evaluation scripts (P1 in the structure review): kept
-# byte-for-byte as they produced published numbers, so unused results stay.
-"backend/predictor/evals/scripts/**" = ["E402", "F401", "F541", "F841"]
 
 [format]
 quote-style = "preserve"
