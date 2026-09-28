@@ -60,7 +60,7 @@ File names are `kebab-case.md`; a Vietnamese document ends in `.vi.md`.
 | [`../backend/control/README.md`](../backend/control/README.md) | Current | Control plane: package layout and dependency order |
 | [`../backend/ocr/README.md`](../backend/ocr/README.md) | Current | Structure-recognition service |
 
-`frontend/` has no README; its commands are in `package.json` and in
+[`../frontend/README.md`](../frontend/README.md) covers the frontend: commands and feature layout. See also
 [`how-to/development.md`](how-to/development.md).
 
 ## Results — dated measurements

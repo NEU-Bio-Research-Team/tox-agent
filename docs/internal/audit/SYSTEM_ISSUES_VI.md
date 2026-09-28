@@ -126,7 +126,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I03 — Composer mặc định khóa prediction bởi target XAI Tox21
 
-**P1 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/components/workbench/MessageComposer.tsx).
+**P1 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/features/composer/MessageComposer.tsx).
 
 **Bằng chứng và điều kiện:** Default endpoints herg/tox21, tox21Tasks rỗng; needsTox21Target tham gia canSend. Payload SMILES luôn đặt explanation_mode required.
 
@@ -138,7 +138,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I04 — Heuristic molecule bỏ sót câu hỗn hợp và nhận nhầm từ thường
 
-**P1 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/components/workbench/MessageComposer.tsx), [backend/control/src/toxagent/application/router.py](../../../backend/control/src/toxagent/application/conversation/router.py).
+**P1 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/features/composer/MessageComposer.tsx), [backend/control/src/toxagent/application/router.py](../../../backend/control/src/toxagent/application/conversation/router.py).
 
 **Bằng chứng và điều kiện:** looksLikeSmiles chỉ kiểm tra chuỗi không khoảng trắng thuộc tập ký tự rộng. Từ hello/aspirin cũng khớp; câu có SMILES lại không khớp. Backend yêu cầu subject rõ ràng.
 
@@ -162,7 +162,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I06 — Session Config ghi Runtime mặc định khi không có runtime
 
-**P2 · Nguồn · K03.** Nguồn: [frontend/src/lib/aiProfile.ts](../../../frontend/src/lib/aiProfile.ts) và [frontend/src/hooks/useSessionProfileSync.ts](../../../frontend/src/hooks/useSessionProfileSync.ts) — `SessionConfigPopover` đã bị xóa (B3), phần chữ và test của I06 chuyển sang hai tệp này.
+**P2 · Nguồn · K03.** Nguồn: [frontend/src/lib/aiProfile.ts](../../../frontend/src/shared/lib/aiProfile.ts) và [frontend/src/hooks/useSessionProfileSync.ts](../../../frontend/src/features/workbench/hooks/useSessionProfileSync.ts) — `SessionConfigPopover` đã bị xóa (B3), phần chữ và test của I06 chuyển sang hai tệp này.
 
 **Bằng chứng và điều kiện:** ai_profile_id null được hiển thị Runtime mặc định; popover không xác thực khả dụng runtime từ health.
 
@@ -198,7 +198,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I09 — OCR không bảo toàn tùy chọn prediction/XAI/model
 
-**P1 · Nguồn · K04.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/components/workbench/MessageComposer.tsx), [backend/control/src/toxagent/api/app.py](../../../backend/control/src/toxagent/api/app.py), [backend/control/src/toxagent/application/recognize_structure.py](../../../backend/control/src/toxagent/application/prediction/recognize_structure.py).
+**P1 · Nguồn · K04.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/features/composer/MessageComposer.tsx), [backend/control/src/toxagent/api/app.py](../../../backend/control/src/toxagent/api/app.py), [backend/control/src/toxagent/application/recognize_structure.py](../../../backend/control/src/toxagent/application/prediction/recognize_structure.py).
 
 **Bằng chứng và điều kiện:** Composer chỉ gửi analysis_options khi effectiveSmiles có giá trị; handler OCR/CreateAnalysis không truyền toàn bộ model_selection và explanation targets.
 
@@ -246,7 +246,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I13 — Provider dựng sẵn không có base URL nhưng probe bắt buộc URL
 
-**P1 · Nguồn · K05.** Nguồn: [frontend/src/pages/SettingsPage.tsx](../../../frontend/src/pages/SettingsPage.tsx), [backend/control/src/toxagent/connections/service.py](../../../backend/control/src/toxagent/connections/service.py).
+**P1 · Nguồn · K05.** Nguồn: [frontend/src/pages/SettingsPage.tsx](../../../frontend/src/features/settings/SettingsPage.tsx), [backend/control/src/toxagent/connections/service.py](../../../backend/control/src/toxagent/connections/service.py).
 
 **Bằng chứng và điều kiện:** OpenAI/Anthropic/Gemini mặc định baseUrl rỗng; UI ghi optional, probe ném ValueError nếu absent. Tất cả dùng một OpenAI-compatible chat/completions probe.
 
@@ -342,7 +342,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I21 — Enter chưa bảo vệ IME composition
 
-**P2 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/components/workbench/MessageComposer.tsx).
+**P2 · Nguồn · K03.** Nguồn: [frontend/src/components/workbench/MessageComposer.tsx](../../../frontend/src/features/composer/MessageComposer.tsx).
 
 **Bằng chứng và điều kiện:** Keydown gửi khi Enter và không Shift; không kiểm tra isComposing.
 
