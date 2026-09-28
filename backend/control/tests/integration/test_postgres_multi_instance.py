@@ -17,7 +17,7 @@ from toxagent.application.policy import Actor
 from toxagent.application.runs.scheduler import RunContext
 from toxagent.application.conversation.sessions import SessionService
 from toxagent.application.conversation.submit_message import MessageSubmission, SubmitMessage
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.errors import AdmissionBusy, Conflict
 from toxagent.domain.session import Session
 from toxagent.persistence.sql.database import Database

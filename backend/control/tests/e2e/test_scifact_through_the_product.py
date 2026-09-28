@@ -25,7 +25,7 @@ from evals.external.scifact.data import Document
 from tests.e2e.test_scripted_runtime import _install_scripted_runtime, _new_session
 from tests.support.api import AUTH, api_client, settings, wait_for_run
 from tests.support.predictor import StubPredictor
-from toxagent.config import ResearchSettings
+from toxagent.platform.config import ResearchSettings
 from toxagent.research.providers.corpus import CorpusResearchProvider
 
 pytestmark = pytest.mark.anyio

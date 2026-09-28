@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 
-from toxagent.config import SecuritySettings
+from toxagent.platform.config import SecuritySettings
 from toxagent.domain.errors import Unauthenticated
 from toxagent.domain.ids import new_id
 from toxagent.tools.capability import ALGORITHM, AUDIENCE, ISSUER, CapabilityTokenService

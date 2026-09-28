@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 import pytest
 
 from toxagent.application.conversation.submit_answer import SubmitAnswer
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain import explainer_validation as ev
 from toxagent.domain.errors import AnswerValidationFailed
 from toxagent.domain.observation import Observation, ObservationKind, Producer

@@ -11,7 +11,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Mapping
 
-from ...config import PolicySettings
+from ...platform.config import PolicySettings
 from ...domain.answer import GroundedAnswer
 from ...domain.errors import AnswerValidationFailed, Conflict, SessionNotFound, Violation
 from ...domain.evidence import EvidenceRecord

@@ -18,7 +18,7 @@ from ...application.investigation import scientific_case_service
 from ...domain.errors import AnalysisNotFound, ToolDenied
 from ...domain.events import EventType
 from ...domain.observation import Observation, ObservationKind, Producer
-from ...flags import is_enabled
+from ...platform.flags import is_enabled
 from ...research.compound import CompoundProvider
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 

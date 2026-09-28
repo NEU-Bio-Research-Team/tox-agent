@@ -83,7 +83,7 @@ def skill_triggers(records, cases: dict[str, dict[str, Any]], skills: list[Any])
 
 def build_report(study_dir: Path, *, cases_dir: Path = case_module.CASES_DIR) -> dict[str, Any]:
     from toxagent.application.investigation.skill_catalog import load_catalog
-    from toxagent.config import PACKAGE_ROOT
+    from toxagent.platform.config import PACKAGE_ROOT
 
     store = StudyStore(study_dir)
     manifest = store.manifest()

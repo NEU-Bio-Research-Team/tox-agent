@@ -34,7 +34,7 @@ from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping, Sequence
 
-from ... import metrics
+from ...platform import metrics
 from ...domain.errors import (
     Conflict,
     RuntimeProtocolError,
@@ -382,7 +382,7 @@ class OrchestratedReportBuild:
     async def _case_dossier(self, context, build: ReportBuild) -> dict[str, Any] | None:
         """The analysis's latest dossier as the report reads it, recorded on the
         build (``case_dossier_ref``) so the report says which one it used."""
-        from ...flags import is_enabled
+        from ...platform.flags import is_enabled
         from ..investigation import scientific_case_service
 
         if not is_enabled("scientific_case_v1"):

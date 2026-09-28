@@ -136,7 +136,7 @@ class Registry:
         try:
             return self._metrics[name]
         except KeyError:
-            raise KeyError(f"metric {name!r} is not declared in toxagent.metrics") from None
+            raise KeyError(f"metric {name!r} is not declared in toxagent.platform.metrics") from None
 
     def names(self) -> tuple[str, ...]:
         return tuple(sorted(self._metrics))

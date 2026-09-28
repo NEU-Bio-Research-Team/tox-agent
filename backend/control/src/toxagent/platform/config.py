@@ -19,7 +19,7 @@ from pathlib import Path
 #: here, so a source checkout, a wheel and the image all find one copy at one
 #: path. The predecessor derived these from the repository layout, which made
 #: ``pip install .`` a different program from ``pip install -e .``.
-PACKAGE_ROOT = Path(__file__).resolve().parent
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 #: The service directory (``backend/control`` in a checkout, ``/app`` in the
 #: image): where *mutable* state lives. Never use it to find shipped files —
 #: a non-editable install has no service directory at all.

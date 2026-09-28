@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from ...config import ChemblSettings
+from ...platform.config import ChemblSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ...domain.evidence import SourceIdentifier, SourceType
 from ..circuit_breaker import CircuitBreaker, CircuitOpen

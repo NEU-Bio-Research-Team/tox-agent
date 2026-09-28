@@ -31,7 +31,7 @@ from typing import Any
 
 import httpx
 
-from ...config import RuntimeSettings
+from ...platform.config import RuntimeSettings
 from ...domain.errors import RuntimeProtocolError, RuntimeUnavailable
 from ...domain.runtime import RuntimeCapabilities
 from ..provider import (

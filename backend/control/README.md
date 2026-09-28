@@ -16,20 +16,35 @@ recognition) — see
 
 ```
 src/toxagent/
-  api/           product HTTP API, SSE, error envelope
-  domain/        session, run, analysis, observation, evidence, answer
-  application/   the workflows: analyse, answer, research, submit, cancel
-  predictor/     pinned ToxPred client, OpenAPI snapshot, and the toxocr client
-  research/      evidence provider interfaces, normalisation, policy
-  tools/         typed tool registry, runner, projections, MCP server
-  harness/       AgentRuntimeGateway and the runtime adapters
-  validation/    numeric, classification, citation, limitation validators
-  persistence/   store interfaces and the SQLAlchemy implementation
-  streaming/     transactional outbox and SSE dispatch
-  telemetry/     traces and metrics
+  api/            product HTTP API, SSE, error envelope; effective_product (what is assembled)
+  harness/        AgentRuntimeGateway, runtime adapters, prompt context and budgets
+  tools/          typed tool registry, runner, tool definitions, MCP server
+  application/    the workflows, grouped by feature:
+    conversation/   sessions, messages, intent routing, grounded answers
+    prediction/     analyses, quick predict, structure recognition
+    explanation/    atom attributions and their readiness
+    report/         the draft report path and the orchestrated build
+    investigation/  scientific case, decision state, claim review, skills
+    runs/           scheduling, state transitions, budgets, concurrency, queues
+  report/         report compilers, fact bundle, figures, renderers, synthesis gates
+  validation/     answer/ and report/ validators; prohibited claims, limitations
+  persistence/    store interfaces and the SQLAlchemy implementation
+  research/       evidence provider interfaces, normalisation, policy
+  predictor/      pinned ToxPred client, OpenAPI snapshot, and the toxocr client
+  connections/    model-provider connections and their probes
+  streaming/      transactional outbox and SSE dispatch
+  domain/         session, run, analysis, observation, evidence, answer, report
+  platform/       settings, rollout flags, metrics, logging
+  superseded/     the ADR 0011 kernel; nothing live imports it; deleted with its tables
   agent_profiles/ pinned OpenCode / DSH agent configuration and prompts
+  worker.py       the queue worker entry point
 evals/           task set, frozen fixtures, graders, manifests, runner
 ```
+
+The order above is the dependency order: a package imports only packages
+listed below it (`domain` and `platform` are the floor). It is enforced by
+`LAYERS` in `tests/unit/test_boundaries.py`, which also fails when a new
+package has not been placed.
 
 `agent_profiles/` sits inside the package, not beside it, because the running
 code reads it: shipping it as package data is what makes `pip install .`,

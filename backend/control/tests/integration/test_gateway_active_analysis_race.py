@@ -19,7 +19,7 @@ import pytest
 from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
 from toxagent.application.runs.scheduler import RunContext
-from toxagent.config import PolicySettings, RuntimeSettings
+from toxagent.platform.config import PolicySettings, RuntimeSettings
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run
@@ -35,6 +35,15 @@ pytestmark = pytest.mark.anyio
 # Relative, not a calendar date: _prepare_context refuses a run whose deadline
 # (created_at + run_deadline_s) has already passed, so a fixed date rots.
 NOW = datetime.now(timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_now():
+    """Re-read the clock per test. Read once at collection, NOW went stale
+    whenever the tests before these took longer than run_deadline_s, and the
+    run's deadline had passed before the test began."""
+    global NOW
+    NOW = datetime.now(timezone.utc)
 ACTOR = Actor(subject_id="user-1")
 
 

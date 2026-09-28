@@ -19,7 +19,7 @@ from urllib.parse import quote, urlparse
 
 import httpx
 
-from ...config import CompoundSettings
+from ...platform.config import CompoundSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ..circuit_breaker import CircuitBreaker, CircuitOpen
 from ..transport import rebuild_decoded_response, retry_transient

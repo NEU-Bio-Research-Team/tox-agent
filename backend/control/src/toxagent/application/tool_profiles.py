@@ -141,7 +141,7 @@ def parse(document: Mapping[str, Any], *, known_flags: frozenset[str]) -> Profil
 
 
 def load(path: Path = DEFAULT_PATH) -> ProfileManifest:
-    from ..flags import FLAGS
+    from ..platform.flags import FLAGS
 
     try:
         document = json.loads(path.read_text(encoding="utf-8"))

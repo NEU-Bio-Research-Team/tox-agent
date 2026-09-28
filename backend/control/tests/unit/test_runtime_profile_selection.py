@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from toxagent.config import PACKAGE_ROOT, RuntimeSettings
+from toxagent.platform.config import PACKAGE_ROOT, RuntimeSettings
 from toxagent.harness.provider import RuntimeSessionSpec
 from toxagent.harness.runtime_profiles import (
     QA_PROFILE_PATH,

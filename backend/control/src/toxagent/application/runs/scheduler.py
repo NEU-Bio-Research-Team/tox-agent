@@ -37,7 +37,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Mapping, Sequence
 
-from ... import metrics
+from ...platform import metrics
 from ...domain.errors import ToxAgentError
 from ...domain.message import Message, PartType, Role
 from ...domain.events import EventType

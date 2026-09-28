@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from toxagent.config import RuntimeSettings
+from toxagent.platform.config import RuntimeSettings
 from toxagent.domain.runtime import RuntimeKind
 
 ADAPTERS = Path(__import__("toxagent").__file__).resolve().parent / "harness" / "adapters"

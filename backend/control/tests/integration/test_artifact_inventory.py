@@ -11,7 +11,7 @@ import pytest
 
 from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.ids import CLAIM, GAP, REPORT_BUILD, new_id

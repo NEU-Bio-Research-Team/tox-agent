@@ -16,7 +16,7 @@ import pytest
 from toxagent.application.policy import Actor
 from toxagent.application.runs.scheduler import RunContext, RunScheduler
 from toxagent.application.runs.transitions import advance
-from toxagent.config import WorkerSettings
+from toxagent.platform.config import WorkerSettings
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
 from toxagent.domain.session import Session

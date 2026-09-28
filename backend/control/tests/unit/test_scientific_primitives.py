@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from toxagent.config import ChemblSettings
+from toxagent.platform.config import ChemblSettings
 from toxagent.domain import exposure_margin as em
 from toxagent.research.providers.chembl import ChemblActivityProvider
 

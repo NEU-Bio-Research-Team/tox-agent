@@ -13,7 +13,7 @@ from typing import Any
 
 import httpx
 
-from toxagent.config import PredictorSettings
+from toxagent.platform.config import PredictorSettings
 from toxagent.predictor.client import PredictorClient
 from toxagent.predictor.contract import TOX21_TASKS
 

@@ -207,7 +207,7 @@ class ScriptedDriver:
     def settings(db_path: Path | str = ":memory:"):
         """The deployment the scripted driver composes. Also what its
         manifest's effective_product describes, so the two cannot differ."""
-        from toxagent.config import (
+        from toxagent.platform.config import (
             CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
             ResearchSettings, RuntimeSettings, SecuritySettings, Settings,
         )

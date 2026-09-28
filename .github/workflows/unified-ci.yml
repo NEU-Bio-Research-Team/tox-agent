@@ -250,7 +250,7 @@ jobs:
       - name: Shipped resources resolve from a wheel, run from an unrelated cwd
         run: |
           cd /tmp && /tmp/toxagent-clean/bin/python - <<'PY'
-          from toxagent.config import Settings
+          from toxagent.platform.config import Settings
           s = Settings.from_env()
           profile = s.profiles_dir / "opencode" / "toxagent.json"
           assert profile.is_file(), f"agent profile missing from the wheel: {profile}"
@@ -276,7 +276,7 @@ jobs:
       - name: Control image resolves the profiles it will actually load
         run: |
           docker run --rm --network=none --entrypoint python toxagent-control-ci -c "
-          from toxagent.config import Settings
+          from toxagent.platform.config import Settings
           p = Settings.from_env().profiles_dir / 'opencode' / 'toxagent.json'
           assert p.is_file(), f'agent profile missing from the image: {p}'
           print('control image resources OK')"

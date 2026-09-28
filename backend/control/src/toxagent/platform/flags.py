@@ -23,7 +23,7 @@ from dataclasses import dataclass, replace
 from datetime import date
 from typing import Mapping
 
-from .config import _bool  # single reader of the environment (config.py's rule)
+from .config import _bool  # single reader of the environment (platform/config.py's rule)
 
 #: Two releases at the project's cadence. Longer than this and the flag is not
 #: a rollout control, it is a fork.
@@ -251,7 +251,7 @@ def flag(name: str) -> RolloutFlag:
         return _BY_NAME[name]
     except KeyError:
         raise KeyError(
-            f"unknown rollout flag {name!r}; declare it in toxagent.flags.FLAGS "
+            f"unknown rollout flag {name!r}; declare it in toxagent.platform.flags.FLAGS "
             "with an owner and a removal date"
         ) from None
 

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.config import SecuritySettings
+from toxagent.platform.config import SecuritySettings
 from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceIdentifier, SourceType
 from toxagent.domain.observation import Observation, ObservationKind, Producer
 

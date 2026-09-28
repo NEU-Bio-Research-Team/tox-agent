@@ -17,7 +17,7 @@ import json
 import httpx
 import pytest
 
-from toxagent.config import CompoundSettings
+from toxagent.platform.config import CompoundSettings
 from toxagent.domain.errors import EvidenceUnavailable
 from toxagent.research.providers.pubchem import PubChemCompoundProvider
 from toxagent.research.transport import (

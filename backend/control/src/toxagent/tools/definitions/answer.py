@@ -13,8 +13,8 @@ from typing import Final
 
 from ...application.investigation import scientific_case_service
 from ...application.conversation.submit_answer import SubmitAnswer
-from ...config import PolicySettings
-from ...flags import is_enabled
+from ...platform.config import PolicySettings
+from ...platform.flags import is_enabled
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
 from ...validation.answer.draft_wire import GroundedAnswerDraftV2
 from ..registry import ToolContext, ToolDefinition, ToolOutput

@@ -164,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
         "result_label": label,
         "benchmark": {"name": "SciFact", "release_url": data_module.RELEASE_URL,
                       "release_sha256": data_module.RELEASE_SHA256,
-                      "metrics": "port of verisci/evaluate/lib/metrics.py @ 68b98a56",
+                      "metrics": "port of verisci/evaluate/lib/platform/metrics.py @ 68b98a56",
                       "split": args.split, "claims_in_split": len(all_claims),
                       "claims_run": len(claims), "subset_seed": None if full else args.seed,
                       "claim_ids": [c.id for c in claims]},

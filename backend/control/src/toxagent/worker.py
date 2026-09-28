@@ -24,10 +24,10 @@ import logging
 import signal
 from dataclasses import replace
 
-from . import metrics
+from .platform import metrics
 from .api.app import create_app
-from .config import Settings
-from .flags import is_enabled
+from .platform.config import Settings
+from .platform.flags import is_enabled
 
 log = logging.getLogger("toxagent.worker")
 

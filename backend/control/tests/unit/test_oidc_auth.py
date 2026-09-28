@@ -24,7 +24,7 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from toxagent.api.auth import JwksAuth, JwtAuth, StaticTokenAuth, build_auth
-from toxagent.config import SecuritySettings
+from toxagent.platform.config import SecuritySettings
 from toxagent.domain.errors import Unauthenticated
 
 pytestmark = pytest.mark.anyio

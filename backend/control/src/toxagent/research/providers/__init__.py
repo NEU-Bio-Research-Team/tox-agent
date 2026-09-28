@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ...config import CompoundSettings, ResearchSettings
+from ...platform.config import CompoundSettings, ResearchSettings
 from ..compound import CompoundProvider
 from ..interfaces import ResearchProvider
 from .europepmc import EuropePmcProvider

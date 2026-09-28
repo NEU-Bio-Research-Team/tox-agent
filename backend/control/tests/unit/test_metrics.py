@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from toxagent import metrics
+from toxagent.platform import metrics
 
 DOC = Path(__file__).resolve().parents[4] / "docs" / "observability" / "METRICS.md"
 

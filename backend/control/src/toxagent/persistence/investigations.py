@@ -1,7 +1,7 @@
 """Short-transaction durable repository used by the scientific agent kernel."""
 from __future__ import annotations
 
-from ..agent.kernel import KernelTransition
+from ..superseded.kernel import KernelTransition
 from ..domain.investigation import CaseState, InvestigationPlan, InvestigationStep
 
 

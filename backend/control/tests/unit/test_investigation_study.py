@@ -18,7 +18,7 @@ from evals.investigation.adapters.toxagent import _usage, render_answer
 from evals.investigation.record import RunRecord, StudyStore, TurnRecord
 from evals.investigation.systems import SYSTEMS, product_mismatch
 from toxagent.application.investigation.skill_catalog import load_catalog
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 
 pytestmark = pytest.mark.anyio
 

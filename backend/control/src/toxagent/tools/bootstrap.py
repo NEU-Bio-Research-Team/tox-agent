@@ -7,7 +7,7 @@ never shown a capability the server cannot honour.
 from __future__ import annotations
 
 from ..application.prediction.create_analysis import CreateAnalysis
-from ..config import PolicySettings, ResearchSettings
+from ..platform.config import PolicySettings, ResearchSettings
 from ..predictor.client import PredictorClient
 from ..research.compound import CompoundProvider
 from ..research.interfaces import ResearchProvider
@@ -26,7 +26,7 @@ from .definitions import scientific_case as scientific_case_tools
 from .definitions import scientific_skills as scientific_skill_tools
 from .definitions import skill_drafts as skill_draft_tools
 from .registry import FLAG_GATED_TOOLS, ToolDefinition, ToolRegistry
-from ..flags import is_enabled
+from ..platform.flags import is_enabled
 
 
 def _gated_off(definition: ToolDefinition) -> bool:
@@ -94,7 +94,7 @@ def build_registry(
     for definition in scientific_case_tools.build(database):
         add(definition)
     if skill_catalog is None:
-        from ..config import PACKAGE_ROOT
+        from ..platform.config import PACKAGE_ROOT
         from ..application.investigation.skill_catalog import load_catalog
 
         skill_catalog = load_catalog(PACKAGE_ROOT / "agent_profiles")

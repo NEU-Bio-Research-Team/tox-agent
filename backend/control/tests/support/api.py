@@ -12,7 +12,7 @@ from typing import AsyncIterator
 import httpx
 
 from toxagent.api.app import create_app
-from toxagent.config import (
+from toxagent.platform.config import (
     CompoundSettings,
     OcrSettings,
     PolicySettings,

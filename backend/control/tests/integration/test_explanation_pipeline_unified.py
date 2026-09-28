@@ -34,7 +34,7 @@ from toxagent.application.explanation.identity import (
     model_artifact_fingerprint,
 )
 from toxagent.application.policy import Actor
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.message import Message, Role
 from toxagent.domain.observation import ObservationKind
 from toxagent.domain.run import Intent, Lane, Run

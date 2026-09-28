@@ -13,7 +13,7 @@ import pytest
 from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
 from toxagent.application.conversation.submit_answer import SubmitAnswer
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.errors import AnswerValidationFailed
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role

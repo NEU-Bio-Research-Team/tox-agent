@@ -25,7 +25,7 @@ from ...application.runs.budget import (
     DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
     DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
 )
-from ...config import ResearchSettings
+from ...platform.config import ResearchSettings
 from ...domain.errors import AnalysisNotFound, EvidenceNotFound, ToolDenied
 from ...domain.events import EventType
 from ...domain.evidence import EvidenceStatus
@@ -40,7 +40,7 @@ from ...research.relevance import (
     assess,
 )
 from ...application.investigation import scientific_case_service
-from ...flags import is_enabled
+from ...platform.flags import is_enabled
 from .. import trust
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 

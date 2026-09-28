@@ -21,7 +21,7 @@ from evals.external.scifact.product import (
     question_for,
     write_corpus,
 )
-from toxagent.config import ResearchSettings
+from toxagent.platform.config import ResearchSettings
 from toxagent.research.providers import build_provider
 from toxagent.research.providers.corpus import CorpusResearchProvider
 
@@ -105,7 +105,7 @@ async def test_ties_are_broken_by_record_id_so_a_rerun_ranks_the_same(tmp_path):
 
 def test_the_factory_and_the_effective_product_name_the_corpus(tmp_path):
     from toxagent.api.effective_product import describe_effective_product
-    from toxagent.config import (
+    from toxagent.platform.config import (
         CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
         RuntimeSettings, SecuritySettings, Settings,
     )

@@ -40,7 +40,7 @@ include = ["toxagent*"]
 
 # Files the code reads at runtime must travel with the code. Without this a
 # non-editable install imports fine and then fails on the first agent run,
-# because config.py's profiles_dir resolves inside the installed package.
+# because platform/config.py's profiles_dir resolves inside the installed package.
 [tool.setuptools.package-data]
 toxagent = [
     "agent_profiles/**/*",

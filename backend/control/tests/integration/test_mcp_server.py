@@ -15,7 +15,7 @@ import pytest
 from tests.support.mcp import connected_session, http_session
 from tests.support.predictor import ASPIRIN, StubPredictor
 from toxagent.application.prediction.create_analysis import CreateAnalysis
-from toxagent.config import PolicySettings, SecuritySettings
+from toxagent.platform.config import PolicySettings, SecuritySettings
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run

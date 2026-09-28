@@ -27,7 +27,7 @@ from ...application.report.submit_draft import (
     SubmitReportDraft,
 )
 from ...domain.errors import Conflict
-from ...flags import is_enabled
+from ...platform.flags import is_enabled
 from ...domain.report import REQUIRED_SECTION_IDS
 from ...predictor.contract import TOX21_TASKS
 from ...validation.report.draft_wire import ReportDraftCandidate

@@ -28,7 +28,7 @@ from ...connections.model import (
     ConnectionCapabilities, ConnectionStatus, ModelConnection,
 )
 from ...domain.runtime import AuthMode
-from ...agent.kernel import KernelTransition
+from ...superseded.kernel import KernelTransition
 from ...domain.investigation import (
     CaseState, ConflictStatus, Coverage, EvidenceConflict, EvidenceGap, GapSeverity,
     GoalType, InvestigationPlan, InvestigationStep, StepStatus,

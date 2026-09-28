@@ -112,27 +112,23 @@ def test_tool_gateway_does_not_call_the_runtime_gateway(path):
 LAYERS: tuple[tuple[str, ...], ...] = (
     ("worker",),
     ("api",),
-    ("runtime",),                   # re-export namespace over harness.provider
     ("harness",),
     ("tools",),
     ("application",),
-    ("agent",),                     # superseded kernel (ADR 0011), kept until its tables retire
-    ("answer", "report"),
+    ("superseded",),                # the ADR 0011 kernel, kept until its tables retire
+    ("report",),
     ("validation",),
     ("persistence",),
-    ("research", "predictor", "connections", "streaming", "activities", "capabilities"),
-    ("domain", "config", "flags", "metrics", "observability", "telemetry"),
+    ("research", "predictor", "connections", "streaming"),
+    ("domain", "platform"),
 )
-
-#: Within the bottom line, the platform modules may use one another.
-_PLATFORM = {"config", "flags", "metrics", "observability", "telemetry"}
 
 #: Imports that break the order today, each with the reason it has not moved
 #: yet. The list may only shrink: ``test_every_layer_exception_is_still_real``
 #: fails once an entry stops being true, so a fix has to delete its line.
 LAYER_EXCEPTIONS: dict[tuple[str, str], str] = {
-    ("persistence/investigations.py", "agent"): "superseded kernel store (ADR 0011)",
-    ("persistence/sql/repositories.py", "agent"): "superseded kernel store (ADR 0011)",
+    ("persistence/investigations.py", "superseded"): "the kernel's own store (ADR 0011)",
+    ("persistence/sql/repositories.py", "superseded"): "the kernel's own store (ADR 0011)",
 }
 
 _LEVEL = {name: level for level, line in enumerate(LAYERS) for name in line}
@@ -171,8 +167,7 @@ def _layer_violations(path: Path) -> set[str]:
     bad = set()
     for target in _package_targets(path) - {source}:
         there = _LEVEL[target]
-        same_line_ok = there == here and {source, target} <= _PLATFORM
-        if there < here or (there == here and not same_line_ok):
+        if there <= here:
             bad.add(target)
     return bad
 

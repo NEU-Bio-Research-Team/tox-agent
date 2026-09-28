@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.config import RuntimeSettings
+from toxagent.platform.config import RuntimeSettings
 from toxagent.connections.model import ConnectionStatus, ModelConnection
 from toxagent.connections.secrets import FilesystemSecretStore
 from toxagent.domain.errors import RuntimeUnavailable

@@ -22,10 +22,10 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.agent.budget import BudgetExhausted, BudgetLimits, StopReason
-from toxagent.agent.kernel import KernelState, ScientificAgentKernel
-from toxagent.answer.compiler import AnswerCompiler, SemanticAnswerDraft
-from toxagent.capabilities.registry import default_capabilities
+from toxagent.superseded.budget import BudgetExhausted, BudgetLimits, StopReason
+from toxagent.superseded.kernel import KernelState, ScientificAgentKernel
+from toxagent.superseded.answer_compiler import AnswerCompiler, SemanticAnswerDraft
+from toxagent.superseded.capability_registry import default_capabilities
 from toxagent.domain.ids import RUN, SESSION, new_id
 from toxagent.domain.investigation import (
     CaseState, Coverage, GoalType, InvestigationPlan, InvestigationStep, StepStatus,

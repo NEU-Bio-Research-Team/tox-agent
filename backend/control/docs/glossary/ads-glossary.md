@@ -66,7 +66,7 @@ turn can see without spending tool budget probing for it blindly.
 ## Bounded autonomy
 
 The agent chooses which tools to call and in what order, but only inside a
-closed MCP surface, per-run budgets (`agent/budget.py::BudgetLimits`), an
+closed MCP surface, per-run budgets (`superseded/budget.py::BudgetLimits`), an
 approved provider/source allowlist, and a deterministic final validator — as
 opposed to unrestricted tool access. `agent_profiles/opencode/toxagent.json`
 already denies every non-`toxagent_*` tool; that boundary does not change.

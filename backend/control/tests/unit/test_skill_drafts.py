@@ -5,7 +5,7 @@ import pytest
 
 from toxagent.application.investigation import skill_drafts
 from toxagent.application.investigation.skill_catalog import load_catalog
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 from toxagent.domain import skill_draft as sd
 
 CATALOG = load_catalog(PACKAGE_ROOT / "agent_profiles")

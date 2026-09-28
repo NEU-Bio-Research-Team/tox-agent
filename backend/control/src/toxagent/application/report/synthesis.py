@@ -26,7 +26,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Any
 
-from ... import metrics
+from ...platform import metrics
 from ...domain.errors import Conflict, Violation
 from ...domain.events import EventType
 from ...domain.report import BuildStage

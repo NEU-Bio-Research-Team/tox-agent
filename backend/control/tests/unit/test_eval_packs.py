@@ -222,7 +222,7 @@ def test_an_unexpected_infra_failure_is_not_a_product_failure():
 # ----------------------------------------------------------------- manifest
 
 def _settings(**policy):
-    from toxagent.config import (
+    from toxagent.platform.config import (
         CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
         ResearchSettings, RuntimeSettings, SecuritySettings, Settings,
     )

@@ -12,7 +12,7 @@ uses it to calibrate the claim-support step (`evidence_relation`).
 | Data | `data.py` downloads the release archive, refuses it unless its SHA-256 is `11c62128…d76be` | `scifact.s3-us-west-2.amazonaws.com/release/latest/data.tar.gz` |
 | Retrieval | `oracle` (gold abstracts, plus the first cited abstract of a no-evidence claim) or `tfidf` (scikit-learn, 1–2 grams, English stop words, top k) | `verisci/inference/abstract_retrieval/{oracle,tfidf}.py` |
 | Label + rationale | a judge (`judges.py`): one claim, one abstract with numbered sentences, JSON out | fixed prompt, hashed into the manifest |
-| Scoring | `metrics.py`, a pandas-free port | `verisci/evaluate/lib/metrics.py` @ `68b98a56` (Apache 2.0) |
+| Scoring | `platform/metrics.py`, a pandas-free port | `verisci/evaluate/lib/platform/metrics.py` @ `68b98a56` (Apache 2.0) |
 
 **Port check.** When written (2026-09-25) the port was compared with the
 official module on 40 sets of random predictions over the full dev split: 480

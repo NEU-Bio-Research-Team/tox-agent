@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
-from ...config import PolicySettings
+from ...platform.config import PolicySettings
 from ...domain.analysis import (
     AnalysisSnapshot,
     snapshot_from_prediction,

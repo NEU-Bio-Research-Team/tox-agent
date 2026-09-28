@@ -27,7 +27,7 @@ from toxagent.application.report.submit_draft import (
     ReportValidationFailed,
     SubmitReportDraft,
 )
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.errors import Conflict
 from toxagent.domain.ids import new_id
 from toxagent.domain.message import Message, Role

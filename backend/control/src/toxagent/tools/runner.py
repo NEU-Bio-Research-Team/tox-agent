@@ -25,7 +25,7 @@ from ..domain.events import EventType
 from ..domain.ids import TOOL_CALL, new_id
 from ..domain.run import Intent
 from ..domain.provenance import content_sha256
-from ..activities import activity_for_tool
+from .activities import activity_for_tool
 from . import envelope
 from .definitions.answer import ANSWER_TOOL_NAME
 from .definitions.claim_review import CLAIM_REVIEW_TOOL_NAME

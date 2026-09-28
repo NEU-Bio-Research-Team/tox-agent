@@ -12,7 +12,7 @@ import pytest
 
 from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.config import PolicySettings, ResearchSettings
+from toxagent.platform.config import PolicySettings, ResearchSettings
 from toxagent.domain.evidence import SourceType
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role

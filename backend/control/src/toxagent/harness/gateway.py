@@ -25,7 +25,7 @@ from ..connections.model import ConnectionStatus
 from ..connections.secrets import SecretStore
 from ..domain.runtime import AuthMode
 from ..application.runs.transitions import advance
-from ..config import RuntimeSettings
+from ..platform.config import RuntimeSettings
 from ..domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
 from ..domain.events import EventType
 from ..domain.evidence import EvidenceStatus
@@ -36,7 +36,7 @@ from ..domain.run import Intent, RunStatus
 from ..domain.report import BuildStage, ReportBuild, ReportBuildRequest
 from ..domain.runtime import BindingStatus, RuntimeBinding, RuntimeKind
 from ..domain.usage import RuntimeUsageEvent
-from ..flags import is_enabled
+from ..platform.flags import is_enabled
 from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
 from ..application.investigation import decision_state_service, scientific_case_service
@@ -138,7 +138,7 @@ class AgentRuntimeGateway:
         self._profiles_dir = profiles_dir
         # Loaded once and validated: a malformed skill package fails start-up
         # rather than a run whose record would claim instructions it never got.
-        from ..config import PACKAGE_ROOT
+        from ..platform.config import PACKAGE_ROOT
 
         self._skill_catalog = load_catalog(profiles_dir or PACKAGE_ROOT / "agent_profiles")
         # Which agent and which *real* step cap each intent runs under. Built
@@ -402,7 +402,7 @@ class AgentRuntimeGateway:
     async def _begin_decision_state(self, context: RunContext) -> None:
         """Open the run's DecisionSupportStateV1 (TAB-Suite Wave 2)."""
         from ..application.runs.budget import effective_run_budget
-        from ..config import PolicySettings
+        from ..platform.config import PolicySettings
 
         try:
             async with self._db.unit_of_work() as uow:

@@ -418,7 +418,7 @@ def main(argv: list[str] | None = None) -> int:
             "claim_ids": [c.id for c in claims],
             "corpus_records": len(corpus),
             "corpus_sha256_expected": corpus_digest,
-            "metrics": "abstract_label_only only; port of verisci/evaluate/lib/metrics.py @ 68b98a56",
+            "metrics": "abstract_label_only only; port of verisci/evaluate/lib/platform/metrics.py @ 68b98a56",
         },
         "system": {
             "description": "the ToxAgent product answering each claim as a question, "

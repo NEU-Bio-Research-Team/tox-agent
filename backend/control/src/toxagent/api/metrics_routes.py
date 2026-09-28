@@ -2,7 +2,7 @@
 
 Unauthenticated unless ``TOXAGENT_METRICS_TOKEN`` is set, because the usual
 deployment scrapes it from inside a private network and every value in it has
-already passed the cardinality guard in ``toxagent.metrics`` — there is no id,
+already passed the cardinality guard in ``toxagent.platform.metrics`` — there is no id,
 molecule or prose in it to protect. A deployment whose control plane is reachable
 from outside sets the token, and the scraper sends it as a bearer credential.
 """
@@ -14,7 +14,7 @@ import os
 from fastapi import APIRouter, Request
 from fastapi.responses import PlainTextResponse
 
-from .. import metrics
+from ..platform import metrics
 
 router = APIRouter(tags=["health"])
 

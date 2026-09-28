@@ -9,7 +9,7 @@ import base64
 import pytest
 from sqlalchemy import text
 
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from tests.support.api import AUTH, api_client, settings
 from tests.support.ocr import stub_no_structure_detected, stub_success, stub_unavailable
 from tests.support.predictor import ASPIRIN, StubPredictor

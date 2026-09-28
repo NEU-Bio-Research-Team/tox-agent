@@ -15,7 +15,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
-from ...config import PolicySettings
+from ...platform.config import PolicySettings
 from ...domain.analysis import snapshot_from_prediction
 from ...domain.ids import new_id
 from ...predictor.client import PredictorClient

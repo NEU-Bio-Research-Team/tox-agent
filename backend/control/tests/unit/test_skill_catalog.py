@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 from toxagent.tools.registry import PROFILES
 from toxagent.domain import decision_state as ds
 from toxagent.application.investigation import skill_catalog as catalog_module

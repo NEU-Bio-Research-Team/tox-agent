@@ -10,7 +10,7 @@ from __future__ import annotations
 from evals.capability_matrix import (
     JSON_PATH, MARKDOWN_PATH, build_matrix, render_json, render_markdown,
 )
-from toxagent import flags as rollout
+from toxagent.platform import flags as rollout
 from toxagent.tools.registry import FLAG_GATED_TOOLS, PROFILES
 
 

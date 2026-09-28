@@ -88,7 +88,7 @@ when a run used them.
 | `TOXAGENT_IMAGE_DIGEST` | empty | Recorded in the eval manifest's `source` |
 
 Rollout flags (`TOXAGENT_FLAG_<NAME>=1`) are listed with owner and removal date
-in `backend/control/src/toxagent/flags.py` and in
+in `backend/control/src/toxagent/platform/flags.py` and in
 [`architecture-inventory.json`](architecture-inventory.json). Two added for the
 benchmark programme: `TRUST_ENVELOPE_V1` (provider text reaches the model inside
 trust envelopes) and `DECISION_STATE_PLAN_TOOL` (registers

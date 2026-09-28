@@ -1032,7 +1032,7 @@ async def _user_case_update(request: Request, principal: Actor, session_id: str,
                             op: str, **payload: Any):
     from ..application.investigation import scientific_case_service
     from ..domain import scientific_case as sc
-    from ..flags import is_enabled
+    from ..platform.flags import is_enabled
 
     if not is_enabled("scientific_case_v1"):
         raise NotFound("scientific cases are not enabled on this deployment")
@@ -1096,7 +1096,7 @@ async def close_scientific_case(
 # --- skill drafts (RETHINK §4.8, W9-11) --------------------------------------
 
 def _drafts_enabled() -> None:
-    from ..flags import is_enabled
+    from ..platform.flags import is_enabled
 
     if not is_enabled("skill_drafts_v1"):
         raise NotFound("skill drafts are not enabled on this deployment")

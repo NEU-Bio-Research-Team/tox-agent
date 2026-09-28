@@ -14,8 +14,8 @@ from typing import Any, Mapping
 
 from sqlalchemy.exc import DBAPIError
 
-from ...config import PolicySettings
-from ...flags import is_enabled
+from ...platform.config import PolicySettings
+from ...platform.flags import is_enabled
 from ...domain.attachment import Attachment, RetentionClass
 from ...domain.errors import (
     AdmissionBusy,
@@ -532,7 +532,7 @@ class SubmitMessage:
         return not self._scheduler.handles(intent)
 
     def _effective_budget(self, intent: Intent) -> dict:
-        from ...config import RuntimeSettings
+        from ...platform.config import RuntimeSettings
         from ..runs.budget import effective_run_budget
 
         return effective_run_budget(

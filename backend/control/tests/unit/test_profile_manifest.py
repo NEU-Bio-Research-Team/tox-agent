@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from toxagent.flags import FLAGS
+from toxagent.platform.flags import FLAGS
 from toxagent.application import tool_profiles as pm
 from toxagent.tools.registry import FLAG_GATED_TOOLS, PROFILE_MANIFEST, PROFILES
 

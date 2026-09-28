@@ -59,7 +59,7 @@ COMPILER_VERSION = "toxagent-report-compiler-v2"
 
 
 def _format(value: float, transform: str) -> str:
-    """The same formatter ``answer/compiler.py`` uses. Duplicated deliberately
+    """The same formatter ``superseded/answer_compiler.py`` uses. Duplicated deliberately
     rather than imported through a chain of report -> answer modules: the two
     are the same rule today, and a report's rendering must not silently change
     because a conversational-answer transform was tuned."""

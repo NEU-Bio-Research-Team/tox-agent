@@ -20,7 +20,7 @@ from toxagent.application.report.dispatch import (
     ReportSynthesisRefused,
 )
 from toxagent.application.report.stages import StageCheckpoint, StageStatus
-from toxagent.config import Settings
+from toxagent.platform.config import Settings
 from toxagent.domain.errors import RuntimeUnavailable
 from toxagent.domain.report import (
     BuildStage,

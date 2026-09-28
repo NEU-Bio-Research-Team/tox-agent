@@ -27,10 +27,10 @@ from ..application.runs.scheduler import LEASE_TTL_S, RunContext, RunScheduler
 from ..application.conversation.sessions import SessionService
 from ..application.runs.startup_reconciliation import reconcile_orphaned_runs
 from ..application.conversation.submit_message import SubmitMessage
-from .. import observability
-from ..config import Settings
+from ..platform import observability
+from ..platform.config import Settings
 from ..domain.run import Intent
-from ..flags import is_enabled
+from ..platform.flags import is_enabled
 from ..harness.gateway import AgentRuntimeGateway
 from ..harness.provider import AgentRuntimeProvider
 from ..persistence.object_store import FilesystemObjectStore, ObjectStore

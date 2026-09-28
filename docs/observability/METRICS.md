@@ -1,7 +1,7 @@
 # Metric dictionary
 
 WS12 / PR-18. Every metric the control plane emits, declared once in
-`backend/control/src/toxagent/metrics.py` and served at `GET /metrics`
+`backend/control/src/toxagent/platform/metrics.py` and served at `GET /metrics`
 (Prometheus text format). `backend/control/tests/unit/test_metrics.py` fails
 when this table and the code disagree.
 
@@ -49,4 +49,4 @@ source that could drift.
 None are locked. The plan requires at least seven days of internal alpha
 telemetry before a threshold is set; an alert tuned before then is tuned to a
 guess. Each alert, when added, links its runbook and the rollout flag that
-rolls it back (`docs/runbooks/worker-drills.md`, `toxagent.flags`).
+rolls it back (`docs/runbooks/worker-drills.md`, `toxagent.platform.flags`).

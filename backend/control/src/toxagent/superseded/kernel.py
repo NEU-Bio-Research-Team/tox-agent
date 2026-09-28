@@ -16,12 +16,17 @@ from datetime import datetime
 from enum import Enum
 from typing import Awaitable, Callable, Protocol, Sequence
 
-from ..answer.compiler import AnswerCompiler, SemanticAnswerDraft
-from ..capabilities.registry import CapabilityRegistry
+from .answer_compiler import AnswerCompiler, SemanticAnswerDraft
+from .capability_registry import CapabilityRegistry
 from ..domain.investigation import CaseState, Coverage, InvestigationPlan, InvestigationStep, StepStatus
 from ..domain.observation import Observation
 from .budget import (
-    BudgetExhausted, BudgetLimits, BudgetUsage, StopReason, can_consume, stop_reason,
+    BudgetExhausted,
+    BudgetLimits,
+    BudgetUsage,
+    StopReason,
+    can_consume,
+    stop_reason,
 )
 
 

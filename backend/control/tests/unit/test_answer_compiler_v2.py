@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from toxagent.answer.compiler import AnswerCompiler, SemanticAnswerDraft, SemanticClaim
+from toxagent.superseded.answer_compiler import AnswerCompiler, SemanticAnswerDraft, SemanticClaim
 from toxagent.domain.ids import RUN, SESSION, new_id
 from toxagent.domain.observation import Observation, ObservationKind, Producer
 

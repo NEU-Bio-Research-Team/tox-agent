@@ -1,6 +1,6 @@
 """SciFact's official metrics, ported without pandas.
 
-Port of ``verisci/evaluate/lib/metrics.py`` from https://github.com/allenai/scifact
+Port of ``verisci/evaluate/lib/platform/metrics.py`` from https://github.com/allenai/scifact
 at commit 68b98a56d93e0f9da0d2aab4e6c3294699a0f72e (Apache License 2.0,
 Copyright the SciFact authors). The logic is unchanged: the same four metrics,
 the same three-sentence cap at abstract level, NEI predictions ignored, and a

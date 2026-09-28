@@ -14,7 +14,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from toxagent.config import RuntimeSettings
+from toxagent.platform.config import RuntimeSettings
 from toxagent.harness.adapters.opencode_v1 import (
     MCP_NAME,
     MCP_TOOL_PREFIXES,

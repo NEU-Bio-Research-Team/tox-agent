@@ -4,7 +4,7 @@ A run's limits used to be scattered: the tool-call ceiling in
 ``PolicySettings``, the decision-support search/read ceilings as constants in
 ``tools/definitions/evidence.py``, step caps in ``RuntimeSettings``, deadlines
 in two places, the identical-call loop guard in ``tools/runner.py``, and a
-dormant set of numbers in ``agent/budget.py`` that no live path reads.
+dormant set of numbers in ``superseded/budget.py`` that no live path reads.
 
 Nothing here changes what is *enforced* — every limit is still enforced where
 it was. This module reads those same sources and states them once, per intent,
@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from ...config import PolicySettings, RuntimeSettings
+from ...platform.config import PolicySettings, RuntimeSettings
 from ...domain.run import Intent
 
 #: Identical arguments to the same tool this many times in one run is a loop,

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 from toxagent.domain.ids import new_id
 from toxagent.domain.report import (
     BuildStage,

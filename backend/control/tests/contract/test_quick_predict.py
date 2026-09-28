@@ -11,7 +11,7 @@ from dataclasses import replace
 
 from sqlalchemy import text
 
-from toxagent.config import PolicySettings, PredictorSettings
+from toxagent.platform.config import PolicySettings, PredictorSettings
 from tests.support.api import AUTH, EXPERT_AUTH, api_client, settings
 from tests.support.predictor import (
     ASPIRIN,
