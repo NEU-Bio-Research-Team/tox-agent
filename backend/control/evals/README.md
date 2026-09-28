@@ -22,7 +22,22 @@ as pass.
 | `manifest.py` | `eval-manifest-v2`: effective product, source, environment, discovery, release eligibility |
 | `architecture_inventory.py` | generates `docs/architecture-inventory.json` |
 | `runner.py` | loads, executes, grades, writes a manifest + results + traces |
-| `manifests/` | run output (git-ignored) |
+| `results/` | default output of every run (`runner.py`); git-ignored as a whole |
+| `manifests/` | **committed evidence**: runs a document, a paired comparison or the scorecard cites |
+
+### Code, evidence and scratch
+
+Three kinds of file live under `evals/`, and only two belong in git:
+
+- **Code and inputs** — the Python modules, `schema/`, `tasks/`, `packs/`,
+  `fixtures/`, `graders/`. Reviewed like any source.
+- **Evidence** — runs that something cites, kept byte-for-byte so a later
+  reader (or the blind lab grading) sees exactly what was measured:
+  `manifests/<run>/`, `investigation/runs/`, `experiments/runs/`,
+  `external/scifact/runs/`. Written there only on purpose: pass
+  `--out manifests/<name>` (runner) or `--root`/`--out-root` (the others).
+- **Scratch** — everything a run writes by default goes to `results/`, which
+  `.gitignore` excludes as one rule. Copy a run out of it to keep it.
 
 ## Packs, statuses and manifests (TAB-Suite Wave 0/1)
 

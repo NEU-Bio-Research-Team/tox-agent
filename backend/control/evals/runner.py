@@ -49,7 +49,9 @@ from evals.trace import project as project_trace
 HERE = Path(__file__).resolve().parent
 TASKS_DIR = HERE / "tasks"
 SCHEMA_PATH = HERE / "schema" / "task.schema.json"
-DEFAULT_OUT = HERE / "manifests"
+#: Scratch output. A run worth keeping is copied into ``manifests/`` (or run
+#: with ``--out manifests/<name>``) and committed deliberately; see README.md.
+DEFAULT_OUT = HERE / "results"
 
 _DETERMINISTIC_INTENTS = {"out_of_scope", "clarification_required"}
 
