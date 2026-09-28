@@ -1,6 +1,6 @@
 # Comparison study: ToxAgent against general platforms, graded blind by a lab
 
-Implements RETHINK §5.4–§5.5 (`docs/RETHINK_TOXAGENT_AGENTIC_RESEARCH_EVALUATION_VI.md`)
+Implements RETHINK §5.4–§5.5 (`docs/internal/rethink-agentic-research-evaluation.vi.md`)
 as decided on 2026-09-25: the "SME" arms are general platforms (OpenAI, Anthropic,
 Google models) answering the same cases as ToxAgent; a chemistry lab grades later.
 Nothing in this directory judges quality. It runs, logs and blinds.

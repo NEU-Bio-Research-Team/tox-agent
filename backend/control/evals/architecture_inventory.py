@@ -4,7 +4,7 @@ Architecture documents explain why. They are bad at saying what is currently
 true — the 2026-09-16 review found two architecture files differing only by
 case, a configuration page naming a retired compose path, and a progress log
 contradicting itself. This module answers "what is it now" from the code the
-product actually composes itself from, and ``docs/architecture-inventory.json``
+product actually composes itself from, and ``docs/reference/architecture-inventory.json``
 is its checked-in output. ``tests/unit/test_architecture_inventory.py`` fails
 when the two differ, so a new intent, flag, profile, tool, provider, queue or
 eval pack is a reviewed diff to that file rather than a silent change.
@@ -25,7 +25,7 @@ from typing import Any
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[2]
-INVENTORY_PATH = REPO_ROOT / "docs" / "architecture-inventory.json"
+INVENTORY_PATH = REPO_ROOT / "docs" / "reference" / "architecture-inventory.json"
 SCHEMA_VERSION = "architecture-inventory-v1"
 
 #: Retired by ADR 0010; still deserialisable, never produced for new requests.

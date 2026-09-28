@@ -4,13 +4,14 @@
 # These are tracked-or-present paths that would add volume without adding
 # meaning: superseded code, measurement records, datasets and scans.
 
-# Superseded implementation, kept only for reference (docs/WORKSPACE_LAYOUT.md).
+# Superseded implementation, kept only for reference (docs/explanation/workspace-layout.md).
 legacy/
 
 # Measurement evidence: run records, manifests, packets, fixtures. Thousands of
 # JSON/JSONL/Markdown artefacts that record *results*, not structure. The code
 # that produces them (evals/*.py) is indexed.
 backend/control/evals/manifests/
+backend/control/evals/results/
 backend/control/evals/investigation/runs/
 backend/control/evals/experiments/runs/
 backend/control/evals/external/scifact/runs/
@@ -40,9 +41,9 @@ backend/predictor/evals/benchmark/manifests/
 backend/predictor/evals/benchmark/results/
 backend/predictor/evals/bioactivity/manifests/
 skill.manifest.json
-docs/capability-matrix.json
-docs/architecture-inventory.json
-docs/audit/regression_guards.json
+docs/reference/capability-matrix.json
+docs/reference/architecture-inventory.json
+docs/internal/audit/regression_guards.json
 .claude/settings.json
 .claude/settings.local.json
 

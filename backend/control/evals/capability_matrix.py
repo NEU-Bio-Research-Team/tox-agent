@@ -15,7 +15,7 @@ cannot quietly disagree with the code. ``tests/unit/test_capability_matrix.py``
 fails on drift. No timestamp: the output is deterministic.
 
     python -m evals.capability_matrix           # print the JSON
-    python -m evals.capability_matrix --write   # regenerate docs/capability-matrix.json + CAPABILITY_MATRIX.md
+    python -m evals.capability_matrix --write   # regenerate docs/reference/capability-matrix.json + CAPABILITY_MATRIX.md
     python -m evals.capability_matrix --check   # exit 1 on drift
 """
 from __future__ import annotations
@@ -28,8 +28,8 @@ from typing import Any
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[2]
-JSON_PATH = REPO_ROOT / "docs" / "capability-matrix.json"
-MARKDOWN_PATH = REPO_ROOT / "docs" / "CAPABILITY_MATRIX.md"
+JSON_PATH = REPO_ROOT / "docs" / "reference" / "capability-matrix.json"
+MARKDOWN_PATH = REPO_ROOT / "docs" / "reference" / "capability-matrix.md"
 MODEL_MANIFESTS = REPO_ROOT / "backend" / "predictor" / "registry" / "models"
 SCHEMA_VERSION = "capability-matrix-v1"
 

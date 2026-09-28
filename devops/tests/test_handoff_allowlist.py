@@ -2,7 +2,7 @@
 
 The handoff plan classifies the tree in a table a person applies. That table
 goes stale the first time somebody adds a file, and its two failure modes are
-not symmetric: shipping `docs/audit/` discloses internal findings, and
+not symmetric: shipping `docs/internal/audit/` discloses internal findings, and
 withholding something the setup procedure needs hands the customer a clone
 that cannot start.
 """
@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "devops" / "scripts"))
+sys.path.insert(0, str(ROOT / "devops" / "release"))
 
 import handoff  # noqa: E402
 
@@ -45,8 +45,8 @@ def test_the_setup_procedure_a_customer_follows_is_all_present(classified):
         "backend/control/deploy/Dockerfile",
         "backend/predictor/deploy/Dockerfile",
         "backend/ocr/deploy/Dockerfile",
-        "docs/CONFIGURATION.md",
-        "docs/OPERATIONS.md",
+        "docs/reference/configuration.md",
+        "docs/how-to/operations.md",
     ):
         assert required in included, required
 
@@ -55,11 +55,11 @@ def test_internal_material_is_withheld(classified):
     """Audit findings, planning documents and superseded intent."""
     included = set(classified[0])
     withheld = set(classified[1])
-    assert not any(path.startswith("docs/audit/") for path in included)
-    assert not any(path.startswith("docs/spec/") for path in included)
+    assert not any(path.startswith("docs/internal/audit/") for path in included)
+    assert not any(path.startswith("docs/internal/spec/") for path in included)
     assert not any(path.startswith("docs/archive/") for path in included)
     assert not any(path.endswith(".pptx") for path in included)
-    assert any(path.startswith("docs/audit/") for path in withheld), (
+    assert any(path.startswith("docs/internal/audit/") for path in withheld), (
         "nothing was withheld, so the assertions above pass vacuously"
     )
 
@@ -68,9 +68,9 @@ def test_the_scientific_limitations_travel_with_the_models(classified):
     """A model card that stays behind turns a bounded measurement into an
     unqualified number."""
     included = set(classified[0])
-    assert "docs/MODEL_CARD.md" in included
-    assert "docs/benchmark-protocol.md" in included
-    assert any(path.startswith("docs/artifacts/") for path in included)
+    assert "docs/reference/model-card.md" in included
+    assert "docs/reference/benchmark-protocol.md" in included
+    assert any(path.startswith("docs/reference/artifacts/") for path in included)
 
 
 def test_no_shipped_document_links_to_a_withheld_one(classified):
@@ -100,14 +100,14 @@ def test_every_rule_says_why():
 
 
 def test_an_exclusion_wins_over_a_broader_inclusion():
-    """`docs/runbooks/**` ships and `docs/audit/**` does not; a rule set where
-    the broader one won would make every exclusion depend on no include
-    covering it."""
-    included, excluded, _ = handoff.classify(
-        ["docs/runbooks/x.md", "docs/audit/SYSTEM_ISSUES_VI.md"]
-    )
-    assert included == ["docs/runbooks/x.md"]
-    assert excluded == ["docs/audit/SYSTEM_ISSUES_VI.md"]
+    """`backend/control/**` ships and the investigation-study runs under it do
+    not; a rule set where the broader one won would make every exclusion depend
+    on no include covering it."""
+    shipped = "backend/control/README.md"
+    withheld = "backend/control/evals/investigation/runs/pilot/record.json"
+    included, excluded, _ = handoff.classify([shipped, withheld])
+    assert included == [shipped]
+    assert excluded == [withheld]
 
 
 def test_the_allowlist_is_json_a_reviewer_can_read():

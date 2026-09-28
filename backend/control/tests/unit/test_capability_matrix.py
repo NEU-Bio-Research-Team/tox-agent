@@ -17,10 +17,10 @@ from toxagent.tools.registry import FLAG_GATED_TOOLS, PROFILES
 def test_the_checked_in_matrix_is_current():
     matrix = build_matrix()
     assert JSON_PATH.read_text() == render_json(matrix), (
-        "docs/capability-matrix.json is stale; run `python -m evals.capability_matrix --write`"
+        "docs/reference/capability-matrix.json is stale; run `python -m evals.capability_matrix --write`"
     )
     assert MARKDOWN_PATH.read_text() == render_markdown(matrix), (
-        "docs/CAPABILITY_MATRIX.md is stale; run `python -m evals.capability_matrix --write`"
+        "docs/reference/capability-matrix.md is stale; run `python -m evals.capability_matrix --write`"
     )
 
 

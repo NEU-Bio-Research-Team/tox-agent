@@ -15,9 +15,8 @@ serviceAccountKey.json
 node_modules/
 **/node_modules/
 **/dist/
-# frontend/ was removed from the repository by the predictor-only refactor, but
-# an untracked node_modules and dist may still sit on a developer's disk. Keep
-# them out of the build context.
+# The root context builds the predictor image only; the frontend has its own
+# context (frontend/deploy/Dockerfile) and never belongs in this one.
 frontend/
 # Untracked local leftovers that must never enter the image.
 legacy/

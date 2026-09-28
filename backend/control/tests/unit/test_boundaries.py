@@ -108,7 +108,7 @@ def test_tool_gateway_does_not_call_the_runtime_gateway(path):
 # line, and nothing else: not a higher line, and not a *different* package on
 # its own line. Every top-level package or module must appear here, so a new
 # one is a placement decision, not a default. The reasoning is in
-# docs/spec/WORKSPACE_STRUCTURE_REVIEW.md, section 6.2.
+# docs/internal/spec/WORKSPACE_STRUCTURE_REVIEW.md, section 6.2.
 LAYERS: tuple[tuple[str, ...], ...] = (
     ("worker",),
     ("api",),

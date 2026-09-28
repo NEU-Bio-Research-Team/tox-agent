@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "devops" / "scripts"))
+sys.path.insert(0, str(ROOT / "devops" / "release"))
 
 import release_manifest as rm  # noqa: E402
 

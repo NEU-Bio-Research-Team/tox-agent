@@ -20,7 +20,7 @@ In-process and per-replica on purpose. Aggregation across replicas is the
 scraper's job; sharing counters through the database would put a write on
 every run for a number nobody reads per request.
 
-Every name declared here is documented in ``docs/observability/METRICS.md``, and
+Every name declared here is documented in ``docs/reference/metrics.md``, and
 ``tests/unit/test_metrics.py`` fails when the two disagree.
 """
 from __future__ import annotations

@@ -1,7 +1,7 @@
 # Scientific skills
 
 Investigation methods the decision-support agent can load when a situation calls
-for them (ADR 0012, `docs/RETHINK_TOXAGENT_AGENTIC_RESEARCH_EVALUATION_VI.md`
+for them (ADR 0012, `docs/internal/rethink-agentic-research-evaluation.vi.md`
 §4.5–§4.9, §5.5). Loaded and validated by `application/investigation/skill_catalog.py`.
 
 ## Package format

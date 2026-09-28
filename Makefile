@@ -66,9 +66,9 @@ test-devops:
 	$(PYTHON) -m pytest -q devops/tests
 
 check:
-	$(PYTHON) devops/scripts/check_docs.py
-	$(PYTHON) devops/scripts/check_workspace.py
-	$(PYTHON) devops/scripts/handoff.py --check
+	$(PYTHON) devops/checks/check_docs.py
+	$(PYTHON) devops/checks/check_workspace.py
+	$(PYTHON) devops/release/handoff.py --check
 
 ## Each service's pyproject.toml declares; requirements.lock pins, and the
 ## image installs from it. uv keeps existing pins unless UPGRADE=--upgrade.

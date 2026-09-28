@@ -1,11 +1,11 @@
 """Every fixed issue names the check that would fail without the fix (W1-12).
 
 The audit closed 34 issues. "Closed" was recorded as prose in
-`docs/audit/SYSTEM_ISSUES_VI.md`, which cannot notice when the test that made
+`docs/internal/audit/SYSTEM_ISSUES_VI.md`, which cannot notice when the test that made
 an issue closed is renamed, moved or deleted — at which point the issue is
 open again and the document still says otherwise.
 
-`docs/audit/regression_guards.json` names, for each issue, the file and the
+`docs/internal/audit/regression_guards.json` names, for each issue, the file and the
 anchor inside it that constitutes its guard. This checks the registry against
 the tree: every issue is covered, every named file exists, and every anchor is
 still in it. It does not run the guards — the service suites and CI do that —
@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-REGISTRY = ROOT / "docs" / "audit" / "regression_guards.json"
+REGISTRY = ROOT / "docs" / "internal" / "audit" / "regression_guards.json"
 
 #: I01..I34, the catalogue in SYSTEM_ISSUES_VI.md plus the two the K01 work
 #: found (I33, I34). A new issue with no entry fails here rather than being
@@ -64,6 +64,6 @@ def test_the_guard_still_exists(issue: str, guard: dict):
 def test_the_issues_that_stay_open_are_still_written_down_as_open():
     """The five with work remaining are named in the report, not silently
     absorbed into the closed set by having a guard for their closed half."""
-    report = (ROOT / "docs" / "audit" / "SYSTEM_ISSUES_VI.md").read_text()
+    report = (ROOT / "docs" / "internal" / "audit" / "SYSTEM_ISSUES_VI.md").read_text()
     for issue in ("I07", "I16", "I17/I18", "I30", "I31"):
         assert f"| {issue} |" in report, issue

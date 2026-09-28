@@ -155,7 +155,7 @@ below; you do not need it for prediction, batch prediction or OCR.
 
 Run `./bin/toxagent doctor` before a long build if a machine has changed. The
 default stack deliberately has no external LLM dependency. An approved
-OpenCode runtime is optional and documented in [configuration](docs/CONFIGURATION.md).
+OpenCode runtime is optional and documented in [configuration](docs/reference/configuration.md).
 
 ### Local ports
 
@@ -208,16 +208,16 @@ account. Provider requests consume that account's quota.
 
 ## Documentation
 
-- [Getting started](docs/GETTING_STARTED.md)
-- [Configuration](docs/CONFIGURATION.md)
-- [Operations](docs/OPERATIONS.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Model card](docs/MODEL_CARD.md)
-- [Development](docs/DEVELOPMENT.md)
+- [Getting started](docs/tutorials/getting-started.md)
+- [Configuration](docs/reference/configuration.md)
+- [Operations](docs/how-to/operations.md)
+- [Architecture](docs/explanation/architecture.md)
+- [Model card](docs/reference/model-card.md)
+- [Development](docs/how-to/development.md)
 
 ClinTox is intentionally shown as unavailable: its release artifact lacks the
 tokenizer needed for reproducible inference. hERG and Tox21 are the served
-predictor capabilities in this release. See the [model card](docs/MODEL_CARD.md)
+predictor capabilities in this release. See the [model card](docs/reference/model-card.md)
 for intended use, calibration and limitations.
 
 ## Model admission

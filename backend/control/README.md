@@ -7,10 +7,10 @@ next verification step — through an audit trail that can be reconstructed.
 
 It is a **separate deployable** from the predictor. It talks to ToxPred over
 `/v1` HTTP only, and it imports no model code. See
-[`docs/adr/0001-three-boundary-topology.md`](docs/adr/0001-three-boundary-topology.md).
+[`docs/adr/0001-three-boundary-topology.md`](../../docs/adr/0001-three-boundary-topology.md).
 The same discipline extends to `../toxocr` (image -> SMILES structure
 recognition) — see
-[`docs/adr/0006-ocr-fourth-boundary.md`](docs/adr/0006-ocr-fourth-boundary.md).
+[`docs/adr/0006-ocr-fourth-boundary.md`](../../docs/adr/0006-ocr-fourth-boundary.md).
 
 ## Layout
 

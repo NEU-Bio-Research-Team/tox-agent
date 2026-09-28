@@ -20,7 +20,7 @@ as pass.
 | `graders/` (Wave 1) | also `trajectory`, `budget`, `outcome_split`, `decision_state`; `GRADER_REGISTRY` versions every grader |
 | `trace.py` | `eval-trace-v1`: the one trace projection every driver and grader shares |
 | `manifest.py` | `eval-manifest-v2`: effective product, source, environment, discovery, release eligibility |
-| `architecture_inventory.py` | generates `docs/architecture-inventory.json` |
+| `architecture_inventory.py` | generates `docs/reference/architecture-inventory.json` |
 | `runner.py` | loads, executes, grades, writes a manifest + results + traces |
 | `results/` | default output of every run (`runner.py`); git-ignored as a whole |
 | `manifests/` | **committed evidence**: runs a document, a paired comparison or the scorecard cites |

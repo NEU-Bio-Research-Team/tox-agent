@@ -65,7 +65,7 @@ jobs:
 
   # One ruff configuration (ruff.toml) for every Python tree. Blocking: the
   # tree is clean against it. Type checking is reported, not yet enforced —
-  # see docs/spec/WORKSPACE_STRUCTURE_REVIEW.md, Phase 0.
+  # see docs/internal/spec/WORKSPACE_STRUCTURE_REVIEW.md, Phase 0.
   lint:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
@@ -94,10 +94,10 @@ jobs:
           python-version: '3.10'
       # Links resolve, and no current document names a path the relocation
       # removed. Historical records are exempt by name, not by accident (I32).
-      - run: python devops/scripts/check_docs.py
+      - run: python devops/checks/check_docs.py
       # A CI checkout holds only tracked roots; a stray source tree here means
       # something generated or vendored code into the workspace.
-      - run: python devops/scripts/check_workspace.py --strict
+      - run: python devops/checks/check_workspace.py --strict
       - run: pip install pytest
       # bin/toxagent against recorded docker/ss argv. Two subcommands were
       # dropping an argument (I28/I29) in ways no unit of the script shows.
@@ -379,8 +379,8 @@ jobs:
       # What a customer distribution would contain. Fails on a tracked path
       # matching no rule, on a shipped document linking to a withheld one, and
       # on an undeclared credential shape in anything shipped.
-      - run: python devops/scripts/handoff.py --check
-      - run: python devops/scripts/release_manifest.py --out release-manifest.json
+      - run: python devops/release/handoff.py --check
+      - run: python devops/release/release_manifest.py --out release-manifest.json
       - run: cat release-manifest.json
 
       # CycloneDX over the environment that was actually installed, rather

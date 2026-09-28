@@ -2,7 +2,7 @@
 
 A metric label that carries a run id or a molecule is a privacy leak and a
 cardinality explosion at once. These pin the guards, and pin the dictionary in
-docs/observability/METRICS.md to what the code declares.
+docs/reference/metrics.md to what the code declares.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import pytest
 
 from toxagent.platform import metrics
 
-DOC = Path(__file__).resolve().parents[4] / "docs" / "observability" / "METRICS.md"
+DOC = Path(__file__).resolve().parents[4] / "docs" / "reference" / "metrics.md"
 
 
 @pytest.fixture(autouse=True)
