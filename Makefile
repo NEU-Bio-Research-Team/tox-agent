@@ -7,6 +7,7 @@
 #   make typecheck       mypy (report only) + frontend tsc
 #   make test            every suite; narrow with SERVICE=control|predictor|ocr|frontend|devops
 #   make check           docs links, stray workspace roots, handoff surface
+#   make lock            re-resolve each service's requirements.lock (needs uv)
 #
 # Python tools come from the active environment (`pip install -e
 # 'backend/control[dev]'` provides ruff and mypy). Override with RUFF=… MYPY=…
@@ -19,7 +20,7 @@ SERVICE ?= all
 
 PY_DIRS := backend devops
 
-.PHONY: lint lint-report fmt typecheck test check \
+.PHONY: lint lint-report fmt typecheck test check lock \
         test-control test-predictor test-ocr test-frontend test-devops
 
 lint:
@@ -56,7 +57,7 @@ test-predictor:
 	cd backend/predictor && $(PYTHON) -m pytest -q
 
 test-ocr:
-	cd backend/ocr && PYTHONPATH=src $(PYTHON) -m pytest -q tests
+	cd backend/ocr && $(PYTHON) -m pytest -q
 
 test-frontend:
 	cd frontend && $(NPM) run typecheck && $(NPM) test
@@ -68,3 +69,20 @@ check:
 	$(PYTHON) devops/scripts/check_docs.py
 	$(PYTHON) devops/scripts/check_workspace.py
 	$(PYTHON) devops/scripts/handoff.py --check
+
+## Each service's pyproject.toml declares; requirements.lock pins, and the
+## image installs from it. uv keeps existing pins unless UPGRADE=--upgrade.
+## torch is installed by each Dockerfile from the PyTorch index for its
+## TORCH_VARIANT, so it is resolved against the CPU index and left out of the
+## lock; toxocr's torchvision stays the PyPI build its image has always used.
+LOCK_FLAGS = --python-version 3.10 --python-platform x86_64-manylinux_2_28 \
+	--quiet --no-annotate --custom-compile-command "make lock" $(UPGRADE)
+TORCH_CPU = --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+
+lock:
+	cd backend/control && uv pip compile pyproject.toml --extra postgres $(LOCK_FLAGS) -o requirements.lock
+	cd backend/predictor && uv pip compile pyproject.toml $(LOCK_FLAGS) $(TORCH_CPU) \
+		--no-emit-package torch -o requirements.lock
+	cd backend/ocr && uv pip compile pyproject.toml $(LOCK_FLAGS) $(TORCH_CPU) \
+		--no-emit-package torch -o requirements.lock \
+		&& sed -i 's/^torchvision==\(.*\)+cpu$$/torchvision==\1/' requirements.lock

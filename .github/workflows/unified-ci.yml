@@ -178,10 +178,10 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      - run: pip install -r backend/ocr/requirements.txt pytest
+      - run: pip install -e './backend/ocr[dev]'
       # Contract-level only: these tests must not download a checkpoint. A
       # model smoke belongs in a scheduled job with an artifact cache.
-      - run: PYTHONPATH=src python -m pytest -q tests
+      - run: python -m pytest -q
         working-directory: backend/ocr
 
   # Repositories, migrations and the multi-instance invariants only mean

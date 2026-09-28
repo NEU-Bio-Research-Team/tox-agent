@@ -30,7 +30,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml /app/pyproject.toml
+COPY pyproject.toml requirements.lock /app/
 # Editable install needs to discover the src layout, but dependencies must not
 # be invalidated by every application-source edit. The real package replaces
 # this minimal marker in the next COPY layer.
@@ -38,7 +38,8 @@ RUN mkdir -p /app/src/toxagent && touch /app/src/toxagent/__init__.py
 # The production image talks to PostgreSQL only (asyncpg/psycopg) — the
 # aiosqlite dev path exists for local/CI convenience, not for a deployable
 # image (pyproject.toml's own comment on the `postgres` extra).
-RUN pip install --no-cache-dir -e '.[postgres]'
+RUN pip install --no-cache-dir -r requirements.lock \
+    && pip install --no-cache-dir --no-deps -e .
 
 # Named explicitly rather than `COPY . /app/`: what the application needs to
 # run is a short list, and anything not on it has no business in a deployed

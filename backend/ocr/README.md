@@ -26,10 +26,8 @@ working setup, CPU only:
 conda create -n toxocr-env python=3.10
 conda activate toxocr-env
 pip install torch==1.13.1 --index-url https://download.pytorch.org/whl/cpu
-pip install -r toxocr/requirements.txt
-pip install "numpy<2"   # see requirements.txt's comment — molscribe's pinned
-                         # deps (timm, torchvision 0.14, albumentations 1.1.0)
-                         # predate NumPy 2.0's ABI break
+pip install -r backend/ocr/requirements.lock   # pinned; numpy stays 1.x
+pip install --no-deps -e 'backend/ocr[dev]'
 ```
 
 ## Running it

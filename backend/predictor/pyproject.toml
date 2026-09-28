@@ -7,6 +7,17 @@ name = "toxpred"
 version = "0.1.0.dev0"
 description = "Headless toxicity prediction service: hERG blockade and Tox21 assay activity."
 requires-python = ">=3.10"
+# The one declaration of this service's dependencies. requirements.lock pins
+# the full resolved set (`make lock`); the image installs from it, with torch
+# installed first from the PyTorch index for the chosen TORCH_VARIANT.
+#
+# Deliberately absent, and why:
+#   deepchem, pytdc        dataset loaders; only the split builder (`split` extra)
+#   matplotlib, pillow     the API returns numbers, never a rendered image
+#   google-adk, google-genai, firebase-admin, sentence-transformers
+#                          the agent layer this service replaced
+#   molscribe, opencv, timm, albumentations, SmilesPE
+#                          image-to-SMILES OCR, not part of prediction
 dependencies = [
     "fastapi>=0.111",
     "uvicorn[standard]>=0.30",
@@ -14,8 +25,10 @@ dependencies = [
     "numpy",
     "pyyaml",
     "rdkit",
-    "torch",
-    "transformers",
+    # The version deploy/Dockerfile installs (for its TORCH_VARIANT).
+    "torch==2.6.0",
+    # Pinned: the served tokenizer's output is part of golden parity.
+    "transformers==4.56.2",
 ]
 
 [project.optional-dependencies]
@@ -24,6 +37,8 @@ xai = ["captum>=0.7"]
 clintox = ["torch-geometric>=2.6"]
 full = ["captum>=0.7", "torch-geometric>=2.6", "scikit-learn", "pandas"]
 dev = ["pytest>=8", "httpx", "ruff==0.13.3", "mypy>=1.11"]
+# Only to regenerate the frozen evaluation split (evals/benchmark/build_split_manifest.py).
+split = ["deepchem", "pytdc", "pandas", "scikit-learn"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

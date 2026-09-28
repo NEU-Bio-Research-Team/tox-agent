@@ -7,7 +7,7 @@
 # reasoning as toxagent-control's Dockerfile (ADR 0006): this image must not
 # be able to import toxpred or toxagent-control even by accident.
 #
-# MolScribe pins torch<2.0 (requirements.txt) — this image never shares a
+# MolScribe pins torch<2.0 (see pyproject.toml) — this image never shares a
 # base with toxpred's (torch 2.6) or toxagent-control's (no torch at all).
 # Pinned by digest (2026-09-06) — W6-11, same reasoning as
 # toxagent-control/deploy/Dockerfile.
@@ -36,12 +36,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ARG TORCH_VARIANT=cpu
 RUN --mount=type=cache,target=/root/.cache/pip pip install torch==1.13.1+${TORCH_VARIANT} --extra-index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
 
-COPY requirements.txt /app/requirements.txt
-# molscribe's pinned deps (timm, torchvision 0.14, albumentations 1.1.0)
-# predate NumPy 2.0's ABI break — requirements.txt already pins numpy<2, but
-# a second explicit pass after molscribe resolves it the same way the
-# verified local install sequence does (requirements.txt's own comment).
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /app/requirements.txt && pip install "numpy<2"
+# Every other dependency, pinned: requirements.lock is resolved from
+# pyproject.toml (`make lock`) with torch left out, since the line above
+# installs it for the chosen variant. It pins numpy 1.x, which molscribe's own
+# pinned dependencies (timm, torchvision 0.14, albumentations 1.1.0) need.
+COPY requirements.lock /app/requirements.lock
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /app/requirements.lock
 
 # The source follows the same src layout as the predictor. Copy just the
 # package, rather than turning deployment files and tests into importable code.
