@@ -10,6 +10,12 @@ from ...domain.errors import (
     InvalidRequest,
     NotFound,
 )
+from ..responses import (
+    DecisionDossier,
+    ScientificCase,
+    ScientificCaseEventsResponse,
+    ScientificCaseListResponse,
+)
 from ..schemas import (
     CaseContextRequest,
     CaseQuestionRequest,
@@ -39,7 +45,7 @@ async def _owned_case(request: Request, principal: Actor, session_id: str, case_
     return services, case
 
 
-@router.get("/sessions/{session_id}/cases")
+@router.get("/sessions/{session_id}/cases", responses={200: {"model": ScientificCaseListResponse}})
 async def list_scientific_cases(
     request: Request, session_id: str, principal: Actor = Depends(actor)
 ):
@@ -52,7 +58,7 @@ async def list_scientific_cases(
     return {"cases": [_case_summary(case) for case in cases]}
 
 
-@router.get("/sessions/{session_id}/cases/{case_id}")
+@router.get("/sessions/{session_id}/cases/{case_id}", responses={200: {"model": ScientificCase}})
 async def get_scientific_case(
     request: Request, session_id: str, case_id: str, principal: Actor = Depends(actor)
 ):
@@ -60,7 +66,7 @@ async def get_scientific_case(
     return case.to_dict()
 
 
-@router.get("/sessions/{session_id}/cases/{case_id}/events")
+@router.get("/sessions/{session_id}/cases/{case_id}/events", responses={200: {"model": ScientificCaseEventsResponse}})
 async def get_scientific_case_events(
     request: Request, session_id: str, case_id: str, principal: Actor = Depends(actor)
 ):
@@ -71,7 +77,7 @@ async def get_scientific_case_events(
     return {"case_id": case.id, "events": [event.to_dict() for event in events]}
 
 
-@router.get("/sessions/{session_id}/cases/{case_id}/dossier")
+@router.get("/sessions/{session_id}/cases/{case_id}/dossier", responses={200: {"model": DecisionDossier}})
 async def get_latest_decision_dossier(
     request: Request, session_id: str, case_id: str, principal: Actor = Depends(actor)
 ):
@@ -83,7 +89,7 @@ async def get_latest_decision_dossier(
     return dossier
 
 
-@router.get("/sessions/{session_id}/runs/{run_id}/dossier")
+@router.get("/sessions/{session_id}/runs/{run_id}/dossier", responses={200: {"model": DecisionDossier}})
 async def get_run_decision_dossier(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
 ):
@@ -118,7 +124,7 @@ async def _user_case_update(request: Request, principal: Actor, session_id: str,
     return updated.to_dict()
 
 
-@router.post("/sessions/{session_id}/cases/{case_id}/context")
+@router.post("/sessions/{session_id}/cases/{case_id}/context", responses={200: {"model": ScientificCase}})
 async def add_scientific_case_context(
     request: Request, session_id: str, case_id: str, body: CaseContextRequest,
     principal: Actor = Depends(actor),
@@ -130,7 +136,7 @@ async def add_scientific_case_context(
     )
 
 
-@router.post("/sessions/{session_id}/cases/{case_id}/question")
+@router.post("/sessions/{session_id}/cases/{case_id}/question", responses={200: {"model": ScientificCase}})
 async def set_scientific_case_question(
     request: Request, session_id: str, case_id: str, body: CaseQuestionRequest,
     principal: Actor = Depends(actor),
@@ -141,7 +147,7 @@ async def set_scientific_case_question(
     return await _user_case_update(request, principal, session_id, case_id, "set_question", **payload)
 
 
-@router.post("/sessions/{session_id}/cases/{case_id}/scope")
+@router.post("/sessions/{session_id}/cases/{case_id}/scope", responses={200: {"model": ScientificCase}})
 async def set_scientific_case_scope(
     request: Request, session_id: str, case_id: str, body: CaseScopeRequest,
     principal: Actor = Depends(actor),
@@ -154,7 +160,7 @@ async def set_scientific_case_scope(
     )
 
 
-@router.post("/sessions/{session_id}/cases/{case_id}:close")
+@router.post("/sessions/{session_id}/cases/{case_id}:close", responses={200: {"model": ScientificCase}})
 async def close_scientific_case(
     request: Request, session_id: str, case_id: str, principal: Actor = Depends(actor)
 ):

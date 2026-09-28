@@ -1,4 +1,5 @@
 import { apiBlob, apiRequest } from './client';
+import type { components } from './openapi';
 import { collectSequencedPages } from './pagination';
 import type {
   AcceptedResponse,
@@ -38,6 +39,8 @@ import type {
   ToxAgentEvent,
 } from './types';
 
+type Schemas = components['schemas'];
+
 export interface CreateSessionInput {
   preferred_language?: PreferredLanguage;
   title?: string;
@@ -48,10 +51,7 @@ export function createSession(input: CreateSessionInput = {}): Promise<SessionRe
   return apiRequest('/v1/sessions', { method: 'POST', body: input });
 }
 
-export interface SessionSettings {
-  ai_profile_id: string | null;
-  predictor_bindings: Partial<Record<'clintox' | 'herg' | 'tox21', string>>;
-}
+export type SessionSettings = Schemas['SessionSettings'];
 
 export function getSessionSettings(sessionId: string): Promise<SessionSettings> {
   return apiRequest(`/v1/sessions/${sessionId}/settings`);
@@ -173,16 +173,7 @@ export function listModelConnections(): Promise<{ connections: ModelConnection[]
 }
 
 /** One provider this control plane has a working adapter for. */
-export interface SupportedProvider {
-  provider_id: string;
-  display_name: string;
-  protocol: string;
-  /** Prefilled into the form; null when the deployment must supply one. */
-  default_base_url: string | null;
-  base_url_required: boolean;
-  auth_modes: string[];
-  note: string;
-}
+export type SupportedProvider = Schemas['SupportedProvider'];
 
 /**
  * The provider list, from the code that decides it.
@@ -319,22 +310,9 @@ export function listAllEventsForRun(sessionId: string, runId: string): Promise<T
  * `available` for anything that gates UI, and show `reason` when it is false
  * — it is written for the reader and carries no secrets.
  */
-export interface Capability {
-  configured: boolean;
-  available: boolean;
-  checked_at: string;
-  reason?: string;
-}
+export type Capability = Schemas['Capability'];
 
-export interface HealthReady {
-  ready: boolean;
-  /** `predictor_only` or `agent_enabled`, derived from what is bound. */
-  mode?: 'predictor_only' | 'agent_enabled';
-  database?: { ready: boolean; reason?: string; checked_at?: string };
-  predictor?: { ready: boolean; served_endpoints?: string[]; reason?: string };
-  runtime?: { configured_kind: string; bound: boolean; healthy?: boolean; reason?: string };
-  capabilities?: Record<string, Capability>;
-}
+export type HealthReady = Schemas['HealthReady'];
 
 export function getHealthReady(): Promise<HealthReady> {
   return apiRequest('/health/ready');

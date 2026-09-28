@@ -24,6 +24,7 @@ function run(overrides: Partial<RunDetail> = {}): RunDetail {
       runtime_version: '1.17.11',
       provider_id: 'provider_1',
       model_id: 'model_1',
+      auth_mode: 'api_key',
       profile_hash: 'profile',
       tool_schema_hash: 'tools',
       system_prompt_hash: 'prompt',

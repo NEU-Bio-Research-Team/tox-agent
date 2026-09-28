@@ -14,13 +14,14 @@ from ...domain.errors import (
     NotFound,
 )
 from ...domain.runtime import AuthMode
+from ..responses import ModelConnection, ModelConnectionList, SupportedProviderList
 from ..schemas import (
     CreateModelConnectionRequest,
 )
 from ._common import _services, actor, router
 
 
-@router.get("/model-connections:providers")
+@router.get("/model-connections:providers", response_model=None, responses={200: {"model": SupportedProviderList}})
 async def list_supported_providers() -> dict[str, Any]:
     """Providers this control plane has an adapter for, and their defaults.
 
@@ -32,7 +33,7 @@ async def list_supported_providers() -> dict[str, Any]:
     return {"providers": providers.catalogue()}
 
 
-@router.post("/model-connections", status_code=201)
+@router.post("/model-connections", status_code=201, responses={201: {"model": ModelConnection}})
 async def create_model_connection(
     request: Request, body: CreateModelConnectionRequest, principal: Actor = Depends(actor)
 ):
@@ -50,13 +51,13 @@ async def create_model_connection(
     return item.public_dict()
 
 
-@router.get("/model-connections")
+@router.get("/model-connections", responses={200: {"model": ModelConnectionList}})
 async def list_model_connections(request: Request, principal: Actor = Depends(actor)):
     items = await _services(request).connections.list(owner_id=principal.subject_id)
     return {"connections": [item.public_dict() for item in items]}
 
 
-@router.get("/model-connections/{connection_id}")
+@router.get("/model-connections/{connection_id}", responses={200: {"model": ModelConnection}})
 async def get_model_connection(
     request: Request, connection_id: str, principal: Actor = Depends(actor)
 ):
@@ -67,7 +68,7 @@ async def get_model_connection(
     return item.public_dict()
 
 
-@router.post("/model-connections/{connection_id}:test")
+@router.post("/model-connections/{connection_id}:test", responses={200: {"model": ModelConnection}})
 async def test_model_connection(
     request: Request, connection_id: str, principal: Actor = Depends(actor)
 ):

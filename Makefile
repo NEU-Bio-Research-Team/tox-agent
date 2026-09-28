@@ -8,6 +8,7 @@
 #   make test            every suite; narrow with SERVICE=control|predictor|ocr|frontend|devops
 #   make check           docs links, stray workspace roots, handoff surface
 #   make lock            re-resolve each service's requirements.lock (needs uv)
+#   make openapi         regenerate openapi.json and the frontend's API types
 #
 # Python tools come from the active environment (`pip install -e
 # 'backend/control[dev]'` provides ruff and mypy). Override with RUFF=… MYPY=…
@@ -20,7 +21,7 @@ SERVICE ?= all
 
 PY_DIRS := backend devops
 
-.PHONY: lint lint-report fmt typecheck test check lock \
+.PHONY: lint lint-report fmt typecheck test check lock openapi \
         test-control test-predictor test-ocr test-frontend test-devops
 
 lint:
@@ -86,3 +87,9 @@ lock:
 	cd backend/ocr && uv pip compile pyproject.toml $(LOCK_FLAGS) $(TORCH_CPU) \
 		--no-emit-package torch -o requirements.lock \
 		&& sed -i 's/^torchvision==\(.*\)+cpu$$/torchvision==\1/' requirements.lock
+
+## The control plane's response models (api/responses.py) -> openapi.json ->
+## the frontend's generated types. CI fails when either file is stale.
+openapi:
+	$(PYTHON) backend/control/scripts/export_openapi.py
+	cd frontend && $(NPM) run openapi:types

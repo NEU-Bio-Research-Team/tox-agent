@@ -7,7 +7,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'test-results', 'playwright-report', 'src/lib/api/openapi.d.ts'] },
+  { ignores: ['dist', 'test-results', 'playwright-report', 'src/shared/api/openapi.d.ts'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],

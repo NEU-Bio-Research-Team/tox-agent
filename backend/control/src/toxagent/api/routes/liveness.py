@@ -8,10 +8,11 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from ...application.capabilities import CapabilityResolver
+from ..responses import HealthReady, LiveStatus, ServiceInfo
 from ._common import _services, health
 
 
-@health.get("/")
+@health.get("/", response_model=None, responses={200: {"model": ServiceInfo}})
 async def root(request: Request) -> dict[str, Any]:
     """Enough to tell a browser that landed on the bare host this is an API,
     not a dead service. The product UI is a separate deployment; this control
@@ -21,13 +22,13 @@ async def root(request: Request) -> dict[str, Any]:
     return {"name": "toxagent-control", "version": __version__, "docs": "/docs"}
 
 
-@health.get("/health/live")
+@health.get("/health/live", response_model=None, responses={200: {"model": LiveStatus}})
 async def live() -> dict[str, str]:
     """Process liveness. Says nothing about the predictor or a runtime."""
     return {"status": "alive"}
 
 
-@health.get("/health/ready")
+@health.get("/health/ready", responses={200: {"model": HealthReady}})
 async def ready(request: Request) -> JSONResponse:
     """Can this deployment serve what it was assembled to serve?
 

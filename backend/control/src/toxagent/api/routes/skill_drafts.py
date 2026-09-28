@@ -8,6 +8,7 @@ from ...domain.errors import (
     InvalidRequest,
     NotFound,
 )
+from ..responses import SkillDraft, SkillDraftList, SkillDraftPackage
 from ..schemas import (
     SkillDraftRequest,
     SkillDraftReviewRequest,
@@ -36,7 +37,7 @@ async def _visible_draft(request: Request, principal: Actor, draft_id: str):
     return draft
 
 
-@router.post("/skill-drafts", status_code=201)
+@router.post("/skill-drafts", status_code=201, responses={201: {"model": SkillDraft}})
 async def propose_skill_draft(
     request: Request, body: SkillDraftRequest, principal: Actor = Depends(actor)
 ):
@@ -60,7 +61,7 @@ async def propose_skill_draft(
     return draft.to_dict()
 
 
-@router.get("/skill-drafts")
+@router.get("/skill-drafts", responses={200: {"model": SkillDraftList}})
 async def list_skill_drafts(
     request: Request, status: str | None = Query(default=None, max_length=16),
     principal: Actor = Depends(actor),
@@ -79,12 +80,12 @@ async def list_skill_drafts(
     ]}
 
 
-@router.get("/skill-drafts/{draft_id}")
+@router.get("/skill-drafts/{draft_id}", responses={200: {"model": SkillDraft}})
 async def get_skill_draft(request: Request, draft_id: str, principal: Actor = Depends(actor)):
     return (await _visible_draft(request, principal, draft_id)).to_dict()
 
 
-@router.post("/skill-drafts/{draft_id}:review")
+@router.post("/skill-drafts/{draft_id}:review", responses={200: {"model": SkillDraft}})
 async def review_skill_draft(
     request: Request, draft_id: str, body: SkillDraftReviewRequest,
     principal: Actor = Depends(actor),
@@ -108,7 +109,7 @@ async def review_skill_draft(
     return draft.to_dict()
 
 
-@router.post("/skill-drafts/{draft_id}:withdraw")
+@router.post("/skill-drafts/{draft_id}:withdraw", responses={200: {"model": SkillDraft}})
 async def withdraw_skill_draft(request: Request, draft_id: str, principal: Actor = Depends(actor)):
     from ...application.investigation import skill_drafts
     from ...domain.errors import Forbidden
@@ -124,7 +125,7 @@ async def withdraw_skill_draft(request: Request, draft_id: str, principal: Actor
     return draft.to_dict()
 
 
-@router.get("/skill-drafts/{draft_id}/package")
+@router.get("/skill-drafts/{draft_id}/package", responses={200: {"model": SkillDraftPackage}})
 async def export_skill_draft(request: Request, draft_id: str, principal: Actor = Depends(actor)):
     """An approved draft as files, with the manifest made active — the input to
     ``scripts/promote_skill_draft.py`` and a reviewed change to the catalog."""

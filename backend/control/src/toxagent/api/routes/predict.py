@@ -17,6 +17,14 @@ from ...domain.run import Intent
 from ...predictor.contract import ENDPOINTS, TOX21_TASKS
 from ...predictor.ocr_client import OcrError, OcrUnavailable
 from .._image import decode_declared_image
+from ..responses import (
+    AtomAttribution,
+    EffectiveProduct,
+    PredictCapabilities,
+    QuickPredictBatchResult,
+    QuickPredictCompareResult,
+    QuickPredictResult,
+)
 from ..schemas import (
     ExplainRequest,
     PredictBatchRequest,
@@ -28,7 +36,7 @@ from ..schemas import (
 from ._common import _services, actor, router
 
 
-@router.post("/predict")
+@router.post("/predict", responses={200: {"model": QuickPredictResult}})
 async def quick_predict(
     request: Request, body: PredictRequest, principal: Actor = Depends(actor)
 ):
@@ -70,7 +78,7 @@ async def _quick_attributions(
     return out
 
 
-@router.post("/predict:batch")
+@router.post("/predict:batch", responses={200: {"model": QuickPredictBatchResult}})
 async def quick_predict_batch(
     request: Request, body: PredictBatchRequest, principal: Actor = Depends(actor)
 ):
@@ -128,7 +136,7 @@ async def _refuse_unadmitted(services, selections) -> None:
         )
 
 
-@router.post("/predict:compare")
+@router.post("/predict:compare", responses={200: {"model": QuickPredictCompareResult}})
 async def quick_predict_compare(
     request: Request, body: PredictCompareRequest, principal: Actor = Depends(actor)
 ):
@@ -175,7 +183,7 @@ async def quick_predict_compare(
     }
 
 
-@router.get("/system/effective-product")
+@router.get("/system/effective-product", responses={200: {"model": EffectiveProduct}})
 async def effective_product(request: Request, principal: Actor = Depends(actor)):
     """The effective product configuration this deployment runs: flags, intent
     to lane/profile/tools, runtime binding, budgets, topology and hashes.
@@ -202,7 +210,7 @@ async def effective_product(request: Request, principal: Actor = Depends(actor))
     )
 
 
-@router.get("/predict/capabilities")
+@router.get("/predict/capabilities", responses={200: {"model": PredictCapabilities}})
 async def predict_capabilities(request: Request, principal: Actor = Depends(actor)):
     """A straight proxy of what the predictor actually serves, so the UI can
     render an unserved endpoint (ClinTox on this build) as disabled with a real
@@ -273,7 +281,7 @@ async def quick_recognize(
     )
 
 
-@router.post("/predict/explain")
+@router.post("/predict/explain", responses={200: {"model": AtomAttribution}})
 async def quick_explain(
     request: Request, body: ExplainRequest, principal: Actor = Depends(actor)
 ):

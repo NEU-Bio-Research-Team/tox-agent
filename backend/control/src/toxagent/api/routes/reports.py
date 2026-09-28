@@ -14,6 +14,7 @@ from ...domain.errors import (
 )
 from ...domain.events import EventType
 from ...persistence.object_store import ObjectNotFound, ObjectRef
+from ..responses import ReportArtifact, ReportBuildView, ReportListResponse
 from ..schemas import (
     AcceptedResponse,
     CancelResponse,
@@ -50,7 +51,7 @@ async def create_report(
     return AcceptedResponse(**accepted.to_dict())
 
 
-@router.get("/sessions/{session_id}/reports")
+@router.get("/sessions/{session_id}/reports", responses={200: {"model": ReportListResponse}})
 async def list_reports(
     request: Request, session_id: str, limit: int = Query(50, ge=1, le=200),
     principal: Actor = Depends(actor),
@@ -62,7 +63,7 @@ async def list_reports(
     return {"reports": reports, "count": len(reports)}
 
 
-@router.get("/sessions/{session_id}/reports/{report_id}")
+@router.get("/sessions/{session_id}/reports/{report_id}", responses={200: {"model": ReportArtifact}})
 async def get_report(
     request: Request, session_id: str, report_id: str,
     principal: Actor = Depends(actor),
@@ -168,7 +169,7 @@ async def get_report_figure(
     )
 
 
-@router.get("/sessions/{session_id}/report-builds/{build_id}")
+@router.get("/sessions/{session_id}/report-builds/{build_id}", responses={200: {"model": ReportBuildView}})
 async def get_report_build(
     request: Request, session_id: str, build_id: str,
     principal: Actor = Depends(actor),

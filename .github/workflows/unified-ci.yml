@@ -78,6 +78,10 @@ jobs:
       - run: pip install ruff==0.13.3
       - run: ruff check backend devops
       - run: pip install -e './backend/control[dev]'
+      # The frontend types its API calls from this document; a response model
+      # changed without regenerating it is a build failure here.
+      - name: OpenAPI document is current
+        run: python backend/control/scripts/export_openapi.py --check
       - name: mypy (report only)
         continue-on-error: true
         run: mypy src/toxagent
@@ -139,6 +143,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - name: Generated API types match openapi.json
+        run: npm run openapi:types && git diff --exit-code -- src/shared/api/openapi.d.ts
       - run: npm run typecheck
       # ESLint, then the product policy lint (scripts/policy-lint.mjs).
       - run: npm run lint

@@ -58,6 +58,10 @@ code reads it: shipping it as package data is what makes `pip install .`,
   aggregate score in any schema (ADR 0002).
 - A denied tool is invisible to the model *and* refused at the transport.
 - Losing the runtime loses no product state; recovery opens a new run.
+- Every JSON response matches the model its route declares
+  (`api/responses.py`): the test suite validates each one it produces. The
+  browser's API types are generated from those models (`make openapi`), and CI
+  fails when either generated file is stale.
 
 ## Running the tests
 

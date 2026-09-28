@@ -5,6 +5,7 @@ from fastapi import Depends, Query, Request
 
 from ...application.conversation.submit_message import MessageSubmission
 from ...application.policy import Actor
+from ..responses import MessageListResponse, SessionListResponse, SessionProjection, SessionSettings
 from ..schemas import (
     AcceptedResponse,
     CreateSessionRequest,
@@ -16,7 +17,7 @@ from ..schemas import (
 from ._common import _decode_image, _services, actor, router
 
 
-@router.get("/sessions")
+@router.get("/sessions", responses={200: {"model": SessionListResponse}})
 async def list_sessions(
     request: Request,
     limit: int = Query(25, ge=1, le=50),
@@ -64,17 +65,17 @@ async def update_session(
     )
 
 
-@router.get("/sessions/{session_id}")
+@router.get("/sessions/{session_id}", responses={200: {"model": SessionProjection}})
 async def get_session(request: Request, session_id: str, principal: Actor = Depends(actor)):
     return await _services(request).sessions.projection(principal, session_id)
 
 
-@router.get("/sessions/{session_id}/settings")
+@router.get("/sessions/{session_id}/settings", responses={200: {"model": SessionSettings}})
 async def get_session_settings(request: Request, session_id: str, principal: Actor = Depends(actor)):
     return await _services(request).sessions.settings(principal, session_id)
 
 
-@router.patch("/sessions/{session_id}/settings")
+@router.patch("/sessions/{session_id}/settings", responses={200: {"model": SessionSettings}})
 async def update_session_settings(request: Request, session_id: str, body: SessionSettingsRequest,
                                   principal: Actor = Depends(actor)):
     return await _services(request).sessions.update_settings(
@@ -83,7 +84,7 @@ async def update_session_settings(request: Request, session_id: str, body: Sessi
     )
 
 
-@router.get("/sessions/{session_id}/messages")
+@router.get("/sessions/{session_id}/messages", responses={200: {"model": MessageListResponse}})
 async def list_messages(
     request: Request,
     session_id: str,

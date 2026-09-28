@@ -6,6 +6,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from ...application.policy import Actor
 from ...streaming.sse import event_stream
+from ..responses import EventListResponse
 from ._common import _services, actor, router
 
 
@@ -29,7 +30,7 @@ async def stream_events(
     )
 
 
-@router.get("/sessions/{session_id}/events:list")
+@router.get("/sessions/{session_id}/events:list", responses={200: {"model": EventListResponse}})
 async def list_events(
     request: Request,
     session_id: str,

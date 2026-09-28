@@ -12,10 +12,18 @@ from ...domain.errors import (
 )
 from ...domain.evidence import EvidenceStatus
 from ...domain.observation import ObservationKind
+from ..responses import (
+    AnalysisProjection,
+    AttributionListResponse,
+    EvidenceListResponse,
+    EvidenceRecordView,
+    GroundedAnswer,
+    ObservationResponse,
+)
 from ._common import _services, actor, router
 
 
-@router.get("/sessions/{session_id}/analyses/{analysis_id}")
+@router.get("/sessions/{session_id}/analyses/{analysis_id}", responses={200: {"model": AnalysisProjection}})
 async def get_analysis(
     request: Request,
     session_id: str,
@@ -38,7 +46,7 @@ async def get_analysis(
     return projection
 
 
-@router.get("/sessions/{session_id}/analyses/{analysis_id}/attributions")
+@router.get("/sessions/{session_id}/analyses/{analysis_id}/attributions", responses={200: {"model": AttributionListResponse}})
 async def list_attributions(
     request: Request,
     session_id: str,
@@ -75,7 +83,7 @@ async def list_attributions(
     }
 
 
-@router.get("/sessions/{session_id}/answers/{answer_id}")
+@router.get("/sessions/{session_id}/answers/{answer_id}", responses={200: {"model": GroundedAnswer}})
 async def get_answer(
     request: Request, session_id: str, answer_id: str, principal: Actor = Depends(actor)
 ):
@@ -88,7 +96,7 @@ async def get_answer(
     return answer.to_dict()
 
 
-@router.get("/sessions/{session_id}/observations/{observation_id}")
+@router.get("/sessions/{session_id}/observations/{observation_id}", responses={200: {"model": ObservationResponse}})
 async def get_observation(
     request: Request,
     session_id: str,
@@ -125,7 +133,7 @@ async def get_observation(
     return body
 
 
-@router.get("/sessions/{session_id}/evidence")
+@router.get("/sessions/{session_id}/evidence", responses={200: {"model": EvidenceListResponse}})
 async def list_evidence(
     request: Request,
     session_id: str,
@@ -157,7 +165,7 @@ async def list_evidence(
     }
 
 
-@router.get("/sessions/{session_id}/evidence/{evidence_id}")
+@router.get("/sessions/{session_id}/evidence/{evidence_id}", responses={200: {"model": EvidenceRecordView}})
 async def get_evidence(
     request: Request,
     session_id: str,

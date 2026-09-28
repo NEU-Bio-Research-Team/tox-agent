@@ -8,13 +8,14 @@ from ...application.policy import Actor
 from ...domain.errors import (
     NotFound,
 )
+from ..responses import DecisionState, EvidenceRelationList, RunDetail
 from ..schemas import (
     CancelResponse,
 )
 from ._common import _isoformat, _services, actor, router
 
 
-@router.get("/sessions/{session_id}/runs/{run_id}")
+@router.get("/sessions/{session_id}/runs/{run_id}", responses={200: {"model": RunDetail}})
 async def get_run(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
 ):
@@ -56,7 +57,7 @@ async def get_run(
     return projection
 
 
-@router.get("/sessions/{session_id}/runs/{run_id}/decision-state")
+@router.get("/sessions/{session_id}/runs/{run_id}/decision-state", responses={200: {"model": DecisionState}})
 async def get_decision_state(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
 ):
@@ -75,7 +76,7 @@ async def get_decision_state(
     return state.to_dict()
 
 
-@router.get("/sessions/{session_id}/runs/{run_id}/evidence-relations")
+@router.get("/sessions/{session_id}/runs/{run_id}/evidence-relations", responses={200: {"model": EvidenceRelationList}})
 async def list_evidence_relations(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
 ):
