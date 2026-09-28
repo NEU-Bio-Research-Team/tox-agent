@@ -12,7 +12,6 @@ normalized EvidenceRecord model view.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 from evals.frozen import FIXTURE_VERSION, FIXTURES_DIR, fixture_digest

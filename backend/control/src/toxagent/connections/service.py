@@ -15,7 +15,7 @@ from typing import Protocol
 from ..domain.runtime import AuthMode
 from . import providers
 from .model import ConnectionStatus, ModelConnection
-from .probe import OpenAICompatibleProbe, ProbeError, ProbeResult
+from .probe import OpenAICompatibleProbe, ProbeResult
 from .secrets import SecretStore
 
 

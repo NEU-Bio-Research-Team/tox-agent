@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-from ..domain.message import Message, PartType, Role
+from ..domain.message import Message, PartType
 
 #: Plan section 2.2. Restated to every runtime turn because these are the
 #: invariants a model must not violate, not a policy the validator alone should

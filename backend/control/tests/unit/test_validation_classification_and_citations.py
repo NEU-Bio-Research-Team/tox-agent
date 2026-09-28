@@ -1,9 +1,8 @@
 """Classification and citation/basis validation (plan sections 9.2, 9.3)."""
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
-import pytest
 
 from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceType
 from toxagent.domain.ids import new_id

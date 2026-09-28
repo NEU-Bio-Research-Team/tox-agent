@@ -12,7 +12,7 @@ a slice may only expose these, and a claim may only cite what a slice exposed.
 """
 from __future__ import annotations
 
-from typing import Any, Final, Iterable, Mapping
+from typing import Any, Final, Iterable
 
 from ..domain.analysis import AnalysisSnapshot
 from ..domain.errors import InvalidRequest

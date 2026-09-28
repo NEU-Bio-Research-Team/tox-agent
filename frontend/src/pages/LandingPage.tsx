@@ -35,9 +35,9 @@ export function LandingPage() {
 
       <Navigation activeSection={activeSection} scrollToSection={scrollToSection} />
 
-      <HeroSection scrollToSection={scrollToSection} />
-      <HowToUseSection scrollToSection={scrollToSection} />
-      <MeetTheTeamSection scrollToSection={scrollToSection} />
+      <HeroSection />
+      <HowToUseSection />
+      <MeetTheTeamSection />
       <TechStackSection />
       <ImpressiveScaleSection />
       <ResearchSourceSection />
@@ -113,7 +113,7 @@ function Navigation({ activeSection, scrollToSection }: { activeSection: string;
   );
 }
 
-function HeroSection({ scrollToSection }: { scrollToSection: (id: string) => void }) {
+function HeroSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
 
@@ -203,7 +203,7 @@ function HeroSection({ scrollToSection }: { scrollToSection: (id: string) => voi
   );
 }
 
-function HowToUseSection({ scrollToSection }: { scrollToSection: (id: string) => void }) {
+function HowToUseSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
 
@@ -284,7 +284,7 @@ function HowToUseSection({ scrollToSection }: { scrollToSection: (id: string) =>
   );
 }
 
-function MeetTheTeamSection({ scrollToSection }: { scrollToSection: (id: string) => void }) {
+function MeetTheTeamSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
 

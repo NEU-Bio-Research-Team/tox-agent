@@ -1,7 +1,6 @@
 """W9-13: scientific primitives a skill cannot supply (RETHINK §4.7, §4.10)."""
 from __future__ import annotations
 
-import json
 
 import httpx
 import pytest

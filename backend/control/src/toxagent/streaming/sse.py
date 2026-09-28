@@ -8,7 +8,6 @@ property PROD-05 asks for and the reason this generator is allowed to be simple.
 """
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator
 

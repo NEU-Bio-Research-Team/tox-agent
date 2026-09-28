@@ -131,7 +131,7 @@ export function MessageComposer({
   useEffect(() => {
     if (focusSmilesSignal !== undefined) openSmilesField();
     // Only the signal changing should trigger a focus, not every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [focusSmilesSignal]);
 
   useEffect(() => {
@@ -154,7 +154,7 @@ export function MessageComposer({
     return () => {
       if (stagedImage) URL.revokeObjectURL(stagedImage.previewUrl);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [stagedImage]);
 
   // The molecule the composer will send, and the text it will keep alongside

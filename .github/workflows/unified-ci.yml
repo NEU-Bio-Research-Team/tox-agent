@@ -63,6 +63,26 @@ jobs:
           name: junit-${{ matrix.service }}
           path: ${{ matrix.dir }}/junit-${{ matrix.service }}.xml
 
+  # One ruff configuration (ruff.toml) for every Python tree. Blocking: the
+  # tree is clean against it. Type checking is reported, not yet enforced —
+  # see docs/spec/WORKSPACE_STRUCTURE_REVIEW.md, Phase 0.
+  lint:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install ruff==0.13.3
+      - run: ruff check backend devops
+      - run: pip install -e './backend/control[dev]'
+      - name: mypy (report only)
+        continue-on-error: true
+        run: mypy src/toxagent
+        working-directory: backend/control
+
   pinned-artifacts:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
@@ -120,7 +140,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
-      - run: npm run lint:policy
+      # ESLint, then the product policy lint (scripts/policy-lint.mjs).
+      - run: npm run lint
       - run: npm test
       # `build` also enforces the bundle budget (scripts/check-bundle-budget.mjs),
       # so a lazily loaded editor silently landing in the entry chunk fails here.

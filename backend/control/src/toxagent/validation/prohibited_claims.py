@@ -118,7 +118,7 @@ def _same_clause_before(text: str, start: int, window: int) -> str:
     """The text before ``start`` back to the nearest clause boundary."""
     segment = text[max(0, start - window):start]
     last = None
-    for last in _CLAUSE_BOUNDARY.finditer(segment):
+    for last in _CLAUSE_BOUNDARY.finditer(segment):  # noqa: B007 - keeps the last match
         pass
     return segment[last.end():] if last is not None else segment
 

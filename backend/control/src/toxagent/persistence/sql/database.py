@@ -18,10 +18,6 @@ from typing import Any, AsyncIterator, Awaitable, Callable, Coroutine, Sequence,
 from sqlalchemy import insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 
-log = logging.getLogger("toxagent.persistence")
-
-_T = TypeVar("_T")
-
 from ...domain.events import Event, EventType
 from ...domain.ids import EVENT, new_id
 from ..schema import event_outbox, metadata, sessions
@@ -55,6 +51,10 @@ from .repositories import (
 )
 
 CommitHook = Callable[[Sequence[str]], Awaitable[None] | None]
+
+log = logging.getLogger("toxagent.persistence")
+
+_T = TypeVar("_T")
 
 
 def _now() -> datetime:

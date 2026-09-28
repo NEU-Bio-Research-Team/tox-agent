@@ -48,7 +48,6 @@ job is to make sure nothing is served in the meantime.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from ..artifacts import ArtifactError, ArtifactSpec, sha256_file
 from ..registry import ModelHealth

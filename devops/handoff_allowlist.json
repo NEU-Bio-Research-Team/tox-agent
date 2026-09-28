@@ -35,6 +35,18 @@
       "why": "keeps their generated state out of their own commits"
     },
     {
+      "glob": "Makefile",
+      "why": "the developer entry point: lint, typecheck, test per service"
+    },
+    {
+      "glob": "ruff.toml",
+      "why": "the lint rules the Makefile and CI apply to every Python tree"
+    },
+    {
+      "glob": ".pre-commit-config.yaml",
+      "why": "optional local hooks running the same blocking lint"
+    },
+    {
       "glob": "bin/**",
       "why": "the operator wrapper: setup, doctor, up, smoke, backup, restore"
     },

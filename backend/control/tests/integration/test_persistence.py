@@ -5,7 +5,7 @@ is being tested is the mapping and the transaction boundary, not the dialect.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 

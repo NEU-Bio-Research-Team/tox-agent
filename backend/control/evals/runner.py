@@ -30,7 +30,6 @@ import asyncio
 import json
 import os
 import subprocess
-import sys
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
@@ -843,7 +842,7 @@ def infra_failure(task: dict[str, Any], outcome: TaskOutcome) -> str | None:
 
 
 async def _effective_product(runtime: str, base_url: str, token: str) -> dict[str, Any]:
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
 
     if runtime == "scripted":
         return describe_effective_product(ScriptedDriver.settings())

@@ -16,7 +16,7 @@ from toxagent.config import PolicySettings, ResearchSettings
 from toxagent.domain.evidence import SourceType
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
-from toxagent.domain.run import Intent, Lane, Run, RunStatus
+from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session
 from toxagent.research.interfaces import SearchHit
 from toxagent.tools.bootstrap import build_registry

@@ -27,8 +27,6 @@ from ..domain.run import Run
 from ..domain.runtime import RuntimeBinding
 from ..domain.usage import RuntimeUsageEvent
 from ..domain.session import Session
-from ..agent.kernel import KernelTransition
-from ..domain.investigation import CaseState, InvestigationPlan, InvestigationStep
 
 
 @runtime_checkable

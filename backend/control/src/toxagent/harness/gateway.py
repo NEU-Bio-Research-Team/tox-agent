@@ -1256,7 +1256,9 @@ class AgentRuntimeGateway:
             except StopAsyncIteration:
                 if await has_product(context):
                     return lost
-                raise RuntimeProtocolError("the runtime event stream ended without a final answer")
+                raise RuntimeProtocolError(  # noqa: B904 - the stream end is the cause
+                    "the runtime event stream ended without a final answer"
+                )
 
             if event.type is RuntimeEventType.MESSAGE_DELTA:
                 delta_tail = (delta_tail + str(event.payload.get("text", "")))[

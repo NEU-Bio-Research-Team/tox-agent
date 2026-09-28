@@ -6,7 +6,7 @@ delta is a stream optimisation that may be dropped without losing anything.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Sequence

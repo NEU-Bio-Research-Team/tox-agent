@@ -30,7 +30,7 @@ dependencies = [
 # synchronous, so the migration environment needs psycopg as well; without it
 # a PostgreSQL migration job would silently be impossible to run.
 postgres = ["asyncpg>=0.29", "psycopg[binary]>=3.1"]
-dev = ["pytest>=8", "aiosqlite>=0.20", "trio>=0.25"]
+dev = ["pytest>=8", "aiosqlite>=0.20", "trio>=0.25", "ruff==0.13.3", "mypy>=1.11"]
 # Pinned because PDF bytes and layout are part of the rendering provenance.
 pdf = ["weasyprint==66.0"]
 
@@ -46,6 +46,12 @@ toxagent = [
     "agent_profiles/**/*",
     "predictor/contract_snapshot.json",
 ]
+
+# Report-only for now (`make typecheck`); flip to blocking once the baseline is
+# clean. Lint rules live in the repository-wide ruff.toml.
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

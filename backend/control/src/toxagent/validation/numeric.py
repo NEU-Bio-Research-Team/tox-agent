@@ -105,7 +105,7 @@ def validate_field_backed_numeric(
         violations.append(
             Violation(
                 "claim_source_value_mismatch",
-                f"claimed source_value does not match the observation",
+                "claimed source_value does not match the observation",
                 path=f"{path}.source_value", expected=source_value, actual=claim.source_value,
             )
         )

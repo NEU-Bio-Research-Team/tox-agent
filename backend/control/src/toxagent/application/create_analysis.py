@@ -12,7 +12,6 @@ in the session for the duration; the write that follows is short and atomic.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
 import time
 from dataclasses import dataclass
@@ -28,12 +27,11 @@ from ..domain.analysis import (
 from ..domain.errors import SessionNotFound
 from ..domain.events import EventType
 from ..domain.observation import Observation, ObservationKind, Producer
-from ..domain.run import Run, RunStatus
+from ..domain.run import RunStatus
 from ..domain.session import Session
 from ..predictor.client import PredictorClient
 from . import projections
 from .explanation_identity import (
-    EXPLANATION_SCHEMA_VERSION,
     explanation_checkpoint_key,
     model_artifact_fingerprint,
 )
@@ -286,15 +284,17 @@ class CreateAnalysis:
             key = keys[(endpoint, task)]
             model_id = self._resolved_model(response, endpoint, model_selection)
 
-            def outcome(payload: dict[str, Any]) -> ExplanationOutcome:
+            # Both closures are called within this iteration only, so binding
+            # the loop variables late is correct here.
+            def outcome(payload: dict[str, Any]) -> ExplanationOutcome:  # noqa: B023
                 return ExplanationOutcome(
-                    payload=payload, cache_key=key,
-                    endpoint=endpoint, task=task, model_id=model_id,
+                    payload=payload, cache_key=key,  # noqa: B023
+                    endpoint=endpoint, task=task, model_id=model_id,  # noqa: B023
                 )
 
             def failed(reason: str) -> ExplanationOutcome:
                 return outcome(_failed_explanation(
-                    endpoint=endpoint, task=task, smiles=smiles,
+                    endpoint=endpoint, task=task, smiles=smiles,  # noqa: B023
                     canonical_smiles=response.canonical_smiles, reason=reason,
                 ))
 

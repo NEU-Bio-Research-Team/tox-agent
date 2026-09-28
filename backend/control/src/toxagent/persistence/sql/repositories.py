@@ -33,6 +33,7 @@ from ...domain.investigation import (
     CaseState, ConflictStatus, Coverage, EvidenceConflict, EvidenceGap, GapSeverity,
     GoalType, InvestigationPlan, InvestigationStep, StepStatus,
 )
+from . import mapping as m
 from ..schema import (
     analysis_snapshots,
     answers,
@@ -132,7 +133,6 @@ class SqlRunConfigurationSnapshotStore:
             "effective_budget": dict(row["effective_budget"]) if row.get("effective_budget") else None,
             "created_at": row["created_at"],
         }
-from . import mapping as m
 
 
 class SqlSessionStore:

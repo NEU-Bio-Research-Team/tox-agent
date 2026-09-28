@@ -13,7 +13,6 @@ import pytest
 from toxagent.application.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
 from toxagent.config import PolicySettings
-from toxagent.domain.errors import Conflict
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run

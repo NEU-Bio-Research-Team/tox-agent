@@ -5,7 +5,6 @@ cannot quietly stop catching what it is meant to catch.
 """
 from __future__ import annotations
 
-import pytest
 
 from evals.graders import grade_task
 from evals.graders.hard_gates import grade_hard_gates

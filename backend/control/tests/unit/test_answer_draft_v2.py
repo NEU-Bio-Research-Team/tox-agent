@@ -8,7 +8,6 @@ attempt spent re-minting ids, the length wrong again, no answer at all.
 """
 from __future__ import annotations
 
-from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError

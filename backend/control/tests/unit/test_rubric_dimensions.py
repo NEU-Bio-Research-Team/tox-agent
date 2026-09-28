@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 
 from evals.graders.rubric import DIMENSIONS, check_judgement, passed, prompt_for
 

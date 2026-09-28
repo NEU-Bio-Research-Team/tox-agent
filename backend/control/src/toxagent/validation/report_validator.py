@@ -768,17 +768,17 @@ def _validate_recommendations(draft: ReportDraftCandidate) -> list[Violation]:
         violations += validate_recommendation_basis(
             index, recommendation.basis_claim_ids, known_claims
         )
-        for text, field in (
+        for text, field_name in (
             (recommendation.text, "text"), (recommendation.rationale, "rationale"),
         ):
-            violations += _prefixed(validate_answer_markdown(text), f"{path}.{field}")
+            violations += _prefixed(validate_answer_markdown(text), f"{path}.{field_name}")
             if matches_unnegated(_GUARANTEE, text):
                 violations.append(
                     Violation(
                         "recommendation_guarantees_safety",
                         "a recommendation proposes follow-up work; it cannot assure safety or "
                         "promise an outcome",
-                        path=f"{path}.{field}",
+                        path=f"{path}.{field_name}",
                     )
                 )
         unknown = [

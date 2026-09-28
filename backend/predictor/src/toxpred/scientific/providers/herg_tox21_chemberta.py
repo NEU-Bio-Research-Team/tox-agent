@@ -15,7 +15,6 @@ Training-time code paths (optimiser state, loss, gradient hooks) are not ported.
 """
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from ...domain.endpoints import TOX21_TASKS, validate_task_order

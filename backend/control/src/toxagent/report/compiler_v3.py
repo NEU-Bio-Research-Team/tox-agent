@@ -34,7 +34,6 @@ from ..domain.report import REQUIRED_SECTION_IDS, SourceClass
 from ..validation.synthesis_wire import (
     FACT_PLACEHOLDER,
     ReportSynthesisV3,
-    SynthesisSection,
 )
 from .fact_bundle import ExplanationFacts, ReportFact, ReportFactBundle
 

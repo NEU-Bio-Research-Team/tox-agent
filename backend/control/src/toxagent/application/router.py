@@ -22,7 +22,7 @@ guess must be a hint this code validates, never a second source of truth.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Final
 
 from ..domain.run import Intent, Lane
