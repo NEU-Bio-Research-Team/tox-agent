@@ -68,7 +68,7 @@ def test_no_live_module_imports_the_superseded_kernel():
     root = Path(__file__).resolve().parents[2] / "src" / "toxagent"
     allowed = {
         "persistence/investigations.py", "persistence/interfaces.py",
-        "persistence/sql/repositories.py",
+        "persistence/sql/repositories/investigation.py",
     }
     offenders = []
     for path in root.rglob("*.py"):

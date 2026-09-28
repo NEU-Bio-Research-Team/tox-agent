@@ -128,7 +128,7 @@ LAYERS: tuple[tuple[str, ...], ...] = (
 #: fails once an entry stops being true, so a fix has to delete its line.
 LAYER_EXCEPTIONS: dict[tuple[str, str], str] = {
     ("persistence/investigations.py", "superseded"): "the kernel's own store (ADR 0011)",
-    ("persistence/sql/repositories.py", "superseded"): "the kernel's own store (ADR 0011)",
+    ("persistence/sql/repositories/investigation.py", "superseded"): "the kernel's own store (ADR 0011)",
 }
 
 _LEVEL = {name: level for level, line in enumerate(LAYERS) for name in line}
