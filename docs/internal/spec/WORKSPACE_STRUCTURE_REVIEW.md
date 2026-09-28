@@ -1,7 +1,8 @@
 # Workspace structure review and improvement plan
 
 **Date:** 2026-09-28 · **Branch:** `feat/scientific-investigation` · **HEAD:** `e8519c7`
-**Status:** in progress — Phases 0 and 1 executed 2026-09-28; see the execution log at the end.
+**Status:** executed 2026-09-28/29 — all ten phases, one commit each; see the execution log at the end.
+Paths in sections 1–8 are as they were at review time; the log gives where things moved.
 
 This is the follow-on to
 [`WORKSPACE_AND_UI_SIMPLIFICATION_PLAN.md`](WORKSPACE_AND_UI_SIMPLIFICATION_PLAN.md).
@@ -535,5 +536,109 @@ The one control failure, before and after, is
 imports. It was deselected in the "after" run; it is an environment gap, not a
 regression.
 
-**Next:** Phase 2 (group `application/` and `validation/` by feature), which
-also retires the three `application → tools` exceptions.
+### 2026-09-28/29 — Phases 2 to 10
+
+One commit per phase, on `feat/scientific-investigation`, not pushed:
+
+| Phase | Commit | What changed |
+|---|---|---|
+| 0 | `f7b76a7` | ruff, ESLint, root `Makefile`, lint CI job |
+| 1 | `de09392` | `LAYERS` enforced in `test_boundaries.py`; six upward imports moved |
+| 2 | `6f02f9e` | `application/` and `validation/` grouped by feature; version suffixes renamed by role |
+| 3 | `71a9ad3` | `platform/`, `superseded/`; micro-packages folded |
+| 4 | `59ee019` | routes, repositories, `domain/report`, `domain/scientific_case`, the report validator split into packages; gateway and `SubmitReportDraft` into mixins |
+| 5 | `e2ef398` | response models for every JSON route; test-time contract check; generated frontend types |
+| 6 | `65d345b` | eval scratch output to an ignored `results/` |
+| 7 | `d8622b3` | `backend/ocr/pyproject.toml`; one dependency declaration per service; lockfiles the images install from |
+| 8 | `1171848` | `devops/{checks,release,ops,agent-runtime}/`; docs by Diátaxis; ADRs in `docs/adr/` |
+| 9 | `be6a098` | frontend `app/`, `features/`, `shared/`; landing page split |
+| 10 | `e6d2e70` | research-dependent eval scripts and training configs into `research/` |
+
+**Where this differs from the plan, and why.**
+
+- *Phase 2.* `report/compiler.py` became `draft_compiler.py`, not `compiler/legacy.py`:
+  `report_orchestrator_v2` is off by default, so the draft path is the live
+  one. The three remaining `application → tools` imports were fixed by moving
+  the tool-profile manifest loader to `application/tool_profiles.py` and the
+  decision-support caps into `application/runs/budget.py`.
+  `agent_profiles/tool_profiles.json` was left byte-identical because its
+  content hash is recorded in eval provenance.
+- *Phase 3.* `agent/`, `answer/`, `capabilities/` are the kernel ADR 0011
+  superseded, kept on purpose until their tables are retired; they became
+  `superseded/`, not parts of `harness/` and `domain/`. The two
+  `persistence → superseded` imports stay as the only layer exceptions.
+- *Phase 4.* `platform/config.py` (862 lines, one settings class per concern),
+  `application/explanation/service.py` (820) and `application/runs/scheduler.py`
+  (806) are left as they are.
+- *Phase 5.* Routes declare their models with `responses=` rather than
+  `response_model=`: the models document the contract and are enforced by the
+  test suite (`tests/support/response_contract.py`), so a mismatch cannot
+  become a 500 in production. Vocabularies, request bodies, text-part guards
+  and `ApiError` stay hand-written in `types.ts`.
+- *Phase 6.* The tracked runs were **not** moved: `investigation/runs/`,
+  `experiments/runs/`, `external/scifact/runs/` and `manifests/<run>/` are
+  evidence documents and the blind lab grading cite. Only the runner's default
+  output moved; the tracked-file count does not halve.
+- *Phase 7.* torch is resolved against the CPU index and left out of the lock,
+  because each Dockerfile installs it for its `TORCH_VARIANT`; toxocr's
+  `torchvision` stays the PyPI build its image always used.
+- *Phase 8.* The restore drill went to `devops/ops/`, not `release/`. Code
+  comments citing documents removed on 2026-09-27 were left as written, as
+  `docs/README.md` already records; eight dead links in historical records
+  became `removed:` text.
+
+**Pre-existing defects found and fixed on the way.**
+
+- `check_docs.py` was red at `e8519c7` (10 problems) — green.
+- `devops/tests` had two `test_handoff_allowlist` failures since `0299863`
+  (11 undecided paths) — green; the investigation-study runs are now withheld
+  from a customer handoff.
+- Two gateway integration tests read the clock at collection and failed
+  whenever the tests before them took longer than 300 s.
+- `devops/agent-runtime/run_opencode_docker_bridge.sh` and
+  `research/benchmark/{capture_baseline,build_split_manifest}.py` resolved
+  their repository root one level wrong.
+- A duplicated docstring in `harness/adapters/__init__.py`; an unused
+  `KernelTransition` import in `persistence/interfaces.py`.
+
+**Mistakes of this execution, corrected.**
+
+- The review's C2 table missed six upward imports made inside functions; the
+  Phase 1 pass found them.
+- Phase 9 moved frontend test files that `docs/internal/audit/regression_guards.json`
+  names, so `devops/tests` failed after that commit; fixed in the Phase 10
+  commit.
+- A `ruff --fix` for Phase 5 ran over all of `src/` and reordered imports in
+  47 unrelated files; they were restored before the Phase 5 commit was final.
+- Running `capture_baseline.py` to smoke-test its new location re-captured the
+  frozen golden baseline; the two files were restored from git. (The re-capture
+  differed in 12 predictions from the one frozen at `e6882b2`; that difference
+  is not investigated here.)
+
+**Still open.**
+
+- mypy is report-only (control: 122 errors at `e8519c7`); `pip-audit` still
+  runs with `|| true`; `ruff format` and import ordering are not enforced.
+- `tests/unit/test_scifact.py::test_tfidf_ranks_the_matching_abstract_first`
+  needs `numpy`, which the control test environment does not install.
+- The untracked `backend/control/evals/manifests/live-b*` runs still need the
+  owner's commit-or-delete decision (A4 of the previous plan).
+- Playwright's pinned Chromium 1169 is an incomplete download on this machine;
+  e2e ran against the cached 1228.
+
+**Final verification** (after phase 10, 2026-09-29):
+
+| Check | Before (`e8519c7`) | After |
+|---|---|---|
+| `backend/control` pytest | 1997 passed, 18 skipped, 1 failed (numpy) | 2308 passed, 18 skipped (numpy test deselected); every JSON response checked against its model |
+| Scripted eval `suite:pr`, 3 trials | — | exit 0 |
+| `backend/predictor` pytest | — | 251 passed, 5 skipped |
+| `backend/ocr` pytest | — | 6 passed (from its own pytest config) |
+| `devops/tests` | 94 passed, 2 failed | 96 passed |
+| `check_docs.py` | 10 problems | OK |
+| `handoff.py --check` | 11 undecided | 0 undecided |
+| `ruff check backend devops` | not configured | clean |
+| Frontend tsc / ESLint + policy / vitest / build | no ESLint | clean / clean / 186 passed / within budget |
+| Playwright | — | 10/10 (Chromium 1228) |
+| `openapi.json`, `openapi.d.ts` | did not exist | current |
+| Images built from the lockfiles | — | `pip freeze` identical to the 2026-09-26 images, all three |
