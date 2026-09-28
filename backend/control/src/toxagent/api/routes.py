@@ -355,7 +355,7 @@ async def effective_product(request: Request, principal: Actor = Depends(actor))
 
     Read by the eval runner so a live benchmark manifest records what was
     actually graded. Secret-free by construction (effective_product.py)."""
-    from ..application.effective_product import describe_effective_product
+    from .effective_product import describe_effective_product
 
     services = _services(request)
     resolver = getattr(services, "capabilities", None)

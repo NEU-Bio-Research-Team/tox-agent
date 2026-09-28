@@ -34,7 +34,7 @@ import re
 from dataclasses import dataclass
 from typing import Iterable, Mapping, Sequence
 
-from ..application.xai_coverage import ExplanationCoverage
+from ..domain.xai_coverage import ExplanationCoverage
 from ..domain.report import ExplanationPackage
 from ..domain.errors import Violation
 

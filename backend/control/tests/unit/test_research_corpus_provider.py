@@ -104,7 +104,7 @@ async def test_ties_are_broken_by_record_id_so_a_rerun_ranks_the_same(tmp_path):
 
 
 def test_the_factory_and_the_effective_product_name_the_corpus(tmp_path):
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
     from toxagent.config import (
         CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
         RuntimeSettings, SecuritySettings, Settings,

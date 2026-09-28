@@ -31,7 +31,7 @@ from ..domain.errors import Conflict, Violation
 from ..domain.events import EventType
 from ..domain.report import BuildStage
 from ..report.compiler_v3 import CompiledReport, compile_report
-from ..validation.synthesis_validator import validate_compiled_report
+from ..report.synthesis_validator import validate_compiled_report
 from ..validation.synthesis_wire import ReportSynthesisV3
 from .report_inputs import ReportInputs, load_report_inputs
 from .submit_report_draft import ReportValidationFailed

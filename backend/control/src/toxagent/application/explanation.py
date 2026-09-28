@@ -40,7 +40,7 @@ from ..domain.errors import AnalysisNotFound, InvalidRequest
 from ..domain.events import EventType
 from ..domain.ids import EXPLANATION, new_id
 from ..domain.observation import Observation, ObservationKind, Producer
-from .xai_coverage import compute_coverage
+from ..domain.xai_coverage import compute_coverage
 from ..domain.report import (
     ExplanationHighlights,
     ExplanationPackage,

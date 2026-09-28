@@ -11,7 +11,7 @@ import pytest
 
 from tests.support.audit_fixtures import CCO_ATTRIBUTION, load
 from toxagent.application.explanation import extract_highlights
-from toxagent.application.xai_coverage import (
+from toxagent.domain.xai_coverage import (
     COVERAGE_POLICY_VERSION,
     ExplanationCoverage,
     classify_coverage,

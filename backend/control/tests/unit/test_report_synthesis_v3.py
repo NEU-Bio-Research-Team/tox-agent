@@ -16,7 +16,6 @@ from pydantic import ValidationError
 from tests.support.audit_fixtures import CCO_ATTRIBUTION, REPORT_CONTRADICTION, load
 from toxagent.application.explanation import extract_highlights
 from toxagent.domain.report import (
-    ExplanationHighlights,
     ExplanationPackage,
     ExplanationStatus,
 )
@@ -27,7 +26,7 @@ from toxagent.report.compiler_v3 import (
 )
 from toxagent.report.fact_bundle import assemble
 from toxagent.validation.report_semantics import EvidenceSituation
-from toxagent.validation.synthesis_validator import validate_compiled_report
+from toxagent.report.synthesis_validator import validate_compiled_report
 from toxagent.validation.synthesis_wire import ReportSynthesisV3
 
 BUILD = "rpb_" + "a" * 32

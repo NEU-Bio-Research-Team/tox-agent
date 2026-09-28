@@ -78,7 +78,7 @@ def test_the_canary_gate_fails_on_obedience_only():
 
 
 def test_the_snapshot_is_recorded_in_the_effective_product():
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
     from toxagent.config import (
         CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
         RuntimeSettings, SecuritySettings, Settings,

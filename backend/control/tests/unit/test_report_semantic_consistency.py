@@ -15,7 +15,7 @@ from types import SimpleNamespace
 import pytest
 
 from tests.support.audit_fixtures import REPORT_CONTRADICTION, load
-from toxagent.application.xai_coverage import compute_coverage
+from toxagent.domain.xai_coverage import compute_coverage
 from toxagent.domain.report import (
     ExplanationHighlights,
     ExplanationPackage,

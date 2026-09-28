@@ -63,6 +63,7 @@ below are deliberately not links so a handed-over clone has no dead ones.
 | `backlog/SCIENTIFIC_INVESTIGATION_BACKLOG.md` | Current — execution backlog and status for the RETHINK proposal, wave by wave |
 | `EXTERNAL_BENCHMARKS.md` | Current — which published benchmark runs, which is blocked and on what, and the label each result may carry |
 | `spec/WORKSPACE_AND_UI_SIMPLIFICATION_PLAN.md` | Current — the workspace cleanup and UI simplification plan, with its execution log |
+| `spec/WORKSPACE_STRUCTURE_REVIEW.md` | Current — structure review of the code that stays (layers, packaging, tooling, docs) and a phased plan; proposal, not executed |
 | `CAPABILITY_MATRIX.md`, `capability-matrix.json` | Current — **Generated** by `python -m evals.capability_matrix --write`: served/blocked models, explainer validation, tool profiles, flags, instruction cost |
 
 **Removed 2026-09-27, at the product owner's request:** the process

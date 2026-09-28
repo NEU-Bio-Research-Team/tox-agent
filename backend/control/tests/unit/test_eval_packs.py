@@ -237,7 +237,7 @@ def _settings(**policy):
 
 
 def test_the_effective_product_carries_no_secret():
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
 
     document = json.dumps(describe_effective_product(_settings()))
     assert "hunter2" not in document
@@ -246,7 +246,7 @@ def test_the_effective_product_carries_no_secret():
 
 
 def test_a_flag_changes_the_lane_and_the_product_hash(monkeypatch):
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
 
     off = describe_effective_product(_settings())
     monkeypatch.setenv("TOXAGENT_FLAG_REPORT_ORCHESTRATOR_V2", "1")
@@ -259,7 +259,7 @@ def test_a_flag_changes_the_lane_and_the_product_hash(monkeypatch):
 
 
 def test_the_budget_in_the_product_is_the_enforced_one():
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
     from toxagent.tools.definitions.evidence import DECISION_SUPPORT_MAX_SEARCHES_PER_RUN
 
     document = describe_effective_product(_settings(max_tool_calls_per_run=17))
@@ -269,7 +269,7 @@ def test_the_budget_in_the_product_is_the_enforced_one():
 
 
 def test_expired_flags_are_visible():
-    from toxagent.application.effective_product import flag_snapshot
+    from toxagent.api.effective_product import flag_snapshot
 
     snapshot = flag_snapshot(today=date(2027, 1, 1))
     assert all(flag["expired"] for flag in snapshot.values())

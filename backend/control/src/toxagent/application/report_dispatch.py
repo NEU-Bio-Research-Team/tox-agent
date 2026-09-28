@@ -47,7 +47,6 @@ from ..domain.report import BuildStage, ReportBuild
 from ..domain.run import RunStatus
 from ..report.artifact_v3 import to_artifact
 from ..report.compiler import evidence_links
-from ..tools.registry import ToolContext
 from .explanation import GetOrCreateExplanation
 from .report_inputs import load_report_inputs
 from .report_orchestrator import ReportOrchestrator, StageContext
@@ -63,6 +62,7 @@ from .report_synthesis import (
 )
 from .runs import advance
 from .submit_report_draft import SubmitReportDraft
+from .tool_context import ToolContext
 
 log = logging.getLogger("toxagent.report.dispatch")
 

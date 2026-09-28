@@ -12,12 +12,11 @@ for a different error message (PROD-06).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Awaitable, Callable, Final, Mapping
+from typing import Any, Awaitable, Callable, Final
 
 from pydantic import BaseModel
 
-from ..application.policy import Actor
+from ..application.tool_context import ToolContext
 from ..domain.provenance import content_sha256
 from .profile_manifest import load as load_profile_manifest
 
@@ -37,34 +36,6 @@ PROFILES: Final[dict[str, frozenset[str]]] = dict(PROFILE_MANIFEST.profiles)
 #: tool. With the flag off the tool is absent from ``tools/list`` and from the
 #: profile's schema hash.
 FLAG_GATED_TOOLS: Final[dict[str, str]] = dict(PROFILE_MANIFEST.flag_gated_tools)
-
-
-@dataclass(frozen=True)
-class ToolContext:
-    """Everything a handler is allowed to know about who is calling.
-
-    ``session_id`` and ``run_id`` come from the capability token, never from the
-    model's arguments — a tool argument that disagrees with the token loses
-    (plan section 8.5).
-    """
-
-    session_id: str
-    run_id: str
-    actor: Actor
-    profile: str
-    deadline_at: datetime
-    language: str = "en"
-    #: Immutable run intent carried by the signed capability token. It is
-    #: presentation context only; tool authorization remains ``profile``.
-    intent: str = ""
-    call_id: str = ""
-    #: The run's resolved predictor binding: endpoint -> admitted model id.
-    #: Injected by the server from the run configuration, exactly like
-    #: session_id and run_id, and for the same reason — a tool argument that
-    #: let a model choose its own provider would put scientific model
-    #: selection in the hands of the thing being explained (I10). No tool
-    #: input schema exposes a model field; this is the only way one arrives.
-    model_selection: Mapping[str, str] | None = None
 
 
 @dataclass(frozen=True)
