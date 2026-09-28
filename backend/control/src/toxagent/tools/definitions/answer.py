@@ -11,12 +11,12 @@ from __future__ import annotations
 import logging
 from typing import Final
 
-from ...application import scientific_case_service
-from ...application.submit_answer import SubmitAnswer
+from ...application.investigation import scientific_case_service
+from ...application.conversation.submit_answer import SubmitAnswer
 from ...config import PolicySettings
 from ...flags import is_enabled
-from ...validation.wire import GroundedAnswerCandidate
-from ...validation.wire_v2 import GroundedAnswerDraftV2
+from ...validation.answer.candidate_wire import GroundedAnswerCandidate
+from ...validation.answer.draft_wire import GroundedAnswerDraftV2
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 #: Referenced by tools/runner.py so the final-answer tool can be excluded from

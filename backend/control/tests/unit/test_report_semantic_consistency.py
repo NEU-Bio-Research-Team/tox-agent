@@ -21,7 +21,7 @@ from toxagent.domain.report import (
     ExplanationPackage,
     ExplanationStatus,
 )
-from toxagent.validation.report_semantics import (
+from toxagent.validation.report.semantics import (
     EVIDENCE_INSUFFICIENT,
     EVIDENCE_NOT_REQUESTED,
     EVIDENCE_PROVIDER_FAILED,

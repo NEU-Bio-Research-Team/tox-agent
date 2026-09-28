@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from toxagent.domain.ids import new_id
 from toxagent.validation.limitations import required_for_answer
-from toxagent.validation.wire import ClaimCandidate
+from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
 OBS = new_id("obs")
 

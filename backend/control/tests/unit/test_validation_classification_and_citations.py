@@ -7,14 +7,14 @@ from datetime import datetime, timezone
 from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceType
 from toxagent.domain.ids import new_id
 from toxagent.domain.observation import Observation, ObservationKind, Producer
-from toxagent.validation.citations import (
+from toxagent.validation.answer.citations import (
     validate_basis,
     validate_citations,
     validate_observation_reference,
     validate_recommendation_basis,
 )
-from toxagent.validation.classification import validate_classification
-from toxagent.validation.wire import ClaimCandidate
+from toxagent.validation.answer.classification import validate_classification
+from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
 NOW = datetime(2026, 9, 4, tzinfo=timezone.utc)
 

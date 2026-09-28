@@ -3,7 +3,7 @@ section 8.1, W2-03/W2-04).
 
 ``get_artifact_inventory`` answers "what already exists" without spending
 budget reading any of it — the same projection pinned into context by
-``harness/gateway.py`` (``application/artifact_inventory.py`` is the one place
+``harness/gateway.py`` (``application/investigation/artifact_inventory.py`` is the one place
 that assembly happens). ``get_report_summary`` is the bounded read this
 inventory's ``latest_report`` pointer promises is actually readable: status,
 gaps and recommendations only, never the full sections/tables/figures a report
@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application.artifact_inventory import build_artifact_inventory
+from ...application.investigation.artifact_inventory import build_artifact_inventory
 from ...domain.errors import InvalidRequest
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 

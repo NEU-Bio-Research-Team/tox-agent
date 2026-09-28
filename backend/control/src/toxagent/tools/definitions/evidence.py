@@ -17,6 +17,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+#: ADS plan section 9.2 initial budgets (W4-04), enforced below only for
+#: decision_support: evidence_research exists for intensive search, and
+#: report_build is bounded by its own step cap. The numbers live with the rest
+#: of the published run budget.
+from ...application.runs.budget import (
+    DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
+    DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
+)
 from ...config import ResearchSettings
 from ...domain.errors import AnalysisNotFound, EvidenceNotFound, ToolDenied
 from ...domain.events import EventType
@@ -31,7 +39,7 @@ from ...research.relevance import (
     RetrievalBudget,
     assess,
 )
-from ...application import scientific_case_service
+from ...application.investigation import scientific_case_service
 from ...flags import is_enabled
 from .. import trust
 from ..registry import ToolContext, ToolDefinition, ToolOutput
@@ -48,16 +56,6 @@ _SEARCH_RESULT_FIELDS = (
     "identifier", "canonical_url",
 )
 
-#: ADS plan section 9.2 initial budgets (W4-04). Enforced only for
-#: decision_support: evidence_research's whole reason for existing is
-#: intensive search, and report_build is bounded by its own step cap, so a
-#: query-specific ceiling here is a decision_support-only guardrail against
-#: the unbounded search loop the motivating run's postmortem worried about —
-#: not a limit the plan asks every profile to share. The numbers are a
-#: starting point to tune against eval (plan section 9.2's own caveat), not a
-#: permanent constant.
-DECISION_SUPPORT_MAX_SEARCHES_PER_RUN = 4
-DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN = 8
 
 
 def _now() -> datetime:

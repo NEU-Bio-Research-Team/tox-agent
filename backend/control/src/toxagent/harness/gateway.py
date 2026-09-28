@@ -19,12 +19,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Awaitable, Callable
 
-from ..application.create_analysis import CreateAnalysis
-from ..application.run_scheduler import RunContext
+from ..application.prediction.create_analysis import CreateAnalysis
+from ..application.runs.scheduler import RunContext
 from ..connections.model import ConnectionStatus
 from ..connections.secrets import SecretStore
 from ..domain.runtime import AuthMode
-from ..application.runs import advance
+from ..application.runs.transitions import advance
 from ..config import RuntimeSettings
 from ..domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
 from ..domain.events import EventType
@@ -39,11 +39,11 @@ from ..domain.usage import RuntimeUsageEvent
 from ..flags import is_enabled
 from ..tools.capability import CapabilityTokenService
 from ..tools.registry import ToolContext, ToolRegistry
-from ..application import decision_state_service, scientific_case_service
+from ..application.investigation import decision_state_service, scientific_case_service
 from ..domain import decision_state, scientific_case
 from .context import PinnedReference, SessionCheckpoint, build_system_prompt
 from .report_profile import compose_report_profile
-from ..application.skill_catalog import load_catalog, render_index, render_static
+from ..application.investigation.skill_catalog import load_catalog, render_index, render_static
 from .synthesis_profile import PROFILE_NAME as SYNTHESIS_PROFILE, compose_synthesis_profile
 from .prompt_budget import measure as measure_prompt, split_system_prompt
 from .runtime_profiles import RuntimeProfileRegistry
@@ -286,7 +286,7 @@ class AgentRuntimeGateway:
         """
         import json
 
-        from ..application import claim_review
+        from ..application.investigation import claim_review
 
         def record(review: dict) -> Awaitable:
             return decision_state_service.advance(
@@ -401,7 +401,7 @@ class AgentRuntimeGateway:
 
     async def _begin_decision_state(self, context: RunContext) -> None:
         """Open the run's DecisionSupportStateV1 (TAB-Suite Wave 2)."""
-        from ..application.run_budget import effective_run_budget
+        from ..application.runs.budget import effective_run_budget
         from ..config import PolicySettings
 
         try:

@@ -8,8 +8,8 @@ no longer runs are gone).
 """
 from __future__ import annotations
 
-from ...application.report_synthesis import SubmitReportSynthesis
-from ...validation.synthesis_wire import ReportSynthesisV3
+from ...application.report.synthesis import SubmitReportSynthesis
+from ...validation.report.synthesis_wire import ReportSynthesisV3
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 DESCRIPTION = (

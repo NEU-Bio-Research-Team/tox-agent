@@ -14,9 +14,9 @@ from datetime import datetime, timezone
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import RunContext
-from toxagent.application.sessions import SessionService
-from toxagent.application.submit_message import MessageSubmission, SubmitMessage
+from toxagent.application.runs.scheduler import RunContext
+from toxagent.application.conversation.sessions import SessionService
+from toxagent.application.conversation.submit_message import MessageSubmission, SubmitMessage
 from toxagent.config import PolicySettings
 from toxagent.domain.errors import AdmissionBusy, Conflict
 from toxagent.domain.session import Session

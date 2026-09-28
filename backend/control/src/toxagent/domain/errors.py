@@ -79,7 +79,7 @@ class EvidenceNotFound(NotFound):
 
 
 class AttachmentNotFound(NotFound):
-    """Raised only inside application/recognize_structure.py, caught there
+    """Raised only inside application/prediction/recognize_structure.py, caught there
     and turned into a graceful run completion — never reaches an HTTP
     boundary directly, the same shape as EvidenceNotFound."""
 

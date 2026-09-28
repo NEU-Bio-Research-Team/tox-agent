@@ -11,7 +11,7 @@ from typing import Mapping
 
 from ..domain.ids import CLAIM, new_id
 from ..domain.observation import Observation
-from ..validation.wire import (
+from ..validation.answer.candidate_wire import (
     ClaimCandidate,
     GroundedAnswerCandidate,
     LimitationCandidate,

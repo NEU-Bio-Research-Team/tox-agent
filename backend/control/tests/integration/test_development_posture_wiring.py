@@ -12,9 +12,9 @@ import pytest
 
 from datetime import timedelta
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.application.submit_answer import SubmitAnswer
+from toxagent.application.conversation.submit_answer import SubmitAnswer
 from toxagent.config import PolicySettings
 from toxagent.domain.errors import AnswerValidationFailed
 from toxagent.domain.events import EventType
@@ -24,8 +24,8 @@ from toxagent.domain.session import Session
 from toxagent.tools.bootstrap import build_registry
 from toxagent.tools.registry import ToolContext
 from toxagent.tools.runner import ToolRunner
-from toxagent.validation.wire import LimitationCandidate
-from toxagent.validation.wire_v2 import (
+from toxagent.validation.answer.candidate_wire import LimitationCandidate
+from toxagent.validation.answer.draft_wire import (
     ClaimCandidateV2,
     DevelopmentPostureInputV2,
     GroundedAnswerDraftV2,
@@ -187,7 +187,7 @@ async def test_a_committing_posture_cannot_rest_on_synthesis_alone(db):
     sources, never a source. A moderate/strong proceed or deprioritize whose
     only bearing relations are syntheses is refused; the same synthesis with
     resolvable lineage beside a direct source is accepted, lineage persisted."""
-    from toxagent.validation.wire_v2 import EvidenceRelationInputV2
+    from toxagent.validation.answer.draft_wire import EvidenceRelationInputV2
 
     session, run, observation = await rig(db)
     synthesis = EvidenceRelationInputV2(

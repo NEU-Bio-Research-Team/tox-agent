@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import scientific_case_service
+from ...application.investigation import scientific_case_service
 from ...domain.errors import AnalysisNotFound, ToolDenied
 from ...domain.events import EventType
 from ...domain.observation import Observation, ObservationKind, Producer

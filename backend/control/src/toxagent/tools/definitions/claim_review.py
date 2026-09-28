@@ -11,7 +11,7 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import claim_review, decision_state_service
+from ...application.investigation import claim_review, decision_state_service
 from ...domain import decision_state as ds
 from ...domain.errors import InvalidRequest
 from ..registry import ToolContext, ToolDefinition, ToolOutput

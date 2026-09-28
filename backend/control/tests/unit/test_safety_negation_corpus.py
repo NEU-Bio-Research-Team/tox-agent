@@ -80,7 +80,7 @@ def test_endpoint_substitution_is_caught_on_the_claim_that_makes_it() -> None:
     field_path to know that an hERG number is being described as clinical
     toxicity. Markdown alone does not carry that."""
     from toxagent.validation.prohibited_claims import validate_claim_wording
-    from toxagent.validation.wire import ClaimCandidate
+    from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
     claim = ClaimCandidate(
         claim_id="clm_" + "0" * 32,

@@ -3,12 +3,12 @@ no claim actually backs must not pass silently."""
 from __future__ import annotations
 
 from toxagent.domain.ids import new_id
-from toxagent.validation.coverage import (
+from toxagent.validation.answer.coverage import (
     cited_fact_values,
     validate_markdown_numeric_coverage,
     validate_no_uncited_links,
 )
-from toxagent.validation.wire import ClaimCandidate
+from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
 
 def claim(**overrides) -> ClaimCandidate:
@@ -118,7 +118,7 @@ def test_a_hash_prefix_is_not_read_as_a_number():
 
 # --- W9-02: v2 prose numbers are checked against the claimed values ---------
 
-from toxagent.validation.coverage import faithful_rendering  # noqa: E402
+from toxagent.validation.answer.coverage import faithful_rendering  # noqa: E402
 
 
 def test_faithful_rendering_accepts_a_rounding_to_the_tokens_own_precision():

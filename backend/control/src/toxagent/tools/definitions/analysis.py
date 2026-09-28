@@ -14,8 +14,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import projections
-from ...application.create_analysis import CreateAnalysis
+from ...application.conversation import projections
+from ...application.prediction.create_analysis import CreateAnalysis
 from ...domain.analysis import AnalysisSnapshot
 from ...domain import explainer_validation
 from ...domain.errors import AnalysisNotFound, InvalidRequest, ToolDenied

@@ -1,6 +1,6 @@
 """Deterministic investigation budgets and stop decisions.
 
-SUPERSEDED (ADR 0011) by ``application/run_budget.py`` (EffectiveRunBudgetV1)
+SUPERSEDED (ADR 0011) by ``application/runs/budget.py`` (EffectiveRunBudgetV1)
 and ``domain/decision_state.py`` (stop reasons). No live path reads these
 numbers.
 """

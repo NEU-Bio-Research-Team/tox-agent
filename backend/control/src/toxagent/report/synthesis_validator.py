@@ -20,13 +20,13 @@ from typing import Mapping, Sequence
 
 from ..domain.errors import Violation
 from ..validation.prohibited_claims import validate_answer_markdown
-from ..validation.report_semantics import (
+from ..validation.report.semantics import (
     EvidenceSituation,
     check_evidence_scope_consistency,
     check_evidence_state_gap,
     check_explanation_consistency,
 )
-from .compiler_v3 import CompiledReport
+from .synthesis_compiler import CompiledReport
 from .fact_bundle import ReportFactBundle
 
 #: A number that looks like a measurement: a decimal, a Vietnamese decimal

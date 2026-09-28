@@ -18,15 +18,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .. import __version__
 from ..application.capabilities import CapabilityResolver
-from ..application.create_analysis import CreateAnalysis, CreateAnalysisBatch
-from ..application.quick_predict import QuickPredict
-from ..application.recognize_structure import RecognizeStructure
-from ..application.report_dispatch import OrchestratedReportBuild
-from ..application.concurrency import SlotLeaser, limits_from_settings
-from ..application.run_scheduler import LEASE_TTL_S, RunContext, RunScheduler
-from ..application.sessions import SessionService
-from ..application.startup_reconciliation import reconcile_orphaned_runs
-from ..application.submit_message import SubmitMessage
+from ..application.prediction.create_analysis import CreateAnalysis, CreateAnalysisBatch
+from ..application.prediction.quick_predict import QuickPredict
+from ..application.prediction.recognize_structure import RecognizeStructure
+from ..application.report.dispatch import OrchestratedReportBuild
+from ..application.runs.concurrency import SlotLeaser, limits_from_settings
+from ..application.runs.scheduler import LEASE_TTL_S, RunContext, RunScheduler
+from ..application.conversation.sessions import SessionService
+from ..application.runs.startup_reconciliation import reconcile_orphaned_runs
+from ..application.conversation.submit_message import SubmitMessage
 from .. import observability
 from ..config import Settings
 from ..domain.run import Intent
@@ -234,7 +234,7 @@ def create_app(
 
             scheduler.register(Intent.STRUCTURE_RECOGNITION, run_recognize_structure)
 
-        from ..application.skill_catalog import load_catalog
+        from ..application.investigation.skill_catalog import load_catalog
 
         skill_catalog = load_catalog(settings.profiles_dir)
         chembl = chembl_provider

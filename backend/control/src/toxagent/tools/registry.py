@@ -18,7 +18,7 @@ from pydantic import BaseModel
 
 from ..application.tool_context import ToolContext
 from ..domain.provenance import content_sha256
-from .profile_manifest import load as load_profile_manifest
+from ..application.tool_profiles import manifest as load_profile_manifest
 
 #: Capability profiles (plan section 8.3). A profile is a closed set: adding a
 #: tool to one is a product decision that changes what a model can do, and the

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application.report_dispatch import DatabaseBuildStore
+from toxagent.application.report.dispatch import DatabaseBuildStore
 from toxagent.persistence.object_store import InMemoryObjectStore
 from tests.e2e.test_orchestrated_report import _build_report, _fact_view, _install, _synthesis
 from tests.e2e.test_scientific_case_e2e import _answer, _post

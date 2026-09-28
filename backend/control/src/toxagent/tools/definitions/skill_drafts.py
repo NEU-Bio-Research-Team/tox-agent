@@ -15,7 +15,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import skill_drafts
+from ...application.investigation import skill_drafts
 from ...domain.errors import InvalidRequest
 from ...domain.skill_draft import DraftAuthor
 from ..registry import ToolContext, ToolDefinition, ToolOutput

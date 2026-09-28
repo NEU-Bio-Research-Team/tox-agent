@@ -22,7 +22,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import scientific_case_service as service
+from ...application.investigation import scientific_case_service as service
 from ...domain import scientific_case as sc
 from ...domain.errors import Conflict, InvalidRequest
 from ...domain.evidence import EvidenceStatus

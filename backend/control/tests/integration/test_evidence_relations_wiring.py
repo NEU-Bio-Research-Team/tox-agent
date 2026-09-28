@@ -10,21 +10,21 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.application.submit_answer import SubmitAnswer
+from toxagent.application.conversation.submit_answer import SubmitAnswer
 from toxagent.config import PolicySettings
 from toxagent.domain.errors import AnswerValidationFailed
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session
-from toxagent.validation.wire_v2 import (
+from toxagent.validation.answer.draft_wire import (
     ClaimCandidateV2,
     EvidenceRelationInputV2,
     GroundedAnswerDraftV2,
 )
-from toxagent.validation.wire import LimitationCandidate
+from toxagent.validation.answer.candidate_wire import LimitationCandidate
 from tests.support.predictor import ASPIRIN, StubPredictor
 
 pytestmark = pytest.mark.anyio

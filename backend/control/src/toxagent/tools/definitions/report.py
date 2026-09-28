@@ -18,8 +18,9 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import projections, scientific_case_service
-from ...application.submit_report_draft import (
+from ...application.conversation import projections
+from ...application.investigation import scientific_case_service
+from ...application.report.submit_draft import (
     WORKING_DRAFT_KEY,
     WORKING_DRAFT_SHA_KEY,
     WORKING_DRAFT_VERSION_KEY,
@@ -29,7 +30,7 @@ from ...domain.errors import Conflict
 from ...flags import is_enabled
 from ...domain.report import REQUIRED_SECTION_IDS
 from ...predictor.contract import TOX21_TASKS
-from ...validation.report_wire import ReportDraftCandidate
+from ...validation.report.draft_wire import ReportDraftCandidate
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 
@@ -130,7 +131,7 @@ def build(database, object_store=None, predictor=None) -> list[ToolDefinition]:
                 if is_enabled("scientific_case_v1") else None
             )
 
-        from ...application.explanation import (
+        from ...application.explanation.service import (
             is_explanation_schema,
             package_from_observation,
         )

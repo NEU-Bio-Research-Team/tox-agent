@@ -49,7 +49,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REPO = ROOT.parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from toxagent.application.skill_catalog import load_catalog  # noqa: E402
+from toxagent.application.investigation.skill_catalog import load_catalog  # noqa: E402
 from toxagent.config import PACKAGE_ROOT  # noqa: E402
 from toxagent.domain.provenance import content_sha256  # noqa: E402
 

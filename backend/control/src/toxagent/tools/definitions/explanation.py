@@ -21,7 +21,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application.explanation import GetOrCreateExplanation, package_from_observation
+from ...application.explanation.service import GetOrCreateExplanation, package_from_observation
 from ...domain import explainer_validation
 from ...domain.errors import AnalysisNotFound, InvalidRequest
 from ...domain.observation import ObservationKind

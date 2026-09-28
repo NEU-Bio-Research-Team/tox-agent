@@ -7,7 +7,7 @@ from toxagent.validation.prohibited_claims import (
     validate_claim_wording,
     validate_no_hitcount_severity,
 )
-from toxagent.validation.wire import ClaimCandidate
+from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
 
 def claim(text: str, **overrides) -> ClaimCandidate:

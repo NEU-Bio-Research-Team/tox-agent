@@ -10,10 +10,13 @@ from __future__ import annotations
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.run_envelope import (
-    ENVELOPE_VERSION, UnreadableEnvelope, from_envelope, to_envelope,
+from toxagent.application.runs.envelope import (
+    ENVELOPE_VERSION,
+    UnreadableEnvelope,
+    from_envelope,
+    to_envelope,
 )
-from toxagent.application.run_scheduler import RunContext
+from toxagent.application.runs.scheduler import RunContext
 from toxagent.domain.run import Intent
 
 FULL = RunContext(

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application.router import RouteRequest, route
+from toxagent.application.conversation.router import RouteRequest, route
 from toxagent.domain.run import Intent, Lane
 
 ASPIRIN = "CC(=O)Oc1ccccc1C(=O)O"

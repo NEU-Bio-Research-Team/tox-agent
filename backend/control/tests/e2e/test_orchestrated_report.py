@@ -23,8 +23,8 @@ import re
 
 import pytest
 
-from toxagent.application.report_dispatch import DatabaseBuildStore, OrchestratedReportBuild
-from toxagent.application.report_synthesis import SYNTHESIS_KEY
+from toxagent.application.report.dispatch import DatabaseBuildStore, OrchestratedReportBuild
+from toxagent.application.report.synthesis import SYNTHESIS_KEY
 from toxagent.domain.run import Intent
 from toxagent.harness.adapters.scripted import ScriptedRuntimeProvider
 from toxagent.harness.gateway import AgentRuntimeGateway

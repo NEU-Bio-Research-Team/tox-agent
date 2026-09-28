@@ -12,7 +12,7 @@ from dataclasses import replace
 import pytest
 
 from toxagent.config import PACKAGE_ROOT
-from toxagent.application.skill_catalog import load_catalog
+from toxagent.application.investigation.skill_catalog import load_catalog
 from tests.e2e.test_scripted_runtime import _analyse, _install_scripted_runtime, _new_session
 from tests.support.api import AUTH, api_client, wait_for_run
 from tests.support.predictor import StubPredictor

@@ -15,13 +15,13 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.submit_answer import SubmitAnswer
+from toxagent.application.conversation.submit_answer import SubmitAnswer
 from toxagent.config import PolicySettings
 from toxagent.domain import explainer_validation as ev
 from toxagent.domain.errors import AnswerValidationFailed
 from toxagent.domain.observation import Observation, ObservationKind, Producer
-from toxagent.validation.wire import LimitationCandidate
-from toxagent.validation.wire_v2 import ClaimCandidateV2, GroundedAnswerDraftV2
+from toxagent.validation.answer.candidate_wire import LimitationCandidate
+from toxagent.validation.answer.draft_wire import ClaimCandidateV2, GroundedAnswerDraftV2
 from tests.integration.test_evidence_relations_wiring import rig
 
 pytestmark = pytest.mark.anyio

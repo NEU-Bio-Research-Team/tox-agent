@@ -16,12 +16,12 @@ from typing import Any
 
 import pytest
 
-from toxagent.application.report_orchestrator import (
+from toxagent.application.report.orchestrator import (
     ReportOrchestrator,
     StageContext,
     StageSkipped,
 )
-from toxagent.application.report_stages import (
+from toxagent.application.report.stages import (
     CHECKPOINT_KEY,
     PIPELINE,
     StageStatus,

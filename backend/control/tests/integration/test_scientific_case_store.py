@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application import scientific_case_service as service
+from toxagent.application.investigation import scientific_case_service as service
 from toxagent.domain import scientific_case as sc
 from toxagent.domain.errors import Conflict
 from toxagent.domain.message import Message, Role

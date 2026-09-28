@@ -135,7 +135,7 @@ def _catalog_pins(profiles_dir: Path, skills: tuple[str, ...]) -> tuple[Mapping[
     only after the dynamic arm has shown an effect; this is the step that
     makes that possible without touching what a report run is told today.
     """
-    from ..application.skill_catalog import SkillCatalogError, load_catalog
+    from ..application.investigation.skill_catalog import SkillCatalogError, load_catalog
 
     try:
         catalog = load_catalog(profiles_dir)

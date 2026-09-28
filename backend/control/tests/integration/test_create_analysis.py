@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
 from toxagent.config import PolicySettings
 from toxagent.domain.errors import EndpointUnavailable, Forbidden, InvalidSmiles, SessionNotFound

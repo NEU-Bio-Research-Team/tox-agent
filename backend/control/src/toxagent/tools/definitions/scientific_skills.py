@@ -21,10 +21,10 @@ from typing import Callable, Iterable
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import decision_state_service
+from ...application.investigation import decision_state_service
 from ...domain import decision_state as ds
 from ...domain.errors import InvalidRequest
-from ...application.skill_catalog import SkillCatalog
+from ...application.investigation.skill_catalog import SkillCatalog
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 READ_SKILL = "read_scientific_skill"

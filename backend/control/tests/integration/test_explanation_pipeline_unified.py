@@ -2,7 +2,7 @@
 
 There used to be two. ``create_analysis`` computed eager explanations, wrote them
 under ``toxpred-explanation-v2`` and checkpointed them under
-``explanation_checkpoint_key``; ``application/explanation.py`` wrote
+``explanation_checkpoint_key``; ``application/explanation/service.py`` wrote
 ``toxpred-explanation-v1`` and looked them up under a key built from every
 model's artifact hashes. Neither could see the other's work, so a report builder
 holding a finished explanation asked the predictor for it again — or recorded a
@@ -19,8 +19,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
-from toxagent.application.explanation import (
+from toxagent.application.prediction.create_analysis import CreateAnalysis
+from toxagent.application.explanation.service import (
     EXPLANATION_SCHEMA_VERSION,
     ExplanationUnavailable,
     GetOrCreateExplanation,
@@ -29,7 +29,7 @@ from toxagent.application.explanation import (
     is_explanation_schema,
     package_from_observation,
 )
-from toxagent.application.explanation_identity import (
+from toxagent.application.explanation.identity import (
     explanation_cache_key,
     model_artifact_fingerprint,
 )

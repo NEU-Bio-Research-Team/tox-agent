@@ -6,7 +6,7 @@ never shown a capability the server cannot honour.
 """
 from __future__ import annotations
 
-from ..application.create_analysis import CreateAnalysis
+from ..application.prediction.create_analysis import CreateAnalysis
 from ..config import PolicySettings, ResearchSettings
 from ..predictor.client import PredictorClient
 from ..research.compound import CompoundProvider
@@ -95,7 +95,7 @@ def build_registry(
         add(definition)
     if skill_catalog is None:
         from ..config import PACKAGE_ROOT
-        from ..application.skill_catalog import load_catalog
+        from ..application.investigation.skill_catalog import load_catalog
 
         skill_catalog = load_catalog(PACKAGE_ROOT / "agent_profiles")
     # Gated by scientific_skills_v1. Visibility is read at call time, from the

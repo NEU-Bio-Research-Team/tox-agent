@@ -17,12 +17,12 @@ from typing import Any
 
 import pytest
 
-from toxagent.application.report_orchestrator import ReportOrchestrator
-from toxagent.application.report_stage_handlers import (
+from toxagent.application.report.orchestrator import ReportOrchestrator
+from toxagent.application.report.stage_handlers import (
     DeterministicHandlers,
     bundle_from_checkpoints,
 )
-from toxagent.application.report_stages import StageStatus, read_checkpoints
+from toxagent.application.report.stages import StageStatus, read_checkpoints
 from toxagent.domain.report import (
     BuildStage,
     ExplanationHighlights,

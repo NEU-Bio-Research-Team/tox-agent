@@ -20,8 +20,8 @@ from sse_starlette.sse import EventSourceResponse
 
 from ..application.capabilities import CapabilityResolver
 from ..application.policy import Actor
-from ..application.sessions import run_projection
-from ..application.submit_message import MessageSubmission
+from ..application.conversation.sessions import run_projection
+from ..application.conversation.submit_message import MessageSubmission
 from ..domain.errors import (
     AnalysisNotFound,
     CapabilityUnavailable,
@@ -188,7 +188,7 @@ async def ready(request: Request) -> JSONResponse:
     # attribution is a deployment without XAI, not a broken one — but "why can
     # this stack not explain herg" should be answerable without building a
     # report to find out (XAI-01).
-    from ..application.explanation_readiness import explainer_readiness
+    from ..application.explanation.readiness import explainer_readiness
 
     dependencies["explainer"] = await explainer_readiness(services.predictor)
     dependencies["runtime"] = runtime_info
@@ -1030,7 +1030,7 @@ async def get_run_decision_dossier(
 
 async def _user_case_update(request: Request, principal: Actor, session_id: str, case_id: str,
                             op: str, **payload: Any):
-    from ..application import scientific_case_service
+    from ..application.investigation import scientific_case_service
     from ..domain import scientific_case as sc
     from ..flags import is_enabled
 
@@ -1122,7 +1122,7 @@ async def propose_skill_draft(
 ):
     """Propose a skill package for expert review. It is validated exactly as a
     shipped skill would be, and never offered to a run."""
-    from ..application import skill_drafts
+    from ..application.investigation import skill_drafts
     from ..domain.skill_draft import DraftAuthor
 
     _drafts_enabled()
@@ -1171,7 +1171,7 @@ async def review_skill_draft(
 ):
     """Approve or reject a proposed draft. Needs the expert role; an author
     does not review their own draft. Approval does not reach the catalog."""
-    from ..application import skill_drafts
+    from ..application.investigation import skill_drafts
     from ..domain.errors import Forbidden
     from ..domain.skill_draft import InvalidDraftTransition
 
@@ -1190,7 +1190,7 @@ async def review_skill_draft(
 
 @router.post("/skill-drafts/{draft_id}:withdraw")
 async def withdraw_skill_draft(request: Request, draft_id: str, principal: Actor = Depends(actor)):
-    from ..application import skill_drafts
+    from ..application.investigation import skill_drafts
     from ..domain.errors import Forbidden
     from ..domain.skill_draft import InvalidDraftTransition
 
@@ -1208,7 +1208,7 @@ async def withdraw_skill_draft(request: Request, draft_id: str, principal: Actor
 async def export_skill_draft(request: Request, draft_id: str, principal: Actor = Depends(actor)):
     """An approved draft as files, with the manifest made active — the input to
     ``scripts/promote_skill_draft.py`` and a reviewed change to the catalog."""
-    from ..application.skill_drafts import package_digest
+    from ..application.investigation.skill_drafts import package_digest
     from ..domain.errors import Conflict
     from ..domain.skill_draft import InvalidDraftTransition
 
@@ -1251,7 +1251,7 @@ async def get_analysis(
     include_raw: bool = Query(False),
     principal: Actor = Depends(actor),
 ):
-    from ..application.projections import display_projection
+    from ..application.conversation.projections import display_projection
 
     services = _services(request)
     await services.sessions.get(principal, session_id)

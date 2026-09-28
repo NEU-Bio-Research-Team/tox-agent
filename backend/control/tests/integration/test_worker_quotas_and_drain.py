@@ -19,11 +19,11 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import update
 
-from toxagent.application.concurrency import ConcurrencyLimits, SlotLeaser
+from toxagent.application.runs.concurrency import ConcurrencyLimits, SlotLeaser
 from toxagent.application.policy import Actor
-from toxagent.application.run_envelope import to_envelope
-from toxagent.application.run_scheduler import LEASE_TTL_S, RunContext, RunScheduler
-from toxagent.application.runs import advance
+from toxagent.application.runs.envelope import to_envelope
+from toxagent.application.runs.scheduler import LEASE_TTL_S, RunContext, RunScheduler
+from toxagent.application.runs.transitions import advance
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
 from toxagent.domain.session import Session

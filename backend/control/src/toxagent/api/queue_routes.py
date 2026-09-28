@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Request
 
 from ..application.policy import Actor
-from ..application.queues import queue_of_job
+from ..application.runs.queues import queue_of_job
 from ..domain.errors import NotFound
 from .routes import _services, actor
 

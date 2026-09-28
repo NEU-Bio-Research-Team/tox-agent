@@ -19,6 +19,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from ..application.runs.budget import MAX_IDENTICAL_CALLS
 from ..domain.errors import ToolDenied, ToxAgentError
 from ..domain.events import EventType
 from ..domain.ids import TOOL_CALL, new_id
@@ -28,7 +29,7 @@ from ..activities import activity_for_tool
 from . import envelope
 from .definitions.answer import ANSWER_TOOL_NAME
 from .definitions.claim_review import CLAIM_REVIEW_TOOL_NAME
-from ..application.submit_report_draft import (
+from ..application.report.submit_draft import (
     SUBMIT_SAVED_TOOL_NAME,
     SUBMIT_TOOL_NAME as REPORT_SUBMIT_TOOL_NAME,
 )
@@ -36,9 +37,6 @@ from .registry import ToolContext, ToolRegistry
 
 log = logging.getLogger("toxagent.tools")
 
-#: Identical arguments to the same tool this many times in one run is a loop,
-#: not a retry (plan section 14.5).
-MAX_IDENTICAL_CALLS = 2
 
 
 def _now() -> datetime:
@@ -274,7 +272,7 @@ class ToolRunner:
         # it does not count in the run's usage.
         if context.intent != Intent.DECISION_SUPPORT.value or context.profile == "claim_review":
             return
-        from ..application import decision_state_service
+        from ..application.investigation import decision_state_service
         from ..domain import decision_state as ds
 
         await decision_state_service.advance(

@@ -15,7 +15,7 @@ from typing import Iterable
 
 from ..domain.development_posture import DevelopmentPosture
 from ..domain.errors import Violation
-from .wire import ClaimCandidate
+from .answer.candidate_wire import ClaimCandidate
 
 #: A verdict this product never issues (plan sections 3.5, 16.5 #9). Matches
 #: "is safe", "considered safe", "an toàn", etc.; a bare mention of the word

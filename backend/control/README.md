@@ -38,7 +38,7 @@ code reads it: shipping it as package data is what makes `pip install .`,
 ## What is enforced, not merely intended
 
 - A number in an accepted answer equals the predictor field it cites, or the
-  answer does not exist (`validation/numeric.py`).
+  answer does not exist (`validation/answer/numeric.py`).
 - hERG, Tox21 and ClinTox never substitute for one another, and there is no
   aggregate score in any schema (ADR 0002).
 - A denied tool is invisible to the model *and* refused at the transport.

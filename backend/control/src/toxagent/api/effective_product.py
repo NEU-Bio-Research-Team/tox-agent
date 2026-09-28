@@ -25,7 +25,7 @@ from .. import flags as rollout
 from ..config import Settings
 from ..domain.provenance import content_sha256
 from ..domain.run import Intent
-from ..application.run_budget import budget_matrix
+from ..application.runs.budget import budget_matrix
 
 SCHEMA_VERSION = "effective-product-v1"
 
@@ -107,7 +107,7 @@ def intent_lane(intent: str, *, report_orchestrator_v2: bool) -> str:
 
 
 def _skills_section(settings: Settings, flags: dict[str, Any]) -> dict[str, Any]:
-    from ..application.skill_catalog import load_catalog
+    from ..application.investigation.skill_catalog import load_catalog
 
     if flags["scientific_skills_v1"]["enabled"]:
         mode = "dynamic"

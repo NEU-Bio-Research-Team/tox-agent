@@ -5,8 +5,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from toxagent.application import scientific_case_service as service
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.investigation import scientific_case_service as service
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
 from toxagent.config import PolicySettings
 from toxagent.domain.message import Message, Role

@@ -131,9 +131,6 @@ _PLATFORM = {"config", "flags", "metrics", "observability", "telemetry"}
 #: yet. The list may only shrink: ``test_every_layer_exception_is_still_real``
 #: fails once an entry stops being true, so a fix has to delete its line.
 LAYER_EXCEPTIONS: dict[tuple[str, str], str] = {
-    ("application/run_budget.py", "tools"): "budget limits read from tool definitions",
-    ("application/skill_catalog.py", "tools"): "catalog validates against tool PROFILES",
-    ("application/skill_drafts.py", "tools"): "drafts validate against tool PROFILES",
     ("persistence/investigations.py", "agent"): "superseded kernel store (ADR 0011)",
     ("persistence/sql/repositories.py", "agent"): "superseded kernel store (ADR 0011)",
 }

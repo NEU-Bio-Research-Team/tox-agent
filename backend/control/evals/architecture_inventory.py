@@ -35,8 +35,8 @@ HISTORICAL_INTENTS = ("attribution", "evidence_research", "report_qa")
 def build_inventory() -> dict[str, Any]:
     from toxagent import flags as rollout
     from toxagent.api import effective_product
-    from toxagent.application import run_budget
-    from toxagent.application.queues import PRIORITY, QueueClass, queue_for_intent
+    from toxagent.application.runs import budget as run_budget
+    from toxagent.application.runs.queues import PRIORITY, QueueClass, queue_for_intent
     from toxagent.domain.run import Intent
     from toxagent.tools.registry import PROFILES, ToolRegistry
 

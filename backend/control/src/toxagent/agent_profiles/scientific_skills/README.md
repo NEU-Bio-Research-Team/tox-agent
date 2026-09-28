@@ -2,7 +2,7 @@
 
 Investigation methods the decision-support agent can load when a situation calls
 for them (ADR 0012, `docs/RETHINK_TOXAGENT_AGENTIC_RESEARCH_EVALUATION_VI.md`
-§4.5–§4.9, §5.5). Loaded and validated by `application/skill_catalog.py`.
+§4.5–§4.9, §5.5). Loaded and validated by `application/investigation/skill_catalog.py`.
 
 ## Package format
 

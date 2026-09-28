@@ -10,8 +10,8 @@ import shutil
 
 import pytest
 
-from toxagent.application.skill_catalog import load_catalog
-from toxagent.application.skill_drafts import compose_package
+from toxagent.application.investigation.skill_catalog import load_catalog
+from toxagent.application.investigation.skill_drafts import compose_package
 from toxagent.config import PACKAGE_ROOT
 from tests.e2e.test_scientific_case_e2e import _answer, _post
 from tests.e2e.test_scripted_runtime import _analyse, _install_scripted_runtime, _new_session

@@ -9,9 +9,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import RunContext
+from toxagent.application.runs.scheduler import RunContext
 from toxagent.config import PolicySettings, RuntimeSettings
 from toxagent.domain.events import EventType
 from toxagent.domain.ids import CLAIM, GAP, REPORT_BUILD, new_id

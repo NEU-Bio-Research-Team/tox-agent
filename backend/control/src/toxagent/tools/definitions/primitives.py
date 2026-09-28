@@ -19,7 +19,7 @@ from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import scientific_case_service
+from ...application.investigation import scientific_case_service
 from ...domain import activity_summary
 from ...domain import exposure_margin as em
 from ...domain import scientific_case as sc

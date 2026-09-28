@@ -20,8 +20,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from toxagent.application.skill_catalog import CATALOG_DIR, SkillCatalogError, load_catalog  # noqa: E402
-from toxagent.application.skill_drafts import package_digest  # noqa: E402
+from toxagent.application.investigation.skill_catalog import (
+    CATALOG_DIR,
+    SkillCatalogError,
+    load_catalog,
+)  # noqa: E402
+from toxagent.application.investigation.skill_drafts import package_digest  # noqa: E402
 
 DEFAULT_PROFILES = ROOT / "src" / "toxagent" / "agent_profiles"
 

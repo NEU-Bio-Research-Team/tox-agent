@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application import projections
+from toxagent.application.conversation import projections
 from toxagent.domain.analysis import AnalysisSnapshot, PredictorProvenance
 from toxagent.domain.errors import InvalidRequest
 from toxagent.domain.ids import new_id

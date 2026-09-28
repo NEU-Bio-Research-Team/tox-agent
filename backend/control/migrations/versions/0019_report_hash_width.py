@@ -1,6 +1,6 @@
 """Widen report content_sha256 columns to fit prefixed digests.
 
-The v3 report compiler (report/compiler_v3.py) and the synthesis stage
+The v3 report compiler (report/synthesis_compiler.py) and the synthesis stage
 publish ``sha256:<64 hex>`` — 71 characters — into ``varchar(64)`` columns.
 SQLite does not enforce varchar length, so every test passed; PostgreSQL
 refuses the insert, and every orchestrated report build failed at the

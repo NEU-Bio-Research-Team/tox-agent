@@ -30,7 +30,7 @@ import html
 from typing import Any, Callable, Iterable, Mapping
 
 from ..domain.report import ReportArtifact
-from ..validation.citations import CITATION_TOKEN
+from ..validation.answer.citations import CITATION_TOKEN
 
 #: Bumped with REP-01/REP-03: Markdown figure links now resolve into a bundle
 #: instead of an unopenable ``figure:`` URI, and every format renders the

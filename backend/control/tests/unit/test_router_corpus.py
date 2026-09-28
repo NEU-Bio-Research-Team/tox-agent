@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application.intent_matching import (
+from toxagent.application.conversation.intent_matching import (
     contains_phrase,
     matched_terms,
     normalize,
     tokenize,
 )
-from toxagent.application.router import (
+from toxagent.application.conversation.router import (
     ATTRIBUTION_TERMS,
     OUT_OF_SCOPE_TERMS,
     RESEARCH_TERMS,

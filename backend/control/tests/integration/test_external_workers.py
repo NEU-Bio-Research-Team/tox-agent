@@ -14,8 +14,8 @@ from datetime import datetime, timezone
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import RunContext, RunScheduler
-from toxagent.application.runs import advance
+from toxagent.application.runs.scheduler import RunContext, RunScheduler
+from toxagent.application.runs.transitions import advance
 from toxagent.config import WorkerSettings
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
@@ -170,7 +170,7 @@ async def test_a_saturated_report_worker_does_not_hold_up_a_question(db):
 
 async def test_a_job_written_before_queue_classes_is_routed_by_its_intent(db):
     report = await _seed(db, Intent.BUILD_REPORT, Lane.MIXED)
-    from toxagent.application.run_envelope import to_envelope
+    from toxagent.application.runs.envelope import to_envelope
 
     async with db.unit_of_work() as uow:
         await uow.run_jobs.enqueue(

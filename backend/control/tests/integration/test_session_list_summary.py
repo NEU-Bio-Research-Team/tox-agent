@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.sessions import SessionService
+from toxagent.application.conversation.sessions import SessionService
 from toxagent.domain.message import Message, PartType, Role
 from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session

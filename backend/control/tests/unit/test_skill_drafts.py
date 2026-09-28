@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application import skill_drafts
-from toxagent.application.skill_catalog import load_catalog
+from toxagent.application.investigation import skill_drafts
+from toxagent.application.investigation.skill_catalog import load_catalog
 from toxagent.config import PACKAGE_ROOT
 from toxagent.domain import skill_draft as sd
 

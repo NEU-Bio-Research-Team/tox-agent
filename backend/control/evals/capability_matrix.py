@@ -149,7 +149,11 @@ def _report_build_skills() -> dict[str, Any]:
 def _scientific_skills() -> dict[str, Any]:
     from toxagent.config import PACKAGE_ROOT
     from toxagent.harness.prompt_budget import estimate_tokens
-    from toxagent.application.skill_catalog import load_catalog, render_index, render_static
+    from toxagent.application.investigation.skill_catalog import (
+        load_catalog,
+        render_index,
+        render_static,
+    )
 
     catalog = load_catalog(PACKAGE_ROOT / "agent_profiles")
     active = [s for s in catalog.skills if s.status == "active"]
