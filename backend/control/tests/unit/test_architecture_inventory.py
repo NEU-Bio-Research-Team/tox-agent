@@ -14,7 +14,7 @@ from evals.architecture_inventory import INVENTORY_PATH, REPO_ROOT, build_invent
 
 def test_the_checked_in_inventory_is_current():
     assert INVENTORY_PATH.read_text() == render(build_inventory()), (
-        "docs/architecture-inventory.json is stale; run "
+        "docs/reference/architecture-inventory.json is stale; run "
         "`python -m evals.architecture_inventory --write`"
     )
 

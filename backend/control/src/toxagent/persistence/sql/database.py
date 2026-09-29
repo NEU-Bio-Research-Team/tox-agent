@@ -18,10 +18,6 @@ from typing import Any, AsyncIterator, Awaitable, Callable, Coroutine, Sequence,
 from sqlalchemy import insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 
-log = logging.getLogger("toxagent.persistence")
-
-_T = TypeVar("_T")
-
 from ...domain.events import Event, EventType
 from ...domain.ids import EVENT, new_id
 from ..schema import event_outbox, metadata, sessions
@@ -33,6 +29,8 @@ from .repositories import (
     SqlReportStore,
     SqlCapabilityTokenStore,
     SqlDecisionStateStore,
+    SqlScientificCaseStore,
+    SqlSkillDraftStore,
     SqlDevelopmentPostureStore,
     SqlEvidenceStore,
     SqlEvidenceRelationStore,
@@ -53,6 +51,10 @@ from .repositories import (
 )
 
 CommitHook = Callable[[Sequence[str]], Awaitable[None] | None]
+
+log = logging.getLogger("toxagent.persistence")
+
+_T = TypeVar("_T")
 
 
 def _now() -> datetime:
@@ -112,6 +114,8 @@ class SqlUnitOfWork:
         self.evidence_relations = SqlEvidenceRelationStore(conn)
         self.development_postures = SqlDevelopmentPostureStore(conn)
         self.decision_states = SqlDecisionStateStore(conn)
+        self.scientific_cases = SqlScientificCaseStore(conn)
+        self.skill_drafts = SqlSkillDraftStore(conn)
         self.explanation_checkpoints = SqlExplanationCheckpointStore(conn)
         self.investigations = SqlInvestigationStore(conn)
         self.model_connections = SqlModelConnectionStore(conn)

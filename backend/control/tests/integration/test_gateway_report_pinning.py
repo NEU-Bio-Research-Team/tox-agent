@@ -9,12 +9,12 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import RunContext
-from toxagent.config import PolicySettings, RuntimeSettings
+from toxagent.application.runs.scheduler import RunContext
+from toxagent.platform.config import PolicySettings, RuntimeSettings
 from toxagent.domain.events import EventType
-from toxagent.domain.ids import CLAIM, GAP, REPORT_BUILD, new_id
+from toxagent.domain.ids import CLAIM, GAP, new_id
 from toxagent.domain.message import Message, Role
 from toxagent.domain.report import (
     REQUIRED_SECTION_IDS,
@@ -30,12 +30,22 @@ from toxagent.domain.session import Session
 from toxagent.harness.gateway import AgentRuntimeGateway
 from toxagent.tools.registry import ToolRegistry
 from tests.support.predictor import ASPIRIN, StubPredictor
+from tests.support.reports import seed_report_build
 
 pytestmark = pytest.mark.anyio
 
 # Relative, not a calendar date: _prepare_context refuses a run whose deadline
 # (created_at + run_deadline_s) has already passed, so a fixed date rots.
 NOW = datetime.now(timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_now():
+    """Re-read the clock per test. Read once at collection, NOW went stale
+    whenever the tests before these took longer than run_deadline_s, and the
+    run's deadline had passed before the test began."""
+    global NOW
+    NOW = datetime.now(timezone.utc)
 ACTOR = Actor(subject_id="user-1")
 
 
@@ -79,9 +89,12 @@ async def test_decision_support_turn_pins_the_latest_report(db):
         actor=ACTOR, session_id=session.id, run_id=run.id, smiles=ASPIRIN, owns_run=False,
     )
     analysis_id = result.snapshot.id
+    build = await seed_report_build(
+        db, session_id=session.id, run_id=run.id, analysis_id=analysis_id, now=NOW,
+    )
 
     report = ReportArtifact.create(
-        report_build_id=new_id(REPORT_BUILD),
+        report_build_id=build.id,
         session_id=session.id,
         analysis_id=analysis_id,
         title="Aspirin screening report",

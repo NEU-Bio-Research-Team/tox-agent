@@ -10,7 +10,7 @@ import base64
 
 import pytest
 
-from toxagent.config import ResearchSettings
+from toxagent.platform.config import ResearchSettings
 from toxagent.domain.run import Intent
 from toxagent.harness.adapters.scripted import ScriptedRuntimeProvider
 from toxagent.harness.gateway import AgentRuntimeGateway

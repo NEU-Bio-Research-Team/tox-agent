@@ -15,13 +15,13 @@ from types import SimpleNamespace
 import pytest
 
 from tests.support.audit_fixtures import REPORT_CONTRADICTION, load
-from toxagent.application.xai_coverage import compute_coverage
+from toxagent.domain.xai_coverage import compute_coverage
 from toxagent.domain.report import (
     ExplanationHighlights,
     ExplanationPackage,
     ExplanationStatus,
 )
-from toxagent.validation.report_semantics import (
+from toxagent.validation.report.semantics import (
     EVIDENCE_INSUFFICIENT,
     EVIDENCE_NOT_REQUESTED,
     EVIDENCE_PROVIDER_FAILED,

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from toxagent.config import Settings
+from toxagent.platform.config import Settings
 
 
 def _settings(monkeypatch, **env: str) -> Settings:

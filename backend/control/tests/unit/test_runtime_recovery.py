@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from toxagent.application.run_scheduler import _can_recover_runtime_loss
+from toxagent.application.runs.scheduler import _can_recover_runtime_loss
 from toxagent.domain.ids import new_id
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
 

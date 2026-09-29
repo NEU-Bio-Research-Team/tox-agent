@@ -1,7 +1,6 @@
 """Frozen fixtures load, hash-check, and serve the pinned ToxPred shape."""
 from __future__ import annotations
 
-import json
 
 import pytest
 

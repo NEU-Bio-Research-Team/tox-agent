@@ -33,6 +33,44 @@ class SessionSettingsRequest(_Request):
     predictor_bindings: dict[Literal["clintox", "herg", "tox21"], str] = Field(default_factory=dict)
 
 
+class CaseContextRequest(_Request):
+    """Something the researcher tells the case (ADR 0012): an in-house assay
+    result, an exposure, a species. Recorded as user-supplied context the
+    agent can cite; it is never a model fact."""
+
+    key: str = Field(min_length=1, max_length=120)
+    value: str = Field(min_length=1, max_length=1000)
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class CaseQuestionRequest(_Request):
+    question: str = Field(min_length=1, max_length=2000)
+    decision_context: str | None = Field(default=None, max_length=1000)
+
+
+class CaseScopeRequest(_Request):
+    """What the case may reach (W9-07). Turning external search off needs a
+    reason, which the agent is shown and the dossier keeps."""
+
+    external_search: bool
+    reason: str | None = Field(default=None, max_length=500)
+
+
+class SkillDraftRequest(_Request):
+    """A skill package proposed for review (W9-11): the same three parts a
+    shipped skill has, with the manifest's status held at ``draft``."""
+
+    skill_md: str = Field(min_length=1, max_length=20_000)
+    manifest: dict[str, Any]
+    references: dict[str, str] = Field(default_factory=dict)
+    rationale: str = Field(min_length=1, max_length=2000)
+
+
+class SkillDraftReviewRequest(_Request):
+    decision: Literal["approve", "reject"]
+    note: str = Field(min_length=1, max_length=2000)
+
+
 class SessionResponse(BaseModel):
     session_id: str
     status: str

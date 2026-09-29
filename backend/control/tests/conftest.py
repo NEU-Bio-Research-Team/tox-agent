@@ -27,8 +27,25 @@ from datetime import datetime, timezone
 import pytest
 from sqlalchemy import text
 
+from tests.support import response_contract
 from toxagent.persistence.schema import metadata
 from toxagent.persistence.sql.database import Database
+
+# Before any app is built: every route handler created from here on checks its
+# responses against the model its route declares.
+response_contract.install()
+
+
+@pytest.fixture(autouse=True)
+def _responses_match_their_declared_models():
+    yield
+    violations, response_contract.VIOLATIONS[:] = list(response_contract.VIOLATIONS), []
+    if violations:
+        pytest.fail(
+            "responses that do not match their route's declared model "
+            "(toxagent/api/responses.py):\n"
+            + "\n".join(f"  {route} -> {status}: {problems}" for route, status, problems in violations)
+        )
 
 
 TEST_DATABASE_URL = "TOXAGENT_TEST_DATABASE_URL"

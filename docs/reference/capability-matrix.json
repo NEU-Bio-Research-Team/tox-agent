@@ -1,0 +1,546 @@
+{
+  "endpoints": {
+    "clintox": {
+      "model_id": "clintox-smilesgnn-v1",
+      "status": "blocked"
+    },
+    "herg": {
+      "model_id": "herg-tox21-chemberta-v1",
+      "status": "served"
+    },
+    "tox21": {
+      "model_id": "herg-tox21-chemberta-v1",
+      "status": "served"
+    }
+  },
+  "explainer_validation": [
+    {
+      "determinism": "42/42",
+      "endpoint": "herg",
+      "faithfulness_vs_random_control": "not_better_than_random_control",
+      "faithfulness_wins": "15/34",
+      "measured_on": "2026-09-09",
+      "median_delta_random": 0.0294,
+      "median_delta_top_k": 0.034,
+      "method": "grad_x_input_v2",
+      "model_id": "herg-tox21-chemberta-v1",
+      "molecules_attempted": 42,
+      "source": "backend/predictor/evals/xai/results/herg-20260909.json",
+      "spelling_invariance": "40/40",
+      "task": null
+    },
+    {
+      "determinism": "42/42",
+      "endpoint": "tox21",
+      "faithfulness_vs_random_control": "not_better_than_random_control",
+      "faithfulness_wins": "14/35",
+      "measured_on": "2026-09-09",
+      "median_delta_random": 0.0449,
+      "median_delta_top_k": 0.0383,
+      "method": "grad_x_input_v2",
+      "model_id": "herg-tox21-chemberta-v1",
+      "molecules_attempted": 42,
+      "source": "backend/predictor/evals/xai/results/tox21-NR-AR-20260909.json",
+      "spelling_invariance": "40/40",
+      "task": "NR-AR"
+    }
+  ],
+  "instruction_surfaces": {
+    "decision_support": {
+      "components": {
+        "answer_format": {
+          "characters": 2111,
+          "estimated_tokens": 616
+        },
+        "decision_support_policy": {
+          "characters": 2626,
+          "estimated_tokens": 701
+        },
+        "product_role": {
+          "characters": 874,
+          "estimated_tokens": 240
+        },
+        "required_limitations_guide": {
+          "characters": 729,
+          "estimated_tokens": 182
+        },
+        "scientific_invariants": {
+          "characters": 820,
+          "estimated_tokens": 228
+        }
+      },
+      "estimated_tokens_total": 1967,
+      "loading": "static: every component is composed into every decision_support turn"
+    },
+    "report_build": {
+      "estimated_tokens_by_skill": {
+        "assemble-report-context": 1579,
+        "compose-scientific-report": 2034,
+        "explain-predictor-results": 1056,
+        "preflight-report-draft": 2425,
+        "research-toxicology-evidence": 1149
+      },
+      "estimated_tokens_total": 11306,
+      "files": {
+        "AGENTS.md": {
+          "characters": 5539,
+          "estimated_tokens": 1471
+        },
+        "profile.json": {
+          "characters": 997,
+          "estimated_tokens": 318
+        },
+        "references/required-sections.md": {
+          "characters": 1925,
+          "estimated_tokens": 523
+        },
+        "references/source-hierarchy.md": {
+          "characters": 1455,
+          "estimated_tokens": 388
+        },
+        "references/wording-and-safety-policy.md": {
+          "characters": 2016,
+          "estimated_tokens": 531
+        },
+        "skills/assemble-report-context/SKILL.md": {
+          "characters": 2786,
+          "estimated_tokens": 762
+        },
+        "skills/assemble-report-context/references/report-context-contract.md": {
+          "characters": 2809,
+          "estimated_tokens": 817
+        },
+        "skills/compose-scientific-report/SKILL.md": {
+          "characters": 3100,
+          "estimated_tokens": 826
+        },
+        "skills/compose-scientific-report/references/report-schema.md": {
+          "characters": 4151,
+          "estimated_tokens": 1208
+        },
+        "skills/explain-predictor-results/SKILL.md": {
+          "characters": 2270,
+          "estimated_tokens": 598
+        },
+        "skills/explain-predictor-results/references/explanation-policy.md": {
+          "characters": 1597,
+          "estimated_tokens": 458
+        },
+        "skills/preflight-report-draft/SKILL.md": {
+          "characters": 4144,
+          "estimated_tokens": 1148
+        },
+        "skills/preflight-report-draft/references/validation-codes.md": {
+          "characters": 4588,
+          "estimated_tokens": 1277
+        },
+        "skills/research-toxicology-evidence/SKILL.md": {
+          "characters": 2599,
+          "estimated_tokens": 700
+        },
+        "skills/research-toxicology-evidence/references/evidence-synthesis-schema.md": {
+          "characters": 1528,
+          "estimated_tokens": 449
+        }
+      },
+      "instructions_sha256": "9090e20f71725dc14bf0239810b186da79c0daa04018fb2e0a642248bd568ae5",
+      "loading": "static: compose_report_profile() concatenates AGENTS.md, every shared reference, every declared SKILL.md and every skill reference into the prompt of every report run; the runtime's own skill tool is denied, so no skill is chosen or loaded on demand",
+      "skills": [
+        "assemble-report-context",
+        "explain-predictor-results",
+        "research-toxicology-evidence",
+        "compose-scientific-report",
+        "preflight-report-draft"
+      ]
+    }
+  },
+  "predictor_models": [
+    {
+      "base_model": null,
+      "blocked_reason": "The exact tokenizer.pkl with the 69-token vocabulary is absent, and its identity was never recorded, so a restored file could not be told from a different tokenizer of the same size. Record the hashes below from the training run, or retrain as a complete v2 release with its own tokenizer, calibration and evaluation, before this endpoint can be served.",
+      "display_name": "SMILESGNN ClinTox v1 (blocked)",
+      "endpoints": [
+        "clintox"
+      ],
+      "feature_schema_version": "smilesgnn-hybrid-v1",
+      "manifest": "backend/predictor/registry/models/clintox-smilesgnn-v1.yaml",
+      "model_id": "clintox-smilesgnn-v1",
+      "required": false,
+      "status": "blocked"
+    },
+    {
+      "base_model": "DeepChem/ChemBERTa-77M-MTR",
+      "blocked_reason": null,
+      "display_name": "ChemBERTa hERG / Tox21 v1",
+      "endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "feature_schema_version": "chemberta-smiles-v1",
+      "manifest": "backend/predictor/registry/models/herg-tox21-chemberta-v1.yaml",
+      "model_id": "herg-tox21-chemberta-v1",
+      "required": true,
+      "status": "served"
+    }
+  ],
+  "rollout_flags": {
+    "answer_draft_v2": {
+      "default": false,
+      "description": "Accept GroundedAnswerDraftV2 (local claim refs, server-issued ids, server-resolved source values). Off, the v1 wire shape is the only one the answer tool accepts.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-12"
+    },
+    "claim_reviewer_v1": {
+      "default": false,
+      "description": "After a decision_support answer is accepted, dispatch one independent reviewer turn (profile claim_review, one tool) that judges from the server-supplied sources whether each claim is supported, and record the verdicts in the run's DecisionSupportStateV1. The answer is never changed. Off, no reviewer turn runs.",
+      "gates_tools": [
+        "submit_claim_review"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "decision_state_plan_tool": {
+      "default": false,
+      "description": "Register record_decision_plan in the decision_support profile, so the model can propose the propositions its answer must resolve. Off, the DecisionSupportStateV1 is still kept (goal, usage, answer resolution, stop reason) but has no model-proposed plan and the tool surface is unchanged.",
+      "gates_tools": [
+        "record_decision_plan"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-14"
+    },
+    "evidence_pipeline_v2": {
+      "default": false,
+      "description": "Search results become candidates with an explicit relevance assessment; only direct/contextual assessments become citable durable records. Off, an accepted provider payload is a record.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-12"
+    },
+    "external_worker_mode": {
+      "default": false,
+      "description": "The API only enqueues run jobs; separate worker processes claim them. Off, the API process schedules runs in-process.",
+      "gates_tools": [],
+      "owner": "platform",
+      "remove_by": "2026-12-12"
+    },
+    "normalized_usage_v2": {
+      "default": true,
+      "description": "Record provider usage reports as normalized facts with source identity and cumulative/delta semantics, and serve usage.summary from them. Off, usage rows are appended as the adapter emits them.",
+      "gates_tools": [],
+      "owner": "backend-runtime",
+      "remove_by": "2026-12-12"
+    },
+    "report_orchestrator_v2": {
+      "default": false,
+      "description": "Build reports through the server-owned stage machine, invoking the model only at the synthesis boundary. Off, the report intent goes to the generic runtime gateway and the model drives the workflow.",
+      "gates_tools": [],
+      "owner": "backend-report",
+      "remove_by": "2026-12-12"
+    },
+    "router_v2": {
+      "default": false,
+      "description": "Resolve intent from the backend IntentDecision contract (token boundaries, precedence, structured clarification). Off, the lexical substring router decides.",
+      "gates_tools": [],
+      "owner": "backend-platform",
+      "remove_by": "2026-12-12"
+    },
+    "runtime_profile_selector_v2": {
+      "default": true,
+      "description": "Dispatch each intent to its own named runtime agent (BUILD_REPORT to toxagent-report) instead of the single default agent. Off, the adapter keeps sending the configured default agent for every intent.",
+      "gates_tools": [],
+      "owner": "backend-runtime",
+      "remove_by": "2026-12-12"
+    },
+    "scientific_case_v1": {
+      "default": false,
+      "description": "Keep a ScientificCaseV1 per session and subject across decision_support turns: open or continue the case at run start, register get_scientific_case/update_scientific_case, record what the accepted answer cited (and, with answer_draft_v2, its evidence relations) in the case ledger, and compile a DecisionDossierV1 when the run ends. Off, no case is written and the tool surface and prompt are unchanged.",
+      "gates_tools": [
+        "get_scientific_case",
+        "update_scientific_case"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "scientific_primitives_v1": {
+      "default": false,
+      "description": "Register two scientific primitives in decision_support (RETHINK 4.7, 4.10): compute_exposure_margin (IC50 over free Cmax from concentrations written in the session's sources, stored as a citable observation) and, with a ChEMBL provider configured, get_chembl_activities (measured activities of the analysed structure against hERG, stored as citable evidence). Both honour the researcher's data scope. Off, neither exists.",
+      "gates_tools": [
+        "compute_exposure_margin",
+        "get_chembl_activities"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "scientific_skills_v1": {
+      "default": false,
+      "description": "The dynamic skill arm: decision_support prompts list the scientific skill catalog (names and descriptions) and register read_scientific_skill/read_skill_reference, so the model loads a skill's pinned instructions only when the situation calls for it. Off, no skill is offered (TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 selects the static comparison arm instead).",
+      "gates_tools": [
+        "read_scientific_skill",
+        "read_skill_reference"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "skill_drafts_v1": {
+      "default": false,
+      "description": "Skill drafts for expert review (RETHINK 4.8): register propose_skill_draft in decision_support and serve /v1/skill-drafts (propose, list, review by an expert who is not the author, withdraw, export an approved package). Drafts never reach the catalog a run is offered; promotion is a reviewed change to the shipped packages. Off, the tool is absent and the routes answer 404.",
+      "gates_tools": [
+        "propose_skill_draft"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "subjectless_research_v1": {
+      "default": false,
+      "description": "A literature question with no molecule in the session runs as a decision_support turn on a subjectless case, and search_toxicology_evidence accepts a search without an analysis (results are then assessed against the endpoint only). Off, the router asks for a molecule (research_subject_missing) and the search tool's schema is unchanged.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "trust_envelope_v1": {
+      "default": false,
+      "description": "Move provider free text (title, abstract, authors, provider metadata and errors) in evidence tool model views into trust envelopes (tools/trust.py) with provenance, instructions_allowed=false and audit signals. Off, those fields stay flat beside a single untrusted_external_content flag.",
+      "gates_tools": [],
+      "owner": "backend-platform",
+      "remove_by": "2026-12-14"
+    }
+  },
+  "runtime_invariants": [
+    "hERG, Tox21 and ClinTox are different measurements. Never rename or map one onto another.",
+    "There is no aggregate toxicity, risk or safety score. Do not compute or imply one.",
+    "Every probability is a model score, not a calibrated clinical risk.",
+    "Applicability (\"ok\"/\"limited\"/\"out_of_domain\") is a rule-based element check, not a learned in/out-of-distribution test.",
+    "Tox21 assays are independent; a count of active assays is not a severity.",
+    "Attribution explains what moved a score; it is never proof of mechanism.",
+    "Every numeric or classification claim must cite an observation_id and field_path obtained from a tool result. Never state a number you were not handed by a tool.",
+    "Never state that a compound is safe, unsafe, regulatory-ready or give clinical/dosing advice."
+  ],
+  "schema_version": "capability-matrix-v1",
+  "scientific_skills": {
+    "catalog_sha256": "d557c97ea1e68356a01fccba673512deea9ab317d241ea4bd708df737ae85c35",
+    "estimated_tokens_dynamic_index": 676,
+    "estimated_tokens_static_all": 12160,
+    "loading": "off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.",
+    "skills": [
+      {
+        "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922",
+        "estimated_tokens_body": 1066,
+        "estimated_tokens_with_references": 1878,
+        "references": [
+          "scope-comparison-checklist.md"
+        ],
+        "required_capabilities": [
+          "get_evidence_record",
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "assess-conflicting-evidence",
+        "status": "active",
+        "version": "1.2.0"
+      },
+      {
+        "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7",
+        "estimated_tokens_body": 769,
+        "estimated_tokens_with_references": 782,
+        "references": [],
+        "required_capabilities": [
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "critique-case",
+        "status": "active",
+        "version": "1.1.0"
+      },
+      {
+        "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb",
+        "estimated_tokens_body": 780,
+        "estimated_tokens_with_references": 1300,
+        "references": [
+          "attribution-limits.md"
+        ],
+        "required_capabilities": [
+          "get_attribution",
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "high",
+        "skill_id": "interpret-model-attribution",
+        "status": "active",
+        "version": "1.1.0"
+      },
+      {
+        "content_sha256": "7e102fbd2fec637288f3559385a4f0d90d8390173e5a71e187785f6744674457",
+        "estimated_tokens_body": 714,
+        "estimated_tokens_with_references": 1570,
+        "references": [
+          "report-context-contract.md"
+        ],
+        "required_capabilities": [
+          "get_analysis_bundle",
+          "get_analysis_slice",
+          "get_report_context"
+        ],
+        "risk_tier": "low",
+        "skill_id": "assemble-report-context",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "9dfbf90b01b05104d3aaeda1450478d1b9d141d6b483a0232a5f827c65e561c8",
+        "estimated_tokens_body": 774,
+        "estimated_tokens_with_references": 2019,
+        "references": [
+          "report-schema.md"
+        ],
+        "required_capabilities": [
+          "save_report_draft"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "compose-scientific-report",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "cbcdf55d80283b66402bbc53883db82a6b9eb5558ecd3f5974379a91a28dea01",
+        "estimated_tokens_body": 545,
+        "estimated_tokens_with_references": 1040,
+        "references": [
+          "explanation-policy.md"
+        ],
+        "required_capabilities": [
+          "get_explanation_package",
+          "get_or_create_explanation"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "explain-predictor-results",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "250dc45396d35ac79c18b718106ba55984f823eae6629bf9c676f6a6433bba23",
+        "estimated_tokens_body": 1097,
+        "estimated_tokens_with_references": 2410,
+        "references": [
+          "validation-codes.md"
+        ],
+        "required_capabilities": [
+          "check_saved_report_draft",
+          "patch_saved_report_draft",
+          "save_report_draft",
+          "submit_saved_report_draft"
+        ],
+        "risk_tier": "low",
+        "skill_id": "preflight-report-draft",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "a5dea10946f8ce6b52d5fa693d774ca9a025c95be091cc459d7f2234264621ca",
+        "estimated_tokens_body": 651,
+        "estimated_tokens_with_references": 1140,
+        "references": [
+          "evidence-synthesis-schema.md"
+        ],
+        "required_capabilities": [
+          "get_evidence_record",
+          "search_toxicology_evidence"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "research-toxicology-evidence",
+        "status": "active",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "tool_profiles": {
+    "analysis": {
+      "default": [
+        "create_analysis_snapshot",
+        "get_analysis_slice",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {}
+    },
+    "audit_readonly": {
+      "default": [
+        "get_analysis_slice",
+        "get_evidence_record",
+        "get_explanation_slice"
+      ],
+      "flag_gated": {}
+    },
+    "claim_review": {
+      "default": [],
+      "flag_gated": {
+        "submit_claim_review": "claim_reviewer_v1"
+      }
+    },
+    "decision_support": {
+      "default": [
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_report_summary",
+        "search_toxicology_evidence",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {
+        "compute_exposure_margin": "scientific_primitives_v1",
+        "get_chembl_activities": "scientific_primitives_v1",
+        "get_scientific_case": "scientific_case_v1",
+        "propose_skill_draft": "skill_drafts_v1",
+        "read_scientific_skill": "scientific_skills_v1",
+        "read_skill_reference": "scientific_skills_v1",
+        "record_decision_plan": "decision_state_plan_tool",
+        "update_scientific_case": "scientific_case_v1"
+      }
+    },
+    "evidence_research": {
+      "default": [
+        "get_analysis_slice",
+        "get_evidence_record",
+        "search_toxicology_evidence",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {}
+    },
+    "report_build": {
+      "default": [
+        "check_report_draft",
+        "check_saved_report_draft",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_evidence_record",
+        "get_explanation_package",
+        "get_or_create_explanation",
+        "get_report_context",
+        "patch_saved_report_draft",
+        "resolve_compound_record",
+        "save_report_draft",
+        "search_toxicology_evidence",
+        "submit_report_draft",
+        "submit_saved_report_draft"
+      ],
+      "flag_gated": {}
+    },
+    "report_qa": {
+      "default": [
+        "get_analysis_slice",
+        "get_attribution",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {}
+    },
+    "report_synthesis": {
+      "default": [
+        "submit_report_synthesis"
+      ],
+      "flag_gated": {}
+    }
+  }
+}

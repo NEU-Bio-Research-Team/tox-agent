@@ -15,7 +15,7 @@ import logging
 
 import pytest
 
-from toxagent import observability as obs
+from toxagent.platform import observability as obs
 
 
 @pytest.fixture(autouse=True)

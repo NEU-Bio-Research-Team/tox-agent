@@ -8,18 +8,17 @@ attempt spent re-minting ids, the length wrong again, no answer at all.
 """
 from __future__ import annotations
 
-from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
 
-from toxagent.validation.claim_resolver import (
+from toxagent.validation.answer.claim_resolver import (
     derived_value,
     render_number,
     resolve_draft,
 )
-from toxagent.validation.wire import CLAIM_ID_PATTERN
-from toxagent.validation.wire_v2 import GroundedAnswerDraftV2
+from toxagent.validation.answer.candidate_wire import CLAIM_ID_PATTERN
+from toxagent.validation.answer.draft_wire import GroundedAnswerDraftV2
 
 OBS = "obs_" + "a" * 32
 

@@ -17,7 +17,15 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...config import ResearchSettings
+#: ADS plan section 9.2 initial budgets (W4-04), enforced below only for
+#: decision_support: evidence_research exists for intensive search, and
+#: report_build is bounded by its own step cap. The numbers live with the rest
+#: of the published run budget.
+from ...application.runs.budget import (
+    DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
+    DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
+)
+from ...platform.config import ResearchSettings
 from ...domain.errors import AnalysisNotFound, EvidenceNotFound, ToolDenied
 from ...domain.events import EventType
 from ...domain.evidence import EvidenceStatus
@@ -31,7 +39,8 @@ from ...research.relevance import (
     RetrievalBudget,
     assess,
 )
-from ...flags import is_enabled
+from ...application.investigation import scientific_case_service
+from ...platform.flags import is_enabled
 from .. import trust
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
@@ -47,16 +56,6 @@ _SEARCH_RESULT_FIELDS = (
     "identifier", "canonical_url",
 )
 
-#: ADS plan section 9.2 initial budgets (W4-04). Enforced only for
-#: decision_support: evidence_research's whole reason for existing is
-#: intensive search, and report_build is bounded by its own step cap, so a
-#: query-specific ceiling here is a decision_support-only guardrail against
-#: the unbounded search loop the motivating run's postmortem worried about —
-#: not a limit the plan asks every profile to share. The numbers are a
-#: starting point to tune against eval (plan section 9.2's own caveat), not a
-#: permanent constant.
-DECISION_SUPPORT_MAX_SEARCHES_PER_RUN = 4
-DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN = 8
 
 
 def _now() -> datetime:
@@ -102,6 +101,18 @@ class SearchEvidenceInput(_Input):
     )
 
 
+class SubjectlessSearchEvidenceInput(SearchEvidenceInput):
+    """The search input while ``subjectless_research_v1`` is on (W9-08): a
+    literature question need not be about a molecule the session analysed."""
+
+    analysis_id: str | None = Field(
+        default=None,
+        description="The analysis this search is about. Omit it only when the question names "
+                    "no molecule of this session; results are then assessed against the "
+                    "endpoint alone.",
+    )
+
+
 class GetEvidenceInput(_Input):
     evidence_id: str
     fields: list[str] | None = Field(
@@ -109,12 +120,36 @@ class GetEvidenceInput(_Input):
     )
 
 
+def _server_held_names(observations) -> list[str]:
+    """Names the server matched to this structure itself: ChEMBL's preferred
+    name (W9-13) and the compound resolver's. Live e2e, 2026-09-26: with only
+    the SMILES as a name, every paper about terfenadine was "compound_mismatch"
+    although ChEMBL had already named the structure in the same run."""
+    names: list[str] = []
+    for observation in observations:
+        payload = observation.canonical_payload
+        if observation.schema_version == "activity-summary-1":
+            found = [payload.get("molecule_name")]
+        elif observation.schema_version == "compound-record-v1" and payload.get("resolved"):
+            found = [payload.get("preferred_name"), *(payload.get("synonyms") or ())[:5]]
+        else:
+            continue
+        for name in found:
+            if isinstance(name, str) and name.strip() and name.strip() not in names:
+                names.append(name.strip())
+    return names
+
+
 def build(
     database, provider: ResearchProvider, settings: ResearchSettings
 ) -> list[ToolDefinition]:
     async def search_evidence(context: ToolContext, payload: SearchEvidenceInput) -> ToolOutput:
+        subjectless = payload.analysis_id is None
         async with database.unit_of_work() as uow:
-            snapshot = await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
+            snapshot = (
+                None if subjectless
+                else await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
+            )
             if context.profile == "decision_support":
                 # Counted *including* this call: ToolRunner._reserve already
                 # inserted this call's own "running" row before the handler
@@ -124,8 +159,26 @@ def build(
                 used = await uow.tool_calls.count_for_run_and_tool(
                     context.run_id, "search_toxicology_evidence"
                 )
-        if snapshot is None:
+        if snapshot is None and not subjectless:
             raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
+        if is_enabled("scientific_case_v1"):
+            # W9-07: the researcher's data scope is a permission. A compound
+            # restricted to internal data is never sent to a provider — from a
+            # chat turn or from either report path.
+            async with database.unit_of_work() as uow:
+                refusal = await scientific_case_service.external_search_refusal(
+                    uow, session_id=context.session_id,
+                    analysis_id=snapshot.id if snapshot is not None else None,
+                )
+            if refusal is not None:
+                raise ToolDenied(
+                    "the researcher's data scope for this compound does not allow external "
+                    "literature search "
+                    f"({refusal}). Answer from the predictor, the session's existing records "
+                    "and what the researcher supplied, and say that external literature was "
+                    "not searched at the researcher's request.",
+                    reason="case_data_scope",
+                )
         if (
             context.profile == "decision_support"
             and used > DECISION_SUPPORT_MAX_SEARCHES_PER_RUN
@@ -157,11 +210,17 @@ def build(
         # Assembled from the snapshot the server holds, never from what the
         # model says the molecule is called: a query plan built out of
         # model-supplied names would let it search for what it expected.
-        identity = CompoundIdentity(
-            canonical_smiles=snapshot.canonical_smiles,
-            preferred_name=snapshot.canonical_smiles,
-            synonyms=tuple(payload.compound_names or ()),
-        )
+        # No snapshot means no molecule (W9-08): results are then judged on
+        # the endpoint alone, never on names the model supplied.
+        identity = None
+        if snapshot is not None:
+            async with database.unit_of_work() as uow:
+                held = _server_held_names(await uow.observations.list_for_analysis(snapshot.id))
+            identity = CompoundIdentity(
+                canonical_smiles=snapshot.canonical_smiles,
+                preferred_name=held[0] if held else snapshot.canonical_smiles,
+                synonyms=(*held[1:], *(payload.compound_names or ())),
+            )
         retrieved_at = _now()
         envelope_on = is_enabled("trust_envelope_v1")
         model_results: list[dict] = []
@@ -218,12 +277,16 @@ def build(
                             )
                         else:
                             promoted += 1
-                    await uow.evidence.add(final)
-                    uow.emit(
-                        session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
-                        entity_type="evidence", entity_id=final.id, run_id=context.run_id,
-                        payload={"provider": final.provider, "status": final.status.value},
-                    )
+                    stored = await uow.evidence.add_if_absent(final)
+                    if stored is final:
+                        uow.emit(
+                            session_id=context.session_id, type=EventType.EVIDENCE_CREATED,
+                            entity_type="evidence", entity_id=final.id, run_id=context.run_id,
+                            payload={"provider": final.provider, "status": final.status.value},
+                        )
+                    else:  # a parallel search stored it first
+                        final = stored
+                        reused += 1
                 if final.status is EvidenceStatus.ACCEPTED:
                     result_view = final.model_view(fields=_SEARCH_RESULT_FIELDS)
                     result_views.append(result_view)
@@ -326,7 +389,10 @@ def build(
                 "on a result's evidence_id to read its abstract before citing it; a search "
                 "result alone is not enough detail to support a claim."
             ),
-            input_model=SearchEvidenceInput,
+            input_model=(
+                SubjectlessSearchEvidenceInput if is_enabled("subjectless_research_v1")
+                else SearchEvidenceInput
+            ),
             handler=search_evidence,
             profiles=frozenset({"evidence_research", "decision_support", "report_build"}),
             soft_timeout_s=settings.timeout_s,

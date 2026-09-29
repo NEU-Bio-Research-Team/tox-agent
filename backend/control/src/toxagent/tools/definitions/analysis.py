@@ -14,9 +14,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import projections
-from ...application.create_analysis import CreateAnalysis
+from ...application.conversation import projections
+from ...application.prediction.create_analysis import CreateAnalysis
 from ...domain.analysis import AnalysisSnapshot
+from ...domain import explainer_validation
 from ...domain.errors import AnalysisNotFound, InvalidRequest, ToolDenied
 from ...domain.events import EventType
 from ...domain.observation import Observation, ObservationKind, Producer
@@ -30,6 +31,16 @@ Endpoint = Literal["clintox", "herg", "tox21"]
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _validated(view: dict[str, Any], observation: Observation, *, ui: bool = False) -> dict[str, Any]:
+    """``view`` plus what the explainer behind ``observation`` was measured to do.
+
+    Added when the tool answers rather than stored with the observation, so an
+    attribution persisted before a benchmark ran carries today's statement and
+    a new measurement never needs a data migration (RETHINK §2, §4.3).
+    """
+    return {**view, "explainer_validation": explainer_validation.for_observation(observation, ui=ui)}
 
 
 class _Input(BaseModel):
@@ -195,8 +206,8 @@ def build(
                 ):
                     return ToolOutput(
                         canonical=existing.canonical_payload,
-                        model_view=existing.model_projection,
-                        ui_view=existing.canonical_payload,
+                        model_view=_validated(existing.model_projection, existing),
+                        ui_view=_validated(existing.canonical_payload, existing, ui=True),
                         observation_ids=(existing.id,),
                         provenance={**existing.provenance, "cached": True},
                     )
@@ -253,7 +264,8 @@ def build(
             await uow.commit()
 
         return ToolOutput(
-            canonical=canonical, model_view=observation.model_projection, ui_view=canonical,
+            canonical=canonical, model_view=_validated(observation.model_projection, observation),
+            ui_view=_validated(canonical, observation, ui=True),
             observation_ids=(observation.id,), provenance=observation.provenance,
         )
 
@@ -277,6 +289,7 @@ def build(
                     "task": item.model_projection.get("task"), "status": item.model_projection.get("status"),
                     "method": item.model_projection.get("method"),
                     "required_limitations": list(item.required_limitations),
+                    "explainer_validation": _validated({}, item)["explainer_validation"],
                 }
                 for item in attributions
             ]
@@ -312,7 +325,8 @@ def build(
                 value = sorted(value, key=lambda entry: abs(float(entry.get("relative_importance", entry.get("importance", entry.get("score", 0))))), reverse=True)[:payload.top_k]
             canonical[name] = value
         return ToolOutput(
-            canonical=canonical, model_view=canonical, ui_view=canonical,
+            canonical=canonical, model_view=_validated(canonical, item),
+            ui_view=_validated(canonical, item, ui=True),
             observation_ids=(item.id,), provenance=item.provenance,
         )
 

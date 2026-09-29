@@ -1,0 +1,3055 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_af4f1ceca547408081b7b88386595b19",
+        "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:40:51.363121+00:00",
+        "created_at": "2026-09-25T13:35:51.363121+00:00",
+        "started_at": "2026-09-25T13:35:51.504581+00:00",
+        "ended_at": "2026-09-25T13:39:49.096880+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "c9cdd71db9f947ae26d36016eb8bacbd0cc34642162516eacb10ce1ba9bc9316",
+          "tool_schema_hash": "b76b67ce2cb71f9dda4bf5a3ccbaae907d67b98f45c1b5a65eb97fb8fa8a8f62",
+          "system_prompt_hash": "bdc5c7c26326cb0a43050645cbefb176c4831c3567b0e5361493e8870027683a"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:35:51.364201+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_13b3d00dfb1d4a35b722e0089b75a9f8",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:36:04.357875+00:00",
+              "tokens": {
+                "input": 10402,
+                "output": 164,
+                "reasoning": 37,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 10603
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_5f400ecfd436446724dff2cc96cf9ad8",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c797cc001t5cX55iDhK1ZAB",
+                "step_id": "prt_0d8c7befc001minJL0PNdVjlMT",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_3a93905587064335bc27fa288c2ae7aa",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:36:24.250204+00:00",
+              "tokens": {
+                "input": 2297,
+                "output": 887,
+                "reasoning": 84,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 12996
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_22cfe90e22bf6832b972ebcd8eb13478",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c7bf2f0017RUZeUQpvkHDoS",
+                "step_id": "prt_0d8c80cb1001QPo6hKm4B6DIor",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_af2abcf0bae34280b84c40b33a3bb1ec",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:36:35.780507+00:00",
+              "tokens": {
+                "input": 1419,
+                "output": 367,
+                "reasoning": 0,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 13562
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8631c9c660d7604e5912242459f75ff7",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c80ce5001G4YK8Dv0cgFgxh",
+                "step_id": "prt_0d8c839bd001l17th3nPvdfG3C",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_03cf11f70ede4d8f8270bd1b9b8268c4",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:37:00.558801+00:00",
+              "tokens": {
+                "input": 2376,
+                "output": 936,
+                "reasoning": 165,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 16277
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d958fc961acb03776e65deeedf65fc5f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c839e70012DYhAEJ3NUPSV5",
+                "step_id": "prt_0d8c89a86001zFIAuqhHjowwU3",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f6d33b923d454a58872ce4c42145bf24",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:37:41.043790+00:00",
+              "tokens": {
+                "input": 7106,
+                "output": 1768,
+                "reasoning": 334,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 24056
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c48163e51d954caeb26d926563f8e2a8",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c89ae6001Pf2XHwpjQ53nE4",
+                "step_id": "prt_0d8c938aa001B08uKmeIPTpp8j",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_27e1bdc08f314f048ac7b6ad9462ba9d",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:37:58.623235+00:00",
+              "tokens": {
+                "input": 3288,
+                "output": 402,
+                "reasoning": 432,
+                "cache_read": 20992,
+                "cache_write": 0,
+                "total": 25114
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_df45c359916ad8eb5c4dd613b9fad2b0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c938ce0015hV183500PD8Z1",
+                "step_id": "prt_0d8c97d57001ZROKSeJ8rvDmbJ",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_1f42e054c0fc425bba5c1527f48737e9",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:38:45.308983+00:00",
+              "tokens": {
+                "input": 1228,
+                "output": 1460,
+                "reasoning": 426,
+                "cache_read": 24064,
+                "cache_write": 0,
+                "total": 27178
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c316c78b61a23c5ca9711b58a69e74ed",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8c97d82001fr6i3fJRHpJJw3",
+                "step_id": "prt_0d8ca33b5001qV6zW5SZUbiIms",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_df9e25ce07b349ffb153805f1c807821",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:39:14.878994+00:00",
+              "tokens": {
+                "input": 2565,
+                "output": 1451,
+                "reasoning": 49,
+                "cache_read": 25088,
+                "cache_write": 0,
+                "total": 29153
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_762331124cdad0f03d3419de3f71b529",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ca33e00019rzukXtO0mAbZu",
+                "step_id": "prt_0d8caa735001OUuXcQfJ5ePvup",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_065eeec7e554476bb1d236ad26e312fb",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:39:46.242372+00:00",
+              "tokens": {
+                "input": 2319,
+                "output": 1433,
+                "reasoning": 140,
+                "cache_read": 27136,
+                "cache_write": 0,
+                "total": 31028
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a677645011408acb2c5af7007dad6907",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8caa761001bI7nBaAWY1RpOa",
+                "step_id": "prt_0d8cb21b9001X0VNoR1EIeZlwg",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_49fa7d9217b243848245d5115dd3a0f7",
+              "runtime_binding_id": "rtb_b7e19710395c4418b4664e19758927c6",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:39:49.027634+00:00",
+              "tokens": {
+                "input": 2173,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 29184,
+                "cache_write": 0,
+                "total": 31361
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_5efc60a610ad5f0a7fc9c8810d77a250",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8cb21ed0010Eb2OH6SGmmfGD",
+                "step_id": "prt_0d8cb2c9b001cssAQBPbJWDKXa",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_dff692d9c45143a79cbf618f037e61a7",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "a163a15d1f960599a48e4431c8f17e048b7460e595e88e1a3da15b5d54fdb476",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:04.169911+00:00",
+            "ended_at": "2026-09-25T13:36:04.183493+00:00"
+          },
+          {
+            "call_id": "call_59fb6323070842c3a96abdf34b79845d",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 33,
+            "arguments_sha256": "f99721a808afdb50e08f5452d9fec8df93d17c9984ad1e15fccf712bb5d9950e",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:04.246707+00:00",
+            "ended_at": "2026-09-25T13:36:04.276930+00:00"
+          },
+          {
+            "call_id": "call_fa4c44c3c73347ac9ef8ace513c78049",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:04.270404+00:00",
+            "ended_at": "2026-09-25T13:36:04.284048+00:00"
+          },
+          {
+            "call_id": "call_890536e6c2a9467091522da7bcdd6e1f",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "73e0c8f6debb3563cc2a5d282fa12891deffce7331ebafcef9af52280603ca62",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:24.180756+00:00",
+            "ended_at": "2026-09-25T13:36:24.193662+00:00"
+          },
+          {
+            "call_id": "call_e2aef74d76434256af9fb0965e56e7e1",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "325ca43fda55064fb5d1486791bde90e2b8792a300224bb265e4c980c409cd13",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:33.581052+00:00",
+            "ended_at": "2026-09-25T13:36:33.593409+00:00"
+          },
+          {
+            "call_id": "call_fd534fcab71942e2978a7103a8042ef6",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2098,
+            "arguments_sha256": "344156980b99999eafdf5126f737084936a34abd269c86dd608dfddb00da4b29",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:33.634622+00:00",
+            "ended_at": "2026-09-25T13:36:35.729422+00:00"
+          },
+          {
+            "call_id": "call_0f68ca8b0cd146549a026f981af6651a",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "099f4925db22cab35994a846cf1ab2e8146338c10be1fa332577f33f459b23f6",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:33.665795+00:00",
+            "ended_at": "2026-09-25T13:36:33.677548+00:00"
+          },
+          {
+            "call_id": "call_5a64c867c48b43ae95d8facbcb8db4d1",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1012,
+            "arguments_sha256": "0c0067b6c17c74c53381598d17be3d24f07e9dc8c8e1162b4acace8410872a8c",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:33.812507+00:00",
+            "ended_at": "2026-09-25T13:36:34.822066+00:00"
+          },
+          {
+            "call_id": "call_d7a5ac7757d343a8bfe7ad24a171a64f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "b7ee4ea0aab678efc66612cd30bd5034ce1fc2d83e6df6b4e1ab3bf5514fb6c3",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:33.848657+00:00",
+            "ended_at": "2026-09-25T13:36:33.860801+00:00"
+          },
+          {
+            "call_id": "call_98353e933754475c9acf2f225970b392",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "b52cc9e73bb984d952192da650fa8a6ca43a44a0e98c978d12afcd11a648fffb",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:57.913780+00:00",
+            "ended_at": "2026-09-25T13:36:57.924510+00:00"
+          },
+          {
+            "call_id": "call_99c82f58f3b84245bd150cfecbdafc6c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 77,
+            "arguments_sha256": "ffcd4abad4fb897ca891973d91b709082403528da72fd7df263c36096ed96a77",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:57.984667+00:00",
+            "ended_at": "2026-09-25T13:36:58.058018+00:00"
+          },
+          {
+            "call_id": "call_0c45efbb8ca94143a68b71c6a70aadad",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 70,
+            "arguments_sha256": "87340ec11180d70c83bfbff4ec81211d99e93c118f0466ccc81f50b7c2c3ea99",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.034411+00:00",
+            "ended_at": "2026-09-25T13:36:58.085263+00:00"
+          },
+          {
+            "call_id": "call_533a6c98d44c4d559d108d82f9df643c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 68,
+            "arguments_sha256": "f77e1fc78adcd5d1823aae0f92ed2f23229be4f636456bedecb6d3521cad44ed",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.076902+00:00",
+            "ended_at": "2026-09-25T13:36:58.099451+00:00"
+          },
+          {
+            "call_id": "call_3715eb764cd649548a5828592f7930d3",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2441,
+            "arguments_sha256": "54b2fba254c15b64e345af06a06e4f1e08213e9fa2aedff00e80af9786ddc970",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:58.080526+00:00",
+            "ended_at": "2026-09-25T13:37:00.517885+00:00"
+          },
+          {
+            "call_id": "call_9e21f264bb9a4b83987b6290a28d2584",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 49,
+            "arguments_sha256": "1dedded70db6cbc0b03cbdfbfa1745b54d38474eb22ad3725483e69531b6c58f",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.154805+00:00",
+            "ended_at": "2026-09-25T13:36:58.216831+00:00"
+          },
+          {
+            "call_id": "call_4f977d45c3774d3a96d3526a57c4ffe5",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 81,
+            "arguments_sha256": "fdda029676e864379801a77b08cfa0eda2029d3dde01f302337e6d5dc804c9cd",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.189989+00:00",
+            "ended_at": "2026-09-25T13:36:58.269584+00:00"
+          },
+          {
+            "call_id": "call_3161558b257c4a9f82195ff5a9893b1e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 75,
+            "arguments_sha256": "709c59cfcb41b485151dbf3934832cca72c8cc070d2f5268763fede47053a093",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.246180+00:00",
+            "ended_at": "2026-09-25T13:36:58.289785+00:00"
+          },
+          {
+            "call_id": "call_29990abcd1f742419711c45bab8241bd",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 25,
+            "arguments_sha256": "2dbd9ecf94f922c7860cbd5ab2e852defa0d3727509b884b4d5488d0fbbc816e",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.272322+00:00",
+            "ended_at": "2026-09-25T13:36:58.293344+00:00"
+          },
+          {
+            "call_id": "call_e83dc4e676cf441fa0d8f455a30665ce",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "455d386cf6c6a1f984de91d8b61f7f252bf0fedfbb9f078d29207dd9bd238e6a",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.405758+00:00",
+            "ended_at": "2026-09-25T13:36:58.416856+00:00"
+          },
+          {
+            "call_id": "call_ec06caf537f7487599227a0e69a2f123",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 42,
+            "arguments_sha256": "376318d6773728daa0cf0c9acde0beb3880f5fea527045562c078ed59b097030",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.466336+00:00",
+            "ended_at": "2026-09-25T13:36:58.506396+00:00"
+          },
+          {
+            "call_id": "call_1534defc9509483c96e2971725b81b70",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 37,
+            "arguments_sha256": "b7ee4ea0aab678efc66612cd30bd5034ce1fc2d83e6df6b4e1ab3bf5514fb6c3",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.499504+00:00",
+            "ended_at": "2026-09-25T13:36:58.533288+00:00"
+          },
+          {
+            "call_id": "call_db1a7e623ce24c2dbae85d6fad217389",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "6e44ef605b343c81ee770580a6bd3aa64e43f4954377a5b2546b3d2ef492bde3",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:36:58.530359+00:00",
+            "ended_at": "2026-09-25T13:36:58.545825+00:00"
+          },
+          {
+            "call_id": "call_1c5fa8c6afc44cfdbd8f721a11039db9",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1203,
+            "arguments_sha256": "2aff82ef51462c1b4f993e2017a5ce393d50e57c7e4140fed160b2746b60410f",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:36:59.036023+00:00",
+            "ended_at": "2026-09-25T13:37:00.237622+00:00"
+          },
+          {
+            "call_id": "call_3f6199b6ff874ba2bd48b190a93b1541",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 27,
+            "arguments_sha256": "f8944e0939f55513d5296cdf2e00e8d67facc1aacb58aee580853b1e3d88968b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:37:40.962275+00:00",
+            "ended_at": "2026-09-25T13:37:40.987172+00:00"
+          },
+          {
+            "call_id": "call_316490e24f3746e6b774dc841c9bd055",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 32,
+            "arguments_sha256": "154a516e147e5c77c434aa662d6402e3b705117950a9b3b9aa54a31a5635f261",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:37:58.530407+00:00",
+            "ended_at": "2026-09-25T13:37:58.559686+00:00"
+          },
+          {
+            "call_id": "call_e68383ef1782415aa2495d86c8c2a993",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 32,
+            "arguments_sha256": "869381594137abf096450762e623cdfa855104663e401126e2df67bf2cf1ed62",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:39:14.726981+00:00",
+            "ended_at": "2026-09-25T13:39:14.758185+00:00"
+          },
+          {
+            "call_id": "call_8cd1b5b8716d4d36ae4c6ce3998e9ade",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 58,
+            "arguments_sha256": "c5a7647b9e09f81211217555cdf41d7a43a469da58b6a9c9344c7e02e24173b7",
+            "observation_ids": [
+              "obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "started_at": "2026-09-25T13:39:46.117559+00:00",
+            "ended_at": "2026-09-25T13:39:46.173687+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_9ee00196a96d4c9eb7246cbc2b3eb931",
+        "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+        "answer_markdown": "**Bottom line:** Do not rely on these predictions alone for a development decision. They are reasonable preliminary screening signals, but confidence is limited because the rule-based applicability check is `limited` for this boron-containing structure.\n\n- The hERG model calls bortezomib `non_blocker`; its blocker probability is reported in the cited model output. This is an uncalibrated model score, not a clinical risk estimate.\n- Tox21 outputs are separate assay predictions, not an aggregate toxicity result. The stored SR-p53 call is `inactive`; interpret each assay independently.\n- The analysis is marked `limited` because it contains boron. This is a rule-based applicability flag, not a learned validation of model performance.\n- No direct endpoint-matched bortezomib evidence was retrieved in the bounded search, so independent validation remains unresolved. That search outcome is not evidence that such data do not exist.\n\nUse the outputs only to prioritize follow-up. Before relying on them for a development decision, obtain direct functional hERG data and relevant Tox21 measurements under documented, comparable conditions.",
+        "claims": [
+          {
+            "claim_id": "clm_1cc88cedb5c7410780e4ce9c852e0d78",
+            "kind": "classification",
+            "text": "The hERG model classifies bortezomib as non_blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_5efa7be5da7345cea46c35996f80a3af",
+            "kind": "numeric",
+            "text": "The hERG model's blocker probability is 0.21694640815258026.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.21694640815258026,
+            "rendered_value": "0.216946408153"
+          },
+          {
+            "claim_id": "clm_3f2f2614ef4f42898a601d99ec60059b",
+            "kind": "classification",
+            "text": "The stored Tox21 SR-p53 call is inactive.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "field_path": "predictions.tox21.assays.SR-p53.active",
+            "source_value": false,
+            "rendered_value": "False"
+          },
+          {
+            "claim_id": "clm_8a762714e3d44e8b8f2003cc12e768d4",
+            "kind": "numeric",
+            "text": "The stored Tox21 SR-p53 activity probability is 0.18288762867450714.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "field_path": "predictions.tox21.assays.SR-p53.probability_activity",
+            "source_value": 0.18288762867450714,
+            "rendered_value": "0.182887628675"
+          },
+          {
+            "claim_id": "clm_43d8688d83054e22bf93cff96374b8aa",
+            "kind": "classification",
+            "text": "The rule-based applicability status is limited because the structure contains boron.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "field_path": "applicability.status",
+            "source_value": "limited",
+            "rendered_value": "limited"
+          },
+          {
+            "claim_id": "clm_a87a45a1398d4570a18b6e50941a995a",
+            "kind": "recommendation",
+            "text": "Use these outputs only as preliminary screening signals, not as sole evidence for a development decision.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "field_path": "applicability.status"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The reported probabilities are model scores, not calibrated clinical or real-world risks."
+          },
+          {
+            "code": "applicability_is_rule_based",
+            "text": "Applicability is a rule-based element check; limited status reduces confidence but does not quantify model error."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Follow-up assays would be screening or verification steps, not a complete safety assessment."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The bounded evidence search did not establish independent endpoint-matched validation for this molecule."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Generate direct functional hERG measurements and relevant Tox21 assay data for bortezomib under documented, comparable conditions.",
+            "basis_claim_ids": [
+              "clm_43d8688d83054e22bf93cff96374b8aa",
+              "clm_a87a45a1398d4570a18b6e50941a995a"
+            ]
+          }
+        ],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "e68c8c6e4fc35e5ea964b2a11132fdc0b7670915d1d945252a6ba94a140df8b5",
+        "created_at": "2026-09-25T13:39:46.133350+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_b8dbe8ac627c43beac4a36a4158c95db",
+        "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+        "goal": "Can we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?",
+        "subject_refs": [
+          "analysis:ana_8a66ea87accd49d781a0e7118beb0fe3"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The hERG prediction is a model signal for bortezomib, not independent experimental validation.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The Tox21 outputs should be interpreted as independent assay-specific model signals, not an aggregate toxicity score.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p3",
+            "question": "The model outputs should not be relied on alone for a development decision because applicability is limited for this boron-containing structure.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 3,
+          "resolved": 2
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 4,
+          "tool_calls": 27,
+          "denied_calls": 0,
+          "failed_calls": 1,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+        ],
+        "found_refs": [
+          "evidence:evd_4cb20a846b7e4772bfa73c35902deae4",
+          "evidence:evd_35e7f5c057e6443587d11b052d9cdb5e"
+        ],
+        "stop_reason": "budget_exhausted",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {
+          "mode": "static",
+          "loaded": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "references_loaded": []
+        },
+        "revision": 31
+      },
+      "dossier": {
+        "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+        "case_id": "scase_7cc76dbdd11d44a386cafdd8ddf212a1",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 0,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "Can we rely on the model's hERG and Tox21 predictions for bortezomib?",
+        "answer_id": "ans_9ee00196a96d4c9eb7246cbc2b3eb931",
+        "conclusion": {
+          "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+          "can_say": [
+            {
+              "text": "The predictor reports endpoint-specific hERG and Tox21 outputs for bortezomib, but these are model signals rather than independent experimental validation.",
+              "sources": [
+                "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+                "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "The applicability check is limited because the structure contains boron, reducing confidence in transferring the model outputs to this molecule.",
+              "sources": [
+                "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+              ],
+              "evidence_ids": [
+                "e3"
+              ]
+            },
+            {
+              "text": "The outputs are suitable, at most, for preliminary screening and should not be relied on alone for a development decision.",
+              "sources": [
+                "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+                "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+                "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2",
+                "e3"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Cannot infer clinical, regulatory, or overall toxicity conclusions from these hERG and Tox21 outputs.",
+            "Cannot treat the model probabilities as calibrated risks.",
+            "Cannot treat the absence of retrieved direct literature as evidence that no such data exist."
+          ],
+          "what_would_change": [
+            "Direct, endpoint-matched hERG functional data and relevant Tox21 measurements for bortezomib that validate or contradict the model calls.",
+            "Evidence that the model has been validated for boron-containing structures under comparable assay conditions."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "status": "open",
+            "context": [],
+            "statement": "The endpoint predictions provide useful directional screening signals for bortezomib despite the model's applicability limitation.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored hERG model output classifies bortezomib as non_blocker with a model blocker probability of 0.21694640815258026.",
+                "scope": {
+                  "assay": "fixed predictor hERG endpoint",
+                  "compound": "bortezomib",
+                  "endpoint": "hERG"
+                },
+                "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+                "directness": "direct",
+                "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The stored Tox21 predictions classify all twelve served assays as inactive; SR-p53 is one example with an activity probability of 0.18288762867450714 and active=false.",
+                "scope": {
+                  "assay": "12 independent served assays",
+                  "compound": "bortezomib",
+                  "endpoint": "Tox21"
+                },
+                "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.SR-p53.probability_activity",
+                "directness": "direct",
+                "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Direct bortezomib data for the same endpoint and comparable assay conditions consistently disagree with the corresponding prediction, or the applicability limitation is shown to invalidate performance for boron-containing structures."
+          },
+          {
+            "id": "h2",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "status": "open",
+            "context": [],
+            "statement": "The predictions should not be relied on beyond preliminary screening because the structure is outside or near the model's applicability scope and endpoint-specific independent evidence is insufficient.",
+            "evidence_for": [
+              {
+                "id": "e3",
+                "actor": "model",
+                "claim": "The rule-based applicability check is limited because the structure contains boron, so model scores for this structure are less reliable.",
+                "scope": {
+                  "compound": "bortezomib",
+                  "endpoint": "hERG and Tox21"
+                },
+                "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+                "stance": "supports",
+                "locator": "applicability.status; applicability.reasons; applicability.method",
+                "directness": "direct",
+                "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Independent, direct hERG and Tox21 measurements for bortezomib under comparable conditions validate the predictions and demonstrate acceptable applicability for this boron-containing structure."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Generate direct, endpoint-matched measurements: a functional hERG patch-clamp assay and the relevant Tox21 reporter assays using bortezomib with documented concentration and exposure conditions.",
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "rationale": "These measurements would test whether the model's endpoint calls transfer to this boron-containing structure and assay context.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "hERG current inhibition across concentrations with concentration-response characterization",
+              "assay-specific Tox21 activity calls and concentration-response data",
+              "comparison of observed calls with the stored model classifications"
+            ]
+          }
+        ],
+        "stop_reason": "budget_exhausted",
+        "subject_refs": [
+          "analysis:ana_8a66ea87accd49d781a0e7118beb0fe3"
+        ],
+        "case_revision": 18,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored hERG model output classifies bortezomib as non_blocker with a model blocker probability of 0.21694640815258026.",
+            "scope": {
+              "assay": "fixed predictor hERG endpoint",
+              "compound": "bortezomib",
+              "endpoint": "hERG"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The stored Tox21 predictions classify all twelve served assays as inactive; SR-p53 is one example with an activity probability of 0.18288762867450714 and active=false.",
+            "scope": {
+              "assay": "12 independent served assays",
+              "compound": "bortezomib",
+              "endpoint": "Tox21"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.SR-p53.probability_activity",
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "model",
+            "claim": "The rule-based applicability check is limited because the structure contains boron, so model scores for this structure are less reliable.",
+            "scope": {
+              "compound": "bortezomib",
+              "endpoint": "hERG and Tox21"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "supports",
+            "locator": "applicability.status; applicability.reasons; applicability.method",
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h2"
+            ]
+          },
+          {
+            "id": "e4",
+            "actor": "server",
+            "claim": "The hERG prediction is a model signal for bortezomib, not independent experimental validation.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "preliminary screening"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e5",
+            "actor": "server",
+            "claim": "The Tox21 outputs should be interpreted as independent assay-specific model signals, not an aggregate toxicity score.",
+            "scope": {
+              "endpoint": "tox21",
+              "use_context": "preliminary screening"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "Assess whether these endpoint-specific predictions are suitable as evidence for development decisions, given applicability and independent experimental support.",
+        "unlinked_evidence": [
+          {
+            "id": "e4",
+            "actor": "server",
+            "claim": "The hERG prediction is a model signal for bortezomib, not independent experimental validation.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "preliminary screening"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e5",
+            "actor": "server",
+            "claim": "The Tox21 outputs should be interpreted as independent assay-specific model signals, not an aggregate toxicity score.",
+            "scope": {
+              "endpoint": "tox21",
+              "use_context": "preliminary screening"
+            },
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "search_toxicology_evidence",
+              "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+              "outcome": "",
+              "purpose": "Find direct bortezomib evidence for hERG and Tox21 endpoints to assess whether the model signals are independently supported.",
+              "decision": "continue",
+              "hypothesis_ids": []
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+              "outcome": "No direct endpoint-matched record was returned by the bounded searches; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for direct bortezomib hERG or Tox21 data that could contradict or validate the model signals.",
+              "decision": "answer",
+              "hypothesis_ids": []
+            },
+            {
+              "id": "a3",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+              "outcome": "Keep the recommendation scoped to preliminary screening use; do not treat probabilities, inactive calls, or applicability as validated real-world outcomes.",
+              "purpose": "Check that the conclusion remains limited to model behavior and does not become a safety, clinical, or aggregate toxicity claim.",
+              "decision": "answer",
+              "hypothesis_ids": []
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "applicability_domain",
+            "actor": "server",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "status": "open",
+            "severity": "medium",
+            "resolution": "",
+            "description": "The predictor's rule-based applicability check says limited (contains uncommon element(s): B); its scores for this structure are less reliable.",
+            "hypothesis_ids": [],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "provider_coverage",
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "status": "open",
+            "severity": "medium",
+            "resolution": "",
+            "description": "No direct bortezomib record for the requested hERG or Tox21 endpoint was retrieved in the bounded literature search; this does not establish that no such data exist.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_b8dbe8ac627c43beac4a36a4158c95db",
+  "analysis": {
+    "run": {
+      "run_id": "run_0b20ea7d30a84c8ca22ae72b69a4ff45",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_77005ed18592473698f14aabb629c3e5",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:40:50.305688+00:00",
+      "created_at": "2026-09-25T13:35:50.305688+00:00",
+      "started_at": "2026-09-25T13:35:50.316325+00:00",
+      "ended_at": "2026-09-25T13:35:50.340024+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:35:50.306873+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_8a66ea87accd49d781a0e7118beb0fe3",
+      "input_smiles": "B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O",
+      "canonical_smiles": "CC(C)C[C@H](NC(=O)[C@H](Cc1ccccc1)NC(=O)c1cnccn1)B(O)O",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.21694640815258026,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.29062190651893616,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.43206915259361267,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.15595905482769012,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.27510717511177063,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.23680557310581207,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.18207761645317078,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.18288762867450714,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.0835905373096466,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.1814471334218979,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.2816884517669678,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.22869011759757996,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.11700492352247238,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "limited",
+        "reasons": [
+          "contains uncommon element(s): B"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "limited",
+          "reasons": [
+            "contains uncommon element(s): B"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "c0f7291a-9a37-404d-afed-9a2012213323",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 48,
+            "encoded_token_count": 48
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "72486197579040c1e41364de0dceffd87b9dff7fadbb967ee3fae0e3a236171e"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:35:50.334902+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_76ef932951a3441fa35486366126c3bc",
+      "title": "Adverse drug reaction profiles of histone deacetylase inhibitors.",
+      "authors": [
+        "Begum R",
+        "Parsons JL",
+        "Jones AM"
+      ],
+      "published_at": "2025-10-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-025-19717-w",
+        "pmid": "41087426",
+        "pmcid": "PMC12521396",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41087426",
+      "abstract_or_excerpt": "The safety and tolerability of histone deacetylase inhibitors (HDACIs) were always a matter of concern. This study aimed to explore the global observational adverse drug reaction (ADR) profiles of the HDACIs: vorinostat, belinostat, panobinostat, pracinostat, entinostat, romidepsin, bufexamac and sodium phenylbutyrate. This study focussed on the investigation whether associations between HDACIs' ADR profiles and their physicochemical and pharmacological properties exist and how these associations may be harnessed to contribute to safer clinical use. The ADRs of HDACIs were curated from the World Health Organisation (WHO) VigiAccess database (1976-2024). Pharmacology data was curated from the chemical database of bioactive molecules with drug-like properties, European Molecular Biology Laboratory (ChEMBL). Physiochemical and pharmacokinetic properties were curated from PubChem, Drug Bank, ChemDraw and FDA new drug application documents for the HDACIs studied. In total, n = 12,779 ADRs were reported for the selected HDACIs, with n = 15/27 of the system organ class (SOC)-related ADRs showing statistical significance (X<sup>2</sup>, P < .05). Vorinostat accounted for n = 4,225 of the total ADRs, which may be explained by (1) its extensive use in the clinic and (2) it possessed the most clinically achievable off-target pharmacological interactions (n = 9). This included potent inhibition of the human-ether-à-go-go-related gene (hERG) ion-channel (IC<sub>50</sub> = 322 nM vs. c<sub>max</sub> = 1,200 nM), which is likely a contributing factor to the highest rate of cardiac ADRs observed (n = 146, P < .05). Musculoskeletal ADRs associated with vorinostat (n = 58, P < .05) can be ascribed to its unique inhibition of HDAC4 (IC<sub>50</sub> = 540 nM vs. c<sub>max</sub> = 1,200 nM). The gastrointestinal (GI) ADRs of panobinostat (n = 488, P < .05) can partly be related to HDAC3 inhibition (IC<sub>50</sub> = 2.0 nM vs. C<sub>max</sub> = 8.0 nM). The absence of HDAC9 inhibition was unique to entinostat and may explain its beneficial drug reaction in depression (n = 0 cases). Thrombocytopenia observed with vorinostat, panobinostat and romidepsin may stem from dual inhibition of HDAC1 and HDAC2 and their higher volume of distributions (V<sub>d</sub>). Despite all HDACIs having a similar mechanism of action, their unique pharmacology and differing physicochemical and pharmacokinetic properties landscape results in varying ADR profiles.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:37:00.495300+00:00",
+      "content_sha256": "b2a2ba2ff549b991db1cc1f5a3bab07d1842f9aab009c488e0a11d7e1eb6a7b4"
+    },
+    {
+      "evidence_id": "evd_c9df48c1ba794ca68c8af575d050ead3",
+      "title": "From cancer therapy to cardiac safety: the role of proteostasis in drug-induced cardiotoxicity.",
+      "authors": [
+        "Qian X",
+        "Yao M",
+        "Xu J",
+        "Dong N",
+        "Chen S"
+      ],
+      "published_at": "2024-11-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2024.1472387",
+        "pmid": "39611175",
+        "pmcid": "PMC11602306",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39611175",
+      "abstract_or_excerpt": "Drug-induced cardiotoxicity (DICT) poses a significant challenge in the prognosis of cancer patients, particularly with the use of antineoplastic agents like anthracyclines and targeted therapies such as trastuzumab. This review delves into the intricate interplay between drugs and proteins within cardiac cells, focusing on the role of proteostasis as a therapeutic target for mitigating cardiotoxicity. We explore the <i>in vivo</i> modeling of proteostasis, highlighting the complex intracellular environment and the emerging techniques for monitoring proteostasis. Additionally, we discuss how cardiotoxic drugs disrupt protein homeostasis through direct chemical denaturation, endoplasmic reticulum stress, unfolded protein response, chaperone dysfunction, impairment of the proteasome system, and dysregulation of autophagy. Finally, we provide insights into the applications of cardioprotective drugs targeting proteostasis to prevent cardiotoxicity and the adoption of structural proteomics to evaluate potential cardiotoxicity. By gaining a deeper understanding of the role of proteostasis underlying DICT, we can pave the way for the development of targeted therapeutic strategies to safeguard cardiac function while maximizing the therapeutic potential of antineoplastic drugs.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:37:00.495300+00:00",
+      "content_sha256": "0b8c49562a3e338f051936f6ac9c5adb92ad80126a7b33676cda7cb1bea1c6ac"
+    },
+    {
+      "evidence_id": "evd_2d110cdb114f4d048e24a342d483c81a",
+      "title": "Exploring the Pharmacological Potential of Carrageenan Disaccharides as Antitumor Agents: An In Silico Approach.",
+      "authors": [
+        "Silva OLT",
+        "Alves MGDCF",
+        "Rocha HAO"
+      ],
+      "published_at": "2024-12-26",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/md23010006",
+        "pmid": "39852508",
+        "pmcid": "PMC11766674",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39852508",
+      "abstract_or_excerpt": "Carrageenans have demonstrated enhanced antitumor activity upon depolymerization into disaccharides. However, the pharmacological viability of these disaccharides and their mechanisms of antitumor action remains to be fully elucidated. This study aimed to employ computational tools to investigate the pharmacological properties and molecular targets pertinent to cancer of the disaccharides derived from the primary carrageenans. Analyses of pharmacological properties predicted by the pkCSM and SwissADME servers indicated that the disaccharides possess a favorable pharmacokinetic profile, although they encounter permeability challenges primarily due to their high polarity and low lipophilicity. Target prediction using SwissTarget and PPB2 identified five carbonic anhydrases, which are also targets of oncology drugs, as common targets for the disaccharides. Molecular docking performed with AutoDock Vina revealed that the binding energies of the disaccharides with carbonic anhydrases were comparable to or greater than those of existing drugs that target these lyases. Notably, six of the complexes formed exhibited interactions between the disaccharides and the zinc cofactor, which represents a primary mechanism of inhibition for these targets. Furthermore, molecular dynamics simulations conducted using GROMACS demonstrated a stable interaction between the disaccharides and carbonic anhydrases. These findings offer new insights into the pharmacological properties and mechanisms of action of carrageenan-derived disaccharides, highlighting their potential for further exploration in clinical trials and experimental studies.",
+      "normalized_facts": {
+        "journal": "Marine drugs",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:37:00.495300+00:00",
+      "content_sha256": "182a1ab0df40961bf17fc339b1de08c2f7289c69659d7cd061a62cc942b01185"
+    },
+    {
+      "evidence_id": "evd_35e7f5c057e6443587d11b052d9cdb5e",
+      "title": "Refining the role of selinexor in multiple myeloma: strategic use in a shifting treatment landscape.",
+      "authors": [
+        "Gay F",
+        "Buda G",
+        "Petrucci MT",
+        "Bolli N",
+        "Cea M",
+        "Derudas D",
+        "Mangiacavalli S",
+        "Montefusco V"
+      ],
+      "published_at": "2026-03-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.esmoop.2025.106054",
+        "pmid": "41819747",
+        "pmcid": "PMC12997210",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41819747",
+      "abstract_or_excerpt": "The treatment landscape of multiple myeloma (MM) has been revolutionized over the past two decades, leading to unprecedented deep and durable responses, prolonged survival, and improved quality of life. Nonetheless, MM is still an incurable disease, and many patients, especially those with high-risk cytogenetics, renal impairment, or early drug resistance, continue to face poor outcomes. Selinexor, the first-in-class, orally bioavailable selective inhibitor of exportin 1 (XPO1), has shown encouraging results in combination with other agents, and selinexor-based therapy has been approved for the treatment of relapsed/refractory MM, with selinexor-bortezomib-dexamethasone approved for patients with at least one prior line of therapy and selinexor-dexamethasone approved in the later-relapse setting. Notably, selinexor-based combinations have demonstrated consistent efficacy across different subgroups of patients, including those with triple-class refractory disease, renal dysfunction, high-risk cytogenetics, and prior anti-CD38 therapy. We herein provide an overview of selinexor, by describing its mechanism of action, potential interaction with other classes of drugs, novel combinations under investigation, and its role in treatment sequencing, by discussing latest results and potential strategies to mitigate toxicities, increase efficacy, and implement treatment adherence in MM. Overall, selinexor continues to represent a valuable option, especially for patients who are ineligible to receive T-cell-redirecting therapies, or difficult-to-treat patient subgroups, where alternative strategies remain limited. Meanwhile, further data on the use of selinexor-based combinations in different settings are eagerly awaited, to help clarify its role and address persistent unmet clinical needs.",
+      "normalized_facts": {
+        "journal": "ESMO open",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:37:00.495300+00:00",
+      "content_sha256": "7ec4e20d915f7a48876e03ef846d971bb270486ba9263a16b1c40e1f852443ba"
+    },
+    {
+      "evidence_id": "evd_788391677b0f4929951c871b76c97cae",
+      "title": "MON-032 Identification of Estrogen-Related Receptor Alpha Inhibitors from the Tox21 10K Compound Collection",
+      "authors": [
+        "Lynch C",
+        "Teng C",
+        "Zhao J",
+        "Huang R",
+        "Witt K",
+        "Merrick B",
+        "Xia M"
+      ],
+      "published_at": "2019-04-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC6550955",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC6550955",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Journal of the Endocrine Society",
+        "pub_type": "Abstract",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:37:00.223075+00:00",
+      "content_sha256": "f4caa76b0812e7a73ea8b3e1c8aa8ddf257656d2d2bbc0865b69bd2fadadf72b"
+    },
+    {
+      "evidence_id": "evd_73c7107559dc42acabd39003fb74b036",
+      "title": "Characterization of human pregnane X receptor activators identified from a screening of the Tox21 compound library.",
+      "authors": [
+        "Lynch C",
+        "Sakamuru S",
+        "Huang R",
+        "Niebler J",
+        "Ferguson SS",
+        "Xia M"
+      ],
+      "published_at": "2020-12-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.bcp.2020.114368",
+        "pmid": "33333074",
+        "pmcid": "PMC9440615",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33333074",
+      "abstract_or_excerpt": "The pregnane X receptor (PXR; NR1I2) is an important nuclear receptor whose main function is to regulate enzymes within drug metabolism. The main drug metabolizing enzyme regulated by PXR, cytochrome P450 (CYP) 3A4, accounts for the metabolism of nearly 50% of all marketed drugs. Recently, PXR has also been identified as playing a role in energy homeostasis, immune response, and cancer. Due to its interaction with these important roles, alongside its drug-drug interaction function, it is imperative to identify compounds which can modulate PXR. In this study, we screened the Tox21 10,000 compound collection to identify hPXR agonists using a stable hPXR-Luc HepG2 cell line. A pharmacological study in the presence of a PXR antagonist was performed to confirm the activity of the chosen potential hPXR agonists in the same cells. Finally, metabolically competent cell lines - HepaRG and HepaRG-PXR-Knockout (KO) - were used to further confirm the potential PXR activators. We identified a group of structural clusters and singleton compounds which included potentially novel hPXR agonists. Of the 21 selected compounds, 11 potential PXR activators significantly induced CYP3A4 mRNA expression in HepaRG cells. All of these compounds lost their induction when treating HepaRG-PXR-KO cells, confirming their PXR activation. Etomidoline presented as a potentially selective agonist of PXR. In conclusion, the current study has identified 11 compounds as potentially novel or not well-characterized PXR activators. These compounds should further be studied for their potential effects on drug metabolism and drug-drug interactions due to the immense implications of being a PXR agonist.",
+      "normalized_facts": {
+        "journal": "Biochemical pharmacology",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "a7123070211ad2d41df651296df78d7665995bd74f208b58531718ea0be6be68"
+    },
+    {
+      "evidence_id": "evd_2f92f58f7b794f56acbfc107b78ab05d",
+      "title": "Identification of Compounds That Inhibit Estrogen-Related Receptor Alpha Signaling Using High-Throughput Screening Assays.",
+      "authors": [
+        "Lynch C",
+        "Zhao J",
+        "Sakamuru S",
+        "Zhang L",
+        "Huang R",
+        "Witt KL",
+        "Merrick BA",
+        "Teng CT"
+      ],
+      "published_at": "2019-02-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/molecules24050841",
+        "pmid": "30818834",
+        "pmcid": "PMC6429183",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/30818834",
+      "abstract_or_excerpt": "The nuclear receptor, estrogen-related receptor alpha (ERRα; NR3B1), plays a pivotal role in energy homeostasis. Its expression fluctuates with the demands of energy production in various tissues. When paired with the peroxisome proliferator-activated receptor γ coactivator 1α (PGC-1α), the PGC/ERR pathway regulates a host of genes that participate in metabolic signaling networks and in mitochondrial oxidative respiration. Unregulated overexpression of ERRα is found in many cancer cells, implicating a role in cancer progression and other metabolism-related diseases. Using high throughput screening assays, we screened the Tox21 10K compound library in stably transfected HEK293 cells containing either the ERRα-reporter or the reporter plus PGC-1α expression plasmid. We identified two groups of antagonists that were potent inhibitors of ERRα activity and/or the PGC/ERR pathway: nine antineoplastic agents and thirteen pesticides. Results were confirmed using gene expression studies. These findings suggest a novel mechanism of action on bioenergetics for five of the nine antineoplastic drugs. Nine of the thirteen pesticides, which have not been investigated previously for ERRα disrupting activity, were classified as such. In conclusion, we demonstrated that high-throughput screening assays can be used to reveal new biological properties of therapeutic and environmental chemicals, broadening our understanding of their modes of action.",
+      "normalized_facts": {
+        "journal": "Molecules (Basel, Switzerland)",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "8e3bbbf780db5e3e5943d07c3fd17e126899422945b52b1a958a1ab69d5e2cbd"
+    },
+    {
+      "evidence_id": "evd_246365c16ab04ab2abab273bb3f3317f",
+      "title": "A Gene Expression Biomarker Identifies Chemical Modulators of Estrogen Receptor α in an MCF-7 Microarray Compendium.",
+      "authors": [
+        "Rooney J",
+        "Ryan N",
+        "Liu J",
+        "Houtman R",
+        "van Beuningen R",
+        "Hsieh JH",
+        "Chang G",
+        "Chen S"
+      ],
+      "published_at": "2021-01-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.0c00243",
+        "pmid": "33405908",
+        "pmcid": "PMC10683854",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33405908",
+      "abstract_or_excerpt": "Identification of chemicals that affect hormone-regulated systems will help to predict endocrine disruption. In our previous study, a 46 gene biomarker was found to be an accurate predictor of estrogen receptor (ER) α modulation in chemically treated MCF-7 cells. Here, potential ERα modulators were identified using the biomarker by screening a microarray compendium consisting of ∼1600 gene expression comparisons representing exposure to ∼1200 chemicals. A total of ∼170 chemicals were identified as potential ERα modulators. In the Connectivity Map 2.0 collection, 75 and 39 chemicals were predicted to activate or suppress ERα, and they included 12 and six known ERα agonists and antagonists/selective ERα modulators, respectively. Nineteen and eight of the total number were also identified as active in an ERα transactivation assay carried out in an MCF-7-derived cell line used to screen the Tox21 10K chemical library in agonist or antagonist modes, respectively. Chemicals predicted to modulate ERα in MCF-7 cells were examined further using global and targeted gene expression in wild-type and ERα-null cells, transactivation assays, and cell-free ERα coregulator interaction assays. Environmental chemicals classified as weak and very weak agonists were confirmed to activate ERα including apigenin, kaempferol, and oxybenzone. Novel activators included digoxin, nabumetone, ivermectin, and six progestins. Novel suppressors included emetine, mifepristone, niclosamide, and proscillaridin. Our strategy will be useful to identify environmentally relevant ERα modulators in future high-throughput transcriptomic screens.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "3d5555d5c9a9ea0684c7f7be19cdbb0389432753bf3addf1fca184be05cb001e"
+    },
+    {
+      "evidence_id": "evd_ba388965e77346e1b587991f3d94da7c",
+      "title": "Identifying Compounds with Genotoxicity Potential Using Tox21 High-Throughput Screening Assays.",
+      "authors": [
+        "Hsieh JH",
+        "Smith-Roe SL",
+        "Huang R",
+        "Sedykh A",
+        "Shockley KR",
+        "Auerbach SS",
+        "Merrick BA",
+        "Xia M"
+      ],
+      "published_at": "2019-06-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.9b00053",
+        "pmid": "31243984",
+        "pmcid": "PMC6740247",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/31243984",
+      "abstract_or_excerpt": "Genotoxicity is a critical component of a comprehensive toxicological profile. The Tox21 Program used five quantitative high-throughput screening (qHTS) assays measuring some aspect of DNA damage/repair to provide information on the genotoxic potential of over 10 000 compounds. Included were assays detecting activation of p53, increases in the DNA repair protein ATAD5, phosphorylation of H2AX, and enhanced cytotoxicity in DT40 cells deficient in DNA-repair proteins REV3 or KU70/RAD54. Each assay measures a distinct component of the DNA damage response signaling network; >70% of active compounds were detected in only one of the five assays. When qHTS results were compared with results from three standard genotoxicity assays (bacterial mutation, <i>in vitro</i> chromosomal aberration, and <i>in vivo</i> micronucleus), a maximum of 40% of known, direct-acting genotoxicants were active in one or more of the qHTS genotoxicity assays, indicating low sensitivity. This suggests that these qHTS assays cannot in their current form be used to replace traditional genotoxicity assays. However, despite the low sensitivity, ranking chemicals by potency of response in the qHTS assays revealed an enrichment for genotoxicants up to 12-fold compared with random selection, when allowing a 1% false positive rate. This finding indicates these qHTS assays can be used to prioritize chemicals for further investigation, allowing resources to focus on compounds most likely to induce genotoxic effects. To refine this prioritization process, models for predicting the genotoxicity potential of chemicals that were active in Tox21 genotoxicity assays were constructed using all Tox21 assay data, yielding a prediction accuracy up to 0.83. Data from qHTS assays related to stress-response pathway signaling (including genotoxicity) were the most informative for model construction. By using the results from qHTS genotoxicity assays, predictions from models based on qHTS data, and predictions from commercial bacterial mutagenicity QSAR models, we prioritized Tox21 chemicals for genotoxicity characterization.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "3237ca7464c8f767f1715f2ab3328eb9b832b19cef43626a4588ddbc0bf08ba0"
+    },
+    {
+      "evidence_id": "evd_2c77f8736505406e8574b63095260064",
+      "title": "Identification and Profiling of Environmental Chemicals That Inhibit the TGFβ/SMAD Signaling Pathway.",
+      "authors": [
+        "Wei Z",
+        "Sakamuru S",
+        "Zhang L",
+        "Zhao J",
+        "Huang R",
+        "Kleinstreuer NC",
+        "Chen Y",
+        "Shu Y"
+      ],
+      "published_at": "2019-11-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.9b00228",
+        "pmid": "31652400",
+        "pmcid": "PMC7341485",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/31652400",
+      "abstract_or_excerpt": "The transforming growth factor beta (TGFβ) superfamily of secreted signaling molecules and their cognate receptors regulate cell fate and behaviors relevant to many developmental and disease processes. Disruption of TGFβ signaling during embryonic development can, for example, affect morphogenesis and differentiation through complex pathways that may be SMAD (Small Mothers Against Decapentaplegic) dependent or SMAD independent. In the present study, the SMAD Binding Element (SBE)-beta lactamase (<i>bla</i>) HEK 293T cell line, which responds to the activation of the SMAD2/3/4 complex, was used in a quantitative high-throughput screening (qHTS) assay to identify potential TGFβ disruptors in the Tox21 10K compound library. From the primary screening we identified several kinase inhibitors, organometallic compounds, and dithiocarbamates (DTCs) that inhibited TGFβ1-induced SMAD signaling of reporter gene activation independent of cytotoxicity. Counterscreen of SBE antagonists on human embryonic neural stem cells demonstrated cytotoxicity, providing additional evidence to support evaluation of these compounds for developmental toxicity. We profiled the inhibitory patterns of putative SBE antagonists toward other developmental signaling pathways, including wingless-related integration site (WNT), retinoic acid α receptor (RAR), and sonic hedgehog (SHH). The profiling results from SBE-<i>bla</i> assay identify chemicals that disrupt TGFβ/SMAD signaling as part of an integrated qHTS approach for prioritizing putative developmental toxicants.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "b6691f6e0e70647c35b2d64d65d195d1c45358afc27627dbe80430eeeff8be72"
+    },
+    {
+      "evidence_id": "evd_baeda632ada148bca7d08b27e3d98a86",
+      "title": "Advancing Computational Toxicology in the Big Data Era by Artificial Intelligence: Data-Driven and Mechanism-Driven Modeling for Chemical Toxicity.",
+      "authors": [
+        "Ciallella HL",
+        "Zhu H"
+      ],
+      "published_at": "2019-03-25",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.chemrestox.8b00393",
+        "pmid": "30907586",
+        "pmcid": "PMC6688471",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/30907586",
+      "abstract_or_excerpt": "In 2016, the Frank R. Lautenberg Chemical Safety for the 21st Century Act became the first US legislation to advance chemical safety evaluations by utilizing novel testing approaches that reduce the testing of vertebrate animals. Central to this mission is the advancement of computational toxicology and artificial intelligence approaches to implementing innovative testing methods. In the current big data era, the terms volume (amount of data), velocity (growth of data), and variety (the diversity of sources) have been used to characterize the currently available chemical, in vitro, and in vivo data for toxicity modeling purposes. Furthermore, as suggested by various scientists, the variability (internal consistency or lack thereof) of publicly available data pools, such as PubChem, also presents significant computational challenges. The development of novel artificial intelligence approaches based on public massive toxicity data is urgently needed to generate new predictive models for chemical toxicity evaluations and make the developed models applicable as alternatives for evaluating untested compounds. In this procedure, traditional approaches (e.g., QSAR) purely based on chemical structures have been replaced by newly designed data-driven and mechanism-driven modeling. The resulting models realize the concept of adverse outcome pathway (AOP), which can not only directly evaluate toxicity potentials of new compounds, but also illustrate relevant toxicity mechanisms. The recent advancement of computational toxicology in the big data era has paved the road to future toxicity testing, which will significantly impact on the public health.",
+      "normalized_facts": {
+        "journal": "Chemical research in toxicology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Review, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "e249d5e67731c309dd630346e54d0c42d689af98afd841b9b76a2b2aa05bdcb7"
+    },
+    {
+      "evidence_id": "evd_f917db39b22446bc97ce923fd04d0517",
+      "title": "Identification of potential autophagy inducers through high-throughput and high-content imaging analysis.",
+      "authors": [
+        "Ooka M",
+        "Mitchell L",
+        "Zhao J",
+        "Wei Z",
+        "Zhang L",
+        "Bougie D",
+        "Lin HL",
+        "Fang Y"
+      ],
+      "published_at": "2026-03-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.molpha.2026.100116",
+        "pmid": "41903445",
+        "pmcid": "PMC13168962",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41903445",
+      "abstract_or_excerpt": "Autophagy is a cellular degradation process that plays a critical role in maintaining homeostasis and preventing stress-induced damage, making it a promising therapeutic target for cancer and neurodegenerative diseases. In this study, we utilized mouse embryonic fibroblasts expressing GFP-labeled microtubule-associated protein 1 light chain 3, a widely used biomarker of autophagy activation, to screen 3733 clinically approved or investigational drugs using a high-throughput and high-content screening platform. From the primary screening, 117 compounds were identified as potential autophagy inducers. Subsequent confirmation studies narrowed this group to 5 previously uncharacterized autophagy-inducing candidates for further investigation. Follow-up studies assessed the mechanisms underlying autophagy modulation by these compounds, with a focus on key pathways such as mechanistic target of rapamycin inhibition, endoplasmic reticulum stress activation, and p53 activation. To further explore their therapeutic potential in cancer, we conducted an angiogenesis inhibition assay. This study successfully identified several autophagy inducers that may be repurposed for the treatment of cancer, highlighting their potential for future therapeutic development. SIGNIFICANT STATEMENT: This study identifies novel autophagy inducers from high-throughput screening of approved and investigational drugs. The findings highlight key pathways such as mechanistic target of rapamycin inhibition and endoplasmic reticulum stress activation, and demonstrate the ability of these compounds to inhibit angiogenesis, suggesting their potential for repurposing in cancer therapy.",
+      "normalized_facts": {
+        "journal": "Molecular pharmacology",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "ad746c47f29bfb677b443e31dfc8b0ed17f36df9fe33e807b5d8184578739c16"
+    },
+    {
+      "evidence_id": "evd_aa8667f28d824a8caeefb8da436d5dcc",
+      "title": "High-throughput assay for predicting diarrhea risk using a 2D human intestinal stem cell-derived model.",
+      "authors": [
+        "Pike CM",
+        "Levi JA",
+        "Boone LA",
+        "Peddibhotla S",
+        "Johnson J",
+        "Zwarycz B",
+        "Bunger MK",
+        "Thelin W"
+      ],
+      "published_at": "2025-03-12",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.tiv.2025.106040",
+        "pmid": "40086646",
+        "pmcid": "PMC12412184",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40086646",
+      "abstract_or_excerpt": "Gastrointestinal toxicities (GITs) in clinical trials often lead to dose-limitations that reduce drug efficacy and delay treatment optimization. Preclinical animal models do not accurately replicate human physiology, leaving few options for early detection of GITs, such as diarrhea, before human studies. Chemotherapeutic agents, known to cause clinical diarrhea, frequently target mitotic cells. Therefore, we hypothesized a model utilizing proliferative cell populations derived from human intestinal crypts would predict clinical diarrhea occurrence with high accuracy. Here, we describe the development of a diarrhea prediction assay utilizing RepliGut® Planar, a primary intestinal stem cell-derived platform. To evaluate the ability of this model to predict clinical diarrhea risk, we assessed toxicity of 30 marketed drugs by measuring cell proliferation (EdU incorporation), cell abundance (nuclei quantification), and barrier formation (TEER) in cells derived from three human donors. Dose response curves were generated for each drug, and the IC15 to Cmax ratio was used to identify a threshold for assay positivity. This model accurately predicted diarrhea potential, achieving an accuracy of 91 % for proliferation, 90 % for abundance, and 88 % for barrier formation. In vitro toxicity screening using primary proliferative cells may reduce clinical diarrhea and ultimately lead to safer and more effective treatments for patients.",
+      "normalized_facts": {
+        "journal": "Toxicology in vitro : an international journal published in association with BIBRA",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "39928f9382a6dd99b64c8ef25123b1e6a6340a78291e6abb8c3164f89b1eca3b"
+    },
+    {
+      "evidence_id": "evd_bd1be3e3e0ac436e91ac333c98da1e51",
+      "title": "In vivo quantitative high-throughput screening for drug discovery and comparative toxicology.",
+      "authors": [
+        "Dranchak PK",
+        "Oliphant E",
+        "Queme B",
+        "Lamy L",
+        "Wang Y",
+        "Huang R",
+        "Xia M",
+        "Tao D"
+      ],
+      "published_at": "2023-03-20",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1242/dmm.049863",
+        "pmid": "36786055",
+        "pmcid": "PMC10067442",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36786055",
+      "abstract_or_excerpt": "Quantitative high-throughput screening (qHTS) pharmacologically evaluates chemical libraries for therapeutic uses, toxicological risk and, increasingly, for academic probe discovery. Phenotypic high-throughput screening assays interrogate molecular pathways, often relying on cell culture systems, historically less focused on multicellular organisms. Caenorhabditis elegans has served as a eukaryotic model organism for human biology by virtue of genetic conservation and experimental tractability. Here, a paradigm enabling C. elegans qHTS using 384-well microtiter plate laser-scanning cytometry is described, in which GFP-expressing organisms revealing phenotype-modifying structure-activity relationships guide subsequent life-stage and proteomic analyses, and Escherichia coli bacterial ghosts, a non-replicating nutrient source, allow compound exposures over two life cycles, mitigating bacterial overgrowth complications. We demonstrate the method with libraries of anti-infective agents, or substances of toxicological concern. Each was tested in seven-point titration to assess the feasibility of nematode-based in vivo qHTS, and examples of follow-up strategies were provided to study organism-based chemotype selectivity and subsequent network perturbations with a physiological impact. We anticipate that this qHTS approach will enable analysis of C. elegans orthologous phenotypes of human pathologies to facilitate drug library profiling for a range of therapeutic indications.",
+      "normalized_facts": {
+        "journal": "Disease models & mechanisms",
+        "pub_type": "Research Support, N.I.H., Intramural, research-article, Research Support, U.S. Gov't, Non-P.H.S., Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "a98349ebf4a16a10052169a6178d392cad310a3d39eefe55019ded242773e6ab"
+    },
+    {
+      "evidence_id": "evd_eb210d3ec47e4733b3f50d246b1ce0b7",
+      "title": "iGEM as a human iPS cell-based global epigenetic modulation detection assay provides throughput characterization of chemicals affecting DNA methylation.",
+      "authors": [
+        "Otsuka S",
+        "Qin XY",
+        "Wang W",
+        "Ito T",
+        "Nansai H",
+        "Abe K",
+        "Fujibuchi W",
+        "Nakao Y"
+      ],
+      "published_at": "2023-04-24",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-023-33729-4",
+        "pmid": "37095195",
+        "pmcid": "PMC10125974",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/37095195",
+      "abstract_or_excerpt": "Chemical-induced dysregulation of DNA methylation during the fetal period is known to contribute to developmental disorders or increase the risk of certain diseases later in life. In this study, we developed an iGEM (iPS cell-based global epigenetic modulation) detection assay using human induced pluripotent stem (hiPS) cells that express a fluorescently labeled methyl-CpG-binding domain (MBD), which enables a high-throughput screening of epigenetic teratogens/mutagens. 135 chemicals with known cardiotoxicity and carcinogenicity were categorized according to the MBD signal intensity, which reflects the degree of nuclear spatial distribution/concentration of DNA methylation. Further biological characterization through machine-learning analysis that integrated genome-wide DNA methylation, gene expression profiling, and knowledge-based pathway analysis revealed that chemicals with hyperactive MBD signals strongly associated their effects on DNA methylation and expression of genes involved in cell cycle and development. These results demonstrated that our MBD-based integrated analytical system is a powerful framework for detecting epigenetic compounds and providing mechanism insights of pharmaceutical development for sustainable human health.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:35.698226+00:00",
+      "content_sha256": "f4141f4d3323803554169e81280f2637b6762968d0168822724e2081c5eda027"
+    },
+    {
+      "evidence_id": "evd_7acbc2b38be140d1a7957df5ef6fa758",
+      "title": "Decoding chemotherapy-induced peripheral neuropathy: ion channels, disease models, and future directions.",
+      "authors": [
+        "Lamberti A",
+        "Villalba-Riquelme E",
+        "Fernández-Carvajal A",
+        "Ferrer-Montiel A"
+      ],
+      "published_at": "2026-06-23",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1762734",
+        "pmid": "42416826",
+        "pmcid": "PMC13338552",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42416826",
+      "abstract_or_excerpt": "Chemotherapy-induced peripheral neuropathy (CIPN) is a significant side effect of cancer treatments like paclitaxel and oxaliplatin, impacting patient quality of life (QoL). Despite much research, its underlying mechanisms remain unclear and effective therapies are lacking. This review evaluates whether current experimental models accurately reflect CIPN, emphasizing recent molecular and cellular findings, especially the role of sensory ion channels. We outline limitations of existing models and propose more translational preclinical approaches to better capture disease complexity and patient variability. Improved models could enhance understanding of chemotherapy effects on peripheral nerves and support the development of interventions to prevent or mitigate CIPN. Prioritizing supportive care that minimizes treatment side effects may ultimately improve outcomes and patient wellbeing.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "bfa3a25135ec71357dbac2b251c7dd0199bb5296cf2145c6de0ac733eeb661e8"
+    },
+    {
+      "evidence_id": "evd_9bed31d82ed3456aacb5dd7fa85d6fdb",
+      "title": "Integrative analysis of KCNQ1 variants reveals molecular mechanisms of type 1 long QT syndrome pathogenesis.",
+      "authors": [
+        "Brewer KR",
+        "Vanoye CG",
+        "Huang H",
+        "Clowes Moster KR",
+        "Desai RR",
+        "Hayes JB",
+        "Burnette DT",
+        "George AL"
+      ],
+      "published_at": "2025-02-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1073/pnas.2412971122",
+        "pmid": "39969993",
+        "pmcid": "PMC11873829",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39969993",
+      "abstract_or_excerpt": "Loss-of-function (LOF) pathogenic variants in <i>KCNQ1</i> encoding a cardiac potassium channel predispose to sudden cardiac death in type 1 congenital long QT syndrome (LQT1). To determine the spectrum of molecular mechanisms responsible for this life-threatening condition, we used an integrative approach to determine the biophysical, functional, and trafficking properties of 61 KCNQ1 variants distributed throughout all domains of the channel. Impaired trafficking to the plasma membrane was the most common cause of LOF across all channel domains, often but not always coinciding with protein instability. However, many LOF variants, particularly in transmembrane domains, trafficked normally, but when coexpressed with KCNE1 exhibited impaired conductance, altered voltage dependence, or abnormal gating kinetics, highlighting diverse pathogenic mechanisms. This indicates a need for personalized treatment approaches for LQT1. Use of our data to benchmark variant pathogenicity prediction methods demonstrated that prediction accuracy depends on the exact mechanism of pathogenicity associated with a given variant.",
+      "normalized_facts": {
+        "journal": "Proceedings of the National Academy of Sciences of the United States of America",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "ef77d717abfd7f88edc2ad770cb8f3b885d33605cedc24507dd7daa2ca579c2e"
+    },
+    {
+      "evidence_id": "evd_c93336a2653e49a5bc2c37be10d41157",
+      "title": "Cancer treatment-related cardiotoxicity, molecular mechanism, challenges, and research trends.",
+      "authors": [
+        "Ling JY",
+        "Wen LM",
+        "Liu K",
+        "Yuan WQ",
+        "Zhong YM",
+        "Lai P",
+        "Liao YL"
+      ],
+      "published_at": "2026-02-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s12672-026-04542-y",
+        "pmid": "41639402",
+        "pmcid": "PMC12965956",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41639402",
+      "abstract_or_excerpt": "Cancer treatment-related cardiotoxicity (CTRC) encompasses a spectrum of cardiovascular complications associated with chemotherapy, targeted therapy, and radiotherapy. This review synthesizes recent mechanistic insights to delineate distinct pathological pathways: anthracyclines provoke oxidative mitochondrial damage and disrupt cardiomyocyte iron homeostasis; HER2-targeted therapies inhibit the PI3K-Akt survival pathway, compromising contractile function and calcium regulation; tyrosine kinase inhibitors impair VEGF and PDGF signaling, inducing endothelial dysfunction and microvascular rarefaction; immune checkpoint inhibitors activate T-cell-mediated myocarditis; and thoracic radiation initiates endothelial inflammation followed by TGF-β–dependent fibrotic remodeling. These mechanism-specific injuries follow a characteristic clinical sequence, with arrhythmias and myocarditis emerging acutely, subclinical contractile dysfunction developing within months, and overt heart failure or vascular stenosis manifesting years post-treatment. We highlight the critical roles of advanced imaging and biomarker-based surveillance in early detection, and underscore evidence-based cardioprotective interventions that maintain anticancer efficacy while mitigating cardiovascular risk.",
+      "normalized_facts": {
+        "journal": "Discover oncology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "eded09c5e04bcd6f81c595ae71fede17d139705cc71c745d1fbdbe521059477d"
+    },
+    {
+      "evidence_id": "evd_d571f2cdb4994ec5ad15fae85e859895",
+      "title": "QT-prolonging medications: prevalence of use and associated risks in CKD.",
+      "authors": [
+        "Liabeuf S",
+        "Berdougo-Tritz J",
+        "Augey L",
+        "Laville SM",
+        "Mbarek A",
+        "Deray G",
+        "Massy ZA",
+        "Jadoul M"
+      ],
+      "published_at": "2026-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/ndt/gfaf196",
+        "pmid": "40996451",
+        "pmcid": "PMC13037475",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40996451",
+      "abstract_or_excerpt": "Chronic kidney disease (CKD) affects >10% of the global adult population and is associated with substantial cardiovascular morbidity and mortality. Sudden cardiac death (often precipitated by ventricular arrhythmias like torsades de pointes) is a leading cause of death in patients with CKD. Prolongation of the QT interval (a marker of delayed ventricular repolarization) is a significant risk factor for arrhythmia in patients with CKD, whether they are on dialysis or not. QT prolongation in CKD is multifactorial and may result from electrolyte imbalances, myocardial remodelling, autonomic dysfunction and exposure to QT-prolonging drugs. Patients on haemodialysis are particularly vulnerable to QT prolongation due to rapid intradialytic electrolyte and fluid shifts. Many drugs known to prolong the QT interval (including various selective serotonin reuptake inhibitors, antibiotics, antiemetics and antipsychotics) are frequently prescribed to patients with CKD, even though there are few data on their safety in this population. The results of several well-designed pharmaco-epidemiological analyses (all based on data from the US Renal Data System) have shown associations between QT-prolonging drugs and an elevated risk of sudden cardiac death among patients on dialysis. These findings are concerning, given the widespread use of such drugs. The objective of this narrative review is to critically evaluate the pathophysiological relevance, prevalence and cardiovascular consequences of QT-prolonging drug use in the CKD setting.",
+      "normalized_facts": {
+        "journal": "Nephrology, dialysis, transplantation : official publication of the European Dialysis and Transplant Association - European Renal Association",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "368fbb27e9cb2d3ece4b5befde2876a28812de3f9821ec2696e4f3d643a1028f"
+    },
+    {
+      "evidence_id": "evd_7db7bc636a9e4e73874bfb6086daad1b",
+      "title": "NUPR1 as a central stress-adaptation node in cancer: integrating metabolic rewiring, cell death, and therapy resistance.",
+      "authors": [
+        "Long T",
+        "Wang Q",
+        "Le Y",
+        "Zhang M",
+        "Sun Y",
+        "Iovanna J",
+        "Li L",
+        "Xu C"
+      ],
+      "published_at": "2026-05-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12929-026-01254-x",
+        "pmid": "42104400",
+        "pmcid": "PMC13156883",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42104400",
+      "abstract_or_excerpt": "Nuclear protein 1 (NUPR1) is an intrinsically disordered, stress-adaptive regulator that sits at the intersection of transcriptional plasticity and proteostatic control, broadly upregulated across malignancies and tightly associated with poor prognosis. Here, we synthesize evidence positioning NUPR1 as a central node of tumor adaptation that integrates metabolic rewiring, proteostatic balance, and cell-death checkpoints into a unified stress-response framework. NUPR1 orchestrates lipogenic and glycolytic programs, sustains lysosomal biogenesis and autophagic flux, and governs cell-fate decisions by restraining apoptosis and ferroptosis through iron and redox control. Beyond tumor-intrinsic roles, NUPR1 remodels the tumor microenvironment by driving immunosuppressive macrophage polarization and amplifying inflammatory signaling, collectively sustaining a pro-survival niche. These circuits underpin broad therapeutic resistance across modalities, spanning chemotherapy, targeted agents, endocrine therapy, and immune checkpoint blockade. We further discuss the development of small-molecule NUPR1 antagonists-including ZZW-115 and emerging chemotypes-that disrupt nuclear trafficking and stress tolerance, alongside formulation strategies to optimize pharmacodynamic potency and safety. Together, these insights establish NUPR1 as a druggable stress-response node and provide a mechanistic framework to overcome resistance and refine adaptive cancer therapy paradigms.",
+      "normalized_facts": {
+        "journal": "Journal of biomedical science",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "f0474551ff350f905bce0460ffb9f614422cff4752bbb0a1fb2f86cd9c614473"
+    },
+    {
+      "evidence_id": "evd_4cb20a846b7e4772bfa73c35902deae4",
+      "title": "HDAC6 inhibitors sensitize resistant t(11;14) multiple myeloma cells to a combination of bortezomib and BH3 mimetics.",
+      "authors": [
+        "Florean C",
+        "Lernoux M",
+        "Lorant A",
+        "Losson H",
+        "Bormans G",
+        "Schnekenburger M",
+        "Diederich M"
+      ],
+      "published_at": "2025-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3324/haematol.2024.286279",
+        "pmid": "39385739",
+        "pmcid": "PMC11873690",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39385739",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Haematologica",
+        "pub_type": "letter, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "690ef5562d775ec825dfa0ee39e97754c7f870cd9fa9ff88e61a128522a453b9"
+    },
+    {
+      "evidence_id": "evd_e8922b38e2694f42ac2a8b968cf3170c",
+      "title": "Recent advances in the antimicrobial potential of boron cluster compounds.",
+      "authors": [
+        "Price Cunliffe WJ",
+        "Rutledge PJ",
+        "Rendina LM"
+      ],
+      "published_at": "2025-11-03",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1039/d5md00862j",
+        "pmid": "41244752",
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41244752",
+      "abstract_or_excerpt": "Since their discovery in the mid-20th century, inorganic boron clusters such as carboranes, metallacarboranes, and dodecaborates have been investigated for a range of medicinal applications, most notably as boron delivery agents for boron neutron capture therapy. Increasingly, boron cluster-containing compounds have also been studied for their antimicrobial activity as scientists seek new ways to address the growing global threat of antimicrobial resistance. Boron cluster compounds have a number of properties that make them promising antimicrobial agents, including high lipophilicity and stability, low toxicity, resistance to enzymatic metabolism, unusual 'dihydrogen' bonding, as well as the ability to cross or disrupt cell membranes, or carry other molecules through them. In this review, we summarise and critically evaluate the antibacterial, antifungal, antiviral, and antimalarial boron cluster compounds reported to date, with a focus on the past five years of research. We highlight medicinal chemistry opportunities where boron clusters may deliver anti-infective value beyond that of traditional carbon-based scaffolds.",
+      "normalized_facts": {
+        "journal": "RSC medicinal chemistry",
+        "pub_type": "Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "830019d38d8587e8d35a7338190fb22b3ff082bd71664b6b776484ab35793204"
+    },
+    {
+      "evidence_id": "evd_1eb8761db8e4444c95d37612709fd9cf",
+      "title": "Scaffold Hopping in Tuberculosis Drug Discovery: Principles, Applications, and Case Studies.",
+      "authors": [
+        "Kovar O",
+        "Kufa M",
+        "Finger V",
+        "Soukup O",
+        "Kratky M",
+        "Torruellas C",
+        "Roh J",
+        "Korabecny J"
+      ],
+      "published_at": "2025-10-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jmedchem.5c01100",
+        "pmid": "41055946",
+        "pmcid": "PMC12557394",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41055946",
+      "abstract_or_excerpt": "Tuberculosis (TB) imposes a major global health challenge, aggravated by the emergence of drug-resistant <i>Mycobacterium tuberculosis</i> (<i>Mtb</i>) strains. Scaffold hopping, a medicinal chemistry approach that modifies the molecular backbone of known bioactive compounds, has emerged as a promising tool in the development of novel drugs, including TB therapeutics. This perspective provides an insight into the application of scaffold hopping across varying degrees of structural modifications, highlighting successful case studies targeting key <i>Mtb</i> pathways, including energy metabolism, cell wall synthesis, proteasome function, and respiratory processes. Beyond traditional and <i>in silico</i> methods, scaffold hopping has spurred the discovery of compounds with improved pharmacological profiles, such as improved pharmacokinetics, enhanced efficacy, reduced toxicity, and resistance circumvention. The findings support scaffold hopping's potential to address the limitations of current anti-TB drugs as a versatile and innovative approach to accelerate TB drug discovery.",
+      "normalized_facts": {
+        "journal": "Journal of medicinal chemistry",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "fd39674b809b683ae948e7dc78451620efab7efe48a3a9d31c343cac914216e5"
+    },
+    {
+      "evidence_id": "evd_cb71cc218be5431fa0b51bcb60f74aa7",
+      "title": "QT monitoring in chemotherapy.",
+      "authors": [
+        "Kim PY",
+        "Ostos Mendoza KC",
+        "Kim JH",
+        "López Moreno SF",
+        "Casso-Chapa B",
+        "Beinart NI",
+        "Paniagua-Bojorges A",
+        "Ruesta Carrion AM"
+      ],
+      "published_at": "2026-05-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2026.1748382",
+        "pmid": "42238267",
+        "pmcid": "PMC13226599",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42238267",
+      "abstract_or_excerpt": "This review provides a comprehensive overview of cardiac electrophysiology principles as they apply to oncology care, with a focus on QT interval assessment and monitoring. Accurate measurement of the QT interval and appropriate heart rate correction-particularly using the tangent method and Fridericia formula-are essential for evaluating arrhythmic risk in cancer patients, who are especially vulnerable due to the cardiotoxic potential of many chemotherapeutic agents. We highlight key risk factors for QT prolongation, including electrolyte imbalances, underlying cardiac conditions, and concurrent use of QT-prolonging medications. Current cardiac monitoring protocols during chemotherapy are examined, with specific reference to clinical practices at The University of Texas MD Anderson Cancer Center. These practices underscore the importance of structured surveillance and timely intervention. Effective management requires a multi-pronged approach involving standardized measurement techniques, proactive risk stratification, and patient education. Counseling patients on symptoms such as palpitations, dizziness, or syncope facilitates early detection and evaluation. Given the expanding list of QT-prolonging agents, clinicians are encouraged to use resources like Torsades.org for up-to-date drug information. In the absence of formal guidelines for certain agents, institution-specific protocols defining thresholds for treatment initiation, dose adjustment, and monitoring frequency are critical for ensuring consistency, safety, and evidence-based decision-making in cardio-oncology.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "b8ab845030988c94ee01604af8c5dd4b68136322247c81305dd8bc1019805fb3"
+    },
+    {
+      "evidence_id": "evd_150f85877fa14610aad04a2c67bdd28d",
+      "title": "The double-edged sword of tumor-targeted treatment: the influence of targeted therapy on the heart.",
+      "authors": [
+        "Huang Y",
+        "Chen L",
+        "Ding C",
+        "Zou C",
+        "Su Z",
+        "Shu X",
+        "Wu Y"
+      ],
+      "published_at": "2026-03-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.21037/tcr-2025-1494",
+        "pmid": "42180939",
+        "pmcid": "PMC13190895",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42180939",
+      "abstract_or_excerpt": "As an important means of modern cancer treatment, targeted therapy has significant efficacy, but cardiac toxicity cannot be ignored. From subclinical myocardial injury to severe heart failure (HF), it poses significant challenges to the long-term survival and quality of life of patients. This article summarizes the impact of targeted therapy drugs on cardiac function and their mechanisms, including cardiomyocyte damage, myocardial hypertrophy, and HF, and conducts in-depth research into potential molecular mechanisms. These include direct cardiomyocyte damage through targeted pathway inhibition [e.g., human epidermal growth factor receptor 2 (HER2), epidermal growth factor receptor (EGFR), fibroblast growth factor receptor (FGFR), and vascular endothelial growth factor receptor (VEGFR)], and off-target effects that lead to oxidative stress, mitochondrial dysfunction, iron deposition, and immune-mediated damage (e.g., checkpoint inhibitors). While the review also outlines strategies for preventing and treating cardiac toxicity of targeted therapy, these include pre-treatment cardiovascular risk stratification, advanced imaging modalities [such as speckle tracking echocardiography and cardiac magnetic resonance imaging (MRI)], biomarker-based monitoring [such as high-sensitivity cardiac troponin (hs-cTn), B-type natriuretic peptide (BNP)/N-terminal pro B-type natriuretic peptide (NT-proBNP)], timely drug intervention, and strategic modification of cancer treatment plans. The main objective of the review is to elucidate and enhance clinical understanding of the cardiotoxicity associated with contemporary targeted anti-cancer therapies. By deepening their understanding of the different mechanisms and clinical manifestations of drug-induced heart injury, early detection, multidisciplinary collaboration, and personalized treatment decisions can be promoted. Ultimately, this approach aims to optimize cancer treatment outcomes while maintaining patients' overall quality of life and cardiovascular health.",
+      "normalized_facts": {
+        "journal": "Translational cancer research",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:36:34.794027+00:00",
+      "content_sha256": "074ccb94313e0437bf2949ba1ee727d543b3f5fd3987b9102d78367be3217111"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_7cc76dbdd11d44a386cafdd8ddf212a1",
+        "session_id": "ses_b8dbe8ac627c43beac4a36a4158c95db",
+        "subject_key": "analysis:ana_8a66ea87accd49d781a0e7118beb0fe3",
+        "question": "Can we rely on the model's hERG and Tox21 predictions for bortezomib?",
+        "decision_context": "Assess whether these endpoint-specific predictions are suitable as evidence for development decisions, given applicability and independent experimental support.",
+        "subject_refs": [
+          "analysis:ana_8a66ea87accd49d781a0e7118beb0fe3"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The endpoint predictions provide useful directional screening signals for bortezomib despite the model's applicability limitation.",
+            "kind": "model_signal",
+            "refutation_condition": "Direct bortezomib data for the same endpoint and comparable assay conditions consistently disagree with the corresponding prediction, or the applicability limitation is shown to invalidate performance for boron-containing structures.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "h2",
+            "statement": "The predictions should not be relied on beyond preliminary screening because the structure is outside or near the model's applicability scope and endpoint-specific independent evidence is insufficient.",
+            "kind": "data_insufficient",
+            "refutation_condition": "Independent, direct hERG and Tox21 measurements for bortezomib under comparable conditions validate the predictions and demonstrate acceptable applicability for this boron-containing structure.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored hERG model output classifies bortezomib as non_blocker with a model blocker probability of 0.21694640815258026.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+            "scope": {
+              "assay": "fixed predictor hERG endpoint",
+              "compound": "bortezomib",
+              "endpoint": "hERG"
+            },
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "e2",
+            "claim": "The stored Tox21 predictions classify all twelve served assays as inactive; SR-p53 is one example with an activity probability of 0.18288762867450714 and active=false.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.SR-p53.probability_activity",
+            "scope": {
+              "assay": "12 independent served assays",
+              "compound": "bortezomib",
+              "endpoint": "Tox21"
+            },
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "e3",
+            "claim": "The rule-based applicability check is limited because the structure contains boron, so model scores for this structure are less reliable.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "applicability.status; applicability.reasons; applicability.method",
+            "scope": {
+              "compound": "bortezomib",
+              "endpoint": "hERG and Tox21"
+            },
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "e4",
+            "claim": "The hERG prediction is a model signal for bortezomib, not independent experimental validation.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "preliminary screening"
+            },
+            "actor": "server",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "e5",
+            "claim": "The Tox21 outputs should be interpreted as independent assay-specific model signals, not an aggregate toxicity score.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "tox21",
+              "use_context": "preliminary screening"
+            },
+            "actor": "server",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "applicability_domain",
+            "description": "The predictor's rule-based applicability check says limited (contains uncommon element(s): B); its scores for this structure are less reliable.",
+            "severity": "medium",
+            "hypothesis_ids": [],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "server",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "u2",
+            "kind": "provider_coverage",
+            "description": "No direct bortezomib record for the requested hERG or Tox21 endpoint was retrieved in the bounded literature search; this does not establish that no such data exist.",
+            "severity": "medium",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "search_toxicology_evidence",
+            "purpose": "Find direct bortezomib evidence for hERG and Tox21 endpoints to assess whether the model signals are independently supported.",
+            "decision": "continue",
+            "outcome": "",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "a2",
+            "action": "counterevidence_search",
+            "purpose": "Look for direct bortezomib hERG or Tox21 data that could contradict or validate the model signals.",
+            "decision": "answer",
+            "outcome": "No direct endpoint-matched record was returned by the bounded searches; this is a coverage limitation, not evidence of absence.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          },
+          {
+            "id": "a3",
+            "action": "critique",
+            "purpose": "Check that the conclusion remains limited to model behavior and does not become a safety, clinical, or aggregate toxicity claim.",
+            "decision": "answer",
+            "outcome": "Keep the recommendation scoped to preliminary screening use; do not treat probabilities, inactive calls, or applicability as validated real-world outcomes.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Generate direct, endpoint-matched measurements: a functional hERG patch-clamp assay and the relevant Tox21 reporter assays using bortezomib with documented concentration and exposure conditions.",
+            "rationale": "These measurements would test whether the model's endpoint calls transfer to this boron-containing structure and assay context.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "hERG current inhibition across concentrations with concentration-response characterization",
+              "assay-specific Tox21 activity calls and concentration-response data",
+              "comparison of observed calls with the stored model classifications"
+            ],
+            "actor": "model",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The predictor reports endpoint-specific hERG and Tox21 outputs for bortezomib, but these are model signals rather than independent experimental validation.",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "The applicability check is limited because the structure contains boron, reducing confidence in transferring the model outputs to this molecule.",
+              "evidence_ids": [
+                "e3"
+              ]
+            },
+            {
+              "text": "The outputs are suitable, at most, for preliminary screening and should not be relied on alone for a development decision.",
+              "evidence_ids": [
+                "e1",
+                "e2",
+                "e3"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Cannot infer clinical, regulatory, or overall toxicity conclusions from these hERG and Tox21 outputs.",
+            "Cannot treat the model probabilities as calibrated risks.",
+            "Cannot treat the absence of retrieved direct literature as evidence that no such data exist."
+          ],
+          "what_would_change": [
+            "Direct, endpoint-matched hERG functional data and relevant Tox21 measurements for bortezomib that validate or contradict the model calls.",
+            "Evidence that the model has been validated for boron-containing structures under comparable assay conditions."
+          ],
+          "approver": "",
+          "run_id": "run_98c522c70bed4564b9b199f7204dcd04"
+        },
+        "runs": [
+          {
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "goal": "Can we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?",
+            "stop_reason": "budget_exhausted",
+            "answer_id": "ans_9ee00196a96d4c9eb7246cbc2b3eb931",
+            "usage": {
+              "searches": 4,
+              "tool_calls": 27,
+              "denied_calls": 0,
+              "failed_calls": 1,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 0,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0
+        },
+        "revision": 18,
+        "created_at": "2026-09-25T13:35:51.375530+00:00",
+        "updated_at": "2026-09-25T13:39:49.074414+00:00"
+      },
+      "events": {
+        "case_id": "scase_7cc76dbdd11d44a386cafdd8ddf212a1",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_7cc76dbdd11d44a386cafdd8ddf212a1",
+              "question": "Can we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?",
+              "session_id": "ses_b8dbe8ac627c43beac4a36a4158c95db",
+              "subject_key": "analysis:ana_8a66ea87accd49d781a0e7118beb0fe3",
+              "subject_refs": [
+                "analysis:ana_8a66ea87accd49d781a0e7118beb0fe3"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:35:51.375530+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "Can we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:35:51.375530+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 2
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "applicability_domain",
+              "severity": "medium",
+              "description": "The predictor's rule-based applicability check says limited (contains uncommon element(s): B); its scores for this structure are less reliable."
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:35:51.374349+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 3
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "Can we rely on the model's hERG and Tox21 predictions for bortezomib?",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "decision_context": "Assess whether these endpoint-specific predictions are suitable as evidence for development decisions, given applicability and independent experimental support.",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:36:24.188465+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The endpoint predictions provide useful directional screening signals for bortezomib despite the model's applicability limitation.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Direct bortezomib data for the same endpoint and comparable assay conditions consistently disagree with the corresponding prediction, or the applicability limitation is shown to invalidate performance for boron-containing structures."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:36:24.188487+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 5
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "statement": "The predictions should not be relied on beyond preliminary screening because the structure is outside or near the model's applicability scope and endpoint-specific independent evidence is insufficient.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Independent, direct hERG and Tox21 measurements for bortezomib under comparable conditions validate the predictions and demonstrate acceptable applicability for this boron-containing structure."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:36:24.188496+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 6
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "search_toxicology_evidence",
+              "can_say": [],
+              "purpose": "Find direct bortezomib evidence for hERG and Tox21 endpoints to assess whether the model signals are independently supported.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:36:24.188504+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 7
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored hERG model output classifies bortezomib as non_blocker with a model blocker probability of 0.21694640815258026.",
+              "scope": {
+                "assay": "fixed predictor hERG endpoint",
+                "compound": "bortezomib",
+                "endpoint": "hERG"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980031+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 8
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored Tox21 predictions classify all twelve served assays as inactive; SR-p53 is one example with an activity probability of 0.18288762867450714 and active=false.",
+              "scope": {
+                "assay": "12 independent served assays",
+                "compound": "bortezomib",
+                "endpoint": "Tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.SR-p53.probability_activity",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980057+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 9
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The rule-based applicability check is limited because the structure contains boron, so model scores for this structure are less reliable.",
+              "scope": {
+                "compound": "bortezomib",
+                "endpoint": "hERG and Tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "applicability.status; applicability.reasons; applicability.method",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980067+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 10
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "provider_coverage",
+              "can_say": [],
+              "severity": "medium",
+              "cannot_say": [],
+              "description": "No direct bortezomib record for the requested hERG or Tox21 endpoint was retrieved in the bounded literature search; this does not establish that no such data exist.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980076+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 11
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "No direct endpoint-matched record was returned by the bounded searches; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for direct bortezomib hERG or Tox21 data that could contradict or validate the model signals.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980084+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 12
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Generate direct, endpoint-matched measurements: a functional hERG patch-clamp assay and the relevant Tox21 reporter assays using bortezomib with documented concentration and exposure conditions.",
+              "can_say": [],
+              "rationale": "These measurements would test whether the model's endpoint calls transfer to this boron-containing structure and assay context.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "hERG current inhibition across concentrations with concentration-response characterization",
+                "assay-specific Tox21 activity calls and concentration-response data",
+                "comparison of observed calls with the stored model classifications"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980092+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 13
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Keep the recommendation scoped to preliminary screening use; do not treat probabilities, inactive calls, or applicability as validated real-world outcomes.",
+              "purpose": "Check that the conclusion remains limited to model behavior and does not become a safety, clinical, or aggregate toxicity claim.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:40.980100+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 14
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The predictor reports endpoint-specific hERG and Tox21 outputs for bortezomib, but these are model signals rather than independent experimental validation.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                },
+                {
+                  "text": "The applicability check is limited because the structure contains boron, reducing confidence in transferring the model outputs to this molecule.",
+                  "evidence_ids": [
+                    "e3"
+                  ]
+                },
+                {
+                  "text": "The outputs are suitable, at most, for preliminary screening and should not be relied on alone for a development decision.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2",
+                    "e3"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Cannot infer clinical, regulatory, or overall toxicity conclusions from these hERG and Tox21 outputs.",
+                "Cannot treat the model probabilities as calibrated risks.",
+                "Cannot treat the absence of retrieved direct literature as evidence that no such data exist."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Direct, endpoint-matched hERG functional data and relevant Tox21 measurements for bortezomib that validate or contradict the model calls.",
+                "Evidence that the model has been validated for boron-containing structures under comparable assay conditions."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:37:58.553355+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 15
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The hERG prediction is a model signal for bortezomib, not independent experimental validation.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "preliminary screening"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:39:46.161806+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 16
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The Tox21 outputs should be interpreted as independent assay-specific model signals, not an aggregate toxicity score.",
+              "scope": {
+                "endpoint": "tox21",
+                "use_context": "preliminary screening"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_6fd5cf4cceab40d0be692cd9fcb921e1",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:39:46.161806+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 17
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 4,
+                "tool_calls": 27,
+                "denied_calls": 0,
+                "failed_calls": 1,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_9ee00196a96d4c9eb7246cbc2b3eb931",
+              "stop_reason": "budget_exhausted"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:39:49.074414+00:00",
+            "run_id": "run_98c522c70bed4564b9b199f7204dcd04",
+            "revision": 18
+          }
+        ]
+      }
+    }
+  ]
+}

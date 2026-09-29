@@ -12,13 +12,12 @@ the layer this service replaced. Two kinds of file are excluded on purpose:
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
 SCAN = ["src/toxpred", "deploy", "registry"]
-SCAN_FILES = ["pyproject.toml", "deploy/requirements.txt"]
+SCAN_FILES = ["pyproject.toml", "requirements.lock"]
 
 EXCLUDE = {
     "evals/benchmark/manifests/openapi-legacy-e6882b2.json",

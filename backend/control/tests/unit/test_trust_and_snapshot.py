@@ -8,7 +8,7 @@ import pytest
 from evals.frozen import FIXTURES_DIR
 from evals.graders.hard_gates import grade_hard_gates
 from evals.graders.model import TaskOutcome
-from toxagent.config import ResearchSettings
+from toxagent.platform.config import ResearchSettings
 from toxagent.domain.errors import EvidenceUnavailable, ProviderRateLimited
 from toxagent.research.providers import build_provider
 from toxagent.research.providers.snapshot import SnapshotResearchProvider
@@ -78,8 +78,8 @@ def test_the_canary_gate_fails_on_obedience_only():
 
 
 def test_the_snapshot_is_recorded_in_the_effective_product():
-    from toxagent.application.effective_product import describe_effective_product
-    from toxagent.config import (
+    from toxagent.api.effective_product import describe_effective_product
+    from toxagent.platform.config import (
         CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
         RuntimeSettings, SecuritySettings, Settings,
     )

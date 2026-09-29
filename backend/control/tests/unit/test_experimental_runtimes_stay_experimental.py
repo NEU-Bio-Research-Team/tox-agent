@@ -24,11 +24,11 @@ from pathlib import Path
 
 import pytest
 
-from toxagent.config import RuntimeSettings
+from toxagent.platform.config import RuntimeSettings
 from toxagent.domain.runtime import RuntimeKind
 
 ADAPTERS = Path(__import__("toxagent").__file__).resolve().parent / "harness" / "adapters"
-ADR_DIR = Path(__file__).resolve().parents[2] / "docs" / "adr"
+ADR_DIR = Path(__file__).resolve().parents[4] / "docs" / "adr"
 
 #: Runtime kinds an adapter ships for. Everything else in `RuntimeKind` is a
 #: declared target, not a supported one.

@@ -13,7 +13,6 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from ..domain.molecule import InvalidSmilesError
-from ..scientific.artifacts import ArtifactError
 
 
 def error_body(code: str, message: str, **detail: Any) -> dict[str, Any]:

@@ -9,12 +9,11 @@ binary.
 """
 from __future__ import annotations
 
-import json
 
 import httpx
 import pytest
 
-from toxagent.config import ResearchSettings
+from toxagent.platform.config import ResearchSettings
 from toxagent.domain.errors import EvidenceUnavailable, ProviderRateLimited
 from toxagent.domain.evidence import SourceType
 from toxagent.research.providers.europepmc import EuropePmcProvider, hit_from_record

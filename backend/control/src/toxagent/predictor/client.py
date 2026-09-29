@@ -16,7 +16,7 @@ from typing import Any, Mapping
 
 import httpx
 
-from ..config import PredictorSettings
+from ..platform.config import PredictorSettings
 from ..domain.analysis import PredictorProvenance
 from ..domain.errors import (
     EndpointUnavailable,

@@ -1,0 +1,599 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_e9e24ee1b3ff41e1887f239d69bb62f9",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_7e58aefeaf7e4d24816905c9ad55628e",
+        "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:24:24.513500+00:00",
+        "created_at": "2026-09-25T13:19:24.513500+00:00",
+        "started_at": "2026-09-25T13:19:24.642457+00:00",
+        "ended_at": "2026-09-25T13:20:31.802362+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "7ee23de215047991ae14805c2f87a52ec26347d7144f43c019c7052b24cde225"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:19:24.514273+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_8c44769fcc474708ab220076469c0eed",
+              "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:19:38.296058+00:00",
+              "tokens": {
+                "input": 5437,
+                "output": 48,
+                "reasoning": 28,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 5513
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e4a4a77a9b5c1418d610f83aa6a0b3dd",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b892c4001aLOvKh2L8aiQgk",
+                "step_id": "prt_0d8b8b3310012s6GnjulYIEao1",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_ceea3cfde6984384830b7e6157616460",
+              "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:19:44.022741+00:00",
+              "tokens": {
+                "input": 1091,
+                "output": 126,
+                "reasoning": 32,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 5857
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7664fdab91e44895ee673b3f7d401deb",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b8b35b001Om4fNF6OFbB2zR",
+                "step_id": "prt_0d8b8c98d001wwdqlK8etSdpLF",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_7a452f5bd6644fdb827cb3b3210fd630",
+              "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:20:11.280156+00:00",
+              "tokens": {
+                "input": 7302,
+                "output": 606,
+                "reasoning": 766,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8674
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_913c27e0f89f95775987d235e9c7ec60",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b8c9ba0018UiD6l71Am1h2t",
+                "step_id": "prt_0d8b93406001ugAgvETqIpCDI0",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_aaa65466b96d4766bff51418374c4355",
+              "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:20:24.507701+00:00",
+              "tokens": {
+                "input": 8892,
+                "output": 556,
+                "reasoning": 20,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 9468
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_22615f68665ccd4781fbe1da5b2363e9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b934370010WvQ5HyCz5ios7",
+                "step_id": "prt_0d8b967b40016tZ2uwZVFRDbE1",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8468aad74dbf4a928c296541b23dc136",
+              "runtime_binding_id": "rtb_ebf75299e59b48e09d5b77d529e186f9",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:20:31.720960+00:00",
+              "tokens": {
+                "input": 2962,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 9622
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_590ae95ab656afcf5bae578e08f3050c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b967da001zEoLySQO974wzP",
+                "step_id": "prt_0d8b983d7001hawzB1KDcRnWVm",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_dc8cf005daa04acd9afd896a39f4de83",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "f9cf94ca8a6fdb7d5f2e3df1d2dc0a98ace6716f6dfd4c18603437c47b61944e",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:19:38.224961+00:00",
+            "ended_at": "2026-09-25T13:19:38.237202+00:00"
+          },
+          {
+            "call_id": "call_8cbbd133d90949e6a5e1987d2263561e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "9d8e6b61eff3981edf476e1d6a5b476a21d254c46358dd79e73bda0971e180e4",
+            "observation_ids": [
+              "obs_c244e72586d54bfcb14392ee87fb24bf"
+            ],
+            "started_at": "2026-09-25T13:19:43.233283+00:00",
+            "ended_at": "2026-09-25T13:19:43.243543+00:00"
+          },
+          {
+            "call_id": "call_9d95215a86844fa5a934c1502e7bde29",
+            "tool_name": "get_attribution",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 596,
+            "arguments_sha256": "8e53a1bddf8fd7e71d29fe335c8e551767214d3c3be9a4f5ce64168f9b03e15a",
+            "observation_ids": [
+              "obs_10db0dfaf1b541dea961c6ea0027771a"
+            ],
+            "started_at": "2026-09-25T13:19:43.333486+00:00",
+            "ended_at": "2026-09-25T13:19:43.927601+00:00"
+          },
+          {
+            "call_id": "call_8b846775fb2e4c9889cd9e78e88b901e",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 59,
+            "arguments_sha256": "9c548bdd20a29ef8192713d23ed010ff86f264d37d4086a8aa42460e93599e0b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:20:11.140459+00:00",
+            "ended_at": "2026-09-25T13:20:11.190221+00:00"
+          },
+          {
+            "call_id": "call_da1a2c20853e4dff88d9633fd1d220a6",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 27,
+            "arguments_sha256": "bd27533821fcfdcb82f77935a272df7a8a484982409501613a924a7a3715c88f",
+            "observation_ids": [
+              "obs_c244e72586d54bfcb14392ee87fb24bf",
+              "obs_10db0dfaf1b541dea961c6ea0027771a"
+            ],
+            "started_at": "2026-09-25T13:20:24.423832+00:00",
+            "ended_at": "2026-09-25T13:20:24.449164+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_ecd3c87b040a4e4083c54eb2fcb2db0f",
+        "run_id": "run_e9e24ee1b3ff41e1887f239d69bb62f9",
+        "answer_markdown": "The model’s strongest highlighted features are distributed across the molecule rather than confined to one fragment: the tertiary amine (`N`), ether oxygen (`O`), and the sulfonamide-containing aryl regions, especially the sulfur atoms. The attribution ranks the tertiary amine highest by magnitude, followed by the ether oxygen and sulfonamide sulfur atoms. These are model-input highlights, not a validated binding pharmacophore.\n\nThe hERG model classifies this molecule as a blocker.\n\nNo. This attribution does not establish how dofetilide blocks the channel. It indicates which tokens moved this model’s score; it does not demonstrate channel binding, pore interaction, state dependence, or blocking mechanism. The explainer’s own validation found the highlighted atoms were not more faithful than random-atom deletion, so the structural interpretation should be treated as weak and hypothesis-generating.",
+        "claims": [
+          {
+            "claim_id": "clm_8f4a2d9c7b1e6a3d5c0e9f2b4a7d1c6e",
+            "kind": "classification",
+            "text": "The hERG model classifies the molecule as a blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_c244e72586d54bfcb14392ee87fb24bf",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker"
+          },
+          {
+            "claim_id": "clm_b7e1d4a9c3f0628e5b6d1a7f4c9e2b30",
+            "kind": "scientific",
+            "text": "The attribution highlights the tertiary amine, ether oxygen, and sulfonamide-containing aryl regions, with the tertiary amine highest by attribution magnitude among the listed tokens.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_10db0dfaf1b541dea961c6ea0027771a",
+            "field_path": "top_tokens"
+          },
+          {
+            "claim_id": "clm_4c9a7e2d1f6b8e3a0d5c7f2b9a6e1d43",
+            "kind": "limitation",
+            "text": "Attribution identifies features that moved the model score, not a causal channel-blocking mechanism; its reported faithfulness validation was not better than random control.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_10db0dfaf1b541dea961c6ea0027771a",
+            "field_path": "explainer_validation"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "attribution_not_causality",
+            "text": "Structural highlights are model attributions, not evidence of binding or mechanism."
+          }
+        ],
+        "recommended_next_steps": [],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "082b7504a74a280b12f6dd92ce738032f2df260ad167079cd0066cb99a0df31a",
+        "created_at": "2026-09-25T13:20:24.438364+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_9dfe1f42e66645ff827a83f99eee20b0",
+        "run_id": "run_e9e24ee1b3ff41e1887f239d69bb62f9",
+        "goal": "Which part of dofetilide's structure (CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C) drives the model's hERG prediction, and does that tell us how it blocks the channel?",
+        "subject_refs": [
+          "analysis:ana_9cd4c03def7b4e00b89dca94b2adc17c"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 0,
+          "tool_calls": 5,
+          "denied_calls": 0,
+          "failed_calls": 1,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_c244e72586d54bfcb14392ee87fb24bf",
+          "observation:obs_10db0dfaf1b541dea961c6ea0027771a"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {},
+        "revision": 8
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_9dfe1f42e66645ff827a83f99eee20b0",
+  "analysis": {
+    "run": {
+      "run_id": "run_63f7750670e1482b86c697aa3ecc2324",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_3c96453c60b14d72885772f9343a60da",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:24:23.459755+00:00",
+      "created_at": "2026-09-25T13:19:23.459755+00:00",
+      "started_at": "2026-09-25T13:19:23.468814+00:00",
+      "ended_at": "2026-09-25T13:19:23.507305+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:19:23.460580+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_9cd4c03def7b4e00b89dca94b2adc17c",
+      "input_smiles": "CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C",
+      "canonical_smiles": "CN(CCOc1ccc(NS(C)(=O)=O)cc1)CCc1ccc(NS(C)(=O)=O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.6591137647628784,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.5098633766174316,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.32700031995773315,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.05259270593523979,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.223422572016716,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.05524938181042671,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.040142808109521866,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.059463053941726685,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.02161540277302265,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.12169278413057327,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.1345190703868866,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.1395236700773239,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.05382399260997772,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "7cc8b0ce-19a8-4a47-8547-db0b36baa92a",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 53,
+            "encoded_token_count": 53
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "15849501ada338c04f1c9ce593ed8839c190ee53c2aa7a9e470ce7959a2f9cf1"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:19:23.498952+00:00"
+    }
+  },
+  "evidence": [],
+  "cases": []
+}

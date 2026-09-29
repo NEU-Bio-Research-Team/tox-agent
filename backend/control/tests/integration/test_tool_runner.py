@@ -10,9 +10,9 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
@@ -371,3 +371,32 @@ async def test_the_attribution_projection_carries_its_limitation(db):
         {"analysis_id": result.snapshot.id, "endpoint": "tox21", "task": "SR-p53"},
     )
     assert attribution["model_view"]["required_limitations"] == ["attribution_not_causality"]
+
+
+async def test_an_attribution_states_what_its_explainer_was_measured_to_do(db):
+    """RETHINK §4.3: the model sees each explanation layer's measured reliability.
+
+    The stub's ``integrated_gradients_v1`` was never benchmarked, so the
+    statement is ``not_measured`` rather than a borrowed measurement — on the
+    fresh call, the cached call, and the slice read of the same observation.
+    """
+    stub = StubPredictor()
+    runner, context, _, _ = await scenario(db, stub, profile="decision_support")
+    analysis = CreateAnalysis(db, stub.client(), PolicySettings())
+    result = await analysis.execute(
+        actor=ACTOR, session_id=context.session_id, run_id=context.run_id, smiles=ASPIRIN,
+        owns_run=False,
+    )
+    fresh = await runner.call(
+        context, "get_attribution", {"analysis_id": result.snapshot.id, "endpoint": "herg"}
+    )
+    cached = await runner.call(
+        context, "get_attribution", {"analysis_id": result.snapshot.id, "endpoint": "herg"}
+    )
+    sliced = await runner.call(
+        context, "get_explanation_slice", {"analysis_id": result.snapshot.id, "endpoint": "herg"}
+    )
+    for envelope_ in (fresh, cached, sliced):
+        statement = envelope_["model_view"]["explainer_validation"]
+        assert statement["faithfulness_vs_random_control"] == "not_measured"
+        assert "never as mechanism" in statement["reading"]

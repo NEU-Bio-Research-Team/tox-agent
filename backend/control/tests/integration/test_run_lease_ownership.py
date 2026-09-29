@@ -23,8 +23,8 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import LEASE_TTL_S, RunContext, RunScheduler
-from toxagent.application.startup_reconciliation import reconcile_orphaned_runs
+from toxagent.application.runs.scheduler import LEASE_TTL_S, RunContext, RunScheduler
+from toxagent.application.runs.startup_reconciliation import reconcile_orphaned_runs
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
 from toxagent.domain.session import Session
@@ -199,7 +199,7 @@ async def test_the_job_is_released_once_the_run_reaches_a_terminal_state(db):
     async def handler(context: RunContext) -> None:
         async with db.unit_of_work() as uow:
             run = await uow.runs.get(context.run_id)
-            from toxagent.application.runs import advance
+            from toxagent.application.runs.transitions import advance
             await advance(uow, run, RunStatus.RUNNING)
             run = await uow.runs.get(context.run_id)
             await advance(uow, run, RunStatus.COMPLETED)

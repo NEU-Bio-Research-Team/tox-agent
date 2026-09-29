@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
-from ..application.xai_coverage import ExplanationCoverage, compute_coverage
+from ..domain.xai_coverage import ExplanationCoverage, compute_coverage
 from ..domain.report import ExplanationPackage, ExplanationStatus, SourceClass
 
 #: Bumped when the fact shape changes. A bundle assembled under one version is

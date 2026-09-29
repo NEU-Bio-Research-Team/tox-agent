@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from ...config import ResearchSettings
+from ...platform.config import ResearchSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ...domain.evidence import SourceIdentifier, SourceType
 from ..circuit_breaker import CircuitBreaker, CircuitOpen

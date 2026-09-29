@@ -1,0 +1,16 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "assess-conflicting-evidence",
+  "version": "1.2.0",
+  "status": "active",
+  "owner": "backend-scientific",
+  "allowed_profiles": ["decision_support"],
+  "required_capabilities": ["get_scientific_case", "update_scientific_case", "get_evidence_record"],
+  "risk_tier": "medium",
+  "output_contract": "record_evidence entries carrying scope and honest directness; uncertainties of kind conflicting_sources, assay_mismatch or missing_exposure; a hypothesis status change only with ledger support; propose_next_test when a test would separate the sources",
+  "eval_set": {
+    "positive_tags": ["conflicting_evidence", "user_result_contradicts"],
+    "negative_tags": ["numeric_lookup"]
+  },
+  "references": ["references/scope-comparison-checklist.md"]
+}

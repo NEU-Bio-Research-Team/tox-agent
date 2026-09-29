@@ -1,0 +1,47 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-08-moxifloxacin-exposure",
+  "tags": [
+    "missing_exposure",
+    "decision_question",
+    "named",
+    "herg"
+  ],
+  "compound": {
+    "query_name": "moxifloxacin",
+    "name_disclosed": true,
+    "pubchem_cid": 152946,
+    "smiles": "COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O",
+    "molecular_formula": "C21H24FN3O4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/moxifloxacin/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "Moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?"
+    }
+  ],
+  "reference": {
+    "type": "known_outcome",
+    "summary": "Moxifloxacin produces a modest QTc increase at the 400 mg dose and is the usual positive control in ICH E14 thorough QT studies; its hERG IC50 depends on the voltage protocol and temperature. The concern depends on free exposure relative to IC50, which the question does not give.",
+    "sources": [
+      {
+        "citation": "Mechanism of hERG K+ channel blockade by the fluoroquinolone antibiotic moxifloxacin (PubMed 16474415)",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/16474415/"
+      },
+      {
+        "citation": "QT prolongation and proarrhythmia by moxifloxacin: concordance of preclinical models in relation to clinical outcome",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1751220/"
+      }
+    ],
+    "good_behaviours": [
+      "asks for or reasons about free plasma exposure versus IC50",
+      "notes protocol dependence of hERG potency",
+      "does not dismiss a low-potency blocker as safe without exposure"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "06f509228c3e13811a4c5fa665bcba180a7048949b463d51b4d3c041c07417af"
+}

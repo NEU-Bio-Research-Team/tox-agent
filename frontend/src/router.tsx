@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import { createBrowserRouter } from 'react-router';
-import { RequireToken } from './components/auth/RequireToken';
-import { RouteErrorBoundary } from './components/route-error-boundary';
+import { RequireToken } from './features/auth/RequireToken';
+import { RouteErrorBoundary } from './app/route-error-boundary';
 
 /**
  * Plan section 5.2: `/s/:sessionId` and its four artifact sub-routes must
@@ -20,7 +20,7 @@ let workbenchRouteComponent: ComponentType | null = null;
 
 async function loadWorkbenchRoute() {
   if (!workbenchRouteComponent) {
-    const mod = await import('./pages/WorkbenchPage');
+    const mod = await import('./features/workbench/WorkbenchPage');
     workbenchRouteComponent = () => (
       <RequireToken>
         <mod.WorkbenchPage />
@@ -35,7 +35,7 @@ export const router = createBrowserRouter([
     path: '/',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./pages/LandingPage');
+      const mod = await import('./features/landing/LandingPage');
       return { Component: mod.LandingPage };
     },
   },
@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
     path: '/about',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./pages/AboutPage');
+      const mod = await import('./features/landing/AboutPage');
       return { Component: mod.AboutPage };
     },
   },
@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
     path: '/sessions',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./pages/SessionsPage');
+      const mod = await import('./features/sessions/SessionsPage');
       return {
         Component: () => (
           <RequireToken>
@@ -65,7 +65,7 @@ export const router = createBrowserRouter([
     path: '/predict',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./pages/QuickPredictPage');
+      const mod = await import('./features/quick-predict/QuickPredictPage');
       return {
         Component: () => (
           <RequireToken>
@@ -86,7 +86,7 @@ export const router = createBrowserRouter([
     path: '/settings',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./pages/SettingsPage');
+      const mod = await import('./features/settings/SettingsPage');
       return {
         Component: () => (
           <RequireToken>

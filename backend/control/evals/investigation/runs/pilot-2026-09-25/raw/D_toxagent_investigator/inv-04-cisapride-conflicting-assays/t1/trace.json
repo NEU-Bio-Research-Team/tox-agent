@@ -1,0 +1,2337 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_590a471da63c428f9668be728dd8ee06",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_a80fda0817a648918e2e88c76175aafc",
+        "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:03:48.507076+00:00",
+        "created_at": "2026-09-25T12:58:48.507076+00:00",
+        "started_at": "2026-09-25T12:58:48.673558+00:00",
+        "ended_at": "2026-09-25T13:02:48.094544+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "be770e57ec6c4ea92e075b7f8c11864de32ad8b3b9d43fbe2c547e69d93429bb",
+          "system_prompt_hash": "595d503dd297b1040c401c39717d55b63eeb630f80ae016827fc55186830e079"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [
+              "published",
+              "study"
+            ],
+            "confidence": "high",
+            "reason_codes": [
+              "research_phrase"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:58:48.507931+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_ba51617f9a8745a4a094592a7144d90d",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:59:02.806699+00:00",
+              "tokens": {
+                "input": 5265,
+                "output": 47,
+                "reasoning": 74,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 7946
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b9f22e5c906dbb797f7de29fb45887fd",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a5a9930014O3U9LfnXuHIrc",
+                "step_id": "prt_0d8a5d90f001k7p8fpb7J7mMks",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_221bc22b21b64e15b41feceae8f493da",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:59:16.701421+00:00",
+              "tokens": {
+                "input": 8144,
+                "output": 290,
+                "reasoning": 49,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8483
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a965eab0b20676a53b9d1d39f23dc985",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a5d930001ChTlBlO4Wye2bo",
+                "step_id": "prt_0d8a60f57001DXz3SrRgiXok3U",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_6cdafc92c0904e01a0fe4d78085ce44e",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:59:45.359315+00:00",
+              "tokens": {
+                "input": 3662,
+                "output": 1104,
+                "reasoning": 175,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 12621
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b968c587db40a36b6076519206988180",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a60f740012lk9Z6pwKsm2e3",
+                "step_id": "prt_0d8a67f48001IrWsAGCUC5h30Q",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_1a82eb39ba6f44199172178ff03dba1e",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:59:53.764346+00:00",
+              "tokens": {
+                "input": 5439,
+                "output": 86,
+                "reasoning": 41,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 13246
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_f69e37866d70893eeb864c27bfac5685",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a67f64001c3xm0LKd3LX0k8",
+                "step_id": "prt_0d8a6a0150010e0MAfzigA2pmh",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a16929201d294c3cb5779ae88fad4edc",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:00:01.930486+00:00",
+              "tokens": {
+                "input": 1691,
+                "output": 39,
+                "reasoning": 208,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 14738
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ea96f489edd9204f62add10d165f0750",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a6a044001x7wWLsOE6bAmEY",
+                "step_id": "prt_0d8a6c003001JX0qptLoC51aIr",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_17325d3e0f5f40aa883dc272990c17ce",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:00:36.484555+00:00",
+              "tokens": {
+                "input": 12989,
+                "output": 1524,
+                "reasoning": 172,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 17245
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_45e9c0233313f5d7c669877f65b38d02",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a6c02b001lXc0jrW3cNq1W6",
+                "step_id": "prt_0d8a746ff001FCtu7IoJUh7g02",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_dccec2e25da74dd9919dbf9731751e83",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:01:08.201777+00:00",
+              "tokens": {
+                "input": 2515,
+                "output": 1285,
+                "reasoning": 36,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 18684
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_9da9504220fa16dfd1aa5aadd5e62115",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a74719001ApnPLhIfJMgv5n",
+                "step_id": "prt_0d8a7c2e4001N0rGRSBUZWKgUy",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f334f1362880444eaeec7f2fee926489",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:01:28.579361+00:00",
+              "tokens": {
+                "input": 1998,
+                "output": 602,
+                "reasoning": 66,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 19562
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_67b73745f13be060986dffa183034c1f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a7c309001CDoKrYVkqhqLtk",
+                "step_id": "prt_0d8a8127c001th3LYzkcQUi0MX",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_4a7882326dc54c86b91879d2b84821e9",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:02:09.303368+00:00",
+              "tokens": {
+                "input": 1822,
+                "output": 1036,
+                "reasoning": 670,
+                "cache_read": 17920,
+                "cache_write": 0,
+                "total": 21448
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7d74da10a057cd2ddc82252942113d8c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a812a1001cYdIca2u5lSbwM",
+                "step_id": "prt_0d8a8b18d0017oWr4lD7q1McwI",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_2bff95facd4a43fbbbfd2cf5ef15917b",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:02:38.056981+00:00",
+              "tokens": {
+                "input": 2724,
+                "output": 1028,
+                "reasoning": 55,
+                "cache_read": 18944,
+                "cache_write": 0,
+                "total": 22751
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_1b91d1b3ecd3170ce7c24b62b38961a6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a8b1aa001K0GR2CDU0hBHjs",
+                "step_id": "prt_0d8a921dc001FqFZ98X3J30SV6",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c66cac31644647a489af98d0c7991f7c",
+              "runtime_binding_id": "rtb_8e2da441853f4d1f870422f2bb58507a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:02:48.018175+00:00",
+              "tokens": {
+                "input": 2043,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 20992,
+                "cache_write": 0,
+                "total": 23039
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_69a9fd988bbb4f48dd9c57383c71244c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8a9220d001mMI2PrZrdCJsD7",
+                "step_id": "prt_0d8a948cc001wYHWIDMcAbLmEe",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_3295b44811ae4533a8e1ba650dab5acc",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "9faebf7688913b8db4c6d17e6d287cc5fb94d55d2863edd52361dcec0e5a6eb0",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:02.651496+00:00",
+            "ended_at": "2026-09-25T12:59:02.668812+00:00"
+          },
+          {
+            "call_id": "call_8652a598b3d04862956c05323e2f0703",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:13.580047+00:00",
+            "ended_at": "2026-09-25T12:59:13.590640+00:00"
+          },
+          {
+            "call_id": "call_5e306be4fb02471c881080e4bed6826f",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 30,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:13.664301+00:00",
+            "ended_at": "2026-09-25T12:59:13.694892+00:00"
+          },
+          {
+            "call_id": "call_5a991ea439a64e7682c4599f2cfc2714",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 42,
+            "arguments_sha256": "9f72d11c58f6c9214477ff1359c02d7151560aba14cf2b3625f417a090027caa",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:13.696447+00:00",
+            "ended_at": "2026-09-25T12:59:13.733902+00:00"
+          },
+          {
+            "call_id": "call_a6097fc0143e4c968b1ae37c8688554f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 21,
+            "arguments_sha256": "644d4315b5b6cad9ef5f07e46d6237dcda5c5ee794c190acf290d28d892169fd",
+            "observation_ids": [
+              "obs_bdfc938089384919927d76e8db110646"
+            ],
+            "started_at": "2026-09-25T12:59:13.728961+00:00",
+            "ended_at": "2026-09-25T12:59:13.747093+00:00"
+          },
+          {
+            "call_id": "call_fcb530a974754cbdb1831dc9f48436c2",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 11,
+            "arguments_sha256": "d41902e19176322703836573542d66c382bc89f6c252a7427cd19e9d3de8b000",
+            "observation_ids": [
+              "obs_bdfc938089384919927d76e8db110646"
+            ],
+            "started_at": "2026-09-25T12:59:13.822959+00:00",
+            "ended_at": "2026-09-25T12:59:13.832882+00:00"
+          },
+          {
+            "call_id": "call_8a253b8665ee4705bb0ada81d7b0e81b",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2750,
+            "arguments_sha256": "38a927f8aaf1664b71cdb7b1389d5ebb14f64c0ddbb434a42e623b5b619992aa",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:13.921423+00:00",
+            "ended_at": "2026-09-25T12:59:16.669767+00:00"
+          },
+          {
+            "call_id": "call_225f9d2cc25f45aaa569f982fbe28af1",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1399,
+            "arguments_sha256": "dfd4cfbe7ff49211a291fb0d4f236834546d1cf6423ada962d95221a915104a7",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:43.928760+00:00",
+            "ended_at": "2026-09-25T12:59:45.325547+00:00"
+          },
+          {
+            "call_id": "call_a4c6436161b04a11a29d347aa011cfba",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "c2763e94bb56c7348ab87f6b17b52f46d225b69838a355b982074ea7eb48e6ac",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:44.010239+00:00",
+            "ended_at": "2026-09-25T12:59:44.024416+00:00"
+          },
+          {
+            "call_id": "call_3af1319a9099480cb8800ae436b0ee18",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "4f13695368a45e3508c7c99cb722ef68ebdafb7102b1696d1269f3774ef793b8",
+            "observation_ids": [
+              "evd_b9a42697d313424db77cb71619e00618"
+            ],
+            "started_at": "2026-09-25T12:59:53.607071+00:00",
+            "ended_at": "2026-09-25T12:59:53.617460+00:00"
+          },
+          {
+            "call_id": "call_bd4b1590ae684ccc9031090c19a0487e",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:59:53.698061+00:00",
+            "ended_at": "2026-09-25T12:59:53.709855+00:00"
+          },
+          {
+            "call_id": "call_e5f08b2bfe6b43fc8cb53367ab824879",
+            "tool_name": "read_skill_reference",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "3d74733fb3a66d03ea4039e77fc2ae6960342d6a007efa604a64d36fe4614b82",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:00:01.857108+00:00",
+            "ended_at": "2026-09-25T13:00:01.867949+00:00"
+          },
+          {
+            "call_id": "call_eb9fea51f03048d5b8a6400b1a134bc5",
+            "tool_name": "update_scientific_case",
+            "status": "error",
+            "error_code": "invalid_request",
+            "duration_ms": 15,
+            "arguments_sha256": "d3753e12011fb3fdc9b28aa31ea2ca7767c6bf220af1f21a45207bd75672af64",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:00:36.427677+00:00",
+            "ended_at": "2026-09-25T13:00:36.441224+00:00"
+          },
+          {
+            "call_id": "call_e2e3c581233c4d91a1f046caafba84c7",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "757a116d39d02bd34ae997a7c46c41797fd7b3ca4e572c1b6204293d3fdf48ee",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:01:08.101677+00:00",
+            "ended_at": "2026-09-25T13:01:08.116108+00:00"
+          },
+          {
+            "call_id": "call_cb6ed518c09e473387464d660b4a799b",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "c474cae2a1f0c93b5ecc2837ac171bd3740d1f9e1df536972af68c095a41a896",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:01:28.340843+00:00",
+            "ended_at": "2026-09-25T13:01:28.356835+00:00"
+          },
+          {
+            "call_id": "call_85bbad947e36489090d70da5b291fe7b",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 29,
+            "arguments_sha256": "aea76b0a36b3f193d102f26ce5de86811db5d285d521222ec4ed8767341c7c11",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:02:09.023525+00:00",
+            "ended_at": "2026-09-25T13:02:09.048784+00:00"
+          },
+          {
+            "call_id": "call_7943afd7834d488194b560da579a0c20",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 43,
+            "arguments_sha256": "208addfb0115142a95ba8ed9eac348138124e85b444d6eec0d527cc9d1dd29e2",
+            "observation_ids": [
+              "obs_bdfc938089384919927d76e8db110646"
+            ],
+            "started_at": "2026-09-25T13:02:37.941664+00:00",
+            "ended_at": "2026-09-25T13:02:37.982338+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_a0c94fda6db34f6a83f528790c2fff7a",
+        "run_id": "run_590a471da63c428f9668be728dd8ee06",
+        "answer_markdown": "**Decision:** For a hERG-focused decision, let the patch-clamp result drive the interpretation. Patch clamp measures functional hERG current inhibition, whereas radioligand displacement measures binding and can therefore be weak even when functional block is present. The compound-matched study provides direct support for state-dependent cisapride hERG block. [patchclamp]\n\nThe predictor is concordant, classifying cisapride as a hERG blocker, but that is a model signal rather than independent confirmation. [model_signal]\n\nDo not treat this as a complete development decision yet. The reported potency, assay protocol, concentration-response data, and exposure context are needed to determine practical significance. I would provisionally prioritize the functional result and hold the broader decision pending a controlled, compound-matched patch-clamp concentration-response experiment with documented conditions and exposure comparison.",
+        "claims": [
+          {
+            "claim_id": "clm_f68ceb05b24f43d79c5f345b5e798245",
+            "kind": "scientific",
+            "text": "For a hERG-focused decision, the patch-clamp result should carry more weight than weak radioligand displacement because patch clamp measures functional channel-current inhibition, while radioligand displacement measures binding; the compound-matched study supports state-dependent cisapride hERG block.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_b9a42697d313424db77cb71619e00618"
+            ]
+          },
+          {
+            "claim_id": "clm_2e82c95617f0465995a99f2a2ff06e9b",
+            "kind": "classification",
+            "text": "The fixed predictor classifies cisapride as a hERG blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_bdfc938089384919927d76e8db110646",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker",
+            "rendered_value": "blocker"
+          },
+          {
+            "claim_id": "clm_206d0bf4f9fa4355bb01ec5b61b6e2a6",
+            "kind": "limitation",
+            "text": "The available results do not establish a broader development or clinical conclusion; practical significance remains dependent on assay conditions, concentration-response data, and exposure context.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_b9a42697d313424db77cb71619e00618"
+            ]
+          },
+          {
+            "claim_id": "clm_306173dec4ab454394c4481b79de8e5d",
+            "kind": "recommendation",
+            "text": "Provisionally prioritize the functional hERG result, but hold the broader development decision until the functional finding is reproduced under documented conditions and its potency is compared with relevant exposure.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "evidence_scope_limited",
+            "text": "The cited article is in vitro hERG evidence and does not by itself establish clinical or exposure relevance."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "A repeat patch-clamp experiment is a verification step, not a safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Repeat a compound-matched functional hERG patch-clamp concentration-response experiment with documented cell system, voltage/temperature protocol, controls, potency estimate, and exposure comparison; run the binding assay in parallel if assay mismatch remains a concern.",
+            "basis_claim_ids": [
+              "clm_f68ceb05b24f43d79c5f345b5e798245",
+              "clm_206d0bf4f9fa4355bb01ec5b61b6e2a6"
+            ]
+          }
+        ],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "74cab988444365abe091dc2cbd3b0e357b5518246e4b35756cb54a053e826689",
+        "created_at": "2026-09-25T13:02:37.956853+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_c626bb9e43774791b83ceff622954b7d",
+        "run_id": "run_590a471da63c428f9668be728dd8ee06",
+        "goal": "For cisapride (CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?",
+        "subject_refs": [
+          "analysis:ana_726fcce3c58c45c9af6d8fe552828e6f"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "Patch clamp should drive a hERG functional-liability decision more than weak radioligand displacement for cisapride.",
+            "required_sources": [
+              "evidence"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "evidence:evd_b9a42697d313424db77cb71619e00618"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The predictor classification is concordant with the functional hERG interpretation but is not independent experimental confirmation.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_bdfc938089384919927d76e8db110646"
+            ],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 2
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 17,
+          "denied_calls": 0,
+          "failed_calls": 2,
+          "evidence_reads": 1
+        },
+        "available_refs": [
+          "observation:obs_bdfc938089384919927d76e8db110646",
+          "evidence:evd_b9a42697d313424db77cb71619e00618"
+        ],
+        "found_refs": [
+          "evidence:evd_b9a42697d313424db77cb71619e00618"
+        ],
+        "stop_reason": "sufficient",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "references_loaded": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "reference": "scope-comparison-checklist.md",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            }
+          ]
+        },
+        "revision": 24
+      },
+      "dossier": {
+        "run_id": "run_590a471da63c428f9668be728dd8ee06",
+        "case_id": "scase_96f3bade866644a581d47ff792b63298",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 1
+        },
+        "question": "For cisapride, which should drive the decision when a radioligand binding screen shows weak displacement but a patch-clamp study reports potent hERG block?",
+        "answer_id": "ans_a0c94fda6db34f6a83f528790c2fff7a",
+        "conclusion": {
+          "run_id": "run_590a471da63c428f9668be728dd8ee06",
+          "can_say": [
+            {
+              "text": "For a hERG functional-liability decision, the patch-clamp result should carry more weight than weak radioligand displacement because it measures channel-current inhibition directly; the compound-matched article supports cisapride-associated, state-dependent hERG block.",
+              "sources": [
+                "evidence:evd_b9a42697d313424db77cb71619e00618"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The fixed predictor is directionally concordant, classifying cisapride as a hERG blocker, but it remains a model signal rather than independent confirmation.",
+              "sources": [
+                "observation:obs_bdfc938089384919927d76e8db110646"
+              ],
+              "evidence_ids": [
+                "e2"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "The available record does not establish a clinical, regulatory, or overall safety conclusion.",
+            "The practical significance of the reported potency cannot be judged without assay conditions, concentration-response data, and exposure context."
+          ],
+          "what_would_change": [
+            "A well-controlled compound-matched functional patch-clamp concentration-response result that fails to reproduce the reported block or demonstrates a protocol-specific artifact.",
+            "Matched assay metadata and free-exposure context showing that the functional potency is not decision-relevant for the intended use."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "status": "supported",
+            "context": [],
+            "statement": "The apparent conflict is explained by assay mismatch: radioligand displacement measures binding-site occupancy, whereas patch clamp measures functional channel inhibition, so weak binding displacement need not exclude functional block.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "A compound-matched article reports automated patch-clamp measurements of hERG drug block and specifically describes cisapride block as state-dependent, with reduced block after S624A mutation in the WT background.",
+                "scope": {
+                  "assay": "automated patch clamp",
+                  "compound": "cisapride",
+                  "endpoint": "herg",
+                  "use_context": "in vitro channel pharmacology"
+                },
+                "run_id": "run_590a471da63c428f9668be728dd8ee06",
+                "stance": "supports",
+                "locator": "abstract_or_excerpt",
+                "directness": "direct",
+                "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The predictor classifies cisapride as a hERG blocker with an uncalibrated model score above its artifact threshold; this is a model signal, not independent experimental confirmation.",
+                "scope": {
+                  "assay": "fixed toxicity predictor",
+                  "compound": "cisapride",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_590a471da63c428f9668be728dd8ee06",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "not_assessed",
+                "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "The compound-matched patch-clamp article directly supports functional cisapride-associated hERG block, while the apparent conflict is between functional current inhibition and binding displacement rather than identical endpoints; the predictor is concordant but not independent evidence.",
+            "evidence_against": [],
+            "refutation_condition": "The two assays are shown to use the same functional endpoint and matched conditions, yet produce incompatible results."
+          },
+          {
+            "id": "h2",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "status": "open",
+            "context": [],
+            "statement": "The available information is insufficient to determine the practical significance of the hERG signal because assay conditions, concentration-response data, selectivity, and exposure context are not supplied.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Matched assay metadata, concentration-response data, and relevant exposure context show the functional finding is robust and decision-relevant."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Repeat a compound-matched functional hERG patch-clamp concentration-response experiment with reported protocol, controls, and exposure comparison; optionally run the binding assay in parallel under documented matched conditions.",
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "rationale": "This separates a reproducible functional block from assay/protocol mismatch and supplies the potency and exposure information missing from the current record.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "reproducible concentration-dependent inhibition of hERG current with an interpretable potency estimate",
+              "no inhibition or protocol-dependent result despite matched compound identity",
+              "documented relation between binding displacement and functional current block"
+            ]
+          }
+        ],
+        "stop_reason": "sufficient",
+        "subject_refs": [
+          "analysis:ana_726fcce3c58c45c9af6d8fe552828e6f"
+        ],
+        "case_revision": 16,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The predictor classifies cisapride as a hERG blocker with an uncalibrated model score above its artifact threshold; this is a model signal, not independent experimental confirmation.",
+            "scope": {
+              "assay": "fixed toxicity predictor",
+              "compound": "cisapride",
+              "endpoint": "herg"
+            },
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "not_assessed",
+            "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e4",
+            "actor": "server",
+            "claim": "The predictor classification is concordant with the functional hERG interpretation but is not independent experimental confirmation.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "Prioritize the most decision-relevant evidence for hERG liability without treating different assays as interchangeable.",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "Patch clamp should drive a hERG functional-liability decision more than weak radioligand displacement for cisapride.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "in vitro hERG functional liability"
+            },
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+            "source_class": "external_experimental",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e4",
+            "actor": "server",
+            "claim": "The predictor classification is concordant with the functional hERG interpretation but is not independent experimental confirmation.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_590a471da63c428f9668be728dd8ee06",
+              "outcome": "Initial targeted search did not return a citable record; absence of a returned record is not evidence against the hypothesis.",
+              "purpose": "Look for direct compound-matched evidence that could weaken the functional hERG interpretation or show that the apparent conflict is not assay-scope related.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_590a471da63c428f9668be728dd8ee06",
+              "outcome": "Patch clamp is the more decision-relevant assay for a functional hERG question, but missing protocol, potency, and exposure data limit the broader decision.",
+              "purpose": "Check that the decision stays within the hERG assay scope and does not turn a functional signal into a clinical or safety verdict.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": [
+            {
+              "id": "e1",
+              "actor": "model",
+              "claim": "A compound-matched article reports automated patch-clamp measurements of hERG drug block and specifically describes cisapride block as state-dependent, with reduced block after S624A mutation in the WT background.",
+              "scope": {
+                "assay": "automated patch clamp",
+                "compound": "cisapride",
+                "endpoint": "herg",
+                "use_context": "in vitro channel pharmacology"
+              },
+              "run_id": "run_590a471da63c428f9668be728dd8ee06",
+              "stance": "supports",
+              "locator": "abstract_or_excerpt",
+              "directness": "direct",
+              "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h1"
+              ]
+            },
+            {
+              "id": "e3",
+              "actor": "server",
+              "claim": "Patch clamp should drive a hERG functional-liability decision more than weak radioligand displacement for cisapride.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "in vitro hERG functional liability"
+              },
+              "run_id": "run_590a471da63c428f9668be728dd8ee06",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "direct",
+              "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            }
+          ]
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The supplied results omit concentrations, concentration-response parameters, cell system, voltage/temperature protocol, and exposure context, so practical significance cannot be judged from potency wording alone.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_c626bb9e43774791b83ceff622954b7d",
+  "analysis": {
+    "run": {
+      "run_id": "run_17c7c987295a4c8fb387316798115394",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_79a938699fc84f82a646168487f37503",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:03:47.446501+00:00",
+      "created_at": "2026-09-25T12:58:47.446501+00:00",
+      "started_at": "2026-09-25T12:58:47.459400+00:00",
+      "ended_at": "2026-09-25T12:58:47.484984+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:58:47.447869+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_726fcce3c58c45c9af6d8fe552828e6f",
+      "input_smiles": "CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F",
+      "canonical_smiles": "COc1cc(N)c(Cl)cc1C(=O)N[C@@H]1CCN(CCCOc2ccc(F)cc2)C[C@@H]1OC",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.5364413857460022,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.34577757120132446,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.2996760606765747,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.6265738010406494,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.4721652567386627,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.357456773519516,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.3532344698905945,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.5159488320350647,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.5341561436653137,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.2862434387207031,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.26783016324043274,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.5820130705833435,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.3901359736919403,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "7f2779e9-6b16-4045-8419-59e262123b10",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 51,
+            "encoded_token_count": 51
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "bae7a013d06c1ff7bcafabe7fb5e49e413c8941c6831fd0a0488a171201524e0"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:58:47.480464+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_3c5c431892b244fe8fe064312fa7a14e",
+      "title": "Discrete On-DNA Screening: A Frontier for Rapid Hit-to-Lead Optimization Applied to p38α.",
+      "authors": [
+        "Ma H",
+        "Chen P",
+        "Chen S",
+        "Zhang H",
+        "Zeng F",
+        "Han Z",
+        "Chen L",
+        "Luo A"
+      ],
+      "published_at": "2026-06-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acsmedchemlett.6c00278",
+        "pmid": "42445005",
+        "pmcid": "PMC13358986",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42445005",
+      "abstract_or_excerpt": "High-throughput screening (HTS) and DNA-encoded library (DEL) selection are cornerstones of drug discovery but suffer from high operational infrastructure requirements or constraints to affinity-only selections. Herein we report a robust on-DNA compound screening method that bridges this gap, enabling direct functional evaluation of DNA-linked small molecules while bypassing plate-based or selection-wash limitations. To validate this platform, a focused collection of trisubstituted benzamides was synthesized and screened directly on-DNA against p38α MAPK. This methodology rapidly prioritized advanced structures, culminating in the seamless identification of compound <b>I-13</b>. Upon off-DNA synthesis, <b>I-13</b> was confirmed as a potent p38α inhibitor (IC<sub>50</sub> = 65 nM), demonstrating 4-fold selectivity over p38β and excellent selectivity over p38γ and p38δ (>461 fold). While achieving reasonable p38α/β isoform selectivity remains a subject for future optimization, this platform offers a powerful, low-barrier alternative to traditional HTS and DEL for rapid, functional hit-to-lead discovery.",
+      "normalized_facts": {
+        "journal": "ACS medicinal chemistry letters",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "824c6be2ad6222a60bf7e0e2ebef0b11c168dec1c00d16e28eb13e0f0e3c0e42"
+    },
+    {
+      "evidence_id": "evd_70f3c6c1aefd4696a543c354c02d1185",
+      "title": "The Cardiac Sodium Channel Safety Profile of Cenobamate at Therapeutic Concentrations: In Vitro Analyses.",
+      "authors": [
+        "Crumb WJ",
+        "Melnick SM",
+        "Glenn KJ"
+      ],
+      "published_at": "2025-10-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70378",
+        "pmid": "41058528",
+        "pmcid": "PMC12504911",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41058528",
+      "abstract_or_excerpt": "The US Food and Drug Administration (FDA) issued a Drug Safety Communication for the antiseizure drug lamotrigine (Lamictal), warning of the risk of QRS prolongation and cardiac arrhythmias. The FDA also requested that other antiseizure medications with a similar mechanism of action (e.g., block of neuronal sodium channels), including cenobamate, be evaluated for their risk as a cardiac sodium channel blocker. The purpose of this in vitro study was to determine the cardiac sodium channel blocking effects of cenobamate and its sodium channel classification. Follow-up experiments were also performed with cenobamate at its highest free therapeutic concentration (66 μM). Experiments were performed using the manual patch clamp technique at physiologic temperatures. Despite its classification as a Class Ib and Id antiarrhythmic, cenobamate was found to have little effect on the cardiac sodium channel when tested in vitro at therapeutic levels. These findings provide further clarity and support for the clinical safety of cenobamate in patients without cardiovascular risk factors.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "1508d6813f494b0682269b7cc5da6c4cbf74a13203a7ea9d21e0a031b3079529"
+    },
+    {
+      "evidence_id": "evd_83ae5df2670e4035ba2e50b3f3d86e90",
+      "title": "Multi-laboratory comparisons of manual patch clamp hERG data generated using standardized protocols and following ICH S7B Q&amp;A 2.1 best practices.",
+      "authors": [
+        "Alvarez Baron C",
+        "Zhao J",
+        "Yu H",
+        "Ren M",
+        "Thiebaud N",
+        "Guo D",
+        "Vegesna G",
+        "Hsiao CH"
+      ],
+      "published_at": "2025-08-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-025-15761-8",
+        "pmid": "40819150",
+        "pmcid": "PMC12357877",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40819150",
+      "abstract_or_excerpt": "Acute block of hERG channels is the most common mechanism underlying drug-induced QT<sub>C</sub> prolongation and potentially fatal Torsade de Pointes arrhythmia. Updates to ICH E14 Q&As now allow for using negative nonclinical data, including hERG, to support QT<sub>C</sub> risk assessment in late-stage clinical development. To interpret the hERG results, understanding hERG assay reproducibility or hERG data variability is pivotal. Protocol and best practice recommendations have been provided with the goal of minimizing lab-to-lab data differences, but the impact remains unclear. To fill this knowledge gap, hERG data from a HESI-coordinated multi-laboratory study were leveraged. Using standardized protocol and following best practices for patch clamp studies, five laboratories tested 28 drugs using the manual patch clamp technique. Systematic differences in block potencies were observed for data generated by one laboratory for the first 21 drugs, and these differences disappeared for the last seven drugs. Exposure, pharmacological sensitivity of the cell lines, and cell/data qualities were ruled out as the factors underlying systematic differences. All laboratories retested two drugs and obtained results within 1.6X of the initial testings, except for another laboratory that obtained data for one drug that differed from its initial testing by 7.6X. Descriptive statistics and meta-analysis were applied to the dataset to estimate what the distribution in hERG block potencies would be if a laboratory were to test the same drug repeatedly. This measure, or hERG data variability, was ~ 5X. Based on these results, hERG block potency values within 5X of each other should not be considered different, since these values are within the natural data distribution of the hERG assay; laboratory-specific safety margin threshold may be required to account for systematic data differences.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "Comparative Study, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "d657034b4ce8589d04f817edff110a5a9c3eae6c0a14e8d7ee503d1c9bc71b7a"
+    },
+    {
+      "evidence_id": "evd_0f4e3bbde6e143549ab92e1a19c2bb2e",
+      "title": "hERG Channel Blockade and Antagonistic Interactions of Three Steroidal Alkaloids from &lt;i&gt;Fritillaria&lt;/i&gt; Species.",
+      "authors": [
+        "Lu H",
+        "Hao T",
+        "Zhang Z",
+        "Jiang C",
+        "Xu J",
+        "Stalin A",
+        "Zhao W"
+      ],
+      "published_at": "2025-09-25",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/molecules30193882",
+        "pmid": "41097303",
+        "pmcid": "PMC12526275",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41097303",
+      "abstract_or_excerpt": "The bulb of <i>Fritillaria</i> species called \"Bei Mu\" is a well-known traditional Chinese medicine. We have reported some potential off-target effects of \"Bei Mu\" due to peimine's blockade of hERG (human Ether-a-go-go-Related Gene) channels. This research investigated the modulatory effects of three major alkaloid analogs of \"Bei Mu\" and their cooperative effects on hERG channels using manual whole-cell patch-clamp techniques. Results showed that peiminine and sipeimine blocked hERG currents with IC<sub>50</sub>s of 36.8 ± 2.5 μM and 47.6 ± 9.8 μM, which were close to that of peimine (26.1 ± 3.5 μM). Peiminine-induced blockade increased with increasing depolarizing strengths, durations, and frequencies, which suggested a preferential binding to open or inactivated states. The reduced blockade by the less inactivating S631A mutation supported peiminine's inactivation preference. Molecular docking and dynamics simulations confirmed the hERG-blocking activities of the three alkaloids and provided further insight into potential mechanisms. We also discovered antagonistic effects of the three alkaloids at nearly all concentrations tested, which might help reduce potential cardiotoxicities. To our knowledge, this is the first study to investigate combination effects of chemicals from one herb on hERG channels. In conclusion, peiminine and sipeimine can block hERG channels in a way similar to peimine, but antagonistic effects exist among them.",
+      "normalized_facts": {
+        "journal": "Molecules (Basel, Switzerland)",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "44f2d1f760b288bb72b128c256e829e246d33dbeea756fdf25ec1b757c90b299"
+    },
+    {
+      "evidence_id": "evd_c236858cdf664932bdeb0cf84e484bdb",
+      "title": "Quantifying Risk of Delayed QT Prolongation of Ipatasertib in Preclinical and Clinical Studies in Cancer Patients.",
+      "authors": [
+        "Poon V",
+        "Sutaria D",
+        "Prell R",
+        "Halpern W",
+        "Wong L",
+        "Harris A",
+        "Wilkins J",
+        "Yoshida K"
+      ],
+      "published_at": "2025-07-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70298",
+        "pmid": "40671326",
+        "pmcid": "PMC12267659",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40671326",
+      "abstract_or_excerpt": "QTc prolongation has been associated with torsades de pointes (TdP) and also with other cardiac diseases. We investigated the effect of ipatasertib, a selective serine/threonine kinase (AKT, protein kinase B) inhibitor, on preclinical models of QTc prolongation as well as across two clinical studies. Preclinical in vitro studies suggested that ipatasertib and its metabolite, M1, were unlikely to inhibit human Ether-à-go-go-Related Gene (hERG) channels at the clinically relevant dose. However, clinical evaluation of ipatasertib and its metabolite in the first-in-human study PAM4743g suggested a mild prolongation of the QTc interval, but the effect was delayed, where the maximum change from baseline QTc seemed to occur 2-4 h after time to maximum drug exposure (T<sub>max</sub>). QTc prolongation was further evaluated in a second Phase 1b study, GP42658, with pretreatment QTc measurement for baseline correction and intensive post-baseline QTcF measurements at steady state. The results showed a delayed effect, where peak ΔQTcF occurred 2-4 h after T<sub>max</sub> with a mean of 10.9 ms and an upper 95% CI of 19.1 ms. Although a delayed effect was observed, the overall magnitude of the QTc effect was not large, and taken together, ipatasertib may not pose a substantial proarrhythmic risk (i.e., mean increase of > 20 ms) at the intended therapeutic dose of 400 mg.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Clinical Trial, Phase II, Research Support, Non-U.S. Gov't, research-article, Clinical Trial, Phase I, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "e02fddff572f4f463cf88ea5fd12091c92464c6bcc8dde358926a78ff60a45dd"
+    },
+    {
+      "evidence_id": "evd_b9a42697d313424db77cb71619e00618",
+      "title": "Molecular basis for state-dependent drug block of Kv11.1 (human ether-à-go-go-related gene) potassium channels.",
+      "authors": [
+        "Zhou CJ",
+        "Ma JG",
+        "Ng CA",
+        "Hunter MJ",
+        "Perry MD",
+        "Windley M",
+        "Hill AP",
+        "Vandenberg JI"
+      ],
+      "published_at": "2026-08-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.molpha.2026.100150",
+        "pmid": "42727199",
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42727199",
+      "abstract_or_excerpt": "Many structurally and therapeutically diverse drugs block the human ether-à-go-go-related gene (HERG) potassium channel, predisposing patients to an increased risk of arrhythmias and sudden cardiac death. Many of these drugs show state dependence of block, exhibiting a greater preference for block of the inactivated state. Four key residues, ie, T623, S624, Y652, and F656, within the central pore cavity of HERG have been implicated in drug binding. However, whether drugs bind differently to these key residues to dictate preference for binding to the inactivated over the open state is not known. We used the SyncroPatch 384PE, automated patch clamp platform to measure how drug block was impacted by point mutations at these 4 residues when introduced into wild-type (WT) HERG (preferentially occupies the inactivated state) and N588K-HERG (preferentially occupies the open state) channels at depolarized potentials. Mutations to Y652 and F656, which abolished aromatic and hydrophobic characteristics, respectively, reduced drug binding in both WT and N588K backgrounds. The S624A mutation attenuated block by cisapride, astemizole, and quinidine in the WT background but not in the N588K background. We suggest that relative movements between the polar S624 sidechain and the aromatic Y652 sidechains in WT (inactivated) compared with N588K (open) channels can explain preferential binding to the inactivated state. An improved understanding of the structural basis of where and how drugs bind to HERG channels should facilitate efforts to reduce inadvertent HERG drug block during the drug development process. SIGNIFICANCE STATEMENT: A diverse range of drugs block human ether-à-go-go-related gene (HERG) potassium channels, which can have serious side effects, including sudden death. Most problematic drugs bind to the inactivated state of HERG channels. This study shows that the polar side chain of Ser624, at the base of the selectivity filter, is critical for preferential drug block of inactivated compared with open channels. A better understanding of state-dependent drug binding should facilitate efforts to reduce inadvertent HERG drug block.",
+      "normalized_facts": {
+        "journal": "Molecular pharmacology",
+        "pub_type": "Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "ed940a482069e939076debaf9fc35b793d7236eb558064b7add2b5590e3da525"
+    },
+    {
+      "evidence_id": "evd_0d58a610cfee441d8d798348e29587fa",
+      "title": "Modeling hERG Channel Liability: From Structural Insight to Highly Accurate Qualitative and Quantitative Models.",
+      "authors": [
+        "Sun H",
+        "Wang Y",
+        "Shen M"
+      ],
+      "published_at": "2026-06-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jcim.6c00163",
+        "pmid": "42313871",
+        "pmcid": "PMC13370879",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42313871",
+      "abstract_or_excerpt": "Drug-induced QT interval prolongation, most commonly resulting from the blockade of a voltage-dependent potassium ion channel encoded by the <i>hERG</i> (<i>human ether-à-go-go-related gene</i>), has been recognized as a critical side-effect of noncardiovascular therapeutic agents. This adverse effect has led to withdrawal of many drugs from the market. Early identification of potential hERG channel blockers is therefore essential to mitigate cardiotoxicity-related attrition during the later, more resource-intensive stages of drug development. In this paper, we aimed at understanding ligand-channel interactions, including a detailed analysis of the cryo-electron microscopy (cryo-EM) structures of hERG channels and pharmacophore models shared among known hERG blockers. The highly adaptive nature of the hERG ligand-binding site may poses challenges for structure-based approaches, such as molecular docking, yet also offers mechanistic insights into a longstanding question: why does hERG interact with such a wide variety of small-molecule drugs? To complement these structural observations, we summarized the benefits and limitations of both quantitative and qualitative models and their applications across various stages of drug discovery. We developed highly predictive classification and regression models built using customized atom-type descriptors. The regression model, trained on a large and curated data set (∼8,000 compounds), achieved an average absolute error (AAE) of 0.383 log units and root-mean-square error of prediction (RMSEP) of 0.548 log units on the test sets. Meanwhile, the classification model demonstrated strong performance as well, with a receiver operating characteristic (ROC) area under the curve (AUC) of 0.88. Validation on an external set of 1,133 compounds resulted in an AAE of 0.50 log units. Together, these complementary modeling strategies can significantly aid in the early assessment of cardiovascular liabilities associated with hERG channel blockade, thereby supporting safer and more efficient drug development.",
+      "normalized_facts": {
+        "journal": "Journal of chemical information and modeling",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "d219abf85dc3f33628388a8c37695f298df23059df236c6d3bf8499a3cee52dc"
+    },
+    {
+      "evidence_id": "evd_890f5e5cd96649f38196b5629cf487cb",
+      "title": "Discovery of a novel broad-spectrum inhibitor against influenza virus A.",
+      "authors": [
+        "Yu R",
+        "Li P",
+        "Shen R",
+        "Fei W"
+      ],
+      "published_at": "2025-08-26",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12985-025-02889-2",
+        "pmid": "40859295",
+        "pmcid": "PMC12379310",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40859295",
+      "abstract_or_excerpt": "The pandemic of influenza A virus (IAV) is on the rise worldwide, however, drug resistance to anti-influenza drugs has been widely found. The viral mutation of IAV highlights the necessitate for discovery of new antiviral agents with broad-spectrum efficacy. Arbidol, an effective pharmaceutical against IAV and other viruses, inhibits viral fusion by targeting a conserved binding region across multiple virus types. The binding area of Arbidol is conserved towards many types of viruses, however, the structural characteristics of Arbidol make it possible human ether-α-go-go related gene (hERG) potassium channel inhibitory. The risk of arrhythmias by Arbidol will limit its further application. Therefore, developing new broad-spectrum antiviral drugs with reduced side effects based on Arbidol's scaffold is imperative. In this study, 50 natural products were screened for effective universal antiviral drug based on the structure-activity relationship between Arbidol and hemagglutinin (HA). Due to the structural characters of Arbidol related to hERG inhibition, the inhibitory activity of Arbidol on hERG channels were also analyzed by patch clamp technology and molecular docking for toxicity and safety evaluation of drug screening and development. The IC50 of Arbidol to hERG was 0.3030 µM. The results showed that Glycyrrhetinic acid has lower binding energy than Arbidol in the binding site. The molecular structure of Glycyrrhetinic acid is more flexible, which avoids significant interactions with hERG. These findings highlight glycyrrhetinic acid as a promising broad-spectrum anti-IAV candidate drug.",
+      "normalized_facts": {
+        "journal": "Virology journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "456111aaec2a822a766ae3ee5806944e3cebcd1d21fdc3fcce97a58079bb855f"
+    },
+    {
+      "evidence_id": "evd_c5ba48ab89a24d208abb1058e52861f1",
+      "title": "A Deep-Learning-Based Scoring Framework for Large-Scale Multi-donor Cardiotoxicity Screening.",
+      "authors": [
+        "Vu D",
+        "Kowalczewski A",
+        "Burnett SD",
+        "Sakolish C",
+        "Liu X",
+        "Yang H",
+        "Rusyn I",
+        "Ma Z"
+      ],
+      "published_at": "2026-09-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.34133/csbj.0217",
+        "pmid": "42707586",
+        "pmcid": "PMC13547733",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42707586",
+      "abstract_or_excerpt": "Cardiotoxicity remains a major cause of drug attrition and postmarket withdrawal, yet the vast majority of environmental chemicals to which humans may be exposed remain uncharacterized for cardiotoxicity risk. Human induced pluripotent stem cell (hiPSC)-based testing has been proposed to address this gap. Here, we present an unsupervised deep learning framework for multi-donor cardiotoxicity screening using high-throughput calcium transient recordings from hiPSC-derived cardiomyocytes (hiPSC-CMs). We analyzed data from a library of 1,029 compounds tested in hiPSC-CMs from 5 donors across a concentration range. An autoencoder trained exclusively on baseline signals quantified chemically induced functional perturbations through reconstruction error, bypassing the need for labeled training data while capturing the full spectrum of calcium-handling disruptions. Aggregation of donor-specific scores revealed substantial inter-individual variability in potential cardiotoxicity, underscoring the value of this approach for multi-donor risk prediction. We identified microbiocides, dyes, and pesticides as chemical classes of potential concern, characterized by high toxicity scores and low interdonor variability. This framework establishes a scalable, human-relevant, and genetically diverse platform for cardiotoxicity surveillance across both pharmacological and environmental chemical spaces.",
+      "normalized_facts": {
+        "journal": "Computational and structural biotechnology journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "272d333698ed578a3493df45a7a6ddf7947ff1a4904fce94236a22efb1217d5e"
+    },
+    {
+      "evidence_id": "evd_aef03a1406f943b397b31cdbe1299251",
+      "title": "Integrating drug effects on individual cardiac ionic currents and cardiac action potentials to understand nonclinical translation to clinical ECG changes.",
+      "authors": [
+        "Johannesen L",
+        "Abi-Gerges N",
+        "Sweat K",
+        "Roup A",
+        "Page G",
+        "Baron CA",
+        "Yu H",
+        "Wu WW"
+      ],
+      "published_at": "2025-11-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1674861",
+        "pmid": "41293243",
+        "pmcid": "PMC12640937",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41293243",
+      "abstract_or_excerpt": "Concomitant inhibition of the late Na<sup>+</sup> current (I<sub>NaL</sub>) and/or the L-type Ca<sup>2+</sup> current (I<sub>CaL</sub>) has been hypothesized to mitigate hERG block-mediated QT<sub>C</sub> prolongation. This hypothesis was tested in a clinical trial using drugs selected based on available patch clamp data at the time. The results showed that hERG block-mediated QT<sub>C</sub> prolongation with dofetilide was shortened by co-administration of lidocaine or mexiletine-drugs that inhibit I<sub>NaL.</sub> However, diltiazem, selected as the preferential I<sub>CaL</sub> inhibitor, did not shorten hERG block-mediated QT<sub>C</sub> prolongation by moxifloxacin. Patch clamp results can be sensitive to experimental differences across laboratories. Therefore, this study reexamined the effects of all drugs on I<sub>NaL</sub>, I<sub>CaL</sub>, and hERG current using overexpression cell lines and physiologically relevant experimental protocols aimed at producing drug-channel interaction characteristics in humans. Drug effects on ventricular action potentials (APs) from adult human trabeculae were also tested to better understand the nonclinical and clinical findings. Mexiletine and lidocaine showed similar potencies on inhibiting I<sub>NaL</sub> and I<sub>CaL</sub> in the prior and present patch clamp studies. Both drugs reduced dofetilide-induced AP duration (APD) prolongation, consistent with the clinical data. For diltiazem, the I<sub>CaL</sub> potency and the separation between I<sub>CaL</sub> and hERG potencies (I<sub>CaL</sub>: 1.3 µM; hERG: 8.9 µM; hERG-to-I<sub>CaL</sub> ratio = 7) is much reduced comparing to the prior results (I<sub>CaL</sub>: 112.1 nM; hERG: 6.6 µM; ratio = 59). These new findings are consistent with diltiazem-induced APD shortening and AP triangulation caused by greater reductions in the early rather than late repolarization-a signature of multi-ion channel block. Consistent with this interpretation, nifedipine, which preferentially inhibits I<sub>CaL</sub> over hERG (I<sub>CaL</sub>: 13.2 nM; hERG: 35 μM; ratio = 2,651) caused APD shortening without AP triangulation. Results from this study thus support the following: 1) diltiazem failed to reduce moxifloxacin-induced QT<sub>C</sub> prolongation due to its concomitant hERG block at clinical exposure levels; and 2) the importance of using physiologically relevant protocols to generate ion channel pharmacology and obtaining functional recordings from myocytes to provide a better understanding of nonclinical data translation to clinical ECG signals. Data used in this manuscript, including the original electrophysiology records, may be found at: https://osf.io/69ght/.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:45.295188+00:00",
+      "content_sha256": "35e175d61f8b5a912ef0554aeeeefdd82b72758af79d05449306427fdbac72c6"
+    },
+    {
+      "evidence_id": "evd_ef9ab719920f4e238e9e802ffb1996a4",
+      "title": "47th Annual Meeting March 1-5, 2003 Henry B. Gonzalez Convention Center, San Antonio, Texas : Wednesday Posters, Part 1",
+      "authors": [],
+      "published_at": "2003-02-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC2304027",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC2304027",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2003"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:16.655475+00:00",
+      "content_sha256": "1cec914e7f9a6157bdbf30b6296659c3ce4ee645066118d3bcf0ffbbec4de833"
+    },
+    {
+      "evidence_id": "evd_614c8f88e2cd48fcba892600ef6d0eac",
+      "title": "44th Annual Meeting February 12-16, 2000 New Orleans, Louisiana : February 15, 2000 Tuesday Posters, Part 2",
+      "authors": [],
+      "published_at": "2000-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC1913991",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC1913991",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2000"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:16.655475+00:00",
+      "content_sha256": "ccfb0af37d66ac923b233a4c97b4279f7e6699182babb3aaa59d4d10c85e411c"
+    },
+    {
+      "evidence_id": "evd_a4ec15ae9eaa44ad816ed537d33ffe09",
+      "title": "UEG Week 2013 Poster Presentations",
+      "authors": [],
+      "published_at": "2013-10-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC4070603",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC4070603",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "United European gastroenterology journal",
+        "pub_type": "Abstract",
+        "pub_year": "2013"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:16.655475+00:00",
+      "content_sha256": "43a5f46f53ba7004fd2bbc2dadbbf0f6545368b46b1b9323dc821a813fc9a5dc"
+    },
+    {
+      "evidence_id": "evd_384bed146968404ab86bc9a0fef62230",
+      "title": "Kv 11.1 (hERG)-induced cardiotoxicity: a molecular insight from a binding kinetics study of prototypical Kv 11.1 (hERG) inhibitors.",
+      "authors": [
+        "Yu Z",
+        "IJzerman AP",
+        "Heitman LH"
+      ],
+      "published_at": "2014-12-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/bph.12967",
+        "pmid": "25296617",
+        "pmcid": "PMC4301700",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/25296617",
+      "abstract_or_excerpt": "<h4>Background and purpose</h4>Drug-induced arrhythmia due to blockade of the Kv 11.1 channel (also known as the hERG K(+) channel) is a frequent side effect. Previous studies have primarily focused on equilibrium parameters, i.e. affinity or potency, of drug candidates at the channel. The aim of this study was to determine the kinetics of the interaction with the channel for a number of known Kv 11.1 blockers and to explore a possible correlation with the affinity or physicochemical properties of these compounds.<h4>Experimental approach</h4>The affinity and kinetic parameters of 15 prototypical Kv 11.1 inhibitors were evaluated in a number of [(3) H]-dofetilide binding assays. The lipophilicity (logKW - C8 ) and membrane partitioning (logKW - IAM ) of these compounds were determined by means of HPLC analysis.<h4>Key results</h4>A novel [(3) H]-dofetilide competition association assay was set up and validated, which allowed us to determine the binding kinetics of the Kv 11.1 blockers used in this study. Interestingly, the compounds' affinities (Ki values) were correlated to their association rates rather than dissociation rates. Overall lipophilicity or membrane partitioning of the compounds were not correlated to their affinity or rate constants for the channel.<h4>Conclusions and implications</h4>A compound's affinity for the Kv 11.1 channel is determined by its rate of association with the channel, while overall lipophilicity and membrane affinity are not. In more general terms, our findings provide novel insights into the mechanism of action for a compound's activity at the Kv 11.1 channel. This may help to elucidate how Kv 11.1-induced cardiotoxicity is governed and how it can be circumvented in the future.",
+      "normalized_facts": {
+        "journal": "British journal of pharmacology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2015"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:59:16.655475+00:00",
+      "content_sha256": "4c27bfe4557a9a93ad1d3fd3ec8e5967001b3ab74f4ccd3e3b010fd6ffe54aa1"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_96f3bade866644a581d47ff792b63298",
+        "session_id": "ses_c626bb9e43774791b83ceff622954b7d",
+        "subject_key": "analysis:ana_726fcce3c58c45c9af6d8fe552828e6f",
+        "question": "For cisapride, which should drive the decision when a radioligand binding screen shows weak displacement but a patch-clamp study reports potent hERG block?",
+        "decision_context": "Prioritize the most decision-relevant evidence for hERG liability without treating different assays as interchangeable.",
+        "subject_refs": [
+          "analysis:ana_726fcce3c58c45c9af6d8fe552828e6f"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The apparent conflict is explained by assay mismatch: radioligand displacement measures binding-site occupancy, whereas patch clamp measures functional channel inhibition, so weak binding displacement need not exclude functional block.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "The two assays are shown to use the same functional endpoint and matched conditions, yet produce incompatible results.",
+            "status": "supported",
+            "status_reason": "The compound-matched patch-clamp article directly supports functional cisapride-associated hERG block, while the apparent conflict is between functional current inhibition and binding displacement rather than identical endpoints; the predictor is concordant but not independent evidence.",
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          },
+          {
+            "id": "h2",
+            "statement": "The available information is insufficient to determine the practical significance of the hERG signal because assay conditions, concentration-response data, selectivity, and exposure context are not supplied.",
+            "kind": "data_insufficient",
+            "refutation_condition": "Matched assay metadata, concentration-response data, and relevant exposure context show the functional finding is robust and decision-relevant.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "A compound-matched article reports automated patch-clamp measurements of hERG drug block and specifically describes cisapride block as state-dependent, with reduced block after S624A mutation in the WT background.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "abstract_or_excerpt",
+            "scope": {
+              "assay": "automated patch clamp",
+              "compound": "cisapride",
+              "endpoint": "herg",
+              "use_context": "in vitro channel pharmacology"
+            },
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          },
+          {
+            "id": "e2",
+            "claim": "The predictor classifies cisapride as a hERG blocker with an uncalibrated model score above its artifact threshold; this is a model signal, not independent experimental confirmation.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+            "stance": "supports",
+            "directness": "not_assessed",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "scope": {
+              "assay": "fixed toxicity predictor",
+              "compound": "cisapride",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          },
+          {
+            "id": "e3",
+            "claim": "Patch clamp should drive a hERG functional-liability decision more than weak radioligand displacement for cisapride.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "in vitro hERG functional liability"
+            },
+            "actor": "server",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          },
+          {
+            "id": "e4",
+            "claim": "The predictor classification is concordant with the functional hERG interpretation but is not independent experimental confirmation.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "description": "The supplied results omit concentrations, concentration-response parameters, cell system, voltage/temperature protocol, and exposure context, so practical significance cannot be judged from potency wording alone.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for direct compound-matched evidence that could weaken the functional hERG interpretation or show that the apparent conflict is not assay-scope related.",
+            "decision": "continue",
+            "outcome": "Initial targeted search did not return a citable record; absence of a returned record is not evidence against the hypothesis.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the decision stays within the hERG assay scope and does not turn a functional signal into a clinical or safety verdict.",
+            "decision": "answer",
+            "outcome": "Patch clamp is the more decision-relevant assay for a functional hERG question, but missing protocol, potency, and exposure data limit the broader decision.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Repeat a compound-matched functional hERG patch-clamp concentration-response experiment with reported protocol, controls, and exposure comparison; optionally run the binding assay in parallel under documented matched conditions.",
+            "rationale": "This separates a reproducible functional block from assay/protocol mismatch and supplies the potency and exposure information missing from the current record.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "reproducible concentration-dependent inhibition of hERG current with an interpretable potency estimate",
+              "no inhibition or protocol-dependent result despite matched compound identity",
+              "documented relation between binding displacement and functional current block"
+            ],
+            "actor": "model",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "For a hERG functional-liability decision, the patch-clamp result should carry more weight than weak radioligand displacement because it measures channel-current inhibition directly; the compound-matched article supports cisapride-associated, state-dependent hERG block.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The fixed predictor is directionally concordant, classifying cisapride as a hERG blocker, but it remains a model signal rather than independent confirmation.",
+              "evidence_ids": [
+                "e2"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "The available record does not establish a clinical, regulatory, or overall safety conclusion.",
+            "The practical significance of the reported potency cannot be judged without assay conditions, concentration-response data, and exposure context."
+          ],
+          "what_would_change": [
+            "A well-controlled compound-matched functional patch-clamp concentration-response result that fails to reproduce the reported block or demonstrates a protocol-specific artifact.",
+            "Matched assay metadata and free-exposure context showing that the functional potency is not decision-relevant for the intended use."
+          ],
+          "approver": "",
+          "run_id": "run_590a471da63c428f9668be728dd8ee06"
+        },
+        "runs": [
+          {
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "goal": "For cisapride (CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?",
+            "stop_reason": "sufficient",
+            "answer_id": "ans_a0c94fda6db34f6a83f528790c2fff7a",
+            "usage": {
+              "searches": 2,
+              "tool_calls": 17,
+              "denied_calls": 0,
+              "failed_calls": 2,
+              "evidence_reads": 1
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 1,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0
+        },
+        "revision": 16,
+        "created_at": "2026-09-25T12:58:48.521285+00:00",
+        "updated_at": "2026-09-25T13:02:48.070607+00:00"
+      },
+      "events": {
+        "case_id": "scase_96f3bade866644a581d47ff792b63298",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_96f3bade866644a581d47ff792b63298",
+              "question": "For cisapride (CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?",
+              "session_id": "ses_c626bb9e43774791b83ceff622954b7d",
+              "subject_key": "analysis:ana_726fcce3c58c45c9af6d8fe552828e6f",
+              "subject_refs": [
+                "analysis:ana_726fcce3c58c45c9af6d8fe552828e6f"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:58:48.521285+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "For cisapride (CO[C@H]1CN(CC[C@H]1NC(=O)C2=CC(=C(C=C2OC)N)Cl)CCCOC3=CC=C(C=C3)F): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:58:48.521285+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 2
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "For cisapride, which should drive the decision when a radioligand binding screen shows weak displacement but a patch-clamp study reports potent hERG block?",
+              "statement": "The patch-clamp result is a direct functional hERG signal and should drive a hERG-focused decision more than weak radioligand displacement.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "hypothesis_kind": "other",
+              "decision_context": "Prioritize the most decision-relevant evidence for hERG liability without treating different assays as interchangeable.",
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A well-controlled, compound-matched functional assay fails to reproduce hERG block under relevant conditions, or the patch-clamp result is shown to be non-specific or methodologically invalid."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:59:44.019098+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "can_say": [],
+              "statement": "The apparent conflict is explained by assay mismatch: radioligand displacement measures binding-site occupancy, whereas patch clamp measures functional channel inhibition, so weak binding displacement need not exclude functional block.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "The two assays are shown to use the same functional endpoint and matched conditions, yet produce incompatible results."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:59:44.019119+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "severity": "high",
+              "statement": "The available information is insufficient to determine the practical significance of the hERG signal because assay conditions, concentration-response data, selectivity, and exposure context are not supplied.",
+              "cannot_say": [],
+              "description": "The user supplied no concentrations, species/cell system, temperature, protocol details, or exposure context for either result.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Matched assay metadata, concentration-response data, and relevant exposure context show the functional finding is robust and decision-relevant."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:59:44.019127+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 5
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "Initial targeted search did not return a citable record; absence of a returned record is not evidence against the hypothesis.",
+              "purpose": "Look for direct compound-matched evidence that could weaken the functional hERG interpretation or show that the apparent conflict is not assay-scope related.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:59:44.019138+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "A compound-matched article reports automated patch-clamp measurements of hERG drug block and specifically describes cisapride block as state-dependent, with reduced block after S624A mutation in the WT background.",
+              "scope": {
+                "assay": "automated patch clamp",
+                "compound": "cisapride",
+                "endpoint": "herg",
+                "use_context": "in vitro channel pharmacology"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "abstract_or_excerpt",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+              "evidence_ids": [],
+              "source_class": "external_experimental",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:08.111092+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 7
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor classifies cisapride as a hERG blocker with an uncalibrated model score above its artifact threshold; this is a model signal, not independent experimental confirmation.",
+              "scope": {
+                "assay": "fixed toxicity predictor",
+                "compound": "cisapride",
+                "endpoint": "herg"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+              "cannot_say": [],
+              "directness": "not_assessed",
+              "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:08.111117+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 8
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The supplied results omit concentrations, concentration-response parameters, cell system, voltage/temperature protocol, and exposure context, so practical significance cannot be judged from potency wording alone.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:08.111127+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 9
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Repeat a compound-matched functional hERG patch-clamp concentration-response experiment with reported protocol, controls, and exposure comparison; optionally run the binding assay in parallel under documented matched conditions.",
+              "can_say": [],
+              "rationale": "This separates a reproducible functional block from assay/protocol mismatch and supplies the potency and exposure information missing from the current record.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "reproducible concentration-dependent inhibition of hERG current with an interpretable potency estimate",
+                "no inhibition or protocol-dependent result despite matched compound identity",
+                "documented relation between binding displacement and functional current block"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:08.111134+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 10
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Patch clamp is the more decision-relevant assay for a functional hERG question, but missing protocol, potency, and exposure data limit the broader decision.",
+              "purpose": "Check that the decision stays within the hERG assay scope and does not turn a functional signal into a clinical or safety verdict.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:08.111142+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 11
+          },
+          {
+            "op": "revise_hypothesis",
+            "payload": {
+              "reason": "The compound-matched patch-clamp article directly supports functional cisapride-associated hERG block, while the apparent conflict is between functional current inhibition and binding displacement rather than identical endpoints; the predictor is concordant but not independent evidence.",
+              "status": "supported",
+              "can_say": [],
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_id": "h1",
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:28.350474+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 12
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "For a hERG functional-liability decision, the patch-clamp result should carry more weight than weak radioligand displacement because it measures channel-current inhibition directly; the compound-matched article supports cisapride-associated, state-dependent hERG block.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The fixed predictor is directionally concordant, classifying cisapride as a hERG blocker, but it remains a model signal rather than independent confirmation.",
+                  "evidence_ids": [
+                    "e2"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "The available record does not establish a clinical, regulatory, or overall safety conclusion.",
+                "The practical significance of the reported potency cannot be judged without assay conditions, concentration-response data, and exposure context."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A well-controlled compound-matched functional patch-clamp concentration-response result that fails to reproduce the reported block or demonstrates a protocol-specific artifact.",
+                "Matched assay metadata and free-exposure context showing that the functional potency is not decision-relevant for the intended use."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:01:28.350507+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 13
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "Patch clamp should drive a hERG functional-liability decision more than weak radioligand displacement for cisapride.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "in vitro hERG functional liability"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "evidence:evd_b9a42697d313424db77cb71619e00618",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:02:37.975483+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 14
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor classification is concordant with the functional hERG interpretation but is not independent experimental confirmation.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_bdfc938089384919927d76e8db110646",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:02:37.975483+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 15
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 2,
+                "tool_calls": 17,
+                "denied_calls": 0,
+                "failed_calls": 2,
+                "evidence_reads": 1
+              },
+              "answer_id": "ans_a0c94fda6db34f6a83f528790c2fff7a",
+              "stop_reason": "sufficient"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:02:48.070607+00:00",
+            "run_id": "run_590a471da63c428f9668be728dd8ee06",
+            "revision": 16
+          }
+        ]
+      }
+    }
+  ]
+}

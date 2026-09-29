@@ -31,7 +31,7 @@ from typing import Any
 
 import httpx
 
-from ...config import RuntimeSettings
+from ...platform.config import RuntimeSettings
 from ...domain.errors import RuntimeProtocolError, RuntimeUnavailable
 from ...domain.runtime import RuntimeCapabilities
 from ..provider import (
@@ -110,7 +110,15 @@ class OpenCodeV1Provider:
     def _directory_for_spec(self, spec: RuntimeSessionSpec) -> str:
         # ``run_id`` is server-generated and validated by the domain type, so
         # this cannot turn into a traversal path chosen by a user/model.
-        return self._settings.opencode_directory.rstrip("/") + "/" + spec.run_id
+        directory = self._settings.opencode_directory.rstrip("/") + "/" + spec.run_id
+        # A run can open a second runtime session (the claim reviewer, W9-12)
+        # while its first workspace still exists. In the local single-host
+        # mode this adapter made that workspace, so the second session gets
+        # its own sibling; a supervisor-owned host keeps one per run.
+        if (self._settings.opencode_create_run_directories
+                and str(Path(directory).resolve()) in self._locally_managed_directories):
+            directory += "-" + spec.profile.replace("_", "-")
+        return directory
 
     def _directory_for_session(self, runtime_session_id: str) -> str:
         directory = self._directories.get(runtime_session_id)

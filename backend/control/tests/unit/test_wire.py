@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from toxagent.validation.wire import ClaimCandidate, GroundedAnswerCandidate
+from toxagent.validation.answer.candidate_wire import ClaimCandidate, GroundedAnswerCandidate
 
 VALID_CLAIM_ID = "clm_" + "a" * 32
 VALID_OBS_ID = "obs_" + "b" * 32

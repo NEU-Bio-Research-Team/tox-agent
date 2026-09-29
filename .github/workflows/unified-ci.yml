@@ -63,6 +63,30 @@ jobs:
           name: junit-${{ matrix.service }}
           path: ${{ matrix.dir }}/junit-${{ matrix.service }}.xml
 
+  # One ruff configuration (ruff.toml) for every Python tree. Blocking: the
+  # tree is clean against it. Type checking is reported, not yet enforced —
+  # see docs/internal/spec/WORKSPACE_STRUCTURE_REVIEW.md, Phase 0.
+  lint:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - run: pip install ruff==0.13.3
+      - run: ruff check backend devops
+      - run: pip install -e './backend/control[dev]'
+      # The frontend types its API calls from this document; a response model
+      # changed without regenerating it is a build failure here.
+      - name: OpenAPI document is current
+        run: python backend/control/scripts/export_openapi.py --check
+      - name: mypy (report only)
+        continue-on-error: true
+        run: mypy src/toxagent
+        working-directory: backend/control
+
   pinned-artifacts:
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
@@ -74,14 +98,16 @@ jobs:
           python-version: '3.10'
       # Links resolve, and no current document names a path the relocation
       # removed. Historical records are exempt by name, not by accident (I32).
-      - run: python devops/scripts/check_docs.py
+      - run: python devops/checks/check_docs.py
       # A CI checkout holds only tracked roots; a stray source tree here means
       # something generated or vendored code into the workspace.
-      - run: python devops/scripts/check_workspace.py --strict
+      - run: python devops/checks/check_workspace.py --strict
       - run: pip install pytest
       # bin/toxagent against recorded docker/ss argv. Two subcommands were
       # dropping an argument (I28/I29) in ways no unit of the script shows.
-      - run: python -m pytest devops/tests -q
+      # The release manifest records what an installed environment resolved;
+      # this job installs nothing to resolve. supply-chain runs it over one.
+      - run: python -m pytest devops/tests -q --ignore devops/tests/test_release_manifest.py
 
   # The only environment where both packages are installed, so the only one
   # that can regenerate the predictor's OpenAPI and compare it to the pin.
@@ -119,8 +145,11 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - name: Generated API types match openapi.json
+        run: npm run openapi:types && git diff --exit-code -- src/shared/api/openapi.d.ts
       - run: npm run typecheck
-      - run: npm run lint:policy
+      # ESLint, then the product policy lint (scripts/policy-lint.mjs).
+      - run: npm run lint
       - run: npm test
       # `build` also enforces the bundle budget (scripts/check-bundle-budget.mjs),
       # so a lazily loaded editor silently landing in the entry chunk fails here.
@@ -157,10 +186,10 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      - run: pip install -r backend/ocr/requirements.txt pytest
+      - run: pip install -e './backend/ocr[dev]'
       # Contract-level only: these tests must not download a checkpoint. A
       # model smoke belongs in a scheduled job with an artifact cache.
-      - run: PYTHONPATH=src python -m pytest -q tests
+      - run: python -m pytest -q
         working-directory: backend/ocr
 
   # Repositories, migrations and the multi-instance invariants only mean
@@ -229,7 +258,7 @@ jobs:
       - name: Shipped resources resolve from a wheel, run from an unrelated cwd
         run: |
           cd /tmp && /tmp/toxagent-clean/bin/python - <<'PY'
-          from toxagent.config import Settings
+          from toxagent.platform.config import Settings
           s = Settings.from_env()
           profile = s.profiles_dir / "opencode" / "toxagent.json"
           assert profile.is_file(), f"agent profile missing from the wheel: {profile}"
@@ -255,7 +284,7 @@ jobs:
       - name: Control image resolves the profiles it will actually load
         run: |
           docker run --rm --network=none --entrypoint python toxagent-control-ci -c "
-          from toxagent.config import Settings
+          from toxagent.platform.config import Settings
           p = Settings.from_env().profiles_dir / 'opencode' / 'toxagent.json'
           assert p.is_file(), f'agent profile missing from the image: {p}'
           print('control image resources OK')"
@@ -358,8 +387,8 @@ jobs:
       # What a customer distribution would contain. Fails on a tracked path
       # matching no rule, on a shipped document linking to a withheld one, and
       # on an undeclared credential shape in anything shipped.
-      - run: python devops/scripts/handoff.py --check
-      - run: python devops/scripts/release_manifest.py --out release-manifest.json
+      - run: python devops/release/handoff.py --check
+      - run: python devops/release/release_manifest.py --out release-manifest.json
       - run: cat release-manifest.json
 
       # CycloneDX over the environment that was actually installed, rather

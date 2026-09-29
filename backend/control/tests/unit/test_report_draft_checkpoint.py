@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application.submit_report_draft import _apply_draft_patch, _draft_sha256
+from toxagent.application.report.submit_draft import _apply_draft_patch, _draft_sha256
 from toxagent.domain.errors import Conflict
 from toxagent.tools.definitions import report as report_tools
 from toxagent.tools.registry import ToolRegistry

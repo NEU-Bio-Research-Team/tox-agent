@@ -1,4 +1,4 @@
-from toxagent.activities.presentation import activity_for_tool
+from toxagent.tools.activities import activity_for_tool
 
 
 def test_activity_label_uses_intent_not_raw_tool_name_alone():

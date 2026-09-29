@@ -13,14 +13,14 @@ from datetime import datetime, timezone
 import pytest
 
 from tests.support.audit_fixtures import CCO_ATTRIBUTION, load
-from toxagent.application.explanation import extract_highlights
-from toxagent.application.report_dispatch import (
+from toxagent.application.explanation.service import extract_highlights
+from toxagent.application.report.dispatch import (
     OrchestratedReportBuild,
     ReportStageFailed,
     ReportSynthesisRefused,
 )
-from toxagent.application.report_stages import StageCheckpoint, StageStatus
-from toxagent.config import Settings
+from toxagent.application.report.stages import StageCheckpoint, StageStatus
+from toxagent.platform.config import Settings
 from toxagent.domain.errors import RuntimeUnavailable
 from toxagent.domain.report import (
     BuildStage,
@@ -31,10 +31,10 @@ from toxagent.domain.report import (
 from toxagent.harness.prompt_budget import estimate_tokens
 from toxagent.harness.report_profile import compose_report_profile
 from toxagent.harness.synthesis_profile import compose_synthesis_profile
-from toxagent.report.artifact_v3 import SCHEMA_VERSION_V3, to_artifact
-from toxagent.report.compiler_v3 import compile_report
+from toxagent.report.synthesis_artifact import SCHEMA_VERSION_V3, to_artifact
+from toxagent.report.synthesis_compiler import compile_report
 from toxagent.report.fact_bundle import assemble
-from toxagent.validation.synthesis_wire import ReportSynthesisV3
+from toxagent.validation.report.synthesis_wire import ReportSynthesisV3
 
 BUILD = "rpb_" + "a" * 32
 ANALYSIS = "ana_" + "b" * 32

@@ -7,29 +7,44 @@ next verification step — through an audit trail that can be reconstructed.
 
 It is a **separate deployable** from the predictor. It talks to ToxPred over
 `/v1` HTTP only, and it imports no model code. See
-[`docs/adr/0001-three-boundary-topology.md`](docs/adr/0001-three-boundary-topology.md).
+[`docs/adr/0001-three-boundary-topology.md`](../../docs/adr/0001-three-boundary-topology.md).
 The same discipline extends to `../toxocr` (image -> SMILES structure
 recognition) — see
-[`docs/adr/0006-ocr-fourth-boundary.md`](docs/adr/0006-ocr-fourth-boundary.md).
+[`docs/adr/0006-ocr-fourth-boundary.md`](../../docs/adr/0006-ocr-fourth-boundary.md).
 
 ## Layout
 
 ```
 src/toxagent/
-  api/           product HTTP API, SSE, error envelope
-  domain/        session, run, analysis, observation, evidence, answer
-  application/   the workflows: analyse, answer, research, submit, cancel
-  predictor/     pinned ToxPred client, OpenAPI snapshot, and the toxocr client
-  research/      evidence provider interfaces, normalisation, policy
-  tools/         typed tool registry, runner, projections, MCP server
-  harness/       AgentRuntimeGateway and the runtime adapters
-  validation/    numeric, classification, citation, limitation validators
-  persistence/   store interfaces and the SQLAlchemy implementation
-  streaming/     transactional outbox and SSE dispatch
-  telemetry/     traces and metrics
+  api/            product HTTP API, SSE, error envelope; effective_product (what is assembled)
+  harness/        AgentRuntimeGateway, runtime adapters, prompt context and budgets
+  tools/          typed tool registry, runner, tool definitions, MCP server
+  application/    the workflows, grouped by feature:
+    conversation/   sessions, messages, intent routing, grounded answers
+    prediction/     analyses, quick predict, structure recognition
+    explanation/    atom attributions and their readiness
+    report/         the draft report path and the orchestrated build
+    investigation/  scientific case, decision state, claim review, skills
+    runs/           scheduling, state transitions, budgets, concurrency, queues
+  report/         report compilers, fact bundle, figures, renderers, synthesis gates
+  validation/     answer/ and report/ validators; prohibited claims, limitations
+  persistence/    store interfaces and the SQLAlchemy implementation
+  research/       evidence provider interfaces, normalisation, policy
+  predictor/      pinned ToxPred client, OpenAPI snapshot, and the toxocr client
+  connections/    model-provider connections and their probes
+  streaming/      transactional outbox and SSE dispatch
+  domain/         session, run, analysis, observation, evidence, answer, report
+  platform/       settings, rollout flags, metrics, logging
+  superseded/     the ADR 0011 kernel; nothing live imports it; deleted with its tables
   agent_profiles/ pinned OpenCode / DSH agent configuration and prompts
+  worker.py       the queue worker entry point
 evals/           task set, frozen fixtures, graders, manifests, runner
 ```
+
+The order above is the dependency order: a package imports only packages
+listed below it (`domain` and `platform` are the floor). It is enforced by
+`LAYERS` in `tests/unit/test_boundaries.py`, which also fails when a new
+package has not been placed.
 
 `agent_profiles/` sits inside the package, not beside it, because the running
 code reads it: shipping it as package data is what makes `pip install .`,
@@ -38,11 +53,15 @@ code reads it: shipping it as package data is what makes `pip install .`,
 ## What is enforced, not merely intended
 
 - A number in an accepted answer equals the predictor field it cites, or the
-  answer does not exist (`validation/numeric.py`).
+  answer does not exist (`validation/answer/numeric.py`).
 - hERG, Tox21 and ClinTox never substitute for one another, and there is no
   aggregate score in any schema (ADR 0002).
 - A denied tool is invisible to the model *and* refused at the transport.
 - Losing the runtime loses no product state; recovery opens a new run.
+- Every JSON response matches the model its route declares
+  (`api/responses.py`): the test suite validates each one it produces. The
+  browser's API types are generated from those models (`make openapi`), and CI
+  fails when either generated file is stale.
 
 ## Running the tests
 

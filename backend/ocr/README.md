@@ -4,7 +4,7 @@ Optical chemical structure recognition: an image of a 2D structure in, a
 SMILES string out. One endpoint, one job.
 
 A **separate deployable** from both `toxpred` and `backend/control` — see
-[`backend/control/docs/adr/0006-ocr-fourth-boundary.md`](../control/docs/adr/0006-ocr-fourth-boundary.md)
+[`docs/adr/0006-ocr-fourth-boundary.md`](../../docs/adr/0006-ocr-fourth-boundary.md)
 for why. It imports [MolScribe](https://github.com/thomas0809/MolScribe) and
 nothing else knows that dependency exists.
 
@@ -26,10 +26,8 @@ working setup, CPU only:
 conda create -n toxocr-env python=3.10
 conda activate toxocr-env
 pip install torch==1.13.1 --index-url https://download.pytorch.org/whl/cpu
-pip install -r toxocr/requirements.txt
-pip install "numpy<2"   # see requirements.txt's comment — molscribe's pinned
-                         # deps (timm, torchvision 0.14, albumentations 1.1.0)
-                         # predate NumPy 2.0's ABI break
+pip install -r backend/ocr/requirements.lock   # pinned; numpy stays 1.x
+pip install --no-deps -e 'backend/ocr[dev]'
 ```
 
 ## Running it

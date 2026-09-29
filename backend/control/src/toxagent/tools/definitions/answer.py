@@ -8,19 +8,23 @@ Validation, the correction policy and the deterministic fallback all live in
 """
 from __future__ import annotations
 
+import logging
 from typing import Final
 
-from ...application.submit_answer import SubmitAnswer
-from ...config import PolicySettings
-from ...flags import is_enabled
-from ...validation.wire import GroundedAnswerCandidate
-from ...validation.wire_v2 import GroundedAnswerDraftV2
+from ...application.investigation import scientific_case_service
+from ...application.conversation.submit_answer import SubmitAnswer
+from ...platform.config import PolicySettings
+from ...platform.flags import is_enabled
+from ...validation.answer.candidate_wire import GroundedAnswerCandidate
+from ...validation.answer.draft_wire import GroundedAnswerDraftV2
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 #: Referenced by tools/runner.py so the final-answer tool can be excluded from
 #: the per-run tool-call budget (plan section 14.5) without a duplicated
 #: string literal.
 ANSWER_TOOL_NAME: Final[str] = "submit_grounded_answer"
+
+log = logging.getLogger("toxagent.scientific_case")
 
 
 #: The v2 surface. Notice what is missing: no identifier format, no worked
@@ -36,6 +40,12 @@ _V2_DESCRIPTION: Final[str] = (
     "checks the value itself, so do not send the number. Every scientific or "
     "comparison claim needs either such a citation or an accepted evidence "
     "citation_id.\n\n"
+    "To show a numeric, classification or comparison claim's value in "
+    "answer_markdown, write its local_ref in double braces — '{{herg_p}}' — and the "
+    "server inserts the value it rendered (for any other claim it inserts the "
+    "claim's text). A number you write into answer_markdown yourself must be the "
+    "value of one of your numeric or comparison claims, at any precision you "
+    "choose.\n\n"
     "To compare two predictor values ('how much higher is X than Y'): submit each "
     "value as its own numeric claim, then a third with kind=comparison, "
     "transform='difference' (first minus second) or 'ratio', and input_local_refs "
@@ -55,6 +65,27 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             session_id=context.session_id, run_id=context.run_id, candidate=payload,
             language=context.language,
         )
+        if not outcome.is_fallback and is_enabled("scientific_case_v1"):
+            # ADR 0012: an accepted answer's relations (v2) and cited sources
+            # (any schema, W9-04) join the case ledger as server entries —
+            # after the answer committed, in their own unit of work, so case
+            # bookkeeping can never fail or roll back an answer.
+            try:
+                async with database.unit_of_work() as uow:
+                    cited = await scientific_case_service.cited_sources(
+                        uow, session_id=context.session_id, answer=outcome.answer,
+                    )
+            except Exception:  # noqa: BLE001 - bookkeeping must not fail the answer
+                log.exception("could not read the answer's cited sources",
+                              extra={"run_id": context.run_id})
+                cited = []
+            await scientific_case_service.advance(
+                database, session_id=context.session_id, run_id=context.run_id,
+                updates_for=scientific_case_service.answer_ledger_updates(
+                    getattr(payload, "evidence_relations", None) or (), cited,
+                    run_id=context.run_id,
+                ),
+            )
         answer_view = outcome.answer.to_dict()
         model_view = {
             "answer_id": outcome.answer.id,

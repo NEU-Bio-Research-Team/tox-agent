@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application.explanation import ExplanationUnavailable
-from toxagent.application.explanation_readiness import (
+from toxagent.application.explanation.service import ExplanationUnavailable
+from toxagent.application.explanation.readiness import (
     explainer_readiness,
     readiness_for_model,
     smoke_explanation,

@@ -1,0 +1,1070 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_884b1b57175d46fb9d0a48999d66ad4b",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_bdab2724cfbd4826bdefbc9da4651727",
+        "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T12:54:46.145294+00:00",
+        "created_at": "2026-09-25T12:49:46.145294+00:00",
+        "started_at": "2026-09-25T12:49:46.298553+00:00",
+        "ended_at": "2026-09-25T12:51:20.570971+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "806dd9a718eb9051fd51484dbf25cc5a7aa1400bc859cd7a08b66761cefa43af"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [
+              "study"
+            ],
+            "confidence": "high",
+            "reason_codes": [
+              "research_phrase"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:49:46.148566+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_3abf4979713a41b8b2c043fa905d6bd9",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:49:55.425012+00:00",
+              "tokens": {
+                "input": 3907,
+                "output": 74,
+                "reasoning": 10,
+                "cache_read": 1536,
+                "cache_write": 0,
+                "total": 5527
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_f54d90064fbe88e9c9f319030730455d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89d62f90017ivjThCchymiXV",
+                "step_id": "prt_0d89d7eda001u6AdkGy2ZyOM4B",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a4193cbfc177454d86d6104725611334",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:50:03.995380+00:00",
+              "tokens": {
+                "input": 1110,
+                "output": 218,
+                "reasoning": 39,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 5975
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_4d5ba91cb59a064b6a2f582f9b38fb58",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89d7efe001Z03D4ZAXZMu7AK",
+                "step_id": "prt_0d89da054001t1llgK81nli14E",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f4335445138a428ea32be3afa6d1f2fa",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:50:09.079638+00:00",
+              "tokens": {
+                "input": 7320,
+                "output": 155,
+                "reasoning": 14,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 7489
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_fb61d7d0edba3ab894c77b78b7c8d471",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89da079001oxDH5kLgEbaZha",
+                "step_id": "prt_0d89db430001N1LMjWcPT2wpbV",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_47c2494e58c84aacaea54c81d86f8633",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:50:38.714209+00:00",
+              "tokens": {
+                "input": 2977,
+                "output": 919,
+                "reasoning": 316,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 10868
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_58fbb32efa47dc1bf74ce3b321dbfdf7",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89db454001BYEomUqTb9ey9x",
+                "step_id": "prt_0d89e27f2001gznQiJEyi1H2sA",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_de78c498678e4d538668e2d44692aed8",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:50:58.619197+00:00",
+              "tokens": {
+                "input": 2197,
+                "output": 849,
+                "reasoning": 33,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 11783
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_841714728a7aa45f4f327860dac2bd5a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89e281b001CB1wtQ7cDCBWkB",
+                "step_id": "prt_0d89e75b5001O7ON3eSHtq93DC",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_125b1ce61a0348d883fc845750b8b843",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:51:16.847462+00:00",
+              "tokens": {
+                "input": 1064,
+                "output": 758,
+                "reasoning": 79,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 12653
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7fba16fb19cb522c5d732a008f78b744",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89e75d10010RaXJKgPDi3Hzq",
+                "step_id": "prt_0d89ebce8001VVfPvgRcWQoYkc",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_11b871a711864661bde47526317b2c7d",
+              "runtime_binding_id": "rtb_8c6620fbfb2841f992dd290552fad3d8",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:51:20.494003+00:00",
+              "tokens": {
+                "input": 2035,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 12791
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_9fa182418d0facf578f29e05040b6cc7",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d89ebd0e001RhjapsDjxcRNwe",
+                "step_id": "prt_0d89ecb27001K1tNFgH107r3Sl",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_370fa6f1c57144c685394079fdb815ec",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 24,
+            "arguments_sha256": "7477d0315c43f163879cb360d85475d59a5c2c3b76d157c6865fe89602830afb",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:49:55.338334+00:00",
+            "ended_at": "2026-09-25T12:49:55.360861+00:00"
+          },
+          {
+            "call_id": "call_570c85da4ff54954bb871e03fc29f4ee",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "0e245bb7ab68e9cfef44f8da16b4cc80093837ec6f577f726f15d209599bd8ad",
+            "observation_ids": [
+              "obs_c9fcf9db605e4dbd9f591729540bb0a1"
+            ],
+            "started_at": "2026-09-25T12:50:02.489368+00:00",
+            "ended_at": "2026-09-25T12:50:02.502459+00:00"
+          },
+          {
+            "call_id": "call_7a91222fae814a7c8f108265549ab3d4",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1381,
+            "arguments_sha256": "8c52bc8593885a49806a1fb487f705f0e181a9dbf74349eaf3d9fb1ed142c9f5",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:50:02.581901+00:00",
+            "ended_at": "2026-09-25T12:50:03.961249+00:00"
+          },
+          {
+            "call_id": "call_9433ffdee5d347ccbd2cf592e039027c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "9cdad0cd60b487a429b22b3fe2f95616895f009f2e623adbd5f7da694ecb38e8",
+            "observation_ids": [
+              "obs_c9fcf9db605e4dbd9f591729540bb0a1"
+            ],
+            "started_at": "2026-09-25T12:50:02.776100+00:00",
+            "ended_at": "2026-09-25T12:50:02.787927+00:00"
+          },
+          {
+            "call_id": "call_e6828baca1624b208674be9a41be3604",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 11,
+            "arguments_sha256": "2cad32f3ed99f4720f87aada12305bbd6c0059ccda0e7e9a79168ebf095c0158",
+            "observation_ids": [
+              "evd_eb1413d588f14781bc0ab883059099b7"
+            ],
+            "started_at": "2026-09-25T12:50:08.912991+00:00",
+            "ended_at": "2026-09-25T12:50:08.922293+00:00"
+          },
+          {
+            "call_id": "call_e8a4415b526f4207bd155ad3d0ee9bb1",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 21,
+            "arguments_sha256": "8dc7248cc107a6265657abafaf7dd8e2bdf7186c395aa3c4d97debec48ae5ad9",
+            "observation_ids": [
+              "evd_02d407a2dfdc4cc6add0dd9cb52ff397"
+            ],
+            "started_at": "2026-09-25T12:50:09.014865+00:00",
+            "ended_at": "2026-09-25T12:50:09.025952+00:00"
+          },
+          {
+            "call_id": "call_fc4811fa85c644fbab45af277ebd3e56",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "7bdacf123ae7cf3647dfa5ad4d51cd07a741b0b20c7f01b38b79e32c658a88f1",
+            "observation_ids": [
+              "evd_c6e84e9ccab2498aad94264a63cdff7b"
+            ],
+            "started_at": "2026-09-25T12:50:09.017524+00:00",
+            "ended_at": "2026-09-25T12:50:09.030885+00:00"
+          },
+          {
+            "call_id": "call_cc92a96b8fd6432da067c15ff9038b2e",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 40,
+            "arguments_sha256": "2ba7d10c6188deb58ae135912ad9fb01573fe95b62e80dfe7988b82088567ca5",
+            "observation_ids": [
+              "obs_c9fcf9db605e4dbd9f591729540bb0a1"
+            ],
+            "started_at": "2026-09-25T12:51:16.715361+00:00",
+            "ended_at": "2026-09-25T12:51:16.752025+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_1f9897d5a9e34ad6bb6a0506db52b9f5",
+        "run_id": "run_884b1b57175d46fb9d0a48999d66ad4b",
+        "answer_markdown": "The stored hERG model does **not** indicate an immediate development-blocking signal: it classifies fexofenadine as `non_blocker` with a model blocker score of 0.25065457820892334. This is an uncalibrated model score, not a clinical QT or torsades risk estimate.\n\nI would **not stop development on the hERG prediction alone**. The next study should be a concentration-response hERG patch-clamp assay using free-exposure margin assessment and relevant metabolites. If that is clean, follow with an integrated cardiac electrophysiology package such as action-potential assays and in vivo QT assessment. The literature search also identified a report describing fexofenadine as a non-cardiotoxic metabolite relative to terfenadine, but that finding does not replace compound-specific verification.",
+        "claims": [
+          {
+            "claim_id": "clm_8f4a2c91d7e630b5a9c1f284e7b6d3a0",
+            "kind": "classification",
+            "text": "The hERG predictor classifies fexofenadine as a non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_c9fcf9db605e4dbd9f591729540bb0a1",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_b1e739d4a6f28c50e9d137ab3c64f82e",
+            "kind": "numeric",
+            "text": "The predicted probability of hERG block is 0.25065457820892334.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_c9fcf9db605e4dbd9f591729540bb0a1",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.25065457820892334,
+            "rendered_value": "0.25065457820892334"
+          },
+          {
+            "claim_id": "clm_5d2e8a7c90f143b6e4c1a9d835f70b2c",
+            "kind": "scientific",
+            "text": "A recent docking and electrophysiology-focused report describes fexofenadine as a non-cardiotoxic metabolite relative to terfenadine, while also emphasizing that binding affinity alone does not establish toxicity.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_02d407a2dfdc4cc6add0dd9cb52ff397"
+            ]
+          },
+          {
+            "claim_id": "clm_3a7e1c9f52d84b60a6f3e2d718c9b405",
+            "kind": "recommendation",
+            "text": "Do not treat the model result as a development stop; run compound-specific concentration-response hERG patch clamp with relevant metabolites, followed by integrated cardiac electrophysiology if warranted.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a model score and is not a calibrated clinical risk."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The cited literature is limited to the reported study contexts and does not independently establish the development decision for this compound."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed follow-up studies are screening and verification steps, not a safety assessment or guarantee of development suitability."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run concentration-response hERG patch clamp for parent fexofenadine and relevant metabolites, then integrate with cardiac action-potential and QT-relevant studies if needed.",
+            "basis_claim_ids": []
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "bbbe1e313fe8184c9eb2cc67e86ef9c7cbb3fce6bbdfa5ac8f4a98b4f7d278f9",
+        "created_at": "2026-09-25T12:51:16.729071+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_8f7c9c6e70d447bca1623de723aae713",
+        "run_id": "run_884b1b57175d46fb9d0a48999d66ad4b",
+        "goal": "Is hERG likely to block development of fexofenadine (CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O)? We need a recommendation for the next study.",
+        "subject_refs": [
+          "analysis:ana_391ad77bd9894acdb3da39bf2f1309fa"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 1,
+          "tool_calls": 8,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 3
+        },
+        "available_refs": [
+          "observation:obs_c9fcf9db605e4dbd9f591729540bb0a1",
+          "evidence:evd_eb1413d588f14781bc0ab883059099b7",
+          "evidence:evd_02d407a2dfdc4cc6add0dd9cb52ff397",
+          "evidence:evd_c6e84e9ccab2498aad94264a63cdff7b"
+        ],
+        "found_refs": [
+          "evidence:evd_eb1413d588f14781bc0ab883059099b7",
+          "evidence:evd_02d407a2dfdc4cc6add0dd9cb52ff397",
+          "evidence:evd_c6e84e9ccab2498aad94264a63cdff7b"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 11
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_8f7c9c6e70d447bca1623de723aae713",
+  "analysis": {
+    "run": {
+      "run_id": "run_f94e97d596294c788c54c266c7059c29",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_36f64a85c38a430390c4f201ffa2d6d0",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T12:54:45.071866+00:00",
+      "created_at": "2026-09-25T12:49:45.071866+00:00",
+      "started_at": "2026-09-25T12:49:45.086873+00:00",
+      "ended_at": "2026-09-25T12:49:45.123779+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:49:45.073142+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_391ad77bd9894acdb3da39bf2f1309fa",
+      "input_smiles": "CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O",
+      "canonical_smiles": "CC(C)(C(=O)O)c1ccc(C(O)CCCN2CCC(C(O)(c3ccccc3)c3ccccc3)CC2)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.25065457820892334,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.23649179935455322,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.42409026622772217,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.05079974979162216,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.46349966526031494,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.21645204722881317,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.17771540582180023,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.23136065900325775,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.13962389528751373,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.24413371086120605,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.538490891456604,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.3999601900577545,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.8682191967964172,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "815bedcd-706b-4b5f-8773-3879644e417c",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 64,
+            "encoded_token_count": 64
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "eeddab564a6cfbfa0980d4a480f71344e912b37fb4b3cc5834dad231375acd51"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:49:45.112890+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_d3d1af91f2c74ccbbb6de195c08b013a",
+      "title": "Exploring the Role of Metabolites in Torsadogenic Risk Assessment: A Text-Mining Approach.",
+      "authors": [
+        "Bilgin E",
+        "Tuğcu G",
+        "Aydın A"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.4274/tjps.galenos.2026.43334",
+        "pmid": "42678219",
+        "pmcid": "PMC13533023",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42678219",
+      "abstract_or_excerpt": "<h4>Objectives</h4>Torsades de pointes (TdP) is a life-threatening ventricular arrhythmia often caused by the inadvertent inhibition of the human ether-à-go-go-related gene (hERG). Conventional pre-market evaluations, which emphasize parent molecules, often yield inaccurate predictions due to the multifaceted nature of TdP. This study aimed to investigate the role of metabolites and their interplay with parent molecules in the manifestation of TdP.<h4>Materials and methods</h4>A literature-based text-mining approach was employed, using the adverse outcome pathway-helpFinder tool. The analysis scrutinized 64 selected active ingredients, categorized by their torsadogenic risks, to evaluate the distinct proarrhythmic contributions of their metabolites.<h4>Results</h4>This text-mining exploration revealed qualitative evidence that metabolites variably modulate TdP vulnerability. Specifically, certain metabolites can independently exacerbate proarrhythmic profiles, whereas others do not inhibit hERG and therefore represent safer therapeutic alternatives than their parent molecules.<h4>Conclusion</h4>Metabolites play a paramount role in altering the torsadogenic risk profile of pharmaceutical products. Incorporating comprehensive metabolite data into cardiac safety evaluations is essential for a more accurate risk assessment and should be considered in future pharmaceutical development.",
+      "normalized_facts": {
+        "journal": "Turkish journal of pharmaceutical sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "d2b9f9d69cee47c43fbceed8f1e606da0614a110f78ba4d116f844110ef6e4c2"
+    },
+    {
+      "evidence_id": "evd_eb1413d588f14781bc0ab883059099b7",
+      "title": "Lumacaftor and fexofenadine prevent donepezil-induced LQTS via PHE656-mediated hERG chaperoning.",
+      "authors": [
+        "Li Y",
+        "Li X",
+        "Ren J",
+        "Hong H",
+        "Sun J",
+        "Ma L",
+        "Li B"
+      ],
+      "published_at": "2026-01-05",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.bcp.2026.117681",
+        "pmid": "41500472",
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41500472",
+      "abstract_or_excerpt": "Donepezil (DPZ), a first-line therapeutic agent for Alzheimer's disease, causes acquired long QT syndrome (LQTS) by inhibiting the hERG potassium channel. However, there are no specific countermeasures to prevent or reverse this side effect. This study aimed to investigate whether fexofenadine (FEX) and lumacaftor (LUM) can prevent DPZ-induced cardiotoxicity and elucidate the underlying molecular mechanisms. We employed molecular docking and molecular dynamics simulations to analyze interactions among FEX, LUM, DPZ, and hERG channel. Site-directed mutagenesis (F656V, Y652A) was utilized to validate the specific binding site of the drugs. Western blot, patch-clamp electrophysiology, co-immunoprecipitation and immunofluorescence were used to record hERG current, assess hERG protein expression level and examine the interaction between hERG and molecular chaperones Hsp70/Hsp90. Finally, the reversal effects of FEX and LUM on DPZ-induced QT interval and action potential duration (APD) prolongation were evaluated in guinea pig hearts and human induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CMs). The study confirmed that DPZ inhibits hERG channel function by specifically binding to the PHE656 site rather than Y652. FEX and LUM competitively occupied the PHE656 binding site, effectively reversing DPZ-induced hERG current suppression. Mechanistically, both compounds restored the DPZ-disrupted interaction between hERG and the Hsp70/Hsp90 chaperone complex, promoting correct folding and trafficking of hERG protein. FEX and LUM significantly antagonized DPZ-induced prolongation of the QT interval and APD<sub>90</sub>. Collectively, FEX and LUM effectively prevent DPZ-induced cardiotoxicity by competitively binding to the hERG PHE656 site and repairing the Hsp70/Hsp90 chaperone system, offering a novel therapeutic strategy for clinical management of drug-induced LQTS.",
+      "normalized_facts": {
+        "journal": "Biochemical pharmacology",
+        "pub_type": "Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "5e6fbbdc87e4e149d274ec5a3e266c4153eb1aee8c16a922d7b4744a2b43cdcf"
+    },
+    {
+      "evidence_id": "evd_2b1704dd2e77428a9a861f157c209d1f",
+      "title": "Modeling hERG Channel Liability: From Structural Insight to Highly Accurate Qualitative and Quantitative Models.",
+      "authors": [
+        "Sun H",
+        "Wang Y",
+        "Shen M"
+      ],
+      "published_at": "2026-06-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jcim.6c00163",
+        "pmid": "42313871",
+        "pmcid": "PMC13370879",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42313871",
+      "abstract_or_excerpt": "Drug-induced QT interval prolongation, most commonly resulting from the blockade of a voltage-dependent potassium ion channel encoded by the <i>hERG</i> (<i>human ether-à-go-go-related gene</i>), has been recognized as a critical side-effect of noncardiovascular therapeutic agents. This adverse effect has led to withdrawal of many drugs from the market. Early identification of potential hERG channel blockers is therefore essential to mitigate cardiotoxicity-related attrition during the later, more resource-intensive stages of drug development. In this paper, we aimed at understanding ligand-channel interactions, including a detailed analysis of the cryo-electron microscopy (cryo-EM) structures of hERG channels and pharmacophore models shared among known hERG blockers. The highly adaptive nature of the hERG ligand-binding site may poses challenges for structure-based approaches, such as molecular docking, yet also offers mechanistic insights into a longstanding question: why does hERG interact with such a wide variety of small-molecule drugs? To complement these structural observations, we summarized the benefits and limitations of both quantitative and qualitative models and their applications across various stages of drug discovery. We developed highly predictive classification and regression models built using customized atom-type descriptors. The regression model, trained on a large and curated data set (∼8,000 compounds), achieved an average absolute error (AAE) of 0.383 log units and root-mean-square error of prediction (RMSEP) of 0.548 log units on the test sets. Meanwhile, the classification model demonstrated strong performance as well, with a receiver operating characteristic (ROC) area under the curve (AUC) of 0.88. Validation on an external set of 1,133 compounds resulted in an AAE of 0.50 log units. Together, these complementary modeling strategies can significantly aid in the early assessment of cardiovascular liabilities associated with hERG channel blockade, thereby supporting safer and more efficient drug development.",
+      "normalized_facts": {
+        "journal": "Journal of chemical information and modeling",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "d219abf85dc3f33628388a8c37695f298df23059df236c6d3bf8499a3cee52dc"
+    },
+    {
+      "evidence_id": "evd_02d407a2dfdc4cc6add0dd9cb52ff397",
+      "title": "Advancing Torsades de pointes risk prediction: unveiling the role of drug metabolites through molecular docking.",
+      "authors": [
+        "Bilgin E",
+        "Tugcu G",
+        "Aydin A"
+      ],
+      "published_at": "2026-01-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxres/tfaf186",
+        "pmid": "41623588",
+        "pmcid": "PMC12853304",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41623588",
+      "abstract_or_excerpt": "This study explores the risk of Torsades de Pointes (TdP) arrhythmia, focusing on the interactions of parent drugs and their metabolites with the Human ether-à-go-go-related gene (hERG) channel, which is crucial in cardiac electrical activity and TdP risk assessment. Using a dual-strategy molecular docking approach with AutoDock Vina and PatchDock, we analyzed clinically relevant ligand pairs: astemizole/desmethylastemizole, terfenadine/fexofenadine, and quetiapine/norquetiapine. Quantitative analysis revealed that high binding affinity does not always correlate with toxicity. For instance, the non-cardiotoxic metabolite fexofenadine exhibited a higher binding affinity (-9.3 kcal/mol) compared to its toxic parent terfenadine (-8.9 kcal/mol), but its safety is explained by physicochemical constraints (zwitterionic nature). Conversely, desmethylastemizole maintained high affinity (-9.2 kcal/mol) with a geometrically \"relaxed\" fit (Atomic Contact Energy: -338.36), rationalizing its sustained potency. Geometric analysis further distinguished quetiapine as a \"steric blocker\" (Contact Area: ~588 Å<sup>2</sup>) causing forced occlusion, whereas its metabolite norquetiapine acted as a specific ligand with a significantly smaller interface area (~417 Å<sup>2</sup>). These findings highlight the importance of focusing not only on the parent drug but also on metabolites for TdP risk assessment in new drug development. We advocate for an integrated computational framework combining binding energy, geometric complementarity, and physicochemical profiling to enhance the accuracy of early cardiac safety screenings.",
+      "normalized_facts": {
+        "journal": "Toxicology research",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "8232f259234b9584387778159841e70aa17b4f7de9246b98e91fc36c8949a889"
+    },
+    {
+      "evidence_id": "evd_c6e84e9ccab2498aad94264a63cdff7b",
+      "title": "LncRNA MALAT1/Calpain-1 Axis in ATO Induced hERG Channel Deficiency.",
+      "authors": [
+        "Yan C",
+        "Li Y",
+        "Li X",
+        "Li Y",
+        "Zhang Y",
+        "Sun J",
+        "Ding Q",
+        "Zhao X"
+      ],
+      "published_at": "2025-02-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2147/dddt.s502776",
+        "pmid": "40041754",
+        "pmcid": "PMC11878130",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40041754",
+      "abstract_or_excerpt": "<h4>Background</h4>KCNH2 encodes the hERG potassium channel, which is associated with drug-induced long QT syndrome. Arsenic trioxide (ATO) is an effective therapeutic agent for acute promyelocytic leukemia; however, its long-term use can lead to cardiotoxicity, particularly in cases of acquired long QT syndrome (acLQTS), which may result in torsade de pointes (TdP). Therefore, it is essential to comprehend the mechanisms behind acLQTS and to develop effective preventive and therapeutic strategies.<h4>Aim</h4>This study sought to investigate the role and molecular mechanism of MALAT1 in ATO-induced acLQTS. Furthermore, it sought to identify pharmacological agents that could mitigate the cardiotoxic effects of ATO and establish viable intervention targets for the prevention and management of acLQTS.<h4>Methods</h4>First, we employed gene chip arrays to identify target long noncoding RNAs (lncRNAs). Subsequently, we performed quantitative qRT-PCR and RNA-binding protein immunoprecipitation (RIP) to assess lncRNA levels. Next, we utilized Western blotting for protein expression analysis, and finally, we conducted whole-cell patch-clamp recordings to evaluate hERG currents.<h4>Results</h4>Our results revealed a significant upregulation of lncRNA MALAT1 expression in HEK293-hERG cells treated with ATO. Mechanistically, MALAT1 interacts with calpain-1, inhibiting its ubiquitin-mediated degradation and enhancing the cleavage activity of calpain-1 on the hERG channel. FEX and TAN were found to mitigate the effects of ATO on the MALAT1/calpain-1 pathway, ultimately restoring hERG protein levels.<h4>Conclusion</h4>This study demonstrated that ATO-induced enhancement of calpain-1 and reduction of hERG may be linked to the aberrant overexpression of lncRNA MALAT1. Tanshinone IIA and fexofenadine restored the hERG protein levels potentially by decreasing MALAT1 expression and counteracting ATO's effects on the MALAT1/calpain-1 pathway. Collectively, our research uncovers a previously unreported regulatory mechanism underlying ATO-induced acLQTS. Moreover, it identifies potential molecular targets and intervention strategies for acLQTS therapy.",
+      "normalized_facts": {
+        "journal": "Drug design, development and therapy",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "f72651cad3d74d8ff5c36dc2abc7c1aae7a69eda63e17696837b48f275028154"
+    },
+    {
+      "evidence_id": "evd_9076bec484974d908ffe5c80bffe8834",
+      "title": "<i>In silico</i> mechanisms of arsenic trioxide-induced cardiotoxicity.",
+      "authors": [
+        "Li Y",
+        "Wan R",
+        "Liu J",
+        "Liu W",
+        "Ma L",
+        "Zhang H"
+      ],
+      "published_at": "2022-12-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphys.2022.1004605",
+        "pmid": "36589437",
+        "pmcid": "PMC9798418",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36589437",
+      "abstract_or_excerpt": "It has been found that arsenic trioxide (ATO) is effective in treating acute promyelocytic leukemia (APL). However, long QT syndrome was reported in patients receiving therapy using ATO, which even led to sudden cardiac death. The underlying mechanisms of ATO-induced cardiotoxicity have been investigated in some biological experiments, showing that ATO affects human ether-à-go-go-related gene (hERG) channels, coding rapid delayed rectifier potassium current (<i>I</i> <sub><i>Kr</i></sub> ), as well as L-type calcium (<i>I</i> <sub><i>CaL</i></sub> ) channels. Nevertheless, the mechanism by which these channel reconstitutions induced the arrhythmia in ventricular tissue remains unsolved. In this study, a mathematical model was developed to simulate the effect of ATO on ventricular electrical excitation at cellular and tissue levels by considering ATO's effects on <i>I</i> <sub><i>Kr</i></sub> and <i>I</i> <sub><i>CaL</i></sub> . The ATO-dose-dependent pore block model was incorporated into the <i>I</i> <sub><i>Kr</i></sub> model, and the enhanced degree of ATO to <i>I</i> <sub><i>CaL</i></sub> was based on experimental data. Simulation results indicated that ATO extended the action potential duration of three types of ventricular myocytes (VMs), including endocardial cells (ENDO), midmyocardial cells (MCELL), and epicardial cells (EPI), and exacerbated the heterogeneity among them. ATO could also induce alternans in all three kinds of VMs. In a cable model of the intramural ventricular strand, the effects of ATO are reflected in a prolonged QT interval of simulated pseudo-ECG and a wide vulnerable window, thus increasing the possibility of spiral wave formation in ventricular tissue. In addition to showing that ATO prolonged QT, we revealed that the heterogeneity caused by ATO is also an essential hazard factor. Based on this, a pharmacological intervention of ATO toxicity by resveratrol was undertaken. This study provides a further understanding of ATO-induced cardiotoxicity, which may help to improve the treatment for APL patients.",
+      "normalized_facts": {
+        "journal": "Frontiers in physiology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "63c8bed7fdee286f74ab431bde6149cd3156b4f06b9558aa0468fa720be0c9b7"
+    },
+    {
+      "evidence_id": "evd_de986c196a544f738c2ad931823cc227",
+      "title": "Epigallocatechin Gallate as a Molecular Therapeutic in Heart Failure and Cardio-Oncology: Mechanistic Pathways and Translational Perspectives.",
+      "authors": [
+        "Ajaz F",
+        "Haddad J",
+        "Huda B",
+        "Yousuf M",
+        "Patnaik R",
+        "Bhurka F",
+        "Banerjee Y"
+      ],
+      "published_at": "2025-11-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms262110798",
+        "pmid": "41226835",
+        "pmcid": "PMC12607985",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41226835",
+      "abstract_or_excerpt": "The global burden of heart failure (HF) continues to escalate, with a lifetime risk approaching one in four adults in the United States. Concurrently, advances in cancer therapeutics have created a burgeoning population of long-term survivors, who now face the significant morbidity and mortality of chemotherapy-induced cardiovascular disease (CVD). This review addresses the critical overlap of these two pathologies, which share fundamental drivers such as oxidative stress, inflammation, and metabolic dysregulation. Epigallocatechin gallate (EGCG), the most abundant and biologically active polyphenol in green tea, has demonstrated pleiotropic bioactivity in preclinical models, encompassing potent antioxidant, anti-inflammatory, and anti-apoptotic properties. The central aim of this review is to provide a critical and comprehensive synthesis of the evidence supporting EGCG's dual protective role. This review dissects its molecular mechanisms in modulating key pathways in HF and cardio-oncology, evaluates its translational potential, and importantly, delineates the significant gaps that must be addressed for its clinical application. This analysis uniquely positions EGCG not merely as a nutraceutical, but as a multi-target molecular therapeutic capable of simultaneously addressing the convergent pathological cascades of heart failure and cancer-related cardiotoxicity. The synthesis of preclinical evidence with a critical analysis of its translational barriers offers a novel perspective and a strategic roadmap for future research.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "bd702b2cc0f0e63b4a55f5d0f1c66f39709482463dff8c23fdcd23f3c6efa8e0"
+    },
+    {
+      "evidence_id": "evd_86413e03f6914397856cf96823f39a28",
+      "title": "Antihistamine drug terfenadine suppressed the cycle progression of gastric cancer cells by targeting PI3K/AKT/mTOR signaling.",
+      "authors": [
+        "Zhu Y",
+        "Ma Y",
+        "Si Z",
+        "Zhou Z",
+        "Tian Y",
+        "Zhao Y",
+        "Liu H",
+        "Zhu H"
+      ],
+      "published_at": "2026-03-31",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1723444",
+        "pmid": "41988532",
+        "pmcid": "PMC13076520",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41988532",
+      "abstract_or_excerpt": "<h4>Background</h4>Gastric cancer (GC) remains a leading cause of cancer-related mortality worldwide, highlighting the urgent need for effective and accessible therapies. Drug repurposing offers a cost-effective strategy to identify novel candidates from approved drugs. Terfenadine, a classical antihistamine with an established safety profile, has demonstrated antitumor activity in various malignancies; however, its efficacy and mechanism in GC have not been systematically explored. This study investigates the therapeutic potential of terfenadine in GC and elucidates its underlying molecular mechanisms.<h4>Methods</h4>Cytotoxicity was assessed in AGS, HGC27, and MKN45 GC cell lines. Effects on proliferation, colony formation, migration, apoptosis, cell cycle distribution, and mitochondrial membrane potential were examined. Mechanisms were explored through bioinformatics analysis, molecular docking, and Western blotting. Synergy with 5-fluorouracil (5-Fu) was evaluated using checkerboard assays and analyzed by SynergyFinder. <i>In vivo</i> efficacy was validated in a patient-derived xenograft (PDX) model.<h4>Results</h4>Terfenadine exhibited potent cytotoxicity against GC cells, with IC<sub>50</sub> values of 5.14 μM (AGS), 3.95 μM (HGC27), and 5.01 μM (MKN45) at 48 h, demonstrating superior potency compared to 5-Fu in AGS and HGC27 cells. It significantly suppressed colony formation and migration, induced G0/G1 phase arrest <i>via</i> downregulation of CDK4/6 and phosphorylated Rb, and promoted mitochondrial apoptosis as evidenced by nuclear condensation and loss of mitochondrial membrane potential. Molecular docking predicted strong binding affinity to AKT (score: 9.09). Western blot analysis revealed that terfenadine treatment reduced the expression of PI3K, total and phosphorylated AKT, and mTOR, indicating modulation of the PI3K/AKT/mTOR pathway. Combination with 5-Fu produced synergistic cytotoxicity (synergy scores >10 b y Loewe and HSA models). In the PDX model, terfenadine (10 mg/kg) significantly suppressed tumor growth, reducing final tumor weight by 41.2% (<i>p</i> < 0.001).<h4>Conclusion</h4>This study demonstrates that terfenadine exerts multifaceted antitumor effects in GC through modulation of the PI3K/AKT/mTOR pathway, exhibits synergistic activity with 5-Fu, and shows <i>in vivo</i> efficacy in a clinically relevant PDX model. These findings support the repurposing of terfenadine as a promising therapeutic agent for GC.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "a1c07650b1d1129ccdd171c27c89c8019cd4c5de4218d28a95c1ac778df5b2f0"
+    },
+    {
+      "evidence_id": "evd_8160f17c9f3b4c949472d3604785374c",
+      "title": "Predicting human cardiac QT alterations and pro-arrhythmic effects of compounds with a 3D beating heart-on-chip platform.",
+      "authors": [
+        "Visone R",
+        "Lozano-Juan F",
+        "Marzorati S",
+        "Rivolta MW",
+        "Pesenti E",
+        "Redaelli A",
+        "Sassi R",
+        "Rasponi M"
+      ],
+      "published_at": "2023-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxsci/kfac108",
+        "pmid": "36226800",
+        "pmcid": "PMC9887672",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36226800",
+      "abstract_or_excerpt": "Determining the potential cardiotoxicity and pro-arrhythmic effects of drug candidates remains one of the most relevant issues in the drug development pipeline (DDP). New methods enabling to perform more representative preclinical in vitro studies by exploiting induced pluripotent stem cell-derived cardiomyocytes (iPSC-CM) are under investigation to increase the translational power of the outcomes. Here we present a pharmacological campaign conducted to evaluate the drug-induced QT alterations and arrhythmic events on uHeart, a 3D miniaturized in vitro model of human myocardium encompassing iPSC-CM and dermal fibroblasts embedded in fibrin. uHeart was mechanically trained resulting in synchronously beating cardiac microtissues in 1 week, characterized by a clear field potential (FP) signal that was recorded by means of an integrated electrical system. A drug screening protocol compliant with the new International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use (ICH) guidelines was established and uHeart was employed for testing the effect of 11 compounds acting on single or multiple cardiac ion channels and well-known to elicit QT prolongation or arrhythmic events in clinics. The alterations of uHeart's electrophysiological parameters such as the beating period, the FP duration, the FP amplitude, and the detection of arrhythmic events prior and after drug administration at incremental doses were effectively analyzed through a custom-developed algorithm. Results demonstrated the ability of uHeart to successfully anticipate clinical outcome and to predict the QT prolongation with a sensitivity of 83.3%, a specificity of 100% and an accuracy of 91.6%. Cardiotoxic concentrations of drugs were notably detected in the range of the clinical highest blood drug concentration (Cmax), qualifying uHeart as a fit-to-purpose preclinical tool for cardiotoxicity studies.",
+      "normalized_facts": {
+        "journal": "Toxicological sciences : an official journal of the Society of Toxicology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "0db6a391413f291533050a07ba3c6a0bcc6848675526dd22125d11a68bf7cd3c"
+    },
+    {
+      "evidence_id": "evd_9e3448b2b648474980a6a32a290aeebd",
+      "title": "Prediction of hERG inhibition of drug discovery compounds using biomimetic HPLC measurements.",
+      "authors": [
+        "Stergiopoulos C",
+        "Tsopelas F",
+        "Valko K"
+      ],
+      "published_at": "2021-06-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.5599/admet.995",
+        "pmid": "35300361",
+        "pmcid": "PMC8920097",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35300361",
+      "abstract_or_excerpt": "The major causes of failure of drug discovery compounds in clinics are the lack of efficacy and toxicity. To reduce late-stage failures in the drug discovery process, it is essential to estimate early the probability of adverse effects and potential toxicity. Cardiotoxicity is one of the most often observed problems related to a compound's inhibition of the hERG channel responsible for the potassium cation flux. Biomimetic HPLC methods can be used for the early screening of a compound's lipophilicity, protein binding and phospholipid partition. Based on the published hERG pIC50 data of 90 marketed drugs and their measured biomimetic properties, a model has been developed to predict the hERG inhibition using the measured binding of compounds to alpha-1-acid-glycoprotein (AGP) and immobilised artificial membrane (IAM). A representative test set of 16 compounds was carefully selected. The training set, involving the remaining compounds, served to establish the linear model. The mechanistic model supports the hypothesis that compounds have to traverse the cell membrane and bind to the hERG ion channel to cause the inhibition. The AGP and the hERG ion channel show structural similarity, as both bind positively charged compounds with strong shape selectivity. In contrast, a good IAM partition is a prerequisite for cell membrane traversal. For reasons of comparison, a corresponding model was derived by replacing the measured biomimetic properties with calculated physicochemical properties. The model established with the measured biomimetic binding properties proved to be superior and can explain over 70% of the variance of the hERG pIC50 values.",
+      "normalized_facts": {
+        "journal": "ADMET & DMPK",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:50:03.932354+00:00",
+      "content_sha256": "cb48ab3219b339f27a34dcf86be901a07dac3531aace5dbc16986729cbb76127"
+    }
+  ],
+  "cases": []
+}

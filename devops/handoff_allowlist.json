@@ -35,6 +35,18 @@
       "why": "keeps their generated state out of their own commits"
     },
     {
+      "glob": "Makefile",
+      "why": "the developer entry point: lint, typecheck, test per service"
+    },
+    {
+      "glob": "ruff.toml",
+      "why": "the lint rules the Makefile and CI apply to every Python tree"
+    },
+    {
+      "glob": ".pre-commit-config.yaml",
+      "why": "optional local hooks running the same blocking lint"
+    },
+    {
       "glob": "bin/**",
       "why": "the operator wrapper: setup, doctor, up, smoke, backup, restore"
     },
@@ -59,12 +71,24 @@
       "why": "the stack they run"
     },
     {
-      "glob": "devops/scripts/**",
-      "why": "setup, artifact verification, drills and the release manifest"
+      "glob": "devops/checks/**",
+      "why": "the docs and workspace checks CI runs"
+    },
+    {
+      "glob": "devops/release/**",
+      "why": "handoff surface, release manifest and deploy-target resolution"
+    },
+    {
+      "glob": "devops/ops/**",
+      "why": "the backup restore drill"
+    },
+    {
+      "glob": "devops/agent-runtime/**",
+      "why": "the local OpenCode runtime and its Docker bridge, driven by bin/toxagent"
     },
     {
       "glob": "devops/handoff_allowlist.json",
-      "why": "read by devops/scripts/handoff.py, which ships: withholding it would ship a script that cannot run. It also tells the recipient what they received"
+      "why": "read by devops/release/handoff.py, which ships: withholding it would ship a script that cannot run. It also tells the recipient what they received"
     },
     {
       "glob": "devops/tests/**",
@@ -76,86 +100,30 @@
     },
     {
       "glob": "docs/README.md",
-      "why": "index"
+      "why": "the documentation index"
     },
     {
-      "glob": "docs/GETTING_STARTED.md",
-      "why": "operator"
+      "glob": "docs/tutorials/**",
+      "why": "first run"
     },
     {
-      "glob": "docs/CONFIGURATION.md",
-      "why": "operator"
+      "glob": "docs/how-to/**",
+      "why": "operating and developing the product"
     },
     {
-      "glob": "docs/OPERATIONS.md",
-      "why": "operator"
+      "glob": "docs/reference/**",
+      "why": "configuration, metrics, model cards, benchmark protocol, generated inventories"
     },
     {
-      "glob": "docs/DEVELOPMENT.md",
-      "why": "operator"
+      "glob": "docs/explanation/**",
+      "why": "architecture and workspace layout"
     },
     {
-      "glob": "docs/ARCHITECTURE.md",
-      "why": "what they are running"
-    },
-    {
-      "glob": "docs/architecture.md",
-      "why": "what they are running"
-    },
-    {
-      "glob": "docs/WORKSPACE_LAYOUT.md",
-      "why": "where things are"
-    },
-    {
-      "glob": "docs/MODEL_CARD.md",
-      "why": "scientific limitations must travel with the models"
-    },
-    {
-      "glob": "docs/model-card.md",
-      "why": "scientific limitations must travel with the models"
-    },
-    {
-      "glob": "docs/benchmark-protocol.md",
-      "why": "how the reported numbers were measured"
-    },
-    {
-      "glob": "docs/artifacts/**",
-      "why": "per-model admission and limitations"
-    },
-    {
-      "glob": "docs/runbooks/**",
-      "why": "operating the deployment they were given"
+      "glob": "docs/adr/**",
+      "why": "the decisions the architecture rests on"
     }
   ],
   "exclude": [
-    {
-      "glob": "docs/spec/**",
-      "why": "internal planning; describes work not delivered and decisions still open"
-    },
-    {
-      "glob": "docs/archive/**",
-      "why": "superseded intent, kept for internal history"
-    },
-    {
-      "glob": "docs/audit/**",
-      "why": "internal audit findings and evidence"
-    },
-    {
-      "glob": "docs/unified-v2/**",
-      "why": "internal architecture decisions in progress"
-    },
-    {
-      "glob": "docs/refactor/**",
-      "why": "internal migration state"
-    },
-    {
-      "glob": "docs/slides/**",
-      "why": "presentation material, released separately"
-    },
-    {
-      "glob": "docs/BM1_explainer_benchmark_analysis.md",
-      "why": "internal research analysis"
-    },
     {
       "glob": "*.pptx",
       "why": "handover documents, released separately from source"
@@ -171,6 +139,22 @@
     {
       "glob": "devops/cloud/**",
       "why": "a legacy Cloud Build target the current deploy.yml does not use; ship a cloud path only when it is the one contracted with that customer"
+    },
+    {
+      "glob": "docs/internal/**",
+      "why": "plans, audits and the backlog of the development process"
+    },
+    {
+      "glob": "docs/results/**",
+      "why": "dated internal measurement reports"
+    },
+    {
+      "glob": ".graphifyignore",
+      "why": "development tooling for the code-navigation graph"
+    },
+    {
+      "glob": "backend/control/evals/investigation/runs/**",
+      "why": "internal study evidence: prompts to comparison platforms and lab grading packets"
     }
   ],
   "secret_shape_exemptions": [
@@ -179,7 +163,7 @@
       "why": "the fake credentials the redaction filter is tested against; if they were absent the test would assert nothing"
     },
     {
-      "path": "devops/scripts/restore_drill.sh",
+      "path": "devops/ops/restore_drill.sh",
       "why": "an obviously fake key written into a throwaway volume so the drill can prove the credential survived a container recreate. Described rather than quoted: this file declares the exemptions, so it must not need one of its own"
     },
     {

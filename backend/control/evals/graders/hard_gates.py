@@ -11,7 +11,7 @@ cannot drift away from what the validator enforces at commit time.
 from __future__ import annotations
 
 from toxagent.domain.fieldpath import FieldPathError, resolve
-from toxagent.validation.numeric import parse_rendered_number, round_tolerance
+from toxagent.validation.answer.numeric import parse_rendered_number, round_tolerance
 from toxagent.validation.prohibited_claims import (
     _AGGREGATE_VERDICT,
     _CLINICAL_OVERREACH,

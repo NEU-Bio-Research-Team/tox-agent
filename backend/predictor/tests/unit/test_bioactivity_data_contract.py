@@ -19,6 +19,7 @@ for candidate in (PREDICTOR / "research", PREDICTOR / "evals"):
         sys.path.insert(0, str(candidate))
 
 pytest.importorskip("rdkit", reason="bioactivity pipeline needs RDKit")
+pytest.importorskip("scipy", reason="bioactivity metrics need SciPy, a research-only dependency")
 
 from bioactivity.ingest.build_dataset import assay_context_key  # noqa: E402
 from bioactivity.ingest.split import (  # noqa: E402

@@ -212,7 +212,7 @@ def _identifier_match(hit: Any, compound: CompoundIdentity) -> str | None:
 def assess(
     hit: Any,
     *,
-    compound: CompoundIdentity,
+    compound: CompoundIdentity | None,
     target: RelevanceTarget,
 ) -> RelevanceAssessment:
     """Judge one search hit. Pure, deterministic, and explainable.
@@ -228,6 +228,22 @@ def assess(
         return RelevanceAssessment(
             Relevance.UNCERTAIN,
             ("metadata_too_thin",),
+        )
+
+    if compound is None:
+        # A literature question with no molecule (W9-08): the endpoint is the
+        # whole subject, so a record about it is direct and anything else is
+        # not about the question.
+        matched_endpoint = tuple(
+            term for term in target.vocabulary if _contains_phrase(tokens, term)
+        )
+        if matched_endpoint:
+            return RelevanceAssessment(
+                Relevance.DIRECT, ("no_compound_subject", "endpoint_match"),
+                matched_endpoint_terms=matched_endpoint,
+            )
+        return RelevanceAssessment(
+            Relevance.IRRELEVANT, ("no_compound_subject", "endpoint_mismatch"),
         )
 
     matched_names = tuple(

@@ -1,6 +1,6 @@
 import pytest
 
-from toxagent.runtime.environment import runtime_environment
+from toxagent.harness.environment import runtime_environment
 
 
 def test_runtime_environment_is_allowlist_not_inheritance():

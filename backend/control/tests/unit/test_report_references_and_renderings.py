@@ -36,14 +36,14 @@ from toxagent.domain.report import (
     SubstanceProfile,
     is_safe_citation_url,
 )
-from toxagent.report.compiler import citation_order, compile_references
+from toxagent.report.draft_compiler import citation_order, compile_references
 from toxagent.report.renderers import (
     figure_asset_name,
     render_html,
     render_markdown,
     render_markdown_bundle,
 )
-from toxagent.validation.report_wire import ReportDraftCandidate
+from toxagent.validation.report.draft_wire import ReportDraftCandidate
 
 NOW = datetime(2026, 9, 9, tzinfo=timezone.utc)
 SESSION = new_id("ses")

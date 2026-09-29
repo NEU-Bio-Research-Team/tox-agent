@@ -119,9 +119,12 @@ def main() -> int:
     admit_parser = sub.add_parser("admit")
     admit_parser.add_argument("model_id")
     args = parser.parse_args()
-    if args.command == "scan": return scan(args.models_root, args.manifest)
-    if args.command == "inspect": return inspect(args.path)
-    if args.command == "validate": return validate(args.manifest, args.model_id)
+    if args.command == "scan":
+        return scan(args.models_root, args.manifest)
+    if args.command == "inspect":
+        return inspect(args.path)
+    if args.command == "validate":
+        return validate(args.manifest, args.model_id)
     return admit(args.manifest, args.model_id)
 
 

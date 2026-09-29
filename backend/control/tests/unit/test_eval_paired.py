@@ -67,18 +67,17 @@ def test_no_live_module_imports_the_superseded_kernel():
     adapters until its tables are retired, and by nothing that runs a turn."""
     root = Path(__file__).resolve().parents[2] / "src" / "toxagent"
     allowed = {
-        "agent/kernel.py", "agent/budget.py", "persistence/investigations.py",
-        "persistence/interfaces.py", "persistence/sql/repositories.py",
+        "persistence/investigations.py", "persistence/interfaces.py",
+        "persistence/sql/repositories/investigation.py",
     }
     offenders = []
     for path in root.rglob("*.py"):
         rel = path.relative_to(root).as_posix()
-        if rel in allowed:
+        if rel in allowed or rel.startswith("superseded/"):
             continue
         for node in ast.walk(ast.parse(path.read_text())):
             if isinstance(node, ast.ImportFrom) and node.module and (
-                node.module.endswith("agent.kernel") or node.module.endswith("agent.budget")
-                or node.module in ("kernel", "budget") and node.level and "agent" in rel
+                "superseded" in node.module.split(".")
             ):
                 offenders.append(rel)
     assert not offenders, offenders

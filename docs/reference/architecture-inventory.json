@@ -1,0 +1,350 @@
+{
+  "canonical_source_roots": [
+    "backend/control",
+    "backend/ocr",
+    "backend/predictor",
+    "devops",
+    "docs",
+    "frontend"
+  ],
+  "capability_profiles": {
+    "analysis": [
+      "create_analysis_snapshot",
+      "get_analysis_slice",
+      "submit_grounded_answer"
+    ],
+    "audit_readonly": [
+      "get_analysis_slice",
+      "get_evidence_record",
+      "get_explanation_slice"
+    ],
+    "claim_review": [
+      "submit_claim_review"
+    ],
+    "decision_support": [
+      "compute_exposure_margin",
+      "get_analysis_bundle",
+      "get_analysis_slice",
+      "get_artifact_inventory",
+      "get_attribution",
+      "get_chembl_activities",
+      "get_evidence_record",
+      "get_explanation_slice",
+      "get_report_summary",
+      "get_scientific_case",
+      "propose_skill_draft",
+      "read_scientific_skill",
+      "read_skill_reference",
+      "record_decision_plan",
+      "search_toxicology_evidence",
+      "submit_grounded_answer",
+      "update_scientific_case"
+    ],
+    "evidence_research": [
+      "get_analysis_slice",
+      "get_evidence_record",
+      "search_toxicology_evidence",
+      "submit_grounded_answer"
+    ],
+    "report_build": [
+      "check_report_draft",
+      "check_saved_report_draft",
+      "get_analysis_bundle",
+      "get_analysis_slice",
+      "get_evidence_record",
+      "get_explanation_package",
+      "get_or_create_explanation",
+      "get_report_context",
+      "patch_saved_report_draft",
+      "resolve_compound_record",
+      "save_report_draft",
+      "search_toxicology_evidence",
+      "submit_report_draft",
+      "submit_saved_report_draft"
+    ],
+    "report_qa": [
+      "get_analysis_slice",
+      "get_attribution",
+      "submit_grounded_answer"
+    ],
+    "report_synthesis": [
+      "submit_report_synthesis"
+    ]
+  },
+  "eval_packs": {
+    "core": {
+      "external": false,
+      "owner": "backend-eval",
+      "suites": [
+        "pr",
+        "nightly",
+        "release"
+      ],
+      "tasks": 50
+    },
+    "ocr": {
+      "external": false,
+      "owner": "backend-ocr",
+      "suites": [
+        "nightly",
+        "release"
+      ],
+      "tasks": 0
+    },
+    "regression": {
+      "external": false,
+      "owner": "backend-scientific",
+      "suites": [
+        "pr",
+        "nightly",
+        "release"
+      ],
+      "tasks": 4
+    },
+    "report": {
+      "external": false,
+      "owner": "backend-report",
+      "suites": [
+        "nightly",
+        "release"
+      ],
+      "tasks": 3
+    },
+    "sealed": {
+      "external": true,
+      "owner": "release-governance",
+      "suites": [
+        "release"
+      ],
+      "tasks": null
+    },
+    "security": {
+      "external": false,
+      "owner": "backend-platform",
+      "suites": [
+        "pr",
+        "nightly",
+        "release"
+      ],
+      "tasks": 6
+    }
+  },
+  "graders": {
+    "artifacts": {
+      "kind": "deterministic",
+      "version": "artifacts-v1"
+    },
+    "budget": {
+      "kind": "deterministic",
+      "version": "budget-v1"
+    },
+    "decision_state": {
+      "kind": "deterministic",
+      "version": "decision-state-v1"
+    },
+    "hard_gates": {
+      "kind": "deterministic",
+      "version": "hard-gates-v2"
+    },
+    "outcome_split": {
+      "kind": "deterministic",
+      "version": "outcome-split-v1"
+    },
+    "rubric": {
+      "kind": "model",
+      "version": "rubric-dimensions-v1"
+    },
+    "run": {
+      "kind": "deterministic",
+      "version": "run-v1"
+    },
+    "schema": {
+      "kind": "deterministic",
+      "version": "schema-v1"
+    },
+    "semantic": {
+      "kind": "model",
+      "version": "semantic-judge-v1"
+    },
+    "sme": {
+      "kind": "human",
+      "version": "sme-protocol-v1"
+    },
+    "state": {
+      "kind": "deterministic",
+      "version": "state-v1"
+    },
+    "trajectory": {
+      "kind": "deterministic",
+      "version": "trajectory-v1"
+    },
+    "transcript": {
+      "kind": "deterministic",
+      "version": "transcript-v1"
+    }
+  },
+  "historical_intents": [
+    "attribution",
+    "evidence_research",
+    "report_qa"
+  ],
+  "intents": {
+    "analysis": {
+      "capability_profile": null,
+      "default_lane": "deterministic",
+      "lane_with_report_orchestrator_v2": "deterministic",
+      "queue": "deterministic"
+    },
+    "analysis_batch": {
+      "capability_profile": null,
+      "default_lane": "deterministic",
+      "lane_with_report_orchestrator_v2": "deterministic",
+      "queue": "deterministic"
+    },
+    "build_report": {
+      "capability_profile": "report_build",
+      "default_lane": "agentic",
+      "lane_with_report_orchestrator_v2": "orchestrated",
+      "queue": "report"
+    },
+    "clarification_required": {
+      "capability_profile": null,
+      "default_lane": "deterministic",
+      "lane_with_report_orchestrator_v2": "deterministic",
+      "queue": "interactive"
+    },
+    "decision_support": {
+      "capability_profile": "decision_support",
+      "default_lane": "agentic",
+      "lane_with_report_orchestrator_v2": "agentic",
+      "queue": "interactive"
+    },
+    "out_of_scope": {
+      "capability_profile": null,
+      "default_lane": "deterministic",
+      "lane_with_report_orchestrator_v2": "deterministic",
+      "queue": "interactive"
+    },
+    "structure_recognition": {
+      "capability_profile": null,
+      "default_lane": "deterministic",
+      "lane_with_report_orchestrator_v2": "deterministic",
+      "queue": "deterministic"
+    }
+  },
+  "live_runtime_path": "AgentRuntimeGateway",
+  "providers": {
+    "compound": [
+      "pubchem"
+    ],
+    "ocr": [
+      "molscribe"
+    ],
+    "research": [
+      "europepmc"
+    ]
+  },
+  "queues": {
+    "deterministic": 10,
+    "interactive": 0,
+    "report": 20
+  },
+  "rollout_flags": {
+    "answer_draft_v2": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-12"
+    },
+    "claim_reviewer_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "decision_state_plan_tool": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-14"
+    },
+    "evidence_pipeline_v2": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-12"
+    },
+    "external_worker_mode": {
+      "default": false,
+      "owner": "platform",
+      "remove_by": "2026-12-12"
+    },
+    "normalized_usage_v2": {
+      "default": true,
+      "owner": "backend-runtime",
+      "remove_by": "2026-12-12"
+    },
+    "report_orchestrator_v2": {
+      "default": false,
+      "owner": "backend-report",
+      "remove_by": "2026-12-12"
+    },
+    "router_v2": {
+      "default": false,
+      "owner": "backend-platform",
+      "remove_by": "2026-12-12"
+    },
+    "runtime_profile_selector_v2": {
+      "default": true,
+      "owner": "backend-runtime",
+      "remove_by": "2026-12-12"
+    },
+    "scientific_case_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "scientific_primitives_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "scientific_skills_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "skill_drafts_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "subjectless_research_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2026-12-23"
+    },
+    "trust_envelope_v1": {
+      "default": false,
+      "owner": "backend-platform",
+      "remove_by": "2026-12-14"
+    }
+  },
+  "runtime_kinds": [
+    "dsh",
+    "opencode",
+    "scripted"
+  ],
+  "schema_version": "architecture-inventory-v1",
+  "schemas": {
+    "decision_dossier": "decision-dossier-v1",
+    "decision_support_state": "decision-support-state-v1",
+    "effective_product": "effective-product-v1",
+    "effective_run_budget": "effective-run-budget-v1",
+    "eval_manifest": "eval-manifest-v2",
+    "eval_tasks": [
+      "eval-task-v1",
+      "eval-task-v3"
+    ],
+    "eval_trace": "eval-trace-v1",
+    "evidence_ontology": "evidence-ontology-v1",
+    "scientific_case": "scientific-case-v1",
+    "trust_envelope": "trust-envelope-v1"
+  }
+}

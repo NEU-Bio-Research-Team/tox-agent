@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.agent.budget import PROFILES, BudgetUsage, StopReason, stop_reason
-from toxagent.capabilities.registry import PlanViolation, default_capabilities
+from toxagent.superseded.budget import PROFILES, BudgetUsage, StopReason, stop_reason
+from toxagent.superseded.capability_registry import PlanViolation, default_capabilities
 from toxagent.domain.ids import SESSION, new_id
 from toxagent.domain.investigation import (
     CaseState, Coverage, GoalType, InvestigationPlan, InvestigationStep,

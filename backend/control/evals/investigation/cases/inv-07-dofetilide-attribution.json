@@ -1,0 +1,42 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-07-dofetilide-attribution",
+  "tags": [
+    "attribution_question",
+    "named",
+    "herg"
+  ],
+  "compound": {
+    "query_name": "dofetilide",
+    "name_disclosed": true,
+    "pubchem_cid": 71329,
+    "smiles": "CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C",
+    "molecular_formula": "C19H27N3O5S2",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/dofetilide/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "Which part of dofetilide's structure (CN(CCC1=CC=C(C=C1)NS(=O)(=O)C)CCOC2=CC=C(C=C2)NS(=O)(=O)C) drives the model's hERG prediction, and does that tell us how it blocks the channel?"
+    }
+  ],
+  "reference": {
+    "type": "known_outcome",
+    "summary": "Dofetilide is a selective blocker of IKr, the current carried by hERG (a class III antiarrhythmic). A model attribution shows what moved the model's score; it is not evidence of the binding mode or mechanism, and the served explainer's faithfulness is not established.",
+    "sources": [
+      {
+        "citation": "Dofetilide (review), Circulation 2000;102(21):2665",
+        "url": "https://www.ahajournals.org/doi/10.1161/01.cir.102.21.2665"
+      }
+    ],
+    "good_behaviours": [
+      "separates model attribution from mechanism",
+      "states the limits of the attribution method",
+      "points to experimental evidence for the mechanism instead"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "91b18d77199a257833dd8b51ce97d63664023b64e66d77e0738cbb2846eed82b"
+}

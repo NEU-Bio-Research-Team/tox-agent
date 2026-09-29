@@ -1,0 +1,55 @@
+# What the knowledge graph is about: the product and its documents.
+#
+# Graphify already honours .gitignore (node_modules/, .venv/, build output).
+# These are tracked-or-present paths that would add volume without adding
+# meaning: superseded code, measurement records, datasets and scans.
+
+# Superseded implementation, kept only for reference (docs/explanation/workspace-layout.md).
+legacy/
+
+# Measurement evidence: run records, manifests, packets, fixtures. Thousands of
+# JSON/JSONL/Markdown artefacts that record *results*, not structure. The code
+# that produces them (evals/*.py) is indexed.
+backend/control/evals/manifests/
+backend/control/evals/results/
+backend/control/evals/investigation/runs/
+backend/control/evals/experiments/runs/
+backend/control/evals/external/scifact/runs/
+backend/control/evals/fixtures/
+backend/control/tests/fixtures/
+
+# Datasets, model artefacts and scanned material.
+data/
+documents photos/
+backend/predictor/registry/artifacts/
+backend/predictor/research/test_data/
+
+# Pure-data JSON. tree-sitter-json yields no symbols for a data file, so each of
+# these is stamped in the manifest with no node in the graph and re-queued on
+# every run as a "prior failed extraction" (graphify #2543) — 113 files did
+# that. Only the data files are listed: the 10 JSON files that *do* carry
+# structure (task/case JSON *schemas*, agent_profiles/*/profile.json,
+# opencode/toxagent.json, package.json, tsconfig*.json) stay indexed.
+backend/control/evals/investigation/cases/
+backend/control/evals/investigation/case_specs.json
+backend/control/evals/investigation/rubric.json
+backend/control/evals/regression/tasks/
+backend/control/evals/tasks/
+backend/control/evals/packs/*.json
+backend/control/evals/packs/*/tasks/
+backend/predictor/evals/benchmark/manifests/
+backend/predictor/evals/benchmark/results/
+backend/predictor/evals/bioactivity/manifests/
+skill.manifest.json
+frontend/src/shared/api/openapi.json
+docs/reference/capability-matrix.json
+docs/reference/architecture-inventory.json
+docs/internal/audit/regression_guards.json
+.claude/settings.json
+.claude/settings.local.json
+
+# Caches and local state.
+.graphify/
+graphify-out/
+.pytest_cache/
+.ruff_cache/

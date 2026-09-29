@@ -91,8 +91,27 @@ test('submits a pasted SMILES as a deterministic molecule request', async ({ pag
   expect(accepted[0].body.content).toBeUndefined();
 });
 
+test('fills the composer from an empty-state example without sending it', async ({ page }) => {
+  const accepted = await openWorkbench(page);
+  await page.getByRole('button', { name: /^Phân tích aspirin/ }).click();
+  await expect(page.getByPlaceholder(/Nhập SMILES hoặc mô tả yêu cầu/i)).toHaveValue('Phân tích aspirin CC(=O)Oc1ccccc1C(=O)O');
+  expect(accepted).toHaveLength(0);
+  await page.getByRole('button', { name: 'Gửi' }).click();
+  await expect.poll(() => accepted.length).toBe(1);
+  expect(accepted[0].body.molecule).toEqual({ smiles: 'CC(=O)Oc1ccccc1C(=O)O' });
+  expect(accepted[0].body.content).toEqual([{ type: 'text', text: 'Phân tích aspirin CC(=O)Oc1ccccc1C(=O)O' }]);
+});
+
+test('keeps router and predictor choices out of the session header and composer', async ({ page }) => {
+  await openWorkbench(page);
+  await expect(page.getByRole('button', { name: 'Cấu hình AI và predictor' })).toHaveCount(0);
+  await expect(page.getByRole('radio')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Tuỳ chọn nâng cao' })).toHaveCount(0);
+});
+
 test('stages a safe PNG preview and sends an image envelope', async ({ page }) => {
   const accepted = await openWorkbench(page);
+  await page.getByRole('button', { name: 'Thêm SMILES, ảnh hoặc bản vẽ' }).click();
   await page.getByRole('button', { name: 'Ảnh', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Tải ảnh cấu trúc' });
   await dialog.locator('input[type=file]').setInputFiles({
@@ -109,7 +128,8 @@ test('stages a safe PNG preview and sends an image envelope', async ({ page }) =
 
 test('opens the keyboard-accessible structure drawing dialog and survives reload', async ({ page }) => {
   await openWorkbench(page);
-  await page.getByRole('button', { name: 'Vẽ cấu trúc', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Thêm SMILES, ảnh hoặc bản vẽ' }).click();
+  await page.getByRole('button', { name: 'Vẽ cấu trúc', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Vẽ cấu trúc phân tử' })).toBeVisible();
   await page.getByRole('button', { name: 'Đóng hộp thoại' }).click();
   await page.reload();

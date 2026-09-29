@@ -5,7 +5,7 @@
 # file pinned Python 3.11 against a 3.10 image, which is how a local baseline
 # could disagree with the deployed model for no visible reason.
 #
-# The service's own runtime set lives in ../deploy/requirements.txt.
+# The service's own runtime set is pinned in ../requirements.lock.
 name: toxpred
 channels:
   - conda-forge
@@ -16,7 +16,7 @@ dependencies:
   - pip
   - pip:
       # runtime
-      - -r ../deploy/requirements.txt
+      - -r ../requirements.lock
       # tests, benchmark and the evaluation-split builder
       - pytest>=8
       - httpx

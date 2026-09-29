@@ -25,7 +25,7 @@ import jwt
 from fastapi import Request
 
 from ..application.policy import Actor
-from ..config import SecuritySettings
+from ..platform.config import SecuritySettings
 from ..domain.errors import Unauthenticated
 
 
@@ -112,7 +112,7 @@ def build_auth(
     refuses the development shim — so production got the weakest option
     precisely because it had ruled out the obviously-unsafe one.
 
-    OIDC is now first, and production has nothing to fall back to: `config.py`
+    OIDC is now first, and production has nothing to fall back to: `platform/config.py`
     refuses to start without it.
     """
     if settings.oidc_configured:

@@ -19,15 +19,17 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from ..application.runs.budget import MAX_IDENTICAL_CALLS
 from ..domain.errors import ToolDenied, ToxAgentError
 from ..domain.events import EventType
 from ..domain.ids import TOOL_CALL, new_id
 from ..domain.run import Intent
 from ..domain.provenance import content_sha256
-from ..activities import activity_for_tool
+from .activities import activity_for_tool
 from . import envelope
 from .definitions.answer import ANSWER_TOOL_NAME
-from ..application.submit_report_draft import (
+from .definitions.claim_review import CLAIM_REVIEW_TOOL_NAME
+from ..application.report.submit_draft import (
     SUBMIT_SAVED_TOOL_NAME,
     SUBMIT_TOOL_NAME as REPORT_SUBMIT_TOOL_NAME,
 )
@@ -35,9 +37,6 @@ from .registry import ToolContext, ToolRegistry
 
 log = logging.getLogger("toxagent.tools")
 
-#: Identical arguments to the same tool this many times in one run is a loop,
-#: not a retry (plan section 14.5).
-MAX_IDENTICAL_CALLS = 2
 
 
 def _now() -> datetime:
@@ -246,7 +245,8 @@ class ToolRunner:
         required to submit — and, having been handed typed violations, must be
         able to submit the correction those violations describe.
         """
-        if tool_name in {ANSWER_TOOL_NAME, REPORT_SUBMIT_TOOL_NAME, SUBMIT_SAVED_TOOL_NAME}:
+        if tool_name in {ANSWER_TOOL_NAME, REPORT_SUBMIT_TOOL_NAME, SUBMIT_SAVED_TOOL_NAME,
+                         CLAIM_REVIEW_TOOL_NAME}:
             return None
         if context.intent == Intent.BUILD_REPORT.value:
             return self._max_calls_report
@@ -268,9 +268,11 @@ class ToolRunner:
         Only decision_support runs keep one. Recorded after the tool call's own
         commit and never raised: the state observes the run, it cannot fail it.
         """
-        if context.intent != Intent.DECISION_SUPPORT.value:
+        # The reviewer's turn (W9-12) is not the answering agent's work, so
+        # it does not count in the run's usage.
+        if context.intent != Intent.DECISION_SUPPORT.value or context.profile == "claim_review":
             return
-        from ..application import decision_state_service
+        from ..application.investigation import decision_state_service
         from ..domain import decision_state as ds
 
         await decision_state_service.advance(
@@ -326,7 +328,10 @@ class ToolRunner:
             uow.emit(
                 session_id=context.session_id, type=EventType.TOOL_FAILED,
                 entity_type="tool_call", entity_id=context.call_id, run_id=context.run_id,
-                payload={"tool_name": tool_name, "error_code": code},
+                # The message the model was shown, so a refused call can be
+                # diagnosed after the runtime session is gone (live e2e,
+                # 2026-09-26: four invalid_request case updates, no trace why).
+                payload={"tool_name": tool_name, "error_code": code, "message": message[:600]},
             )
             uow.emit(
                 session_id=context.session_id, type=EventType.ACTIVITY_FAILED,

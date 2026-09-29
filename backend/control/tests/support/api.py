@@ -12,7 +12,7 @@ from typing import AsyncIterator
 import httpx
 
 from toxagent.api.app import create_app
-from toxagent.config import (
+from toxagent.platform.config import (
     CompoundSettings,
     OcrSettings,
     PolicySettings,
@@ -29,9 +29,12 @@ from toxagent.persistence.sql.database import Database
 USER_TOKEN = "dev-user-token"
 EXPERT_TOKEN = "dev-expert-token"
 OTHER_TOKEN = "dev-other-token"
+#: An expert who is not user-1, for reviews that must not be self-reviews.
+REVIEWER_TOKEN = "dev-reviewer-token"
 AUTH = {"authorization": f"Bearer {USER_TOKEN}"}
 OTHER_AUTH = {"authorization": f"Bearer {OTHER_TOKEN}"}
 EXPERT_AUTH = {"authorization": f"Bearer {EXPERT_TOKEN}"}
+REVIEWER_AUTH = {"authorization": f"Bearer {REVIEWER_TOKEN}"}
 
 
 def settings(**overrides) -> Settings:
@@ -61,6 +64,7 @@ def settings(**overrides) -> Settings:
                 f"{USER_TOKEN}:user-1",
                 f"{EXPERT_TOKEN}:user-1:expert",
                 f"{OTHER_TOKEN}:user-2",
+                f"{REVIEWER_TOKEN}:user-3:expert",
             ),
         ),
         **overrides,
@@ -76,6 +80,7 @@ async def api_client(
     research_provider=None,
     ocr_client=None,
     object_store=None,
+    chembl_provider=None,
 ) -> AsyncIterator[httpx.AsyncClient]:
     app = create_app(
         config or settings(),
@@ -84,6 +89,7 @@ async def api_client(
         research_provider=research_provider,
         ocr_client=ocr_client,
         object_store=object_store,
+        chembl_provider=chembl_provider,
     )
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(
@@ -93,19 +99,25 @@ async def api_client(
             yield client
 
 
-async def wait_for_run(client: httpx.AsyncClient, session_id: str, run_id: str, *, tries: int = 200):
+async def wait_for_run(client: httpx.AsyncClient, session_id: str, run_id: str, *, timeout: float = 60.0):
     """Poll the run until it is terminal.
 
     Runs are asynchronous by design (202 + a run id), so a test that asserts on
-    the outcome has to wait for it the same way a client would.
+    the outcome has to wait for it the same way a client would. The budget is
+    wall-clock, not a count of polls: a count of 200 was ~2 s, and the longer
+    runs (dossier, orchestrated report) crossed it when the full suite loaded
+    the host.
     """
     import asyncio
+    import time
 
-    for _ in range(tries):
+    deadline = time.monotonic() + timeout
+    while True:
         response = await client.get(f"/v1/sessions/{session_id}/runs/{run_id}", headers=AUTH)
         response.raise_for_status()
         body = response.json()
         if body["status"] in ("completed", "failed", "cancelled"):
             return body
+        if time.monotonic() >= deadline:
+            raise AssertionError(f"run {run_id} never reached a terminal state in {timeout:g} s")
         await asyncio.sleep(0.01)
-    raise AssertionError(f"run {run_id} never reached a terminal state")

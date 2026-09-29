@@ -1,20 +1,20 @@
 """Classification and citation/basis validation (plan sections 9.2, 9.3)."""
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
-import pytest
 
 from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceType
 from toxagent.domain.ids import new_id
 from toxagent.domain.observation import Observation, ObservationKind, Producer
-from toxagent.validation.citations import (
+from toxagent.validation.answer.citations import (
     validate_basis,
     validate_citations,
+    validate_observation_reference,
     validate_recommendation_basis,
 )
-from toxagent.validation.classification import validate_classification
-from toxagent.validation.wire import ClaimCandidate
+from toxagent.validation.answer.classification import validate_classification
+from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
 NOW = datetime(2026, 9, 4, tzinfo=timezone.utc)
 
@@ -172,3 +172,30 @@ def test_a_recommendations_basis_must_name_real_claims():
 def test_a_recommendations_basis_that_matches_is_fine():
     known = "clm_" + "a" * 32
     assert validate_recommendation_basis(0, [known], frozenset({known})) == []
+
+
+# --- observation references (live, 2026-09-26) -------------------------------
+
+def test_an_evidence_id_in_observation_id_is_refused_with_where_it_belongs():
+    """A report draft put a ChEMBL evd_ id in a scientific claim's
+    observation_id; the validator passed it and every submit crashed."""
+    evidence_id = new_id("evd")
+    result = validate_observation_reference(
+        claim(kind="scientific", observation_id=evidence_id, citation_ids=[evidence_id]), {}
+    )
+    assert [v.code for v in result] == ["claim_observation_not_found"]
+    assert "citation_ids" in result[0].message
+
+
+def test_a_read_observation_or_none_passes():
+    observation = an_observation()
+    by_id = {observation.id: observation}
+    assert validate_observation_reference(
+        claim(kind="scientific", observation_id=observation.id), by_id) == []
+    assert validate_observation_reference(claim(kind="limitation", observation_id=None), by_id) == []
+
+
+def test_an_observation_id_in_citation_ids_says_where_it_belongs():
+    result = validate_citations(claim(kind="scientific", citation_ids=[new_id("obs")]), {})
+    assert [v.code for v in result] == ["citation_not_found"]
+    assert "observation_id" in result[0].message

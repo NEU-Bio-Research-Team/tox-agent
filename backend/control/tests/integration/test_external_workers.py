@@ -14,9 +14,9 @@ from datetime import datetime, timezone
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import RunContext, RunScheduler
-from toxagent.application.runs import advance
-from toxagent.config import WorkerSettings
+from toxagent.application.runs.scheduler import RunContext, RunScheduler
+from toxagent.application.runs.transitions import advance
+from toxagent.platform.config import WorkerSettings
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
 from toxagent.domain.session import Session
@@ -170,7 +170,7 @@ async def test_a_saturated_report_worker_does_not_hold_up_a_question(db):
 
 async def test_a_job_written_before_queue_classes_is_routed_by_its_intent(db):
     report = await _seed(db, Intent.BUILD_REPORT, Lane.MIXED)
-    from toxagent.application.run_envelope import to_envelope
+    from toxagent.application.runs.envelope import to_envelope
 
     async with db.unit_of_work() as uow:
         await uow.run_jobs.enqueue(
@@ -249,7 +249,7 @@ async def test_an_api_process_and_a_worker_process_over_one_database(db, monkeyp
         }
 
         async with worker_app.router.lifespan_context(worker_app):
-            finished = await wait_for_run(client, session_id, run_id, tries=500)
+            finished = await wait_for_run(client, session_id, run_id)
         assert finished["status"] == "completed"
         async with db.unit_of_work() as uow:
             assert await uow.run_jobs.get(run_id) is None

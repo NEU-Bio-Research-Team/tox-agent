@@ -30,7 +30,6 @@ import asyncio
 import json
 import os
 import subprocess
-import sys
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
@@ -50,7 +49,9 @@ from evals.trace import project as project_trace
 HERE = Path(__file__).resolve().parent
 TASKS_DIR = HERE / "tasks"
 SCHEMA_PATH = HERE / "schema" / "task.schema.json"
-DEFAULT_OUT = HERE / "manifests"
+#: Scratch output. A run worth keeping is copied into ``manifests/`` (or run
+#: with ``--out manifests/<name>``) and committed deliberately; see README.md.
+DEFAULT_OUT = HERE / "results"
 
 _DETERMINISTIC_INTENTS = {"out_of_scope", "clarification_required"}
 
@@ -59,6 +60,11 @@ _DETERMINISTIC_INTENTS = {"out_of_scope", "clarification_required"}
 #: by the poll budget. Recorded in the manifest's timeout_policy.
 REPORT_POLL_TRIES = int(os.environ.get("TOXAGENT_EVAL_REPORT_POLL_TRIES", "900"))
 LIVE_HTTP_TIMEOUT_S = float(os.environ.get("TOXAGENT_EVAL_HTTP_TIMEOUT_S", "120"))
+#: Seconds (1 s polls) the live driver waits for a turn. The default matches the
+#: control plane's default turn deadline (180 s); a stack started with a longer
+#: TOXAGENT_TURN_DEADLINE_S needs at least that much or a slow turn is graded
+#: while still running.
+LIVE_POLL_TRIES = int(os.environ.get("TOXAGENT_EVAL_LIVE_POLL_TRIES", "180"))
 
 
 # ------------------------------------------------------- W1-01 fixture modes
@@ -203,7 +209,7 @@ class ScriptedDriver:
     def settings(db_path: Path | str = ":memory:"):
         """The deployment the scripted driver composes. Also what its
         manifest's effective_product describes, so the two cannot differ."""
-        from toxagent.config import (
+        from toxagent.platform.config import (
             CompoundSettings, OcrSettings, PolicySettings, PredictorSettings, PredictSettings,
             ResearchSettings, RuntimeSettings, SecuritySettings, Settings,
         )
@@ -496,7 +502,7 @@ class RemoteHTTPDriver:
             # round trip), unlike the scripted driver's in-process turn — poll
             # patiently rather than in a tight loop.
             last_run_id, error_envelope = await drive_conversation(
-                client, session_id, task, self._auth, tries=180, delay=1.0
+                client, session_id, task, self._auth, tries=LIVE_POLL_TRIES, delay=1.0
             )
 
             return await gather_outcome(client, session_id, last_run_id, self._auth, error_envelope)
@@ -608,7 +614,11 @@ async def run_suite(
         # with, so a task pinned to exact frozen numbers is skipped rather
         # than graded against a mismatched real prediction.
         driver = driver or RemoteHTTPDriver(base_url, token)
-        timeout_policy = {"poll_tries": 180, "poll_delay_s": 1.0, "http_timeout_s": LIVE_HTTP_TIMEOUT_S}
+        timeout_policy = {
+            "poll_tries": LIVE_POLL_TRIES,
+            "poll_delay_s": 1.0,
+            "http_timeout_s": LIVE_HTTP_TIMEOUT_S,
+        }
     else:
         raise SystemExit(f"unknown runtime {runtime!r}")
 
@@ -834,7 +844,7 @@ def infra_failure(task: dict[str, Any], outcome: TaskOutcome) -> str | None:
 
 
 async def _effective_product(runtime: str, base_url: str, token: str) -> dict[str, Any]:
-    from toxagent.application.effective_product import describe_effective_product
+    from toxagent.api.effective_product import describe_effective_product
 
     if runtime == "scripted":
         return describe_effective_product(ScriptedDriver.settings())

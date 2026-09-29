@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 
 
 def test_toxagent_opencode_profile_exposes_only_its_own_mcp_namespace():
@@ -15,7 +15,7 @@ def test_toxagent_opencode_profile_exposes_only_its_own_mcp_namespace():
     # what actually bounds every turn, and OpenCode counts one tool call as
     # one step. 4 left no room for the one allowed submit_grounded_answer
     # correction attempt once slice-gathering took more than a single step;
-    # 8 was still too low once max_tool_calls_per_run (config.py) was raised
+    # 8 was still too low once max_tool_calls_per_run (platform/config.py) was raised
     # to 24 for evidence_research's legitimate multi-search workflow — a live
     # sweep (progress log §14.5) hit this cap before ever calling
     # submit_grounded_answer, confirmed by the model's own final text

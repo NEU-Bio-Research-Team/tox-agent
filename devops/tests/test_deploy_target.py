@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "devops" / "scripts"))
+sys.path.insert(0, str(ROOT / "devops" / "release"))
 
 from deploy_target import ENVIRONMENTS, SERVICES, NoTarget, resolve  # noqa: E402
 
@@ -69,7 +69,7 @@ def test_the_cli_refuses_a_non_deploying_ref_with_a_nonzero_status():
     """The workflow runs this as a step; a wrong ref has to stop the job."""
     result = subprocess.run(
         [
-            sys.executable, str(ROOT / "devops" / "scripts" / "deploy_target.py"),
+            sys.executable, str(ROOT / "devops" / "release" / "deploy_target.py"),
             "--ref", "refs/heads/somebodys-branch", "--service", "control",
         ],
         capture_output=True, text=True,

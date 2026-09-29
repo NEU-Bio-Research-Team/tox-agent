@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.application.router import RouteRequest, route
+from toxagent.application.conversation.router import RouteRequest, route
 from toxagent.domain.run import Intent, Lane
 
 ASPIRIN = "CC(=O)Oc1ccccc1C(=O)O"
@@ -79,6 +79,35 @@ def test_research_without_a_subject_asks_rather_than_searching():
     assert decision.intent is Intent.CLARIFICATION_REQUIRED
     assert decision.clarification.code == "research_subject_missing"
     assert not decision.calls_a_runtime
+
+
+def test_research_without_a_subject_runs_when_subjectless_research_is_allowed():
+    """W9-08, flag subjectless_research_v1: a literature question needs no molecule."""
+    decision = route(RouteRequest(text="find me some literature on hERG and macrolides",
+                                  allow_subjectless_research=True))
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert decision.lane is Lane.AGENTIC
+    assert not decision.needs_snapshot_first
+    assert "subject_absent" in decision.decision.reason_codes
+
+
+def test_a_subject_still_binds_research_when_subjectless_research_is_allowed():
+    decision = route(RouteRequest(text="find me some literature", has_active_analysis=True,
+                                  allow_subjectless_research=True))
+    assert "subject_absent" not in decision.decision.reason_codes
+
+
+def test_a_general_question_with_no_molecule_is_subjectless_research_when_allowed():
+    """Live e2e, 2026-09-26: a science question naming no literature term
+    was asked for a SMILES."""
+    text = "Những yếu tố nào làm một chất ức chế hERG in vitro không gây kéo dài QT trên lâm sàng?"
+    decision = route(RouteRequest(text=text, allow_subjectless_research=True))
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "subject_absent" in decision.decision.reason_codes
+    off = route(RouteRequest(text=text))
+    assert off.clarification.code == "molecule_missing"
+    typo = route(RouteRequest(text="CCO?", allow_subjectless_research=True))
+    assert typo.intent is Intent.CLARIFICATION_REQUIRED
 
 
 def test_attribution_is_mixed_because_the_tool_is_deterministic():

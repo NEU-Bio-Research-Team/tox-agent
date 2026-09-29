@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 from toxagent.domain.ids import new_id
 from toxagent.domain.report import (
     BuildStage,
@@ -12,7 +12,7 @@ from toxagent.domain.report import (
     REQUIRED_SECTION_IDS,
 )
 from toxagent.harness.report_profile import compose_report_profile
-from toxagent.validation.report_wire import ReportDraftCandidate
+from toxagent.validation.report.draft_wire import ReportDraftCandidate
 
 
 NOW = datetime(2026, 9, 9, tzinfo=timezone.utc)

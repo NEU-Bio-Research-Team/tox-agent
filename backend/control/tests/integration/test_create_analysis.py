@@ -9,12 +9,11 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.errors import EndpointUnavailable, Forbidden, InvalidSmiles, SessionNotFound
 from toxagent.domain.events import EventType
-from toxagent.domain.ids import new_id
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
 from toxagent.domain.session import Session

@@ -1,4 +1,3 @@
-"""ToxAgent control plane."""
 """Runtime-specific transport adapters."""
 
 from .opencode_v1 import OpenCodeV1Provider

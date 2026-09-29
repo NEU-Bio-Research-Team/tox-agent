@@ -36,9 +36,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --timeout 600 --retries 5 torch==2.6.0+${TORCH_VARIANT} \
       --extra-index-url https://download.pytorch.org/whl/${TORCH_VARIANT}
 
-COPY backend/predictor/deploy/requirements.txt /app/deploy/requirements.txt
+# Every other dependency, pinned: requirements.lock is resolved from
+# pyproject.toml (`make lock`) with torch left out, since the line above
+# installs it for the chosen variant.
+COPY backend/predictor/requirements.lock /app/requirements.lock
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --timeout 600 --retries 5 -r /app/deploy/requirements.txt
+    pip install --timeout 600 --retries 5 -r /app/requirements.lock
 
 COPY backend/predictor/src/toxpred /app/toxpred
 COPY backend/predictor/registry /app/registry

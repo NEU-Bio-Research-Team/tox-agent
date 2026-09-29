@@ -1,0 +1,447 @@
+{
+  "schema_version": "investigation-study-manifest-v1",
+  "study_id": "pilot-2026-09-25",
+  "created_at": "2026-09-25T12:25:42.828827+00:00",
+  "updated_at": "2026-09-25T12:25:42.828838+00:00",
+  "runner_version": "investigation-runner-v1",
+  "case_set": {
+    "set_id": "pilot-v1",
+    "sha256": "d9d01277ddd366cb234354357bd2f987701f30a0510eac676fd684096abf10bf",
+    "cases": {
+      "inv-01-terfenadine-named-go-nogo": "98149737e4e40e8d286fdbd64cd59715d42f585fb790fefbcc0a09e9597fba71",
+      "inv-02-terfenadine-anonymous": "5117f0f31bc7f4faed8d95d19e86e9ebdc68f738201dbd5aac4630579b21e64d",
+      "inv-03-fexofenadine-negative-control": "a51ccf2f2f90b14e891cdcd38ea22fc38d17df0431e2effe9f0b70af7ce2f947",
+      "inv-04-cisapride-conflicting-assays": "07d52c36c467d0cebbc67c684b451533abe9539becf18df7f85dfbbcf9e0318d",
+      "inv-05-astemizole-inhouse-contradicts": "7ee9bbac947b93757994d4492bcd3083c49ab90aeef1266aa7e1964ce3c82028",
+      "inv-06-aspirin-numeric-lookup": "748578cc177ddbf617fdd568c8f41ea9b596a7d162bb422ea63059183f23c956",
+      "inv-07-dofetilide-attribution": "5dc59948bd31780aada9ef506e3b65ecfb1e0bad789883590c7b4b2a2637d30c",
+      "inv-08-moxifloxacin-exposure": "586369e6045906faf6ab10c5856197ec537f80fba50b7c60dbaead329cd0658f",
+      "inv-09-bortezomib-applicability": "3073847fd82425c2b4daa55e560452f50ee82f56f174bcf915f25990f3ae40bf",
+      "inv-10-bisphenol-a-tox21-scope": "8f05001cd037a379b3f08f8bab995684b49b2ee75a092e12473e3e1abbef32d4"
+    }
+  },
+  "systems": {
+    "A_predictor_template": {
+      "system_id": "A_predictor_template",
+      "rethink_arm": "A",
+      "family": "predictor",
+      "adapter": "predictor_template",
+      "label": "ToxPred output rendered by a fixed template; no language model",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "predictor_template",
+        "template_version": "predictor-template-v1"
+      }
+    },
+    "C_toxagent_current": {
+      "system_id": "C_toxagent_current",
+      "rethink_arm": "C",
+      "family": "toxagent",
+      "adapter": "toxagent",
+      "label": "ToxAgent decision support as shipped (no case, no skills)",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {
+        "scientific_case_v1": false,
+        "scientific_skills_v1": false
+      },
+      "skills_mode": "off",
+      "adapter_config": {
+        "adapter": "toxagent",
+        "base_url_host": "127.0.0.1",
+        "effective_product_hash": "8aebd28d32cccf725e82d622c0044b4a76d015d570ec0dfff5050cc268c2ed31",
+        "runtime": {
+          "kind": "opencode",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "runtime_version": "1.17.11",
+          "agent_name": "toxagent",
+          "report_agent_name": "toxagent-report",
+          "auth_mode_default": "runtime_host"
+        },
+        "scientific_skills": {
+          "mode": "off",
+          "schema_version": "scientific-skill-catalog-v1",
+          "catalog_sha256": "40cb04a46dcee4974c587131ad41a3fb27bb811be34663eb30d033c0bb9e0696",
+          "skills": [
+            {
+              "skill_id": "assess-conflicting-evidence",
+              "version": "1.0.0",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073",
+              "status": "active"
+            },
+            {
+              "skill_id": "critique-case",
+              "version": "1.0.0",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd",
+              "status": "active"
+            },
+            {
+              "skill_id": "interpret-model-attribution",
+              "version": "1.0.0",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d",
+              "status": "active"
+            }
+          ]
+        },
+        "flags": {
+          "runtime_profile_selector_v2": true,
+          "normalized_usage_v2": true,
+          "answer_draft_v2": false,
+          "evidence_pipeline_v2": false,
+          "report_orchestrator_v2": false,
+          "router_v2": false,
+          "external_worker_mode": false,
+          "trust_envelope_v1": false,
+          "decision_state_plan_tool": false,
+          "scientific_case_v1": false,
+          "scientific_skills_v1": false
+        }
+      }
+    },
+    "D_toxagent_investigator": {
+      "system_id": "D_toxagent_investigator",
+      "rethink_arm": "D",
+      "family": "toxagent",
+      "adapter": "toxagent",
+      "label": "ToxAgent case-based investigator, skills loaded on demand",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {
+        "scientific_case_v1": true,
+        "scientific_skills_v1": true,
+        "answer_draft_v2": true
+      },
+      "skills_mode": "dynamic",
+      "adapter_config": {
+        "adapter": "toxagent",
+        "base_url_host": "127.0.0.1",
+        "effective_product_hash": "5c2590728b8b13e23adea859b243cd5dc93967a19ddea410484a839224b4dfdb",
+        "runtime": {
+          "kind": "opencode",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "runtime_version": "1.17.11",
+          "agent_name": "toxagent",
+          "report_agent_name": "toxagent-report",
+          "auth_mode_default": "runtime_host"
+        },
+        "scientific_skills": {
+          "mode": "dynamic",
+          "schema_version": "scientific-skill-catalog-v1",
+          "catalog_sha256": "40cb04a46dcee4974c587131ad41a3fb27bb811be34663eb30d033c0bb9e0696",
+          "skills": [
+            {
+              "skill_id": "assess-conflicting-evidence",
+              "version": "1.0.0",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073",
+              "status": "active"
+            },
+            {
+              "skill_id": "critique-case",
+              "version": "1.0.0",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd",
+              "status": "active"
+            },
+            {
+              "skill_id": "interpret-model-attribution",
+              "version": "1.0.0",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d",
+              "status": "active"
+            }
+          ]
+        },
+        "flags": {
+          "runtime_profile_selector_v2": true,
+          "normalized_usage_v2": true,
+          "answer_draft_v2": true,
+          "evidence_pipeline_v2": false,
+          "report_orchestrator_v2": false,
+          "router_v2": false,
+          "external_worker_mode": false,
+          "trust_envelope_v1": false,
+          "decision_state_plan_tool": false,
+          "scientific_case_v1": true,
+          "scientific_skills_v1": true
+        }
+      }
+    },
+    "D0_toxagent_case_no_skills": {
+      "system_id": "D0_toxagent_case_no_skills",
+      "rethink_arm": "D-ablation",
+      "family": "toxagent",
+      "adapter": "toxagent",
+      "label": "ToxAgent case-based investigator without skills",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {
+        "scientific_case_v1": true,
+        "scientific_skills_v1": false,
+        "answer_draft_v2": true
+      },
+      "skills_mode": "off",
+      "adapter_config": {
+        "adapter": "toxagent",
+        "base_url_host": "127.0.0.1",
+        "effective_product_hash": "dbaa9e4345907b66b5636672a16c11dc1932877337128e1432fced9b779c997c",
+        "runtime": {
+          "kind": "opencode",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "runtime_version": "1.17.11",
+          "agent_name": "toxagent",
+          "report_agent_name": "toxagent-report",
+          "auth_mode_default": "runtime_host"
+        },
+        "scientific_skills": {
+          "mode": "off",
+          "schema_version": "scientific-skill-catalog-v1",
+          "catalog_sha256": "40cb04a46dcee4974c587131ad41a3fb27bb811be34663eb30d033c0bb9e0696",
+          "skills": [
+            {
+              "skill_id": "assess-conflicting-evidence",
+              "version": "1.0.0",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073",
+              "status": "active"
+            },
+            {
+              "skill_id": "critique-case",
+              "version": "1.0.0",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd",
+              "status": "active"
+            },
+            {
+              "skill_id": "interpret-model-attribution",
+              "version": "1.0.0",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d",
+              "status": "active"
+            }
+          ]
+        },
+        "flags": {
+          "runtime_profile_selector_v2": true,
+          "normalized_usage_v2": true,
+          "answer_draft_v2": true,
+          "evidence_pipeline_v2": false,
+          "report_orchestrator_v2": false,
+          "router_v2": false,
+          "external_worker_mode": false,
+          "trust_envelope_v1": false,
+          "decision_state_plan_tool": false,
+          "scientific_case_v1": true,
+          "scientific_skills_v1": false
+        }
+      }
+    },
+    "Ds_toxagent_case_static_skills": {
+      "system_id": "Ds_toxagent_case_static_skills",
+      "rethink_arm": "D-ablation",
+      "family": "toxagent",
+      "adapter": "toxagent",
+      "label": "ToxAgent case-based investigator, every skill composed into the prompt",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {
+        "scientific_case_v1": true,
+        "scientific_skills_v1": false,
+        "answer_draft_v2": true
+      },
+      "skills_mode": "static",
+      "adapter_config": {
+        "adapter": "toxagent",
+        "base_url_host": "127.0.0.1",
+        "effective_product_hash": "7cd4e2c8bab46968ee60bc294520a81b9beeb544c25735430dac275773d9be69",
+        "runtime": {
+          "kind": "opencode",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "runtime_version": "1.17.11",
+          "agent_name": "toxagent",
+          "report_agent_name": "toxagent-report",
+          "auth_mode_default": "runtime_host"
+        },
+        "scientific_skills": {
+          "mode": "static",
+          "schema_version": "scientific-skill-catalog-v1",
+          "catalog_sha256": "40cb04a46dcee4974c587131ad41a3fb27bb811be34663eb30d033c0bb9e0696",
+          "skills": [
+            {
+              "skill_id": "assess-conflicting-evidence",
+              "version": "1.0.0",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073",
+              "status": "active"
+            },
+            {
+              "skill_id": "critique-case",
+              "version": "1.0.0",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd",
+              "status": "active"
+            },
+            {
+              "skill_id": "interpret-model-attribution",
+              "version": "1.0.0",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d",
+              "status": "active"
+            }
+          ]
+        },
+        "flags": {
+          "runtime_profile_selector_v2": true,
+          "normalized_usage_v2": true,
+          "answer_draft_v2": true,
+          "evidence_pipeline_v2": false,
+          "report_orchestrator_v2": false,
+          "router_v2": false,
+          "external_worker_mode": false,
+          "trust_envelope_v1": false,
+          "decision_state_plan_tool": false,
+          "scientific_case_v1": true,
+          "scientific_skills_v1": false
+        }
+      }
+    },
+    "P_openai_bare": {
+      "system_id": "P_openai_bare",
+      "rethink_arm": "P",
+      "family": "platform",
+      "adapter": "codex_cli",
+      "label": "OpenAI model through the codex CLI, question only",
+      "uses_snapshot": false,
+      "platform": "openai",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "CodexCLIAdapter",
+        "binary": "codex",
+        "version": "codex-cli 0.155.0-alpha.16.3",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "configuration": {
+          "model": "gpt-6-sol",
+          "provider": "sglang",
+          "model_reasoning_effort": "xhigh",
+          "service_tier": "default"
+        },
+        "tool_policy": "read-only sandbox in an empty temporary directory; ephemeral"
+      }
+    },
+    "B_openai_snapshot": {
+      "system_id": "B_openai_snapshot",
+      "rethink_arm": "B",
+      "family": "platform",
+      "adapter": "codex_cli",
+      "label": "OpenAI model through the codex CLI, with the ToxPred snapshot",
+      "uses_snapshot": true,
+      "platform": "openai",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "CodexCLIAdapter",
+        "binary": "codex",
+        "version": "codex-cli 0.155.0-alpha.16.3",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "configuration": {
+          "model": "gpt-6-sol",
+          "provider": "sglang",
+          "model_reasoning_effort": "xhigh",
+          "service_tier": "default"
+        },
+        "tool_policy": "read-only sandbox in an empty temporary directory; ephemeral"
+      }
+    },
+    "P_anthropic_bare": {
+      "system_id": "P_anthropic_bare",
+      "rethink_arm": "P",
+      "family": "platform",
+      "adapter": "claude_cli",
+      "label": "Anthropic model through the claude CLI (no tools), question only",
+      "uses_snapshot": false,
+      "platform": "anthropic",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "ClaudeCLIAdapter",
+        "binary": "claude",
+        "version": "2.1.282 (Claude Code)",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "model_requested": "opus",
+        "tool_policy": "--tools '' --strict-mcp-config --setting-sources '' in an empty temporary directory; no session persisted"
+      }
+    },
+    "B_anthropic_snapshot": {
+      "system_id": "B_anthropic_snapshot",
+      "rethink_arm": "B",
+      "family": "platform",
+      "adapter": "claude_cli",
+      "label": "Anthropic model through the claude CLI (no tools), with the ToxPred snapshot",
+      "uses_snapshot": true,
+      "platform": "anthropic",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "ClaudeCLIAdapter",
+        "binary": "claude",
+        "version": "2.1.282 (Claude Code)",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "model_requested": "opus",
+        "tool_policy": "--tools '' --strict-mcp-config --setting-sources '' in an empty temporary directory; no session persisted"
+      }
+    },
+    "P_google_bare": {
+      "system_id": "P_google_bare",
+      "rethink_arm": "P",
+      "family": "platform",
+      "adapter": "manual",
+      "label": "Google Gemini model, prompts answered out of process, question only",
+      "uses_snapshot": false,
+      "platform": "google",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "manual",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "protocol": "prompt file written by the runner; response and meta files by the operator"
+      }
+    },
+    "B_google_snapshot": {
+      "system_id": "B_google_snapshot",
+      "rethink_arm": "B",
+      "family": "platform",
+      "adapter": "manual",
+      "label": "Google Gemini model, prompts answered out of process, with the ToxPred snapshot",
+      "uses_snapshot": true,
+      "platform": "google",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "manual",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "protocol": "prompt file written by the runner; response and meta files by the operator"
+      }
+    }
+  },
+  "platform_prompt": {
+    "version": "platform-prompt-v1",
+    "preamble": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.",
+    "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+    "snapshot_header": "For reference, this is the output of our in-house toxicity predictor (ToxPred) for the compound in the question, as JSON:"
+  },
+  "trials": 1,
+  "environment": {
+    "git_commit": "c29bb2b4458a100cc5d24f7032504e3873a58ecb",
+    "git_branch": "feat/scientific-investigation",
+    "git_dirty_tracked": false,
+    "host": "LAPTOP-T7GOJFP2",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.10.20",
+    "pid": 320687
+  }
+}

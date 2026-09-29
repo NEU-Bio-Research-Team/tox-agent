@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.config import RuntimeSettings
+from toxagent.platform.config import RuntimeSettings
 from toxagent.harness.gateway import AgentRuntimeGateway
 from toxagent.harness.provider import RuntimeHealth
 

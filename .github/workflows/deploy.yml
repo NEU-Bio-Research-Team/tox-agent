@@ -12,7 +12,7 @@ name: Deploy
 #
 # What this workflow does differently:
 #
-#   - It resolves its target through devops/scripts/deploy_target.py, which is
+#   - It resolves its target through devops/release/deploy_target.py, which is
 #     asserted in devops/tests without a cloud project. A ref with no target
 #     stops the job rather than falling back to a default.
 #   - `agent_test` deploys to staging services; `main` promotes the digest
@@ -70,7 +70,7 @@ jobs:
       - name: Resolve the deployment target for this ref
         id: target
         run: |
-          python devops/scripts/deploy_target.py \
+          python devops/release/deploy_target.py \
             --ref "${GITHUB_REF}" --service control --github-output
 
   staging:
@@ -99,7 +99,7 @@ jobs:
       - name: Resolve this service's target
         id: target
         run: |
-          python devops/scripts/deploy_target.py \
+          python devops/release/deploy_target.py \
             --ref "${GITHUB_REF}" --service "${{ matrix.service }}" --github-output
 
       - name: Fail fast when the project is not configured
@@ -177,7 +177,7 @@ jobs:
       - name: Resolve this service's target
         id: target
         run: |
-          python devops/scripts/deploy_target.py \
+          python devops/release/deploy_target.py \
             --ref "${GITHUB_REF}" --service "${{ matrix.service }}" --github-output
 
       - name: Refuse to build in production

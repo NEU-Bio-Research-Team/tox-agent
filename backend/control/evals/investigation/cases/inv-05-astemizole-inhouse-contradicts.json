@@ -1,0 +1,53 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-05-astemizole-inhouse-contradicts",
+  "tags": [
+    "user_result_contradicts",
+    "conflicting_evidence",
+    "multi_turn",
+    "named",
+    "herg"
+  ],
+  "compound": {
+    "query_name": "astemizole",
+    "name_disclosed": true,
+    "pubchem_cid": 2247,
+    "smiles": "COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F",
+    "molecular_formula": "C28H31FN4O",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/astemizole/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?"
+    },
+    {
+      "text": "Our in-house thallium-flux assay showed only 20% inhibition of hERG at 1 µM. Does that change your assessment?",
+      "context": {
+        "key": "thallium_flux_result",
+        "value": "20% inhibition of hERG thallium flux at 1 µM (in-house)",
+        "note": "provided by the researcher in turn 2"
+      }
+    }
+  ],
+  "reference": {
+    "type": "known_outcome_with_hypothetical_scenario",
+    "summary": "Astemizole was withdrawn from the US market because of torsade de pointes and is a potent hERG blocker in patch clamp. The in-house flux result is hypothetical: a good answer neither discards it nor lets it overturn the functional literature; it weighs assay type, potency shifts between flux and patch clamp, and assay controls, and proposes a discriminating test.",
+    "sources": [
+      {
+        "citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"
+      }
+    ],
+    "good_behaviours": [
+      "updates the assessment explicitly after the new result, and says how",
+      "compares flux and patch-clamp readouts rather than picking a winner",
+      "asks about assay controls or reference compounds",
+      "proposes a discriminating experiment"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "9503f66c4ca03f02e404e1c180747934f02f6328e7e1175387881c81a7fb9a4f"
+}

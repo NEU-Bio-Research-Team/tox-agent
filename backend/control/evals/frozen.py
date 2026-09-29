@@ -64,7 +64,7 @@ class FrozenPredictor:
 
     # The runner passes ``.client()`` straight to ``create_app(predictor=...)``.
     def client(self):
-        from toxagent.config import PredictorSettings
+        from toxagent.platform.config import PredictorSettings
         from toxagent.predictor.client import PredictorClient
 
         return PredictorClient(

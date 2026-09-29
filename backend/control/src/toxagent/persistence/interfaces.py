@@ -27,8 +27,6 @@ from ..domain.run import Run
 from ..domain.runtime import RuntimeBinding
 from ..domain.usage import RuntimeUsageEvent
 from ..domain.session import Session
-from ..agent.kernel import KernelTransition
-from ..domain.investigation import CaseState, InvestigationPlan, InvestigationStep
 
 
 @runtime_checkable
@@ -90,6 +88,7 @@ class ObservationStore(Protocol):
 @runtime_checkable
 class EvidenceStore(Protocol):
     async def add(self, record: EvidenceRecord) -> None: ...
+    async def add_if_absent(self, record: EvidenceRecord) -> EvidenceRecord: ...
     async def get(self, evidence_id: str, *, session_id: str) -> EvidenceRecord | None: ...
     async def find_by_dedupe_key(self, session_id: str, dedupe_key: str) -> EvidenceRecord | None: ...
     async def set_status(
@@ -193,6 +192,10 @@ class UnitOfWork(Protocol):
     attachments: AttachmentStore
     reports: Any
     investigations: Any
+    #: ScientificCaseV1 snapshots, their event log and run dossiers (ADR 0012).
+    scientific_cases: Any
+    #: Skill drafts awaiting expert review (W9-11).
+    skill_drafts: Any
     model_connections: Any
     session_settings: Any
     run_configuration_snapshots: Any

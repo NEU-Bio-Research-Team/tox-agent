@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.startup_reconciliation import reconcile_orphaned_runs
+from toxagent.application.runs.startup_reconciliation import reconcile_orphaned_runs
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run, RunStatus
@@ -134,7 +134,7 @@ async def test_cancelling_no_longer_hangs_forever_after_reconciliation(db):
     because nothing ever picked the flag up. After reconciliation the run is
     terminal, so a subsequent cancel honestly reports there is nothing left
     to cancel instead of repeating that same non-answer indefinitely."""
-    from toxagent.application.run_scheduler import RunScheduler
+    from toxagent.application.runs.scheduler import RunScheduler
 
     session_id, run_id = await _seed_queued_run(db, cancel_requested=True)
     await reconcile_orphaned_runs(db)

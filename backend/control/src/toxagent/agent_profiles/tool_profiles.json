@@ -1,0 +1,111 @@
+{
+  "schema_version": "tool-profiles-v1",
+  "about": "Which tools each capability profile may see (plan section 8.3). A product decision: changing a profile changes what a model can do, and the eval suite is re-run when it happens. Loaded and validated by toxagent.tools.profile_manifest at import; tools.registry.PROFILES and FLAG_GATED_TOOLS are derived from it.",
+  "profiles": {
+    "analysis": {
+      "description": "Deterministic analysis turn: create or read one snapshot and answer from it.",
+      "read_only": false,
+      "tools": [
+        "create_analysis_snapshot",
+        "get_analysis_slice",
+        "submit_grounded_answer"
+      ]
+    },
+    "report_qa": {
+      "description": "Questions about an existing report or prediction; reads values and attributions only.",
+      "read_only": false,
+      "tools": [
+        "get_analysis_slice",
+        "get_attribution",
+        "submit_grounded_answer"
+      ]
+    },
+    "evidence_research": {
+      "description": "Literature questions bound to an analysis: search, read, answer.",
+      "read_only": false,
+      "tools": [
+        "get_analysis_slice",
+        "get_evidence_record",
+        "search_toxicology_evidence",
+        "submit_grounded_answer"
+      ]
+    },
+    "decision_support": {
+      "description": "Adaptive decision support (ADR 0010): the model chooses which reads, searches and case writes the goal needs, within the run budget. Deliberately no shell, filesystem or raw web.",
+      "read_only": false,
+      "tools": [
+        "compute_exposure_margin",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_chembl_activities",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_report_summary",
+        "get_scientific_case",
+        "propose_skill_draft",
+        "read_scientific_skill",
+        "read_skill_reference",
+        "record_decision_plan",
+        "search_toxicology_evidence",
+        "submit_grounded_answer",
+        "update_scientific_case"
+      ]
+    },
+    "audit_readonly": {
+      "description": "Read-only audit: inspects answers and their sources; never authors one.",
+      "read_only": true,
+      "tools": [
+        "get_analysis_slice",
+        "get_evidence_record",
+        "get_explanation_slice"
+      ]
+    },
+    "report_build": {
+      "description": "The model-driven report builder (report spec section 8): durable draft, patch and submit; no conversational answer.",
+      "read_only": false,
+      "tools": [
+        "check_report_draft",
+        "check_saved_report_draft",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_evidence_record",
+        "get_explanation_package",
+        "get_or_create_explanation",
+        "get_report_context",
+        "patch_saved_report_draft",
+        "resolve_compound_record",
+        "save_report_draft",
+        "search_toxicology_evidence",
+        "submit_report_draft",
+        "submit_saved_report_draft"
+      ]
+    },
+    "report_synthesis": {
+      "description": "The one LLM boundary of an orchestrated report build: a single submission tool.",
+      "read_only": false,
+      "tools": [
+        "submit_report_synthesis"
+      ]
+    },
+    "claim_review": {
+      "description": "An independent reviewer's single turn (W9-12, flag claim_reviewer_v1): judge whether each claim of an accepted answer is supported by the sources it cites, from the sources the server hands it. One tool; no reads, so it cannot redo the answering agent's work.",
+      "read_only": false,
+      "tools": [
+        "submit_claim_review"
+      ]
+    }
+  },
+  "flag_gated_tools": {
+    "compute_exposure_margin": "scientific_primitives_v1",
+    "get_chembl_activities": "scientific_primitives_v1",
+    "get_scientific_case": "scientific_case_v1",
+    "propose_skill_draft": "skill_drafts_v1",
+    "read_scientific_skill": "scientific_skills_v1",
+    "read_skill_reference": "scientific_skills_v1",
+    "record_decision_plan": "decision_state_plan_tool",
+    "submit_claim_review": "claim_reviewer_v1",
+    "update_scientific_case": "scientific_case_v1"
+  }
+}

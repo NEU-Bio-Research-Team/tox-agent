@@ -7,13 +7,13 @@ import pytest
 
 from toxagent.domain.ids import new_id
 from toxagent.domain.observation import Observation, ObservationKind, Producer
-from toxagent.validation.numeric import (
+from toxagent.validation.answer.numeric import (
     parse_rendered_number,
     round_tolerance,
     validate_derived_numeric,
     validate_field_backed_numeric,
 )
-from toxagent.validation.wire import ClaimCandidate
+from toxagent.validation.answer.candidate_wire import ClaimCandidate
 
 NOW = datetime(2026, 9, 4, tzinfo=timezone.utc)
 

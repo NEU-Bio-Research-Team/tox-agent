@@ -1,0 +1,36 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-06-aspirin-numeric-lookup",
+  "tags": [
+    "numeric_lookup",
+    "named"
+  ],
+  "compound": {
+    "query_name": "aspirin",
+    "name_disclosed": true,
+    "pubchem_cid": 2244,
+    "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+    "molecular_formula": "C9H8O4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/aspirin/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals."
+    }
+  ],
+  "reference": {
+    "type": "reasoning_expectation",
+    "summary": "A direct lookup. The answer reports the model's value and that it is an uncalibrated model score. No literature investigation or decision framing is needed; systems without the predictor cannot know the value and should say so rather than invent one.",
+    "sources": [],
+    "good_behaviours": [
+      "answers the question asked without inventing a number",
+      "labels the value as a model score",
+      "does not turn a lookup into an unrequested risk assessment"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "1125cc39fd2c17d8d60634d868eb64acaedd0a1afbfdde724d8d770cb79ec06b"
+}

@@ -23,8 +23,8 @@ import re
 
 import pytest
 
-from toxagent.application.report_dispatch import DatabaseBuildStore, OrchestratedReportBuild
-from toxagent.application.report_synthesis import SYNTHESIS_KEY
+from toxagent.application.report.dispatch import DatabaseBuildStore, OrchestratedReportBuild
+from toxagent.application.report.synthesis import SYNTHESIS_KEY
 from toxagent.domain.run import Intent
 from toxagent.harness.adapters.scripted import ScriptedRuntimeProvider
 from toxagent.harness.gateway import AgentRuntimeGateway
@@ -150,7 +150,7 @@ async def _build_report(client, session_id: str, analysis_id: str) -> dict:
         headers=AUTH,
     )
     assert accepted.status_code == 202, accepted.text
-    return await wait_for_run(client, session_id, accepted.json()["run_id"], tries=1000)
+    return await wait_for_run(client, session_id, accepted.json()["run_id"])
 
 
 async def _events(client, session_id: str) -> list[dict]:
@@ -286,28 +286,30 @@ async def test_a_synthesis_that_types_a_number_is_refused_and_no_report_is_publi
 async def test_the_orchestrator_store_never_erases_an_accepted_synthesis(db):
     from datetime import datetime, timezone
 
+    from toxagent.application.policy import Actor
+    from toxagent.application.prediction.create_analysis import CreateAnalysis
     from toxagent.domain.message import Message, Role
-    from toxagent.domain.report import ReportBuild, ReportBuildRequest
     from toxagent.domain.run import Lane, Run
     from toxagent.domain.session import Session
-    from toxagent.domain.ids import ANALYSIS, new_id
+    from toxagent.platform.config import PolicySettings
+    from tests.support.reports import seed_report_build
 
     now = datetime.now(timezone.utc)
     session = Session.create("user-1", now=now)
     message = Message.create(session.id, Role.USER, 1, now=now)
     run = Run.create(session.id, message.id, Lane.MIXED, Intent.BUILD_REPORT, now=now)
-    build = ReportBuild.start(
-        session_id=session.id, run_id=run.id, now=now,
-        request=ReportBuildRequest(
-            session_id=session.id, analysis_id=new_id(ANALYSIS), selected_endpoints=("herg",)
-        ),
-    )
     async with db.unit_of_work() as uow:
         await uow.sessions.add(session)
         await uow.messages.add(message)
         await uow.runs.add(run)
-        await uow.reports.add_build(build)
         await uow.commit()
+    analysis = await CreateAnalysis(db, StubPredictor().client(), PolicySettings()).execute(
+        actor=Actor(subject_id="user-1"), session_id=session.id, run_id=run.id,
+        smiles="CCO", endpoints=("herg",), owns_run=False,
+    )
+    build = await seed_report_build(
+        db, session_id=session.id, run_id=run.id, analysis_id=analysis.snapshot.id, now=now,
+    )
 
     store = DatabaseBuildStore(db, session_id=session.id)
     stale = await store.load(build.id)

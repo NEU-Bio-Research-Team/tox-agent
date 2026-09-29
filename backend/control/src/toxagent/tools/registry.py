@@ -12,127 +12,30 @@ for a different error message (PROD-06).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Awaitable, Callable, Final, Mapping
+from typing import Any, Awaitable, Callable, Final
 
 from pydantic import BaseModel
 
-from ..application.policy import Actor
+from ..application.tool_context import ToolContext
 from ..domain.provenance import content_sha256
+from ..application.tool_profiles import manifest as load_profile_manifest
 
 #: Capability profiles (plan section 8.3). A profile is a closed set: adding a
 #: tool to one is a product decision that changes what a model can do, and the
-#: eval suite is expected to be re-run when it happens.
-PROFILES: Final[dict[str, frozenset[str]]] = {
-    "analysis": frozenset(
-        {
-            "create_analysis_snapshot", "get_analysis_slice",
-            "submit_grounded_answer",
-        }
-    ),
-    "report_qa": frozenset(
-        {
-            "get_analysis_slice",
-            "get_attribution", "submit_grounded_answer",
-        }
-    ),
-    "evidence_research": frozenset(
-        {
-            "get_analysis_slice",
-            "search_toxicology_evidence", "get_evidence_record",
-            "submit_grounded_answer",
-        }
-    ),
-    #: Adaptive decision support (ADS plan section 7.2, ADR 0010). Superset of
-    #: report_qa + evidence_research's read/research surface, plus
-    #: get_artifact_inventory/get_report_summary (W2-03/04) so a follow-up
-    #: turn can see what a prior report already established instead of
-    #: guessing from prose: the model picks which of these to call and in
-    #: what order within the run's budget, rather than the profile being
-    #: pre-selected by a keyword. Deliberately still closed — no
-    #: shell/filesystem/raw web, same as every other profile — and still
-    #: without the report_build-only draft/submit tooling.
-    "decision_support": frozenset(
-        {
-            "get_artifact_inventory", "get_report_summary",
-            "get_analysis_slice", "get_analysis_bundle",
-            "get_explanation_slice",
-            "get_attribution",
-            "search_toxicology_evidence", "get_evidence_record",
-            "submit_grounded_answer",
-            # TAB-Suite Wave 2: listed here, registered only behind the
-            # decision_state_plan_tool flag (tools/bootstrap.py), so it is
-            # absent from tools/list until then.
-            "record_decision_plan",
-        }
-    ),
-    #: Read-only audit. Deliberately without submit_grounded_answer: an auditor
-    #: inspects answers, it does not author them.
-    "audit_readonly": frozenset(
-        {"get_analysis_slice", "get_evidence_record", "get_explanation_slice"}
-    ),
-    #: The report builder (report spec section 8). Deliberately *not* a
-    #: superset of report_qa: it has no ``submit_grounded_answer``, because a
-    #: report is not an answer and a run that could emit either would have two
-    #: ways to finish and two validators to satisfy. Note also what is absent
-    #: on the figure side — the runtime can ask for an explanation and receive
-    #: refs, but never reaches attachment storage or the renderer directly
-    #: (spec section 8: "Do not expose both low-level figure rendering and
-    #: attachment storage to the agent").
-    "report_build": frozenset(
-        {
-            "get_report_context",
-            "get_analysis_bundle", "get_analysis_slice",
-            "resolve_compound_record",
-            "get_or_create_explanation", "get_explanation_package",
-            "search_toxicology_evidence", "get_evidence_record",
-            # The dry run sits beside the submission deliberately: it runs the
-            # same validator and stores nothing, so a model can find its own
-            # bookkeeping slips without spending the build's one correction
-            # attempt on the discovery.
-            "save_report_draft", "check_saved_report_draft",
-            "patch_saved_report_draft", "submit_saved_report_draft",
-            # Backward-compatible stateless path. New profiles instruct the
-            # runtime to use the durable flow above.
-            "check_report_draft", "submit_report_draft",
-        }
-    ),
-    #: The one LLM boundary of an orchestrated report build (WS05 5B / PR-12).
-    #: A single tool, on purpose: by the time this profile is dispatched the
-    #: server has already resolved the substance, projected the predictions,
-    #: produced the explanations and run the search. A read tool here would be
-    #: an invitation to redo that work, and a draft tool would be a second way
-    #: to finish.
-    "report_synthesis": frozenset({"submit_report_synthesis"}),
-}
+#: eval suite is expected to be re-run when it happens. The decision is written
+#: down in ``agent_profiles/tool_profiles.json`` (W9-09), validated at import
+#: by ``profile_manifest``; this module only exposes it under the names every
+#: consumer already reads.
+PROFILE_MANIFEST: Final = load_profile_manifest()
+PROFILES: Final[dict[str, frozenset[str]]] = dict(PROFILE_MANIFEST.profiles)
 
-
-@dataclass(frozen=True)
-class ToolContext:
-    """Everything a handler is allowed to know about who is calling.
-
-    ``session_id`` and ``run_id`` come from the capability token, never from the
-    model's arguments — a tool argument that disagrees with the token loses
-    (plan section 8.5).
-    """
-
-    session_id: str
-    run_id: str
-    actor: Actor
-    profile: str
-    deadline_at: datetime
-    language: str = "en"
-    #: Immutable run intent carried by the signed capability token. It is
-    #: presentation context only; tool authorization remains ``profile``.
-    intent: str = ""
-    call_id: str = ""
-    #: The run's resolved predictor binding: endpoint -> admitted model id.
-    #: Injected by the server from the run configuration, exactly like
-    #: session_id and run_id, and for the same reason — a tool argument that
-    #: let a model choose its own provider would put scientific model
-    #: selection in the hands of the thing being explained (I10). No tool
-    #: input schema exposes a model field; this is the only way one arrives.
-    model_selection: Mapping[str, str] | None = None
+#: Tools a profile lists but a deployment registers only while a rollout flag
+#: is on (``tools/bootstrap.py`` applies it; ``evals/capability_matrix.py``
+#: reports it). Declared in the same manifest, so the bootstrap and the
+#: published capability matrix cannot disagree about which flag gates which
+#: tool. With the flag off the tool is absent from ``tools/list`` and from the
+#: profile's schema hash.
+FLAG_GATED_TOOLS: Final[dict[str, str]] = dict(PROFILE_MANIFEST.flag_gated_tools)
 
 
 @dataclass(frozen=True)

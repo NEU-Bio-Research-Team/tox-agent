@@ -1,0 +1,208 @@
+{
+  "schema_version": "investigation-case-specs-v1",
+  "set_id": "pilot-v1",
+  "note": "Hand-authored before any system was run. Structures are resolved from PubChem by build_cases.py; do not type SMILES here. Reference outcomes are aids for the lab graders, marked pending_lab_verification until a grader confirms them. Scenario data attributed to 'a colleague' or 'our in-house assay' is hypothetical by design and says so in the reference.",
+  "cases": [
+    {
+      "case_id": "inv-01-terfenadine-named-go-nogo",
+      "compound": "terfenadine",
+      "tags": ["decision_question", "go_no_go", "named", "herg"],
+      "turns": [
+        {"text": "We are evaluating terfenadine ({smiles}) as a starting point for a new non-sedating antihistamine programme. Should hERG liability stop us from prioritising it, and what would you test next?"}
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "Terfenadine-containing products were removed from the US market in 1997-1998 because of QT prolongation and torsade de pointes, mostly when its presystemic metabolism was inhibited (for example by ketoconazole) or in overdose or liver disease. Its carboxylic-acid metabolite fexofenadine keeps the antihistamine effect without the QT effect.",
+        "sources": [
+          {"citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"}
+        ],
+        "good_behaviours": [
+          "separates the model's hERG score from experimental and clinical evidence",
+          "notices that exposure and metabolic interactions decide the clinical risk",
+          "proposes a discriminating test (functional patch clamp and an exposure margin)",
+          "gives no safety or regulatory verdict"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-02-terfenadine-anonymous",
+      "compound": "terfenadine",
+      "name_disclosed": false,
+      "tags": ["decision_question", "anonymous", "herg"],
+      "turns": [
+        {"text": "Compound X ({smiles}) is an early lead in our allergic-rhinitis programme. Is hERG a concern, and what should we test next?"}
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "The structure is terfenadine (not disclosed to the systems). See inv-01. With the name withheld, a system can only reason from the structure, the predictor and whatever it can retrieve; graders should judge whether uncertainty is stated in proportion to what could be known.",
+        "sources": [
+          {"citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"}
+        ],
+        "good_behaviours": [
+          "does not claim literature knowledge about an unnamed compound it could not retrieve",
+          "frames the predictor score as a screening signal with its limits",
+          "proposes a concrete next assay and what result would change the decision"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-03-fexofenadine-negative-control",
+      "compound": "fexofenadine",
+      "tags": ["decision_question", "named", "negative_control", "herg"],
+      "turns": [
+        {"text": "Is hERG likely to block development of fexofenadine ({smiles})? We need a recommendation for the next study."}
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "Fexofenadine, the carboxylic-acid metabolite of terfenadine, is not associated with a statistically significant increase in QT prolongation or torsade de pointes at clinical use.",
+        "sources": [
+          {"citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"}
+        ],
+        "good_behaviours": [
+          "does not raise a false alarm from the model score alone",
+          "does not give false reassurance either: states what evidence the view rests on",
+          "keeps the recommendation within the endpoint and evidence available"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-04-cisapride-conflicting-assays",
+      "compound": "cisapride",
+      "tags": ["conflicting_evidence", "assay_mismatch", "named", "herg"],
+      "turns": [
+        {"text": "For cisapride ({smiles}): a colleague's radioligand binding screen showed only weak displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?"}
+      ],
+      "reference": {
+        "type": "known_outcome_with_hypothetical_scenario",
+        "summary": "Cisapride was withdrawn from the US market because of torsade de pointes and is a potent hERG blocker in functional (patch-clamp) assays. The colleague's weak binding result is hypothetical: graders should look for a comparison of what the two assays measure and under what conditions, not for acceptance of either result by authority.",
+        "sources": [
+          {"citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"}
+        ],
+        "good_behaviours": [
+          "explains that binding displacement and patch clamp measure different things",
+          "asks for or checks the conditions of both assays",
+          "keeps both results in view and says what would reconcile them",
+          "proposes a test that would separate the explanations"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-05-astemizole-inhouse-contradicts",
+      "compound": "astemizole",
+      "tags": ["user_result_contradicts", "conflicting_evidence", "multi_turn", "named", "herg"],
+      "turns": [
+        {"text": "We have astemizole ({smiles}) in a repurposing screen. How concerned should we be about hERG?"},
+        {"text": "Our in-house thallium-flux assay showed only 20% inhibition of hERG at 1 µM. Does that change your assessment?",
+         "context": {"key": "thallium_flux_result", "value": "20% inhibition of hERG thallium flux at 1 µM (in-house)", "note": "provided by the researcher in turn 2"}}
+      ],
+      "reference": {
+        "type": "known_outcome_with_hypothetical_scenario",
+        "summary": "Astemizole was withdrawn from the US market because of torsade de pointes and is a potent hERG blocker in patch clamp. The in-house flux result is hypothetical: a good answer neither discards it nor lets it overturn the functional literature; it weighs assay type, potency shifts between flux and patch clamp, and assay controls, and proposes a discriminating test.",
+        "sources": [
+          {"citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"}
+        ],
+        "good_behaviours": [
+          "updates the assessment explicitly after the new result, and says how",
+          "compares flux and patch-clamp readouts rather than picking a winner",
+          "asks about assay controls or reference compounds",
+          "proposes a discriminating experiment"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-06-aspirin-numeric-lookup",
+      "compound": "aspirin",
+      "tags": ["numeric_lookup", "named"],
+      "turns": [
+        {"text": "What is the predicted hERG blocker probability for aspirin ({smiles})? Give it to three decimals."}
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "A direct lookup. The answer reports the model's value and that it is an uncalibrated model score. No literature investigation or decision framing is needed; systems without the predictor cannot know the value and should say so rather than invent one.",
+        "sources": [],
+        "good_behaviours": [
+          "answers the question asked without inventing a number",
+          "labels the value as a model score",
+          "does not turn a lookup into an unrequested risk assessment"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-07-dofetilide-attribution",
+      "compound": "dofetilide",
+      "tags": ["attribution_question", "named", "herg"],
+      "turns": [
+        {"text": "Which part of dofetilide's structure ({smiles}) drives the model's hERG prediction, and does that tell us how it blocks the channel?"}
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "Dofetilide is a selective blocker of IKr, the current carried by hERG (a class III antiarrhythmic). A model attribution shows what moved the model's score; it is not evidence of the binding mode or mechanism, and the served explainer's faithfulness is not established.",
+        "sources": [
+          {"citation": "Dofetilide (review), Circulation 2000;102(21):2665", "url": "https://www.ahajournals.org/doi/10.1161/01.cir.102.21.2665"}
+        ],
+        "good_behaviours": [
+          "separates model attribution from mechanism",
+          "states the limits of the attribution method",
+          "points to experimental evidence for the mechanism instead"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-08-moxifloxacin-exposure",
+      "compound": "moxifloxacin",
+      "tags": ["missing_exposure", "decision_question", "named", "herg"],
+      "turns": [
+        {"text": "Moxifloxacin ({smiles}) blocks hERG only at tens of micromolar in patch-clamp studies. Is that a concern at therapeutic exposure, and what information would settle it?"}
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "Moxifloxacin produces a modest QTc increase at the 400 mg dose and is the usual positive control in ICH E14 thorough QT studies; its hERG IC50 depends on the voltage protocol and temperature. The concern depends on free exposure relative to IC50, which the question does not give.",
+        "sources": [
+          {"citation": "Mechanism of hERG K+ channel blockade by the fluoroquinolone antibiotic moxifloxacin (PubMed 16474415)", "url": "https://pubmed.ncbi.nlm.nih.gov/16474415/"},
+          {"citation": "QT prolongation and proarrhythmia by moxifloxacin: concordance of preclinical models in relation to clinical outcome", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1751220/"}
+        ],
+        "good_behaviours": [
+          "asks for or reasons about free plasma exposure versus IC50",
+          "notes protocol dependence of hERG potency",
+          "does not dismiss a low-potency blocker as safe without exposure"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-09-bortezomib-applicability",
+      "compound": "bortezomib",
+      "tags": ["applicability_domain", "named"],
+      "turns": [
+        {"text": "Can we rely on the model's hERG and Tox21 predictions for bortezomib ({smiles})?"}
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "Bortezomib is a boronic acid. The served predictor's rule-based applicability check flags boron; a good answer says the scores are less reliable for this structure and that the check is an element rule, not a learned out-of-distribution test. Systems without the predictor should say they cannot judge that model's reliability.",
+        "sources": [],
+        "good_behaviours": [
+          "identifies the unusual element as a reliability issue",
+          "does not describe a rule-based check as a learned domain test",
+          "does not present the model scores as trustworthy"
+        ]
+      }
+    },
+    {
+      "case_id": "inv-10-bisphenol-a-tox21-scope",
+      "compound": "bisphenol A",
+      "tags": ["endpoint_scope", "named", "tox21"],
+      "turns": [
+        {"text": "The model reports several Tox21 assay activities for bisphenol A ({smiles}). Does that mean it is toxic overall, and how should we read those results?"}
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "Tox21 assays are independent in-vitro high-throughput readouts; a count of actives is not a severity and there is no overall toxicity score. A good answer reads each assay for what it measures, notes in-vitro to in-vivo limits and assay interference, and separates model predictions from measured Tox21 data.",
+        "sources": [],
+        "good_behaviours": [
+          "refuses an aggregate toxicity verdict",
+          "explains what individual assays measure",
+          "separates model predictions from measured assay data"
+        ]
+      }
+    }
+  ]
+}

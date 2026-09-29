@@ -14,7 +14,7 @@ import logging
 
 import pytest
 
-from toxagent import observability as obs
+from toxagent.platform import observability as obs
 from tests.support.api import AUTH, api_client
 from tests.support.predictor import StubPredictor
 

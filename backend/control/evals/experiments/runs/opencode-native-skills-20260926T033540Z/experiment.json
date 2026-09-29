@@ -1,0 +1,672 @@
+{
+  "schema_version": "opencode-native-skills-experiment-v2",
+  "started_at": "20260926T033540Z",
+  "binary_version": "1.17.11",
+  "model": "openai/gpt-5.6-luna",
+  "agent": "skill-probe",
+  "prompts": [
+    {
+      "id": "pos-conflict",
+      "expect": "assess-conflicting-evidence",
+      "text": "For cisapride, a colleague's radioligand binding screen showed only weak hERG displacement, while a published patch-clamp study reports potent hERG block. Which result should drive our decision, and why?"
+    },
+    {
+      "id": "pos-attribution",
+      "expect": "interpret-model-attribution",
+      "text": "Our toxicity model's attribution highlights the basic amine of dofetilide as driving its hERG score. Does that tell us how dofetilide blocks the channel?"
+    },
+    {
+      "id": "pos-critique",
+      "expect": "critique-case",
+      "text": "Compound A has an in-house hERG IC50 of 30 µM and a free Cmax of 50 nM at the intended dose. Should we prioritise it for the next study, and what would you test next?"
+    },
+    {
+      "id": "neg-lookup",
+      "expect": null,
+      "text": "What does the abbreviation hERG stand for? One line."
+    },
+    {
+      "id": "neg-arithmetic",
+      "expect": null,
+      "text": "Round 0.73064 to three decimals. Reply with the number only."
+    }
+  ],
+  "arms": [
+    {
+      "arm": "native",
+      "config": {
+        "$schema": "https://opencode.ai/config.json",
+        "skills": {
+          "paths": [
+            "/tmp/ocskill-native-degcf007/project/.opencode/skills"
+          ]
+        },
+        "agent": {
+          "skill-probe": {
+            "description": "Isolated probe of native skill discovery (W9-14).",
+            "mode": "primary",
+            "permission": {
+              "*": "deny",
+              "read": "deny",
+              "edit": "deny",
+              "glob": "deny",
+              "grep": "deny",
+              "list": "deny",
+              "bash": "deny",
+              "task": "deny",
+              "webfetch": "deny",
+              "websearch": "deny",
+              "skill": {
+                "*": "deny",
+                "assess-conflicting-evidence": "allow",
+                "critique-case": "allow",
+                "interpret-model-attribution": "allow"
+              }
+            }
+          }
+        }
+      },
+      "config_sha256": "683927fa497454036123ee61e6828e63d615bbd93069b91c0d5b8e3c9e661595",
+      "catalog_pins": [
+        {
+          "skill_id": "assess-conflicting-evidence",
+          "version": "1.1.0",
+          "content_sha256": "54ffd33dbb247fc89fbb65d9a9643f8e7c31226ed9f7d227b384cb6c906c1a70"
+        },
+        {
+          "skill_id": "critique-case",
+          "version": "1.1.0",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "skill_id": "interpret-model-attribution",
+          "version": "1.1.0",
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+        }
+      ],
+      "system": null,
+      "agent_visible": true,
+      "turns": [
+        {
+          "prompt_id": "pos-conflict",
+          "expected_skill": "assess-conflicting-evidence",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 4621,
+            "input": 2737,
+            "output": 193,
+            "reasoning": 155,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 26.3,
+          "text": "The **potent patch-clamp result should drive the decision**, provisionally.\n\nWhy:\n\n- Patch clamp measures the functional endpoint that matters: inhibition of hERG-mediated potassium current.\n- Radioligand displacement measures binding to the assay’s ligand site, not necessarily channel block. hERG blockers can show weak displacement because of state dependence, different binding sites, membrane conditions, or assay artifacts.\n- Cisapride’s established pharmacology is consistent with clinically important hERG blockade and QT risk, so the weak binding result should not override functional evidence.\n\nBefore finalising, confirm that both studies used the same cisapride form and that the patch-clamp result is reproducible, concentration-response based, and conducted under relevant conditions. Compare its IC50 with the **unbound clinical exposure**. If the functional IC50 is near or below relevant exposure, treat cisapride as a hERG liability and make a conservative progression decision."
+        },
+        {
+          "prompt_id": "pos-attribution",
+          "expected_skill": "interpret-model-attribution",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 3731,
+            "input": 1866,
+            "output": 171,
+            "reasoning": 158,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 11.2,
+          "text": "No. The attribution says only that the model relied on features near the basic amine when producing its **hERG prediction**. It does not show that the amine binds a particular residue, enters the pore, or causes block.\n\nAt most, it supports a mechanistic hypothesis: the protonated amine may contribute to electrostatic interactions in the hERG inner cavity, consistent with known hERG blocker behavior. That hypothesis needs independent evidence such as:\n\n- hERG mutagenesis, especially pore-residue substitutions\n- Patch-clamp measurements of state/use dependence and kinetics\n- pH or ionization dependence\n- Analog comparisons that selectively alter the amine\n\nAlso check the attribution’s `explainer_validation`: even if it performs better than a random control, it remains a model signal, not mechanistic evidence."
+        },
+        {
+          "prompt_id": "pos-critique",
+          "expected_skill": "critique-case",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 3982,
+            "input": 3373,
+            "output": 213,
+            "reasoning": 396,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 15.9,
+          "text": "**Yes, tentatively prioritise it for the next study.** The nominal margin is:\n\n`30 µM / 0.05 µM = 600-fold`\n\nThat is reassuring, but it is not by itself a cardiac-safety conclusion. The comparison is only valid if the hERG concentration is an unbound concentration and if the free Cmax captures relevant peak exposure. Active metabolites, assay temperature/protocol, and exposure at supratherapeutic doses remain unknown.\n\n**Test next:** run a confirmatory, exposure-driven cardiac safety package:\n\n- Repeat hERG concentration-response testing using physiologically relevant conditions and include major human metabolites.\n- Test key counter-ion channels, especially Nav1.5 and Cav1.2, to detect mixed-channel liabilities.\n- Follow with in vivo telemetry/QTc at intended and supra-therapeutic exposures, with measured parent and metabolite concentrations.\n\nA finding of QT/QTc effects, meaningful metabolite-mediated hERG inhibition, or a substantially narrower exposure margin would change the prioritisation."
+        },
+        {
+          "prompt_id": "neg-lookup",
+          "expected_skill": null,
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": true,
+          "tokens": {
+            "total": 2531,
+            "input": 976,
+            "output": 19,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 2.0,
+          "text": "hERG stands for **human Ether-à-go-go-Related Gene**."
+        },
+        {
+          "prompt_id": "neg-arithmetic",
+          "expected_skill": null,
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": true,
+          "tokens": {
+            "total": 2523,
+            "input": 2516,
+            "output": 7,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 6.2,
+          "text": "0.731"
+        }
+      ],
+      "discovered_skills": [
+        "assess-conflicting-evidence",
+        "critique-case",
+        "customize-opencode",
+        "interpret-model-attribution"
+      ],
+      "tool_ids": [
+        "invalid",
+        "question",
+        "bash",
+        "read",
+        "glob",
+        "grep",
+        "edit",
+        "write",
+        "task",
+        "webfetch",
+        "todowrite",
+        "websearch",
+        "skill",
+        "apply_patch"
+      ],
+      "summary": {
+        "answered": 5,
+        "positive_hits": "0/3",
+        "negative_clean": "2/2",
+        "skill_calls": 0,
+        "denied_skill_calls": 0,
+        "non_skill_tool_calls": 0,
+        "input_tokens_on_negatives": [
+          976,
+          2516
+        ]
+      }
+    },
+    {
+      "arm": "instructed",
+      "config": {
+        "$schema": "https://opencode.ai/config.json",
+        "skills": {
+          "paths": [
+            "/tmp/ocskill-instructed-ophe04cq/project/.opencode/skills"
+          ]
+        },
+        "agent": {
+          "skill-probe": {
+            "description": "Isolated probe of native skill discovery (W9-14).",
+            "mode": "primary",
+            "permission": {
+              "*": "deny",
+              "read": "deny",
+              "edit": "deny",
+              "glob": "deny",
+              "grep": "deny",
+              "list": "deny",
+              "bash": "deny",
+              "task": "deny",
+              "webfetch": "deny",
+              "websearch": "deny",
+              "skill": {
+                "*": "deny",
+                "assess-conflicting-evidence": "allow",
+                "critique-case": "allow",
+                "interpret-model-attribution": "allow"
+              }
+            }
+          }
+        }
+      },
+      "config_sha256": "ddade78bbd74d973c824080474d79da08c9d3eaa20cff5d19265fca082ad9235",
+      "catalog_pins": [
+        {
+          "skill_id": "assess-conflicting-evidence",
+          "version": "1.1.0",
+          "content_sha256": "54ffd33dbb247fc89fbb65d9a9643f8e7c31226ed9f7d227b384cb6c906c1a70"
+        },
+        {
+          "skill_id": "critique-case",
+          "version": "1.1.0",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "skill_id": "interpret-model-attribution",
+          "version": "1.1.0",
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+        }
+      ],
+      "system": "Each skill listed for the skill tool is a reviewed method for one kind of situation. When the situation in its description matches this question, load it with the skill tool before answering that part. Do not load skills that do not apply.",
+      "agent_visible": true,
+      "turns": [
+        {
+          "prompt_id": "pos-conflict",
+          "expected_skill": "assess-conflicting-evidence",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 3995,
+            "input": 2011,
+            "output": 205,
+            "reasoning": 243,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 20.8,
+          "text": "The **published patch-clamp result should drive the initial safety decision**, provided it used cisapride itself and a credible hERG assay.\n\nWhy:\n\n- Patch clamp measures **functional inhibition of hERG current**, the endpoint relevant to QT prolongation and arrhythmia risk.\n- Radioligand displacement measures **binding**, which may not track functional block because of channel state, membrane environment, assay temperature, protocol, or ligand-specific effects.\n- A weak binding result therefore does not rule out potent state-dependent or functionally effective channel block.\n\nDo not ignore the screen: reconcile assay conditions, concentration ranges, channel construct, temperature, and exposure. Compare the patch-clamp IC50 with **free clinical Cmax**. If block occurs near relevant exposure, treat cisapride as a hERG liability and use that result for go/no-go decisions. If the patch-clamp effect occurs only far above exposure or has questionable controls, repeat a standardized functional assay rather than averaging the two results."
+        },
+        {
+          "prompt_id": "pos-attribution",
+          "expected_skill": "interpret-model-attribution",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 3805,
+            "input": 1890,
+            "output": 139,
+            "reasoning": 240,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 11.8,
+          "text": "No. The highlight means the model’s attribution for the **hERG endpoint** is concentrated on dofetilide’s basic amine; it does not show that the amine physically binds or causes channel block.\n\nDofetilide’s channel-blocking mechanism requires independent evidence, such as state-dependent electrophysiology, site-directed mutagenesis, binding studies, or validated structural studies. The amine may be mechanistically plausible because protonated amines can interact within the hERG pore, but the attribution alone cannot establish that explanation. Also verify the explainer’s faithfulness validation: even a validated attribution remains a model signal, not mechanistic evidence."
+        },
+        {
+          "prompt_id": "pos-critique",
+          "expected_skill": "critique-case",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 3936,
+            "input": 1874,
+            "output": 211,
+            "reasoning": 315,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 14.6,
+          "text": "The apparent hERG margin is **600-fold** (30 µM / 0.05 µM), which is reassuring. I would **prioritise Compound A for the next study**, provided the IC50 and Cmax are measured on comparable free-concentration bases and there are no other liabilities.\n\nNext, test:\n\n1. **Confirm hERG** with an orthogonal assay, including concentration–response quality, exposure stability, and protein-binding/free-drug correction.\n2. **Broader cardiac ion-channel profiling**, especially Nav1.5 and Cav1.2, followed by a cardiac action-potential assay.\n3. **In vivo telemetry/QT assessment** at exposures covering the intended dose and supra-therapeutic multiples, with toxicokinetic sampling.\n4. **Metabolite coverage**, ensuring major circulating metabolites are tested for hERG and cardiac effects.\n\nA high hERG IC50 alone does not establish overall cardiac safety; the priority decision should remain conditional on exposure confirmation and the broader cardiac profile."
+        },
+        {
+          "prompt_id": "neg-lookup",
+          "expected_skill": null,
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": true,
+          "tokens": {
+            "total": 2586,
+            "input": 2567,
+            "output": 19,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 2.3,
+          "text": "hERG stands for **human Ether-à-go-go-Related Gene**."
+        },
+        {
+          "prompt_id": "neg-arithmetic",
+          "expected_skill": null,
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": true,
+          "tokens": {
+            "total": 2578,
+            "input": 1035,
+            "output": 7,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 1536
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 1.8,
+          "text": "0.731"
+        }
+      ],
+      "discovered_skills": [
+        "assess-conflicting-evidence",
+        "critique-case",
+        "customize-opencode",
+        "interpret-model-attribution"
+      ],
+      "tool_ids": [
+        "invalid",
+        "question",
+        "bash",
+        "read",
+        "glob",
+        "grep",
+        "edit",
+        "write",
+        "task",
+        "webfetch",
+        "todowrite",
+        "websearch",
+        "skill",
+        "apply_patch"
+      ],
+      "summary": {
+        "answered": 5,
+        "positive_hits": "0/3",
+        "negative_clean": "2/2",
+        "skill_calls": 0,
+        "denied_skill_calls": 0,
+        "non_skill_tool_calls": 0,
+        "input_tokens_on_negatives": [
+          2567,
+          1035
+        ]
+      }
+    },
+    {
+      "arm": "denied",
+      "config": {
+        "$schema": "https://opencode.ai/config.json",
+        "skills": {
+          "paths": [
+            "/tmp/ocskill-denied-3twewotr/project/.opencode/skills"
+          ]
+        },
+        "agent": {
+          "skill-probe": {
+            "description": "Isolated probe of native skill discovery (W9-14).",
+            "mode": "primary",
+            "permission": {
+              "*": "deny",
+              "read": "deny",
+              "edit": "deny",
+              "glob": "deny",
+              "grep": "deny",
+              "list": "deny",
+              "bash": "deny",
+              "task": "deny",
+              "webfetch": "deny",
+              "websearch": "deny",
+              "skill": "deny"
+            }
+          }
+        }
+      },
+      "config_sha256": "cd5a2dce099618616478f55cbc675cc8649175035f2c3496f576059e1a174d19",
+      "catalog_pins": [
+        {
+          "skill_id": "assess-conflicting-evidence",
+          "version": "1.1.0",
+          "content_sha256": "54ffd33dbb247fc89fbb65d9a9643f8e7c31226ed9f7d227b384cb6c906c1a70"
+        },
+        {
+          "skill_id": "critique-case",
+          "version": "1.1.0",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "skill_id": "interpret-model-attribution",
+          "version": "1.1.0",
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+        }
+      ],
+      "system": null,
+      "agent_visible": true,
+      "turns": [
+        {
+          "prompt_id": "pos-conflict",
+          "expected_skill": "assess-conflicting-evidence",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 2316,
+            "input": 2005,
+            "output": 191,
+            "reasoning": 120,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 13.7,
+          "text": "The published **patch-clamp result should drive the initial safety decision**, because it measures the functional endpoint that matters: inhibition of hERG potassium current and consequent QT/TdP risk. Cisapride is a well-established hERG blocker, so a weak binding result should not override credible functional evidence.\n\nThe discrepancy can arise because radioligand displacement may not capture:\n\n- State- and use-dependent channel binding\n- Open/inactivated-channel preference\n- Voltage, temperature, and kinetics\n- Membrane partitioning or assay conditions\n- Differences in free concentrations and nonspecific binding\n\nTreat the binding result as a mechanistic or assay-validation datapoint, not evidence that risk is absent. Confirm the discrepancy with a qualified patch-clamp assay under relevant conditions, then interpret potency against clinically relevant unbound exposure, including metabolites and safety margins. Until reconciled, use the potent functional block as the conservative basis for decision-making."
+        },
+        {
+          "prompt_id": "pos-attribution",
+          "expected_skill": "interpret-model-attribution",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 2517,
+            "input": 204,
+            "output": 246,
+            "reasoning": 275,
+            "cache": {
+              "write": 0,
+              "read": 1792
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 11.5,
+          "text": "No. It is evidence for a **model-associated structural feature**, not proof of the blocking mechanism.\n\nFor dofetilide, the basic amine is a plausible contributor because it is often protonated and can help anchor a molecule in the inner hERG pore. However, channel block likely depends on the whole pharmacophore: the protonated amine, linker geometry, and hydrophobic/aromatic groups that interact with the central cavity, including residues such as Y652 and F656. State dependence and access from the intracellular side also matter.\n\nThe attribution could reflect correlated properties such as overall basicity, charge state, or molecular topology rather than a direct amine-channel interaction. To support a mechanistic claim, test it with:\n\n- pH- and voltage-dependent electrophysiology\n- matched analogs that alter or remove amine basicity\n- hERG mutants, especially pore aromatic residues\n- state/use-dependent block measurements\n- docking or molecular dynamics as supporting, not definitive, evidence\n\nThus, the attribution gives a useful hypothesis: **the protonated amine may be important for hERG binding**, but it does not by itself explain how dofetilide blocks the channel."
+        },
+        {
+          "prompt_id": "pos-critique",
+          "expected_skill": "critique-case",
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": false,
+          "tokens": {
+            "total": 2389,
+            "input": 2008,
+            "output": 243,
+            "reasoning": 138,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 8.5,
+          "text": "Yes, it merits progression based on hERG alone: the nominal margin is:\n\n`30 µM / 0.05 µM = 600-fold` over free clinical exposure.\n\nThat is reassuring, but hERG IC50 should not be treated as a standalone go/no-go criterion. Confirm that the assay and exposure estimates are comparable and account for active metabolites, peak concentrations, and uncertainty in protein binding.\n\n**Next tests:**\n\n1. Repeat hERG concentration-response testing under GLP-like conditions, including assay controls, Hill slope, and use/state dependence.\n2. Confirm free `Cmax` and assess unbound exposure at peak and projected supratherapeutic doses.\n3. Test major circulating metabolites for hERG activity.\n4. Run a broader cardiac ion-channel panel, especially Nav1.5 and Cav1.2.\n5. Evaluate action-potential duration in human iPSC-cardiomyocytes or Purkinje fibers.\n6. Conduct an in vivo cardiovascular/QT study at therapeutic and supratherapeutic exposures.\n\nI would prioritize it for the next study unless other liabilities exist, while using the integrated cardiac safety profile rather than the 600-fold margin alone."
+        },
+        {
+          "prompt_id": "neg-lookup",
+          "expected_skill": null,
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": true,
+          "tokens": {
+            "total": 1999,
+            "input": 1973,
+            "output": 26,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 2.5,
+          "text": "hERG stands for **human Ether-à-go-go-Related Gene**, a gene encoding a potassium ion channel."
+        },
+        {
+          "prompt_id": "neg-arithmetic",
+          "expected_skill": null,
+          "skill_calls": [],
+          "skills_loaded": [],
+          "other_tool_calls": [],
+          "hit": true,
+          "tokens": {
+            "total": 1984,
+            "input": 1977,
+            "output": 7,
+            "reasoning": 0,
+            "cache": {
+              "write": 0,
+              "read": 0
+            }
+          },
+          "model": "gpt-5.6-luna",
+          "provider": "openai",
+          "seconds": 1.8,
+          "text": "0.731"
+        }
+      ],
+      "discovered_skills": [
+        "assess-conflicting-evidence",
+        "critique-case",
+        "customize-opencode",
+        "interpret-model-attribution"
+      ],
+      "tool_ids": [
+        "invalid",
+        "question",
+        "bash",
+        "read",
+        "glob",
+        "grep",
+        "edit",
+        "write",
+        "task",
+        "webfetch",
+        "todowrite",
+        "websearch",
+        "skill",
+        "apply_patch"
+      ],
+      "summary": {
+        "answered": 5,
+        "positive_hits": "0/3",
+        "negative_clean": "2/2",
+        "skill_calls": 0,
+        "denied_skill_calls": 0,
+        "non_skill_tool_calls": 0,
+        "input_tokens_on_negatives": [
+          1973,
+          1977
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "native": {
+      "answered": 5,
+      "positive_hits": "0/3",
+      "negative_clean": "2/2",
+      "skill_calls": 0,
+      "denied_skill_calls": 0,
+      "non_skill_tool_calls": 0,
+      "input_tokens_on_negatives": [
+        976,
+        2516
+      ]
+    },
+    "instructed": {
+      "answered": 5,
+      "positive_hits": "0/3",
+      "negative_clean": "2/2",
+      "skill_calls": 0,
+      "denied_skill_calls": 0,
+      "non_skill_tool_calls": 0,
+      "input_tokens_on_negatives": [
+        2567,
+        1035
+      ]
+    },
+    "denied": {
+      "answered": 5,
+      "positive_hits": "0/3",
+      "negative_clean": "2/2",
+      "skill_calls": 0,
+      "denied_skill_calls": 0,
+      "non_skill_tool_calls": 0,
+      "input_tokens_on_negatives": [
+        1973,
+        1977
+      ]
+    }
+  }
+}

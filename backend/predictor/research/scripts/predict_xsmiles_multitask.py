@@ -64,7 +64,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="backend/predictor/configs/xsmiles_multitask_config.yaml",
+        default="backend/predictor/research/configs/xsmiles_multitask_config.yaml",
         help="Model config path",
     )
     parser.add_argument("--device", type=str, default="cpu", help="cpu or cuda")

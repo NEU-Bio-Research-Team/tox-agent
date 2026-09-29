@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from ..config import PolicySettings
+from ..platform.config import PolicySettings
 from ..domain.errors import Forbidden, InvalidRequest
 from ..predictor.contract import ENDPOINTS, TOX21_TASKS
 

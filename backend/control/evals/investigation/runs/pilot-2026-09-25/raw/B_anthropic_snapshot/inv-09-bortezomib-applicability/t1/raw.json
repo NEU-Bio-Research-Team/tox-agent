@@ -1,0 +1,113 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nFor reference, this is the output of our in-house toxicity predictor (ToxPred) for the compound in the question, as JSON:\n```json\n{\n  \"applicability\": {\n    \"chemical_guard\": {\n      \"method\": \"element_rules_v1\",\n      \"reasons\": [\n        \"contains uncommon element(s): B\"\n      ],\n      \"status\": \"limited\"\n    },\n    \"method\": \"element_rules_v1\",\n    \"reasons\": [\n      \"contains uncommon element(s): B\"\n    ],\n    \"similarity_domain\": null,\n    \"status\": \"limited\"\n  },\n  \"canonical_smiles\": \"CC(C)C[C@H](NC(=O)[C@H](Cc1ccccc1)NC(=O)c1cnccn1)B(O)O\",\n  \"predictions\": {\n    \"herg\": {\n      \"label\": \"non_blocker\",\n      \"measurement\": \"hERG channel blockade liability\",\n      \"model_id\": \"herg-tox21-chemberta-v1\",\n      \"probability_blocker\": 0.21694640815258026,\n      \"threshold\": 0.4133453071117401,\n      \"threshold_source\": \"artifact\"\n    },\n    \"tox21\": {\n      \"assays\": {\n        \"NR-AR\": {\n          \"active\": false,\n          \"probability_activity\": 0.29062190651893616,\n          \"threshold\": 0.9399998188018799,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-AR-LBD\": {\n          \"active\": false,\n          \"probability_activity\": 0.1814471334218979,\n          \"threshold\": 0.489999920129776,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-AhR\": {\n          \"active\": false,\n          \"probability_activity\": 0.15595905482769012,\n          \"threshold\": 0.6799998879432678,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-Aromatase\": {\n          \"active\": false,\n          \"probability_activity\": 0.22869011759757996,\n          \"threshold\": 0.7099998593330383,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-ER\": {\n          \"active\": false,\n          \"probability_activity\": 0.43206915259361267,\n          \"threshold\": 0.5099999308586121,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-ER-LBD\": {\n          \"active\": false,\n          \"probability_activity\": 0.2816884517669678,\n          \"threshold\": 0.6799998879432678,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-PPAR-gamma\": {\n          \"active\": false,\n          \"probability_activity\": 0.11700492352247238,\n          \"threshold\": 0.4199999272823334,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-ARE\": {\n          \"active\": false,\n          \"probability_activity\": 0.27510717511177063,\n          \"threshold\": 0.49999991059303284,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-ATAD5\": {\n          \"active\": false,\n          \"probability_activity\": 0.0835905373096466,\n          \"threshold\": 0.47999992966651917,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-HSE\": {\n          \"active\": false,\n          \"probability_activity\": 0.23680557310581207,\n          \"threshold\": 0.5099999308586121,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-MMP\": {\n          \"active\": false,\n          \"probability_activity\": 0.18207761645317078,\n          \"threshold\": 0.5399999022483826,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-p53\": {\n          \"active\": false,\n          \"probability_activity\": 0.18288762867450714,\n          \"threshold\": 0.34999996423721313,\n          \"threshold_source\": \"artifact\"\n        }\n      },\n      \"measurement\": \"Twelve independent Tox21 assay activities\",\n      \"model_id\": \"herg-tox21-chemberta-v1\",\n      \"task_order_version\": \"tox21-12task-v1\"\n    }\n  },\n  \"requested_endpoints\": [\n    \"herg\",\n    \"tox21\"\n  ],\n  \"unavailable_endpoints\": []\n}\n```\n\nCan we rely on the model's hERG and Tox21 predictions for bortezomib (B([C@H](CC(C)C)NC(=O)[C@H](CC1=CC=CC=C1)NC(=O)C2=NC=CN=C2)(O)O)?",
+    "result": {
+      "duration_api_ms": 36422,
+      "stop_reason": "end_turn",
+      "session_id": "a880c1df-3842-426e-b540-cdb5457e4b27",
+      "total_cost_usd": 0.07723675,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 4267,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 1927,
+        "output_tokens_details": {
+          "thinking_tokens": 707
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4267,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 260,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 2100,
+          "webSearchRequests": 0,
+          "costUSD": 0.022008,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 260,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 1667,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 2167,
+          "webSearchRequests": 0,
+          "costUSD": 0.05522875000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 447,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "**Short answer: no — treat these as non-informative for bortezomib, in both directions.**\n\n**1. The model itself is telling you this.** `applicability.status = \"limited\"` because of the boron. That's the critical flag here, since the boronic acid *is* the pharmacophore — it's the warhead that forms the reversible covalent adduct with the proteasome Thr1 hydroxyl. Tox21 and the hERG training sets contain essentially no boronic acids, so the ChemBERTa embedding for `B(O)O` is extrapolation, not interpolation. The model is effectively scoring a dipeptide-pyrazinamide scaffold and ignoring the part that does the chemistry.\n\n**2. The endpoints don't cover bortezomib's actual liabilities.** Dose-limiting toxicities in the clinic are peripheral neuropathy and thrombocytopenia (the latter via proteasome-dependent effects on megakaryocyte budding/NF-κB), plus hypotension and GI effects. None of those are hERG blockade, and none map onto the 12 Tox21 nuclear-receptor/stress-response assays. So a clean Tox21 panel is orthogonal to the toxicity that actually matters for this chemotype — absence of signal here is not evidence of safety. Worth noting the cardiac signal that *has* been reported for proteasome inhibitors (heart failure, arrhythmia in case reports) is plausibly downstream of proteasome inhibition in cardiomyocytes rather than direct ion-channel block, which is exactly what a hERG QSAR cannot see.\n\n**3. Minor calibration caveats.** The per-assay thresholds are all over the place (NR-AR at 0.94, SR-p53 at 0.35), i.e. tuned per-task on the training distribution. NR-ER is the only borderline call (0.432 vs 0.51), and I wouldn't read anything into it given the domain flag. `similarity_domain: null` means you don't even have a nearest-neighbour distance to sanity-check against.\n\n**4. Practically, it's moot for bortezomib.** It's been approved since 2003 — you have human PK/PD, thorough QT data, and a full label. Any in silico prediction is superseded by clinical evidence. If the predictor disagrees with the label, the predictor is wrong.\n\n**Where this matters is your analogs.** If you're using bortezomib as a reference point while profiling new boronic acids:\n\n- Expect `applicability: limited` on every boron-containing compound, so don't use ToxPred as a ranking filter within that series — the flag will be constant and the scores will be driven by the peptide backbone.\n- Get experimental hERG (manual or high-quality automated patch-clamp) on anything you're prioritising; don't substitute the QSAR.\n- For this chemotype the higher-value early screens are proteasome subsite selectivity (β5 vs β1/β2, and immunoproteasome vs constitutive), plus a neurite-outgrowth or DRG neuron assay for the neuropathy risk. Ixazomib and delanzomib medicinal chemistry programs were largely driven by those, not by off-target panels.\n- If you want any in silico value from ToxPred on this series, one option is to score the boronic acid → boronate ester or the corresponding carboxylic acid/aldehyde surrogate to at least get the model into a populated chemical space — but be explicit that you're then predicting a different molecule, and use it only for relative backbone comparisons.\n\nHappy to help set up a scoring script over your boronic acid series that records the applicability flag alongside each prediction, so the out-of-domain status travels with the numbers rather than getting lost downstream.",
+      "ttft_ms": 6006,
+      "type": "result",
+      "duration_ms": 38278,
+      "uuid": "93c85b07-bce5-46cc-86fb-ea3fcd7e76cf",
+      "ttft_stream_ms": 3451,
+      "time_to_request_ms": 1846,
+      "first_content_frame_ms": 3451,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 4267,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 1927,
+      "cost_usd": 0.07723675
+    },
+    "exit_code": 0
+  }
+]

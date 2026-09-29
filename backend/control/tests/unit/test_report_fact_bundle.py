@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 
 from tests.support.audit_fixtures import CCO_ATTRIBUTION, load
-from toxagent.application.explanation import extract_highlights
+from toxagent.application.explanation.service import extract_highlights
 from toxagent.domain.report import (
     ExplanationPackage,
     ExplanationStatus,

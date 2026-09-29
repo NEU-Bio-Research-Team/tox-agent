@@ -33,7 +33,6 @@ from ..scientific.registry import ModelRegistry
 from ..scientific.providers.contracts import (
     ClinToxRawOutput,
     HergTox21RawOutput,
-    ProviderBatchResult,
 )
 
 MAX_BATCH_SIZE = 256

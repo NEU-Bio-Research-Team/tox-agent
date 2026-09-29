@@ -1,0 +1,1412 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_78de8b6b63f34a21870de69a91f26c2e",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_d0179f23fc7a4473bf40259e4459bb59",
+        "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T12:38:33.751028+00:00",
+        "created_at": "2026-09-25T12:33:33.751028+00:00",
+        "started_at": "2026-09-25T12:33:34.120467+00:00",
+        "ended_at": "2026-09-25T12:34:58.424536+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "1b1d0bd43f2f063e41fd0d3fedeecdef0ccc387069cdf1ef1e3cd476051511b6",
+          "tool_schema_hash": "be76a7be4ff529f210714fd594b7f7d9d63cd2846d852e6cf51dd048dba2cb0e",
+          "system_prompt_hash": "39bbaf7761ba4b5879e972d4698860356468a697bbb426e85687d2940b384707"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:33:33.751894+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_476d1452a1204a86b4f525ac0ed07ac5",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:33:45.994411+00:00",
+              "tokens": {
+                "input": 5452,
+                "output": 43,
+                "reasoning": 28,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 5523
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_908d89f8bbd655ed38ccc37de084f65a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88e9bcf0016hQGzK7hpu59kR",
+                "step_id": "prt_0d88eb403001R4bmFpuUnFFdM9",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_529b230cce6a4c869e94fc3007702762",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:33:54.775660+00:00",
+              "tokens": {
+                "input": 1104,
+                "output": 266,
+                "reasoning": 48,
+                "cache_read": 4608,
+                "cache_write": 0,
+                "total": 6026
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e40848ce78bcf852c507a15107fa3579",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88eb428001c3nibyUrditE09",
+                "step_id": "prt_0d88ed64f001b0Krt4xLv2BLFC",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_03ce0bd9b9f4446aa1b84fb3405549ba",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:34:02.676144+00:00",
+              "tokens": {
+                "input": 7457,
+                "output": 176,
+                "reasoning": 52,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 7685
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_4cb199dfc52ce6a974ffd6682439cc5d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88ed669001BirDPPHPI3Z6JQ",
+                "step_id": "prt_0d88ef52b001uQNautRJR1OeNd",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_caf5310c44b6466494b07b7cc1ecf788",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:34:07.923899+00:00",
+              "tokens": {
+                "input": 1742,
+                "output": 139,
+                "reasoning": 10,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 8547
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b920a4ff7136208877d77bd6dc45bd0d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88ef546001eHnu3OUHXh9MrO",
+                "step_id": "prt_0d88f09ad0019xaxHh63kaFx3Q",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_104a0b34fef0460ab06ebbe3920994b8",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:34:37.628843+00:00",
+              "tokens": {
+                "input": 3349,
+                "output": 967,
+                "reasoning": 495,
+                "cache_read": 5632,
+                "cache_write": 0,
+                "total": 10443
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6a5b6d9f5f494fd5ef5c355b3f0c687d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88f09d2001KfzcgNK0uyn3Vi",
+                "step_id": "prt_0d88f7dac001X0P4FbiEGMULsM",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_fe0130871f794a6bba1a1206dbd973e0",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:34:55.724264+00:00",
+              "tokens": {
+                "input": 2796,
+                "output": 828,
+                "reasoning": 38,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 11342
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_73781e7735ab137ea2cdd4deb5cf9b61",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88f7dcf001t9x7dnC905363H",
+                "step_id": "prt_0d88fc467001kttyndJBXpirLP",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e0954523be74481487719ea7ab18973e",
+              "runtime_binding_id": "rtb_e1b7210067fc40df8d439f3ef16a2b77",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:34:58.381864+00:00",
+              "tokens": {
+                "input": 2768,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 11476
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d64e4f34c895a20f08c2d23a4172062e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88fc489001GRwuMM4e0xle2C",
+                "step_id": "prt_0d88fcec8001MnesFepqiQV47t",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_0f4b3ab4eec640ff8309eb51f5682a72",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 35,
+            "arguments_sha256": "76098568dcf85fdf385bc1a7e1baf62a0188abdbc245c5c21e39e650255e47e8",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:33:45.820763+00:00",
+            "ended_at": "2026-09-25T12:33:45.850073+00:00"
+          },
+          {
+            "call_id": "call_397debeee1d2473581f6f2f524ff0bc7",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 11,
+            "arguments_sha256": "d8423987851f2f48ed0c00179d226d96c70ade40332276db124225e9f2b037a2",
+            "observation_ids": [
+              "obs_b4fa31f1eee1495cb7ed3ba0a2a4064c"
+            ],
+            "started_at": "2026-09-25T12:33:53.936764+00:00",
+            "ended_at": "2026-09-25T12:33:53.946459+00:00"
+          },
+          {
+            "call_id": "call_eb053d1c211e488fb60f26b18f79c3de",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 94,
+            "arguments_sha256": "068f4e9ab5d3b41be14fda9cc2c8f94c6318d39d18e9450f17c2047404a263c6",
+            "observation_ids": [
+              "obs_b4fa31f1eee1495cb7ed3ba0a2a4064c"
+            ],
+            "started_at": "2026-09-25T12:33:54.021118+00:00",
+            "ended_at": "2026-09-25T12:33:54.112215+00:00"
+          },
+          {
+            "call_id": "call_f60d59298c8a46dc87fddb587d9c17ad",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 36,
+            "arguments_sha256": "c2109084ea0779c378fc52dc9058707b92810bce4be2102976f29d9f8c362bcd",
+            "observation_ids": [
+              "obs_b4fa31f1eee1495cb7ed3ba0a2a4064c"
+            ],
+            "started_at": "2026-09-25T12:33:54.105249+00:00",
+            "ended_at": "2026-09-25T12:33:54.135453+00:00"
+          },
+          {
+            "call_id": "call_50b8dcac43a0456eb1efd78bd49881d3",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 604,
+            "arguments_sha256": "071d8894e7c7026bc2e45419f3487e47f29626fd372a326205d25046643dbff4",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:33:54.130420+00:00",
+            "ended_at": "2026-09-25T12:33:54.732264+00:00"
+          },
+          {
+            "call_id": "call_cab1ade9df6f46ea99eb253ccf72f423",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "1d3f1994ef2792548f1f3447719ba50ae71f798c8fe8d022c42e087079e2d58f",
+            "observation_ids": [
+              "evd_110df4da8dfe4a4dbc61ffbb25a32ec6"
+            ],
+            "started_at": "2026-09-25T12:34:01.400876+00:00",
+            "ended_at": "2026-09-25T12:34:01.414903+00:00"
+          },
+          {
+            "call_id": "call_16d2333657564bd4a7e6438f793f7444",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1110,
+            "arguments_sha256": "20888641b0f63eafd6a9945f2fc681a96a08b74f5cb02d252d8226a169e156a4",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:34:01.516259+00:00",
+            "ended_at": "2026-09-25T12:34:02.623304+00:00"
+          },
+          {
+            "call_id": "call_8fdd924fef334df49f76a8b26a088cdb",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 25,
+            "arguments_sha256": "5614c796182ac660938bba5eee6bea8c04c967de8bf65ccfe17eefe17e4bd4c4",
+            "observation_ids": [
+              "evd_7db28f56f8fa426ab6063a00f4f83683"
+            ],
+            "started_at": "2026-09-25T12:34:07.754568+00:00",
+            "ended_at": "2026-09-25T12:34:07.778053+00:00"
+          },
+          {
+            "call_id": "call_a7321ca099a34c3788f71ea6eb20a4d9",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "d4541844a341ec487f0109d47c34ac5631699cdaf7247203c4ea6469e9d10551",
+            "observation_ids": [
+              "evd_3561451a168c4c69955b426bf3cb9fb2"
+            ],
+            "started_at": "2026-09-25T12:34:07.863561+00:00",
+            "ended_at": "2026-09-25T12:34:07.873398+00:00"
+          },
+          {
+            "call_id": "call_ed168eea1e764deaa0e81f9727750c48",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 35,
+            "arguments_sha256": "eca09637c4139c60f91a7d76a5e4a22ef65fe5a1d7835fa2db5d44f9d19ad02f",
+            "observation_ids": [
+              "obs_b4fa31f1eee1495cb7ed3ba0a2a4064c"
+            ],
+            "started_at": "2026-09-25T12:34:55.652252+00:00",
+            "ended_at": "2026-09-25T12:34:55.685295+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_86a032bc0bc8451c9c6f639d34709fc8",
+        "run_id": "run_78de8b6b63f34a21870de69a91f26c2e",
+        "answer_markdown": "Treat hERG as a **stop/go gate**, not as an automatic proof of clinical arrhythmia. For terfenadine, I would **not prioritise the unchanged molecule as a lead** until the signal is experimentally de-risked. The predictor assigns a blocker label with a model score of 0.6803638935089111, and the literature search retrieved studies specifically examining terfenadine hERG inhibition and arrhythmogenic potential.",
+        "claims": [
+          {
+            "claim_id": "clm_8f2a7d4c91e63b0a5d7f2c9e4a1b6d83",
+            "kind": "numeric",
+            "text": "The predicted hERG blocker probability is 0.6803638935089111.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b4fa31f1eee1495cb7ed3ba0a2a4064c",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.6803638935089111,
+            "rendered_value": "0.6803638935089111"
+          },
+          {
+            "claim_id": "clm_3b9e1d6f74a0c2e8b5d1f93a6c7e4b20",
+            "kind": "classification",
+            "text": "The hERG prediction is classified as blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b4fa31f1eee1495cb7ed3ba0a2a4064c",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker",
+            "rendered_value": "blocker"
+          },
+          {
+            "claim_id": "clm_a6d4f8b2c9e1a7035d8f6b4c2e9a1d57",
+            "kind": "scientific",
+            "text": "Independent literature records retrieved for this compound address terfenadine hERG inhibition and arrhythmogenic potential.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_3561451a168c4c69955b426bf3cb9fb2",
+              "evd_7db28f56f8fa426ab6063a00f4f83683"
+            ]
+          },
+          {
+            "claim_id": "clm_5e1c8a7d3f9b2e604c6d1a8f7b3e9d25",
+            "kind": "recommendation",
+            "text": "Do not advance unchanged terfenadine as the programme lead until the hERG signal is resolved experimentally; use it as a de-risking gate.",
+            "transform": "identity",
+            "citation_ids": []
+          },
+          {
+            "claim_id": "clm_91d7b4e2a6f8c0d35b9e1a7f4c6d2e80",
+            "kind": "recommendation",
+            "text": "Test next: (1) concentration-response hERG patch clamp for parent drug and major human metabolites, including washout and temperature-relevant conditions; (2) confirm cardiac repolarisation effects in human iPSC-cardiomyocytes or a comparable integrated assay; and (3) assess CYP3A-mediated interaction and exposure margins, since metabolite and interaction effects can change the cardiac liability.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a model score, not a calibrated clinical risk."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The external evidence retrieved is limited to the cited records and does not establish programme-level safety."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed experiments are screening and verification steps, not a safety assessment or clinical recommendation."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run parent and metabolite hERG concentration-response patch clamp, then integrate the result with human iPSC-cardiomyocyte repolarisation assays and CYP3A interaction/exposure studies.",
+            "basis_claim_ids": [
+              "clm_91d7b4e2a6f8c0d35b9e1a7f4c6d2e80"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "d36315255af46dd9772393ce15c91bafb040230809fb4e751eef23897e7184c9",
+        "created_at": "2026-09-25T12:34:55.666274+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_ddc032029f104153987c751fa24c9735",
+        "run_id": "run_78de8b6b63f34a21870de69a91f26c2e",
+        "goal": "We are evaluating terfenadine (CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O) as a starting point for a new non-sedating antihistamine programme. Should hERG liability stop us from prioritising it, and what would you test next?",
+        "subject_refs": [
+          "analysis:ana_d3e10ce615754496a13b418c045bed2c"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 10,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 3
+        },
+        "available_refs": [
+          "observation:obs_b4fa31f1eee1495cb7ed3ba0a2a4064c",
+          "evidence:evd_110df4da8dfe4a4dbc61ffbb25a32ec6",
+          "evidence:evd_7db28f56f8fa426ab6063a00f4f83683",
+          "evidence:evd_3561451a168c4c69955b426bf3cb9fb2"
+        ],
+        "found_refs": [
+          "evidence:evd_110df4da8dfe4a4dbc61ffbb25a32ec6",
+          "evidence:evd_7db28f56f8fa426ab6063a00f4f83683",
+          "evidence:evd_3561451a168c4c69955b426bf3cb9fb2"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 13
+      },
+      "dossier": null
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_ddc032029f104153987c751fa24c9735",
+  "analysis": {
+    "run": {
+      "run_id": "run_a4fdabbee6a342f8a6a4c0fb8ea17f27",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_a24141deb8f4478b8ed8a6e8a1cc2a51",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T12:38:32.693835+00:00",
+      "created_at": "2026-09-25T12:33:32.693835+00:00",
+      "started_at": "2026-09-25T12:33:32.702840+00:00",
+      "ended_at": "2026-09-25T12:33:32.755243+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:33:32.694552+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_d3e10ce615754496a13b418c045bed2c",
+      "input_smiles": "CC(C)(C)C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O",
+      "canonical_smiles": "CC(C)(C)c1ccc(C(O)CCCN2CCC(C(O)(c3ccccc3)c3ccccc3)CC2)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.6803638935089111,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.2041947990655899,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.45679643750190735,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.021260729059576988,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.5408167839050293,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.35787075757980347,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.6065913438796997,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.3152877986431122,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.12436281144618988,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.44677114486694336,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.6124134659767151,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.49875369668006897,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.4762975573539734,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "e730f3b3-64b8-402b-9078-fd36fe747599",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 59,
+            "encoded_token_count": 59
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "0b3cb99192995050c705665f2af0d8b5d752310b53a5658584da691de9cfc447"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:33:32.747391+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_6f218ab622af4de3a0e52c157641be3f",
+      "title": "Small Molecule with Big Impact: Metarrestin Targets the Perinucleolar Compartment in Cancer Metastasis.",
+      "authors": [
+        "Kashyap VK",
+        "Sharma BP",
+        "Pandey D",
+        "Singh AK",
+        "Peasah-Darkwah G",
+        "Singh B",
+        "Roy KK",
+        "Yallapu MM"
+      ],
+      "published_at": "2024-12-12",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/cells13242053",
+        "pmid": "39768145",
+        "pmcid": "PMC11674295",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39768145",
+      "abstract_or_excerpt": "Metarrestin (ML246) is a first-in-class pyrrole-pyrimidine-derived small molecule that selectively targets the perinucleolar compartment (PNC). PNC is a distinct subnuclear structure predominantly found in solid tumor cells. The occurrence of PNC demonstrates a positive correlation with malignancy, serving as an indicator of tumor aggressiveness, progression, and metastasis. Various promising preclinical results have led to the clinical translation of metarrestin into a first-in-human trial. This review aims to summarize (i) the current understanding of the structure and function of PNC and its role in cancer progression and metastasis, (ii) key findings from studies examining the effect of metarrestin on various cancers across the translational spectrum, including in vitro, in vivo, and human clinical trial studies, and (iii) the pharmaceutical relevance of metarrestin as a promising anticancer candidate. Furthermore, our molecular docking and MD simulation studies show that metarrestin binds to eEF1A1 and eEF1A2 with a strong and stable affinity and inhibits eEF1A2 more efficiently compared to eEF1A1. The promising results from preclinical studies suggest that metarrestin has the potential to revolutionize the treatment of cancer, heralding a paradigm shift in its therapeutic management.",
+      "normalized_facts": {
+        "journal": "Cells",
+        "pub_type": "Research Support, Non-U.S. Gov't, review-article, Review, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "c7d175303b70b50775bae3925e09fcb1ee6a719f0b3f08ee96dcd47b3d961110"
+    },
+    {
+      "evidence_id": "evd_07dcb6f550f34c78baed1117cfac5b1c",
+      "title": "The Challenges of Predicting Drug-Induced QTc Prolongation in Humans.",
+      "authors": [
+        "Valentin JP",
+        "Hoffmann P",
+        "Ortemann-Renon C",
+        "Koerner J",
+        "Pierson J",
+        "Gintant G",
+        "Willard J",
+        "Garnett C"
+      ],
+      "published_at": "2022-04-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxsci/kfac013",
+        "pmid": "35148401",
+        "pmcid": "PMC9041548",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35148401",
+      "abstract_or_excerpt": "The content of this article derives from a Health and Environmental Sciences Institute (HESI) consortium with a focus to improve cardiac safety during drug development. A detailed literature review was conducted to evaluate the concordance between nonclinical repolarization assays and the clinical thorough QT (TQT) study. Food and Drug Administration and HESI developed a joint database of nonclinical and clinical data, and a retrospective analysis of 150 anonymized drug candidates was reviewed to compare the performance of 3 standard nonclinical assays with clinical TQT study findings as well as investigate mechanism(s) potentially responsible for apparent discrepancies identified. The nonclinical assays were functional (IKr) current block (Human ether-a-go-go related gene), action potential duration, and corrected QT interval in animals (in vivo corrected QT). Although these nonclinical assays demonstrated good specificity for predicting negative clinical QT prolongation, they had relatively poor sensitivity for predicting positive clinical QT prolongation. After review, 28 discordant TQT-positive drugs were identified. This article provides an overview of direct and indirect mechanisms responsible for QT prolongation and theoretical reasons for lack of concordance between clinical TQT studies and nonclinical assays. We examine 6 specific and discordant TQT-positive drugs as case examples. These were derived from the unique HESI/Food and Drug Administration database. We would like to emphasize some reasons for discordant data including, insufficient or inadequate nonclinical data, effects of the drug on other cardiac ion channels, and indirect and/or nonelectrophysiological effects of drugs, including altered heart rate. We also outline best practices that were developed based upon our evaluation.",
+      "normalized_facts": {
+        "journal": "Toxicological sciences : an official journal of the Society of Toxicology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "7b65698ab1ab71689f304e1f1812c150efccefeb133fa8b009efa0bb01a649df"
+    },
+    {
+      "evidence_id": "evd_8379ad881b14471e9bd6164a447a754a",
+      "title": "Genetic and Molecular Aspects of Drug-Induced QT Interval Prolongation.",
+      "authors": [
+        "Baracaldo-Santamaría D",
+        "Llinás-Caballero K",
+        "Corso-Ramirez JM",
+        "Restrepo CM",
+        "Dominguez-Dominguez CA",
+        "Fonseca-Mendoza DJ",
+        "Calderon-Ospina CA"
+      ],
+      "published_at": "2021-07-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms22158090",
+        "pmid": "34360853",
+        "pmcid": "PMC8347245",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/34360853",
+      "abstract_or_excerpt": "Long QT syndromes can be either acquired or congenital. Drugs are one of the many etiologies that may induce acquired long QT syndrome. In fact, many drugs frequently used in the clinical setting are a known risk factor for a prolonged QT interval, thus increasing the chances of developing torsade de pointes. The molecular mechanisms involved in the prolongation of the QT interval are common to most medications. However, there is considerable inter-individual variability in drug response, thus making the application of personalized medicine a relevant aspect in long QT syndrome, in order to evaluate the risk of every individual from a pharmacogenetic standpoint.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "1fa158d2deb288df16392684ea98cf8f83a453610a1c4f7b82b7a1bd104eace1"
+    },
+    {
+      "evidence_id": "evd_7db28f56f8fa426ab6063a00f4f83683",
+      "title": "Validating the Arrhythmogenic Potential of High-, Intermediate-, and Low-Risk Drugs in a Human-Induced Pluripotent Stem Cell-Derived Cardiac Microphysiological System.",
+      "authors": [
+        "Charwat V",
+        "Charrez B",
+        "Siemons BA",
+        "Finsberg H",
+        "Jæger KH",
+        "Edwards AG",
+        "Huebsch N",
+        "Wall S"
+      ],
+      "published_at": "2022-07-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acsptsci.2c00088",
+        "pmid": "35983280",
+        "pmcid": "PMC9380217",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35983280",
+      "abstract_or_excerpt": "Evaluation of arrhythmogenic drugs is required by regulatory agencies before any new compound can obtain market approval. Despite rigorous review, cardiac disorders remain the second most common cause for safety-related market withdrawal. On the other hand, false-positive preclinical findings prohibit potentially beneficial candidates from moving forward in the development pipeline. Complex <i>in vitro</i> models using cardiomyocytes derived from human-induced pluripotent stem cells (hiPSC-CM) have been identified as a useful tool that allows for rapid and cost-efficient screening of proarrhythmic drug risk. Currently available hiPSC-CM models employ simple two-dimensional (2D) culture formats with limited structural and functional relevance to the human heart muscle. Here, we present the use of our 3D cardiac microphysiological system (MPS), composed of a hiPSC-derived heart micromuscle, as a platform for arrhythmia risk assessment. We employed two different hiPSC lines and tested seven drugs with known ion channel effects and known clinical risk: dofetilide and bepridil (high risk); amiodarone and terfenadine (intermediate risk); and nifedipine, mexiletine, and lidocaine (low risk). The cardiac MPS successfully predicted drug cardiotoxicity risks based on changes in action potential duration, beat waveform (i.e., shape), and occurrence of proarrhythmic events of healthy patient hiPSC lines in the absence of risk cofactors. We showcase examples where the cardiac MPS outperformed existing hiPSC-CM 2D models.",
+      "normalized_facts": {
+        "journal": "ACS pharmacology & translational science",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "556e43a00633f4b0e4c0a3ca772b1b5c39cf5fc650b265cc9d33f3f8eeb664f8"
+    },
+    {
+      "evidence_id": "evd_d6f698865679469ea4d08e15762bb80c",
+      "title": "Risk Assessment of Drug-Induced Long QT Syndrome for Some COVID-19 Repurposed Drugs.",
+      "authors": [
+        "Michaud V",
+        "Dow P",
+        "Al Rihani SB",
+        "Deodhar M",
+        "Arwood M",
+        "Cicali B",
+        "Turgeon J"
+      ],
+      "published_at": "2020-11-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.12882",
+        "pmid": "32888379",
+        "pmcid": "PMC7877829",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/32888379",
+      "abstract_or_excerpt": "The risk-benefit ratio associated with the use of repurposed drugs to treat severe acute respiratory syndrome-coronavirus 2 (SARS-CoV-2)-related infectious coronavirus disease 2019 (COVID-19) is complicated because benefits are awaited, not proven. A thorough literature search was conducted to source information on the pharmacological properties of 5 drugs and 1 combination (azithromycin, chloroquine, favipiravir, hydroxychloroquine, remdesivir, and lopinavir/ritonavir) repurposed to treat COVID-19. A risk assessment of drug-induced long QT syndrome (LQTS) associated with COVID-19 repurposed drugs was performed and compared with 23 well-known torsadogenic and 10 low torsadogenic risk compounds. Computer calculations were performed using pharmacokinetic and pharmacodynamic data, including affinity to block the rapid component of the delayed rectifier cardiac potassium current (I<sub>Kr</sub> ) encoded by the human ether-a-go-go gene (hERG), propensity to prolong cardiac repolarization (QT interval) and cause torsade de pointes (TdP). Seven different LQTS indices were calculated and compared. The US Food and Drug Administration (FDA) Adverse Event Reporting System (FAERS) database was queried with specific key words relating to arrhythmogenic events. Estimators of LQTS risk levels indicated a very high or moderate risk for all COVID-19 repurposed drugs with the exception for azithromycin, although cases of TdP have been reported with this drug. There was excellent agreement among the various indices used to assess risk of drug-induced LQTS for the 6 repurposed medications and 23 torsadogenic compounds. Based on our results, monitoring of the QT interval shall be performed when some COVID-19 repurposed drugs are used, as such monitoring is possible for hospitalized patients or with the use of biodevices for outpatients.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, review-article, Review, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "4365e634c7eb9c6b67e266425f0641476812051a0578f9870c47691d7e09ee23"
+    },
+    {
+      "evidence_id": "evd_3561451a168c4c69955b426bf3cb9fb2",
+      "title": "The macrolide drug erythromycin does not protect the hERG channel from inhibition by thioridazine and terfenadine.",
+      "authors": [
+        "El Harchi A",
+        "Butler AS",
+        "Zhang Y",
+        "Dempsey CE",
+        "Hancox JC"
+      ],
+      "published_at": "2020-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.14814/phy2.14385",
+        "pmid": "32147975",
+        "pmcid": "PMC7061092",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/32147975",
+      "abstract_or_excerpt": "The macrolide antibiotic erythromycin has been associated with QT interval prolongation and inhibition of the hERG-encoded channels responsible for the rapid delayed rectifier K<sup>+</sup> current I(<sub>Kr</sub> ). It has been suggested that low concentrations of erythromycin may have a protective effect against hERG block and associated drug-induced arrhythmia by reducing the affinity of the pore-binding site for high potency hERG inhibitors. This study aimed to explore further the notion of a potentially protective effect of erythromycin. Whole-cell patch-clamp experiments were performed in which hERG-expressing mammalian (Human Embryonic Kidney; HEK) cells were preincubated with low to moderate concentrations of erythromycin (3 or 30 µM) prior to whole-cell patch clamp recordings of hERG current (I<sub>hERG</sub> ) at 37°C. In contrast to a previous report, exposure to low concentrations of erythromycin did not reduce pharmacological sensitivity of hERG to the antipsychotic thioridazine and antihistamine terfenadine. The IC<sub>50</sub> value for I<sub>hERG</sub> tail inhibition by terfenadine was decreased by ~32-fold in the presence of 3 µM erythromycin (p < .05 vs. no preincubation). Sensitivity to thioridazine remained unchanged (p > .05 vs. no preincubation). The effects of low concentrations of erythromycin were investigated for a series of pore blocking drugs, and the results obtained were consistent with additive and/or synergistic effects. Experiments with the externally acting blocker BeKm-1 on WT hERG and a pore mutant (F656V) were used to explore the location of the binding site for erythromycin. Our data are inconsistent with the use of erythromycin for the management of drug-induced QT prolongation.",
+      "normalized_facts": {
+        "journal": "Physiological reports",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2020"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "21edb73879bb7b214a6fab2744afd3e84485303c5cccb366b704c1cf577623fd"
+    },
+    {
+      "evidence_id": "evd_efdfb4ea8f414e8d8311af8d255e05a8",
+      "title": "Risk assessment of drug-induced Long QT Syndrome for some COVID-19 repurposed drugs",
+      "authors": [
+        "Michaud V",
+        "Dow P",
+        "Al Rihani SB",
+        "Deodhar M",
+        "Arwood M",
+        "Cicali B",
+        "Turgeon J"
+      ],
+      "published_at": "2020-04-24",
+      "source_type": "article",
+      "source_quality_tier": "secondary",
+      "identifier": {
+        "doi": "10.1101/2020.04.21.20066761",
+        "pmid": null,
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PPR/PPR155026",
+      "abstract_or_excerpt": "<h4>ABSTRACT</h4> The risk-benefit ratio associated with the use of repurposed drugs to treat 2019 SARS-CoV-2 related infectious disease (COVID-19) is complicated since benefits are awaited, not proven. A thorough literature search was conducted to source information on the pharmacological properties of 5 drugs and 1 combination (azithromycin, chloroquine, favipiravir, hydroxychloroquine, remdesivir, and lopinavir/ritonavir) repurposed to treat COVID-19. A risk assessment of drug-induced Long QT Syndrome (LQTS) associated with COVID-19 repurposed drugs was performed and compared to 23 well-known torsadogenic and 10 low torsadogenic risk compounds. Computer calculations were performed using pharmacokinetic and pharmacodynamic data, including affinity to block the rapid component of the delayed rectifier cardiac potassium current (I Kr ) encoded by the human ether-a-go-go gene (hERG) , propensity to prolong cardiac repolarization (QT interval) and cause torsade de pointes (TdP). Seven different LQTS indices were calculated and compared. The U.S. Food and Drug Administration (FDA) Adverse Event Reporting System (FAERS) database was queried with specific key words relating to arrhythmogenic events. Estimators of LQTS risk levels indicated a very high or moderate risk for all COVID-19 repurposed drugs with the exception for azithromycin, although cases of TdP have been reported with this drug. There was excellent agreement among the various indices used to assess risk of drug-induced LQTS for the 6 repurposed medications and 23 torsadogenic compounds. Based on our results, monitoring of the QT interval shall be performed when some COVID-19 repurposed drugs are used, as such monitoring is possible for hospitalized patients or with the use of biodevices for outpatients.",
+      "normalized_facts": {
+        "journal": null,
+        "pub_type": "Preprint",
+        "pub_year": "2020"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "a1e831d40a47fc92e7a17351c0431beee41f163c8003a32b71d55d13272c15aa"
+    },
+    {
+      "evidence_id": "evd_72c353b76d7145b3b01c10cf7275aff6",
+      "title": "Comparative risk of cardiac arrhythmias associated with acetylcholinesterase inhibitors used in treatment of dementias - A narrative review.",
+      "authors": [
+        "Huang Y",
+        "Alsabbagh MW"
+      ],
+      "published_at": "2020-08-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/prp2.622",
+        "pmid": "32691984",
+        "pmcid": "PMC7372915",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/32691984",
+      "abstract_or_excerpt": "Donepezil, galantamine, and rivastigmine are the three acetylcholinesterase inhibitors (AChEIs), out of a total of only four medications prescribed in the treatment of Alzheimer's Disease (AD) and related dementias. These medications are known to be associated with bradycardia given their mechanism of action of increasing acetylcholine (ACh). However, in March 2015, donepezil was added to the CredibleMeds \"known-risk\" category, a list where medications have a documented risk for acquired long-QT syndrome (ALQTS) and torsades de pointes (TdP) - a malignant ventricular arrhythmia that is a different adverse event than bradycardia (and is not necessarily associated with ACh action). The purpose of this article is to review the three AChEIs, especially with regards to mechanistic differences that may explain why only donepezil poses this risk; several pharmacological mechanisms may explain why. However, from an empirical point-of-view, aside from some case-reports, only a limited number of studies have generated relevant information regarding AChEIs' and electrocardiogram findings; none have specifically compared donepezil against galantamine or rivastigmine for malignant arrhythmias such as TdP. Currently, the choice of one of the three AChEIs for treatment of AD symptoms is primarily dependent upon clinician and patient preference. However, clinicians should be aware of the potential increased risk associated with donepezil. There is a need to examine the comparative risk of malignant arrhythmias among AChEIs users in real-world practice; this may have important implications with regards to changes in AChEI prescribing patterns.",
+      "normalized_facts": {
+        "journal": "Pharmacology research & perspectives",
+        "pub_type": "Comparative Study, review-article, Review, Journal Article",
+        "pub_year": "2020"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "ee3c47e36ee95eb38ce152033a3d522795ceb4a7a10d39326fd49c18f97e68f3"
+    },
+    {
+      "evidence_id": "evd_3546cabe36f741a78d5e314baa511774",
+      "title": "Role of Pharmacogenetics in Adverse Drug Reactions: An Update towards Personalized Medicine.",
+      "authors": [
+        "Micaglio E",
+        "Locati ET",
+        "Monasky MM",
+        "Romani F",
+        "Heilbron F",
+        "Pappone C"
+      ],
+      "published_at": "2021-04-30",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2021.651720",
+        "pmid": "33995067",
+        "pmcid": "PMC8120428",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33995067",
+      "abstract_or_excerpt": "Adverse drug reactions (ADRs) are an important and frequent cause of morbidity and mortality. ADR can be related to a variety of drugs, including anticonvulsants, anaesthetics, antibiotics, antiretroviral, anticancer, and antiarrhythmics, and can involve every organ or apparatus. The causes of ADRs are still poorly understood due to their clinical heterogeneity and complexity. In this scenario, genetic predisposition toward ADRs is an emerging issue, not only in anticancer chemotherapy, but also in many other fields of medicine, including hemolytic anemia due to glucose-6-phosphate dehydrogenase (G6PD) deficiency, aplastic anemia, porphyria, malignant hyperthermia, epidermal tissue necrosis (Lyell's Syndrome and Stevens-Johnson Syndrome), epilepsy, thyroid diseases, diabetes, Long QT and Brugada Syndromes. The role of genetic mutations in the ADRs pathogenesis has been shown either for dose-dependent or for dose-independent reactions. In this review, we present an update of the genetic background of ADRs, with phenotypic manifestations involving blood, muscles, heart, thyroid, liver, and skin disorders. This review aims to illustrate the growing usefulness of genetics both to prevent ADRs and to optimize the safe therapeutic use of many common drugs. In this prospective, ADRs could become an untoward \"stress test,\" leading to new diagnosis of genetic-determined diseases. Thus, the wider use of pharmacogenetic testing in the work-up of ADRs will lead to new clinical diagnosis of previously unsuspected diseases and to improved safety and efficacy of therapies. Improving the genotype-phenotype correlation through new lab techniques and implementation of artificial intelligence in the future may lead to personalized medicine, able to predict ADR and consequently to choose the appropriate compound and dosage for each patient.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:34:02.585811+00:00",
+      "content_sha256": "1491408275c2f8068f188b531cd7fb3860a1edbefcf707854b3d76cf36126993"
+    },
+    {
+      "evidence_id": "evd_b0eee6995c7e42bcbe9a0f99783a2ad2",
+      "title": "Exploring the Role of Metabolites in Torsadogenic Risk Assessment: A Text-Mining Approach.",
+      "authors": [
+        "Bilgin E",
+        "Tuğcu G",
+        "Aydın A"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.4274/tjps.galenos.2026.43334",
+        "pmid": "42678219",
+        "pmcid": "PMC13533023",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42678219",
+      "abstract_or_excerpt": "<h4>Objectives</h4>Torsades de pointes (TdP) is a life-threatening ventricular arrhythmia often caused by the inadvertent inhibition of the human ether-à-go-go-related gene (hERG). Conventional pre-market evaluations, which emphasize parent molecules, often yield inaccurate predictions due to the multifaceted nature of TdP. This study aimed to investigate the role of metabolites and their interplay with parent molecules in the manifestation of TdP.<h4>Materials and methods</h4>A literature-based text-mining approach was employed, using the adverse outcome pathway-helpFinder tool. The analysis scrutinized 64 selected active ingredients, categorized by their torsadogenic risks, to evaluate the distinct proarrhythmic contributions of their metabolites.<h4>Results</h4>This text-mining exploration revealed qualitative evidence that metabolites variably modulate TdP vulnerability. Specifically, certain metabolites can independently exacerbate proarrhythmic profiles, whereas others do not inhibit hERG and therefore represent safer therapeutic alternatives than their parent molecules.<h4>Conclusion</h4>Metabolites play a paramount role in altering the torsadogenic risk profile of pharmaceutical products. Incorporating comprehensive metabolite data into cardiac safety evaluations is essential for a more accurate risk assessment and should be considered in future pharmaceutical development.",
+      "normalized_facts": {
+        "journal": "Turkish journal of pharmaceutical sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "d2b9f9d69cee47c43fbceed8f1e606da0614a110f78ba4d116f844110ef6e4c2"
+    },
+    {
+      "evidence_id": "evd_c818d38b9b5940edac9f30127b63fe91",
+      "title": "Bedaquiline, Pretomanid, Linezolid, and Moxifloxacin: Mechanisms of Action, Drug Interactions, Adverse Effects and Use in Special Situations.",
+      "authors": [
+        "Arbex MA"
+      ],
+      "published_at": "2026-04-30",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/microorganisms14051015",
+        "pmid": "42197401",
+        "pmcid": "PMC13210163",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42197401",
+      "abstract_or_excerpt": "Tuberculosis (TB) remains a critical global public health challenge, requiring therapeutic strategies that ensure high cure rates while minimizing bacillary transmission. The 2022 World Health Organization (WHO) update for drug-resistant TB treatment prioritized a novel, 6-month, all-oral regimen composed of bedaquiline, pretomanid, linezolid, and moxifloxacin (BPaLM) as the preferred treatment for rifampicin- and multidrug-resistant tuberculosis (RR-/MDR-TB). However, the clinical success of this shortened therapy is intrinsically linked to managing complex drug-drug interactions and treatment-emergent adverse effects which may necessitate regimen modifications. This article provides a comprehensive pharmacological review of the BPaLM components, detailing their mechanisms of action, pharmacokinetics (absorption, metabolism, and excretion), and safety profiles. Furthermore, we analyze critical drug interactions-including those involving food and antacids-and provide evidence-based guidance for special clinical populations, such as pregnant and breastfeeding women, and patients with hepatic or renal impairment. Mastery of these pharmacological nuances is essential for clinicians to optimize treatment adherence and ensure improved treatment completion rates and reduced resistance emergence.",
+      "normalized_facts": {
+        "journal": "Microorganisms",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "fb9fcf025c80c1790754dc3a454d20b20e622d7eab41c68217302af605d08508"
+    },
+    {
+      "evidence_id": "evd_f784971948f24fa5b33a110c2366d6c4",
+      "title": "Cardiac Safety of Intranasal Chlorpheniramine: An Exposure-Based Risk Assessment.",
+      "authors": [
+        "Alas-Pineda C",
+        "Pavón-Varela DJ",
+        "Gaitán-Zambrano K",
+        "Ferrer G"
+      ],
+      "published_at": "2026-04-25",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ph19050670",
+        "pmid": "42198344",
+        "pmcid": "PMC13209542",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42198344",
+      "abstract_or_excerpt": "<b>Background:</b> H1-antihistamines are widely used for allergic and upper respiratory conditions; however, several agents included in this class have been associated with cardiac electrophysiological adverse effects, including QT interval prolongation and torsades de pointes (TdP). These effects are largely exposure-dependent and mechanistically linked to inhibition of cardiac ion channels. Chlorpheniramine maleate (CPM), a first-generation H1-antihistamine, has been implicated in arrhythmic events primarily under conditions of increased systemic exposure, prompting interest in whether alternative routes of administration may lower cardiac risk. <b>Methods:</b> This narrative review integrates mechanistic, preclinical, clinical, pharmacokinetic, and regulatory evidence. Information was extracted from PubMed, Google Scholar, and Scielo using search terms such as cardiotoxicity, chlorpheniramine, QT prolongation, intranasal administration, and cardiac arrhythmias, with no language restriction. <b>Results:</b> Comparative pharmacokinetic evidence shows that, on a dose-normalized basis, intranasal and oral chlorpheniramine exhibit comparable bioavailability; however, in a clinical context, intranasal doses (1.12-2.24 mg) are lower than oral daily doses (4-12 mg/day), resulting in a lower systemic exposure (Cmax and AUC) with intranasal administration. Available pharmacovigilance or epidemiological data have not specifically evaluated intranasal chlorpheniramine, and the number of dedicated safety trials remains limited. <b>Conclusions:</b> Preclinical, in vitro, mechanistic studies suggest that intranasal administration of chlorpheniramine should confer superior cardiac safety compared to the oral route. However, clinical data from human studies directly comparing the cardiac safety of intranasal chlorpheniramine versus systemic chlorpheniramine is extremely limited. More data from clinical trials, case-control studies, and regulatory databases are needed to validate these theoretical claims.",
+      "normalized_facts": {
+        "journal": "Pharmaceuticals (Basel, Switzerland)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "32ef4e812fe3673ae21e4062fbabe9092710657c64d945198e8f3f3970218d95"
+    },
+    {
+      "evidence_id": "evd_110df4da8dfe4a4dbc61ffbb25a32ec6",
+      "title": "Advancing Torsades de pointes risk prediction: unveiling the role of drug metabolites through molecular docking.",
+      "authors": [
+        "Bilgin E",
+        "Tugcu G",
+        "Aydin A"
+      ],
+      "published_at": "2026-01-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxres/tfaf186",
+        "pmid": "41623588",
+        "pmcid": "PMC12853304",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41623588",
+      "abstract_or_excerpt": "This study explores the risk of Torsades de Pointes (TdP) arrhythmia, focusing on the interactions of parent drugs and their metabolites with the Human ether-à-go-go-related gene (hERG) channel, which is crucial in cardiac electrical activity and TdP risk assessment. Using a dual-strategy molecular docking approach with AutoDock Vina and PatchDock, we analyzed clinically relevant ligand pairs: astemizole/desmethylastemizole, terfenadine/fexofenadine, and quetiapine/norquetiapine. Quantitative analysis revealed that high binding affinity does not always correlate with toxicity. For instance, the non-cardiotoxic metabolite fexofenadine exhibited a higher binding affinity (-9.3 kcal/mol) compared to its toxic parent terfenadine (-8.9 kcal/mol), but its safety is explained by physicochemical constraints (zwitterionic nature). Conversely, desmethylastemizole maintained high affinity (-9.2 kcal/mol) with a geometrically \"relaxed\" fit (Atomic Contact Energy: -338.36), rationalizing its sustained potency. Geometric analysis further distinguished quetiapine as a \"steric blocker\" (Contact Area: ~588 Å<sup>2</sup>) causing forced occlusion, whereas its metabolite norquetiapine acted as a specific ligand with a significantly smaller interface area (~417 Å<sup>2</sup>). These findings highlight the importance of focusing not only on the parent drug but also on metabolites for TdP risk assessment in new drug development. We advocate for an integrated computational framework combining binding energy, geometric complementarity, and physicochemical profiling to enhance the accuracy of early cardiac safety screenings.",
+      "normalized_facts": {
+        "journal": "Toxicology research",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "8232f259234b9584387778159841e70aa17b4f7de9246b98e91fc36c8949a889"
+    },
+    {
+      "evidence_id": "evd_b966202a88314452a3923ae0ddd7c95c",
+      "title": "Cardiovascular safety pharmacology: beyond arrhythmic risk assessment.",
+      "authors": [
+        "Fares R",
+        "Champéroux P"
+      ],
+      "published_at": "2025-12-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2025.1623644",
+        "pmid": "41445862",
+        "pmcid": "PMC12722936",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41445862",
+      "abstract_or_excerpt": "Cardiovascular safety pharmacology arose from the need to assess certain forms of drug induced functional cardiotoxicity in toxicology within a regulatory framework. Cardiotoxic effects resulting from direct or indirect pharmacological effects are difficult to apprehend in conventional toxicology studies, whether electrophysiological and/or hemodynamic. The reflex regulatory systems of the cardiovascular system, and in particular the autonomic nervous system, interfere with and very often minimize the functional impact of these pharmacological effects, which are sometimes only visible over a very short time window. Modeling approaches now make it possible to assess key hemodynamic parameters, going beyond blood pressure alone. Non-clinical cardiovascular safety pharmacology must continue to evolve toward a comprehensive framework for arrhythmic risk, in order to improve its translational relevance to humans and better bridge non-clinical QT prolongation data with clinical risk assessment. It also needs to integrate concepts from clinical research, such as Coumel's triangle, autonomic conflict or hidden cardiotoxicity. The ultimate goal of cardiovascular safety pharmacology should extend beyond protecting participants in clinical trials. It should broaden its scope to include patient subpopulations with underlying cardiovascular disease, who are often the most vulnerable to functional cardiotoxic effects. Twenty-five years after their initial publication, the safety pharmacology guidelines are currently undergoing revision. This review aims to foster a more balanced and comprehensive approach to cardiovascular safety pharmacology, beyond arrhythmic risk.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "9e437a48c94a4fc6d66f164e43c20d4e32f2df3383a7aa0677cf5ccdd0d7ea36"
+    },
+    {
+      "evidence_id": "evd_1206452e4b334edaabdc471907a71cc8",
+      "title": "From allergy to arrhythmia - electrophysiological basis for the antiarrhythmic properties of antazoline.",
+      "authors": [
+        "Wiedmann F",
+        "Prodanova A",
+        "Kraft M",
+        "Weitkamp FM",
+        "Paasche A",
+        "Goetz C",
+        "Schmidt C"
+      ],
+      "published_at": "2026-03-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1780526",
+        "pmid": "41971091",
+        "pmcid": "PMC13066279",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41971091",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Antazoline, a first-generation H<sub>1</sub>-antihistamine, has shown rapid and effective antiarrhythmic action, particularly in recent-onset paroxysmal atrial fibrillation. Despite clinical use in some countries, the underlying electrophysiological mechanisms remain incompletely understood, and concerns about potential proarrhythmic effects persist. Here, we aim to systematically characterize the ion channel interaction profile of antazoline and assess its molecular mode of action.<h4>Methods</h4>Electrophysiological measurements were performed using the two-electrode voltage clamp technique on 22 cardiac ion channels, expressed in <i>Xenopus laevis</i> oocytes.<h4>Results</h4>Antazoline strongly inhibited hERG (IC<sub>50</sub> end-pulse: 43.3 µM; peak-tail: 162.6 µM) and hKir3.1/3.4 (IC<sub>50</sub>: 52.8 µM) in a concentration- and state-dependent manner. Block of hERG was attenuated by Y652A and F656A pore mutations, implicating classical aromatic binding residues. Positive rate dependence and open- and inactivated-state as well as partial closed-state inhibition were observed. In contrast, hK<sub>2P</sub>17.1 was significantly activated.<h4>Discussion</h4>Antazoline exhibits a distinct multichannel profile in a heterologous expression system, combining potent inhibition of hERG and hK<sub>ir</sub>3.1/3.4 with activation of hK<sub>2P</sub>17.1. The combined modulation of these channels suggests a potential atrial-preferential electrophysiological profile, while hERG inhibition indicates a need for careful evaluation of ventricular repolarization safety.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "524f482801ff3c3f7fd91c10a12917ce5331606731453304385fdd5e911efd79"
+    },
+    {
+      "evidence_id": "evd_84cd5a4933164647983ce7defb25e8fe",
+      "title": "QT interval prolongation: clinical assessment, risk factors and quantitative pharmacological considerations.",
+      "authors": [
+        "Gotta V",
+        "Donner B"
+      ],
+      "published_at": "2025-11-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s10928-025-10010-x",
+        "pmid": "41204044",
+        "pmcid": "PMC12594730",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41204044",
+      "abstract_or_excerpt": "Prolongation of the QT interval in the ECG is a critical finding that signifies an extended duration from the onset of ventricular depolarization to the end of ventricular repolarization. It can predispose patients to life-threatening arrhythmias, such as Torsades de Pointes (TdP). Long QT syndromes (LQTS) are defined by mutations in ion channel genes, particularly those encoding cardiac potassium and sodium channels and are characterized by a significant risk for sudden cardiac death if untreated. However, besides these clearly defined entities various medications have been implicated in causing QT interval prolongation. There is increasing evidence for a genetically determined risk for drug-induced QT prolongation. In addition, due to numerous clinical factors influencing the QT interval, QT prolongation increases the risk of TdP particularly in multi-morbid patients necessitating vigilant monitoring in at-risk populations. This review gives an overview of mechanisms and conditions which induce QT prolongation, the clinical assessment of QT interval duration, thereby highlighting quantitative variations in measurement techniques and heart-rate correction, as well as in demographic interpretation of normal values. The risk of cardiac arrhythmia is discussed, in both patients with congenital LQTS and acquired QT prolongation, along with influencing pharmacokinetic/pharmacodynamic, non-pharmacologic and genetic risk factors for TdP. Finally, clinical implications for individual patient management, including risk-adapted drug-prescription and use of ECG monitoring to mitigate the risks associated with QT prolongation, are summarized. Understanding the interplay between pharmacokinetics, pharmacodynamics, genetic predisposition and co-morbidities is essential for optimizing treatment in the context of prolonged QT intervals, preventing adverse cardiovascular events, and improving cardiac safety. Comprehensive drug labelling regarding exposure-QT relationships and available pharmacovigilance data are important sources of information enhancing patient safety.",
+      "normalized_facts": {
+        "journal": "Journal of pharmacokinetics and pharmacodynamics",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "4b1e603848923491ee144d96e02711642ef6f47e4e17db4593b648c677ba4f0d"
+    },
+    {
+      "evidence_id": "evd_acd957bf4f244f46b6c1c6fca9544da1",
+      "title": "Arrhythmia risk predictions from molecular simulations of cardiac ion channel-drug interactions.",
+      "authors": [
+        "Rouen KC",
+        "Narang K",
+        "Han Y",
+        "Wang D",
+        "Jang E",
+        "Brunkow S",
+        "Yarov-Yarovoy V",
+        "MacKerell AD"
+      ],
+      "published_at": "2025-12-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.bpj.2025.12.015",
+        "pmid": "41408751",
+        "pmcid": "PMC13507445",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41408751",
+      "abstract_or_excerpt": "Unintended block of cardiac ion channels, particularly hERG (K<sub>V</sub>11.1), remains a key concern in drug development as disruption of ion channel function can lead to deadly arrhythmia. To assess proarrhythmic risk, we investigated how drugs interact with hERG in its open and inactivated states and whether drug interactions with other cardiac channels like Na<sub>V</sub>1.5 and Ca<sub>V</sub>1.2 mitigate that risk. Using cryo-EM structures, we modeled open and inactivated conformations of these channels with Rosetta structural modeling. We then applied SILCS (site identification by ligand competitive saturation), a physics-based precomputed ensemble docking method, to predict drug binding affinities. SILCS leverages molecular-simulation-generated free energy maps for high-throughput docking against hydrated lipid bilayer-embedded ion channel models. Bayesian machine learning was used to refine SILCS scoring using experimental IC<sub>50</sub> values from 53 known hERG blockers outperforming Schrödinger Glide, AutoDock Vina, and OpenEye FRED drug docking predictions. Computed drug binding affinities for hERG and Ca<sub>V</sub>1.2 channels were used to train machine learning models that successfully classified around 300 drugs from the CredibleMeds database. Cationic nitrogen SILCS fragment free energy scores were found to be top physical properties that are predictive of drug-induced torsades de pointes arrhythmia risk. This approach, which relies on the predicted binding free energies and predicted physical properties of drugs rather than the chemical structure of the drugs themselves as features, could be extended to facilitate the design of new drugs where rapid assessment of arrhythmia risk can be performed before experimental testing.",
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "a7108b0a8181f3661baf03f419ed58ce6cdecc30114d06bf586fb9b8d1a420a0"
+    },
+    {
+      "evidence_id": "evd_f5f1637887714a1dbbcf3fe46990ce01",
+      "title": "A machine learning platform for genotype-specific cardiotoxicity risk prediction using patient-derived iPSC-CMs.",
+      "authors": [
+        "Park YG",
+        "Park NK",
+        "Lee Y",
+        "Pramudito MA",
+        "Son YJ",
+        "Park H",
+        "Qauli AI",
+        "Choi SW"
+      ],
+      "published_at": "2025-07-22",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.jare.2025.07.030",
+        "pmid": "40706985",
+        "pmcid": "PMC13001045",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40706985",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Drug-induced Torsades de Pointes (TdP) has led to withdrawal of several drugs from the market. Individuals with inherited cardiac channelopathies are at increased risk due to their underlying electrophysiological vulnerability.<h4>Objectives</h4>We aimed to develop a machine learning (ML) platform for disease-specific cardiotoxicity using patient-specific induced pluripotent stem cell-derived cardiomyocytes (iPSC-CMs) combined with high-throughput microelectrode array (MEA) recordings.<h4>Methods</h4>We generated genetically confirmed and phenotypically characterized iPSC-CMs from patients with long QT syndrome (LQTS) and Brugada syndrome (BrS). These cells were exposed to 28 compounds with varying TdP risk levels. Electrophysiological responses including field potential duration, corrected field potential duration, beat period and amplitude were measured using MEA. These data were used to train and compare machine learning models, including artificial neural networks (ANN), random forest, and XGBoost. Model performance was optimized by grid search and evaluated by fivefold cross-validation.<h4>Results</h4>The ANN model trained on LQTS iPSC-CMs achieved the highest accuracy (area under the curve [AUC] = 0.94). BrS cell lines showed hypersensitivity to calcium channel blockers, while LQTS lines exhibited heightened responses to potassium channel inhibitors. Previously ambiguous compounds were reclassified based on disease-specific electrophysiological profiles, demonstrating the platform's utility in genotype-specific cardiotoxicity risk assessment.<h4>Conclusion</h4>This study presents a scalable and individualized approach for cardiotoxicity screening using well-characterized patient-derived iPSC-CMs. The platform enhances drug safety prediction, supports regulatory evaluation, and advances precision medicine in arrhythmia risk assessment.",
+      "normalized_facts": {
+        "journal": "Journal of advanced research",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "75db511bed5169e75bb98df81ca53a9ce914345cb45e2059af4dbfc1de42e3ed"
+    },
+    {
+      "evidence_id": "evd_cff1f7c58a3a41e8bf47949c8159286c",
+      "title": "Integrating high-fidelity hiPSC-cardiomyocytes with AI-driven modeling for enhanced proarrhythmic risk assessment.",
+      "authors": [
+        "Kim SB",
+        "Lee J",
+        "An J",
+        "Cho A",
+        "Lee KH",
+        "Choi H",
+        "Han C",
+        "Pramudito MA"
+      ],
+      "published_at": "2026-04-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00204-026-04361-8",
+        "pmid": "42050190",
+        "pmcid": "PMC13379419",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42050190",
+      "abstract_or_excerpt": "Cardiotoxicity remains the leading driver of drug attrition; however, its prediction remains suboptimal when conventional hERG assays and animal models are used. Human induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CMs) offer a human-relevant alternative that aligns with the CiPA initiative and ICH E14/S7B guidelines. This study validated an integrated platform that combines high-purity hiPSC-CMs with Artificial Intelligence (AI) to enhance the accuracy of predicting drug-induced proarrhythmic risk. Phenotypic characterization of the hiPSC-CMs demonstrated high cardiac differentiation efficiency (cTnT +  > 95%) and a predominant ventricular-like identity (MLC-2 V + , 78-84%), ensuring biological relevance for ventricular arrhythmia assessment. Electrophysiological data from 28 CiPA reference compounds were collected via Multielectrode Array (MEA) to train multiple machine learning models. The Artificial Neural Network outperformed the other architectures, achieving a superior ROC-AUC of 0.982. The utility of the platform was evaluated using 12 anticancer agents. Although most drugs showed dose-dependent reductions in impedance-based viability, four compounds (Idarubicin, Erlotinib, Sunitinib, Cyclophosphamide) did not exhibit overt structural cytotoxicity. However, MEA analysis revealed significant functional perturbations, including FPDcF prolongation, in sunitinib- and erlotinib-treated samples after long-term treatment. The AI model subsequently classified these two agents as high-to-intermediate risk for Torsades de Pointes (TdP), thereby quantifying their time-dependent proarrhythmic liabilities. These findings show the platform's ability to detect hidden functional cardiotoxicity, often missed by standard viability assays. The AI-hiPSC-CM system offers a high-throughput, early-stage safety screening tool that bridges in vitro data and clinical outcomes with a standardized risk assessment framework.",
+      "normalized_facts": {
+        "journal": "Archives of toxicology",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T12:33:54.695905+00:00",
+      "content_sha256": "2352de650afeadeb727208a3eddde784b51365ba16b0063e64b02bbb4fb72bc0"
+    }
+  ],
+  "cases": []
+}

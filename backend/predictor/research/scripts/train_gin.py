@@ -3,7 +3,7 @@
 Main training script for GIN (Graph Isomorphism Network) molecular property prediction model.
 
 Usage:
-    python scripts/train_gin.py [--config backend/predictor/configs/gin_config.yaml]
+    python scripts/train_gin.py [--config backend/predictor/research/configs/gin_config.yaml]
 """
 
 import sys
@@ -50,7 +50,7 @@ def main():
     parser.add_argument(
         '--config',
         type=str,
-        default='backend/predictor/configs/gin_config.yaml',
+        default='backend/predictor/research/configs/gin_config.yaml',
         help='Path to configuration file'
     )
     parser.add_argument(

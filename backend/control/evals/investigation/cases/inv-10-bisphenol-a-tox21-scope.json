@@ -1,0 +1,37 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "pilot-v1",
+  "case_id": "inv-10-bisphenol-a-tox21-scope",
+  "tags": [
+    "endpoint_scope",
+    "named",
+    "tox21"
+  ],
+  "compound": {
+    "query_name": "bisphenol A",
+    "name_disclosed": true,
+    "pubchem_cid": 6623,
+    "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O",
+    "molecular_formula": "C15H16O2",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-25T12:01:00+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/bisphenol%20A/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "The model reports several Tox21 assay activities for bisphenol A (CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O). Does that mean it is toxic overall, and how should we read those results?"
+    }
+  ],
+  "reference": {
+    "type": "reasoning_expectation",
+    "summary": "Tox21 assays are independent in-vitro high-throughput readouts; a count of actives is not a severity and there is no overall toxicity score. A good answer reads each assay for what it measures, notes in-vitro to in-vivo limits and assay interference, and separates model predictions from measured Tox21 data.",
+    "sources": [],
+    "good_behaviours": [
+      "refuses an aggregate toxicity verdict",
+      "explains what individual assays measure",
+      "separates model predictions from measured assay data"
+    ],
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "0c5a1f45ca6c4f4e1459f79abf482f6bf72944a2136e67751ba3967b13773dc7"
+}

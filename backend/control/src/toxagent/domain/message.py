@@ -6,7 +6,7 @@ delta is a stream optimisation that may be dropped without losing anything.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Sequence
@@ -25,6 +25,10 @@ class PartType(str, Enum):
     ANALYSIS_REF = "analysis_ref"
     ANSWER_REF = "answer_ref"
     REPORT_REF = "report_ref"
+    #: The DecisionDossierV1 a decision-support run compiled over its case
+    #: (W9-05): the chat answer is one view of it, the investigation board
+    #: another. Carries ``case_id``, ``run_id`` and ``case_revision`` only.
+    DOSSIER_REF = "dossier_ref"
     TOOL_CALL = "tool_call"
     ERROR = "error"
     #: Metadata only (mime type, byte size and, once accepted, an opaque

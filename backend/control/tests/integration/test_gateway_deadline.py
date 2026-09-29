@@ -15,8 +15,8 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from toxagent.application.policy import Actor
-from toxagent.application.run_scheduler import RunContext
-from toxagent.config import RuntimeSettings
+from toxagent.application.runs.scheduler import RunContext
+from toxagent.platform.config import RuntimeSettings
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.runtime import RuntimeBinding, RuntimeCapabilities, RuntimeKind

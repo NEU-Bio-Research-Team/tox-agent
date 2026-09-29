@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from toxagent.config import PACKAGE_ROOT
+from toxagent.platform.config import PACKAGE_ROOT
 from toxagent.harness.runtime_profiles import QA_PROFILE_PATH, REPORT_PROFILE_PATH
 
 PROFILES = PACKAGE_ROOT / "agent_profiles"

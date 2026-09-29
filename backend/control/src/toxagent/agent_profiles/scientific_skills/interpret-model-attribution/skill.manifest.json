@@ -1,0 +1,16 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "interpret-model-attribution",
+  "version": "1.1.0",
+  "status": "active",
+  "owner": "backend-scientific",
+  "allowed_profiles": ["decision_support"],
+  "required_capabilities": ["get_scientific_case", "update_scientific_case", "get_attribution"],
+  "risk_tier": "high",
+  "output_contract": "explanation_fact entries with stance contextual; an explainer_faithfulness uncertainty when the verdict is not_better_than_random_control or not_measured and the attribution matters; the attribution_not_causality limitation in the answer; mechanism only as a hypothesis",
+  "eval_set": {
+    "positive_tags": ["attribution_question"],
+    "negative_tags": ["numeric_lookup", "conflicting_evidence"]
+  },
+  "references": ["references/attribution-limits.md"]
+}

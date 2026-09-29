@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from toxagent.flags import FLAGS, MAX_FLAG_LIFETIME_DAYS, flag, is_enabled, rollout_matrix
+from toxagent.platform.flags import FLAGS, MAX_FLAG_LIFETIME_DAYS, flag, is_enabled, rollout_matrix
 
 
 def test_catalogue_is_not_empty_and_names_are_unique() -> None:

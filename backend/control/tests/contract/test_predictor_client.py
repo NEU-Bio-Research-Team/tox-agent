@@ -8,7 +8,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from toxagent.config import PredictorSettings
+from toxagent.platform.config import PredictorSettings
 from toxagent.domain.errors import (
     EndpointUnavailable,
     InvalidSmiles,
@@ -103,7 +103,7 @@ async def test_a_missing_artifact_is_retryable_not_a_protocol_error():
 
 async def test_an_unreachable_predictor_is_reported_as_not_ready():
     """A refused connection is retryable; it is not a contract violation."""
-    from toxagent.config import PredictorSettings
+    from toxagent.platform.config import PredictorSettings
     from toxagent.predictor.client import PredictorClient
 
     client = PredictorClient(

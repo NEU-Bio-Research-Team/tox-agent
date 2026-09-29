@@ -367,7 +367,7 @@ def main(argv: list[str] | None = None) -> int:
             groups = [rows[i]["connectivity_key"] for i in test_idx]
 
             def macro_of(model_id: str) -> float:
-                value = view_report["models"][model_id]["macro"]["mae"]["macro"]
+                value = view_report["models"][model_id]["macro"]["mae"]["macro"]  # noqa: B023
                 return float("inf") if value is None else value
 
             reference = min(stored, key=macro_of)

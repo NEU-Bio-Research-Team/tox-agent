@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
-from toxagent.tools.registry import PROFILES, ToolDefinition, ToolRegistry
+from toxagent.tools.registry import FLAG_GATED_TOOLS, PROFILES, ToolDefinition, ToolRegistry
 
 
 class Args(BaseModel):
@@ -77,16 +77,24 @@ REPORT_BUILD_TOOLS = frozenset(
 def test_every_conversational_profile_is_a_small_closed_set():
     """Plan section 21: a large tool roster costs money and misroutes."""
     for name, tools in PROFILES.items():
-        # Neither is conversational: report_build is the model-driven builder's
-        # enumerated roster, and report_synthesis is one submission boundary.
-        if name in ("report_build", "report_synthesis"):
+        # None is conversational: report_build is the model-driven builder's
+        # enumerated roster, and report_synthesis and claim_review (W9-12) are
+        # one submission boundary each.
+        if name in ("report_build", "report_synthesis", "claim_review"):
             continue
         # decision_support is deliberately the adaptive superset of
         # report_qa + evidence_research (ADR 0010, ADS plan section 7.2) plus
         # the read-your-own-artifacts tools of W2-03/04 — its ceiling is wider
         # on purpose, not an oversight this guardrail should catch.
         ceiling = 10 if name == "decision_support" else 6
-        assert 2 <= len(tools) <= ceiling, f"{name} has {len(tools)} tools"
+        default = tools - set(FLAG_GATED_TOOLS)
+        assert 2 <= len(default) <= ceiling, f"{name} has {len(default)} default tools"
+        # Every flag on at once still has a ceiling, so a flag cannot become a
+        # way around this one. It is wider than the default ceiling because
+        # the flag-gated tools are separate experiments, each measured on its
+        # own arm (ADR 0012 case and skill tools, W9-11 drafts, W9-13
+        # primitives), never meant to ship all at once.
+        assert len(tools) <= ceiling + 8, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

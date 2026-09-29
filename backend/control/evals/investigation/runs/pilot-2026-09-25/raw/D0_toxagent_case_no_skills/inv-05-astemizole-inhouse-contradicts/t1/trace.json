@@ -1,0 +1,3738 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_d400ae5b617343b4967c79d187cbeb00",
+        "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:12:31.719745+00:00",
+        "created_at": "2026-09-25T13:07:31.719745+00:00",
+        "started_at": "2026-09-25T13:07:31.907511+00:00",
+        "ended_at": "2026-09-25T13:10:24.424557+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "c9cdd71db9f947ae26d36016eb8bacbd0cc34642162516eacb10ce1ba9bc9316",
+          "tool_schema_hash": "b76b67ce2cb71f9dda4bf5a3ccbaae907d67b98f45c1b5a65eb97fb8fa8a8f62",
+          "system_prompt_hash": "dea766545c95e9357cd484d23a81c67f77df91804d7184d226a1bf2f1f952613"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:07:31.721834+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_624c7266168c4d6f8f8c6d23413b14f0",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:07:41.796711+00:00",
+              "tokens": {
+                "input": 4777,
+                "output": 79,
+                "reasoning": 40,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 7456
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_4337732e759ce81219c697837e4c5e33",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ada3150014kX51Y95VeXGHm",
+                "step_id": "prt_0d8adc45c001ZFqXAuGZkj44Y1",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_09e1aeebfa17454489cb323b5b495ce8",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:07:47.336125+00:00",
+              "tokens": {
+                "input": 985,
+                "output": 147,
+                "reasoning": 0,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 7788
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8a346a04eb9a296043f8e601a81bf37f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8adc487001KN1LJPEnCqeCIA",
+                "step_id": "prt_0d8adda020019RS694FbHFMYTl",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_1f29efb233224c1ab9b26190bc5aa43b",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:07:59.102807+00:00",
+              "tokens": {
+                "input": 6236,
+                "output": 457,
+                "reasoning": 44,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 9297
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d1679d39c5781fd31e95682d770e0bbb",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8adda1a00191yKykQYtPAM6k",
+                "step_id": "prt_0d8ae07f8001etax5IODKgGGEg",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_2a026a4c4fce491f97d740ec68eabd95",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:08:05.989319+00:00",
+              "tokens": {
+                "input": 2834,
+                "output": 234,
+                "reasoning": 0,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 9724
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_0045ade80c927362c685b49b344e3eec",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ae081400141QfEjsSqTeHBp",
+                "step_id": "prt_0d8ae22dc0014mMLge2We3UqW0",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e94ebc2156e54e998eaf573c4f07d43a",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:08:11.886838+00:00",
+              "tokens": {
+                "input": 1201,
+                "output": 97,
+                "reasoning": 19,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 10021
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7479f73049158606b65a69ecd898ff3a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ae2307001goejWjddXGEb5U",
+                "step_id": "prt_0d8ae39dd001ZAQAPphZLlN3o7",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_3b771ce35ce34979842384cecc45204d",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:08:16.561759+00:00",
+              "tokens": {
+                "input": 1814,
+                "output": 97,
+                "reasoning": 15,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 10630
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_83d3aab878ce8f6d481e5c6c99705530",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ae3a0e001RLhoDfOa0GD0V0",
+                "step_id": "prt_0d8ae4c2b001Vf5UFDiydZOAah",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a12c4210f40d4db2bc3c36df17cbcec8",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:08:22.835539+00:00",
+              "tokens": {
+                "input": 1737,
+                "output": 94,
+                "reasoning": 23,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 11582
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7d0064a00ee7bffc150227aba22dc70d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ae4c480014A3MFsUz2ML4xz",
+                "step_id": "prt_0d8ae64ad001An6gZrmCU84x7I",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_91f3528f1f5f4d7f9ba44870dca97a13",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:08:28.768731+00:00",
+              "tokens": {
+                "input": 2870,
+                "output": 129,
+                "reasoning": 66,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 12793
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c563b6b8344c1677aa78d66025a4e1bb",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ae64d400165Xj84388m5CMZ",
+                "step_id": "prt_0d8ae7bd7001ZXjv0BMF87MCmQ",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_abcbdc8336894c81bee9289f562251d5",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:09:05.586569+00:00",
+              "tokens": {
+                "input": 1343,
+                "output": 1652,
+                "reasoning": 225,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 14996
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_86f0617f7e854146f1713c45e83d3704",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8ae7bf8001xF50yyWK1f4qjM",
+                "step_id": "prt_0d8af0ba30012cpIyXYgopVx37",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_cbbd45e6348840209193b66cf1e1bef1",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:09:37.109791+00:00",
+              "tokens": {
+                "input": 4463,
+                "output": 993,
+                "reasoning": 597,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 16805
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6f07b639740bc088c7a6cc30c9417998",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8af0c110013Kqfsdh5bccOyb",
+                "step_id": "prt_0d8af86ce001rJMkU6Y4o6mDr6",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_7ee69b67973c4925a8055731a3d19771",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:09:59.681647+00:00",
+              "tokens": {
+                "input": 2302,
+                "output": 987,
+                "reasoning": 26,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 18163
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e598a2ad79fe09d17093adf841962707",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8af86f1001MGQVy3D7OT72Sp",
+                "step_id": "prt_0d8afdefa001gyZWJwi65l11Zd",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_3ce3f29888954859868d0bb05ecf886b",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:10:21.406350+00:00",
+              "tokens": {
+                "input": 18381,
+                "output": 1010,
+                "reasoning": 54,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 19445
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_36d5cddbd34d67f99b5c770d9026df3e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8afdf23001Cxy15geGk0Ol5K",
+                "step_id": "prt_0d8b033d7001lLQl7u3XG3BE2w",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8aa79f489ee14b50986927b125346540",
+              "runtime_binding_id": "rtb_abba052732114780a21940b57b193e24",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:10:24.347931+00:00",
+              "tokens": {
+                "input": 1828,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 17920,
+                "cache_write": 0,
+                "total": 19752
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b0cdb6c6f7340d1180d8d3640ec043be",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b033f3001zPdsL5Hr6ILdv2",
+                "step_id": "prt_0d8b03f56001Q9464y4lqdEKvn",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_500480ac442d4098bc196a819c67ee98",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "88a315c515981b2006dfac08f9fcd6e20faaa76554db8a4af052a7e26c2a9b8f",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:07:41.698046+00:00",
+            "ended_at": "2026-09-25T13:07:41.710702+00:00"
+          },
+          {
+            "call_id": "call_1ef50fb9ee664dbab0387e1baa21debe",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:07:47.062620+00:00",
+            "ended_at": "2026-09-25T13:07:47.074012+00:00"
+          },
+          {
+            "call_id": "call_953f6d517ba143679f1e71cee75804cc",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "71c128349f4a56dc239fc2be1aef95dd5396befab60f8d04ef10ad67119b1f0a",
+            "observation_ids": [
+              "obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "started_at": "2026-09-25T13:07:47.165419+00:00",
+            "ended_at": "2026-09-25T13:07:47.177689+00:00"
+          },
+          {
+            "call_id": "call_a2b1bbf422ac4ad0bf7018436899b913",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "8c534c65cea1e0d08037395be99243972d632d23f0a2d2003665655644bcb15c",
+            "observation_ids": [
+              "obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "started_at": "2026-09-25T13:07:47.280024+00:00",
+            "ended_at": "2026-09-25T13:07:47.294904+00:00"
+          },
+          {
+            "call_id": "call_2b3f1e8ae1ec44339f9ce6ad3164d900",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "78a9116d0c7ce7910a21da1a040adadb3af836d1a48ab16afcb9fc6fb36477b8",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:07:59.030701+00:00",
+            "ended_at": "2026-09-25T13:07:59.046713+00:00"
+          },
+          {
+            "call_id": "call_ddd50db8b64e40658be72a9d52e873f3",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "864fc32443718c43f9b4a68a571d2a2f508961ce76f686c530a902550c3c15e6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:08:05.894961+00:00",
+            "ended_at": "2026-09-25T13:08:05.910524+00:00"
+          },
+          {
+            "call_id": "call_a24a79289f7046a38cc929cc3f3f7a24",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1039,
+            "arguments_sha256": "bc299598d6aa268e22bb49216fca3349fcfdb466e588a4114c21058895d242cf",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:08:10.789024+00:00",
+            "ended_at": "2026-09-25T13:08:11.825118+00:00"
+          },
+          {
+            "call_id": "call_5066555609fc4d1f82bdbfd101aa20eb",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 413,
+            "arguments_sha256": "9cb8dddde0a6b9773a30e0579d598e4793484ab4e98b4c5ad68b3fa47d9cd03c",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:08:16.120748+00:00",
+            "ended_at": "2026-09-25T13:08:16.531550+00:00"
+          },
+          {
+            "call_id": "call_d24a95500f894c27b2e782f402a268db",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1218,
+            "arguments_sha256": "a55b8d452769a1e5741cedf86da9ba1fb6530eff8a2c32d6c8cfd108aea7c12f",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:08:21.580326+00:00",
+            "ended_at": "2026-09-25T13:08:22.797294+00:00"
+          },
+          {
+            "call_id": "call_2c6569d6fb4a4877a85942b3c61c0a11",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "27fe13216fc82fe81e21aa012715cc2b16812dc95a751f5d163dcd112011aa33",
+            "observation_ids": [
+              "evd_861b178578db44cd8fb82aa7a7bb5fdb"
+            ],
+            "started_at": "2026-09-25T13:08:28.606079+00:00",
+            "ended_at": "2026-09-25T13:08:28.616800+00:00"
+          },
+          {
+            "call_id": "call_cbc6774e9bdf491cb2a53dc3d35e34c4",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "1bac395e3f1e91db42f1eb55a20f9bd233af857204c9c346986862f231c2fe10",
+            "observation_ids": [
+              "evd_cbf9c8de90a54175bde0024a969a5eab"
+            ],
+            "started_at": "2026-09-25T13:08:28.712703+00:00",
+            "ended_at": "2026-09-25T13:08:28.723832+00:00"
+          },
+          {
+            "call_id": "call_5857cbe7d27f4e18a3e5eb63a3bd6cb8",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 24,
+            "arguments_sha256": "d55975925b87dc57756d6712f068cd66ef1fdfa351841bf13e65a0ad5bfa864b",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:09:05.497028+00:00",
+            "ended_at": "2026-09-25T13:09:05.518502+00:00"
+          },
+          {
+            "call_id": "call_28c6c910ce624c58abab9cd460e3b20c",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 22,
+            "arguments_sha256": "411d4d222c85974aa5fb41cbf6a4c9187553409019a9274a42bbfad273c49771",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:09:59.595505+00:00",
+            "ended_at": "2026-09-25T13:09:59.615991+00:00"
+          },
+          {
+            "call_id": "call_95487e467a60408fb6ad1650d0a80376",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 42,
+            "arguments_sha256": "8fb0d165578182ebec803b99a700ae1f8b8cbe5a42e8179e294bb21614764e48",
+            "observation_ids": [
+              "obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "started_at": "2026-09-25T13:10:21.307275+00:00",
+            "ended_at": "2026-09-25T13:10:21.347177+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_ecb8939617984e77b052daf42484e7b5",
+        "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+        "answer_markdown": "Astemizole should be treated as a **high-priority hERG follow-up concern** in this screen. The predictor calls it a blocker, but this is a model signal, not a calibrated clinical risk estimate.\n\nThe appropriate disposition is to **hold progression of the drug candidate pending orthogonal cardiac-ion-channel testing**, rather than infer safety or clinical arrhythmia risk from the score. The key next experiment is a concentration-response hERG/Kv11.1 assay, interpreted against intended free exposure and relevant metabolites.",
+        "claims": [
+          {
+            "claim_id": "clm_b0e89d83dd8842c890d5bd8510339a70",
+            "kind": "numeric",
+            "text": "The stored hERG model probability for astemizole is 0.7999394536018372.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_f73c2193074e4fc093205a1a294cc0f0",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.7999394536018372,
+            "rendered_value": "0.799939453602"
+          },
+          {
+            "claim_id": "clm_1756b83b74174160ad32611689480916",
+            "kind": "classification",
+            "text": "The stored hERG model classifies astemizole as a blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_f73c2193074e4fc093205a1a294cc0f0",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker",
+            "rendered_value": "blocker"
+          },
+          {
+            "claim_id": "clm_b87651fc007d47aeb817f0486412c61b",
+            "kind": "scientific",
+            "text": "The blocker classification is a strong prioritization warning for follow-up, but it does not establish clinical arrhythmia risk or exposure-relevant liability.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_f73c2193074e4fc093205a1a294cc0f0",
+            "field_path": "predictions.herg.label",
+            "input_claim_ids": [
+              "clm_b0e89d83dd8842c890d5bd8510339a70",
+              "clm_1756b83b74174160ad32611689480916"
+            ]
+          },
+          {
+            "claim_id": "clm_ec173fa9d47d421d9e45c93dbea0f6ac",
+            "kind": "recommendation",
+            "text": "Run orthogonal concentration-response hERG/Kv11.1 testing and compare the measured activity range with intended free exposure, including relevant metabolites.",
+            "transform": "identity",
+            "citation_ids": [],
+            "input_claim_ids": [
+              "clm_b0e89d83dd8842c890d5bd8510339a70",
+              "clm_1756b83b74174160ad32611689480916"
+            ]
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a predictor score, not a calibrated clinical or individual risk probability."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed assay is a screening and verification step, not a safety assessment."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "A bounded literature search did not establish qualifying compound-specific independent hERG confirmation; that absence is not evidence that liability is absent."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Prioritize orthogonal concentration-response hERG/Kv11.1 testing before advancing the candidate, with exposure and metabolite interpretation.",
+            "basis_claim_ids": [
+              "clm_b0e89d83dd8842c890d5bd8510339a70",
+              "clm_1756b83b74174160ad32611689480916",
+              "clm_ec173fa9d47d421d9e45c93dbea0f6ac"
+            ]
+          }
+        ],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "36e3d37273d1dfd46492fe12f7279d1e839cffe8d397b72eef6496a480d7cd7c",
+        "created_at": "2026-09-25T13:10:21.319995+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_205715947cdb4ba2ab2d00e2f967e3a0",
+        "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+        "goal": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?",
+        "subject_refs": [
+          "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The hERG signal warrants orthogonal concentration-response testing but does not by itself establish clinical risk.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 3,
+          "tool_calls": 14,
+          "denied_calls": 0,
+          "failed_calls": 1,
+          "evidence_reads": 2
+        },
+        "available_refs": [
+          "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+          "evidence:evd_861b178578db44cd8fb82aa7a7bb5fdb",
+          "evidence:evd_cbf9c8de90a54175bde0024a969a5eab"
+        ],
+        "found_refs": [
+          "evidence:evd_e5b596b6fa5841c697bc25ce3ebf5004",
+          "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+          "evidence:evd_861b178578db44cd8fb82aa7a7bb5fdb",
+          "evidence:evd_928bc54176b34b938f85da95a584f7fb",
+          "evidence:evd_2c53136a13db45f5b1d992507ab1d810"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {},
+        "revision": 17
+      },
+      "dossier": {
+        "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+        "case_id": "scase_1bc61ee1ed74416f9f6023fd9df898ce",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?",
+        "answer_id": "ans_ecb8939617984e77b052daf42484e7b5",
+        "conclusion": {
+          "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+          "can_say": [
+            {
+              "text": "The stored predictor gives a substantial hERG blocker signal for astemizole.",
+              "sources": [
+                "observation:obs_f73c2193074e4fc093205a1a294cc0f0"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The signal should be treated as a prioritization warning rather than a clinical or exposure-based risk estimate because compound-specific concentration-response and exposure data are absent.",
+              "sources": [
+                "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+                "evidence:evd_cbf9c8de90a54175bde0024a969a5eab"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Cannot infer clinical arrhythmia risk, safety, or a safe exposure from the model score.",
+            "Cannot treat the absence of a qualifying compound-specific literature hit as evidence that hERG liability is absent."
+          ],
+          "what_would_change": [
+            "Orthogonal compound-specific hERG data and intended-use free-exposure information would determine whether the predicted signal is relevant."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "status": "open",
+            "context": [],
+            "statement": "The hERG predictor signal reflects a meaningful potential for astemizole-mediated hERG/Kv11.1 blockade.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+                "scope": {
+                  "compound": "astemizole",
+                  "endpoint": "herg",
+                  "use_context": "repurposing screen"
+                },
+                "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "direct",
+                "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A compound-specific hERG study finds no relevant inhibition under appropriately characterized conditions."
+          },
+          {
+            "id": "h2",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "status": "open",
+            "context": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+                "scope": {
+                  "assay": "patch clamp cardiac ion channel assay",
+                  "compound": "not astemizole-specific",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+                "stance": "contextual",
+                "locator": "title",
+                "directness": "class_level",
+                "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The predictor signal may not translate to the intended repurposing context because hERG liability depends on assay conditions, exposure, and the relevant free concentration.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Orthogonal, concentration-response hERG data and exposure comparison show the predicted liability is directly relevant to the intended use context."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run an orthogonal concentration-response hERG/Kv11.1 assay with astemizole, then compare the measured effect range with the intended free exposure and assess key metabolites separately if they are present.",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "rationale": "This directly tests whether the model signal is reproducible and whether it is relevant at the intended exposure.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response inhibition curve",
+              "potency estimate with assay conditions",
+              "comparison of free exposure to the active concentration range",
+              "metabolite-specific activity if applicable"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+            "scope": {
+              "compound": "astemizole",
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "direct",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "search_toxicology_evidence",
+              "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+              "outcome": "",
+              "purpose": "Find compound-specific independent evidence on astemizole and hERG/Kv11.1 to determine whether the model signal is corroborated and relevant to the decision.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+              "outcome": "The bounded literature search returned no accepted, clearly astemizole-specific hERG record; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for compound-specific evidence that would weaken the predicted hERG concern.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": [
+            {
+              "id": "e2",
+              "actor": "model",
+              "claim": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+              "scope": {
+                "assay": "patch clamp cardiac ion channel assay",
+                "compound": "not astemizole-specific",
+                "endpoint": "herg"
+              },
+              "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+              "stance": "contextual",
+              "locator": "title",
+              "directness": "class_level",
+              "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h2"
+              ]
+            }
+          ]
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No intended-use exposure, free concentration, or concentration-response hERG measurement is available in the stored analysis.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    },
+    {
+      "run": {
+        "run_id": "run_87904920a356497d80d09c841f09f98d",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_44d1299b5e0d4a2e8204b33f1db8cc61",
+        "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T13:15:24.581831+00:00",
+        "created_at": "2026-09-25T13:10:24.581831+00:00",
+        "started_at": "2026-09-25T13:10:24.732781+00:00",
+        "ended_at": "2026-09-25T13:12:21.967918+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "c9cdd71db9f947ae26d36016eb8bacbd0cc34642162516eacb10ce1ba9bc9316",
+          "tool_schema_hash": "b76b67ce2cb71f9dda4bf5a3ccbaae907d67b98f45c1b5a65eb97fb8fa8a8f62",
+          "system_prompt_hash": "ce65937838c27a140379564eae8e2c0c438eeaf2cf9cb17c8f57d666e1e56555"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 600,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T13:10:24.582746+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_b2a95c50cd494d318b5b9ec523a7b020",
+              "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:10:40.752712+00:00",
+              "tokens": {
+                "input": 5582,
+                "output": 225,
+                "reasoning": 66,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 8433
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ca9732715a2ff2682d340d9b8f8585b7",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b056fb001swVzWA1YAt2KOR",
+                "step_id": "prt_0d8b07f6a001EJGozWcN53HcW6",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_21de9939d8d446f1b9286e6ab79d7705",
+              "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:11:20.585281+00:00",
+              "tokens": {
+                "input": 3328,
+                "output": 1729,
+                "reasoning": 309,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 13046
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a0c6a2f0fd4ab3abf2eb33de330e4003",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b07f89001aD308ZF2AbsGkb",
+                "step_id": "prt_0d8b11b0100179rs7Y0GwjWS4D",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_0c92292fe1bf4ed6995a20795da65ad4",
+              "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:11:54.967917+00:00",
+              "tokens": {
+                "input": 2513,
+                "output": 1194,
+                "reasoning": 573,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 15032
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_fde0a95da09569ac0feaed903aeeed9a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b11b3d0012M5AxrSxAn44fH",
+                "step_id": "prt_0d8b1a150001fwdcFCEhCt2SAy",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_250bea97fc664b6ca3577f7083acc866",
+              "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:12:19.461324+00:00",
+              "tokens": {
+                "input": 2576,
+                "output": 1188,
+                "reasoning": 28,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 16592
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a3ba3982a0fbdff04cb75438ed0dc092",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b1a1770017UCseDWRkkowb1",
+                "step_id": "prt_0d8b200fe001AeLjLy4wnRpUzK",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a9486e103edf4e049bd9ecb69a4ff0d3",
+              "runtime_binding_id": "rtb_94b9d6aac4e447cf96d3da41f5608fab",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T13:12:21.898760+00:00",
+              "tokens": {
+                "input": 2025,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 16877
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d82712ff9c8c7773f35485897feb2e0a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8b201240014uUnzLjNS6P6Yy",
+                "step_id": "prt_0d8b20a84001dKEraUaxNwvg7K",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_ec582741388e48878f653590ad4d2a6c",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "88a315c515981b2006dfac08f9fcd6e20faaa76554db8a4af052a7e26c2a9b8f",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:10:40.560476+00:00",
+            "ended_at": "2026-09-25T13:10:40.576598+00:00"
+          },
+          {
+            "call_id": "call_5ab628fadd9d4832a60320aff041cd2b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "71c128349f4a56dc239fc2be1aef95dd5396befab60f8d04ef10ad67119b1f0a",
+            "observation_ids": [
+              "obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "started_at": "2026-09-25T13:10:40.617092+00:00",
+            "ended_at": "2026-09-25T13:10:40.629454+00:00"
+          },
+          {
+            "call_id": "call_342df0100ae0437c903cb8cdab4fe35a",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:10:40.658972+00:00",
+            "ended_at": "2026-09-25T13:10:40.668972+00:00"
+          },
+          {
+            "call_id": "call_3852fa2f7f2941ecb272f7bd4fb985ad",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "e494b0fc5c3650369a1d471622b3a2e6949a882a6f8178061e9f8796a5badd7d",
+            "observation_ids": [
+              "evd_cbf9c8de90a54175bde0024a969a5eab"
+            ],
+            "started_at": "2026-09-25T13:10:40.706632+00:00",
+            "ended_at": "2026-09-25T13:10:40.718775+00:00"
+          },
+          {
+            "call_id": "call_9fc3d691fd644b1caf6b6df18d44b14c",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "5beea024b61443401e39624578f227d12772c5eb1b0b7da9b0d9ebd72e23edcc",
+            "observation_ids": [],
+            "started_at": "2026-09-25T13:11:20.533156+00:00",
+            "ended_at": "2026-09-25T13:11:20.547838+00:00"
+          },
+          {
+            "call_id": "call_576f4765c3b749a8abf1330fdb7a3083",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 41,
+            "arguments_sha256": "19a2eb5b175d9ef195352ad96f39e411c7add527b419c89555231fe091844860",
+            "observation_ids": [
+              "obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "started_at": "2026-09-25T13:12:19.361254+00:00",
+            "ended_at": "2026-09-25T13:12:19.400273+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_2c62696c096b4ae09578593efb73fbf7",
+        "run_id": "run_87904920a356497d80d09c841f09f98d",
+        "answer_markdown": "The in-house result **lowers the concern, but does not clear astemizole for hERG**. It is useful compound-specific counterevidence against taking the predictor label at face value, but a single-concentration thallium-flux result does not establish the full concentration-response relationship or relevance to intended free exposure.\n\nThe stored model still classifies astemizole as a hERG blocker, so I would treat this as **residual, intermediate-priority concern** rather than an urgent model-only stop. The next decision-quality experiment is an orthogonal concentration-response hERG/Kv11.1 assay with assay controls, followed by comparison of potency with intended free exposure and relevant metabolites. This is a screening decision, not a clinical-risk or safety determination.",
+        "claims": [
+          {
+            "claim_id": "clm_7a09897532744fe28568b5f10484a2bf",
+            "kind": "classification",
+            "text": "The stored hERG model classifies astemizole as a blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_f73c2193074e4fc093205a1a294cc0f0",
+            "field_path": "predictions.herg.label",
+            "source_value": "blocker",
+            "rendered_value": "blocker"
+          },
+          {
+            "claim_id": "clm_cb34d6d6f5bd4597a8650e354e4af261",
+            "kind": "scientific",
+            "text": "The in-house single-concentration result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_cbf9c8de90a54175bde0024a969a5eab"
+            ],
+            "observation_id": "obs_f73c2193074e4fc093205a1a294cc0f0",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_ce1d941ad695481b87da75345169feae",
+            "kind": "limitation",
+            "text": "Neither the predictor nor a single-concentration thallium-flux result establishes clinical arrhythmia risk, safety, or a safe exposure.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_cbf9c8de90a54175bde0024a969a5eab"
+            ],
+            "observation_id": "obs_f73c2193074e4fc093205a1a294cc0f0",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_59f4ba54cfbb4b3bb132764ca1dd99d6",
+            "kind": "recommendation",
+            "text": "Run an orthogonal concentration-response hERG/Kv11.1 assay with controls and compare the potency range with intended free exposure and relevant metabolites.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_cbf9c8de90a54175bde0024a969a5eab"
+            ]
+          }
+        ],
+        "limitations": [
+          {
+            "code": "evidence_scope_limited",
+            "text": "The external citation provides general cardiac ion-channel assay-translation context, not independent astemizole-specific confirmation."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed follow-up is a screening and characterization step, not a safety or clinical-risk assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Generate a concentration-response curve in an orthogonal hERG/Kv11.1 assay and compare the resulting potency with intended free exposure.",
+            "basis_claim_ids": [
+              "clm_cb34d6d6f5bd4597a8650e354e4af261",
+              "clm_59f4ba54cfbb4b3bb132764ca1dd99d6"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "feeb1de85f87bc9166ea6276607ca0e8daf3b64efb4f3f3e877daff7931ea927",
+        "created_at": "2026-09-25T13:12:19.371945+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_205715947cdb4ba2ab2d00e2f967e3a0",
+        "run_id": "run_87904920a356497d80d09c841f09f98d",
+        "goal": "Our in-house thallium-flux assay showed only 20% inhibition of hERG at 1 µM. Does that change your assessment?",
+        "subject_refs": [
+          "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+              "evidence:evd_cbf9c8de90a54175bde0024a969a5eab"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "Neither the predictor nor a single-concentration thallium-flux result establishes clinical arrhythmia risk, safety, or a safe exposure.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "insufficient",
+            "artifact_refs": [
+              "observation:obs_f73c2193074e4fc093205a1a294cc0f0"
+            ],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 600,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 0,
+          "tool_calls": 6,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 1
+        },
+        "available_refs": [
+          "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+          "evidence:evd_cbf9c8de90a54175bde0024a969a5eab"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {},
+        "revision": 9
+      },
+      "dossier": {
+        "run_id": "run_87904920a356497d80d09c841f09f98d",
+        "case_id": "scase_1bc61ee1ed74416f9f6023fd9df898ce",
+        "context": [
+          {
+            "id": "c1",
+            "key": "thallium_flux_result",
+            "note": "provided by the researcher in turn 2",
+            "actor": "user",
+            "value": "20% inhibition of hERG thallium flux at 1 µM (in-house)",
+            "run_id": null
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 1
+        },
+        "question": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?",
+        "answer_id": "ans_2c62696c096b4ae09578593efb73fbf7",
+        "conclusion": {
+          "run_id": "run_87904920a356497d80d09c841f09f98d",
+          "can_say": [
+            {
+              "text": "The in-house single-concentration thallium-flux result weakens the interpretation that the stored predictor alone establishes meaningful astemizole hERG blockade.",
+              "sources": [
+                "context:c1"
+              ],
+              "evidence_ids": [
+                "e4"
+              ]
+            },
+            {
+              "text": "The predictor remains a prioritization warning because the in-house result does not establish a concentration-response relationship or relevance to intended free exposure.",
+              "sources": [
+                "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+                "context:c1",
+                "context:c1"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e4",
+                "e5"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Cannot infer clinical arrhythmia risk, safety, or a safe exposure from either result.",
+            "Cannot treat limited inhibition at one concentration as evidence that hERG liability is absent."
+          ],
+          "what_would_change": [
+            "A validated orthogonal concentration-response assay with assay controls, potency estimate, and comparison to intended free exposure would resolve the remaining concern."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "status": "weakened",
+            "context": [],
+            "statement": "The hERG predictor signal reflects a meaningful potential for astemizole-mediated hERG/Kv11.1 blockade.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+                "scope": {
+                  "compound": "astemizole",
+                  "endpoint": "herg",
+                  "use_context": "repurposing screen"
+                },
+                "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "direct",
+                "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "The compound-specific in-house result provides direct counterevidence to treating the model signal as established blockade, although it does not test concentration dependence or exposure relevance.",
+            "evidence_against": [
+              {
+                "id": "e4",
+                "actor": "model",
+                "claim": "The researcher reports limited hERG inhibition for astemizole in an in-house thallium-flux assay at the tested concentration.",
+                "scope": {
+                  "dose": "1 µM",
+                  "assay": "in-house thallium-flux hERG assay",
+                  "compound": "astemizole",
+                  "endpoint": "herg",
+                  "use_context": "repurposing screen"
+                },
+                "run_id": "run_87904920a356497d80d09c841f09f98d",
+                "stance": "contradicts",
+                "locator": "thallium_flux_result",
+                "directness": "direct",
+                "source_ref": "context:c1",
+                "source_class": "user_supplied",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "refutation_condition": "A compound-specific hERG study finds no relevant inhibition under appropriately characterized conditions."
+          },
+          {
+            "id": "h2",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "status": "supported",
+            "context": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+                "scope": {
+                  "assay": "patch clamp cardiac ion channel assay",
+                  "compound": "not astemizole-specific",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+                "stance": "contextual",
+                "locator": "title",
+                "directness": "class_level",
+                "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The predictor signal may not translate to the intended repurposing context because hERG liability depends on assay conditions, exposure, and the relevant free concentration.",
+            "evidence_for": [
+              {
+                "id": "e5",
+                "actor": "model",
+                "claim": "The limited single-concentration thallium-flux result is consistent with assay-format and exposure context limiting direct translation of the predictor signal.",
+                "scope": {
+                  "dose": "1 µM",
+                  "assay": "in-house thallium-flux hERG assay",
+                  "compound": "astemizole",
+                  "endpoint": "herg",
+                  "use_context": "repurposing screen"
+                },
+                "run_id": "run_87904920a356497d80d09c841f09f98d",
+                "stance": "supports",
+                "locator": "thallium_flux_result",
+                "directness": "indirect",
+                "source_ref": "context:c1",
+                "source_class": "user_supplied",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "The result is from an orthogonal assay at one tested concentration and therefore highlights assay and exposure dependence without resolving the concentration-response relationship.",
+            "evidence_against": [],
+            "refutation_condition": "Orthogonal, concentration-response hERG data and exposure comparison show the predicted liability is directly relevant to the intended use context."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run an orthogonal concentration-response hERG/Kv11.1 assay with astemizole, then compare the measured effect range with the intended free exposure and assess key metabolites separately if they are present.",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "rationale": "This directly tests whether the model signal is reproducible and whether it is relevant at the intended exposure.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response inhibition curve",
+              "potency estimate with assay conditions",
+              "comparison of free exposure to the active concentration range",
+              "metabolite-specific activity if applicable"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55"
+        ],
+        "case_revision": 26,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+            "scope": {
+              "compound": "astemizole",
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "direct",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e6",
+            "actor": "server",
+            "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e8",
+            "actor": "server",
+            "claim": "Neither the predictor nor a single-concentration thallium-flux result establishes clinical arrhythmia risk, safety, or a safe exposure.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "stance": "insufficient",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e6",
+            "actor": "server",
+            "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e7",
+            "actor": "server",
+            "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+            "source_class": "external_experimental",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e8",
+            "actor": "server",
+            "claim": "Neither the predictor nor a single-concentration thallium-flux result establishes clinical arrhythmia risk, safety, or a safe exposure.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "stance": "insufficient",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "search_toxicology_evidence",
+              "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+              "outcome": "",
+              "purpose": "Find compound-specific independent evidence on astemizole and hERG/Kv11.1 to determine whether the model signal is corroborated and relevant to the decision.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+              "outcome": "The bounded literature search returned no accepted, clearly astemizole-specific hERG record; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for compound-specific evidence that would weaken the predicted hERG concern.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a3",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_87904920a356497d80d09c841f09f98d",
+              "outcome": "The result weakens the model-only concern but does not resolve concentration dependence or exposure relevance.",
+              "purpose": "Assess whether the new compound-specific assay result reduces the concern raised by the predictor.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": [
+            {
+              "id": "e2",
+              "actor": "model",
+              "claim": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+              "scope": {
+                "assay": "patch clamp cardiac ion channel assay",
+                "compound": "not astemizole-specific",
+                "endpoint": "herg"
+              },
+              "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+              "stance": "contextual",
+              "locator": "title",
+              "directness": "class_level",
+              "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h2"
+              ]
+            },
+            {
+              "id": "e4",
+              "actor": "model",
+              "claim": "The researcher reports limited hERG inhibition for astemizole in an in-house thallium-flux assay at the tested concentration.",
+              "scope": {
+                "dose": "1 µM",
+                "assay": "in-house thallium-flux hERG assay",
+                "compound": "astemizole",
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "run_id": "run_87904920a356497d80d09c841f09f98d",
+              "stance": "contradicts",
+              "locator": "thallium_flux_result",
+              "directness": "direct",
+              "source_ref": "context:c1",
+              "source_class": "user_supplied",
+              "hypothesis_ids": [
+                "h1"
+              ]
+            },
+            {
+              "id": "e5",
+              "actor": "model",
+              "claim": "The limited single-concentration thallium-flux result is consistent with assay-format and exposure context limiting direct translation of the predictor signal.",
+              "scope": {
+                "dose": "1 µM",
+                "assay": "in-house thallium-flux hERG assay",
+                "compound": "astemizole",
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "run_id": "run_87904920a356497d80d09c841f09f98d",
+              "stance": "supports",
+              "locator": "thallium_flux_result",
+              "directness": "indirect",
+              "source_ref": "context:c1",
+              "source_class": "user_supplied",
+              "hypothesis_ids": [
+                "h2"
+              ]
+            },
+            {
+              "id": "e7",
+              "actor": "server",
+              "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "run_id": "run_87904920a356497d80d09c841f09f98d",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "indirect",
+              "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            }
+          ]
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No intended-use exposure, free concentration, or concentration-response hERG measurement is available in the stored analysis.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "assay_mismatch",
+            "actor": "model",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The thallium-flux result is a single-concentration readout and has not been reconciled with the predictor's assay context, a concentration-response curve, assay controls, or intended free exposure.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [
+    {
+      "turn": 1,
+      "case_revision": 14
+    }
+  ],
+  "session_id": "ses_205715947cdb4ba2ab2d00e2f967e3a0",
+  "analysis": {
+    "run": {
+      "run_id": "run_464967141f8146a5b97484f92a6baf4a",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_2bd71669e01543abae663ba96a41c48a",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T13:12:30.658353+00:00",
+      "created_at": "2026-09-25T13:07:30.658353+00:00",
+      "started_at": "2026-09-25T13:07:30.674534+00:00",
+      "ended_at": "2026-09-25T13:07:30.709559+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T13:07:30.659673+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_96151f0fa7dd4b92be1f02fd597aee55",
+      "input_smiles": "COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F",
+      "canonical_smiles": "COc1ccc(CCN2CCC(Nc3nc4ccccc4n3Cc3ccc(F)cc3)CC2)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.7999394536018372,
+          "label": "blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.344186931848526,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.30452409386634827,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.6145022511482239,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.6755308508872986,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.4707320034503937,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.557178795337677,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.6381959915161133,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.32929882407188416,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.2093951255083084,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.29695239663124084,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.8330315947532654,
+              "active": true,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.42352068424224854,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "0945b586-b1f0-4230-b0d0-9fe20e77f31b",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 52,
+            "encoded_token_count": 52
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "7313ca4b7deaedbb918190e06421d3df95c3cbdadb2dd4823a8ab039a47d1a13"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T13:07:30.702611+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_885eeae3ca6d4f499cd3abb4f7401a1e",
+      "title": "The molecular basis of KCNH1-related epileptic encephalopathy and the challenge of developing targeted therapeutics.",
+      "authors": [
+        "Sundman AK",
+        "Jin S",
+        "Vadlamudi L",
+        "King GF"
+      ],
+      "published_at": "2026-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/brain/awaf353",
+        "pmid": "40986435",
+        "pmcid": "PMC12782163",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40986435",
+      "abstract_or_excerpt": "Epilepsy is a common but heterogeneous neurological disorder characterized by recurrent seizures resulting from aberrant hypersynchronous electrical discharges in all or part of the brain. While there are numerous potential causes, such as traumatic brain injury, stroke and infection, many epilepsies have a genetic basis. Here we review the molecular basis, clinical phenotype and treatment options for KCNH1 epilepsy, which is caused by gain-of-function mutations in the gene KCNH1, encoding the voltage-gated potassium channel Kv10.1. Although first discovered in patients with Temple-Baraitser syndrome and Zimmermann-Laband syndrome, these genetic disorders are now recognized as belonging to a broad spectrum of KCNH1-related encephalopathies characterized by developmental delay, intellectual disability, facial dysmorphism and infantile-onset seizures. A major challenge in developing disease-specific anti-seizure medications for KCNH1 epilepsy is selectivity over Kv11.1 (hERG), a closely related channel that plays a fundamental role in repolarization of the cardiac action potential and which is uniquely susceptible to inhibition by a diverse range of drugs. We argue that allosteric modulators of Kv10.1 that induce a depolarizing shift in the channel's activation threshold are more likely to provide seizure control in KCNH1 epilepsy patients than pore blockers that annihilate channel function.",
+      "normalized_facts": {
+        "journal": "Brain : a journal of neurology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:22.773416+00:00",
+      "content_sha256": "fd57123c0ee06a51cb94e930dac7987ed9dafbacda4f34077a85a9f3dc77c1c8"
+    },
+    {
+      "evidence_id": "evd_2c53136a13db45f5b1d992507ab1d810",
+      "title": "Apoptotic and senolytic effects of hERG/Eag1 channel blockers in combination with temozolomide in human glioblastoma cells.",
+      "authors": [
+        "Haas B",
+        "Roth I",
+        "Säcker L",
+        "Wos-Maganga M",
+        "Beltzig L",
+        "Kaina B"
+      ],
+      "published_at": "2025-03-24",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00210-025-03955-w",
+        "pmid": "40126672",
+        "pmcid": "PMC12449327",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40126672",
+      "abstract_or_excerpt": "Temozolomide (TMZ) concomitant with radiotherapy is the first-line treatment for glioblastoma. However, treatment resistance is frequently observed in patients. Cellular senescence (CSEN) induced by TMZ has been proposed to be one underlying mechanism resulting in resting cells, causing inflammation and possibly recurrences if senescent cells re-enter the cell cycle after treatment. Inhibition of the K<sup>+</sup> channels human ether-à-go-go type 1 (Eag1) and human ether-à-go-go-related gene (hERG) has shown promising effects in several tumor types including glioblastoma through growth inhibition and induction of apoptosis. In the present study, we analyzed the impact of hERG/Eag1 inhibition on apoptosis and CSEN on its own and in combination with TMZ in a panel of human glioblastoma cell lines and primary glioblastoma cells. hERG/Eag1 protein expression was determined by Western blotting and immunocytochemistry. Cytotoxicity of astemizole and terfenadine alone or in combination with TMZ was assessed by MTT assays. Apoptotic yields were determined by Annexin V/propidium iodide staining, and CSEN was quantified by determining SA-β-galactosidase levels through flow cytometry. We observed a similar protein expression of hERG and Eag1 in all glioblastoma cell lines and primary glioblastoma cells. Astemizole and terfenadine were cytotoxic in glioblastoma cells at low micromolar concentrations (5-10 µM range) through induction of apoptosis. In combination with TMZ, both drugs synergistically sensitized glioblastoma cells to TMZ-induced apoptosis. Moreover, astemizole reduced significantly the TMZ-induced CSEN level, indicating its impact on CSEN induction. Here, we show for the first time that blocking hERG/Eag1 channels in glioblastoma cells can relief TMZ-induced CSEN and synergistically ameliorates cytotoxicity through the induction of apoptosis.",
+      "normalized_facts": {
+        "journal": "Naunyn-Schmiedeberg's archives of pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:22.773416+00:00",
+      "content_sha256": "0ae950eb111d5b3f7adfd7828f70b4226189e1f1762806268bbb1d6a6754b818"
+    },
+    {
+      "evidence_id": "evd_813e98e708e8458dba028b036c84b6ad",
+      "title": "HERGAI: an artificial intelligence tool for structure-based prediction of hERG inhibitors.",
+      "authors": [
+        "Tran-Nguyen VK",
+        "Randriharimanamizara UF",
+        "Taboureau O"
+      ],
+      "published_at": "2025-07-24",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s13321-025-01063-8",
+        "pmid": "40708034",
+        "pmcid": "PMC12291323",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40708034",
+      "abstract_or_excerpt": "The human Ether-à-go-go-Related Gene (hERG) potassium channel is crucial for repolarizing the cardiac action potential and regulating the heartbeat. Molecules that inhibit this protein can cause acquired long QT syndrome, increasing the risk of arrhythmias and sudden fatal cardiac arrests. Detecting compounds with potential hERG inhibitory activity is therefore essential to mitigate cardiotoxicity risks. In this article, we present a new hERG data set of unprecedented size, comprising nearly 300,000 molecules reported in PubChem and ChEMBL, approximately 2000 of which were confirmed hERG blockers identified through in vitro assays. Multiple structure-based artificial intelligence (AI) binary classifiers for predicting hERG inhibitors were developed, employing, as descriptors, protein-ligand extended connectivity (PLEC) fingerprints fed into random forest, extreme gradient boosting, and deep neural network (DNN) algorithms. Our best-performing model, a stacking ensemble classifier with a DNN meta-learner, achieved state-of-the-art classification performance, accurately identifying 86% of molecules having half-maximal inhibitory concentrations (IC<sub>50</sub>s) not exceeding 20 µM in our challenging test set, including 94% of hERG blockers whose IC<sub>50</sub>s were not greater than 1 µM. It also demonstrated superior screening power compared to virtual screening schemes that used existing scoring functions. This model, named \"HERGAI,\" along with relevant input/output data and user-friendly source code, is available in our GitHub repository ( https://github.com/vktrannguyen/HERGAI ) and can be used to predict drug-induced hERG blockade, even on large data sets.",
+      "normalized_facts": {
+        "journal": "Journal of cheminformatics",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:22.773416+00:00",
+      "content_sha256": "d27056d21eabd2306eae9227a542ba8b52e2556b727ded186f8350439a142c23"
+    },
+    {
+      "evidence_id": "evd_e030b55efee2493e9ec036ba03d289b8",
+      "title": "New insights into the physiological, pathological and pharmacological roles of voltage‑gated potassium channel Kv10.1 in cancer (Review).",
+      "authors": [
+        "Zhen Y",
+        "Hu W",
+        "Dong S",
+        "Wang B",
+        "Shen J",
+        "Ding L",
+        "Li L",
+        "An H"
+      ],
+      "published_at": "2026-07-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3892/ijo.2026.5911",
+        "pmid": "42429056",
+        "pmcid": "PMC13378558",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42429056",
+      "abstract_or_excerpt": "Kv10.1, also known as Eag1 or KCNH1, is a voltage‑gated potassium ion channel, which exists in cell membrane and is closely associated with cancer and multiple precancerous lesions. Emerging experimental evidence shows that Kv10.1 is essential for the occurrence, growth, metastasis, proliferation and death of various malignant tumors. The pathogenesis of Kv10.1 and the signal pathways involved in its regulation are different in different cancers. The present review explored the origin, structure, distribution in normal and tumor cells, physiological and pathological characteristics, roles in cancer and tumor regulation mechanisms of Kv10.1. Finally, Kv10.1 related signaling pathways and its current use as a pharmacological modulator are summarized, aiming to provide new insights into the pharmacological research of Kv10.1 in cancer.",
+      "normalized_facts": {
+        "journal": "International journal of oncology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:22.773416+00:00",
+      "content_sha256": "1dbd3f00eb0026596f7af392e6e3e4b181d1bb17f481baf8879ff6e34241c3f3"
+    },
+    {
+      "evidence_id": "evd_70e93cbaa63d41afa1f8892d63076f6c",
+      "title": "Exploring the Role of Metabolites in Torsadogenic Risk Assessment: A Text-Mining Approach.",
+      "authors": [
+        "Bilgin E",
+        "Tuğcu G",
+        "Aydın A"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.4274/tjps.galenos.2026.43334",
+        "pmid": "42678219",
+        "pmcid": "PMC13533023",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42678219",
+      "abstract_or_excerpt": "<h4>Objectives</h4>Torsades de pointes (TdP) is a life-threatening ventricular arrhythmia often caused by the inadvertent inhibition of the human ether-à-go-go-related gene (hERG). Conventional pre-market evaluations, which emphasize parent molecules, often yield inaccurate predictions due to the multifaceted nature of TdP. This study aimed to investigate the role of metabolites and their interplay with parent molecules in the manifestation of TdP.<h4>Materials and methods</h4>A literature-based text-mining approach was employed, using the adverse outcome pathway-helpFinder tool. The analysis scrutinized 64 selected active ingredients, categorized by their torsadogenic risks, to evaluate the distinct proarrhythmic contributions of their metabolites.<h4>Results</h4>This text-mining exploration revealed qualitative evidence that metabolites variably modulate TdP vulnerability. Specifically, certain metabolites can independently exacerbate proarrhythmic profiles, whereas others do not inhibit hERG and therefore represent safer therapeutic alternatives than their parent molecules.<h4>Conclusion</h4>Metabolites play a paramount role in altering the torsadogenic risk profile of pharmaceutical products. Incorporating comprehensive metabolite data into cardiac safety evaluations is essential for a more accurate risk assessment and should be considered in future pharmaceutical development.",
+      "normalized_facts": {
+        "journal": "Turkish journal of pharmaceutical sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:16.511758+00:00",
+      "content_sha256": "d2b9f9d69cee47c43fbceed8f1e606da0614a110f78ba4d116f844110ef6e4c2"
+    },
+    {
+      "evidence_id": "evd_7a7ce263e8d14766b17574b12fef3e0c",
+      "title": "Modelling of clinical TQT studies outcomes from preclinical cardiovascular safety pharmacology studies using the one-step QTc model.",
+      "authors": [
+        "Champéroux P",
+        "Fares R",
+        "Leishman D"
+      ],
+      "published_at": "2025-10-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1619547",
+        "pmid": "41142234",
+        "pmcid": "PMC12549647",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41142234",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Retrospective translational analyses have shown a high rate of false negatives between clinical thorough QT studies (TQT) and preclinical cardiovascular safety pharmacology studies. The aim of this work was to model the results of clinical TQT studies from cardiovascular safety pharmacology studies conducted on a large set of reference drugs in beagle dogs by implanted telemetry.<h4>Methods</h4>All preclinical studies were based on a standard four-animal crossover design comparing the vehicle to the reference drug. The model used was based on the one-step QTc correction model. This model was adapted in order to apply the same statistical method in preclinical studies as in clinical trials.<h4>Results</h4>The sensitivity of the model made it possible to detect QTc prolongation of at least 5 ms with all reference hERG blockers known to cause QT prolongation in humans. Modelling of moxifloxacin (10 mg/kg, po) effects was in agreement with data published from clinical TQT studies with moxifloxacin 400 mg showing a QTc prolongation greater than 5 ms between 1 and 4 hours post-dose. This study shows a noticeable reduction in the risk of false negatives with several references drugs associated with a phenomenon of concealed QTc prolongation. Moreover, several reference drugs did change the slope of the QT/HR slope justifying the principles of the one-step QTc model.<h4>Conclusion</h4>Modelling results of TQT studies with the one-step QTc model for applying the same statistical approach as in the clinic can improve the translational value of preclinical cardiovascular safety pharmacology studies and reduce the risk of false negatives.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:16.511758+00:00",
+      "content_sha256": "34b70a25bade364a6e8e9459c1cb25afd2a45aaed7dbc77fb6964b18dfb81d92"
+    },
+    {
+      "evidence_id": "evd_861b178578db44cd8fb82aa7a7bb5fdb",
+      "title": "Advancing Torsades de pointes risk prediction: unveiling the role of drug metabolites through molecular docking.",
+      "authors": [
+        "Bilgin E",
+        "Tugcu G",
+        "Aydin A"
+      ],
+      "published_at": "2026-01-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/toxres/tfaf186",
+        "pmid": "41623588",
+        "pmcid": "PMC12853304",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41623588",
+      "abstract_or_excerpt": "This study explores the risk of Torsades de Pointes (TdP) arrhythmia, focusing on the interactions of parent drugs and their metabolites with the Human ether-à-go-go-related gene (hERG) channel, which is crucial in cardiac electrical activity and TdP risk assessment. Using a dual-strategy molecular docking approach with AutoDock Vina and PatchDock, we analyzed clinically relevant ligand pairs: astemizole/desmethylastemizole, terfenadine/fexofenadine, and quetiapine/norquetiapine. Quantitative analysis revealed that high binding affinity does not always correlate with toxicity. For instance, the non-cardiotoxic metabolite fexofenadine exhibited a higher binding affinity (-9.3 kcal/mol) compared to its toxic parent terfenadine (-8.9 kcal/mol), but its safety is explained by physicochemical constraints (zwitterionic nature). Conversely, desmethylastemizole maintained high affinity (-9.2 kcal/mol) with a geometrically \"relaxed\" fit (Atomic Contact Energy: -338.36), rationalizing its sustained potency. Geometric analysis further distinguished quetiapine as a \"steric blocker\" (Contact Area: ~588 Å<sup>2</sup>) causing forced occlusion, whereas its metabolite norquetiapine acted as a specific ligand with a significantly smaller interface area (~417 Å<sup>2</sup>). These findings highlight the importance of focusing not only on the parent drug but also on metabolites for TdP risk assessment in new drug development. We advocate for an integrated computational framework combining binding energy, geometric complementarity, and physicochemical profiling to enhance the accuracy of early cardiac safety screenings.",
+      "normalized_facts": {
+        "journal": "Toxicology research",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:16.511758+00:00",
+      "content_sha256": "8232f259234b9584387778159841e70aa17b4f7de9246b98e91fc36c8949a889"
+    },
+    {
+      "evidence_id": "evd_928bc54176b34b938f85da95a584f7fb",
+      "title": "Synthetic cannabinoid receptor agonists inhibit the cardiac voltage-gated potassium channel hERG.",
+      "authors": [
+        "Ottosson NE",
+        "Frampton DJA",
+        "Pipatpolkai T",
+        "Norman C",
+        "Karlsson U",
+        "Jauregi-Miguel A",
+        "Venter M",
+        "Sridhar A"
+      ],
+      "published_at": "2026-07-21",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41401-026-01876-9",
+        "pmid": "42477142",
+        "pmcid": "PMC13586173",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42477142",
+      "abstract_or_excerpt": "Synthetic cannabinoid receptor agonists (SCRAs) are a large group of structurally diverse designer drugs (analogues of controlled substances) associated with intense and sometimes fatal intoxication. Cardiac symptoms, including tachycardia and arrhythmia, are common consequences of SCRA consumption. However, little is known about the mechanisms through which SCRAs may perturb cardiac rhythm. Here, we used electrophysiological techniques to screen 36 SCRAs on two ion channels responsible for cardiomyocyte repolarization, hERG (also called K<sub>V</sub>11.1) and K<sub>V</sub>7.1/KCNE1. We report that the majority of tested SCRAs inhibited hERG, primarily by reducing channel conductance, and some also inhibited K<sub>V</sub>7.1/KCNE1. In silico data suggest that SCRAs may use both a known drug binding site in the central cavity of the hERG channel, shared by established hERG blockers like astemizole, and a recently identified side pocket site. Experimental and in silico data suggest SCRA structural features associated with prominent inhibitory effects on hERG, with chemical moieties allowing bond formation and/or the ability to fit into binding sites being important. Structure-activity relationships (SAR) for SCRA effects on hERG, K<sub>V</sub>7.1/KCNE1 and the cannabinoid receptor 1 (CB<sub>1</sub>) varied, demonstrating the need to assess SCRA effects on multiple potential targets. In conclusion, we found SCRAs to be inhibitors of cardiac voltage-gated potassium channels important for cardiomyocyte repolarization, highlighting the importance of more extensive investigation of SCRAs on cardiac function.",
+      "normalized_facts": {
+        "journal": "Acta pharmacologica Sinica",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:16.511758+00:00",
+      "content_sha256": "df5674c9149d9ba7906707a82441fcbe815c4e61f1c760c9238bfd30bd0f2036"
+    },
+    {
+      "evidence_id": "evd_5fd6aaf856cb425985d76ccc6ff8e8b8",
+      "title": "Cardiovascular safety pharmacology: beyond arrhythmic risk assessment.",
+      "authors": [
+        "Fares R",
+        "Champéroux P"
+      ],
+      "published_at": "2025-12-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2025.1623644",
+        "pmid": "41445862",
+        "pmcid": "PMC12722936",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41445862",
+      "abstract_or_excerpt": "Cardiovascular safety pharmacology arose from the need to assess certain forms of drug induced functional cardiotoxicity in toxicology within a regulatory framework. Cardiotoxic effects resulting from direct or indirect pharmacological effects are difficult to apprehend in conventional toxicology studies, whether electrophysiological and/or hemodynamic. The reflex regulatory systems of the cardiovascular system, and in particular the autonomic nervous system, interfere with and very often minimize the functional impact of these pharmacological effects, which are sometimes only visible over a very short time window. Modeling approaches now make it possible to assess key hemodynamic parameters, going beyond blood pressure alone. Non-clinical cardiovascular safety pharmacology must continue to evolve toward a comprehensive framework for arrhythmic risk, in order to improve its translational relevance to humans and better bridge non-clinical QT prolongation data with clinical risk assessment. It also needs to integrate concepts from clinical research, such as Coumel's triangle, autonomic conflict or hidden cardiotoxicity. The ultimate goal of cardiovascular safety pharmacology should extend beyond protecting participants in clinical trials. It should broaden its scope to include patient subpopulations with underlying cardiovascular disease, who are often the most vulnerable to functional cardiotoxic effects. Twenty-five years after their initial publication, the safety pharmacology guidelines are currently undergoing revision. This review aims to foster a more balanced and comprehensive approach to cardiovascular safety pharmacology, beyond arrhythmic risk.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:16.511758+00:00",
+      "content_sha256": "9e437a48c94a4fc6d66f164e43c20d4e32f2df3383a7aa0677cf5ccdd0d7ea36"
+    },
+    {
+      "evidence_id": "evd_fe036b7635b44a908d9e3287c3fe27b2",
+      "title": "Modeling hERG Channel Liability: From Structural Insight to Highly Accurate Qualitative and Quantitative Models.",
+      "authors": [
+        "Sun H",
+        "Wang Y",
+        "Shen M"
+      ],
+      "published_at": "2026-06-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jcim.6c00163",
+        "pmid": "42313871",
+        "pmcid": "PMC13370879",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42313871",
+      "abstract_or_excerpt": "Drug-induced QT interval prolongation, most commonly resulting from the blockade of a voltage-dependent potassium ion channel encoded by the <i>hERG</i> (<i>human ether-à-go-go-related gene</i>), has been recognized as a critical side-effect of noncardiovascular therapeutic agents. This adverse effect has led to withdrawal of many drugs from the market. Early identification of potential hERG channel blockers is therefore essential to mitigate cardiotoxicity-related attrition during the later, more resource-intensive stages of drug development. In this paper, we aimed at understanding ligand-channel interactions, including a detailed analysis of the cryo-electron microscopy (cryo-EM) structures of hERG channels and pharmacophore models shared among known hERG blockers. The highly adaptive nature of the hERG ligand-binding site may poses challenges for structure-based approaches, such as molecular docking, yet also offers mechanistic insights into a longstanding question: why does hERG interact with such a wide variety of small-molecule drugs? To complement these structural observations, we summarized the benefits and limitations of both quantitative and qualitative models and their applications across various stages of drug discovery. We developed highly predictive classification and regression models built using customized atom-type descriptors. The regression model, trained on a large and curated data set (∼8,000 compounds), achieved an average absolute error (AAE) of 0.383 log units and root-mean-square error of prediction (RMSEP) of 0.548 log units on the test sets. Meanwhile, the classification model demonstrated strong performance as well, with a receiver operating characteristic (ROC) area under the curve (AUC) of 0.88. Validation on an external set of 1,133 compounds resulted in an AAE of 0.50 log units. Together, these complementary modeling strategies can significantly aid in the early assessment of cardiovascular liabilities associated with hERG channel blockade, thereby supporting safer and more efficient drug development.",
+      "normalized_facts": {
+        "journal": "Journal of chemical information and modeling",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "d219abf85dc3f33628388a8c37695f298df23059df236c6d3bf8499a3cee52dc"
+    },
+    {
+      "evidence_id": "evd_de085c8577d24e48a88f32b2283e7d34",
+      "title": "Discovery of a novel broad-spectrum inhibitor against influenza virus A.",
+      "authors": [
+        "Yu R",
+        "Li P",
+        "Shen R",
+        "Fei W"
+      ],
+      "published_at": "2025-08-26",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/s12985-025-02889-2",
+        "pmid": "40859295",
+        "pmcid": "PMC12379310",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40859295",
+      "abstract_or_excerpt": "The pandemic of influenza A virus (IAV) is on the rise worldwide, however, drug resistance to anti-influenza drugs has been widely found. The viral mutation of IAV highlights the necessitate for discovery of new antiviral agents with broad-spectrum efficacy. Arbidol, an effective pharmaceutical against IAV and other viruses, inhibits viral fusion by targeting a conserved binding region across multiple virus types. The binding area of Arbidol is conserved towards many types of viruses, however, the structural characteristics of Arbidol make it possible human ether-α-go-go related gene (hERG) potassium channel inhibitory. The risk of arrhythmias by Arbidol will limit its further application. Therefore, developing new broad-spectrum antiviral drugs with reduced side effects based on Arbidol's scaffold is imperative. In this study, 50 natural products were screened for effective universal antiviral drug based on the structure-activity relationship between Arbidol and hemagglutinin (HA). Due to the structural characters of Arbidol related to hERG inhibition, the inhibitory activity of Arbidol on hERG channels were also analyzed by patch clamp technology and molecular docking for toxicity and safety evaluation of drug screening and development. The IC50 of Arbidol to hERG was 0.3030 µM. The results showed that Glycyrrhetinic acid has lower binding energy than Arbidol in the binding site. The molecular structure of Glycyrrhetinic acid is more flexible, which avoids significant interactions with hERG. These findings highlight glycyrrhetinic acid as a promising broad-spectrum anti-IAV candidate drug.",
+      "normalized_facts": {
+        "journal": "Virology journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "456111aaec2a822a766ae3ee5806944e3cebcd1d21fdc3fcce97a58079bb855f"
+    },
+    {
+      "evidence_id": "evd_0c29f67f30214dacb2d352acc5d7dbab",
+      "title": "Cardiac Safety of Intranasal Chlorpheniramine: An Exposure-Based Risk Assessment.",
+      "authors": [
+        "Alas-Pineda C",
+        "Pavón-Varela DJ",
+        "Gaitán-Zambrano K",
+        "Ferrer G"
+      ],
+      "published_at": "2026-04-25",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ph19050670",
+        "pmid": "42198344",
+        "pmcid": "PMC13209542",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42198344",
+      "abstract_or_excerpt": "<b>Background:</b> H1-antihistamines are widely used for allergic and upper respiratory conditions; however, several agents included in this class have been associated with cardiac electrophysiological adverse effects, including QT interval prolongation and torsades de pointes (TdP). These effects are largely exposure-dependent and mechanistically linked to inhibition of cardiac ion channels. Chlorpheniramine maleate (CPM), a first-generation H1-antihistamine, has been implicated in arrhythmic events primarily under conditions of increased systemic exposure, prompting interest in whether alternative routes of administration may lower cardiac risk. <b>Methods:</b> This narrative review integrates mechanistic, preclinical, clinical, pharmacokinetic, and regulatory evidence. Information was extracted from PubMed, Google Scholar, and Scielo using search terms such as cardiotoxicity, chlorpheniramine, QT prolongation, intranasal administration, and cardiac arrhythmias, with no language restriction. <b>Results:</b> Comparative pharmacokinetic evidence shows that, on a dose-normalized basis, intranasal and oral chlorpheniramine exhibit comparable bioavailability; however, in a clinical context, intranasal doses (1.12-2.24 mg) are lower than oral daily doses (4-12 mg/day), resulting in a lower systemic exposure (Cmax and AUC) with intranasal administration. Available pharmacovigilance or epidemiological data have not specifically evaluated intranasal chlorpheniramine, and the number of dedicated safety trials remains limited. <b>Conclusions:</b> Preclinical, in vitro, mechanistic studies suggest that intranasal administration of chlorpheniramine should confer superior cardiac safety compared to the oral route. However, clinical data from human studies directly comparing the cardiac safety of intranasal chlorpheniramine versus systemic chlorpheniramine is extremely limited. More data from clinical trials, case-control studies, and regulatory databases are needed to validate these theoretical claims.",
+      "normalized_facts": {
+        "journal": "Pharmaceuticals (Basel, Switzerland)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "32ef4e812fe3673ae21e4062fbabe9092710657c64d945198e8f3f3970218d95"
+    },
+    {
+      "evidence_id": "evd_7d0c5823339e4350a54bb6b39833de19",
+      "title": "Lipid-dependent regulation of Kv10.1 in cancer: implications of membrane remodeling for channel function and pharmacology.",
+      "authors": [
+        "Phuong NV",
+        "Stary-Weinzinger A"
+      ],
+      "published_at": "2026-09-03",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1905919",
+        "pmid": "42756067",
+        "pmcid": "PMC13582267",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42756067",
+      "abstract_or_excerpt": "The voltage-gated potassium channel Kv10.1 (Eag1), which is abnormally overexpressed across a wide range of tumor types, is a promising therapeutic target for cancer treatment. However, the clinical development of Kv10.1 inhibitors is currently constrained by severe off-target cardiotoxicity resulting from unintended inhibition of the structurally homologous Kv11.1 (hERG) channel. In this review, we examined cancer-associated membrane lipid remodelling and its implications for the lipid-dependent regulation of both channels. Emerging evidence suggests that membrane lipids play a critical role in regulating voltage-gated potassium channels and that, despite their substantial structural similarity, Kv10.1 and Kv11.1 are modulated by distinct lipid-dependent mechanisms. In particular, we highlighted their differential responses to key membrane constituents, including phosphatidylinositol 4,5-bisphosphate (PIP2), cholesterol, and polyunsaturated fatty acids (PUFAs). These observations suggest that the surrounding membrane environment may represent an additional and largely underexplored factor influencing channel function. We further discuss how disease-associated lipid remodeling in cancer may contribute to altered Kv10.1 activity and highlight the possibility that such changes could influence pharmacological responses. Although the underlying mechanisms remain incompletely understood, this perspective points to an underexplored dimension in potassium channel biology that may inform future therapeutic strategies.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "d698b71e5c1fad39ff3f290abc755c78cb3a53bfbbe9b28d38dc17fa9e632c80"
+    },
+    {
+      "evidence_id": "evd_e5b596b6fa5841c697bc25ce3ebf5004",
+      "title": "Synthetic cannabinoid receptor agonists inhibit the cardiac voltage-gated potassium channel hERG",
+      "authors": [
+        "Ottosson NE",
+        "Frampton DJA",
+        "Pipatpolkai T",
+        "Norman C",
+        "Karlsson U",
+        "Jauregi-Miguel A",
+        "Venter M",
+        "Sridhar A"
+      ],
+      "published_at": "2025-12-06",
+      "source_type": "article",
+      "source_quality_tier": "secondary",
+      "identifier": {
+        "doi": "10.64898/2025.12.03.692044",
+        "pmid": null,
+        "pmcid": null,
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PPR/PPR1232663",
+      "abstract_or_excerpt": "Synthetic cannabinoid receptor agonists (SCRAs) is a large group of structurally diverse designer drugs (analogues of controlled substances) associated with intense and sometimes fatal intoxication. Cardiac symptoms including tachycardia and arrhythmia are common consequences of SCRA consumption. However, little is known about the mechanisms through which SCRAs may perturb cardiac rhythm. Here we used electrophysiological techniques to screen 36 SCRAs on two ion channels responsible for cardiomyocyte repolarization, hERG (also called K  V 11.1) and K  V 7.1/KCNE1. We report that the majority of tested SCRAs inhibited hERG, primarily by reducing channel conductance, and some also inhibited K  V 7.1/KCNE1.  In silico data suggests that SCRAs use a known drug binding site in the pore of the hERG channel, shared by established hERG blockers like astemizole, where a planar SCRA molecule lays perpendicular to the ion conducting pathway. Experimental and  in silico data identify SCRA structural features associated with prominent inhibitory effects on hERG, with chemical moieties allowing bond formation and/or the ability to fit into the vestibule being important. Structure-activity-relationships for SCRA effects on hERG, K  V 7.1/KCNE1 and the cannabinoid receptor 1 (CB  1 ) varied, demonstrating the importance of assessing SCRA effects on multiple potential targets. In conclusion, we found SCRAs to be inhibitors of cardiac voltage-gated potassium channels important for cardiomyocyte repolarization. These results offer mechanistic insight into potentially detrimental SCRA effects on the heart and highlight the urgency of more extensive investigation of SCRAs on cardiac function.",
+      "normalized_facts": {
+        "journal": null,
+        "pub_type": "Preprint",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "ab2fe5fcbbb5bdd2919eb741de2db35cabe244a4e501ceeefa7c332f9dc24ef6"
+    },
+    {
+      "evidence_id": "evd_10abcf72a4f54c67b4401315e54ca128",
+      "title": "From allergy to arrhythmia - electrophysiological basis for the antiarrhythmic properties of antazoline.",
+      "authors": [
+        "Wiedmann F",
+        "Prodanova A",
+        "Kraft M",
+        "Weitkamp FM",
+        "Paasche A",
+        "Goetz C",
+        "Schmidt C"
+      ],
+      "published_at": "2026-03-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1780526",
+        "pmid": "41971091",
+        "pmcid": "PMC13066279",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41971091",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Antazoline, a first-generation H<sub>1</sub>-antihistamine, has shown rapid and effective antiarrhythmic action, particularly in recent-onset paroxysmal atrial fibrillation. Despite clinical use in some countries, the underlying electrophysiological mechanisms remain incompletely understood, and concerns about potential proarrhythmic effects persist. Here, we aim to systematically characterize the ion channel interaction profile of antazoline and assess its molecular mode of action.<h4>Methods</h4>Electrophysiological measurements were performed using the two-electrode voltage clamp technique on 22 cardiac ion channels, expressed in <i>Xenopus laevis</i> oocytes.<h4>Results</h4>Antazoline strongly inhibited hERG (IC<sub>50</sub> end-pulse: 43.3 µM; peak-tail: 162.6 µM) and hKir3.1/3.4 (IC<sub>50</sub>: 52.8 µM) in a concentration- and state-dependent manner. Block of hERG was attenuated by Y652A and F656A pore mutations, implicating classical aromatic binding residues. Positive rate dependence and open- and inactivated-state as well as partial closed-state inhibition were observed. In contrast, hK<sub>2P</sub>17.1 was significantly activated.<h4>Discussion</h4>Antazoline exhibits a distinct multichannel profile in a heterologous expression system, combining potent inhibition of hERG and hK<sub>ir</sub>3.1/3.4 with activation of hK<sub>2P</sub>17.1. The combined modulation of these channels suggests a potential atrial-preferential electrophysiological profile, while hERG inhibition indicates a need for careful evaluation of ventricular repolarization safety.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "524f482801ff3c3f7fd91c10a12917ce5331606731453304385fdd5e911efd79"
+    },
+    {
+      "evidence_id": "evd_cbf9c8de90a54175bde0024a969a5eab",
+      "title": "Reassessing the Conduct of Patch Clamp Cardiac Ion Channel Assays to Improve Nonclinical Data Translation to Clinical ECG Changes and Proarrythmia Risk.",
+      "authors": [
+        "Alvarez Baron C",
+        "Zhao J",
+        "Guo D",
+        "Mistry S",
+        "De Palma R",
+        "Ismaiel OA",
+        "Wu WW"
+      ],
+      "published_at": "2025-12-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/cts.70451",
+        "pmid": "41423856",
+        "pmcid": "PMC12719398",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41423856",
+      "abstract_or_excerpt": "The Comprehensive in vitro Proarrhythmia Assay (CiPA) initiative proposes integrating multi-cardiac ion channel pharmacology to improve the prediction of drug-induced Torsade de Pointes (TdP) risk. However, several studies under CiPA have demonstrated misalignment between nonclinical and clinical data. One study showed ECG changes induced by chloroquine, lopinavir, and ritonavir suggestive of Ca<sub>V</sub>1.2 and Na<sub>V</sub>1.5 channel block. However, ion channel data used to design the clinical study showed no such interactions. Another study reported TdP cases in patients treated with vanoxerine, a drug with literature data demonstrating similar block potencies for hERG and Ca<sub>V</sub>1.2 channels suggesting lower TdP risk than selective hERG blockers. Finally, astemizole, risperidone, and clarithromycin-\"intermediate TdP risk\" CiPA drugs-were reported to have hERG-active metabolites, yet hERG data for metabolites were not integrated when developing in silico human myocyte models for risk prediction. To increase the confidence of using nonclinical data in regulatory decision-making, the sources of these inconsistent nonclinical-clinical findings and data gap for metabolites need to be addressed. Here the effects of chloroquine, lopinavir, ritonavir, and vanoxerine on hERG, Ca<sub>V</sub>1.2, and/or Na<sub>V</sub>1.5 channels were studied using protocols consistent with ICH S7B Q&A 2.1 best practices. hERG block potencies for astemizole, risperidone, clarithromycin plus their major metabolites were also determined. The results showed improved alignment between ion channel block profiles and drug-induced ECG changes and proarrhythmia, underscoring the importance of using physiologically relevant experimental protocols, accounting for ion channel-active metabolites, and continuing to build the knowledge base of arrhythmogenesis mechanisms. Data may be found at: https://osf.io/7rfua/.",
+      "normalized_facts": {
+        "journal": "Clinical and translational science",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "158a0f1d16e565558ebc230736b55612ca47e4523aa6d3d13da84fc14621af6c"
+    },
+    {
+      "evidence_id": "evd_0c4b164546584027ba1df099f60cc6fe",
+      "title": "BoltzOmics: Predicting genetic variant effects on drug binding with Boltz-2.",
+      "authors": [
+        "Ngo K",
+        "Carraway KL",
+        "Clancy CE",
+        "Amini H"
+      ],
+      "published_at": "2026-07-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.isci.2026.116797",
+        "pmid": "42502384",
+        "pmcid": "PMC13401010",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42502384",
+      "abstract_or_excerpt": "A mechanistic understanding of how genetic variants alter drug-receptor binding is central to precision medicine, drug response prediction, and drug development. Yet, experimental mutation-drug profiling remains slow and expensive, while existing computational approaches often trade accuracy for scalability. We developed BoltzOmics, an interactive, open-source platform that integrates Boltz-2, a deep learning model for biomolecular structure prediction, to rapidly assess mutation effects on drug binding. Starting from amino acid sequences, the workflow queries databases for genetic variants, generates wild-type and mutant protein structures, and screens multiple drugs across variants to predict binding affinity changes. We evaluated BoltzOmics across four targets: hERG, Na<sub>V</sub>1.5, HER2, and CYP3A4. Predictions achieved Pearson correlations with experimental drug IC<sub>50</sub> data up to 0.76 for wild-type proteins and 0.60 for mutants. By enabling scalable, high-throughput assessment of drug-variant interactions, BoltzOmics establishes a practical AI-driven framework for accelerating computational drug discovery and advancing precision medicine research.",
+      "normalized_facts": {
+        "journal": "iScience",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "6e4bdcc81e9e34d3d098a63e60d5235da8e33e35577e55278015658620ae82c2"
+    },
+    {
+      "evidence_id": "evd_94728ffc7a9a432583a23a67bdd8f0df",
+      "title": "Arrhythmia risk predictions from molecular simulations of cardiac ion channel-drug interactions.",
+      "authors": [
+        "Rouen KC",
+        "Narang K",
+        "Han Y",
+        "Wang D",
+        "Jang E",
+        "Brunkow S",
+        "Yarov-Yarovoy V",
+        "MacKerell AD"
+      ],
+      "published_at": "2025-12-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.bpj.2025.12.015",
+        "pmid": "41408751",
+        "pmcid": "PMC13507445",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41408751",
+      "abstract_or_excerpt": "Unintended block of cardiac ion channels, particularly hERG (K<sub>V</sub>11.1), remains a key concern in drug development as disruption of ion channel function can lead to deadly arrhythmia. To assess proarrhythmic risk, we investigated how drugs interact with hERG in its open and inactivated states and whether drug interactions with other cardiac channels like Na<sub>V</sub>1.5 and Ca<sub>V</sub>1.2 mitigate that risk. Using cryo-EM structures, we modeled open and inactivated conformations of these channels with Rosetta structural modeling. We then applied SILCS (site identification by ligand competitive saturation), a physics-based precomputed ensemble docking method, to predict drug binding affinities. SILCS leverages molecular-simulation-generated free energy maps for high-throughput docking against hydrated lipid bilayer-embedded ion channel models. Bayesian machine learning was used to refine SILCS scoring using experimental IC<sub>50</sub> values from 53 known hERG blockers outperforming Schrödinger Glide, AutoDock Vina, and OpenEye FRED drug docking predictions. Computed drug binding affinities for hERG and Ca<sub>V</sub>1.2 channels were used to train machine learning models that successfully classified around 300 drugs from the CredibleMeds database. Cationic nitrogen SILCS fragment free energy scores were found to be top physical properties that are predictive of drug-induced torsades de pointes arrhythmia risk. This approach, which relies on the predicted binding free energies and predicted physical properties of drugs rather than the chemical structure of the drugs themselves as features, could be extended to facilitate the design of new drugs where rapid assessment of arrhythmia risk can be performed before experimental testing.",
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "a7108b0a8181f3661baf03f419ed58ce6cdecc30114d06bf586fb9b8d1a420a0"
+    },
+    {
+      "evidence_id": "evd_6d68d4ad93c44f7e818e0f7700c41feb",
+      "title": "Improving hERG Cardiotoxicity Prediction via SMILES Transformer, Molecular Fingerprints, and Layer-Wise Self-Adaptive Graph Attention Network.",
+      "authors": [
+        "Beidja C",
+        "Bousselham A",
+        "En-Naimani Z",
+        "Mestari M"
+      ],
+      "published_at": "2026-03-13",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acsomega.5c10745",
+        "pmid": "41908382",
+        "pmcid": "PMC13019261",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41908382",
+      "abstract_or_excerpt": "Blocking of hERG (human ether-à-go-go-related gene) potassium channels by certain drug-like molecules remains a major obstacle in pharmaceutical development, as it can induce QT interval prolongation and serious cardiotoxic effects. Experimental assessment of hERG liability is accurate but costly and time-consuming, which motivates the development of reliable computational screening tools. In this work, we propose TDMFLSGAT (transformer-enhanced deep learning model with molecular fingerprints and layer-wise self-adaptive graph attention network), a multimodal architecture that integrates three complementary molecular representations. Sequential information from SMILES strings is encoded with a Transformer, graph-based structural features are extracted using an adaptive graph attention mechanism, and physicochemical patterns are captured through a diverse set of molecular fingerprints. These modalities are fused into a unified representation for robust classification. To enhance model transparency, we further incorporate a multimodal interpretability framework that combines attention-based analyses and fingerprint-level explanations to highlight structural motifs associated with hERG blockade. Under 5-fold cross-validation, TDMFLSGAT achieves strong and well-balanced predictive performance, with an accuracy of 0.823, an AUC of 0.901, an average precision (AP) of 0.915, a sensitivity of 0.850, a specificity of 0.792, an NPV of 0.810, a PPV of 0.834, and an MCC of 0.641. The inclusion of AP confirms that these performance gains remain robust under class imbalance, providing a more realistic assessment of model reliability. Overall, these results indicate that TDMFLSGAT offers both accurate predictions and meaningful mechanistic insights, making it a promising tool for early stage cardiotoxicity screening in drug discovery.",
+      "normalized_facts": {
+        "journal": "ACS omega",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-25T13:08:11.785557+00:00",
+      "content_sha256": "41c24b9079a4c1676e4b4803d9eda2205de20616b32363dc6083c8b0b9dc8acb"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_1bc61ee1ed74416f9f6023fd9df898ce",
+        "session_id": "ses_205715947cdb4ba2ab2d00e2f967e3a0",
+        "subject_key": "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55",
+        "question": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55"
+        ],
+        "status": "open",
+        "context": [
+          {
+            "id": "c1",
+            "key": "thallium_flux_result",
+            "value": "20% inhibition of hERG thallium flux at 1 µM (in-house)",
+            "note": "provided by the researcher in turn 2",
+            "actor": "user",
+            "run_id": null
+          }
+        ],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The hERG predictor signal reflects a meaningful potential for astemizole-mediated hERG/Kv11.1 blockade.",
+            "kind": "model_signal",
+            "refutation_condition": "A compound-specific hERG study finds no relevant inhibition under appropriately characterized conditions.",
+            "status": "weakened",
+            "status_reason": "The compound-specific in-house result provides direct counterevidence to treating the model signal as established blockade, although it does not test concentration dependence or exposure relevance.",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "h2",
+            "statement": "The predictor signal may not translate to the intended repurposing context because hERG liability depends on assay conditions, exposure, and the relevant free concentration.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "Orthogonal, concentration-response hERG data and exposure comparison show the predicted liability is directly relevant to the intended use context.",
+            "status": "supported",
+            "status_reason": "The result is from an orthogonal assay at one tested concentration and therefore highlights assay and exposure dependence without resolving the concentration-response relationship.",
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "scope": {
+              "compound": "astemizole",
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "e2",
+            "claim": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+            "stance": "contextual",
+            "directness": "class_level",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "title",
+            "scope": {
+              "assay": "patch clamp cardiac ion channel assay",
+              "compound": "not astemizole-specific",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "e3",
+            "claim": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "server",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "e4",
+            "claim": "The researcher reports limited hERG inhibition for astemizole in an in-house thallium-flux assay at the tested concentration.",
+            "source_class": "user_supplied",
+            "source_ref": "context:c1",
+            "stance": "contradicts",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "thallium_flux_result",
+            "scope": {
+              "dose": "1 µM",
+              "assay": "in-house thallium-flux hERG assay",
+              "compound": "astemizole",
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "model",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          },
+          {
+            "id": "e5",
+            "claim": "The limited single-concentration thallium-flux result is consistent with assay-format and exposure context limiting direct translation of the predictor signal.",
+            "source_class": "user_supplied",
+            "source_ref": "context:c1",
+            "stance": "supports",
+            "directness": "indirect",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "thallium_flux_result",
+            "scope": {
+              "dose": "1 µM",
+              "assay": "in-house thallium-flux hERG assay",
+              "compound": "astemizole",
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "model",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          },
+          {
+            "id": "e6",
+            "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "stance": "contextual",
+            "directness": "indirect",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "server",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          },
+          {
+            "id": "e7",
+            "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+            "stance": "contextual",
+            "directness": "indirect",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "server",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          },
+          {
+            "id": "e8",
+            "claim": "Neither the predictor nor a single-concentration thallium-flux result establishes clinical arrhythmia risk, safety, or a safe exposure.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+            "stance": "insufficient",
+            "directness": "indirect",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "repurposing screen"
+            },
+            "actor": "server",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_exposure",
+            "description": "No intended-use exposure, free concentration, or concentration-response hERG measurement is available in the stored analysis.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "u2",
+            "kind": "assay_mismatch",
+            "description": "The thallium-flux result is a single-concentration readout and has not been reconciled with the predictor's assay context, a concentration-response curve, assay controls, or intended free exposure.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "search_toxicology_evidence",
+            "purpose": "Find compound-specific independent evidence on astemizole and hERG/Kv11.1 to determine whether the model signal is corroborated and relevant to the decision.",
+            "decision": "continue",
+            "outcome": "",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "a2",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific evidence that would weaken the predicted hERG concern.",
+            "decision": "continue",
+            "outcome": "The bounded literature search returned no accepted, clearly astemizole-specific hERG record; this is a coverage limitation, not evidence of absence.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          },
+          {
+            "id": "a3",
+            "action": "counterevidence_search",
+            "purpose": "Assess whether the new compound-specific assay result reduces the concern raised by the predictor.",
+            "decision": "continue",
+            "outcome": "The result weakens the model-only concern but does not resolve concentration dependence or exposure relevance.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_87904920a356497d80d09c841f09f98d"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run an orthogonal concentration-response hERG/Kv11.1 assay with astemizole, then compare the measured effect range with the intended free exposure and assess key metabolites separately if they are present.",
+            "rationale": "This directly tests whether the model signal is reproducible and whether it is relevant at the intended exposure.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response inhibition curve",
+              "potency estimate with assay conditions",
+              "comparison of free exposure to the active concentration range",
+              "metabolite-specific activity if applicable"
+            ],
+            "actor": "model",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The in-house single-concentration thallium-flux result weakens the interpretation that the stored predictor alone establishes meaningful astemizole hERG blockade.",
+              "evidence_ids": [
+                "e4"
+              ]
+            },
+            {
+              "text": "The predictor remains a prioritization warning because the in-house result does not establish a concentration-response relationship or relevance to intended free exposure.",
+              "evidence_ids": [
+                "e1",
+                "e4",
+                "e5"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Cannot infer clinical arrhythmia risk, safety, or a safe exposure from either result.",
+            "Cannot treat limited inhibition at one concentration as evidence that hERG liability is absent."
+          ],
+          "what_would_change": [
+            "A validated orthogonal concentration-response assay with assay controls, potency estimate, and comparison to intended free exposure would resolve the remaining concern."
+          ],
+          "approver": "",
+          "run_id": "run_87904920a356497d80d09c841f09f98d"
+        },
+        "runs": [
+          {
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "goal": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_ecb8939617984e77b052daf42484e7b5",
+            "usage": {
+              "searches": 3,
+              "tool_calls": 14,
+              "denied_calls": 0,
+              "failed_calls": 1,
+              "evidence_reads": 2
+            }
+          },
+          {
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "goal": "Our in-house thallium-flux assay showed only 20% inhibition of hERG at 1 µM. Does that change your assessment?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_2c62696c096b4ae09578593efb73fbf7",
+            "usage": {
+              "searches": 0,
+              "tool_calls": 6,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 1
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 1,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0
+        },
+        "revision": 26,
+        "created_at": "2026-09-25T13:07:31.737225+00:00",
+        "updated_at": "2026-09-25T13:12:21.945918+00:00"
+      },
+      "events": {
+        "case_id": "scase_1bc61ee1ed74416f9f6023fd9df898ce",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_1bc61ee1ed74416f9f6023fd9df898ce",
+              "question": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?",
+              "session_id": "ses_205715947cdb4ba2ab2d00e2f967e3a0",
+              "subject_key": "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55",
+              "subject_refs": [
+                "analysis:ana_96151f0fa7dd4b92be1f02fd597aee55"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:07:31.737225+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "We have astemizole (COC1=CC=C(C=C1)CCN2CCC(CC2)NC3=NC4=CC=CC=C4N3CC5=CC=C(C=C5)F) in a repurposing screen. How concerned should we be about hERG?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:07:31.737225+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The hERG predictor signal reflects a meaningful potential for astemizole-mediated hERG/Kv11.1 blockade.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A compound-specific hERG study finds no relevant inhibition under appropriately characterized conditions."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:07:59.041368+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "can_say": [],
+              "statement": "The predictor signal may not translate to the intended repurposing context because hERG liability depends on assay conditions, exposure, and the relevant free concentration.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Orthogonal, concentration-response hERG data and exposure comparison show the predicted liability is directly relevant to the intended use context."
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:07:59.041393+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 4
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "search_toxicology_evidence",
+              "can_say": [],
+              "purpose": "Find compound-specific independent evidence on astemizole and hERG/Kv11.1 to determine whether the model signal is corroborated and relevant to the decision.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:08:05.905451+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+              "scope": {
+                "compound": "astemizole",
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+              "statement": "The stored hERG predictor classifies astemizole as a blocker with model probability 0.7999394536018372 and threshold 0.4133453071117401.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:09:05.511995+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+              "scope": {
+                "assay": "patch clamp cardiac ion channel assay",
+                "compound": "not astemizole-specific",
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "title",
+              "statement": "A retrieved article is specifically about improving translation from nonclinical patch-clamp cardiac ion-channel assays to clinical ECG changes and proarrhythmia risk, providing general assay-interpretation context rather than compound-specific astemizole evidence.",
+              "cannot_say": [],
+              "directness": "class_level",
+              "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+              "evidence_ids": [],
+              "source_class": "external_experimental",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:09:05.512022+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 7
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The bounded literature search returned no accepted, clearly astemizole-specific hERG record; this is a coverage limitation, not evidence of absence.",
+              "purpose": "Look for compound-specific evidence that would weaken the predicted hERG concern.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:09:05.512032+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 8
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "No intended-use exposure, free concentration, or concentration-response hERG measurement is available in the stored analysis.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:09:05.512041+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 9
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run an orthogonal concentration-response hERG/Kv11.1 assay with astemizole, then compare the measured effect range with the intended free exposure and assess key metabolites separately if they are present.",
+              "can_say": [],
+              "rationale": "This directly tests whether the model signal is reproducible and whether it is relevant at the intended exposure.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "concentration-response inhibition curve",
+                "potency estimate with assay conditions",
+                "comparison of free exposure to the active concentration range",
+                "metabolite-specific activity if applicable"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:09:05.512049+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 10
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The stored predictor gives a substantial hERG blocker signal for astemizole.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The signal should be treated as a prioritization warning rather than a clinical or exposure-based risk estimate because compound-specific concentration-response and exposure data are absent.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Cannot infer clinical arrhythmia risk, safety, or a safe exposure from the model score.",
+                "Cannot treat the absence of a qualifying compound-specific literature hit as evidence that hERG liability is absent."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Orthogonal compound-specific hERG data and intended-use free-exposure information would determine whether the predicted signal is relevant."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:09:05.512064+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 11
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored hERG model classifies astemizole as a blocker with a high model score.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:10:21.339115+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 3,
+                "tool_calls": 14,
+                "denied_calls": 0,
+                "failed_calls": 1,
+                "evidence_reads": 2
+              },
+              "answer_id": "ans_ecb8939617984e77b052daf42484e7b5",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:10:24.401454+00:00",
+            "run_id": "run_8600c3b0dcb34e64b650bdc88e52cb19",
+            "revision": 13
+          },
+          {
+            "op": "add_context",
+            "payload": {
+              "key": "thallium_flux_result",
+              "note": "provided by the researcher in turn 2",
+              "value": "20% inhibition of hERG thallium flux at 1 µM (in-house)"
+            },
+            "actor": "user",
+            "at": "2026-09-25T13:10:24.564186+00:00",
+            "run_id": null,
+            "revision": 14
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "Our in-house thallium-flux assay showed only 20% inhibition of hERG at 1 µM. Does that change your assessment?"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:10:24.593596+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 15
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The researcher reports limited hERG inhibition for astemizole in an in-house thallium-flux assay at the tested concentration.",
+              "scope": {
+                "dose": "1 µM",
+                "assay": "in-house thallium-flux hERG assay",
+                "compound": "astemizole",
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "contradicts",
+              "can_say": [],
+              "locator": "thallium_flux_result",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "context:c1",
+              "evidence_ids": [],
+              "source_class": "user_supplied",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542211+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 16
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The limited single-concentration thallium-flux result is consistent with assay-format and exposure context limiting direct translation of the predictor signal.",
+              "scope": {
+                "dose": "1 µM",
+                "assay": "in-house thallium-flux hERG assay",
+                "compound": "astemizole",
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "thallium_flux_result",
+              "cannot_say": [],
+              "directness": "indirect",
+              "source_ref": "context:c1",
+              "evidence_ids": [],
+              "source_class": "user_supplied",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542236+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 17
+          },
+          {
+            "op": "revise_hypothesis",
+            "payload": {
+              "reason": "The compound-specific in-house result provides direct counterevidence to treating the model signal as established blockade, although it does not test concentration dependence or exposure relevance.",
+              "status": "weakened",
+              "can_say": [],
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_id": "h1",
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542245+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 18
+          },
+          {
+            "op": "revise_hypothesis",
+            "payload": {
+              "reason": "The result is from an orthogonal assay at one tested concentration and therefore highlights assay and exposure dependence without resolving the concentration-response relationship.",
+              "status": "supported",
+              "can_say": [],
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_id": "h2",
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542253+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 19
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "assay_mismatch",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The thallium-flux result is a single-concentration readout and has not been reconciled with the predictor's assay context, a concentration-response curve, assay controls, or intended free exposure.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542261+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 20
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The result weakens the model-only concern but does not resolve concentration dependence or exposure relevance.",
+              "purpose": "Assess whether the new compound-specific assay result reduces the concern raised by the predictor.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542269+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 21
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The in-house single-concentration thallium-flux result weakens the interpretation that the stored predictor alone establishes meaningful astemizole hERG blockade.",
+                  "evidence_ids": [
+                    "e4"
+                  ]
+                },
+                {
+                  "text": "The predictor remains a prioritization warning because the in-house result does not establish a concentration-response relationship or relevance to intended free exposure.",
+                  "evidence_ids": [
+                    "e1",
+                    "e4",
+                    "e5"
+                  ]
+                }
+              ],
+              "approver": "",
+              "cannot_say": [
+                "Cannot infer clinical arrhythmia risk, safety, or a safe exposure from either result.",
+                "Cannot treat limited inhibition at one concentration as evidence that hERG liability is absent."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A validated orthogonal concentration-response assay with assay controls, potency estimate, and comparison to intended free exposure would resolve the remaining concern."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T13:11:20.542284+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 22
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "contextual",
+              "directness": "indirect",
+              "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:12:19.392188+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 23
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The in-house result lowers, but does not eliminate, concern from the model signal because concentration-response and intended-exposure relevance remain unresolved.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "contextual",
+              "directness": "indirect",
+              "source_ref": "evidence:evd_cbf9c8de90a54175bde0024a969a5eab",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:12:19.392188+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 24
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "Neither the predictor nor a single-concentration thallium-flux result establishes clinical arrhythmia risk, safety, or a safe exposure.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "repurposing screen"
+              },
+              "stance": "insufficient",
+              "directness": "indirect",
+              "source_ref": "observation:obs_f73c2193074e4fc093205a1a294cc0f0",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:12:19.392188+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 25
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 0,
+                "tool_calls": 6,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 1
+              },
+              "answer_id": "ans_2c62696c096b4ae09578593efb73fbf7",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-25T13:12:21.945918+00:00",
+            "run_id": "run_87904920a356497d80d09c841f09f98d",
+            "revision": 26
+          }
+        ]
+      }
+    }
+  ]
+}

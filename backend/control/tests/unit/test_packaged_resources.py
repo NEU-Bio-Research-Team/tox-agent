@@ -9,7 +9,7 @@ future relocation cannot reintroduce the same class of bug.
 """
 from __future__ import annotations
 
-from toxagent.config import PACKAGE_ROOT, SERVICE_ROOT, Settings
+from toxagent.platform.config import PACKAGE_ROOT, SERVICE_ROOT, Settings
 
 
 def test_package_root_is_the_toxagent_package_not_the_src_directory():

@@ -1,0 +1,111 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nFor reference, this is the output of our in-house toxicity predictor (ToxPred) for the compound in the question, as JSON:\n```json\n{\n  \"applicability\": {\n    \"chemical_guard\": {\n      \"method\": \"element_rules_v1\",\n      \"reasons\": [\n        \"all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition\"\n      ],\n      \"status\": \"ok\"\n    },\n    \"method\": \"element_rules_v1\",\n    \"reasons\": [\n      \"all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition\"\n    ],\n    \"similarity_domain\": null,\n    \"status\": \"ok\"\n  },\n  \"canonical_smiles\": \"CC(=O)Oc1ccccc1C(=O)O\",\n  \"predictions\": {\n    \"herg\": {\n      \"label\": \"non_blocker\",\n      \"measurement\": \"hERG channel blockade liability\",\n      \"model_id\": \"herg-tox21-chemberta-v1\",\n      \"probability_blocker\": 0.03151058405637741,\n      \"threshold\": 0.4133453071117401,\n      \"threshold_source\": \"artifact\"\n    },\n    \"tox21\": {\n      \"assays\": {\n        \"NR-AR\": {\n          \"active\": false,\n          \"probability_activity\": 0.2977524697780609,\n          \"threshold\": 0.9399998188018799,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-AR-LBD\": {\n          \"active\": false,\n          \"probability_activity\": 0.304783433675766,\n          \"threshold\": 0.489999920129776,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-AhR\": {\n          \"active\": false,\n          \"probability_activity\": 0.029504213482141495,\n          \"threshold\": 0.6799998879432678,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-Aromatase\": {\n          \"active\": false,\n          \"probability_activity\": 0.033631183207035065,\n          \"threshold\": 0.7099998593330383,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-ER\": {\n          \"active\": false,\n          \"probability_activity\": 0.2048017978668213,\n          \"threshold\": 0.5099999308586121,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-ER-LBD\": {\n          \"active\": false,\n          \"probability_activity\": 0.25800806283950806,\n          \"threshold\": 0.6799998879432678,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-PPAR-gamma\": {\n          \"active\": true,\n          \"probability_activity\": 0.7769138813018799,\n          \"threshold\": 0.4199999272823334,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-ARE\": {\n          \"active\": false,\n          \"probability_activity\": 0.20408736169338226,\n          \"threshold\": 0.49999991059303284,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-ATAD5\": {\n          \"active\": false,\n          \"probability_activity\": 0.13992656767368317,\n          \"threshold\": 0.47999992966651917,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-HSE\": {\n          \"active\": false,\n          \"probability_activity\": 0.24410071969032288,\n          \"threshold\": 0.5099999308586121,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-MMP\": {\n          \"active\": false,\n          \"probability_activity\": 0.023642094805836678,\n          \"threshold\": 0.5399999022483826,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-p53\": {\n          \"active\": false,\n          \"probability_activity\": 0.11809809505939484,\n          \"threshold\": 0.34999996423721313,\n          \"threshold_source\": \"artifact\"\n        }\n      },\n      \"measurement\": \"Twelve independent Tox21 assay activities\",\n      \"model_id\": \"herg-tox21-chemberta-v1\",\n      \"task_order_version\": \"tox21-12task-v1\"\n    }\n  },\n  \"requested_endpoints\": [\n    \"herg\",\n    \"tox21\"\n  ],\n  \"unavailable_endpoints\": []\n}\n```\n\nWhat is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals.",
+    "result": {
+      "duration_api_ms": 5406,
+      "stop_reason": "end_turn",
+      "session_id": "ddf9cee8-27cb-43c0-a371-5edaf5c04fc3",
+      "total_cost_usd": 0.024736,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2086,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 402,
+        "output_tokens_details": {
+          "thinking_tokens": 76
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2086,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 402,
+            "cache_read_input_tokens": 0,
+            "cache_creation_input_tokens": 2086,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2086
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 402,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 2086,
+          "webSearchRequests": 0,
+          "costUSD": 0.024736,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 76,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 1,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "**Predicted hERG blocker probability for aspirin: 0.032**\n\nThis is well below the model's decision threshold of 0.413, so ToxPred labels it a **non-blocker** (model `herg-tox21-chemberta-v1`). The canonical SMILES in the output (`CC(=O)Oc1ccccc1C(=O)O`) matches the aspirin structure you gave.\n\nSome context:\n\n- **Applicability check is weak.** The \"ok\" status only confirms that aspirin's elements are common in the training data. No similarity-based domain check was run (`similarity_domain: null`), so the tool can't say whether aspirin resembles the training set.\n- **The prediction agrees with what's known.** Aspirin isn't a recognized hERG liability. It's a small, acidic molecule with no basic amine, which doesn't fit the typical hERG blocker profile.\n- **The probability isn't calibrated.** Read 0.032 as a model score, not a true likelihood of blockade.",
+      "ttft_ms": 6604,
+      "type": "result",
+      "duration_ms": 9770,
+      "uuid": "80bc73ad-c7df-4a70-ac3d-e9e401dab142",
+      "ttft_stream_ms": 5759,
+      "time_to_request_ms": 4361,
+      "first_content_frame_ms": 5760,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 2086,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 402,
+      "cost_usd": 0.024736
+    },
+    "exit_code": 0
+  }
+]

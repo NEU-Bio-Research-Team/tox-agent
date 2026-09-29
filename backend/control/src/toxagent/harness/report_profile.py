@@ -52,12 +52,15 @@ class ComposedProfile:
     #: sha256 over the composed text. One value the manifest can compare.
     content_sha256: str
     skills: tuple[str, ...]
+    #: Each skill's catalog pin (id, version, content hash), W9-10.
+    skill_pins: tuple[Mapping[str, str], ...] = ()
 
     def manifest(self) -> dict[str, object]:
         return {
             "profile": self.profile,
             "instructions_sha256": self.content_sha256,
             "skills": list(self.skills),
+            "skill_pins": [dict(pin) for pin in self.skill_pins],
             "files": dict(sorted(self.file_hashes.items())),
         }
 
@@ -92,6 +95,7 @@ def compose_report_profile(profiles_dir: Path) -> ComposedProfile:
     except json.JSONDecodeError as exc:
         raise ProfileUnavailable(f"{PROFILE_NAME}/profile.json is not valid JSON: {exc}") from exc
     skills = tuple(manifest.get("skills", ()))
+    pins = _catalog_pins(Path(profiles_dir), skills)
 
     shared = root / "references"
     if shared.is_dir():
@@ -117,4 +121,33 @@ def compose_report_profile(profiles_dir: Path) -> ComposedProfile:
         file_hashes=hashes,
         content_sha256=content_sha256(instructions),
         skills=skills,
+        skill_pins=pins,
     )
+
+
+def _catalog_pins(profiles_dir: Path, skills: tuple[str, ...]) -> tuple[Mapping[str, str], ...]:
+    """Every declared skill must be an active catalog skill for this profile.
+
+    W9-10: the report skills are catalog packages now — validated, versioned
+    and hash-pinned like the scientific ones — but they are still composed
+    whole into the prompt (the static arm, and the default), byte for byte as
+    before. RETHINK §4.11 step 2 moves them to on-demand loading one at a time,
+    only after the dynamic arm has shown an effect; this is the step that
+    makes that possible without touching what a report run is told today.
+    """
+    from ..application.investigation.skill_catalog import SkillCatalogError, load_catalog
+
+    try:
+        catalog = load_catalog(profiles_dir)
+    except SkillCatalogError as exc:
+        raise ProfileUnavailable(f"the skill catalog does not load: {exc}") from exc
+    pins = []
+    for name in skills:
+        skill = catalog.get(name)
+        if skill is None or skill.status != "active" or PROFILE_NAME not in skill.allowed_profiles:
+            raise ProfileUnavailable(
+                f"{PROFILE_NAME}/profile.json declares {name!r}, which is not an active catalog "
+                f"skill allowed for {PROFILE_NAME}"
+            )
+        pins.append(skill.pin())
+    return tuple(pins)

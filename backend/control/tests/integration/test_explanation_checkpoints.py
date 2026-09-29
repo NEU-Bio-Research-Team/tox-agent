@@ -18,9 +18,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from toxagent.application.create_analysis import CreateAnalysis
+from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.application.policy import Actor
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.message import Message, Role
 from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session
@@ -147,7 +147,7 @@ async def test_the_whole_bundle_is_bounded_even_when_each_call_looks_healthy(db)
 async def test_a_checkpoint_is_not_reused_across_a_different_model(db):
     """An explanation is of a molecule *by a model*; the other model's
     attribution is not an answer about this one (I11)."""
-    from toxagent.application.create_analysis import explanation_checkpoint_key
+    from toxagent.application.prediction.create_analysis import explanation_checkpoint_key
 
     a = explanation_checkpoint_key(
         canonical_smiles="CCO", endpoint="herg", task=None, model_id="model-a"
@@ -167,7 +167,7 @@ def test_a_checkpoint_is_not_reused_across_different_weights_under_one_id():
     attribution as the new model's — the I11 mismatch again, arriving through
     time instead of through a second model.
     """
-    from toxagent.application.create_analysis import explanation_checkpoint_key
+    from toxagent.application.prediction.create_analysis import explanation_checkpoint_key
 
     def key(*fingerprint: str) -> str:
         return explanation_checkpoint_key(
@@ -192,7 +192,7 @@ def test_a_checkpoint_is_not_reused_across_different_weights_under_one_id():
 def test_the_fingerprint_selects_only_the_model_that_answered():
     """Per-model, so retraining one admitted model leaves the other's
     explanations valid rather than invalidating the whole cache."""
-    from toxagent.application.create_analysis import model_artifact_fingerprint
+    from toxagent.application.prediction.create_analysis import model_artifact_fingerprint
 
     class _Provenance:
         artifact_hashes = (

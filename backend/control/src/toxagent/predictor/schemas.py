@@ -16,8 +16,6 @@ from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator,
 
 from .contract import (
     APPLICABILITY_METHOD_PREFIX,
-    APPLICABILITY_STATUSES,
-    LABELS,
     TOX21_TASK_ORDER_VERSION,
     TOX21_TASKS,
 )

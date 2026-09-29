@@ -5,7 +5,7 @@ private chain-of-thought have deliberately no field in these aggregates.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import Enum
 from typing import Any, Mapping

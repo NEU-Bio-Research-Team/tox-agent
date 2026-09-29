@@ -1,0 +1,26 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "assemble-report-context",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-report",
+  "allowed_profiles": [
+    "report_build"
+  ],
+  "required_capabilities": [
+    "get_report_context",
+    "get_analysis_bundle",
+    "get_analysis_slice"
+  ],
+  "risk_tier": "low",
+  "output_contract": "the report's subject, served and unavailable endpoints and provenance read from get_report_context and the analysis before any section is written",
+  "eval_set": {
+    "positive_tags": [
+      "report_build"
+    ],
+    "negative_tags": []
+  },
+  "references": [
+    "references/report-context-contract.md"
+  ]
+}

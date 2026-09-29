@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "toxocr"
+version = "0.1.0.dev0"
+description = "Optical chemical structure recognition: an image of a 2D structure in, SMILES out."
+requires-python = ">=3.10"
+# The one declaration of this service's dependencies; requirements.lock pins
+# the resolved set (`make lock`) and the image installs from it.
+#
+# MolScribe pins torch<2.0 (its setup.py, github.com/thomas0809/MolScribe), so
+# this service needs its own environment, never toxpred's (current torch) or
+# toxagent-control's (no torch). The image installs torch 1.13.1 first from the
+# PyTorch index for the chosen TORCH_VARIANT. Verified working locally (CPU,
+# 2026-09-05):
+#
+#   conda create -n toxocr-env python=3.10
+#   pip install torch==1.13.1 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -e 'backend/ocr[dev]'
+dependencies = [
+    "molscribe==1.1.1",
+    # The version deploy/Dockerfile installs (for its TORCH_VARIANT).
+    "torch==1.13.1",
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.0",
+    "pillow",
+    "rdkit",
+    "huggingface_hub>=0.22.2",
+    # molscribe's pinned deps (timm, torchvision 0.14, albumentations 1.1.0)
+    # predate NumPy 2.0's ABI break; left unconstrained they resolve numpy 2.x
+    # and several import warnings turn into failures.
+    "numpy<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx", "anyio", "ruff==0.13.3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["toxocr*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+empty_parameter_set_mark = "fail_at_collect"

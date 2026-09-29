@@ -15,8 +15,9 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Request
 
 from ..application.policy import Actor
-from ..application.queues import queue_of_job
+from ..application.runs.queues import queue_of_job
 from ..domain.errors import NotFound
+from .responses import RunQueueStatus
 from .routes import _services, actor
 
 router = APIRouter(prefix="/v1", tags=["toxagent"])
@@ -28,7 +29,7 @@ def _as_utc(value: datetime | None) -> datetime | None:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
-@router.get("/sessions/{session_id}/runs/{run_id}/queue")
+@router.get("/sessions/{session_id}/runs/{run_id}/queue", responses={200: {"model": RunQueueStatus}})
 async def get_run_queue(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
 ):

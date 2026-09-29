@@ -22,12 +22,12 @@ import pytest
 from sqlalchemy import text
 
 from toxagent.application.policy import Actor
-from toxagent.application.create_analysis import CreateAnalysis
-from toxagent.application.submit_report_draft import (
+from toxagent.application.prediction.create_analysis import CreateAnalysis
+from toxagent.application.report.submit_draft import (
     ReportValidationFailed,
     SubmitReportDraft,
 )
-from toxagent.config import PolicySettings
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.errors import Conflict
 from toxagent.domain.ids import new_id
 from toxagent.domain.message import Message, Role
@@ -39,7 +39,7 @@ from toxagent.domain.report import (
 )
 from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session
-from toxagent.validation.report_wire import ReportDraftCandidate
+from toxagent.validation.report.draft_wire import ReportDraftCandidate
 from tests.support.predictor import StubPredictor
 
 pytestmark = pytest.mark.anyio

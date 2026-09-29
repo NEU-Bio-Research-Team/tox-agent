@@ -13,7 +13,7 @@ from typing import Any
 
 import httpx
 
-from toxagent.config import PredictorSettings
+from toxagent.platform.config import PredictorSettings
 from toxagent.predictor.client import PredictorClient
 from toxagent.predictor.contract import TOX21_TASKS
 
@@ -47,7 +47,7 @@ COMPARABLE_CATALOGUE = (
      "loaded": True, "required": False, "detail": "", "blocked_reason": None},
     {"model_id": BLOCKED_MODEL_ID, "capabilities": ["clintox"],
      "loaded": False, "required": False, "detail": "",
-     "blocked_reason": "the original tokenizer cannot be proved; see docs/artifacts/clintox-smilesgnn-v1.md"},
+     "blocked_reason": "the original tokenizer cannot be proved; see docs/reference/artifacts/clintox-smilesgnn-v1.md"},
 )
 
 #: The real shape captured from a live ToxPred `POST /v1/predictions` (audit

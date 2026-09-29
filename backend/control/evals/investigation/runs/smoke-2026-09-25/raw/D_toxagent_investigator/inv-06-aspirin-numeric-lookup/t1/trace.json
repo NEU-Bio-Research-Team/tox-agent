@@ -1,0 +1,1240 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_698f59e6f0cd4918b1d126e70ecf6239",
+        "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-25T12:28:04.447064+00:00",
+        "created_at": "2026-09-25T12:23:04.447064+00:00",
+        "started_at": "2026-09-25T12:23:04.581032+00:00",
+        "ended_at": "2026-09-25T12:24:12.531543+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "be770e57ec6c4ea92e075b7f8c11864de32ad8b3b9d43fbe2c547e69d93429bb",
+          "system_prompt_hash": "ebd85acc9d4a40d43c252c47fbc81b709a53c9fce9b3036e2dd0854bf15daed4"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-25T12:23:04.448110+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_7ce7733005a24192befec61b35577ed0",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:23:12.805751+00:00",
+              "tokens": {
+                "input": 7703,
+                "output": 47,
+                "reasoning": 33,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 7783
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e3aefae46af848e24c4e0a6e9ca7cac0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d884f4c4001dxs2OEoB2RdbA2",
+                "step_id": "prt_0d8850a9e001nJmFzbpSOEhmbB",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_48cdb5b43baa404597b91020a75b7563",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:23:16.096199+00:00",
+              "tokens": {
+                "input": 1298,
+                "output": 26,
+                "reasoning": 0,
+                "cache_read": 6656,
+                "cache_write": 0,
+                "total": 7980
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d46f2d3f086a7f8bebf4b35c6fc8867a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8850ac8001g044ZZAlzO1aOV",
+                "step_id": "prt_0d885176a001jEEh4sq5mpQAId",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e80085bfa56e4adfb5fff3f4a6feecc6",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:23:29.667199+00:00",
+              "tokens": {
+                "input": 579,
+                "output": 496,
+                "reasoning": 110,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8865
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_128f91de7eb655f34e3dd55e9fd62bf4",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8851794001nmghhZ7l6D90Ny",
+                "step_id": "prt_0d8854c72001CsHaTIK86j9Spn",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_4b2056b45f914350b318fe316a939f02",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:23:47.119193+00:00",
+              "tokens": {
+                "input": 1782,
+                "output": 694,
+                "reasoning": 146,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10302
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_02394ab81798d90af1babb4418ed4039",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d8854c97001dM9FUFiS8FvMon",
+                "step_id": "prt_0d88590a9001zsmleq0NdNC8i7",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_3ea656f27d3449629d4c151ef9748f75",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:24:01.036440+00:00",
+              "tokens": {
+                "input": 1797,
+                "output": 430,
+                "reasoning": 209,
+                "cache_read": 8704,
+                "cache_write": 0,
+                "total": 11140
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_e5e23a100b25c9d655bb56783c782fa7",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d88590ca001WvncsT5cX14NGv",
+                "step_id": "prt_0d885c707001w4zZHyGaXsI5dv",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_bc1f711e93354852b21486a5c9a1dca4",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:24:09.978023+00:00",
+              "tokens": {
+                "input": 1598,
+                "output": 284,
+                "reasoning": 95,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 11705
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_74e3573ed374e433748c96712fde5485",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d885c731001HOjIg1U2h61tnQ",
+                "step_id": "prt_0d885e9f5001vDUuZZyxiggetc",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_bc71f92fd8fb4d8799f070e4d35eca03",
+              "runtime_binding_id": "rtb_f7b344cd2e954827bdd3d86489d0e4fa",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-25T12:24:12.483335+00:00",
+              "tokens": {
+                "input": 1078,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 11834
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_0d54bdfc15deccf9ef388cf3fb3f72dd",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0d885ea0d001dwNtVkgz0SxqPa",
+                "step_id": "prt_0d885f3b7001tjELrJrN7yHSuT",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_9787973ca6db4773a44adaa80aa04823",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 25,
+            "arguments_sha256": "dc5cccca16e32d962c3020e17632b230dca8dd79d675520e8e465e79c08157df",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:23:12.621282+00:00",
+            "ended_at": "2026-09-25T12:23:12.644582+00:00"
+          },
+          {
+            "call_id": "call_34b63668c509485bb79a4129c211baaa",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 11,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:23:15.994499+00:00",
+            "ended_at": "2026-09-25T12:23:16.003319+00:00"
+          },
+          {
+            "call_id": "call_0eab609d78b44e05ad1926decc1d3b7f",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 38,
+            "arguments_sha256": "a3ed7e15c92ac353bfd107fd14f81223778e5e260659c4f6e9d8ba6d084bd4a9",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:23:29.468075+00:00",
+            "ended_at": "2026-09-25T12:23:29.503757+00:00"
+          },
+          {
+            "call_id": "call_141d4123dced4d8492e576220e9d4aa9",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "6339054d817b05fdd5e05d6ee6a646cb5eae56b435c2fc2cfc22142b3b5fece1",
+            "observation_ids": [
+              "obs_2484aff267f741be8d40f2173a0eebe8"
+            ],
+            "started_at": "2026-09-25T12:23:29.503235+00:00",
+            "ended_at": "2026-09-25T12:23:29.521445+00:00"
+          },
+          {
+            "call_id": "call_1d1e9d8234bd4c5eadb5bd3a37661eed",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 23,
+            "arguments_sha256": "e86fe1c288dc69fc98fd49d19166557f0c1a6973949a297b2d9e661cb9ca521e",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:23:47.060838+00:00",
+            "ended_at": "2026-09-25T12:23:47.082452+00:00"
+          },
+          {
+            "call_id": "call_cf42d7fc42f04f899482b13515b5a61e",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "e25c694b88e73995ff716a78e00cdd097253f12ae415263cdd8dc687ed297cf9",
+            "observation_ids": [],
+            "started_at": "2026-09-25T12:24:00.956890+00:00",
+            "ended_at": "2026-09-25T12:24:00.973215+00:00"
+          },
+          {
+            "call_id": "call_1fdc78c896884aa79836a6f43af68560",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 58,
+            "arguments_sha256": "758b598df3c4988c0327fe12cfa8a8703f254f34c1586be7acdf485600c96118",
+            "observation_ids": [
+              "obs_2484aff267f741be8d40f2173a0eebe8"
+            ],
+            "started_at": "2026-09-25T12:24:09.867434+00:00",
+            "ended_at": "2026-09-25T12:24:09.923752+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_fd941af3c55f4ed0ae992730deb5ed3d",
+        "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+        "answer_markdown": "Predicted hERG blocker probability for aspirin: **0.032**.",
+        "claims": [
+          {
+            "claim_id": "clm_d0b10ee5b9b44f4d80be923bf0b6a0ea",
+            "kind": "numeric",
+            "text": "The predicted hERG blocker probability for aspirin is 0.032.",
+            "transform": "round:3",
+            "citation_ids": [],
+            "observation_id": "obs_2484aff267f741be8d40f2173a0eebe8",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.03151058405637741,
+            "rendered_value": "0.032"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "This is an uncalibrated model score, not a clinical or experimental risk estimate."
+          }
+        ],
+        "recommended_next_steps": [],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "9db63a916ba2cf9200016e3079f7c87c81d8da3d7fc8c4c95b90f95f38070feb",
+        "created_at": "2026-09-25T12:24:09.882030+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_0e4abd00a268467393b26b560115f13a",
+        "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+        "goal": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals.",
+        "subject_refs": [
+          "analysis:ana_4414ec67a4b943f6ab654940a39e3b5b"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_2484aff267f741be8d40f2173a0eebe8"
+            ],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 1,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 0,
+          "tool_calls": 7,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_2484aff267f741be8d40f2173a0eebe8"
+        ],
+        "found_refs": [],
+        "stop_reason": "sufficient",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [],
+          "offered": [
+            {
+              "version": "1.0.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "66780429c6db1d45eb7f3c7ad57ee353348cf3bb28f1d0f29be9154742ebb073"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "critique-case",
+              "content_sha256": "6740fb1e62d57ec751b02c2e142457bdec71c4eba4778a39259b468389f0d0cd"
+            },
+            {
+              "version": "1.0.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "237ed16bea5c3c937f55c6dc4c20b5ee310323fa9514e0a5050883a84e122e6d"
+            }
+          ],
+          "references_loaded": []
+        },
+        "revision": 11
+      },
+      "dossier": {
+        "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+        "case_id": "scase_903dbeef0a0b4836a5342aad4322a20a",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals.",
+        "answer_id": "ans_fd941af3c55f4ed0ae992730deb5ed3d",
+        "conclusion": {
+          "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+          "can_say": [
+            {
+              "text": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+              "sources": [
+                "observation:obs_2484aff267f741be8d40f2173a0eebe8"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "This model score is not a calibrated clinical or experimental risk estimate."
+          ],
+          "what_would_change": [
+            "A corrected or replaced analysis for the specified aspirin structure."
+          ]
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "status": "supported",
+            "context": [],
+            "statement": "The stored hERG predictor output provides the requested model probability for aspirin.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored hERG analysis reports a blocker probability of 0.03151058405637741 for the specified aspirin structure.",
+                "scope": {
+                  "compound": "aspirin",
+                  "endpoint": "hERG"
+                },
+                "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+                "stance": "supports",
+                "locator": "predictions.herg.probability_blocker",
+                "directness": "direct",
+                "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "The stored analysis directly reports the requested hERG blocker probability for the specified aspirin structure.",
+            "evidence_against": [],
+            "refutation_condition": "The stored analysis does not contain a hERG blocker probability for this aspirin structure."
+          },
+          {
+            "id": "h2",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "status": "open",
+            "context": [],
+            "statement": "The requested probability cannot be established from the stored analysis because the endpoint output is missing or mismatched.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "The stored analysis contains a hERG blocker probability for the specified aspirin structure."
+          }
+        ],
+        "next_tests": [],
+        "stop_reason": "sufficient",
+        "subject_refs": [
+          "analysis:ana_4414ec67a4b943f6ab654940a39e3b5b"
+        ],
+        "case_revision": 11,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored hERG analysis reports a blocker probability of 0.03151058405637741 for the specified aspirin structure.",
+            "scope": {
+              "compound": "aspirin",
+              "endpoint": "hERG"
+            },
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "stance": "supports",
+            "locator": "predictions.herg.probability_blocker",
+            "directness": "direct",
+            "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+            "scope": {
+              "endpoint": "hERG"
+            },
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+            "scope": {
+              "endpoint": "hERG"
+            },
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+              "outcome": "No external evidence search was needed because the user asked only for the stored predictor value; no independent counterevidence was added.",
+              "purpose": "Check whether an external source is needed to answer the stored-prediction value question or would directly contradict the model output.",
+              "decision": "stop",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "status": "open",
+            "severity": "medium",
+            "resolution": "",
+            "description": "The reported blocker probability is a model score and its clinical or experimental calibration is not established here.",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_0e4abd00a268467393b26b560115f13a",
+  "analysis": {
+    "run": {
+      "run_id": "run_de1532029cda4cd38f208df75d9b1c11",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_672b89fd92d44f64aa1425ef2f27b026",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-25T12:28:03.349243+00:00",
+      "created_at": "2026-09-25T12:23:03.349243+00:00",
+      "started_at": "2026-09-25T12:23:03.369218+00:00",
+      "ended_at": "2026-09-25T12:23:03.418718+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-25T12:23:03.350896+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_4414ec67a4b943f6ab654940a39e3b5b",
+      "input_smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+      "canonical_smiles": "CC(=O)Oc1ccccc1C(=O)O",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.03151058405637741,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.2977524697780609,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.2048017978668213,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.029504213482141495,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.20408736169338226,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.24410071969032288,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.023642094805836678,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.11809809505939484,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.13992656767368317,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.304783433675766,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.25800806283950806,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.033631183207035065,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.7769138813018799,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "85171c67-3aa4-42d9-ace8-411117834919",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 23,
+            "encoded_token_count": 23
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "7738bb759e37ac56cd4b2c00b6d19f5cd23bf73124e6c786f1fa4dfd16a89912"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-25T12:23:03.411167+00:00"
+    }
+  },
+  "evidence": [],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_903dbeef0a0b4836a5342aad4322a20a",
+        "session_id": "ses_0e4abd00a268467393b26b560115f13a",
+        "subject_key": "analysis:ana_4414ec67a4b943f6ab654940a39e3b5b",
+        "question": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals.",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_4414ec67a4b943f6ab654940a39e3b5b"
+        ],
+        "status": "open",
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The stored hERG predictor output provides the requested model probability for aspirin.",
+            "kind": "model_signal",
+            "refutation_condition": "The stored analysis does not contain a hERG blocker probability for this aspirin structure.",
+            "status": "supported",
+            "status_reason": "The stored analysis directly reports the requested hERG blocker probability for the specified aspirin structure.",
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+          },
+          {
+            "id": "h2",
+            "statement": "The requested probability cannot be established from the stored analysis because the endpoint output is missing or mismatched.",
+            "kind": "data_insufficient",
+            "refutation_condition": "The stored analysis contains a hERG blocker probability for the specified aspirin structure.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored hERG analysis reports a blocker probability of 0.03151058405637741 for the specified aspirin structure.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.probability_blocker",
+            "scope": {
+              "compound": "aspirin",
+              "endpoint": "hERG"
+            },
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+          },
+          {
+            "id": "e2",
+            "claim": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "hERG"
+            },
+            "actor": "server",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "description": "The reported blocker probability is a model score and its clinical or experimental calibration is not established here.",
+            "severity": "medium",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Check whether an external source is needed to answer the stored-prediction value question or would directly contradict the model output.",
+            "decision": "stop",
+            "outcome": "No external evidence search was needed because the user asked only for the stored predictor value; no independent counterevidence was added.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+          }
+        ],
+        "next_tests": [],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "This model score is not a calibrated clinical or experimental risk estimate."
+          ],
+          "what_would_change": [
+            "A corrected or replaced analysis for the specified aspirin structure."
+          ],
+          "approver": "",
+          "run_id": "run_e3c99c9a423447c8842a9b2421a17a10"
+        },
+        "runs": [
+          {
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "goal": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals.",
+            "stop_reason": "sufficient",
+            "answer_id": "ans_fd941af3c55f4ed0ae992730deb5ed3d",
+            "usage": {
+              "searches": 0,
+              "tool_calls": 7,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0
+        },
+        "revision": 11,
+        "created_at": "2026-09-25T12:23:04.464558+00:00",
+        "updated_at": "2026-09-25T12:24:12.509545+00:00"
+      },
+      "events": {
+        "case_id": "scase_903dbeef0a0b4836a5342aad4322a20a",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_903dbeef0a0b4836a5342aad4322a20a",
+              "question": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals.",
+              "session_id": "ses_0e4abd00a268467393b26b560115f13a",
+              "subject_key": "analysis:ana_4414ec67a4b943f6ab654940a39e3b5b",
+              "subject_refs": [
+                "analysis:ana_4414ec67a4b943f6ab654940a39e3b5b"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:23:04.464558+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "What is the predicted hERG blocker probability for aspirin (CC(=O)OC1=CC=CC=C1C(=O)O)? Give it to three decimals."
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:23:04.464558+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The stored hERG predictor output provides the requested model probability for aspirin.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "The stored analysis does not contain a hERG blocker probability for this aspirin structure."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:23:29.482488+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "statement": "The requested probability cannot be established from the stored analysis because the endpoint output is missing or mismatched.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "The stored analysis contains a hERG blocker probability for the specified aspirin structure."
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:23:29.482505+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored hERG analysis reports a blocker probability of 0.03151058405637741 for the specified aspirin structure.",
+              "scope": {
+                "compound": "aspirin",
+                "endpoint": "hERG"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.probability_blocker",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:23:47.076982+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 5
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "No external evidence search was needed because the user asked only for the stored predictor value; no independent counterevidence was added.",
+              "purpose": "Check whether an external source is needed to answer the stored-prediction value question or would directly contradict the model output.",
+              "decision": "stop",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:23:47.077005+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 6
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "model_calibration",
+              "can_say": [],
+              "severity": "medium",
+              "cannot_say": [],
+              "description": "The reported blocker probability is a model score and its clinical or experimental calibration is not established here.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:23:47.077014+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 7
+          },
+          {
+            "op": "revise_hypothesis",
+            "payload": {
+              "reason": "The stored analysis directly reports the requested hERG blocker probability for the specified aspirin structure.",
+              "status": "supported",
+              "can_say": [],
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_id": "h1",
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:24:00.968286+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 8
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "This model score is not a calibrated clinical or experimental risk estimate."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A corrected or replaced analysis for the specified aspirin structure."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-25T12:24:00.968311+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 9
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored hERG predictor reports the requested blocker probability for aspirin.",
+              "scope": {
+                "endpoint": "hERG"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_2484aff267f741be8d40f2173a0eebe8",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:24:09.911575+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 10
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 0,
+                "tool_calls": 7,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_fd941af3c55f4ed0ae992730deb5ed3d",
+              "stop_reason": "sufficient"
+            },
+            "actor": "server",
+            "at": "2026-09-25T12:24:12.509545+00:00",
+            "run_id": "run_e3c99c9a423447c8842a9b2421a17a10",
+            "revision": 11
+          }
+        ]
+      }
+    }
+  ]
+}

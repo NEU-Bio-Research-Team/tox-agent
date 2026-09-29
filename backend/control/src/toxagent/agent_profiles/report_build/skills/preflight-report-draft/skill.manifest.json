@@ -1,0 +1,27 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "preflight-report-draft",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-report",
+  "allowed_profiles": [
+    "report_build"
+  ],
+  "required_capabilities": [
+    "save_report_draft",
+    "check_saved_report_draft",
+    "patch_saved_report_draft",
+    "submit_saved_report_draft"
+  ],
+  "risk_tier": "low",
+  "output_contract": "a saved draft checked and patched by version before the one submission",
+  "eval_set": {
+    "positive_tags": [
+      "report_build"
+    ],
+    "negative_tags": []
+  },
+  "references": [
+    "references/validation-codes.md"
+  ]
+}

@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-from ..domain.message import Message, PartType, Role
+from ..domain.message import Message, PartType
 
 #: Plan section 2.2. Restated to every runtime turn because these are the
 #: invariants a model must not violate, not a policy the validator alone should
@@ -72,7 +72,18 @@ version of it. If you want to show fewer digits than the tool gave you \
 (e.g. render "0.731" for a source of 0.73058...), declare transform: \
 "round:3" (matching the digit count you actually rendered), not "identity". \
 This applies to a comparison claim's own rendered_value too: it must match \
-its declared difference/ratio to the same precision it declares.
+its declared difference/ratio to the same precision it declares. Write for a \
+reader: a model probability to three decimals ("round:3", e.g. 0.680) and a \
+computed ratio such as a margin to at most three significant figures \
+("round:1", e.g. 18.7) — never the tool's full-precision float.
+
+A measured value from an evidence record a claim cites (an IC50 from a \
+ChEMBL record, say) may be written in the prose as the record states it, \
+with its units; it is grounded by that citation, not by a numeric claim. \
+Never write an evidence id (evd_...), an observation id, or any citation \
+marker or note about citations ("[citation]", "[1]", "citations appear on each \
+claim") in answer_markdown: the product numbers and lists each claim's \
+citations itself.
 
 Never write a URL or a markdown link in answer_markdown, including when the \
 user explicitly asks for a link, a PubMed link, or "the source" by name. \
@@ -132,6 +143,80 @@ with an explicit scope and the claims it is based on, rather than only \
 is possible. If you do not have enough to choose a posture, say exactly what \
 is missing and why it would change the answer — that is a complete, valid \
 answer, not a reason to fall back to a generic non-answer.
+"""
+
+#: ADR 0012. Stated only while scientific_case_v1 is on. It says how to keep
+#: the case, which is the product object; *methods* (weighing conflicting
+#: evidence, reading an attribution) belong in skills, not here.
+#:
+#: W9-01: kept to one case write per turn. The first version asked for a read
+#: and several writes every turn; in W8-02 the case arm made ~4.5 extra tool
+#: calls per turn (one get, ~2.5 updates, ~1 skill read) at ~15 s of model time
+#: each, and hit the 300 s run cap on 15 turns against the current arm's 7.
+#: The checkpoint below now carries what a read returned, and the server
+#: records every source the accepted answer cites, so neither is the model's
+#: job any more.
+SCIENTIFIC_CASE_POLICY = """\
+This turn belongs to a scientific case that persists across the researcher's \
+turns; its checkpoint is below, so you do not need to read it first \
+(get_scientific_case returns the full ledger if you need an entry the \
+checkpoint does not show). The server records every source your accepted \
+answer cites, so do not re-enter those.
+
+If the question only asks for a value, a label, or what was measured, answer \
+it and leave the case alone. If it asks for a judgement or a decision, make \
+exactly one update_scientific_case call, with all its operations together, \
+just before submit_grounded_answer:
+- if the case has no hypotheses yet, the competing explanations the decision \
+turns on (the model-signal reading and at least one alternative), each with \
+what would refute it;
+- record_evidence only where a source takes a side on a hypothesis (supports \
+or contradicts); a predictor score or attribution is a signal about the model, \
+never independent evidence;
+- if you searched for evidence against the leading hypothesis, a \
+record_action with action counterevidence_search, even if it found nothing;
+- what is still unknown, as record_uncertainty; ask the researcher for a fact \
+only they can supply if it would change the conclusion;
+- set_conclusion: what the case can say (each line citing ledger ids), what it \
+cannot say, and what would change it.
+submit_grounded_answer still ends the turn.
+"""
+
+#: W9-08 (flag subjectless_research_v1): a literature question with no
+#: molecule in the session. Stated only then, so the model does not go looking
+#: for an analysis that does not exist.
+SUBJECTLESS_RESEARCH_POLICY = """\
+This question names no molecule this session has analysed, so there is no \
+prediction to read. Answer it from the literature: call \
+search_toxicology_evidence without an analysis_id (give an endpoint when the \
+question is about hERG, Tox21 or ClinTox, so results are checked against it), \
+read what you cite with get_evidence_record, and cite only accepted records. \
+Say plainly when the retrieved literature does not settle the question. If the \
+question is really about a specific compound's predicted toxicity, say that the \
+researcher can add the molecule for a prediction.
+"""
+
+#: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
+#: v2 has no source_value or rendered_value: the server reads and renders each
+#: value. Stating v1's rules under v2 told the model to write numbers it could
+#: not know the rendering of, and W8-02's most frequent first-draft refusal
+#: under v2 was exactly an unclaimed number in the prose (W9-02).
+ANSWER_FORMAT_V2 = """\
+In submit_grounded_answer, a numeric or classification claim names the \
+observation_id and field_path a tool handed you; the server reads and renders \
+the value, so you never send one. To show a numeric, classification or \
+comparison claim's value in answer_markdown, write its local_ref in double \
+braces, e.g. {{herg_p}}, and the server inserts the value (for any other claim, \
+a placeholder inserts the claim's text; writing the sentence yourself is \
+equally fine). Any number you still write into answer_markdown yourself must \
+be the value of one of your numeric or comparison claims (rounding it is \
+fine); a number that is not a claim's value is rejected.
+
+Never write a URL or a markdown link in answer_markdown, including when the \
+user explicitly asks for a link, a PubMed link, or "the source" by name. \
+Every citation is a claim's citation_ids pointing at a resolved evidence \
+record, rendered as a chip by the product. If asked for a link, say the \
+citation appears as a chip on the cited claim and cite normally.
 """
 
 #: Plan section 9.4, restated as an imperative checklist. A live Phase 3 run
@@ -241,23 +326,42 @@ def build_system_prompt(
     checkpoint: SessionCheckpoint,
     pinned: Sequence[PinnedReference],
     recent_messages: Sequence[Message],
+    scientific_case: str = "",
+    scientific_skills: str = "",
+    answer_schema: str = "grounded-answer-v1",
+    subjectless: bool = False,
 ) -> str:
     """Plan section 10.4: product/system role, invariants, profile, checkpoint,
-    pinned references, recent messages — in that order, always."""
+    pinned references, recent messages — in that order, always.
+
+    ``scientific_case`` is the case checkpoint (ADR 0012); empty unless the
+    run is attached to one, and then the case policy is stated with it.
+    ``scientific_skills`` is the skill catalog section of the run's arm: an
+    index in the dynamic arm, composed skills in the static arm, else empty.
+    ``answer_schema`` selects the answer-format section that matches the
+    submit_grounded_answer schema this deployment registered."""
     sections = [
         PRODUCT_ROLE,
         SCIENTIFIC_INVARIANTS,
         f"Capability profile for this turn: {capability_profile}. Only the tools "
         "listed by the MCP server for this connection exist; do not assume any other "
         "tool is available.",
-        ANSWER_FORMAT,
+        ANSWER_FORMAT_V2 if answer_schema == "grounded-answer-v2" else ANSWER_FORMAT,
         REQUIRED_LIMITATIONS_GUIDE,
     ]
     if capability_profile == "decision_support":
         sections.append(DECISION_SUPPORT_POLICY)
+        if subjectless:
+            sections.append(SUBJECTLESS_RESEARCH_POLICY)
+    if scientific_case:
+        sections.append(SCIENTIFIC_CASE_POLICY)
+    if scientific_skills:
+        sections.append(scientific_skills)
     rendered_checkpoint = checkpoint.render()
     if rendered_checkpoint:
         sections.append(rendered_checkpoint)
+    if scientific_case:
+        sections.append(scientific_case)
     if pinned:
         sections.append("Pinned references:\n" + "\n".join(p.render() for p in pinned))
     rendered_recent = render_recent_messages(recent_messages)

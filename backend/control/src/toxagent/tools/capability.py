@@ -18,7 +18,7 @@ from typing import Any
 
 import jwt
 
-from ..config import SecuritySettings
+from ..platform.config import SecuritySettings
 from ..domain.errors import Forbidden, Unauthenticated
 from ..domain.ids import CAPABILITY, new_id
 from .registry import PROFILES

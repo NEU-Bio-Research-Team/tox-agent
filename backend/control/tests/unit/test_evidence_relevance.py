@@ -239,3 +239,20 @@ def test_prompt_injection_in_an_abstract_is_only_data() -> None:
     )
     assessment = assess(hit, compound=_compound(), target=_target())
     assert assessment.relevance is Relevance.IRRELEVANT
+
+
+# --- W9-08: a literature question with no molecule ---------------------------
+
+
+def test_without_a_compound_the_endpoint_is_the_whole_subject() -> None:
+    cannabinoids = next(raw for raw in FIXTURE["hits"] if "Cannabinoid" in raw["title"])
+    assessment = assess(_hit(cannabinoids), compound=None, target=_target())
+    assert assessment.relevance is Relevance.DIRECT
+    assert assessment.reason_codes == ("no_compound_subject", "endpoint_match")
+
+
+def test_without_a_compound_an_off_endpoint_paper_is_still_refused() -> None:
+    contextual = FIXTURE["control_hits"][1]  # ethanol, another endpoint
+    assessment = assess(_hit(contextual), compound=None, target=_target())
+    assert assessment.relevance is Relevance.IRRELEVANT
+    assert "endpoint_mismatch" in assessment.reason_codes

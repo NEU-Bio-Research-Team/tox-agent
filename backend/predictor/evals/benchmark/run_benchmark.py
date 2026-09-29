@@ -156,7 +156,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if not SPLIT_MANIFEST.exists():
-        print(f"missing {SPLIT_MANIFEST}. Run backend/predictor/evals/benchmark/build_split_manifest.py first.")
+        print(f"missing {SPLIT_MANIFEST}. Run backend/predictor/research/benchmark/build_split_manifest.py first.")
         return 1
     split = json.loads(SPLIT_MANIFEST.read_text())
 

@@ -18,7 +18,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ...application import decision_state_service
+from ...application.investigation import decision_state_service
 from ...domain import decision_state as ds
 from ...domain.errors import InvalidRequest
 from ..registry import ToolContext, ToolDefinition, ToolOutput
