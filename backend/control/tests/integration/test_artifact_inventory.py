@@ -14,7 +14,7 @@ from toxagent.application.policy import Actor
 from toxagent.platform.config import PolicySettings
 from toxagent.domain.events import EventType
 from toxagent.domain.message import Message, Role
-from toxagent.domain.ids import CLAIM, GAP, REPORT_BUILD, new_id
+from toxagent.domain.ids import CLAIM, GAP, new_id
 from toxagent.domain.report import (
     REQUIRED_SECTION_IDS,
     BuildStage,
@@ -31,6 +31,7 @@ from toxagent.tools.bootstrap import build_registry
 from toxagent.tools.registry import ToolContext
 from toxagent.tools.runner import ToolRunner
 from tests.support.predictor import ASPIRIN, StubPredictor
+from tests.support.reports import seed_report_build
 
 pytestmark = pytest.mark.anyio
 
@@ -61,8 +62,11 @@ async def scenario(db, *, with_report=False):
 
     report_id = None
     if with_report:
+        build = await seed_report_build(
+            db, session_id=session.id, run_id=run.id, analysis_id=analysis_id, now=NOW,
+        )
         report = ReportArtifact.create(
-            report_build_id=new_id(REPORT_BUILD),
+            report_build_id=build.id,
             session_id=session.id,
             analysis_id=analysis_id,
             title="Aspirin screening report",

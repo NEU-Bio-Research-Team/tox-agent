@@ -76,6 +76,9 @@ def test_oracle_retrieval_matches_the_official_script():
 
 
 def test_tfidf_ranks_the_matching_abstract_first():
+    # The official retriever is scikit-learn's, an eval-time import the control
+    # plane itself does not depend on.
+    pytest.importorskip("sklearn")
     corpus = {1: Document(1, "Aspirin and platelets", ("Aspirin inhibits platelet aggregation.",)),
               2: Document(2, "Soil bacteria", ("Nitrogen fixation in legumes.",))}
     claims = [Claim(1, "Aspirin inhibits platelet aggregation", {}, ())]

@@ -105,7 +105,9 @@ jobs:
       - run: pip install pytest
       # bin/toxagent against recorded docker/ss argv. Two subcommands were
       # dropping an argument (I28/I29) in ways no unit of the script shows.
-      - run: python -m pytest devops/tests -q
+      # The release manifest records what an installed environment resolved;
+      # this job installs nothing to resolve. supply-chain runs it over one.
+      - run: python -m pytest devops/tests -q --ignore devops/tests/test_release_manifest.py
 
   # The only environment where both packages are installed, so the only one
   # that can regenerate the predictor's OpenAPI and compare it to the pin.

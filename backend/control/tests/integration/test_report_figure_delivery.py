@@ -18,6 +18,9 @@ from datetime import datetime, timezone
 
 import pytest
 
+from toxagent.application.policy import Actor
+from toxagent.application.prediction.create_analysis import CreateAnalysis
+from toxagent.platform.config import PolicySettings
 from toxagent.domain.attachment import Attachment, RetentionClass
 from toxagent.domain.ids import new_id
 from toxagent.domain.message import Message, Role
@@ -28,10 +31,12 @@ from toxagent.domain.report import (
     ReportSection,
     SubstanceProfile,
 )
+from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session
 from toxagent.persistence.object_store import InMemoryObjectStore
 from tests.support.api import AUTH, OTHER_AUTH, api_client
 from tests.support.predictor import StubPredictor
+from tests.support.reports import seed_report_build
 
 pytestmark = pytest.mark.anyio
 
@@ -51,6 +56,19 @@ async def _seed_report(
     figure) ids."""
     session = Session.create(owner_id, now=NOW)
     message = Message.create(session.id, Role.USER, 1, now=NOW)
+    run = Run.create(session.id, message.id, Lane.MIXED, Intent.BUILD_REPORT, now=NOW)
+    async with db.unit_of_work() as uow:
+        await uow.sessions.add(session)
+        await uow.messages.add(message)
+        await uow.runs.add(run)
+        await uow.commit()
+    analysis = await CreateAnalysis(db, StubPredictor().client(), PolicySettings()).execute(
+        actor=Actor(subject_id=owner_id), session_id=session.id, run_id=run.id,
+        smiles="CCO", endpoints=("herg",), owns_run=False,
+    )
+    build = await seed_report_build(
+        db, session_id=session.id, run_id=run.id, analysis_id=analysis.snapshot.id, now=NOW,
+    )
 
     data = svg.encode("utf-8")
     digest = hashlib.sha256(data).hexdigest()
@@ -76,9 +94,9 @@ async def _seed_report(
         renderer_version="toxagent-figure-sanitizer-v1",
     )
     artifact = ReportArtifact.create(
-        report_build_id=new_id("rpb"),
+        report_build_id=build.id,
         session_id=session.id,
-        analysis_id=new_id("ana"),
+        analysis_id=analysis.snapshot.id,
         title="Toxicity Screening Report",
         subject=SubstanceProfile(
             canonical_smiles="CCO", structure_figure_id=figure.figure_id
@@ -88,12 +106,10 @@ async def _seed_report(
             for sid in REQUIRED_SECTION_IDS
         ),
         figures=(figure,),
-        provenance={"run_id": new_id("run")},
+        provenance={"run_id": run.id},
         now=NOW,
     )
     async with db.unit_of_work() as uow:
-        await uow.sessions.add(session)
-        await uow.messages.add(message)
         await uow.attachments.add(attachment)
         await uow.reports.add_artifact(artifact.to_dict(), claim_links=[], evidence_links=[])
         await uow.reports.add_figure(figure, session_id=session.id, created_at=NOW)

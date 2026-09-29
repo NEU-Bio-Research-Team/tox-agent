@@ -77,7 +77,6 @@ def test_check_accepts_the_tree_it_was_generated_from(tmp_path, manifest):
 @pytest.mark.parametrize(
     "mutate,expected",
     [
-        (lambda m: m["dependencies"].__setitem__("torch", "0.0.1+fake"), "dependencies.torch"),
         (lambda m: m["predictor_registry"].__setitem__("sha256", "sha256:" + "0" * 64),
          "predictor_registry.sha256"),
         (lambda m: m["base_images"].__setitem__("predictor", "python:3.10-slim@sha256:" + "0" * 64),
@@ -90,6 +89,15 @@ def test_check_reports_what_moved(manifest, mutate, expected):
     mutate(saved)
     problems = rm.differences(saved, manifest)
     assert any(expected in problem for problem in problems), problems
+
+
+def test_check_reports_a_moved_dependency(manifest):
+    """Whichever tracked package this environment resolved: the control image
+    has no torch, so naming one here would test nothing there."""
+    name = next(n for n, v in manifest["dependencies"].items() if v is not None)
+    saved = json.loads(json.dumps(manifest))
+    saved["dependencies"][name] = "0.0.1+fake"
+    assert any(f"dependencies.{name}" in p for p in rm.differences(saved, manifest))
 
 
 def test_a_package_missing_from_one_environment_is_not_a_difference(manifest):
