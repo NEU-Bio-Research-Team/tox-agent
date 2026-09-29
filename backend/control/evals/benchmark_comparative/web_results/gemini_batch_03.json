@@ -1,0 +1,170 @@
+[
+{
+"case_id": "herg_neg_13",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"Low molecular weight may limit the predictive utility of standard QSAR models.",
+"Endogenous metabolic handling is not modeled by standard in vitro assays."
+],
+"response_text": "3-Hydroxybutyric acid is an endogenous ketone body. Structurally, it is very small, highly polar, and acidic, completely lacking the lipophilic and basic properties required for interaction with the central cavity of the hERG channel. Therefore, the risk of hERG channel inhibition is negligible. In Tox21 assays, it is generally inactive as it is a natural energy substrate. Standard QSAR models may struggle with molecules this small, but mechanistic reasoning strongly supports its safety in this context."
+},
+{
+"case_id": "herg_neg_14",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"SMILES structural variations (e.g., tautomerization representation) can affect computational parsing.",
+"High concentrations tested in vitro may not reflect physiological compartmentalization."
+],
+"response_text": "Nicotinamide (a form of vitamin B3) is a small, hydrophilic molecule. It lacks the bulky, lipophilic functional groups and the basic amine characteristic of canonical hERG blockers. Due to its inability to favorably partition into or bind within the hERG central cavity, it is classified as a non-blocker. The Tox21 profile is exceptionally clean, consistent with its role as a fundamental endogenous vitamin precursor. Minor computational limitations exist due to tautomeric representation, but clinical safety regarding QT prolongation is well-established."
+},
+{
+"case_id": "herg_neg_15",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"In vivo pharmacokinetics, including rapid metabolism and specific transporter uptake, are not captured by static cellular assays."
+],
+"response_text": "Nicotinic acid, or niacin, is a small pyridinecarboxylic acid. Its carboxylic acid group ensures it is predominantly ionized (negatively charged) at physiological pH, which actively repels it from the hERG pore binding site that prefers basic, positively charged amines. Consequently, it presents no meaningful hERG blocking risk. Tox21 screening does not identify specific toxicological alerts. The primary limitation of computational assessment is the inability to model its complex in vivo lipid-modulating effects, though these do not involve direct ion channel blockade."
+},
+{
+"case_id": "herg_neg_16",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"High concentrations used in cell-based assays can induce osmotic stress, leading to false-positive toxicity readouts."
+],
+"response_text": "Mannitol is a low molecular weight sugar alcohol. Its structure is densely populated with hydroxyl groups, rendering it extremely hydrophilic. The hERG channel binding pocket requires hydrophobic interactions (typically pi-stacking with aromatic rings) which mannitol completely lacks. It is a non-blocker. In Tox21 assays, it is universally inactive, though researchers must account for potential artifactual cytotoxicity arising from osmotic shifts when testing at very high molarities."
+},
+{
+"case_id": "herg_neg_17",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"Very small ionic structures fall outside the applicability domain of many traditional hERG QSAR models."
+],
+"response_text": "Sodium acetate is a simple, ubiquitous salt of a short-chain fatty acid. It lacks any of the pharmacophoric features necessary for hERG channel blockade, such as aromatic rings, a basic nitrogen center, or lipophilic bulk. It poses no hERG liability. The Tox21 profile is inactive, reflecting its status as a benign metabolic intermediate. A minor limitation is that standard molecular descriptors are not optimized for assessing simple salts, though the biological interpretation is definitive."
+},
+{
+"case_id": "herg_neg_18",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Deprotonation at physiological pH significantly alters the partitioning behavior compared to neutral state predictions."
+],
+"response_text": "Maleic acid is a small dicarboxylic acid. At physiological pH, it is doubly deprotonated, creating a highly polar, negatively charged species. This ionic state strongly impedes penetration into the lipophilic hERG central pore, preventing binding to key residues like Y652 and F856. The molecule is a non-blocker. Tox21 screens generally show inactivity. Predictions must account for pKa, as neutral state representations would inaccurately reflect its physiological behavior and binding potential."
+},
+{
+"case_id": "herg_neg_19",
+"herg_classification": "non-blocker",
+"herg_probability": 0.04,
+"tox21_active_assays": [],
+"limitations": [
+"Volatility and high basicity can lead to practical issues in microplate assays, potentially altering local pH and causing non-specific cellular stress."
+],
+"response_text": "1,3-Diaminopropane is a short aliphatic diamine. While it possesses basic nitrogens (a feature common in many hERG blockers), it entirely lacks the lipophilic bulk and aromatic rings necessary to stabilize binding within the hERG cavity. The absence of pi-pi interactions dictates a negligible risk of meaningful hERG blockade. The Tox21 assay profile remains clean. Caution is required during in vitro testing due to its volatility and potential to raise pH in culture media."
+},
+{
+"case_id": "herg_neg_20",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"Chelation of divalent cations (Ca2+, Mg2+) in assay media can cause artifactual assay readouts or apparent toxicity."
+],
+"response_text": "Citric acid is a highly polar, endogenous tricarboxylic acid. Its negative charge at physiological pH and lack of aromatic or lipophilic domains preclude it from interacting with the hERG channel pore. It is definitively categorized as a non-blocker. Tox21 results are uniformly negative. An important experimental limitation is that high concentrations of citric acid can chelate essential divalent cations, potentially causing non-specific cytotoxicity or altering ion channel behavior indirectly in in vitro settings."
+},
+{
+"case_id": "herg_brd_01",
+"herg_classification": "uncertain",
+"herg_probability": 0.45,
+"tox21_active_assays": [],
+"limitations": [
+"In vivo cardiovascular effects (tachycardia) via target beta-2 agonism can confound the interpretation of any minor in vitro hERG signals."
+],
+"response_text": "Albuterol (salbutamol) presents borderline hERG activity in some predictive models because it contains a secondary amine and an aromatic ring. However, its overall hydrophilicity, driven by multiple hydroxyl groups, significantly limits its affinity for the lipophilic hERG binding pocket. While models may assign borderline risk, the clinical significance is low. Tox21 profiles are generally clean. True cardiac risks associated with albuterol are primarily driven by on-target beta-adrenergic stimulation rather than direct hERG blockade."
+},
+{
+"case_id": "herg_brd_02",
+"herg_classification": "uncertain",
+"herg_probability": 0.40,
+"tox21_active_assays": [],
+"limitations": [
+"Endogenous vitamin processing and active cellular uptake mechanisms are poorly represented in standard static computational models."
+],
+"response_text": "Pyridoxine (Vitamin B6) may flag as borderline in structural models due to the presence of a pyridine ring, which can act as a weak base. However, the molecule is highly substituted with polar hydroxyl and hydroxymethyl groups, significantly reducing logP and hERG affinity. The borderline classification is a computational artifact rather than a true pharmacological liability. It is inactive in Tox21 assays. The primary limitation is the tendency of uncalibrated QSAR models to overweight the basic nitrogen without adequately penalizing for high polarity."
+},
+{
+"case_id": "herg_brd_03",
+"herg_classification": "uncertain",
+"herg_probability": 0.52,
+"tox21_active_assays": [
+"SR-ARE"
+],
+"limitations": [
+"High lipophilicity may result in non-specific membrane partitioning, artificially depressing hERG currents in patch-clamp assays."
+],
+"response_text": "This phenylbutazone analog possesses borderline hERG blocking potential. It lacks the classic basic amine required for strong interactions with Y652, but its high lipophilicity and dual aromatic rings allow for non-specific, moderate affinity interactions with the hydrophobic regions of the channel pore. Tox21 assays may flag oxidative stress pathways (SR-ARE) typical of some bulky NSAID analogs. Careful differentiation is required between direct pore blockade and non-specific membrane perturbation driven by high lipophilicity."
+},
+{
+"case_id": "herg_brd_04",
+"herg_classification": "uncertain",
+"herg_probability": 0.38,
+"tox21_active_assays": [
+"SR-p53"
+],
+"limitations": [
+"The reactive aldehyde moiety can form Schiff bases with assay proteins, potentially yielding false-positive toxicity alerts."
+],
+"response_text": "Vanillin shows borderline hERG liability computationally due to its aromatic ring and moderate lipophilicity. However, it lacks a basic nitrogen, making it a very weak ligand for the channel cavity. Its borderline status reflects weak structural similarity to phenolic fragments of larger hERG blockers rather than potent inhibition capability. Tox21 may show weak SR-p53 activity, likely an artifact of aldehyde reactivity rather than true genotoxicity. Predictions should account for this functional group reactivity in cellular assays."
+},
+{
+"case_id": "herg_brd_05",
+"herg_classification": "uncertain",
+"herg_probability": 0.35,
+"tox21_active_assays": [],
+"limitations": [
+"Amphoteric nature requires precise modeling of zwitterionic vs. neutral states at physiological pH, which simple descriptors often fail to capture."
+],
+"response_text": "4-Aminobenzoic acid (PABA) is a borderline case. It possesses an aromatic ring and an amino group, features that sometimes trigger QSAR hERG alerts. However, the amino group is directly attached to the electron-withdrawing aromatic ring, reducing its basicity (pKa ~2.4), and the carboxylic acid ensures it is anionic at pH 7.4. This creates electrostatic repulsion in the hERG pore. It is inactive in Tox21. The borderline classification is largely a false positive driven by basic 2D fragment matching."
+},
+{
+"case_id": "herg_brd_06",
+"herg_classification": "uncertain",
+"herg_probability": 0.35,
+"tox21_active_assays": [],
+"limitations": [
+"Small size limits the robustness of applicability domains in models trained on larger, more complex drug-like molecules."
+],
+"response_text": "4-Hydroxybenzamide displays borderline hERG activity in models relying on simple aromatic and hydrogen-bonding descriptors. While the amide provides a polar surface and the phenol provides an aromatic system, the molecule is too small and hydrophilic to effectively engage the key hydrophobic and cation-pi interaction sites in the hERG pore. It shows an inactive Tox21 profile. Nuanced interpretation indicates this is a benign structural alert with negligible physiological block risk."
+},
+{
+"case_id": "herg_brd_07",
+"herg_classification": "uncertain",
+"herg_probability": 0.55,
+"tox21_active_assays": [
+"SR-ARE"
+],
+"limitations": [
+"High plasma protein binding can drastically reduce the free fraction in vivo, overestimating clinical risk based purely on in vitro data."
+],
+"response_text": "3,4-Dichlorobenzoic acid presents a genuine borderline hERG risk profile. The heavy halogenation significantly increases lipophilicity, enabling favorable hydrophobic interactions within the channel pore despite the lack of a basic amine. However, its acidic nature means it is largely ionized, partially mitigating affinity. In Tox21, halogenated aromatics frequently trigger oxidative stress responses (SR-ARE). The risk is nuanced: while inherently capable of low-affinity binding, extensive protein binding in vivo likely neutralizes the physiological threat."
+},
+{
+"case_id": "herg_brd_08",
+"herg_classification": "uncertain",
+"herg_probability": 0.38,
+"tox21_active_assays": [],
+"limitations": [
+"High doses of salicylates can uncouple oxidative phosphorylation, which may confound cellular viability assays used alongside target-specific testing."
+],
+"response_text": "3-Methoxysalicylic acid is assigned borderline hERG activity due to its aromatic structure and lipophilicity modifiers. Nevertheless, like most salicylates, it lacks a basic center and is predominantly anionic at physiological pH, heavily restricting hERG pore binding. The borderline signal is likely an artifact of its logP and aromatic density. Tox21 assays are typically clean. Careful interpretation is needed to separate minor computational alerts from the lack of a mechanistic basis for potent channel inhibition."
+}
+]
