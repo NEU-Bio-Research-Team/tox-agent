@@ -5,9 +5,11 @@ import asyncio
 from datetime import datetime
 from typing import Awaitable, Callable
 
+from ...application.investigation import decision_state_service
 from ...application.runs.scheduler import RunContext
 from ...application.runs.transitions import advance
-from ...domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
+from ...domain import decision_state
+from ...domain.errors import Conflict, DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
 from ...domain.events import EventType
 from ...domain.message import Message, PartType, Role
 from ...domain.run import Intent, RunStatus
@@ -258,6 +260,20 @@ class CompletionMixin:
                 run_id=context.run_id,
                 payload={"role": "assistant", "answer_id": answer.id},
             )
+            if context.intent is Intent.DECISION_SUPPORT:
+                # In the transaction that completes the run, so a client that
+                # sees it completed also sees why it stopped. Finalized after
+                # the commit instead, a poll landing in between read a
+                # completed run with no stop reason. The post-run finalize is
+                # idempotent and still covers every other way a run ends.
+                try:
+                    await decision_state_service.advance_in(
+                        uow, context.run_id,
+                        lambda state: decision_state.finalize(state, run_status="completed"),
+                    )
+                except Conflict:
+                    log.warning("decision state changed during completion; finalized after",
+                                extra={"run_id": context.run_id})
             await advance(
                 uow,
                 run,
