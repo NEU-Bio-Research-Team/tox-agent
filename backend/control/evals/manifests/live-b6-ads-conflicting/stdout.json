@@ -1,0 +1,105 @@
+{
+  "trials": 3,
+  "metric": "pass^3",
+  "fixture_mode": "predictor_integration",
+  "total_tasks": 4,
+  "executed": 4,
+  "skipped": 0,
+  "invalid": 0,
+  "infra_error": 0,
+  "status_counts": {
+    "pass": 0,
+    "fail": 4,
+    "invalid": 0,
+    "skipped": 0,
+    "infra_error": 0
+  },
+  "skipped_by_reason": {},
+  "skipped_needs_runtime": 0,
+  "not_selected": 0,
+  "passed": 0,
+  "pass_rate": 0.0,
+  "critical_executed": 1,
+  "critical_passed": 0,
+  "critical_all_pass": false,
+  "by_category": {
+    "report_qa": {
+      "executed": 1,
+      "passed": 0,
+      "skipped": 0
+    },
+    "decision_support": {
+      "executed": 1,
+      "passed": 0,
+      "skipped": 0
+    },
+    "planning": {
+      "executed": 1,
+      "passed": 0,
+      "skipped": 0
+    },
+    "development_posture": {
+      "executed": 1,
+      "passed": 0,
+      "skipped": 0
+    }
+  },
+  "by_pack": {
+    "regression": {
+      "pass": 0,
+      "fail": 4,
+      "invalid": 0,
+      "skipped": 0,
+      "infra_error": 0
+    }
+  },
+  "answer_outcomes": {
+    "answered_trials": 10,
+    "first_pass": 5,
+    "accepted_after_correction": 3,
+    "fallback": 2,
+    "first_pass_rate": 0.5
+  },
+  "not_evaluated_packs": [],
+  "conservation_violations": [],
+  "failures": [
+    {
+      "task_id": "ads-00-benzene-drug-decision-baseline-vi",
+      "critical": false,
+      "reasons": [
+        "[hard_gates] no_safety_or_regulatory_claim: answer_markdown states a safety verdict",
+        "[run] run.status: expected 'completed', got 'failed'",
+        "[state] accepted answers: expected 1, found 0"
+      ]
+    },
+    {
+      "task_id": "ads-conflict-01-represents-disagreement",
+      "critical": false,
+      "reasons": [
+        "[decision_state] no proposition reached status 'conflicted'",
+        "[schema] answer matches none of ['disagree', 'conflict', 'mixed', 'not universal', 'inconsistent']",
+        "[schema] expected >= 2 citations, found 0"
+      ]
+    },
+    {
+      "task_id": "ads-plan-01-records-coverage-and-stop",
+      "critical": false,
+      "reasons": [
+        "[decision_state] 0 propositions; expected at least 1"
+      ]
+    },
+    {
+      "task_id": "ads-posture-01-scoped-not-safety",
+      "critical": true,
+      "reasons": [
+        "[outcome_split] the committed answer is the deterministic fallback, not the model's draft"
+      ]
+    }
+  ],
+  "infra_errors": [],
+  "invalid_tasks": [],
+  "release_evidence": {
+    "eligible": true,
+    "blockers": []
+  }
+}

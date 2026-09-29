@@ -1,0 +1,70 @@
+{
+  "trials": 1,
+  "metric": "pass@1",
+  "fixture_mode": "predictor_integration",
+  "total_tasks": 3,
+  "executed": 1,
+  "skipped": 2,
+  "invalid": 0,
+  "infra_error": 0,
+  "status_counts": {
+    "pass": 0,
+    "fail": 1,
+    "invalid": 0,
+    "skipped": 2,
+    "infra_error": 0
+  },
+  "skipped_by_reason": {
+    "feature_requirements_unmet": 2
+  },
+  "skipped_needs_runtime": 0,
+  "not_selected": 0,
+  "passed": 0,
+  "pass_rate": 0.0,
+  "critical_executed": 0,
+  "critical_passed": 0,
+  "critical_all_pass": null,
+  "by_category": {
+    "report_orchestration": {
+      "executed": 1,
+      "passed": 0,
+      "skipped": 2
+    }
+  },
+  "by_pack": {
+    "report": {
+      "pass": 0,
+      "fail": 1,
+      "invalid": 0,
+      "skipped": 2,
+      "infra_error": 0
+    }
+  },
+  "answer_outcomes": {
+    "answered_trials": 0,
+    "first_pass": 0,
+    "accepted_after_correction": 0,
+    "fallback": 0,
+    "first_pass_rate": null
+  },
+  "not_evaluated_packs": [],
+  "conservation_violations": [],
+  "failures": [
+    {
+      "task_id": "report-v2-02-provider-outage-completes-with-gaps",
+      "critical": false,
+      "reasons": [
+        "[artifacts] expected a report artifact, none was published",
+        "[artifacts] report records no gap with reason 'provider_unavailable'",
+        "[artifacts] report: 0 < min 1",
+        "[run] run.status: expected 'completed', got 'failed'"
+      ]
+    }
+  ],
+  "infra_errors": [],
+  "invalid_tasks": [],
+  "release_evidence": {
+    "eligible": true,
+    "blockers": []
+  }
+}

@@ -1,14 +1,23 @@
-# Eval run output
+# Committed eval evidence
 
-`python -m evals.runner` writes two files here per run:
+Runs that a document, a paired comparison or the scorecard cites. Ad-hoc runs
+do not land here: `python -m evals.runner` writes to `../results/` by default,
+which is git-ignored as a whole (see `../README.md`, "Code, evidence and
+scratch").
 
-- `manifest-<ts>.json` — the run manifest (plan §16.9): eval-suite hash,
-  toxagent/toxpred commits, runtime kind, trial count, and the summary.
+A run becomes evidence by being written here explicitly (`--out
+manifests/<run-name>`), and is committed as the whole directory:
+
+- `manifest-<ts>.json` — the run manifest: eval-suite hash, toxagent/toxpred
+  commits, runtime kind, trial count, and the summary.
 - `results-<ts>.json` — per-task pass/fail with grader reasons.
+- `traces-<ts>.jsonl` — the `eval-trace-v1` projection the graders read.
+- `config.env` — the flags and provider settings the run was launched with.
+- `stdout.json`, `stderr.log` — the runner's own output.
 
-Both are git-ignored (`.gitignore`), along with the `_work/` scratch databases.
-The tracked artifacts are the task set (`../tasks/`), the frozen fixtures
-(`../fixtures/`), the graders (`../graders/`) and the schema (`../schema/`).
+`paired-<a>-<b>.json` files are `python -m evals.paired` comparisons between two
+runs in this directory.
 
-Promote a manifest into a decision record by copying it out of this directory
-under a stable name.
+Loose files directly under this directory (`manifest-*.json`, `results-*.json`,
+`_work/`) are still ignored, so a run written here without a run directory is
+not committed by accident.
