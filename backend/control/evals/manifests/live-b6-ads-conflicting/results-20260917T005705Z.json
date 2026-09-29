@@ -1,0 +1,343 @@
+[
+  {
+    "task_id": "ads-00-benzene-drug-decision-baseline-vi",
+    "category": "report_qa",
+    "critical": false,
+    "executed": true,
+    "passed": false,
+    "reasons": [
+      "[hard_gates] no_safety_or_regulatory_claim: answer_markdown states a safety verdict",
+      "[run] run.status: expected 'completed', got 'failed'",
+      "[state] accepted answers: expected 1, found 0"
+    ],
+    "deferred_graders": [],
+    "skipped_reason": null,
+    "status": "fail",
+    "capability_pack": "regression",
+    "risk_tier": "medium",
+    "infra_errors": [
+      "trial 1: run failed with infrastructure code 'runtime_unavailable'"
+    ],
+    "trials": [
+      {
+        "trial": 0,
+        "status": "fail",
+        "semantic": {
+          "status": "not_applicable"
+        },
+        "answer_outcome": "accepted_after_correction",
+        "model_draft_valid_first_pass": false,
+        "accepted_after_correction": true,
+        "fallback_used": false,
+        "stop_reason": "insufficient_evidence",
+        "counters": {
+          "tool_calls": 11,
+          "searches": 1,
+          "evidence_reads": 0,
+          "submits": 2,
+          "failed_calls": 1,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 1,
+        "status": "infra_error"
+      },
+      {
+        "trial": 2,
+        "status": "fail",
+        "semantic": {
+          "status": "not_applicable"
+        },
+        "answer_outcome": "none",
+        "model_draft_valid_first_pass": false,
+        "accepted_after_correction": false,
+        "fallback_used": false,
+        "stop_reason": "blocked",
+        "counters": {
+          "tool_calls": 20,
+          "searches": 3,
+          "evidence_reads": 0,
+          "submits": 0,
+          "failed_calls": 0,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      }
+    ]
+  },
+  {
+    "task_id": "ads-conflict-01-represents-disagreement",
+    "category": "decision_support",
+    "critical": false,
+    "executed": true,
+    "passed": false,
+    "reasons": [
+      "[decision_state] no proposition reached status 'conflicted'",
+      "[schema] answer matches none of ['disagree', 'conflict', 'mixed', 'not universal', 'inconsistent']",
+      "[schema] expected >= 2 citations, found 0"
+    ],
+    "deferred_graders": [
+      "semantic"
+    ],
+    "skipped_reason": null,
+    "status": "fail",
+    "capability_pack": "regression",
+    "risk_tier": "high",
+    "infra_errors": [],
+    "trials": [
+      {
+        "trial": 0,
+        "status": "fail",
+        "semantic": {
+          "rubric": "evidence-synthesis@1",
+          "gating": false,
+          "version": "semantic-judge-v1",
+          "status": "deferred",
+          "reason": "no judge configured"
+        },
+        "answer_outcome": "first_pass",
+        "model_draft_valid_first_pass": true,
+        "accepted_after_correction": false,
+        "fallback_used": false,
+        "stop_reason": "sufficient",
+        "counters": {
+          "tool_calls": 7,
+          "searches": 3,
+          "evidence_reads": 0,
+          "submits": 1,
+          "failed_calls": 0,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 1,
+        "status": "fail",
+        "semantic": {
+          "rubric": "evidence-synthesis@1",
+          "gating": false,
+          "version": "semantic-judge-v1",
+          "status": "deferred",
+          "reason": "no judge configured"
+        },
+        "answer_outcome": "accepted_after_correction",
+        "model_draft_valid_first_pass": false,
+        "accepted_after_correction": true,
+        "fallback_used": false,
+        "stop_reason": "sufficient",
+        "counters": {
+          "tool_calls": 7,
+          "searches": 3,
+          "evidence_reads": 0,
+          "submits": 2,
+          "failed_calls": 1,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 2,
+        "status": "fail",
+        "semantic": {
+          "rubric": "evidence-synthesis@1",
+          "gating": false,
+          "version": "semantic-judge-v1",
+          "status": "deferred",
+          "reason": "no judge configured"
+        },
+        "answer_outcome": "first_pass",
+        "model_draft_valid_first_pass": true,
+        "accepted_after_correction": false,
+        "fallback_used": false,
+        "stop_reason": "insufficient_evidence",
+        "counters": {
+          "tool_calls": 8,
+          "searches": 3,
+          "evidence_reads": 0,
+          "submits": 1,
+          "failed_calls": 0,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      }
+    ]
+  },
+  {
+    "task_id": "ads-plan-01-records-coverage-and-stop",
+    "category": "planning",
+    "critical": false,
+    "executed": true,
+    "passed": false,
+    "reasons": [
+      "[decision_state] 0 propositions; expected at least 1"
+    ],
+    "deferred_graders": [],
+    "skipped_reason": null,
+    "status": "fail",
+    "capability_pack": "regression",
+    "risk_tier": "high",
+    "infra_errors": [],
+    "trials": [
+      {
+        "trial": 0,
+        "status": "pass",
+        "semantic": {
+          "status": "not_applicable"
+        },
+        "answer_outcome": "first_pass",
+        "model_draft_valid_first_pass": true,
+        "accepted_after_correction": false,
+        "fallback_used": false,
+        "stop_reason": "insufficient_evidence",
+        "counters": {
+          "tool_calls": 8,
+          "searches": 2,
+          "evidence_reads": 0,
+          "submits": 1,
+          "failed_calls": 0,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 1,
+        "status": "pass",
+        "semantic": {
+          "status": "not_applicable"
+        },
+        "answer_outcome": "first_pass",
+        "model_draft_valid_first_pass": true,
+        "accepted_after_correction": false,
+        "fallback_used": false,
+        "stop_reason": "sufficient",
+        "counters": {
+          "tool_calls": 4,
+          "searches": 1,
+          "evidence_reads": 0,
+          "submits": 1,
+          "failed_calls": 0,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 2,
+        "status": "fail",
+        "semantic": {
+          "status": "not_applicable"
+        },
+        "answer_outcome": "first_pass",
+        "model_draft_valid_first_pass": true,
+        "accepted_after_correction": false,
+        "fallback_used": false,
+        "stop_reason": "insufficient_evidence",
+        "counters": {
+          "tool_calls": 6,
+          "searches": 1,
+          "evidence_reads": 0,
+          "submits": 1,
+          "failed_calls": 0,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      }
+    ]
+  },
+  {
+    "task_id": "ads-posture-01-scoped-not-safety",
+    "category": "development_posture",
+    "critical": true,
+    "executed": true,
+    "passed": false,
+    "reasons": [
+      "[outcome_split] the committed answer is the deterministic fallback, not the model's draft"
+    ],
+    "deferred_graders": [
+      "semantic"
+    ],
+    "skipped_reason": null,
+    "status": "fail",
+    "capability_pack": "regression",
+    "risk_tier": "critical",
+    "infra_errors": [],
+    "trials": [
+      {
+        "trial": 0,
+        "status": "pass",
+        "semantic": {
+          "rubric": "development-posture@1",
+          "gating": false,
+          "version": "semantic-judge-v1",
+          "status": "deferred",
+          "reason": "no judge configured"
+        },
+        "answer_outcome": "accepted_after_correction",
+        "model_draft_valid_first_pass": false,
+        "accepted_after_correction": true,
+        "fallback_used": false,
+        "stop_reason": "insufficient_evidence",
+        "counters": {
+          "tool_calls": 8,
+          "searches": 1,
+          "evidence_reads": 0,
+          "submits": 2,
+          "failed_calls": 1,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 1,
+        "status": "fail",
+        "semantic": {
+          "rubric": "development-posture@1",
+          "gating": false,
+          "version": "semantic-judge-v1",
+          "status": "deferred",
+          "reason": "no judge configured"
+        },
+        "answer_outcome": "fallback",
+        "model_draft_valid_first_pass": false,
+        "accepted_after_correction": false,
+        "fallback_used": true,
+        "stop_reason": "blocked",
+        "counters": {
+          "tool_calls": 8,
+          "searches": 2,
+          "evidence_reads": 0,
+          "submits": 2,
+          "failed_calls": 1,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      },
+      {
+        "trial": 2,
+        "status": "fail",
+        "semantic": {
+          "rubric": "development-posture@1",
+          "gating": false,
+          "version": "semantic-judge-v1",
+          "status": "deferred",
+          "reason": "no judge configured"
+        },
+        "answer_outcome": "fallback",
+        "model_draft_valid_first_pass": false,
+        "accepted_after_correction": false,
+        "fallback_used": true,
+        "stop_reason": "blocked",
+        "counters": {
+          "tool_calls": 6,
+          "searches": 1,
+          "evidence_reads": 0,
+          "submits": 2,
+          "failed_calls": 1,
+          "denied_calls": 0,
+          "duplicate_calls": 0
+        }
+      }
+    ]
+  }
+]
