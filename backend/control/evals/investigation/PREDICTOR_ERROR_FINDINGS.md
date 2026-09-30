@@ -46,13 +46,22 @@ scan, `signal_scan.py`, explicitly not a grade):
 | moxifloxacin | 4 | 0 | 1 |
 | catechin | 3 | 3 | 2 |
 | uric acid | 2 | 1 | 0 |
-| 4,4′-biphenol | 4 | 2 | — |
+| 4,4′-biphenol | 4 | 2 | 4 |
 | succinic acid *(control)* | 1 | 1 | 0 |
 | fexofenadine *(control)* | 2 | 2 | 1 |
 
-ToxAgent scores 0 on the "passed the prediction through" column everywhere,
-so this is not a system that repeats a wrong prediction confidently. It is a
-system that says little of substance either way.
+Totals over the eight cases: Claude with the snapshot 23, Claude bare 13,
+ToxAgent 8. ToxAgent scores 0 on the "passed the prediction through" column in
+every case, so this is not a system that repeats a wrong prediction
+confidently. It is a system that says little of substance either way.
+
+The exception is worth reading: on 4,4′-biphenol it matches Claude. It lists
+the ten active assays, says plainly "do not turn the pattern into an aggregate
+toxicity score or interpret the number of active assays as severity", and asks
+for orthogonal concentration-response testing "with cytotoxicity and
+assay-interference controls" — the right mechanism for exactly this kind of
+overcall. What it still does not do is say that ten of twelve is implausible.
+It handles the pattern correctly without ever doubting it.
 
 ## 3. What the transcripts show instead
 
