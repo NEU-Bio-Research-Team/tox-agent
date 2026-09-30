@@ -4,25 +4,77 @@
   "title": "One case of the ToxAgent comparison study",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "set_id", "case_id", "tags", "compound", "turns", "reference", "spec_sha256"],
+  "required": [
+    "schema_version",
+    "set_id",
+    "case_id",
+    "tags",
+    "compound",
+    "turns",
+    "reference",
+    "spec_sha256"
+  ],
   "properties": {
-    "schema_version": {"const": "investigation-case-v1"},
-    "set_id": {"type": "string", "minLength": 1},
-    "case_id": {"type": "string", "pattern": "^inv-[0-9]{2}-[a-z0-9-]+$"},
-    "tags": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9_]+$"}, "minItems": 1, "uniqueItems": true},
+    "schema_version": {
+      "const": "investigation-case-v1"
+    },
+    "set_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^inv-[0-9]{2}-[a-z0-9-]+$"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
     "compound": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["query_name", "name_disclosed", "pubchem_cid", "smiles", "molecular_formula", "resolved_from", "resolved_at", "source_url"],
+      "required": [
+        "query_name",
+        "name_disclosed",
+        "pubchem_cid",
+        "smiles",
+        "molecular_formula",
+        "resolved_from",
+        "resolved_at",
+        "source_url"
+      ],
       "properties": {
-        "query_name": {"type": "string"},
-        "name_disclosed": {"type": "boolean"},
-        "pubchem_cid": {"type": "integer", "minimum": 1},
-        "smiles": {"type": "string", "minLength": 1},
-        "molecular_formula": {"type": "string"},
-        "resolved_from": {"const": "PubChem PUG REST"},
-        "resolved_at": {"type": "string"},
-        "source_url": {"type": "string"}
+        "query_name": {
+          "type": "string"
+        },
+        "name_disclosed": {
+          "type": "boolean"
+        },
+        "pubchem_cid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "smiles": {
+          "type": "string",
+          "minLength": 1
+        },
+        "molecular_formula": {
+          "type": "string"
+        },
+        "resolved_from": {
+          "const": "PubChem PUG REST"
+        },
+        "resolved_at": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        }
       }
     },
     "turns": {
@@ -31,14 +83,32 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["text"],
+        "required": [
+          "text"
+        ],
         "properties": {
-          "text": {"type": "string", "minLength": 1},
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
           "context": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["key", "value"],
-            "properties": {"key": {"type": "string"}, "value": {"type": "string"}, "note": {"type": "string"}}
+            "required": [
+              "key",
+              "value"
+            ],
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -46,16 +116,89 @@
     "reference": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "summary", "sources", "good_behaviours", "status"],
+      "required": [
+        "type",
+        "summary",
+        "sources",
+        "good_behaviours",
+        "status"
+      ],
       "properties": {
-        "type": {"enum": ["known_outcome", "known_outcome_with_hypothetical_scenario", "reasoning_expectation"]},
-        "summary": {"type": "string"},
-        "sources": {"type": "array", "items": {"type": "object", "required": ["citation", "url"], "additionalProperties": false,
-                                                "properties": {"citation": {"type": "string"}, "url": {"type": "string"}}}},
-        "good_behaviours": {"type": "array", "items": {"type": "string"}},
-        "status": {"enum": ["pending_lab_verification", "lab_verified", "lab_disputed"]}
+        "type": {
+          "enum": [
+            "known_outcome",
+            "known_outcome_with_hypothetical_scenario",
+            "reasoning_expectation"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "citation",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "citation": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "good_behaviours": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "enum": [
+            "pending_lab_verification",
+            "lab_verified",
+            "lab_disputed"
+          ]
+        },
+        "predictor_error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "what_the_predictor_says",
+            "why_it_misleads"
+          ],
+          "description": "For a case built around the served predictor's own output: what that output is, and how a system that passes it through unexamined would mislead. 'none' marks a control case where predictor and literature agree, so that scepticism is measured rather than rewarded unconditionally.",
+          "properties": {
+            "kind": {
+              "enum": [
+                "false_negative",
+                "false_negative_in_context",
+                "false_positive",
+                "overcall",
+                "undercall",
+                "none"
+              ]
+            },
+            "what_the_predictor_says": {
+              "type": "string"
+            },
+            "why_it_misleads": {
+              "type": "string"
+            }
+          }
+        }
       }
     },
-    "spec_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    "spec_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
   }
 }

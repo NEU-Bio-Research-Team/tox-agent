@@ -223,10 +223,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--study", required=True)
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--packet-id", required=True)
+    parser.add_argument("--cases-dir", type=Path, default=case_module.CASES_DIR)
     parser.add_argument("--seed", type=int, default=20260925)
     parser.add_argument("--systems", default="", help="comma-separated (default: every system in the study)")
     args = parser.parse_args(argv)
     result = build_packet(study_dir=args.root / args.study, packet_id=args.packet_id, seed=args.seed,
+                          cases_dir=args.cases_dir,
                           systems=[s for s in args.systems.split(",") if s] or None)
     print(json.dumps(result, indent=2))
     return 0

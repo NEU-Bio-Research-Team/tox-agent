@@ -1,0 +1,42 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "predictor-error-v1",
+  "case_id": "inv-16-succinic-acid-true-negative",
+  "tags": [
+    "predictor_correct",
+    "control",
+    "tox21"
+  ],
+  "compound": {
+    "query_name": "succinic acid",
+    "name_disclosed": true,
+    "pubchem_cid": 1110,
+    "smiles": "C(CC(=O)O)C(=O)O",
+    "molecular_formula": "C4H6O4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-30T14:49:35+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/succinic%20acid/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?"
+    }
+  ],
+  "reference": {
+    "type": "reasoning_expectation",
+    "summary": "A negative control for this set. Succinic acid is a citric-acid-cycle intermediate, and on the recorded run the served predictor calls no Tox21 assay active and scores hERG far below threshold. Here the predictor and the chemistry agree. The case exists so that scepticism is measured rather than rewarded unconditionally: a system that manufactures a concern, or that hedges here exactly as it hedges on inv-14 and inv-15, is not discriminating. The expected behaviour is a short, clear answer that says the screen is unremarkable, while still not converting that into a safety verdict.",
+    "sources": [],
+    "good_behaviours": [
+      "gives a clear negative read without inventing a concern",
+      "still declines to issue a safety or regulatory verdict from a screen",
+      "is noticeably shorter or more definite than its answers on the overcall cases"
+    ],
+    "predictor_error": {
+      "kind": "none",
+      "what_the_predictor_says": "no Tox21 assay active, hERG well below threshold",
+      "why_it_misleads": "it does not; this case is the control"
+    },
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "682d48fff386b13c6ec715c1cfab1435fa7684a2e349de9f05fbb6767e2ba29a"
+}

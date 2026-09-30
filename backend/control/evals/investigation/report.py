@@ -187,9 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--study", required=True)
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument("--cases-dir", type=Path, default=case_module.CASES_DIR)
     args = parser.parse_args(argv)
     study_dir = args.root / args.study
-    report = build_report(study_dir)
+    report = build_report(study_dir, cases_dir=args.cases_dir)
     (study_dir / "study-report.json").write_text(json.dumps(report, indent=2, default=str) + "\n")
     text = render_markdown(report)
     (study_dir / "study-report.md").write_text(text)

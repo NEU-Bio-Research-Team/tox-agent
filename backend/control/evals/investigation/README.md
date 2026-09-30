@@ -10,6 +10,17 @@ published outcomes and turned into ToxAgent questions. The numbers this study
 produces are never an `external-native` benchmark score and are not compared
 with any leaderboard.
 
+## Two case sets
+
+| Set | Directory | Question it asks |
+|---|---|---|
+| `pilot-v1` | `cases/` (from `case_specs.json`) | Does the system reason well about a compound? |
+| `predictor-error-v1` | `cases_predictor_error/` (from `case_specs_predictor_error.json`) | When the served predictor is **wrong**, does the system notice, or pass the prediction through as a finding? See [PREDICTOR_ERROR_STUDY.md](PREDICTOR_ERROR_STUDY.md). |
+
+`cases.py --build` takes `--specs` and `--cases-dir`; `run.py`, `packet.py` and
+`report.py` take `--cases-dir`. Keeping a set in its own directory is what keeps
+two studies from being joined into one.
+
 ## Systems
 
 | Id | RETHINK arm | What it is |

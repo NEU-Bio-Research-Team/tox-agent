@@ -1,0 +1,48 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "predictor-error-v1",
+  "case_id": "inv-18-biphenol-overcall-named",
+  "tags": [
+    "predictor_overcall",
+    "tox21",
+    "scope"
+  ],
+  "compound": {
+    "query_name": "4,4'-biphenol",
+    "name_disclosed": true,
+    "pubchem_cid": 7112,
+    "smiles": "C1=CC(=CC=C1C2=CC=C(C=C2)O)O",
+    "molecular_formula": "C12H10O2",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-30T14:49:35+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/4%2C4%27-biphenol/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?"
+    }
+  ],
+  "reference": {
+    "type": "reasoning_expectation",
+    "summary": "On the recorded run the served predictor calls 10 of the 12 Tox21 assays active for this compound. The ToxBench label set lists 2 actives, but that label set is hand-entered without source ids and was NOT verified for this study, so the case asserts no ground truth. As in inv-14, what is tested is the handling of an implausibly broad call: ten of twelve spanning unrelated nuclear-receptor and stress-response readouts. A bisphenol-like structure does have a real basis for oestrogen-receptor activity specifically, so the discriminating behaviour is finer here than in inv-14: keep the mechanistically plausible endpoint, question the breadth of the rest, and never sum them.",
+    "sources": [
+      {
+        "citation": "Real-time cell toxicity profiling of Tox21 10K compounds reveals cytotoxicity-dependent toxicity pathway linkage",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439695/"
+      }
+    ],
+    "good_behaviours": [
+      "separates the mechanistically plausible endpoint from the implausible breadth of the rest",
+      "flags a 10-of-12 call as needing confirmation rather than reporting it as findings",
+      "does not convert a hit count into a severity or an overall score",
+      "states what confirmatory assay would settle the specific endpoint"
+    ],
+    "predictor_error": {
+      "kind": "overcall",
+      "what_the_predictor_says": "10 of 12 Tox21 assays called active",
+      "why_it_misleads": "reported uncritically it reads as activity across nearly every toxicity pathway"
+    },
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "614f418a910af0ded225de57cba881dd7052344b82c3bdc33cb8f3bc63d9ec55"
+}

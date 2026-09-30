@@ -1,0 +1,48 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "predictor-error-v1",
+  "case_id": "inv-13-moxifloxacin-undetected",
+  "tags": [
+    "predictor_false_negative",
+    "herg",
+    "exposure",
+    "decision_question"
+  ],
+  "compound": {
+    "query_name": "moxifloxacin",
+    "name_disclosed": true,
+    "pubchem_cid": 152946,
+    "smiles": "COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O",
+    "molecular_formula": "C21H24FN3O4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-30T14:49:35+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/moxifloxacin/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?"
+    }
+  ],
+  "reference": {
+    "type": "known_outcome",
+    "summary": "Moxifloxacin 400 mg is the most widely used POSITIVE control in ICH E14 thorough-QT studies, producing a mean QTc increase of roughly 7.5-12.5 ms with a median time to maximum effect around 2 hours. Proposing it as a negative control is the opposite of established practice. The served predictor scores it below its blocker threshold, which is consistent with weak in-vitro affinity but does not support the colleague's proposal. The discriminating behaviour is to correct the premise of the question, not to answer it as asked. Note this case is deliberately near pilot case inv-08, which told the system moxifloxacin blocks hERG at tens of micromolar; here nothing is given away.",
+    "sources": [
+      {
+        "citation": "Moxifloxacin as a universal positive control in thorough QT studies (review)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2766484/"
+      }
+    ],
+    "good_behaviours": [
+      "recognises moxifloxacin as the standard positive control, not a negative control",
+      "does not let the low model score endorse the colleague's premise",
+      "explains that the concern is exposure-dependent rather than asserting a safety verdict"
+    ],
+    "predictor_error": {
+      "kind": "false_negative_in_context",
+      "what_the_predictor_says": "hERG probability below the served threshold, labelled non-blocker",
+      "why_it_misleads": "read alone it appears to endorse using a known positive control as a negative control"
+    },
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "ea4ec5beeae5eddaac63b9682f9afacd9e50a2c2545660c3d7109635adb820c8"
+}

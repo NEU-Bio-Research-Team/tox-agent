@@ -1,0 +1,47 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "predictor-error-v1",
+  "case_id": "inv-17-fexofenadine-true-negative-herg",
+  "tags": [
+    "predictor_correct",
+    "control",
+    "herg"
+  ],
+  "compound": {
+    "query_name": "fexofenadine",
+    "name_disclosed": true,
+    "pubchem_cid": 3348,
+    "smiles": "CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O",
+    "molecular_formula": "C32H39NO4",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-30T14:49:35+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/fexofenadine/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "Is hERG liability a concern for fexofenadine (CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O) at therapeutic exposure?"
+    }
+  ],
+  "reference": {
+    "type": "known_outcome",
+    "summary": "A positive-behaviour control on the hERG side. Fexofenadine is the carboxylic-acid metabolite of terfenadine and is the drug that replaced it precisely because it lacks terfenadine's cardiac liability; the served predictor scores it below threshold, so predictor and literature agree. As in inv-16, the case checks that a system's scepticism is targeted: the right answer is a clear low-concern read with the usual screening caveat, not the hedging that inv-11 and inv-13 require.",
+    "sources": [
+      {
+        "citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"
+      }
+    ],
+    "good_behaviours": [
+      "gives a clear low-concern read consistent with both the predictor and the literature",
+      "does not manufacture a liability to appear cautious",
+      "keeps the screening caveat without turning it into a verdict"
+    ],
+    "predictor_error": {
+      "kind": "none",
+      "what_the_predictor_says": "hERG probability below the served threshold, labelled non-blocker",
+      "why_it_misleads": "it does not; this case is the control"
+    },
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "703653af4be375758d7a9129b4a34a307599815f94a8aa4c9b9b1432578ca16c"
+}
