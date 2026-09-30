@@ -80,6 +80,13 @@ def test_no_shipped_document_links_to_a_withheld_one(classified):
     assert handoff.dangling_references(classified[0]) == []
 
 
+def test_code_is_not_read_as_a_link():
+    """SMILES in a prompt file look like Markdown links; code renders literally,
+    so it must not count, while a real link beside it still does."""
+    text = "```text\nCC[C@H](O)N\n```\nsee `[O-](O)` and [card](missing.md)\n"
+    assert handoff._LINK.findall(handoff._CODE.sub("", text)) == ["missing.md"]
+
+
 def test_no_credential_shape_ships_unless_it_was_declared(classified):
     assert handoff.secrets_in(classified[0]) == []
 

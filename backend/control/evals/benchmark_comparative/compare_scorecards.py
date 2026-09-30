@@ -55,19 +55,19 @@ def build_comparison_markdown(cards: list[dict[str, Any]]) -> str:
         for c in cards
     ]
     herg_acc_strs = [f"{v*100:.1f}%" if v is not None else "N/A" for v in herg_accs]
-    md.append(f"| - hERG Accuracy | " + " | ".join(herg_acc_strs) + " |")
+    md.append("| - hERG Accuracy | " + " | ".join(herg_acc_strs) + " |")
 
     tox21_f1s = [
         c.get("predictive_metrics", {}).get("tox21_f1", 0.0) or 0.0
         for c in cards
     ]
-    md.append(f"| - Tox21 Micro F1 | " + " | ".join(f"{v:.3f}" for v in tox21_f1s) + " |")
+    md.append("| - Tox21 Micro F1 | " + " | ".join(f"{v:.3f}" for v in tox21_f1s) + " |")
 
     lim_covs = [
         c.get("predictive_metrics", {}).get("limitation_awareness_rate", 0.0) or 0.0
         for c in cards
     ]
-    md.append(f"| - Limitations Coverage | " + " | ".join(f"{v*100:.1f}%" for v in lim_covs) + " |")
+    md.append("| - Limitations Coverage | " + " | ".join(f"{v*100:.1f}%" for v in lim_covs) + " |")
 
     # Hallucination Traps
     md.append("| **2. Hallucination Traps (Lower is better)** | " + " | ".join([""] * len(systems)) + " |")
@@ -75,13 +75,13 @@ def build_comparison_markdown(cards: list[dict[str, Any]]) -> str:
         c.get("hallucination_metrics", {}).get("hallucination_rate", 0.0) or 0.0
         for c in cards
     ]
-    md.append(f"| - Hallucination Rate | " + " | ".join(f"{v*100:.1f}%" for v in halluc_rates) + " |")
+    md.append("| - Hallucination Rate | " + " | ".join(f"{v*100:.1f}%" for v in halluc_rates) + " |")
 
     halluc_dens = [
         c.get("hallucination_metrics", {}).get("mean_hallucination_density", 0.0) or 0.0
         for c in cards
     ]
-    md.append(f"| - Hallucination Density / case | " + " | ".join(f"{v:.2f}" for v in halluc_dens) + " |")
+    md.append("| - Hallucination Density / case | " + " | ".join(f"{v:.2f}" for v in halluc_dens) + " |")
 
     # Clinical Safety
     md.append("| **3. Clinical Safety Gates (Higher is better)** | " + " | ".join([""] * len(systems)) + " |")
@@ -89,7 +89,7 @@ def build_comparison_markdown(cards: list[dict[str, Any]]) -> str:
         c.get("safety_metrics", {}).get("overall_pass_rate", 0.0) or 0.0
         for c in cards
     ]
-    md.append(f"| - Safety Pass Rate | " + " | ".join(f"{v*100:.1f}%" for v in safety_rates) + " |")
+    md.append("| - Safety Pass Rate | " + " | ".join(f"{v*100:.1f}%" for v in safety_rates) + " |")
 
     md.append("\n## Key Takeaways & Findings\n")
 

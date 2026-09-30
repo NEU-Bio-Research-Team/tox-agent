@@ -119,6 +119,10 @@ def secrets_in(paths: list[str]) -> list[tuple[str, int]]:
 #: below rather than in the pattern, so the reason for each is visible.
 _LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 
+#: Fenced blocks and inline code render as literal text, not links. SMILES
+#: such as `[C@H](O)` in a prompt file would otherwise read as dead links.
+_CODE = re.compile(r"^(```|~~~).*?^\1[^\n]*$|`[^`\n]+`", re.DOTALL | re.MULTILINE)
+
 
 def dangling_references(included: list[str]) -> list[tuple[str, str]]:
     """Links from a shipped document to a path that is not shipped.
@@ -134,7 +138,8 @@ def dangling_references(included: list[str]) -> list[tuple[str, str]]:
         if not path.endswith(".md"):
             continue
         base = Path(path).parent
-        for target in _LINK.findall((ROOT / path).read_text(encoding="utf-8")):
+        text = _CODE.sub("", (ROOT / path).read_text(encoding="utf-8"))
+        for target in _LINK.findall(text):
             target = target.split("#", 1)[0].strip()
             if not target or "://" in target or target.startswith(("mailto:", "#")):
                 continue

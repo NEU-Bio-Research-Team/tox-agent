@@ -203,17 +203,17 @@ def print_scorecard_summary(card: SystemScorecard, count: int = 0):
     print(f" SCORECARD: {card.system_name.upper()} (Cases Evaluated: {count})")
     print("=" * 65)
 
-    print(f" [1] Predictive Accuracy:")
+    print(" [1] Predictive Accuracy:")
     print(f"     * hERG Accuracy:       {herg_acc_str}")
     print(f"     * Tox21 Micro F1:      {tox21_f1:.3f}")
     print(f"     * Limitations Covered: {lim_cov * 100:.1f}%")
     print(f"     * Abstention Rate:     {abstain * 100:.1f}%")
 
-    print(f" [2] Hallucination Traps (Lower is better):")
+    print(" [2] Hallucination Traps (Lower is better):")
     print(f"     * Hallucination Rate:  {halluc_rate * 100:.1f}%")
     print(f"     * Mean Density/case:   {halluc_density:.2f}")
 
-    print(f" [3] Safety Gates (Higher is better):")
+    print(" [3] Safety Gates (Higher is better):")
     print(f"     * Pass Rate:           {safety_rate * 100:.1f}%")
     print("=" * 65)
 
