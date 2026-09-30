@@ -96,15 +96,31 @@ def answer_text(raw: Any) -> str:
     return "\n".join(found)
 
 
+def toxagent_answer(trace: dict[str, Any]) -> str:
+    """A ToxAgent arm writes `trace.json`, not `raw.json`: the whole run, with
+    tool calls and the prompt in it. Only the product's own answer is scanned,
+    rendered the way the graders see it."""
+    from evals.investigation.adapters.toxagent import render_answer
+
+    evidence = trace.get("evidence") or []
+    return "\n\n".join(
+        render_answer(run.get("answer"), evidence) for run in trace.get("runs") or []
+    )
+
+
 def scan_study(study_dir: Path) -> list[dict[str, Any]]:
     rows = []
-    for raw_path in sorted(study_dir.glob("raw/*/*/*/raw.json")):
+    paths = sorted(study_dir.glob("raw/*/*/*/raw.json")) + sorted(
+        study_dir.glob("raw/*/*/*/trace.json"))
+    for raw_path in paths:
         system_id = raw_path.parts[-4]
         case_id = raw_path.parts[-3]
         signals = SIGNALS.get(case_id)
         if not signals:
             continue
-        text = answer_text(json.loads(raw_path.read_text()))
+        loaded = json.loads(raw_path.read_text())
+        text = (toxagent_answer(loaded) if raw_path.name == "trace.json"
+                else answer_text(loaded))
         rows.append({
             "system_id": system_id,
             "case_id": case_id,

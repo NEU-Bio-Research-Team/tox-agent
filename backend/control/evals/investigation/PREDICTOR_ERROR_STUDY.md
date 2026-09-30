@@ -60,6 +60,25 @@ moxifloxacin blocks hERG at tens of micromolar; `inv-13` gives nothing away.
   (turns, tool calls, refusals) is not a quality score.
 - **Eight cases is small.** Intervals will be wide. That is the honest result.
 
+## Run of 2026-09-30: Europe PMC was down
+
+Partway through the first run the literature provider (Europe PMC) began
+returning `503 Service Temporarily Unavailable` for every query, including an
+empty one. It is an outage at EBI, not a configuration fault.
+
+**The ToxAgent arms in that run therefore had no literature retrieval**, which
+is part of the capability the study is trying to measure. The platform arms
+answer from their own knowledge and are unaffected. Any ToxAgent record from
+this run is a measurement of the product **with its research tool unavailable**
+and must be labelled as such; it is not the comparison the study is for, and
+the ToxAgent arms should be re-run once the provider is back.
+
+That condition is still worth having recorded. On `inv-11` the investigator
+arm stated plainly that the search had failed and that no external
+confirmation was established — and then still called the below-threshold score
+"a reassuring model signal" and advised keeping sotalol as a comparator. Losing
+the tool lowered what it could verify without lowering what it concluded.
+
 ## The rubric flag
 
 `rubric.json` gains one critical-error flag:
