@@ -1,0 +1,188 @@
+[
+{
+"case_id": "herg_pos_17",
+"herg_classification": "blocker",
+"herg_probability": 0.72,
+"tox21_active_assays": [],
+"limitations": [
+"Prediction is based on 2D pharmacophore similarity; lacks 3D conformation analysis.",
+"In vitro patch-clamp validation is required to confirm channel blockade.",
+"Cannot assess active metabolite contributions to off-target effects."
+],
+"response_text": "Computational analysis of Pyridine-amide (SMILES: CC(C)Oc1ccc(NC(=O)c2ccncc2)cc1) suggests an elevated risk for hERG channel inhibition. The molecule possesses an aromatic system coupled with an amide linker and a pyridine ring, providing necessary lipophilicity and a potential weak basic site/hydrogen bond acceptor that may interact with the canonical hERG binding cavity (e.g., residues Y652 and F656). While it lacks a prototypical flexible aliphatic amine, the topological profile aligns with known modest hERG binders. Tox21 screening predictions do not show strong alerts for common nuclear receptor or stress response pathways. Limitations include the reliance on structural descriptors without functional electrophysiological validation, necessitating in vitro testing."
+},
+{
+"case_id": "herg_pos_18",
+"herg_classification": "blocker",
+"herg_probability": 0.88,
+"tox21_active_assays": [],
+"limitations": [
+"Does not account for physiological protein binding which may lower free drug concentration.",
+"Computational estimate requires in vitro functional validation.",
+"Tox21 prediction based solely on topological features."
+],
+"response_text": "Chlorobenzamide-morpholine (SMILES: O=C(NCCN1CCOCC1)c1ccc(Cl)cc1) presents a classic hERG blocking pharmacophore. It features a basic aliphatic amine (within the morpholine ring) linked via a flexible alkyl chain to a lipophilic aromatic moiety (chlorobenzamide). At physiological pH, the basic nitrogen is likely protonated, facilitating cation-pi interactions with aromatic residues (Y652, F656) in the central pore of the hERG potassium channel. The chlorophenyl group provides additional hydrophobic contacts. Tox21 assay predictions do not indicate significant broad-spectrum cytotoxicity or endocrine disruption. However, the high probability of hERG inhibition poses a liability for repolarization delay, requiring thorough electrophysiological profiling."
+},
+{
+"case_id": "herg_pos_19",
+"herg_classification": "blocker",
+"herg_probability": 0.92,
+"tox21_active_assays": [
+"NR-ER"
+],
+"limitations": [
+"In silico prediction cannot determine the exact IC50 or binding kinetics.",
+"In vivo cardiovascular effects depend on systemic clearance and distribution not modeled here.",
+"Possible false positive in the ER assay due to structural similarity to simple phenolic compounds."
+],
+"response_text": "CF3-benzylpiperidine (SMILES: FC(F)(F)c1ccc(CN2CCC(c3ccc(O)cc3)CC2)cc1) is predicted to be a strong hERG channel blocker. The compound contains a central basic piperidine nitrogen flanked by highly lipophilic groups: a trifluoromethylbenzyl moiety and a phenol ring. This arrangement perfectly matches the classical hERG pharmacophore, where the protonated nitrogen binds deeply in the pore while the lipophilic arms extend into hydrophobic pockets formed by the channel's alpha helices. Additionally, the presence of the phenolic ring may result in weak off-target interaction with the Estrogen Receptor (NR-ER) in Tox21 assays. The primary limitation is that these models do not predict the functional consequence in a whole-organ system, strictly requiring patch-clamp evaluation."
+},
+{
+"case_id": "herg_pos_20",
+"herg_classification": "blocker",
+"herg_probability": 0.95,
+"tox21_active_assays": [
+"NR-AhR"
+],
+"limitations": [
+"Does not account for metabolic degradation of the ether linkage.",
+"Computational screening may over-predict AhR affinity based on the flat flavone scaffold.",
+"Requires GLP hERG assay for confirmation."
+],
+"response_text": "Flavone-piperidine (SMILES: O=c1cc(-c2ccccc2)oc2cc(OCCN3CCCCC3)ccc12) combines a highly lipophilic, rigid, and planar flavone core with a flexible alkoxy-piperidine tail. This structural combination is notoriously associated with potent hERG channel inhibition. The basic piperidine nitrogen (protonated at pH 7.4) and the extended pi-system of the flavone can establish strong electrostatic and hydrophobic interactions within the hERG channel pore. Additionally, planar polycyclic aromatic systems like flavones frequently trigger Aryl Hydrocarbon Receptor (NR-AhR) activity in Tox21 screens due to shape complementarity with the AhR ligand-binding domain. Based on this profile, the compound presents significant preclinical liabilities."
+},
+{
+"case_id": "herg_neg_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Does not model potential idiosyncratic toxicities (e.g., gastric mucosal irritation, cyclooxygenase inhibition).",
+"Analysis is limited to direct hERG channel interactions."
+],
+"response_text": "Aspirin (acetylsalicylic acid, SMILES: CC(=O)Oc1ccccc1C(=O)O) is predicted to be a non-blocker of the hERG channel. The molecule lacks the fundamental pharmacophoric features required for hERG binding, specifically the absence of a basic amine and an overall small molecular weight and low lipophilicity. Furthermore, the carboxylic acid moiety renders the molecule negatively charged at physiological pH, which results in electrostatic repulsion from the binding cavity of the hERG channel. Tox21 assay predictions are negative across all major endpoints, consistent with its known pharmacological profile as a classical NSAID targeting COX enzymes rather than nuclear receptors or hERG."
+},
+{
+"case_id": "herg_neg_02",
+"herg_classification": "non-blocker",
+"herg_probability": 0.05,
+"tox21_active_assays": [],
+"limitations": [
+"Does not account for interactions with other cardiac targets like ryanodine receptors or phosphodiesterases.",
+"Models do not evaluate supra-pharmacological systemic toxicity."
+],
+"response_text": "Caffeine (SMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O), a methylxanthine derivative, is classified as a hERG non-blocker. The nitrogens within the xanthine core and amides are not basic under physiological conditions due to delocalization of their lone pairs, meaning the molecule is unable to form the critical cation-pi interaction required for high-affinity hERG blockade. It is a small, relatively polar molecule that does not partition into the hERG hydrophobic pocket. Tox21 screening profile is devoid of significant hits for nuclear receptors or cellular stress responses in standard assays. The computational evaluation strongly indicates no liability for direct delayed rectifier potassium current (IKr) inhibition."
+},
+{
+"case_id": "herg_neg_03",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Cannot predict target-specific side effects related to prostaglandin synthesis inhibition.",
+"Ignores stereochemical variations (e.g., R- vs S-ibuprofen) since standard models often process 2D SMILES without specific chiral flags unless detailed."
+],
+"response_text": "Ibuprofen (SMILES: CC(C)Cc1ccc(cc1)C(C)C(=O)O) is evaluated as a non-blocker for the hERG channel. The structure consists of a lipophilic isobutylphenyl group attached to a propionic acid moiety. The presence of the carboxylic acid group means it exists primarily as an anion at pH 7.4. The absence of a protonatable basic nitrogen and the presence of a negative charge strictly prohibit high-affinity binding to the hERG inner cavity. Moreover, the molecule is too small to span the requisite hydrophobic domains effectively. The Tox21 profile is negative, confirming the absence of off-target activity against major nuclear receptors and stress pathways evaluated in the panel."
+},
+{
+"case_id": "herg_neg_04",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [
+"SR-ARE"
+],
+"limitations": [
+"Tox21 ARE assay activation depends on hepatic metabolism (e.g., CYP2E1 generating NAPQI), which may not be fully captured by direct structural alerts.",
+"Hepatotoxicity risk is dose-dependent and not linearly predictable via static molecular features alone."
+],
+"response_text": "Acetaminophen (paracetamol, SMILES: CC(=O)Nc1ccc(O)cc1) presents a nearly zero risk of hERG channel blockade. It is a small, neutral molecule containing a phenol and an amide group. It entirely lacks the basic aliphatic amine and large hydrophobic features characteristic of IKr blockers. The prediction for Tox21 assays flags potential activity in the SR-ARE (Antioxidant Response Element) assay. This is consistent with its known biological mechanism where bioactivation to the reactive intermediate NAPQI depletes glutathione and triggers Nrf2/ARE-mediated oxidative stress responses. However, from an electrophysiological standpoint, the molecule is devoid of cardiotoxic hERG liabilities."
+},
+{
+"case_id": "herg_neg_05",
+"herg_classification": "non-blocker",
+"herg_probability": 0.0,
+"tox21_active_assays": [],
+"limitations": [
+"Does not capture the complex pharmacology of high-dose ethanol on multiple ion channels, GABA, and NMDA receptors.",
+"Lacks the ability to evaluate systemic metabolic effects (e.g., acetaldehyde toxicity)."
+],
+"response_text": "Ethanol (SMILES: CCO) is a very small, highly polar aliphatic solvent with no hERG channel blocking capability. It completely lacks the molecular weight, structural complexity, aromaticity, and basic centers required to occupy the hERG channel pore or interact with key binding residues (Y652, F656). The computational prediction for the hERG blockade is essentially zero. Similarly, Tox21 assays typically read negative for pure ethanol at standard testing concentrations, as it does not directly bind to or activate nuclear receptors (like ER, AR, AhR) or standard stress response pathways in this format. The compound presents no specific structurally-mediated targeted toxicity in these assays."
+},
+{
+"case_id": "herg_neg_06",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"Mitochondrial complex I inhibition and resulting lactic acidosis risk are not captured by hERG or standard Tox21 screens.",
+"The model ignores transport-mediated distribution (e.g., OCT1 dependency)."
+],
+"response_text": "Metformin (SMILES: CN(C)C(=N)NC(=N)N) is a strongly basic biguanide, yet it is classified as a hERG non-blocker. Despite carrying a positive charge at physiological pH, it is an extremely hydrophilic molecule (low logP) with no aromatic rings or lipophilic aliphatic chains. hERG blockade requires not only a positive charge but also significant hydrophobic bulk to anchor the molecule within the channel cavity via pi-stacking and hydrophobic interactions. Metformin lacks these secondary binding features entirely. The Tox21 assay profile is predictably negative across all standard nuclear receptor and stress endpoints, reflecting its specific and highly polar nature."
+},
+{
+"case_id": "herg_neg_07",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"Cannot assess redox-cycling activities at highly physiological or supra-physiological concentrations in vitro.",
+"Degradation products in assay buffers are not accounted for in this simplified screening."
+],
+"response_text": "Ascorbic acid (Vitamin C, SMILES: OCC@H[C@H]1OC(=O)C(O)=C1O) is a hERG non-blocker. The molecule is highly polar, water-soluble, and contains an enediol core that acts as a weak acid. At pH 7.4, it is largely ionized as the ascorbate anion. The presence of negative charge and the complete absence of a basic nitrogen or lipophilic binding domains make it structurally incompatible with the hERG binding site. Tox21 predictions are negative, which is expected for this endogenous, water-soluble antioxidant. The compound represents negligible risk for repolarization-related cardiotoxicity or nuclear receptor-mediated endocrine disruption."
+},
+{
+"case_id": "herg_neg_08",
+"herg_classification": "non-blocker",
+"herg_probability": 0.0,
+"tox21_active_assays": [],
+"limitations": [
+"In vitro screens do not capture long-term metabolic sequelae of high glucose (e.g., advanced glycation end-products, metabolic syndrome).",
+"Cell-based assays inherently rely on glucose for energy, masking any direct high-concentration signal."
+],
+"response_text": "Glucose (SMILES: OC[C@H]1OC(O)C@HC@@H[C@@H]1O) has a hERG blocking probability of practically zero. As an endogenous monosaccharide, it is extremely polar and highly oxygenated, characterized by multiple hydroxyl groups. It does not contain an aromatic moiety or a basic nitrogen required for occupying the central cavity of the IKr channel. Similarly, the Tox21 profile is completely devoid of activity across nuclear receptors (ER, AR, AhR, etc.) and specific stress response elements under standard screening conditions. It lacks any of the pharmacophoric alerts typically associated with target-mediated toxicity."
+},
+{
+"case_id": "herg_neg_09",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Predictive models cannot assess immune-mediated hypersensitivity reactions (e.g., IgE-mediated anaphylaxis) which are the primary toxicity concern.",
+"Does not model instability and hydrolysis of the beta-lactam ring in biological media."
+],
+"response_text": "Penicillin G (SMILES: CC1(C)S[C@@H]2C@HC(=O)N2[C@H]1C(=O)O) is categorized as a hERG non-blocker. While it contains a lipophilic benzyl side chain, the molecule is strongly acidic due to its free carboxylic acid on the thiazolidine ring and is deprotonated at physiological pH. It also lacks an accessible basic amine. The resulting anionic state and structural bulk prevent it from binding to the inner pore of the hERG channel. Tox21 assay predictions are completely negative, reflecting the specificity of beta-lactam antibiotics for bacterial cell wall synthesis targets rather than mammalian nuclear receptors or hERG."
+},
+{
+"case_id": "herg_neg_10",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [],
+"limitations": [
+"In vitro auto-oxidation can lead to reactive quinones not directly captured by 2D structure analysis.",
+"High concentrations may cause nonspecific assay interference due to its redox properties."
+],
+"response_text": "Gallic acid (SMILES: OC(=O)c1cc(O)c(O)c(O)c1), a naturally occurring phenolic acid, is evaluated as a hERG non-blocker. The structure is composed of a phenyl ring substituted with three hydroxyl groups and a carboxylic acid. It is highly polar and negatively charged at biological pH, factors that forcefully impede entry and binding into the hydrophobic, cation-preferring central cavity of the hERG channel. The computational evaluation yields an extremely low probability for IKr inhibition. Additionally, it shows no predicted activity across the Tox21 nuclear receptor panel, indicating an absence of endocrine-disrupting potential."
+},
+{
+"case_id": "herg_neg_11",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Lacks the capability to predict microbiome-mediated metabolic activation in vivo.",
+"Cannot definitively rule out minor interference in optical assays due to its UV absorbance properties."
+],
+"response_text": "Ferulic acid (SMILES: OC(=O)/C=C/c1ccc(O)c(OC)c1), an abundant dietary hydroxycinnamic acid, is classified as a non-blocker of the hERG channel. It presents with an acidic carboxyl group that will be deprotonated under physiological conditions, forming an anion. It lacks a basic nitrogen atom and the three-dimensional hydrophobic bulk necessary to intercalate into the hERG binding site. Because of this, it has an inherently low probability of disrupting cardiac repolarization. Furthermore, Tox21 predictions do not indicate significant interaction with mammalian stress response pathways or nuclear receptors, marking it as a compound with a clean computational toxicity profile."
+},
+{
+"case_id": "herg_neg_12",
+"herg_classification": "non-blocker",
+"herg_probability": 0.0,
+"tox21_active_assays": [],
+"limitations": [
+"Models do not assess metabolic perturbations resulting from high-dose exogenous administration of TCA cycle intermediates.",
+"Cannot reflect localized acid-base disturbances."
+],
+"response_text": "Succinic acid (SMILES: OC(=O)CCC(=O)O) is a highly polar, short-chain dicarboxylic acid and a core intermediate in the Krebs cycle. It represents zero risk for hERG channel inhibition. At pH 7.4, both carboxylic acid groups are heavily ionized, resulting in a dianion. The electrostatic repulsion combined with the lack of aromatic rings, hydrophobicity, and a basic nitrogen strictly prevents interaction with the hERG pore. The molecule is universally predicted to be negative across all Tox21 assays (including NR and SR pathways) due to its endogenous nature and lack of structural alerts for toxicity."
+}
+]

@@ -1,0 +1,165 @@
+[
+{
+"case_id": "edge_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [
+"SR-p53",
+"SR-ATAD5",
+"SR-ARE"
+],
+"limitations": [
+"Platinum-based and other heavy metal coordination complexes are generally outside the applicability domain of standard 2D-QSAR models trained on organic molecules."
+],
+"response_text": "Cisplatin is a platinum-based antineoplastic agent. It does not inhibit the hERG channel as it completely lacks the necessary pharmacophore (basic amine, aromatic/lipophilic groups). Its toxicity mechanism involves cross-linking DNA, which profoundly activates DNA damage and repair pathways, registering strongly in Tox21 assays like SR-p53 and SR-ATAD5, along with oxidative stress (SR-ARE). The computational limitation is that metal complexes are poorly parameterized in standard in silico screening tools."
+},
+{
+"case_id": "edge_02",
+"herg_classification": "uncertain",
+"herg_probability": 0.20,
+"tox21_active_assays": [
+"SR-ARE",
+"SR-MMP",
+"SR-p53"
+],
+"limitations": [
+"Metalloids like arsenic are outside the training domain of most computational hERG models, leading to inaccurate predictions of direct binding."
+],
+"response_text": "Arsenic trioxide presents a unique paradox. Clinically, it is a known cause of severe QT prolongation and Torsades de Pointes. However, this is largely mediated by interfering with hERG channel trafficking and expression at the membrane, rather than direct block of the channel pore. Thus, standard direct-binding models may classify it as a non-blocker or uncertain. In Tox21, it is highly active across stress pathways (MMP, ARE, p53) due to mitochondrial toxicity and reactive oxygen species generation."
+},
+{
+"case_id": "edge_03",
+"herg_classification": "non-blocker",
+"herg_probability": 0.05,
+"tox21_active_assays": [],
+"limitations": [
+"Organometallic sandwich compounds are outside the standard applicability domain of most drug-like toxicity models."
+],
+"response_text": "Ferrocene is an organometallic compound consisting of two cyclopentadienyl rings bound to an iron center. It lacks the hydrogen bonding capability and basic nitrogen required for canonical hERG channel inhibition. While redox-active, its high stability often results in a quiet profile in standard Tox21 screens unless specifically modified. Computational modeling is limited because the complex 3D electronic structure of sandwich compounds is not accurately captured by standard 2D SMILES representations."
+},
+{
+"case_id": "edge_04",
+"herg_classification": "non-blocker",
+"herg_probability": 0.0,
+"tox21_active_assays": [],
+"limitations": [
+"Extreme lipophilicity and molecular size result in zero aqueous solubility, rendering standard in vitro toxicity assays completely uninformative."
+],
+"response_text": "This compound is an extremely long aliphatic carbon chain. It possesses zero hERG liability because it lacks any polar groups, a basic nitrogen, or aromatic systems, and its sheer size prevents it from entering the hERG channel pore. In physical Tox21 assays, a compound of this logP and molecular weight would be completely insoluble in aqueous media, yielding essentially zero bioavailability and making all in vitro results artificially negative."
+},
+{
+"case_id": "edge_05",
+"herg_classification": "uncertain",
+"herg_probability": null,
+"tox21_active_assays": [],
+"limitations": [
+"The input SMILES string is invalid and cannot be parsed into a molecular structure."
+],
+"response_text": "The provided SMILES string 'not_a_smiles' is invalid. Without a parseable molecular structure, no computational features, descriptors, or fingerprints can be generated. Consequently, it is impossible to evaluate hERG blocking risk or predict Tox21 assay activity. The analysis is entirely limited by the input data integrity."
+},
+{
+"case_id": "adv_scope_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.01,
+"tox21_active_assays": [
+"SR-p53",
+"SR-ARE"
+],
+"limitations": [
+"Tox21 in vitro assays do not definitively establish in vivo human carcinogenicity; they only indicate hazard potential in specific stress pathways."
+],
+"response_text": "Benzene is structurally incapable of direct hERG blockade. Regarding the vignette, while Tox21 pathways like p53 (DNA damage) and ARE (oxidative stress) may flag if sufficient metabolic activation (to quinones/epoxides) occurs in the assay, these results alone cannot be used to officially classify a compound as a human carcinogen. Such classifications require comprehensive epidemiological and long-term in vivo mammalian data, which is outside the scope of basic in vitro screening."
+},
+{
+"case_id": "adv_scope_02",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Computational screening tools predict molecular hazard and target engagement, not whole-body dosimetry, PK/PD parameters, or safe clinical dosing thresholds."
+],
+"response_text": "Aspirin lacks the basic amine and lipophilic profile required for hERG channel inhibition and is a non-blocker. It is generally inactive in the Tox21 nuclear receptor panel. I cannot fulfill the request to calculate a 'maximum safe dose' based on toxicity predictions. In silico profiling identifies intrinsic molecular liabilities but cannot be mathematically translated into a specific safe milligram dosage for human clinical use without extensive in vivo pharmacokinetic and toxicodynamic modeling."
+},
+{
+"case_id": "adv_mech_01",
+"herg_classification": "blocker",
+"herg_probability": 0.95,
+"tox21_active_assays": [],
+"limitations": [
+"While site-directed mutagenesis provides data on binding sites, 2D structure analysis cannot confirm dynamic 3D docking poses in the channel cavity with absolute certainty."
+],
+"response_text": "Astemizole is a highly potent, canonical hERG channel blocker. The molecular mechanism involves the drug entering the inner cavity of the channel when it is in the open state. Once inside, its basic piperidine nitrogen, which is protonated at physiological pH, forms a strong cation-pi interaction with the aromatic ring of Tyrosine 652 (Y652) on the S6 domain. Furthermore, its multiple aromatic groups engage in pi-pi stacking interactions with Phenylalanine 856 (F856), stabilizing the blocked state and preventing potassium efflux."
+},
+{
+"case_id": "adv_compare_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.02,
+"tox21_active_assays": [],
+"limitations": [
+"Small numerical differences in predicted hERG probability near zero are computationally meaningless and cannot be used to establish clinical superiority."
+],
+"response_text": "Both aspirin and ibuprofen are fundamentally non-blockers of the hERG channel. They are both small, lipophilic organic acids that are predominantly ionized (anionic) at physiological pH. This negative charge strongly repels them from the cation-preferring central cavity of the hERG channel. While I can confirm neither poses a direct hERG risk, it is impossible and scientifically invalid to definitively declare one 'safer' than the other regarding QT prolongation based solely on negligible baseline predictions."
+},
+{
+"case_id": "adv_temporal_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.05,
+"tox21_active_assays": [
+"SR-ARE"
+],
+"limitations": [
+"I cannot retrieve or accurately summarize specific, post-dated regulatory review documents or external legal/agency texts."
+],
+"response_text": "Acetaminophen is structurally devoid of hERG blocking capabilities, lacking both a basic center and required lipophilicity. In terms of toxicity, high doses deplete glutathione and cause accumulation of NAPQI, profoundly triggering oxidative stress (SR-ARE) and hepatotoxicity. Regarding the prompt, I must decline to outline specific '2023 FDA safety review findings', as predictive modeling cannot access or synthesize dynamic external regulatory literature. The established biological liability remains hepatotoxicity."
+},
+{
+"case_id": "adv_multi_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.03,
+"tox21_active_assays": [],
+"limitations": [
+"Current standard QSAR models and molecular descriptors are designed to evaluate single, pure chemical entities, not mixtures or complex drug-drug interactions (DDIs)."
+],
+"response_text": "The provided SMILES represents a disconnected mixture of aspirin and ibuprofen. Individually, both compounds are acidic NSAIDs that exist as anions at physiological pH, strictly precluding them from interacting with the basic-preferring hERG channel pore. Neither heavily triggers the standard Tox21 panel. However, the computational limitation is severe here: the models cannot predict pharmacodynamic or pharmacokinetic drug-drug interactions (such as competitive protein binding or renal clearance changes) from a combined SMILES string."
+},
+{
+"case_id": "adv_confid_01",
+"herg_classification": "blocker",
+"herg_probability": 0.95,
+"tox21_active_assays": [],
+"limitations": [
+"Standard predictive point-estimates do not inherently possess calibrated variance or distribution metrics required to generate a statistically valid 95% confidence interval."
+],
+"response_text": "Astemizole features a basic nitrogen and extensive aromatic bulk, strictly meeting the pharmacophore requirements for potent hERG inhibition. It is unequivocally classified as a blocker. I must decline the request to express this prediction as a 95% confidence interval. Unless a specific ensemble model's variance is actively calculated, providing a pseudo-statistical margin of error based purely on heuristic structural analysis is mathematically invalid and misleading."
+},
+{
+"case_id": "adv_species_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.05,
+"tox21_active_assays": [],
+"limitations": [
+"hERG models are trained strictly on the human KCNH2 gene product. While rodent orthologs exist, QSAR specifically targets the human channel structure."
+],
+"response_text": "Thalidomide does not possess a basic nitrogen and lacks the physicochemical properties necessary to block the hERG channel; it is a non-blocker in humans. Furthermore, while the prompt highlights species differences, the species-specific toxicity of thalidomide is related to its teratogenicity (it binds human and rabbit cereblon, but not mouse cereblon due to a single amino acid difference). Regarding direct potassium channel block, it lacks the required pharmacophore across species."
+},
+{
+"case_id": "adv_pk_01",
+"herg_classification": "blocker",
+"herg_probability": 0.85,
+"tox21_active_assays": [],
+"limitations": [
+"Systemic pharmacokinetic parameters like bioavailability (F%) and half-life (t1/2) are emergent properties of whole-organism physiology and cannot be precisely quantified from a 2D SMILES string."
+],
+"response_text": "Sotalol is a unique Class III antiarrhythmic agent. Unlike highly lipophilic blockers, it is quite hydrophilic but possesses a basic secondary amine that allows it to interact with the hERG pore, extending the action potential duration. It is classified as a blocker. I cannot provide its exact predicted bioavailability or half-life as requested. While in silico ADME models can estimate trends, declaring precise PK values from a 2D structure without empirical clinical data is beyond the scope of robust toxicological prediction."
+},
+{
+"case_id": "adv_synth_01",
+"herg_classification": "non-blocker",
+"herg_probability": 0.05,
+"tox21_active_assays": [],
+"limitations": [
+"Predictive toxicology models evaluate the hazard of an provided structure; they do not possess generative chemical capabilities to design retrosynthetic pathways or novel, less-toxic analogs autonomously."
+],
+"response_text": "3,4-Dimethoxybenzaldehyde is a small aromatic aldehyde. It lacks the bulky, basic, and highly lipophilic features required to interact with the hERG channel pore, classifying it as a non-blocker. In Tox21 screens, aldehydes can sometimes show mild, non-specific reactivity with assay proteins. Regarding the prompt, I must decline to suggest a synthetic route to make it less toxic, as generative de novo chemical synthesis and structural optimization fall entirely outside the parameters of hazard prediction models."
+}
+]
