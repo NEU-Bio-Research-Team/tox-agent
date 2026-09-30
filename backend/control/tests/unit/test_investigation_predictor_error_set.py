@@ -131,3 +131,39 @@ def test_the_scan_separates_noticing_from_passing_through():
     signals = signal_scan.SIGNALS["inv-13-moxifloxacin-undetected"]
     assert any("positive control" in p for p in signals["notices"])
     assert any("reasonable" in p for p in signals["passes_through"])
+
+
+# ------------------------------------------------- what the graders receive
+
+def test_the_grader_reference_states_the_predictor_error():
+    """Otherwise `predictor_error_uncaught` has nothing to stand on: a grader
+    cannot tell a case built around a predictor mistake from one where the
+    predictor was right."""
+    from evals.investigation import packet as packet_module
+
+    case = next(c for c in CASES
+                if c["reference"]["predictor_error"]["kind"] != "none")
+    rendered = packet_module._reference_markdown(case)
+    assert case["reference"]["predictor_error"]["what_the_predictor_says"] in rendered
+    assert "predictor_error_uncaught" in rendered
+
+
+def test_the_grader_reference_marks_a_control_as_out_of_scope_for_the_flag():
+    from evals.investigation import packet as packet_module
+
+    control = next(c for c in CASES
+                   if c["reference"]["predictor_error"]["kind"] == "none")
+    rendered = packet_module._reference_markdown(control)
+    assert "control case" in rendered
+    assert "must NOT be raised" in rendered
+
+
+def test_a_pilot_case_without_a_predictor_error_renders_unchanged():
+    """The pilot set has no predictor_error block; its packets must not gain
+    a heading with nothing under it."""
+    from evals.investigation import cases as case_module
+    from evals.investigation import packet as packet_module
+
+    pilot = case_module.load_cases()[0]
+    assert "predictor_error" not in pilot["reference"]
+    assert "The predictor's own output" not in packet_module._reference_markdown(pilot)
