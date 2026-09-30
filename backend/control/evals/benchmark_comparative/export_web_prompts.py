@@ -5,12 +5,24 @@ with explicit instructions asking the web model to return a strict JSON array.
 """
 from __future__ import annotations
 
+import argparse
 import json
+import random
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATASET_PATH = HERE / "dataset" / "toxbench_dataset.json"
 OUTPUT_DIR = HERE / "prompts_web"
+BLIND_OUTPUT_DIR = HERE / "prompts_web_blind"
+
+#: Groups whose vignette names the compound or hints at the answer. In a blind
+#: export they get this neutral task instead; adversarial and edge cases keep
+#: their vignette, because the vignette is what those cases test.
+NEUTRAL_GROUPS = ("herg_positive", "herg_negative", "herg_borderline", "tox21_active", "tox21_inactive")
+NEUTRAL_TASK = (
+    "Analyze the compound with the SMILES above for hERG channel blocking risk and its "
+    "Tox21 assay profile. State the predicted probability, interpretation, and any limitations."
+)
 
 SYSTEM_INSTRUCTION = """You are an expert toxicologist and computational pharmacology evaluator.
 Analyze each of the following drug cases for hERG channel inhibition risk and Tox21 assay toxicity profile.
@@ -34,13 +46,41 @@ Common Tox21 assays include: NR-AR, NR-AR-LBD, NR-AhR, NR-Aromatase, NR-ER, NR-E
 """
 
 
-def export_prompts(batch_size: int = 16) -> list[Path]:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def blind_cases(cases: list[dict], seed: int) -> tuple[list[dict], dict[str, str]]:
+    """Opaque ids, shuffled order, no compound name, neutral task text.
+
+    The dataset ids (``herg_pos_01``) and names (Astemizole) give the answer
+    away; a web model that reads them is scored on recall, not prediction.
+    """
+    order = list(cases)
+    random.Random(seed).shuffle(order)
+    key: dict[str, str] = {}
+    blinded = []
+    for n, c in enumerate(order, start=1):
+        blind_id = f"B{n:03d}"
+        key[blind_id] = c["case_id"]
+        blinded.append({
+            "case_id": blind_id,
+            "compound_name": None,
+            "smiles": c.get("smiles", ""),
+            "vignette_en": NEUTRAL_TASK if c.get("group") in NEUTRAL_GROUPS else c.get("vignette_en", ""),
+        })
+    return blinded, key
+
+
+def export_prompts(batch_size: int = 16, blind: bool = False, seed: int = 20260930) -> list[Path]:
+    output_dir = BLIND_OUTPUT_DIR if blind else OUTPUT_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     with open(DATASET_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     cases = data.get("cases", [])
+    if blind:
+        cases, key = blind_cases(cases, seed)
+        (output_dir / "unblinding_key.json").write_text(
+            json.dumps({"seed": seed, "key": key}, indent=2) + "\n", encoding="utf-8"
+        )
     total = len(cases)
     print(f"Loaded {total} cases from {DATASET_PATH}")
 
@@ -54,15 +94,16 @@ def export_prompts(batch_size: int = 16) -> list[Path]:
 
         batch_num = batch_idx + 1
         filename = f"batch_{batch_num:02d}_cases_{start+1:02d}_to_{end:02d}.md"
-        out_file = OUTPUT_DIR / filename
+        out_file = output_dir / filename
 
         lines = [
             f"# BATCH {batch_num:02d} / {num_batches:02d} (Cases {start+1} - {end} of {total})",
             "",
             "> **HƯỚNG DẪN:**",
             "> 1. Copy toàn bộ nội dung trong khung code bên dưới.",
-            "> 2. Dán vào ChatGPT (GPT-4o) hoặc Gemini (Gemini 2.5 Pro) bản Web.",
+            "> 2. Dán vào ChatGPT hoặc Gemini bản Web, mỗi batch một đoạn chat mới.",
             "> 3. Copy toàn bộ JSON model trả về và lưu vào file kết quả tương ứng.",
+            "> 4. Ghi lại tên model hiển thị trên giao diện và ngày giờ chạy vào `<system>_meta.json`.",
             "",
             "```text",
             SYSTEM_INSTRUCTION.strip(),
@@ -73,7 +114,8 @@ def export_prompts(batch_size: int = 16) -> list[Path]:
 
         for idx, c in enumerate(batch_cases, start=start + 1):
             lines.append(f"[{idx}] Case ID: {c['case_id']}")
-            lines.append(f"Compound: {c.get('compound_name', 'Unknown')}")
+            if c.get("compound_name"):
+                lines.append(f"Compound: {c['compound_name']}")
             lines.append(f"SMILES: {c.get('smiles', '')}")
             lines.append(f"Question/Vignette: {c.get('vignette_en', '')}")
             lines.append("")
@@ -104,13 +146,27 @@ def export_prompts(batch_size: int = 16) -> list[Path]:
    - `gemini_batch_01.json`, `gemini_batch_02.json`, ... (hoặc gộp chung thành `gemini_results.json`)
 5. Chạy lệnh:
    ```powershell
-   python -m evals.benchmark_comparative.evaluate_web_results --input evals/benchmark_comparative/web_results/chatgpt_results.json --system gpt
+   python -m evals.benchmark_comparative.evaluate_web_results --input evals/benchmark_comparative/web_results/chatgpt_results.json --system chatgpt
    ```
 """
-    (OUTPUT_DIR / "README.md").write_text(readme_content, encoding="utf-8")
+    if blind:
+        readme_content += """
+## Bản mù (blind)
+ID case là mã mờ (`B001`…), thứ tự đã xáo trộn, không có tên hợp chất. Khi chấm, truyền khóa giải mù:
+```powershell
+python -m evals.benchmark_comparative.evaluate_web_results --input "evals/benchmark_comparative/web_results_blind/chatgpt_batch_*.json" --system chatgpt-blind --key evals/benchmark_comparative/prompts_web_blind/unblinding_key.json
+```
+"""
+    (output_dir / "README.md").write_text(readme_content, encoding="utf-8")
 
     return created_files
 
 
 if __name__ == "__main__":
-    export_prompts(batch_size=16)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--blind", action="store_true",
+                        help="Opaque ids, shuffled order, no compound names (prompts_web_blind/)")
+    parser.add_argument("--seed", type=int, default=20260930)
+    parser.add_argument("--batch-size", type=int, default=16)
+    args = parser.parse_args()
+    export_prompts(batch_size=args.batch_size, blind=args.blind, seed=args.seed)

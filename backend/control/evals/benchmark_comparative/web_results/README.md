@@ -10,12 +10,12 @@ Bạn có thể lưu kết quả theo 1 trong 2 cách:
 
 Sau đó chạy lệnh đánh giá tất cả các batch cùng lúc:
 ```powershell
-python -m evals.benchmark_comparative.evaluate_web_results --input "evals/benchmark_comparative/web_results/chatgpt_batch_*.json" --system gpt
+python -m evals.benchmark_comparative.evaluate_web_results --input "evals/benchmark_comparative/web_results/chatgpt_batch_*.json" --system chatgpt
 ```
 
 ### Cách 2: Lưu chung vào một file
 - Gộp chung toàn bộ JSON vào `chatgpt_results.json` hoặc `gemini_results.json`
 - Chạy lệnh:
 ```powershell
-python -m evals.benchmark_comparative.evaluate_web_results --input evals/benchmark_comparative/web_results/chatgpt_results.json --system gpt
+python -m evals.benchmark_comparative.evaluate_web_results --input evals/benchmark_comparative/web_results/chatgpt_results.json --system chatgpt
 ```

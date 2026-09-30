@@ -38,6 +38,7 @@ from typing import Any
 
 from .metrics import (
     HallucinationResult,
+    HallucinationSpan,
     PredictiveResult,
     FaithfulnessResult,
     SafetyResult,
@@ -48,6 +49,9 @@ from .metrics import (
     compute_faithfulness_metrics,
     compute_safety_metrics,
     detect_hallucinations_from_traps,
+    score_herg,
+    score_limitations,
+    score_tox21,
 )
 
 HERE = Path(__file__).resolve().parent
@@ -121,6 +125,8 @@ class ToxAgentDriver(BaseSystemDriver):
             "claims": [],
             "abstained": False,
             "raw_response": None,
+            "model_id": None,
+            "requested_at": datetime.now(timezone.utc).isoformat(),
         }
 
         if not smiles:
@@ -148,6 +154,8 @@ class ToxAgentDriver(BaseSystemDriver):
             return base
 
         base["raw_response"] = raw
+        base["model_id"] = ((raw.get("provenance") or {}).get("model_ids")
+                            or [(raw.get("sections") or {}).get("herg", {}).get("model_id")])
 
         # ── hERG ─────────────────────────────────────────────────────────
         sections = raw.get("sections") or {}
@@ -308,24 +316,9 @@ def evaluate_response(
     )
 
     gt = case.get("ground_truth", {})
-    if gt.get("herg_blocker") is not None and pred.herg_classification_predicted:
-        pred_blocker = pred.herg_classification_predicted.lower() in (
-            "blocker", "active", "positive", "true"
-        )
-        pred.herg_classification_correct = (pred_blocker == gt["herg_blocker"])
-
-    gt_active = set(gt.get("tox21_active_assays", []))
-    pred_active = set(pred.tox21_active_predicted)
-    pred.tox21_active_correct = sorted(gt_active & pred_active)
-    pred.tox21_active_incorrect = sorted(pred_active - gt_active)
-    pred.tox21_missed = sorted(gt_active - pred_active)
-
-    expected_lim = case.get("expected_limitations", [])
-    stated_lim = pred.limitations_stated
-    pred.expected_limitations_covered = all(
-        any(el.lower() in s.lower() for s in stated_lim)
-        for el in expected_lim
-    ) if expected_lim else True
+    score_herg(pred, gt, pred.herg_classification_predicted)
+    score_tox21(pred, gt, pred.tox21_active_predicted)
+    score_limitations(pred, case.get("expected_limitations", []), pred.limitations_stated)
 
     # Dim 3: Faithfulness (simplified — full FActScore needs LLM judge)
     claims = response.get("claims", [])
@@ -334,7 +327,7 @@ def evaluate_response(
         total_claims=len(claims),
         supported_claims=supported,
         unsupported_claims=len(claims) - supported,
-        factscore=supported / max(len(claims), 1),
+        factscore=supported / len(claims) if claims else None,
         verifications=[],
     )
 
@@ -420,16 +413,16 @@ def run_benchmark(
             for trial in range(1, trials + 1):
                 print(f"  [{case['case_id']}] trial {trial}/{trials} ...", end=" ")
                 response = driver.predict(case, trial)
-                all_responses.append(response)
-
                 eval_result = evaluate_response(case, response)
+                response["evaluation"] = eval_result
+                all_responses.append(response)
 
                 # Reconstruct typed results from eval
                 h = eval_result["hallucination"]
                 all_halluc.append(HallucinationResult(
                     has_hallucination=h["has_hallucination"],
                     hallucination_density=h["hallucination_density"],
-                    detected_spans=[],
+                    detected_spans=[HallucinationSpan(**x) for x in h["detected_spans"]],
                     trap_results=h["trap_results"],
                 ))
 
@@ -475,6 +468,15 @@ def run_benchmark(
             "responses": all_responses,
         }, indent=2, ensure_ascii=False, default=str) + "\n")
         print(f"  → Saved {system_out}")
+
+        # The flat scorecard compare_scorecards reads, same shape as the web arm's.
+        card_out = out_dir / f"scorecard_{system_name}_{ts}.json"
+        card_out.write_text(json.dumps({
+            **asdict(scorecard),
+            "total_evaluations": len(all_responses),
+            "evaluated_at": ts,
+        }, indent=2, ensure_ascii=False, default=str) + "\n")
+        print(f"  → Saved {card_out}")
 
     # Comparative report
     report = build_comparative_report(scorecards)
