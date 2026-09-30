@@ -1,7 +1,9 @@
 # ToxBench: Comparative Agent Benchmark
 
 Evaluates **hallucination** and **predictive accuracy** across three systems:
-ToxAgent (full pipeline), GPT-4o/5 (vanilla), and Gemini 2.5 Pro (vanilla).
+ToxAgent (the `POST /v1/predict` predictor, not the agent), ChatGPT and Gemini
+(web answers collected by hand). Runbook, caveats and the blind-export flow:
+[BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md).
 
 ## Literature Grounding
 
@@ -60,4 +62,8 @@ python -m evals.benchmark_comparative.runner \
 | `metrics.py` | The four evaluation dimensions |
 | `runner.py` | System drivers (ToxAgent, GPT, Gemini) and benchmark runner |
 | `dataset/` | Generated dataset (git-tracked) |
+| `export_web_prompts.py` | Web batch prompts; `--blind` for opaque ids, no names |
+| `evaluate_web_results.py` | Scores hand-collected web answers (`--key` to unblind) |
+| `compare_scorecards.py` | Side-by-side table and `comparative_report.md` |
 | `results/` | Run outputs (git-ignored) |
+| `runs/<date>/` | Committed evidence runs |

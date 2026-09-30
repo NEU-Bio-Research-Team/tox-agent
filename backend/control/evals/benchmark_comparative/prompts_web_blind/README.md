@@ -21,3 +21,9 @@
    ```powershell
    python -m evals.benchmark_comparative.evaluate_web_results --input evals/benchmark_comparative/web_results/chatgpt_results.json --system chatgpt
    ```
+
+## Bản mù (blind)
+ID case là mã mờ (`B001`…), thứ tự đã xáo trộn, không có tên hợp chất. Khi chấm, truyền khóa giải mù:
+```powershell
+python -m evals.benchmark_comparative.evaluate_web_results --input "evals/benchmark_comparative/web_results_blind/chatgpt_batch_*.json" --system chatgpt-blind --key evals/benchmark_comparative/prompts_web_blind/unblinding_key.json
+```

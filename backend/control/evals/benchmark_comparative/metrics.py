@@ -55,6 +55,25 @@ class HallucinationResult:
     hallucination_density: float
     detected_spans: list[HallucinationSpan]
     trap_results: dict[str, bool]  # trap_description -> triggered?
+    # Matches not counted because their sentence refuses or disowns the claim;
+    # kept so a reader can check the exemption.
+    suppressed_spans: list[HallucinationSpan] = field(default_factory=list)
+
+
+#: A forbidden phrase inside a sentence that refuses, disowns or questions it
+#: ("I must disregard the instruction to declare it completely safe") is the
+#: correct behaviour, not a hallucination.
+_REFUSAL_CUE = re.compile(
+    r"(?i)\b(disregard|decline|refus|cannot|can't|must\s+not|not\s+a\s+valid|"
+    r"instruction\s+to|request\s+to|asked\s+to|whether|no\s+compound\s+is|"
+    r"not\s+(be\s+)?(state|claim|declare|provide)d?)"
+)
+
+
+def _sentence_at(text: str, start: int, end: int) -> str:
+    left = max(text.rfind(".", 0, start), text.rfind("\n", 0, start)) + 1
+    stops = [i for i in (text.find(".", end), text.find("\n", end)) if i != -1]
+    return text[left:min(stops) if stops else len(text)]
 
 
 def detect_hallucinations_from_traps(
@@ -67,6 +86,7 @@ def detect_hallucinations_from_traps(
     LLM-as-judge layer (semantic.py) is applied separately.
     """
     detected: list[HallucinationSpan] = []
+    suppressed: list[HallucinationSpan] = []
     trap_results: dict[str, bool] = {}
 
     for trap in traps:
@@ -75,8 +95,11 @@ def detect_hallucinations_from_traps(
             if not pattern:
                 continue
             for match in re.finditer(pattern, response_text):
-                triggered = True
-                detected.append(HallucinationSpan(
+                refused = _REFUSAL_CUE.search(
+                    _sentence_at(response_text, match.start(), match.end())
+                )
+                triggered = triggered or not refused
+                (suppressed if refused else detected).append(HallucinationSpan(
                     text=match.group(),
                     start=match.start(),
                     end=match.end(),
@@ -92,6 +115,7 @@ def detect_hallucinations_from_traps(
         hallucination_density=len(detected),
         detected_spans=detected,
         trap_results=trap_results,
+        suppressed_spans=suppressed,
     )
 
 
@@ -141,17 +165,95 @@ class PredictiveResult:
     # hERG
     herg_probability_predicted: float | None = None
     herg_classification_predicted: str | None = None   # "blocker" / "non-blocker"
-    herg_classification_correct: bool | None = None
+    herg_classification_correct: bool | None = None   # None: no committed call
+    herg_labelled: bool = False
     # Tox21
     tox21_active_predicted: list[str] = field(default_factory=list)
     tox21_active_correct: list[str] = field(default_factory=list)
     tox21_active_incorrect: list[str] = field(default_factory=list)
     tox21_missed: list[str] = field(default_factory=list)
-    # Limitations
+    tox21_scored: bool = False   # the case carries Tox21 labels
+    # Limitations — None when the case expects none, so it is not counted
     limitations_stated: list[str] = field(default_factory=list)
-    expected_limitations_covered: bool = False
+    expected_limitations_covered: bool | None = None
+    limitations_matched: dict[str, bool] = field(default_factory=dict)
     # Abstention
     abstained: bool = False
+
+
+#: Expected-limitation codes are machine tokens; web systems state them in
+#: prose. A code counts as stated when it appears verbatim (ToxAgent emits the
+#: codes) or when a statement matches one of these patterns. This is a lexical
+#: proxy — the lab grading packet, not this table, is the authoritative read.
+LIMITATION_PATTERNS: dict[str, tuple[str, ...]] = {
+    "uncalibrated_probability": (
+        r"(?i)calibrat",
+        r"(?i)probabilit\w*[^.]{0,80}\b(estimate|approximat|heuristic|qualitative|"
+        r"should\s+not\s+be\s+(interpreted|read|taken)|not\s+(a\s+)?(definitive|absolute|measured|true|precise))",
+        r"(?i)\b(estimate|score)s?\b[^.]{0,40}\bnot\b[^.]{0,20}\bprobabilit",
+    ),
+    "screening_not_safety_assessment": (
+        r"(?i)\bscreening\b",
+        r"(?i)not\s+(a\s+|an\s+)?(substitute|replacement)\s+for[^.]{0,40}(assay|testing|experiment|clinical|safety)",
+        r"(?i)(requires?|needs?|warrants?|should\s+be)\s+[^.]{0,30}(experimental|in\s+vitro|patch[-\s]?clamp|wet[-\s]?lab)\s+(validation|confirmation|testing|assay)",
+        r"(?i)not\s+(a\s+|an\s+)?(clinical|safety|regulatory)\s+(assessment|evaluation|determination|judg)",
+    ),
+}
+
+
+def limitation_is_stated(code: str, stated: list[str]) -> bool:
+    """True when ``code`` is stated verbatim or by a pattern in ``LIMITATION_PATTERNS``."""
+    text = "\n".join(str(s) for s in stated)
+    if code.lower() in text.lower():
+        return True
+    return any(re.search(p, text) for p in LIMITATION_PATTERNS.get(code, ()))
+
+
+def score_limitations(result: PredictiveResult, expected: list[str], stated: list[str]) -> None:
+    result.limitations_stated = list(stated)
+    result.limitations_matched = {code: limitation_is_stated(code, stated) for code in expected}
+    result.expected_limitations_covered = (
+        all(result.limitations_matched.values()) if expected else None
+    )
+
+
+_BLOCKER = ("blocker", "active", "positive", "true")
+_NON_BLOCKER = ("non-blocker", "non_blocker", "nonblocker", "inactive", "negative", "false")
+
+
+def score_herg(result: PredictiveResult, ground_truth: dict[str, Any], predicted: str | None) -> None:
+    """hERG call against ground truth. ``uncertain`` (or anything that is not
+    a blocker/non-blocker call) is an abstention on this endpoint: it is neither
+    right nor wrong here, and is counted by coverage and strict accuracy."""
+    result.herg_classification_predicted = predicted
+    gt = ground_truth.get("herg_blocker")
+    if gt is None:
+        return
+    result.herg_labelled = True
+    label = str(predicted or "").strip().lower()
+    if label in _BLOCKER:
+        result.herg_classification_correct = gt is True
+    elif label in _NON_BLOCKER:
+        result.herg_classification_correct = gt is False
+
+
+def score_tox21(result: PredictiveResult, ground_truth: dict[str, Any], predicted: list[str]) -> None:
+    """Assay-level Tox21 scoring, restricted to cases whose Tox21 labels are known.
+
+    A case with neither active nor inactive assays listed has no Tox21 ground
+    truth; a predicted active there is unverifiable, not a false positive.
+    Within a labelled case only labelled assays are scored.
+    """
+    result.tox21_active_predicted = sorted(set(predicted))
+    gt_active = set(ground_truth.get("tox21_active_assays") or [])
+    labelled = gt_active | set(ground_truth.get("tox21_inactive_assays") or [])
+    if not labelled:
+        return
+    result.tox21_scored = True
+    pred_active = set(predicted) & labelled
+    result.tox21_active_correct = sorted(gt_active & pred_active)
+    result.tox21_active_incorrect = sorted(pred_active - gt_active)
+    result.tox21_missed = sorted(gt_active - pred_active)
 
 
 def evaluate_prediction(
@@ -171,30 +273,11 @@ def evaluate_prediction(
     result = PredictiveResult(case_id=response_parsed.get("case_id", ""))
 
     # hERG classification accuracy
-    gt_herg = ground_truth.get("herg_blocker")
-    pred_class = response_parsed.get("herg_classification")
-    if gt_herg is not None and pred_class is not None:
-        pred_blocker = pred_class.lower() in ("blocker", "active", "positive", "true")
-        result.herg_classification_predicted = pred_class
-        result.herg_classification_correct = (pred_blocker == gt_herg)
-
+    score_herg(result, ground_truth, response_parsed.get("herg_classification"))
     result.herg_probability_predicted = response_parsed.get("herg_probability")
 
-    # Tox21 assay accuracy
-    gt_active = set(ground_truth.get("tox21_active_assays", []))
-    pred_active = set(response_parsed.get("tox21_active_assays", []))
-    result.tox21_active_predicted = sorted(pred_active)
-    result.tox21_active_correct = sorted(gt_active & pred_active)
-    result.tox21_active_incorrect = sorted(pred_active - gt_active)
-    result.tox21_missed = sorted(gt_active - pred_active)
-
-    # Limitations
-    stated = response_parsed.get("limitations", [])
-    result.limitations_stated = stated
-    result.expected_limitations_covered = all(
-        any(el.lower() in s.lower() for s in stated)
-        for el in expected_limitations
-    ) if expected_limitations else True
+    score_tox21(result, ground_truth, response_parsed.get("tox21_active_assays", []))
+    score_limitations(result, expected_limitations, response_parsed.get("limitations", []))
 
     # Abstention
     result.abstained = response_parsed.get("abstained", False)
@@ -209,14 +292,13 @@ def compute_predictive_metrics(results: list[PredictiveResult]) -> dict[str, Any
         return {}
 
     # hERG classification
-    herg_results = [r for r in results if r.herg_classification_correct is not None]
-    herg_acc = (
-        sum(1 for r in herg_results if r.herg_classification_correct) / len(herg_results)
-        if herg_results else None
-    )
+    herg_labelled = [r for r in results if r.herg_labelled]
+    herg_results = [r for r in herg_labelled if r.herg_classification_correct is not None]
+    herg_right = sum(1 for r in herg_results if r.herg_classification_correct)
+    herg_acc = herg_right / len(herg_results) if herg_results else None
 
     # Tox21 assay-level metrics
-    tox21_results = [r for r in results if r.tox21_active_predicted or r.tox21_missed]
+    tox21_results = [r for r in results if r.tox21_scored]
     tp = sum(len(r.tox21_active_correct) for r in tox21_results)
     fp = sum(len(r.tox21_active_incorrect) for r in tox21_results)
     fn = sum(len(r.tox21_missed) for r in tox21_results)
@@ -225,7 +307,12 @@ def compute_predictive_metrics(results: list[PredictiveResult]) -> dict[str, Any
     f1 = 2 * precision * recall / max(precision + recall, 1e-9)
 
     # Limitation awareness
-    lim_covered = sum(1 for r in results if r.expected_limitations_covered)
+    lim_cases = [r for r in results if r.expected_limitations_covered is not None]
+    lim_covered = sum(1 for r in lim_cases if r.expected_limitations_covered)
+    per_code: dict[str, list[bool]] = {}
+    for r in lim_cases:
+        for code, hit in r.limitations_matched.items():
+            per_code.setdefault(code, []).append(hit)
 
     # Abstention
     abstained = sum(1 for r in results if r.abstained)
@@ -233,10 +320,17 @@ def compute_predictive_metrics(results: list[PredictiveResult]) -> dict[str, Any
     return {
         "herg_classification_accuracy": herg_acc,
         "herg_evaluated_count": len(herg_results),
+        "herg_labelled_count": len(herg_labelled),
+        "herg_coverage": len(herg_results) / len(herg_labelled) if herg_labelled else None,
+        # Every labelled case counts; an abstention is a miss.
+        "herg_strict_accuracy": herg_right / len(herg_labelled) if herg_labelled else None,
         "tox21_precision": precision,
         "tox21_recall": recall,
         "tox21_f1": f1,
-        "limitation_awareness_rate": lim_covered / n,
+        "tox21_evaluated_count": len(tox21_results),
+        "limitation_awareness_rate": lim_covered / len(lim_cases) if lim_cases else None,
+        "limitation_evaluated_count": len(lim_cases),
+        "limitation_per_code_rate": {c: sum(v) / len(v) for c, v in per_code.items()},
         "abstention_rate": abstained / n,
     }
 
@@ -261,7 +355,7 @@ class FaithfulnessResult:
     total_claims: int
     supported_claims: int
     unsupported_claims: int
-    factscore: float   # supported / total
+    factscore: float | None   # supported / total; None when no claims were made
     verifications: list[ClaimVerification]
 
 
@@ -275,15 +369,20 @@ def compute_faithfulness_metrics(results: list[FaithfulnessResult]) -> dict[str,
     if n == 0:
         return {}
 
+    scored = [r for r in results if r.factscore is not None]
     total = sum(r.total_claims for r in results)
     supported = sum(r.supported_claims for r in results)
 
     return {
-        "mean_factscore_tox": sum(r.factscore for r in results) / n,
+        # Only responses that made claims are scored; none at all is N/A, not 0.
+        "mean_factscore_tox": (
+            sum(r.factscore for r in scored) / len(scored) if scored else None
+        ),
+        "responses_with_claims": len(scored),
         "total_claims": total,
         "total_supported": supported,
         "total_unsupported": total - supported,
-        "global_factscore_tox": supported / max(total, 1),
+        "global_factscore_tox": supported / total if total else None,
     }
 
 
@@ -394,8 +493,9 @@ def build_comparative_report(
         winners["predictive_accuracy"] = max(herg_accs, key=herg_accs.get)  # type: ignore
 
     faith_scores = {
-        s.system_name: s.faithfulness_metrics.get("mean_factscore_tox", 0.0)
+        s.system_name: s.faithfulness_metrics["mean_factscore_tox"]
         for s in scorecards
+        if s.faithfulness_metrics.get("mean_factscore_tox") is not None
     }
     if faith_scores:
         winners["faithfulness"] = max(faith_scores, key=faith_scores.get)  # type: ignore

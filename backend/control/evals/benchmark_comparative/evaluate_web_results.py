@@ -115,6 +115,7 @@ def evaluate_web_dataset(
     all_safety: list[SafetyResult] = []
 
     matched_count = 0
+    per_case: list[dict[str, Any]] = []
     for resp in responses:
         cid = resp.get("case_id")
         if not cid or cid not in case_map:
@@ -128,6 +129,7 @@ def evaluate_web_dataset(
         matched_count += 1
 
         eval_res = evaluate_response(case, resp)
+        per_case.append({"case_id": cid, "response": resp, "evaluation": eval_res})
 
         h = eval_res["hallucination"]
         all_halluc.append(
@@ -179,43 +181,18 @@ def evaluate_web_dataset(
         json.dump(scorecard_dict, f, indent=2)
 
     print(f"\nSaved Scorecard -> {scorecard_path}")
+
+    cases_path = out_dir / f"cases_{system_name}_{ts}.json"
+    cases_path.write_text(json.dumps(per_case, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"Saved per-case evaluations -> {cases_path}")
     print_scorecard_summary(scorecard, matched_count)
     return scorecard
 
 
 def print_scorecard_summary(card: SystemScorecard, count: int = 0):
-    pred = card.predictive_metrics
-    halluc = card.hallucination_metrics
-    safety = card.safety_metrics
+    from .compare_scorecards import print_comparison_table
 
-    herg_acc = pred.get("herg_classification_accuracy")
-    herg_acc_str = f"{herg_acc * 100:.1f}%" if herg_acc is not None else "N/A"
-    tox21_f1 = pred.get("tox21_f1", 0.0)
-    lim_cov = pred.get("limitation_awareness_rate", 0.0)
-    abstain = pred.get("abstention_rate", 0.0)
-
-    halluc_rate = halluc.get("hallucination_rate", 0.0)
-    halluc_density = halluc.get("mean_hallucination_density", 0.0)
-
-    safety_rate = safety.get("overall_pass_rate", 0.0)
-
-    print("\n" + "=" * 65)
-    print(f" SCORECARD: {card.system_name.upper()} (Cases Evaluated: {count})")
-    print("=" * 65)
-
-    print(" [1] Predictive Accuracy:")
-    print(f"     * hERG Accuracy:       {herg_acc_str}")
-    print(f"     * Tox21 Micro F1:      {tox21_f1:.3f}")
-    print(f"     * Limitations Covered: {lim_cov * 100:.1f}%")
-    print(f"     * Abstention Rate:     {abstain * 100:.1f}%")
-
-    print(" [2] Hallucination Traps (Lower is better):")
-    print(f"     * Hallucination Rate:  {halluc_rate * 100:.1f}%")
-    print(f"     * Mean Density/case:   {halluc_density:.2f}")
-
-    print(" [3] Safety Gates (Higher is better):")
-    print(f"     * Pass Rate:           {safety_rate * 100:.1f}%")
-    print("=" * 65)
+    print_comparison_table([{**asdict(card), "total_evaluations": count}])
 
 
 def main():
@@ -229,8 +206,8 @@ def main():
     parser.add_argument(
         "--system",
         "-s",
-        default="gpt",
-        help="System label for scorecard (e.g. gpt, gemini)",
+        default="chatgpt",
+        help="System label for scorecard (e.g. chatgpt, gemini)",
     )
     parser.add_argument(
         "--out",
@@ -238,9 +215,21 @@ def main():
         default=str(HERE / "results"),
         help="Output directory for scorecards",
     )
+    parser.add_argument(
+        "--key",
+        help="unblinding_key.json from a blind export; maps B### ids back to dataset ids",
+    )
     args = parser.parse_args()
 
     responses = load_input_files(args.input)
+    if args.key:
+        key = json.loads(Path(args.key).read_text(encoding="utf-8"))["key"]
+        for item in responses:
+            blind_id = str(item.get("case_id", "")).strip()
+            if blind_id not in key:
+                raise SystemExit(f"case_id {blind_id!r} is not in the unblinding key")
+            item["blind_id"] = blind_id
+            item["case_id"] = key[blind_id]
     evaluate_web_dataset(responses, args.system, Path(args.out))
 
 

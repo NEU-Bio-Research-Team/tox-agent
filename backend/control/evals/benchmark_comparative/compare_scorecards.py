@@ -27,6 +27,62 @@ def load_scorecard(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
+def _get(card: dict[str, Any], section: str, key: str) -> Any:
+    return card.get(section, {}).get(key)
+
+
+def _pct(v: Any) -> str:
+    return "N/A" if v is None else f"{v * 100:.1f}%"
+
+
+def _num(v: Any, digits: int = 3) -> str:
+    return "N/A" if v is None else f"{v:.{digits}f}"
+
+
+def _count(v: Any) -> str:
+    return "N/A" if v is None else str(v)
+
+
+#: (group or None, label, section, key, formatter). A group row is a heading.
+ROWS: list[tuple[str | None, str, str, str, Any]] = [
+    (None, "Evaluations completed", "", "total_evaluations", _count),
+    ("1. Predictive accuracy (higher is better)", "", "", "", None),
+    (None, "hERG accuracy, committed calls", "predictive_metrics", "herg_classification_accuracy", _pct),
+    (None, "hERG coverage (committed / labelled)", "predictive_metrics", "herg_coverage", _pct),
+    (None, "hERG strict accuracy (uncertain = miss)", "predictive_metrics", "herg_strict_accuracy", _pct),
+    (None, "hERG labelled cases", "predictive_metrics", "herg_labelled_count", _count),
+    (None, "Tox21 micro F1", "predictive_metrics", "tox21_f1", _num),
+    (None, "Tox21 precision", "predictive_metrics", "tox21_precision", _num),
+    (None, "Tox21 recall", "predictive_metrics", "tox21_recall", _num),
+    (None, "Tox21 labelled cases scored", "predictive_metrics", "tox21_evaluated_count", _count),
+    (None, "Limitations coverage (lexical proxy)", "predictive_metrics", "limitation_awareness_rate", _pct),
+    (None, "Cases with expected limitations", "predictive_metrics", "limitation_evaluated_count", _count),
+    ("2. Hallucination traps (lower is better)", "", "", "", None),
+    (None, "Hallucination rate", "hallucination_metrics", "hallucination_rate", _pct),
+    (None, "Hallucination density / case", "hallucination_metrics", "mean_hallucination_density", lambda v: _num(v, 2)),
+    ("3. Safety gates (higher is better)", "", "", "", None),
+    (None, "Safety gate pass rate", "safety_metrics", "overall_pass_rate", _pct),
+    ("4. Faithfulness", "", "", "", None),
+    (None, "Mean FActScore_tox (N/A: no claims)", "faithfulness_metrics", "mean_factscore_tox", _num),
+]
+
+
+def _cells(card: dict[str, Any], section: str, key: str) -> Any:
+    return card.get(key) if not section else _get(card, section, key)
+
+
+def _per_code(cards: list[dict[str, Any]]) -> list[tuple[str, list[str]]]:
+    codes = sorted({
+        code for c in cards
+        for code in (_get(c, "predictive_metrics", "limitation_per_code_rate") or {})
+    })
+    return [
+        (code, [_pct((_get(c, "predictive_metrics", "limitation_per_code_rate") or {}).get(code))
+                for c in cards])
+        for code in codes
+    ]
+
+
 def build_comparison_markdown(cards: list[dict[str, Any]]) -> str:
     systems = [c.get("system_name", "unknown").upper() for c in cards]
 
@@ -34,74 +90,27 @@ def build_comparison_markdown(cards: list[dict[str, Any]]) -> str:
     md.append("# ToxBench Comparative Benchmark Report")
     md.append(f"*Generated at: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}*\n")
     md.append("## Head-to-Head Comparative Scorecard\n")
+    md.append("| Metric | " + " | ".join(systems) + " |")
+    md.append("| :--- | " + " | ".join([":---:"] * len(systems)) + " |")
+    for group, label, section, key, fmt in ROWS:
+        if group:
+            md.append(f"| **{group}** | " + " | ".join([""] * len(systems)) + " |")
+            continue
+        md.append(f"| {label} | " + " | ".join(fmt(_cells(c, section, key)) for c in cards) + " |")
+        if key == "limitation_awareness_rate":
+            for code, values in _per_code(cards):
+                md.append(f"| &nbsp;&nbsp;{code} | " + " | ".join(values) + " |")
 
-    # Table Header
-    header = "| Metric / Evaluation Dimension | " + " | ".join(systems) + " |"
-    sep = "| :--- | " + " | ".join([":---:"] * len(systems)) + " |"
-    md.append(header)
-    md.append(sep)
-
-    # Cases evaluated
-    cases_row = "| **Evaluations Completed** | " + " | ".join(
-        str(c.get("total_evaluations", 0)) for c in cards
-    ) + " |"
-    md.append(cases_row)
-
-    # Predictive Accuracy
-    md.append("| **1. Predictive Accuracy (Higher is better)** | " + " | ".join([""] * len(systems)) + " |")
-
-    herg_accs = [
-        c.get("predictive_metrics", {}).get("herg_classification_accuracy")
-        for c in cards
-    ]
-    herg_acc_strs = [f"{v*100:.1f}%" if v is not None else "N/A" for v in herg_accs]
-    md.append("| - hERG Accuracy | " + " | ".join(herg_acc_strs) + " |")
-
-    tox21_f1s = [
-        c.get("predictive_metrics", {}).get("tox21_f1", 0.0) or 0.0
-        for c in cards
-    ]
-    md.append("| - Tox21 Micro F1 | " + " | ".join(f"{v:.3f}" for v in tox21_f1s) + " |")
-
-    lim_covs = [
-        c.get("predictive_metrics", {}).get("limitation_awareness_rate", 0.0) or 0.0
-        for c in cards
-    ]
-    md.append("| - Limitations Coverage | " + " | ".join(f"{v*100:.1f}%" for v in lim_covs) + " |")
-
-    # Hallucination Traps
-    md.append("| **2. Hallucination Traps (Lower is better)** | " + " | ".join([""] * len(systems)) + " |")
-    halluc_rates = [
-        c.get("hallucination_metrics", {}).get("hallucination_rate", 0.0) or 0.0
-        for c in cards
-    ]
-    md.append("| - Hallucination Rate | " + " | ".join(f"{v*100:.1f}%" for v in halluc_rates) + " |")
-
-    halluc_dens = [
-        c.get("hallucination_metrics", {}).get("mean_hallucination_density", 0.0) or 0.0
-        for c in cards
-    ]
-    md.append("| - Hallucination Density / case | " + " | ".join(f"{v:.2f}" for v in halluc_dens) + " |")
-
-    # Clinical Safety
-    md.append("| **3. Clinical Safety Gates (Higher is better)** | " + " | ".join([""] * len(systems)) + " |")
-    safety_rates = [
-        c.get("safety_metrics", {}).get("overall_pass_rate", 0.0) or 0.0
-        for c in cards
-    ]
-    md.append("| - Safety Pass Rate | " + " | ".join(f"{v*100:.1f}%" for v in safety_rates) + " |")
-
-    md.append("\n## Key Takeaways & Findings\n")
-
-    # Identify winners
-    best_herg_idx = max(range(len(cards)), key=lambda i: (herg_accs[i] or 0))
-    best_halluc_idx = min(range(len(cards)), key=lambda i: halluc_rates[i])
-    best_safety_idx = max(range(len(cards)), key=lambda i: safety_rates[i])
-
-    md.append(f"- **Predictive Accuracy Winner**: **{systems[best_herg_idx]}** ({herg_acc_strs[best_herg_idx]} hERG accuracy)")
-    md.append(f"- **Lowest Hallucination Rate**: **{systems[best_halluc_idx]}** ({halluc_rates[best_halluc_idx]*100:.1f}% traps triggered)")
-    md.append(f"- **Highest Clinical Safety**: **{systems[best_safety_idx]}** ({safety_rates[best_safety_idx]*100:.1f}% safety gates passed)")
-
+    md.append("\n## Reading these numbers\n")
+    md.append("- hERG accuracy counts only committed blocker/non-blocker calls; "
+              "`uncertain` is an abstention, reported through coverage and strict accuracy.")
+    md.append("- Tox21 is scored only on cases that carry Tox21 labels; a predicted active "
+              "on an unlabelled case is unverifiable, not a false positive.")
+    md.append("- Limitations coverage is a lexical proxy (codes or patterns in "
+              "`metrics.LIMITATION_PATTERNS`), not a graded judgement.")
+    md.append("- Hallucination traps and safety gates are regex checks over the response "
+              "text. A system that returns little text trivially passes them.")
+    md.append("- None of this is the SME grade; that comes from the lab's blind grading.")
     return "\n".join(md)
 
 
@@ -112,62 +121,26 @@ def print_comparison_table(cards: list[dict[str, Any]]):
 
     systems = [c.get("system_name", "unknown").upper() for c in cards]
     col_width = 18
+    label_width = 42
 
-    header = f"{'Metric / Dimension':<35}" + "".join(f"{s:>{col_width}}" for s in systems)
+    header = f"{'Metric':<{label_width}}" + "".join(f"{s:>{col_width}}" for s in systems)
     sep = "=" * len(header)
-    subsep = "-" * len(header)
 
     print("\n" + sep)
     print("       HEAD-TO-HEAD COMPARATIVE BENCHMARK SCORECARD")
     print(sep)
     print(header)
     print(sep)
-
-    eval_row = f"{'Evaluations Completed':<35}" + "".join(
-        f"{c.get('total_evaluations', 0):>{col_width}}" for c in cards
-    )
-    print(eval_row)
-    print(subsep)
-
-    print(" [1] PREDICTIVE ACCURACY (Higher is better)")
-    herg_accs = [
-        c.get("predictive_metrics", {}).get("herg_classification_accuracy")
-        for c in cards
-    ]
-    herg_acc_strs = [f"{v*100:.1f}%" if v is not None else "N/A" for v in herg_accs]
-    tox21_f1s = [
-        c.get("predictive_metrics", {}).get("tox21_f1", 0.0) or 0.0
-        for c in cards
-    ]
-    lim_covs = [
-        c.get("predictive_metrics", {}).get("limitation_awareness_rate", 0.0) or 0.0
-        for c in cards
-    ]
-
-    print(f"{'  * hERG Accuracy':<35}" + "".join(f"{s:>{col_width}}" for s in herg_acc_strs))
-    print(f"{'  * Tox21 Micro F1':<35}" + "".join(f"{v:>{col_width}.3f}" for v in tox21_f1s))
-    print(f"{'  * Limitations Coverage':<35}" + "".join(f"{v*100:>{col_width-1}.1f}%" for v in lim_covs))
-    print(subsep)
-
-    print(" [2] HALLUCINATION TRAPS (Lower is better)")
-    halluc_rates = [
-        c.get("hallucination_metrics", {}).get("hallucination_rate", 0.0) or 0.0
-        for c in cards
-    ]
-    halluc_dens = [
-        c.get("hallucination_metrics", {}).get("mean_hallucination_density", 0.0) or 0.0
-        for c in cards
-    ]
-    print(f"{'  * Hallucination Rate':<35}" + "".join(f"{v*100:>{col_width-1}.1f}%" for v in halluc_rates))
-    print(f"{'  * Hallucination Density':<35}" + "".join(f"{v:>{col_width}.2f}" for v in halluc_dens))
-    print(subsep)
-
-    print(" [3] CLINICAL SAFETY GATES (Higher is better)")
-    safety_rates = [
-        c.get("safety_metrics", {}).get("overall_pass_rate", 0.0) or 0.0
-        for c in cards
-    ]
-    print(f"{'  * Safety Gate Pass Rate':<35}" + "".join(f"{v*100:>{col_width-1}.1f}%" for v in safety_rates))
+    for group, label, section, key, fmt in ROWS:
+        if group:
+            print("-" * len(header))
+            print(f" {group}")
+            continue
+        print(f"{'  ' + label:<{label_width}}"
+              + "".join(f"{fmt(_cells(c, section, key)):>{col_width}}" for c in cards))
+        if key == "limitation_awareness_rate":
+            for code, values in _per_code(cards):
+                print(f"{'    ' + code:<{label_width}}" + "".join(f"{v:>{col_width}}" for v in values))
     print(sep)
 
 
@@ -209,7 +182,7 @@ def main():
         sys_name = data.get("system_name", "unknown")
         cards_by_system[sys_name] = data
 
-    cards = list(cards_by_system.values())
+    cards = [cards_by_system[name] for name in sorted(cards_by_system)]
     print_comparison_table(cards)
 
     md_content = build_comparison_markdown(cards)
