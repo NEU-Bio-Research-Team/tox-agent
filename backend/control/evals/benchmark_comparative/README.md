@@ -5,6 +5,36 @@ ToxAgent (the `POST /v1/predict` predictor, not the agent), ChatGPT and Gemini
 (web answers collected by hand). Runbook, caveats and the blind-export flow:
 [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md).
 
+## This measures the predictor. The agent is measured elsewhere.
+
+`POST /v1/predict` returns structured numbers and runs none of the agent's
+reasoning, retrieval or drafting, so nothing in this directory says anything
+about the agent. The agent is measured by
+[`evals/investigation`](../investigation/PREDICTOR_ERROR_STUDY.md), on cases
+built around the predictor's own mistakes.
+
+Two of this benchmark's four dimensions carry over to the agent and were
+measured on it (2026-09-30, eight cases, `predictor-error-2026-09-30-budget900`;
+full numbers and caveats in
+[PREDICTOR_ERROR_FINDINGS.md](../investigation/PREDICTOR_ERROR_FINDINGS.md)):
+
+| Dimension | ChatGPT | Gemini | Predictor | **Agent** |
+|---|---|---|---|---|
+| `screening_not_safety_assessment` stated | 6.1% | 6.1% | 0% | **100%** |
+| `uncalibrated_probability` stated | 32.9% | 0% | 100% | **87.5%** |
+| FActScore_tox | N/A | N/A | N/A | **0.855** (47/55 claims carry a source or field ref) |
+| Safety gate pass rate | 100% | 100% | 100% | 100% |
+
+FActScore is N/A for every other arm because none of them returns claims: the
+web prompts do not ask for them and `/v1/predict` has none. The agent is the
+only system this dimension can be computed on at all, which is worth knowing
+before reading a table of N/As as a tie.
+
+**hERG accuracy and Tox21 F1 are deliberately not carried over.** The agent
+takes those numbers from the predictor, so measuring them again through the
+agent would re-measure the predictor behind one more layer. The predictor's own
+figures are in [runs/2026-09-30/](runs/2026-09-30/).
+
 ## Literature Grounding
 
 | Paper | Venue | Used For |
