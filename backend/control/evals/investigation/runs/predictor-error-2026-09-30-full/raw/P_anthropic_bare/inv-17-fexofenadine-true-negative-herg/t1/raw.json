@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nIs hERG liability a concern for fexofenadine (CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O) at therapeutic exposure?",
+    "result": {
+      "duration_api_ms": 42680,
+      "stop_reason": "end_turn",
+      "session_id": "9b2e3322-a81f-4b01-8d12-5a651190d7d3",
+      "total_cost_usd": 0.080522,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 1565,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 2733,
+        "output_tokens_details": {
+          "thinking_tokens": 1263
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1565,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 997,
+          "outputTokens": 18,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001087,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 749,
+          "webSearchRequests": 0,
+          "costUSD": 0.006,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 2733,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 816,
+          "webSearchRequests": 0,
+          "costUSD": 0.073435,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 1263,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "**Short answer: no — fexofenadine is the textbook example of a hERG liability being *engineered out* of a scaffold, and the clinical data back that up.** It still scores as a weak hERG hit in vitro, but the free-drug margin at therapeutic exposure is large (roughly two orders of magnitude), and dedicated clinical QT studies at supratherapeutic doses and under DDI conditions are negative.\n\n## The relevant contrast: terfenadine → fexofenadine\n\n- **Terfenadine** (the parent prodrug) is a potent hERG blocker, IC₅₀ in the tens of nM. Normally it's ~99% first-pass converted by CYP3A4 to fexofenadine, so parent plasma levels are negligible. Torsades cases arose when that metabolic sink was saturated or blocked — ketoconazole, erythromycin, grapefruit juice, hepatic impairment, overdose — allowing parent accumulation. Withdrawn 1997–98 (US 1998).\n- **Fexofenadine** is the terminal carboxylic acid metabolite, marketed in place of the parent. Reported hERG IC₅₀ values scatter by assay/lab but land in the low- to mid-micromolar range, i.e. ~2–3 log units weaker than terfenadine. (Treat the exact numbers as memory-level recall — worth pulling the primary patch-clamp papers if you need a hard value for a modeling exercise.)\n\n## Exposure–response margin\n\n| | value |\n|---|---|\n| MW | 501.7 |\n| Cₘₐₓ, 180 mg QD | ~250–300 ng/mL ≈ **0.5–0.6 µM total** |\n| Plasma protein binding | ~60–70% → **free ~0.2 µM** |\n| hERG IC₅₀ | low–mid µM |\n| Free-drug margin | **~10–100×+, likely >50×** |\n\nSupporting clinical evidence:\n- No QTc prolongation at 240 mg daily for a year or ~690 mg BID for a month.\n- Coadministration with ketoconazole or erythromycin raises fexofenadine AUC ~2–3× (P-gp/OATP inhibition, *not* CYP), and even then no QTc signal. That's the key experiment, because it's exactly the interaction that killed terfenadine.\n- Two decades of OTC use without a torsades signal.\n\n## Why the SAR works (the transferable lesson)\n\nCanonical hERG pharmacophore binding needs a basic amine plus flanking lipophilic/aromatic bulk to engage Tyr652/Phe656 in the inner pore. Terfenadine has that in spades (piperidine + diphenylmethanol + *tert*-butylphenyl). Oxidizing the *tert*-butyl to a carboxylic acid installs an anion at physiological pH, giving a **zwitterion** that:\n\n1. Pays a large desolvation penalty to enter the hydrophobic pore cavity — direct potency loss;\n2. Drops passive permeability and, combined with P-gp efflux, gives ~30% oral bioavailability and essentially no CNS penetration (hence non-sedating);\n3. Removes CYP3A4 dependence — <10% metabolized, mostly excreted unchanged — so the exposure is robust to CYP interactions.\n\nSo the carboxylate simultaneously fixed hERG, sedation, and the DDI-driven exposure variability. This \"add an acid\" tactic is one of the more reliable hERG mitigations, though it comes with the usual costs: permeability, OATP/OAT transporter-mediated DDIs and food effects (fruit juices reduce fexofenadine AUC), and loss of any intracellular/CNS target access.\n\n## Caveats for how you'd use this\n\n- If fexofenadine shows up in your own hERG screen, expect a measurable but weak signal — it's sometimes used as a weak-positive or reference low-risk compound.\n- The safety margin rests on the exposure, not on hERG inactivity. Fexofenadine's exposure is unusually well-behaved; a close analog with higher permeability, higher dose, or reduced clearance could erode that margin even at similar potency.\n- If you're proposing acid-containing analogs in a hERG-liable series, confirm you haven't just shifted risk into transporter-mediated DDIs or hepatobiliary uptake/accumulation.",
+      "ttft_ms": 6101,
+      "type": "result",
+      "duration_ms": 41717,
+      "uuid": "264197a0-a8d9-4296-9293-f07356af99ba",
+      "ttft_stream_ms": 1529,
+      "time_to_request_ms": 46,
+      "first_content_frame_ms": 6101,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 1565,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 2733,
+      "cost_usd": 0.080522
+    },
+    "exit_code": 0
+  }
+]

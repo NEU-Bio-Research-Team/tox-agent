@@ -1,0 +1,2843 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_ba566308c85145aca8965cc146dc9713",
+        "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T15:55:03.604270+00:00",
+        "created_at": "2026-09-30T15:40:03.604270+00:00",
+        "started_at": "2026-09-30T15:40:03.753875+00:00",
+        "ended_at": "2026-09-30T15:43:15.622434+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "a11f5a2c38529d67bc67dc974dbd76b06674863548bec8c832ba15a688487edf"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 900,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 900,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:40:03.605850+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_63ac74d082a141ae93baec1cbff981a2",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:40:16.700250+00:00",
+              "tokens": {
+                "input": 5535,
+                "output": 46,
+                "reasoning": 47,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 8188
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_49b70357157c82333f451c9bb743b6d0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f91722001QYfOxNrioZd1WQ",
+                "step_id": "prt_0f2f941b6001yiTeequsZdQ6BD",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f5856021e9904d95b1020cafa5cda951",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:40:23.070123+00:00",
+              "tokens": {
+                "input": 690,
+                "output": 120,
+                "reasoning": 77,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8567
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a10ca0dc4d90bf2cd2068a70d6c8a39c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f941dc001T4Ur22FmbGDPrL",
+                "step_id": "prt_0f2f95a970010lqp402PdcJ8Ts",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_7511c0c04918475ab45200d2e83d9db2",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:40:37.399468+00:00",
+              "tokens": {
+                "input": 2824,
+                "output": 354,
+                "reasoning": 111,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10969
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_1ebeced37b56977fb8167874a4cd21b0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f95abd001uJgaZ1tlxSAv4Y",
+                "step_id": "prt_0f2f992900017EAbQ6EkILfU7u",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f0f4402f129c4dc19116b1b13f06b640",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:40:57.892654+00:00",
+              "tokens": {
+                "input": 3545,
+                "output": 769,
+                "reasoning": 105,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 14147
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ac06ecde56cab87dff4f7afd475ad351",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f992bc001Y4m6zfEXnxmSty",
+                "step_id": "prt_0f2f9e29e0011yb2Gncw3Z8MsZ",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_391f6d84c9ea48249478836635555032",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:41:06.090046+00:00",
+              "tokens": {
+                "input": 6975,
+                "output": 185,
+                "reasoning": 115,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 20075
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_74d29cdc9870d6dc031853a1509b6107",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f9e2c7001BghhvQUlcb02g5",
+                "step_id": "prt_0f2fa02a40013XY21UcyG1kMxL",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_63d450a453df41358d29baa726547409",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:42:14.515513+00:00",
+              "tokens": {
+                "input": 1612,
+                "output": 3210,
+                "reasoning": 417,
+                "cache_read": 18944,
+                "cache_write": 0,
+                "total": 24183
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_aa71e511c733aeecd2628ab1ab7a4802",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fa02c2001d71KIiPGOSQDSc",
+                "step_id": "prt_0f2fb0ded001Oz9OnO65LM2W9a",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8963ed2563574ac684474415f8da9a6a",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:42:47.098553+00:00",
+              "tokens": {
+                "input": 4471,
+                "output": 1263,
+                "reasoning": 409,
+                "cache_read": 19968,
+                "cache_write": 0,
+                "total": 26111
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_de7771823393ece867530f779d9fe31d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fb0e10001ZQcfm1WrEbidkB",
+                "step_id": "prt_0f2fb8d34001usyD3qFMr4JLSn",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f4e926d1f021400cbf1701d70f8359f2",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:43:12.750009+00:00",
+              "tokens": {
+                "input": 2445,
+                "output": 1275,
+                "reasoning": 14,
+                "cache_read": 24064,
+                "cache_write": 0,
+                "total": 27798
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6ed31806ba72710f002340b4e3cbff56",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fb8d53001RkWpquSo9x2SgE",
+                "step_id": "prt_0f2fbf165001gXUqWtvcgQ4uJu",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_69bb785f66f5474e9806ef37fe9b142f",
+              "runtime_binding_id": "rtb_aa3dc246ecd94b92bd6c636fa204d73e",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:43:15.540715+00:00",
+              "tokens": {
+                "input": 2058,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 26112,
+                "cache_write": 0,
+                "total": 28174
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_0e42ed7620601b3d946ea5916b4fdfac",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fbf18f0015uqANGtwtFgg6t",
+                "step_id": "prt_0f2fbfc4f001G2bh5Ynv6ZWmyv",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_f65214cd21464582a88813149b768b02",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "5762ff6e34d66f62021c17ae24ffae361ce33d95943341ac81244906279e7325",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:40:16.648324+00:00",
+            "ended_at": "2026-09-30T15:40:16.664273+00:00"
+          },
+          {
+            "call_id": "call_82de1afa6c314630851dc65643a1ba6b",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "23351a8dc2e67f95a7ed87ada9e9f0fc4c502bcfda2eaa2579c99c33b6c5ce6a",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:22.704072+00:00",
+            "ended_at": "2026-09-30T15:40:22.717306+00:00"
+          },
+          {
+            "call_id": "call_ef66444eb4dd444d99b57f44ef711f89",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:40:22.810915+00:00",
+            "ended_at": "2026-09-30T15:40:22.828949+00:00"
+          },
+          {
+            "call_id": "call_d117d19237394dba8a5db0345cbc9f5f",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:40:23.000299+00:00",
+            "ended_at": "2026-09-30T15:40:23.012994+00:00"
+          },
+          {
+            "call_id": "call_968e6e9bcd6e468dbf7f8484e207574e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "d72c31d42212802c7f043adcd669486d18a635b298b527f36b4e9cbe480228fe",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:33.553233+00:00",
+            "ended_at": "2026-09-30T15:40:33.569134+00:00"
+          },
+          {
+            "call_id": "call_fb8020ade2124f7b9f4c9d08c2cb0095",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "d5f7ed0f0e01f624186c4d46eaa8453b0bfa5699f228d0cdc4e8ffd20bded022",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:33.685202+00:00",
+            "ended_at": "2026-09-30T15:40:33.702903+00:00"
+          },
+          {
+            "call_id": "call_6da47b84cbc64cbc9dd6dbd54de8b80c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 22,
+            "arguments_sha256": "1911cc90d249ab3ea3528f3f83a05a7b57e3b6c81e468721bf4b0a496b0d0769",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:33.755079+00:00",
+            "ended_at": "2026-09-30T15:40:33.775122+00:00"
+          },
+          {
+            "call_id": "call_00ab6f6b5c104feb9b32ba49a155b687",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2197,
+            "arguments_sha256": "8563a72fd16c0db55cd82ae12eb868703084d0f68cc488537d3de8376cfdb806",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:40:33.797355+00:00",
+            "ended_at": "2026-09-30T15:40:35.992501+00:00"
+          },
+          {
+            "call_id": "call_4eb0af915af74fbc9280bb813990a6c3",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 3425,
+            "arguments_sha256": "cfb8a097ff023d84769e1fff3aa2f6ac20804e99898a366ec4522195e9efd5e4",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:40:33.938696+00:00",
+            "ended_at": "2026-09-30T15:40:37.361945+00:00"
+          },
+          {
+            "call_id": "call_5404199d04a04906b9e21c4ccff9b7ed",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 21,
+            "arguments_sha256": "d132c75f1d9cacc90d07cbdd5a34d6cb452f60d10e124cacf913598fe255c099",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.144026+00:00",
+            "ended_at": "2026-09-30T15:40:56.163024+00:00"
+          },
+          {
+            "call_id": "call_25aca840a1494a3d9f4235de44ab46cb",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 107,
+            "arguments_sha256": "5b2ebeb28f3be4fd5c890c32701eb59c522b97a00c2595ac798b2b14666348fc",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.267761+00:00",
+            "ended_at": "2026-09-30T15:40:56.348421+00:00"
+          },
+          {
+            "call_id": "call_3d3c5b0baca2421a9a89aecefe0c94eb",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 86,
+            "arguments_sha256": "a04ef262d22e89cb7680b24316c3dcc470cd1094abce1654f98f283e293e7f84",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.306258+00:00",
+            "ended_at": "2026-09-30T15:40:56.353547+00:00"
+          },
+          {
+            "call_id": "call_9f113bbad6f04e9badaaeec12ef4a386",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 73,
+            "arguments_sha256": "3d336bb459481acf2cc5a386018bc2c53371619f2eed4323559a0d977387958d",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.311630+00:00",
+            "ended_at": "2026-09-30T15:40:56.361650+00:00"
+          },
+          {
+            "call_id": "call_98902b81a7bb4baa83d45c06b3de608d",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 61,
+            "arguments_sha256": "ac5967e962cd2650000c05a2010fe1c30ec83df1e91b179981e7df85950f7012",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.313317+00:00",
+            "ended_at": "2026-09-30T15:40:56.368443+00:00"
+          },
+          {
+            "call_id": "call_fa0298b9484f462c851f8286a88021e5",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 52,
+            "arguments_sha256": "1b74652f71162d68d0b83bf3ec26f91c765be7eab3226e4069c21016e674c573",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.343837+00:00",
+            "ended_at": "2026-09-30T15:40:56.394542+00:00"
+          },
+          {
+            "call_id": "call_dfc29da4489d434e95fe38ace38368ab",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1410,
+            "arguments_sha256": "e3f6b6ec336e7424d4617bd1eb7cc8d98f4aab03a376a2eba937617a7c1c74e2",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:40:56.475634+00:00",
+            "ended_at": "2026-09-30T15:40:57.849772+00:00"
+          },
+          {
+            "call_id": "call_e84f4f8565c54e9b827ef007b6030fe8",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 82,
+            "arguments_sha256": "c0feb090f30c62085274eab1cf63df61d389a7f832ae33f97b51d74b0558ef14",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.502101+00:00",
+            "ended_at": "2026-09-30T15:40:56.557787+00:00"
+          },
+          {
+            "call_id": "call_bd0a80d59300435499bf00531aaba733",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 66,
+            "arguments_sha256": "587b240a3e4190da0bfe20788dabc33a3a202c9252189ee22d68f3a1b4713110",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.503674+00:00",
+            "ended_at": "2026-09-30T15:40:56.565059+00:00"
+          },
+          {
+            "call_id": "call_98e2ef86ae6142babadf4a0389e79d6a",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 45,
+            "arguments_sha256": "8be1a97ef05952964b71582545e4f6c6cfad81215d2d4d52bffd0eaeccaa9421",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.545485+00:00",
+            "ended_at": "2026-09-30T15:40:56.571861+00:00"
+          },
+          {
+            "call_id": "call_b1061059c919482ba17f65e867f2f12b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 39,
+            "arguments_sha256": "871a83da330b8499301bd291c97ae9f6fbeff7158b657adf04048a3ab87149ec",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.547282+00:00",
+            "ended_at": "2026-09-30T15:40:56.583017+00:00"
+          },
+          {
+            "call_id": "call_647f5cba7ff649518b3a00485de8da05",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "5616a2acb9abcb503fe382dfffb262a4d607b6382a0a184ebb8bf4f33d417f3a",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.663437+00:00",
+            "ended_at": "2026-09-30T15:40:56.673684+00:00"
+          },
+          {
+            "call_id": "call_ca74179cc77f43928dde1aacf954e132",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "abebc8f0fffb7880b495682dfea78353744ccbc998cdf5ccf5b94eedf0224411",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:40:56.770916+00:00",
+            "ended_at": "2026-09-30T15:40:56.785823+00:00"
+          },
+          {
+            "call_id": "call_84ddfb3b1ebc4151bfb199b844ccc8af",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "140e65bd4fd82a3b8f99b3c456f1cb52caf10084456963fb834ae232a46aeb3e",
+            "observation_ids": [
+              "evd_36736ef323f246deb647371a050cbdf6"
+            ],
+            "started_at": "2026-09-30T15:41:05.753328+00:00",
+            "ended_at": "2026-09-30T15:41:05.771212+00:00"
+          },
+          {
+            "call_id": "call_233b1ffb6b544bcbad6423324e736dd6",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "edb9bfef85238cf72e874db2a8f6ba46eef82898d1fd7c423f55624868c9396b",
+            "observation_ids": [
+              "evd_1c53a3f2809f402cb4a4c57dca91eacf"
+            ],
+            "started_at": "2026-09-30T15:41:05.857950+00:00",
+            "ended_at": "2026-09-30T15:41:05.872258+00:00"
+          },
+          {
+            "call_id": "call_f8c22c76c27b4813868155e1e896658a",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "ee22e4974d812f5c73052c1bb46ef55a731058db7c846b3b8407623813ecc433",
+            "observation_ids": [
+              "evd_ef14d11e473d4e2c9a6d5c19358db0f2"
+            ],
+            "started_at": "2026-09-30T15:41:06.047264+00:00",
+            "ended_at": "2026-09-30T15:41:06.057745+00:00"
+          },
+          {
+            "call_id": "call_edd48fb010364b3a8e842efc2e1239fb",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 27,
+            "arguments_sha256": "a1c98c2570a606802e2be3dd7feafd0d2ec7038c39e6fd75007176475f4693f3",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:42:14.351953+00:00",
+            "ended_at": "2026-09-30T15:42:14.377571+00:00"
+          },
+          {
+            "call_id": "call_94770c81e261413d9188fd43931e0782",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 65,
+            "arguments_sha256": "eefc6c224e00f306b375cf4b94e6b16473edd5252ec3931b6aeb370889ffb325",
+            "observation_ids": [
+              "obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "started_at": "2026-09-30T15:43:12.649072+00:00",
+            "ended_at": "2026-09-30T15:43:12.712160+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_18d297edf4fd4ca0ab82b53dee1ffb0a",
+        "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+        "answer_markdown": "**Screening readout**\n\n- The main concern is four Tox21 screening flags: NR-AhR True, NR-ER True, SR-ATAD5 True, and SR-p53 True. These assays are independent signals, not an aggregate toxicity score.\n- hERG is predicted non_blocker, so this screen does not raise a prominent hERG-blockade concern.\n- Independent literature makes hyperuricemia and renal/kidney-stone context relevant, but the retrieved evidence is indirect for this exact material and intended use. Retrieved literature provides indirect context linking urate-related biology with hyperuricemia and renal or kidney-stone concerns, but does not directly establish a hazard for this exact material and use.\n\nI would **not clear it solely from this screen**. I would hold the queue decision pending intended route, dose, duration, formulation, and expected exposure, then confirm the four Tox21 flags with orthogonal concentration-response assays using viability and interference controls. This is screening follow-up, not a safety assessment.",
+        "claims": [
+          {
+            "claim_id": "clm_03776c149b4d442785e5fdc57f123384",
+            "kind": "classification",
+            "text": "The Tox21 NR-AhR assay is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_47ec277aeb5241c780fda630e6a8548a",
+            "field_path": "predictions.tox21.assays.NR-AhR.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_c2de852492cb4a4ebe7fccea5a64915f",
+            "kind": "classification",
+            "text": "The Tox21 NR-ER assay is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_47ec277aeb5241c780fda630e6a8548a",
+            "field_path": "predictions.tox21.assays.NR-ER.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_1db6c5f4bfda4c7b8dbb0c11b3a6e6ae",
+            "kind": "classification",
+            "text": "The Tox21 SR-ATAD5 assay is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_47ec277aeb5241c780fda630e6a8548a",
+            "field_path": "predictions.tox21.assays.SR-ATAD5.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_ea3dbed2f58349fc85616bae90e298ab",
+            "kind": "classification",
+            "text": "The Tox21 SR-p53 assay is classified active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_47ec277aeb5241c780fda630e6a8548a",
+            "field_path": "predictions.tox21.assays.SR-p53.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_5f120b01fbe842eb9983afb7ac3d79eb",
+            "kind": "classification",
+            "text": "The hERG endpoint is classified non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_47ec277aeb5241c780fda630e6a8548a",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_303fb5adaff74c18bea3efe8ff7d5bf9",
+            "kind": "scientific",
+            "text": "Retrieved literature provides indirect context linking urate-related biology with hyperuricemia and renal or kidney-stone concerns, but does not directly establish a hazard for this exact material and use.",
+            "transform": "identity",
+            "citation_ids": [
+              "evd_36736ef323f246deb647371a050cbdf6",
+              "evd_ef14d11e473d4e2c9a6d5c19358db0f2"
+            ]
+          }
+        ],
+        "limitations": [
+          {
+            "code": "evidence_scope_limited",
+            "text": "The external evidence retrieved is indirect and does not establish compound-specific risk for the intended use."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Tox21 flags and proposed orthogonal tests are screening evidence, not a clinical or regulatory safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Confirm the four flagged Tox21 activities with orthogonal concentration-response assays, viability controls, and chemical-interference controls at exposure-relevant concentrations.",
+            "basis_claim_ids": [
+              "clm_03776c149b4d442785e5fdc57f123384",
+              "clm_c2de852492cb4a4ebe7fccea5a64915f",
+              "clm_1db6c5f4bfda4c7b8dbb0c11b3a6e6ae",
+              "clm_ea3dbed2f58349fc85616bae90e298ab"
+            ]
+          },
+          {
+            "text": "Obtain the intended route, dose, duration, formulation, and expected urate exposure before making a queue decision.",
+            "basis_claim_ids": [
+              "clm_303fb5adaff74c18bea3efe8ff7d5bf9"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "4e10ad7c49187622ed3f0d8e2aa8f9a6ee2c186717d8ae232b91c35e104a1d47",
+        "created_at": "2026-09-30T15:43:12.675165+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_88dd59dd8518420cbeeab308e7d0c731",
+        "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+        "goal": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+        "subject_refs": [
+          "analysis:ana_5c09537b895a4ef9bbc3749afca4f25b"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while hERG is predicted non-blocking.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_47ec277aeb5241c780fda630e6a8548a"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the evidence is indirect for this exact material and use.",
+            "required_sources": [
+              "evidence"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "evidence:evd_36736ef323f246deb647371a050cbdf6"
+            ],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 2
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 900,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 900,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 3,
+          "tool_calls": 27,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 3
+        },
+        "available_refs": [
+          "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+          "evidence:evd_36736ef323f246deb647371a050cbdf6",
+          "evidence:evd_1c53a3f2809f402cb4a4c57dca91eacf",
+          "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2"
+        ],
+        "found_refs": [
+          "evidence:evd_8a100cbdb8344f1b838a96b5a37ea41a",
+          "evidence:evd_1c53a3f2809f402cb4a4c57dca91eacf",
+          "evidence:evd_36736ef323f246deb647371a050cbdf6",
+          "evidence:evd_c4f9ed00a1604a71a9671b94c40dd1b5",
+          "evidence:evd_0fb255e29b174179918250e34acd84dd",
+          "evidence:evd_2eff6100d0bc4f9caeca6176feb97e20",
+          "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2",
+          "evidence:evd_a774a9229110467eaa7844b167957a55",
+          "evidence:evd_530175d7599e430facfc1393b946ffde",
+          "evidence:evd_797920f283194fa897981ce0286c6e9f",
+          "evidence:evd_c888824f01994b9f9da581abd3ab98a6"
+        ],
+        "stop_reason": "sufficient",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 32
+      },
+      "dossier": {
+        "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+        "case_id": "scase_536b6268419142cca813d42577167aea",
+        "context": [],
+        "coverage": {
+          "hypotheses": 3,
+          "with_any_source": 3,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 1,
+          "with_counterevidence_considered": 3,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "For uric acid in the screening queue, are there toxicity or assay signals that warrant concern or follow-up?",
+        "answer_id": "ans_18d297edf4fd4ca0ab82b53dee1ffb0a",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+          "can_say": [
+            {
+              "text": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while the hERG endpoint is predicted non-blocking.",
+              "sources": [
+                "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+                "observation:obs_47ec277aeb5241c780fda630e6a8548a"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the retrieved evidence is indirect for this exact material and use.",
+              "sources": [
+                "evidence:evd_36736ef323f246deb647371a050cbdf6",
+                "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2"
+              ],
+              "evidence_ids": [
+                "e3",
+                "e4"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "These results do not establish that uric acid is clinically toxic, mechanistically active in those pathways, or safe for a particular use.",
+            "They do not support an aggregate toxicity or safety score."
+          ],
+          "what_would_change": [
+            "Orthogonal, exposure-relevant confirmation or refutation of the four Tox21 flags.",
+            "The intended route, dose, duration, formulation, and expected urate exposure."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "status": "open",
+            "context": [],
+            "statement": "The model's Tox21 activity flags are meaningful screening liabilities for uric acid under the intended use and exposure.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The predictor reports activity flags in four independent Tox21 assays and inactivity in the remaining listed assays.",
+                "scope": {
+                  "assay": "NR-AhR; NR-ER; SR-ATAD5; SR-p53",
+                  "compound": "uric acid",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.*.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The hERG endpoint is predicted non-blocking.",
+                "scope": {
+                  "compound": "uric acid",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+                "stance": "contradicts",
+                "locator": "predictions.herg.label",
+                "directness": "direct",
+                "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "refutation_condition": "Orthogonal testing at relevant concentrations shows no reproducible activity, or exposure is demonstrably below the assay-relevant range."
+          },
+          {
+            "id": "h2",
+            "kind": "alternative_explanation",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "status": "open",
+            "context": [],
+            "statement": "The Tox21 flags may be model or assay signals without established human relevance for this compound.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The predictor reports activity flags in four independent Tox21 assays and inactivity in the remaining listed assays.",
+                "scope": {
+                  "assay": "NR-AhR; NR-ER; SR-ATAD5; SR-p53",
+                  "compound": "uric acid",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.*.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Reproducible concentration-response activity is confirmed in orthogonal assays and aligns with relevant exposure."
+          },
+          {
+            "id": "h3",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "status": "open",
+            "context": [
+              {
+                "id": "e4",
+                "actor": "model",
+                "claim": "Kidney-stone relevance is a context to investigate, not a direct finding that this screening material causes renal injury.",
+                "scope": {
+                  "compound": "uric acid"
+                },
+                "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+                "stance": "contextual",
+                "locator": "title",
+                "directness": "indirect",
+                "source_ref": "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h3"
+                ]
+              }
+            ],
+            "statement": "Uric-acid burden and exposure context can create renal or gout-related concern that is outside hERG/Tox21 assay coverage.",
+            "evidence_for": [
+              {
+                "id": "e3",
+                "actor": "model",
+                "claim": "External literature gives context for urate-associated renal and gout concerns but does not directly validate these predictor outputs for this exact use.",
+                "scope": {
+                  "compound": "uric acid"
+                },
+                "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+                "stance": "supports",
+                "locator": "title",
+                "directness": "indirect",
+                "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+                "source_class": "external_experimental",
+                "hypothesis_ids": [
+                  "h3"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "The intended use cannot produce relevant urate exposure or independent clinical/biological evidence does not support the concern."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Confirm the four flagged Tox21 activities with orthogonal concentration-response assays, including cytotoxicity and chemical-interference controls, using exposure-relevant concentrations.",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "rationale": "This distinguishes reproducible assay liability from model or assay artifact.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "reproducible concentration-response activity",
+              "no activity with matched viability and interference controls",
+              "exposure margin relative to intended use"
+            ]
+          }
+        ],
+        "stop_reason": "sufficient",
+        "subject_refs": [
+          "analysis:ana_5c09537b895a4ef9bbc3749afca4f25b"
+        ],
+        "case_revision": 18,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The predictor reports activity flags in four independent Tox21 assays and inactivity in the remaining listed assays.",
+            "scope": {
+              "assay": "NR-AhR; NR-ER; SR-ATAD5; SR-p53",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.*.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The hERG endpoint is predicted non-blocking.",
+            "scope": {
+              "compound": "uric acid",
+              "endpoint": "herg"
+            },
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "stance": "contradicts",
+            "locator": "predictions.herg.label",
+            "directness": "direct",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e5",
+            "actor": "server",
+            "claim": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while hERG is predicted non-blocking.",
+            "scope": {
+              "endpoint": "tox21"
+            },
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "Assess the fixed predictor's hERG and Tox21 outputs together with direct external evidence, without treating them as an aggregate safety verdict.",
+        "unlinked_evidence": [
+          {
+            "id": "e5",
+            "actor": "server",
+            "claim": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while hERG is predicted non-blocking.",
+            "scope": {
+              "endpoint": "tox21"
+            },
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e6",
+            "actor": "server",
+            "claim": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the evidence is indirect for this exact material and use.",
+            "scope": {},
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+            "source_class": "external_experimental",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+              "outcome": "No direct, compound-specific hERG confirmation was found; contextual literature was retrieved for hyperuricemia and kidney-stone relevance.",
+              "purpose": "Search for compound-specific or endpoint-relevant evidence that would weaken the model flags or reveal exposure-dependent renal/gout concerns.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": [
+            {
+              "id": "e3",
+              "actor": "model",
+              "claim": "External literature gives context for urate-associated renal and gout concerns but does not directly validate these predictor outputs for this exact use.",
+              "scope": {
+                "compound": "uric acid"
+              },
+              "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+              "stance": "supports",
+              "locator": "title",
+              "directness": "indirect",
+              "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h3"
+              ]
+            },
+            {
+              "id": "e4",
+              "actor": "model",
+              "claim": "Kidney-stone relevance is a context to investigate, not a direct finding that this screening material causes renal injury.",
+              "scope": {
+                "compound": "uric acid"
+              },
+              "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+              "stance": "contextual",
+              "locator": "title",
+              "directness": "indirect",
+              "source_ref": "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2",
+              "source_class": "external_experimental",
+              "hypothesis_ids": [
+                "h3"
+              ]
+            },
+            {
+              "id": "e6",
+              "actor": "server",
+              "claim": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the evidence is indirect for this exact material and use.",
+              "scope": {},
+              "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+              "stance": "contextual",
+              "locator": null,
+              "directness": "indirect",
+              "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            }
+          ]
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "assay_mismatch",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "Tox21 activity flags are screening endpoints and do not establish mechanism, adversity, or human relevance; no orthogonal confirmation or concentration context is available.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "status": "open",
+            "severity": "blocking",
+            "resolution": "",
+            "description": "Intended use, route, dose, duration, formulation, solubility, and resulting urate exposure are not supplied.",
+            "hypothesis_ids": [
+              "h3"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_88dd59dd8518420cbeeab308e7d0c731",
+  "analysis": {
+    "run": {
+      "run_id": "run_0ff8748175b4401fb3f5637ad08e9257",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_b71279ba38a941f8ae7a62550c34a013",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:55:02.530490+00:00",
+      "created_at": "2026-09-30T15:40:02.530490+00:00",
+      "started_at": "2026-09-30T15:40:02.546433+00:00",
+      "ended_at": "2026-09-30T15:40:02.593886+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 900,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:40:02.532568+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_5c09537b895a4ef9bbc3749afca4f25b",
+      "input_smiles": "C12=C(NC(=O)N1)NC(=O)NC2=O",
+      "canonical_smiles": "O=c1[nH]c(=O)c2[nH]c(=O)[nH]c2[nH]1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.06193488836288452,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.359287291765213,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.5244221687316895,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.9641017913818359,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.2179337441921234,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.4354153573513031,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.5229397416114807,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.8121622800827026,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.5138293504714966,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.27803587913513184,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.09174373000860214,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.4701090455055237,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.01663414016366005,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "f1f3f7e0-5d97-4d95-93d4-936df11ebcba",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 25,
+            "encoded_token_count": 25
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "f0d0a292f45a2f149bba3186389c2ee71d3f92646e75799849a9ee2fccf3515c"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:40:02.587404+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_797920f283194fa897981ce0286c6e9f",
+      "title": "ICE2026/JES2026 Abstract Book",
+      "authors": [],
+      "published_at": "2026-05-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC13390741",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC13390741",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Endocrine journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:57.825845+00:00",
+      "content_sha256": "4a8980fbbcd06ae202640a30ed41e5d439db754ae3a87bbc5c16cf48055b1217"
+    },
+    {
+      "evidence_id": "evd_c888824f01994b9f9da581abd3ab98a6",
+      "title": "Publication Only",
+      "authors": [],
+      "published_at": "2026-06-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC13254489",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC13254489",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "HemaSphere",
+        "pub_type": "Abstract",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:57.825845+00:00",
+      "content_sha256": "664e31bbdb0a0bae9b3a96769de78b23bc5b8de80951826a3c0fbef3c3201425"
+    },
+    {
+      "evidence_id": "evd_ef14d11e473d4e2c9a6d5c19358db0f2",
+      "title": "A holistic guide to effective prevention and treatment for kidney stones: a systematic review exploring anti-urolithiasis approaches.",
+      "authors": [
+        "Allam AT",
+        "El-Dessouki AM",
+        "El-Shiekh RA",
+        "Abou-Hussein D",
+        "Mahmoud MA",
+        "Marcus WH",
+        "Ruby HA"
+      ],
+      "published_at": "2025-10-20",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00210-025-04658-y",
+        "pmid": "41116039",
+        "pmcid": "PMC12935727",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41116039",
+      "abstract_or_excerpt": "Urolithiasis, a disease of kidney stones, is a prevalent and recurrent condition characterized by the formation of hard mineral deposits in the urinary tract, leading to significant morbidity and a substantial healthcare burden worldwide. With recurrence rates ranging from 30 to 50% and a lifetime prevalence of 9-12% in industrialized populations, effective prevention and management strategies are crucial. Traditional approaches to urolithiasis, including pharmacological agents and surgical interventions, emphasize medical interventions and lifestyle changes; however, the persistent recurrence and impact on quality of life underscore the necessity for more comprehensive solutions. Recent advancements have focused on the potential of nutraceuticals, including herbal extracts, vitamins, and minerals, as adjuncts in the prevention and treatment of kidney stones. These agents may exert beneficial effects by inhibiting stone crystal formation, modulating urinary pH, reducing urinary calcium and oxalate excretion, enhancing diuresis, and supporting overall renal function. Moreover, these plant-based therapies may help alleviate symptoms such as pain and inflammation related to stone episodes. This systematic review synthesizes findings from 14 randomized controlled trials to assess the therapeutic impact and safety profile of various herbal interventions in patients with diagnosed kidney or ureteral stones. Thus, evidence from these recent clinical trials has increasingly supported the efficacy of single-herb and polyherbal formulations, such as Nigella sativa, Alhagi maurorum, Subap Plus, and Palasha Kshara, in modulating urinary risk factors and promoting stone expulsion. For instance, these trials demonstrated promising outcomes for several herbs: Portulaca oleracea significantly increased urinary citrate and reduced calcium, Traditional Persian Medicine-based Mofatet powder markedly reduced stone size and improved urinary parameters, Alhagi maurorum distillates and extracts showed comparable efficacy to hydrochlorothiazide in stone expulsion, and Nigella sativa performed as well as or better than tamsulosin in both pain relief and stone passage. Additional polyherbal remedies, such as Subap Plus, Palasha Kshara, and BNO 1040 extract, also yielded favourable results in improving stone clearance, easing symptoms, and potentially preventing recurrence. Notably, most studies reported good short-term tolerability and minimal adverse effects. Despite these promising findings, limitations in sample size, standardization of formulations, lack of comprehensive adverse events reporting, and need for long-term follow-up highlight the necessity for further rigorous trials.",
+      "normalized_facts": {
+        "journal": "Naunyn-Schmiedeberg's archives of pharmacology",
+        "pub_type": "Systematic Review, review-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:57.825845+00:00",
+      "content_sha256": "4482065dab960599c92b7d9435365c2f821530c579792f5f0b70b84a18c16a61"
+    },
+    {
+      "evidence_id": "evd_a774a9229110467eaa7844b167957a55",
+      "title": "Special Collection: Abstracts from IUNS-ICN Paris 2025",
+      "authors": [],
+      "published_at": "2026-09-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC13439031",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC13439031",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Journal of nutritional science",
+        "pub_type": "Abstract",
+        "pub_year": null
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:57.825845+00:00",
+      "content_sha256": "d94366f675d184cabd010cfb474cd3b5ec715d45ff9c15538a09831f16082e81"
+    },
+    {
+      "evidence_id": "evd_530175d7599e430facfc1393b946ffde",
+      "title": "Abstract",
+      "authors": [],
+      "published_at": "2026-06-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC13290681",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC13290681",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "JPGN reports",
+        "pub_type": "Abstract",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:57.825845+00:00",
+      "content_sha256": "ae4f58ac4d17f38268bc08fc5686630caec082d89bd06d09f442a53424771c59"
+    },
+    {
+      "evidence_id": "evd_36736ef323f246deb647371a050cbdf6",
+      "title": "Pediatric hyperuricemia: genetic basis, metabolic mechanisms, and clinical implications.",
+      "authors": [
+        "Zhou J",
+        "Lv J",
+        "Hong C",
+        "Liu Q",
+        "Jin S",
+        "Zhang Y",
+        "Liu Y"
+      ],
+      "published_at": "2026-08-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fendo.2026.1841803",
+        "pmid": "42639006",
+        "pmcid": "PMC13501462",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42639006",
+      "abstract_or_excerpt": "Hyperuricemia (HUA) is a heterogeneous group of metabolic disorders caused by long-term disturbances in purine metabolism. In recent years, although adult HUA and gout have been extensively studied, the understanding of HUA and gout in children and adolescents remains insufficient. Diagnostic criteria for adult HUA are well-established, but no consensus has yet been reached regarding its definition in children and adolescents. This review summarizes the current understanding of pediatric HUA, emphasizing its genetic basis, metabolic mechanisms, and clinical associations. ATP-binding cassette subfamily G member 2 (ABCG2) dysfunction, gene-defined forms of autosomal dominant tubulointerstitial kidney disease (ADTKD), particularly ADTKD-UMOD and ADTKD-REN, and selected purine metabolism disorders contribute to early-onset HUA, gout, nephrolithiasis, and renal involvement. Obesity-related insulin resistance (IR) may promote urate accumulation through pathways linked to oxidative stress, endothelial dysfunction, and inflammasome activation. Persistent elevation of uric acid (UA) has been associated with chronic kidney disease (CKD) progression, elevated blood pressure (BP), and subclinical cardiovascular remodeling. However, many of these mechanistic associations are supported primarily by adult and experimental studies and require further validation in children. We also review non-pharmacological management and indication-based pharmacological treatment strategies for pediatric HUA. These indications include asymptomatic hyperuricemia (AH), pediatric gout, UA nephrolithiasis, inherited purine metabolism disorders, CKD-associated HUA, and tumor lysis syndrome (TLS)-associated acute HUA, with emphasis on pediatric evidence, regulatory approval, off-label use, dosing, monitoring, and safety. In children, asymptomatic serum urate elevation is often the first recognized presentation, whereas nephrolithiasis, gout, renal dysfunction, or acute HUA should prompt evaluation for genetic, metabolic, renal, or treatment-related causes. These findings underscore the need for early identification and personalized intervention in children with HUA to prevent long-term renal and metabolic complications.",
+      "normalized_facts": {
+        "journal": "Frontiers in endocrinology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:37.333492+00:00",
+      "content_sha256": "ee5365cd986cd5ea7e202f92fe51989371d29fcdcb0c54bc75aedb2af73d5b1f"
+    },
+    {
+      "evidence_id": "evd_c4f9ed00a1604a71a9671b94c40dd1b5",
+      "title": "Black Rice Anthocyanin-Hyaluronic Acid Complex Alleviates Hyperuricemia-Associated Renal Injury Through Synergistic Inhibition of the TLR4/NF-κB Pathway and Modulation of Uric Acid Transport.",
+      "authors": [
+        "Zhao J",
+        "Liu Y",
+        "Huang Y",
+        "Xu G",
+        "Peng B"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/mnfr.70605",
+        "pmid": "42717777",
+        "pmcid": "PMC13559496",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42717777",
+      "abstract_or_excerpt": "Hyperuricemia-associated renal injury is closely linked to oxidative stress and inflammation, highlighting the need for safe dietary intervention. This study evaluated the protective effects of a black rice anthocyanin (ATC)-hyaluronic acid complex (HAA) against uric acid (UA)-induced injury. In UA-induced human renal proximal tubular epithelial (HK-2) cells, black rice ATCs, HA, and HAA improved cell viability and antioxidant defenses, as shown by increased glutathione (GSH) levels and catalase (CAT) and superoxide dismutase (SOD) activities. They also reduced malondialdehyde (MDA), reactive oxygen species (ROS), tumor necrosis factor-α (TNF-α), and interleukin-1β (IL-1β). HAA produced a greater reduction in TLR4/NF-κB-related inflammatory gene expression, suggesting that its cytoprotective and anti-inflammatory effects may be associated with modulation of this inflammatory axis. In hyperuricemic mice, HAA lowered serum UA, creatinine, and blood urea nitrogen levels, inhibited hepatic xanthine oxidase and adenosine deaminase activities, and attenuated renal histopathological injury. HAA also reduced the mRNA expression of urate reabsorption-related genes, including GLUT9, OAT4, and OAT10, while increasing that of urate excretion-related genes, including OAT1 and ABCG2, which may contribute to improved urate homeostasis. These findings support the potential of HAA as a functional dietary ingredient for the management of hyperuricemia-associated metabolic disturbances and renal injury.",
+      "normalized_facts": {
+        "journal": "Molecular nutrition & food research",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:37.333492+00:00",
+      "content_sha256": "368b3472e505a9be58e8637d82351285720997817a1268aba0578a0bba32ad13"
+    },
+    {
+      "evidence_id": "evd_0fb255e29b174179918250e34acd84dd",
+      "title": "Advances in drug delivery systems for the management of gout and hyperuricemia.",
+      "authors": [
+        "Peng Z",
+        "Meng F",
+        "Deng Q",
+        "Huang Y",
+        "Mao D",
+        "Long Y",
+        "Yan W",
+        "Peng J"
+      ],
+      "published_at": "2025-10-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1660890",
+        "pmid": "41104343",
+        "pmcid": "PMC12521190",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41104343",
+      "abstract_or_excerpt": "Gout and hyperuricemia represent significant global health burdens, characterized by painful inflammatory arthritis and systemic metabolic dysfunction, respectively. Current pharmacological management faces substantial limitations, including poor bioavailability, systemic toxicity, narrow therapeutic indices, immunogenicity, and suboptimal patient adherence due to frequent dosing and adverse effects. These challenges underscore the critical need for innovative therapeutic strategies. Advanced drug delivery systems (DDSs) have emerged as transformative solutions to overcome these hurdles. This comprehensive review critically analyzes recent advances in DDSs tailored to the management of gout and hyperuricemia. We first elucidate the intricate pathophysiological mechanisms linking hyperuricemia, monosodium urate (MSU) crystal deposition, NLRP3 inflammasome activation, and chronic inflammation. We then systematically explore cutting-edge DDS platforms, including lipid-based, polymer-based, and other systems. These engineered drug delivery systems significantly enhance therapeutic outcomes in gout and hyperuricemia by improving drug solubility, enabling targeted delivery, providing sustained release, facilitating synergistic drug co-delivery, and responding to pathological microenvironments, although preclinical evidence is limited and clinical evidence supporting their efficacy and safety remains sparse. Finally, we highlight translational challenges and future directions while emphasizing the considerable promise of integrating AI, biomaterial science, and personalized medicine to advance patient-centric DDS. Although progress has been made, sustained interdisciplinary collaboration and rigorous clinical validation remain critical to translate these innovations into tangible improvements in long-term disease management and quality of life for patients with gout and hyperuricemia.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:37.333492+00:00",
+      "content_sha256": "ec7b3cd2c33323c62d605a474b61a90817a87e2e9a614b2c568ee3b39ab794e2"
+    },
+    {
+      "evidence_id": "evd_2eff6100d0bc4f9caeca6176feb97e20",
+      "title": "Isobavachin Attenuates Renal and Cardiac Injury in Chronic Hyperuricemia via Modulation of NF-κB and NLRP3 Signaling Pathways.",
+      "authors": [
+        "Li Y",
+        "Xu Y",
+        "Ye W",
+        "Yu Z",
+        "Wu Z",
+        "Liu X",
+        "Huang X",
+        "Pang J"
+      ],
+      "published_at": "2026-08-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/jbt.71058",
+        "pmid": "42546140",
+        "pmcid": "PMC13432797",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42546140",
+      "abstract_or_excerpt": "Hyperuricaemia (HUA) is a recognized risk factor for cardiovascular and renal diseases. Isobavachin, a dihydroflavone derivative, demonstrates significant efficacy in reducing uric acid levels. This study investigated the nephroprotective and cardioprotective effects and molecular mechanisms of isobavachin. Through integrative network pharmacology, pathway enrichment analysis, and molecular docking, NF-κB was identified as a potential target of isobavachin in the context of hyperuricemia-related cardiac and renal injury. Isobavachin treatment inhibited the activation of the NF-κB pathway, leading to cytoprotection in uric acid (UA)-stimulated mRTEC and H9C2 cells. In chronic HUA mice, isobavachin treatment significantly improved renal pathology and reduced renal collagen deposition by inhibiting epithelial-to-mesenchymal transition. Isobavachin administration demonstrated therapeutic efficacy in attenuating myocardial injury, hypertrophy, and fibrotic remodeling. Notably, the anti-inflammatory effects of isobavachin were particularly evident in both renal and cardiac tissues, primarily mediated through its dual regulatory capacity in suppressing NF-κB pathway activation and NLRP3 inflammasome formation. In conclusion, isobavachin ameliorated cardiac and renal damage caused by chronic HUA, suggesting a new strategy to prevent HUA.",
+      "normalized_facts": {
+        "journal": "Journal of biochemical and molecular toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:37.333492+00:00",
+      "content_sha256": "038b387fd80ac57c494d88969191b329132d7f6893c88928788dddd3d871a736"
+    },
+    {
+      "evidence_id": "evd_1c53a3f2809f402cb4a4c57dca91eacf",
+      "title": "A Dose-Escalation Study to Evaluate the Safety, Pharmacokinetics, and Pharmacodynamics of HP501 in Male Chinese Gout Patients with Hyperuricemia.",
+      "authors": [
+        "Chen L",
+        "Ding R",
+        "Chen Y",
+        "Li X",
+        "Xiong T",
+        "Chen H",
+        "Hu X",
+        "Zhou Y"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/cpdd.70101",
+        "pmid": "42717749",
+        "pmcid": "PMC13559208",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42717749",
+      "abstract_or_excerpt": "HP501, a novel highly selective renal urate transporter 1 (URAT1) inhibitor, represents a promising therapeutic option for hyperuricemia. This Phase I study evaluated the safety, pharmacokinetics (PK), and pharmacodynamics (PD) of HP501 in Chinese gout patients. 37 patients with gout and hyperuricemia were enrolled in this single-center, open-label, dose-escalation study. Participants were sequentially assigned to receive HP501 at 60, 80, and 100 mg twice daily (BID) following single- and multiple-dose regimens. Safety assessments, PK parameters, and PD reductions were systematically evaluated. HP501 demonstrated an acceptable safety and tolerability profile across all dose cohorts. The most common adverse events (≥10% of patients) included gout flare (36.1%), prostatic hypertrophy (36.1%), elevated ALT (16.7%), and kidney stones (11.1%), all of which were mild to moderate in severity. PK analysis revealed dose-proportional increases in Cmax and AUC (60 to 100 mg BID), with corresponding dose-dependent reductions in serum UA levels. All patients achieved therapeutic UA targets (<360 µmol/L). These findings support the clinical advancement of HP501, with 60 to 100 mg BID identified as the recommended dose range for further investigation in subsequent trials. However, these findings are preliminary and limited by the single-center design, small sample size, and exclusion of female patients, warranting confirmation in larger, more diverse populations.",
+      "normalized_facts": {
+        "journal": "Clinical pharmacology in drug development",
+        "pub_type": "research-article, Clinical Trial, Phase I, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:37.333492+00:00",
+      "content_sha256": "8f12d4012e36b00c69a832e257b3b542e118e5994f13680e3e5d6da3c28bd9a3"
+    },
+    {
+      "evidence_id": "evd_6f708aa7aec64f1983b24caed28ffb28",
+      "title": "Insights on Regioselective Synthesis of Fused Thiazoles: Density Functional Theory Calculations, Local Reactivity Indices, and Molecular Electrostatic Potential Analysis.",
+      "authors": [
+        "Al-Hazmi GH",
+        "Al-Humaidi JY",
+        "Riyadh SM",
+        "Ahmed MSM",
+        "Zaki MEA",
+        "Alruwaili AH",
+        "Alanazi KA",
+        "Almutairi RH"
+      ],
+      "published_at": "2025-08-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/open.202500393",
+        "pmid": "40875571",
+        "pmcid": "PMC12680573",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40875571",
+      "abstract_or_excerpt": "A regioselective protocol is developed and validated for the synthesis of pyrazolo[3,4-d]thiazoles and polycyclic-fused thiazoles through the reactions of 2-[((E)-benzylidene)hydrazono]-5-[(Z)-4-methoxybenzylidene]thiazolidin-4-one with hydrazine derivatives or heterocyclic amines, respectively. The products are confirmed by spectral and elemental analyses. Density functional theory studies, including frontier molecular orbital analysis, local reactivity indices, and molecular electrostatic potential mapping, explain the observed regioselectivity and support a proposed reaction mechanism. Molecular docking shows that several derivatives (e.g., 6c, 6d) have strong binding to S. aureus, E. coli, and topoisomerase IIα, with energies comparable to standard drugs. Absorption, distribution, metabolism, excretion, and toxicity predictions indicate good oral bioavailability, low blood-brain barrier permeability, and acceptable safety, suggesting these compounds as promising antibacterial and anticancer candidates.",
+      "normalized_facts": {
+        "journal": "ChemistryOpen",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "02097045b776778221b4d2c634c8c2574bf9024c2e7829f877376b9d73be4a85"
+    },
+    {
+      "evidence_id": "evd_87412848f64d46c4a736bed2acde2960",
+      "title": "JP-14: A Trace Amine-Associated Receptor 1 Agonist with Anti-Metabolic Disorder Potential.",
+      "authors": [
+        "Marcinkowska M",
+        "Sniecikowska J",
+        "Głuch-Lutwin M",
+        "Mordyl B",
+        "Bednarski M",
+        "Bucki A",
+        "Sapa M",
+        "Kubacka M"
+      ],
+      "published_at": "2025-10-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms262010033",
+        "pmid": "41155326",
+        "pmcid": "PMC12563652",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41155326",
+      "abstract_or_excerpt": "TAAR1 agonists have emerged as promising therapeutic agents capable of modulating glucose homeostasis, enhancing insulin secretion and suppressing appetite, making them attractive candidates for the treatment of obesity and related metabolic disorders. Despite their potential, the number of TAAR1-targeting compounds with well-defined pharmacological profiles remains limited. In this study, we identified and characterized JP-14, a novel aminoguanidine-based TAAR1 agonist, in a comprehensive panel of pharmacological assays. JP-14 promoted glucose uptake in HepG2 cells and reduced lipid deposition during 3T3-L1 adipocyte differentiation, with both actions dependent on TAAR1 signaling. In differentiated 3T3-L1 adipocytes, JP-14 reduced intracellular levels of both neutral lipids and phospholipids, indicating dual anti-steatotic and anti-phospholipidotic activity. In zebrafish larvae, toxicity profiling confirmed 10 µg/mL as a safe concentration for further in vivo studies. These assays showed that JP-14 promoted lipid mobilization and partially prevented fructose-induced lipid accumulation, demonstrating systemic metabolic benefits in vivo. Moreover, JP-14 markedly delayed gastric emptying in mice, an effect similar to loperamide and reversed by TAAR1 antagonism, supporting its role in regulating satiety and energy balance. Collectively, our findings establish JP-14 as a safe and metabolically active TAAR1 agonist with multifaceted effects on glucose and lipid metabolism. JP-14 represents a valuable pharmacological tool for probing TAAR1-mediated mechanisms in metabolic regulation.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "1a2b69d444eda193ede8d2404250ecbe6b5830749a8a29f5b4eddca42ce090f3"
+    },
+    {
+      "evidence_id": "evd_2eb8c29ecfb84b5fb50ff70bb53188e3",
+      "title": "Phytochemical on-line screening and <i>in silico</i> study of <i>Helianthemum confertum</i>: antioxidant activity, DFT, MD simulation, ADME/T analysis, and xanthine oxidase binding.",
+      "authors": [
+        "Chemam Y",
+        "Benayache S",
+        "Bouzina A",
+        "Marchioni E",
+        "Sekiou O",
+        "Bentoumi H",
+        "Zhao M",
+        "Bouslama Z"
+      ],
+      "published_at": "2024-07-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1039/d4ra02540g",
+        "pmid": "39010907",
+        "pmcid": "PMC11247359",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39010907",
+      "abstract_or_excerpt": "Seven components from the methanol extract of the aerial part of the endemic species <i>Helianthemum confertum</i> were isolated and identified for the first time. Investigating this species and its separated components chemical make-up and radical scavenging capacity, was the main goal. Using an online HPLC-ABTS˙<sup>+</sup> test, ORAC, and TEAC assays, the free radical scavenging capacity of the ethyl acetate extract was assessed. The fractionation of these extracts by CC, TLC, and reverse-phase HPLC was guided by the collected data, which was corroborated by TEAC and ORAC assays. Molecular docking studies, DFT at the B3LYP level, and an examination of the ADME/T predictions of all compounds helped to further clarify the phytochemicals' antioxidant potential. Isolation and identification of all components were confirmed through spectroscopy, which revealed a mixture (50-50%) of <i>para</i>-hydroxybenzoic acid 1 and methyl gallate 2, protocatechuic acid 3, astragalin 4, <i>trans</i>-tiliroside 5, <i>cis</i>-tiliroside 6, contaminated by <i>trans</i>-tiliroside and 3-oxo-α-ionol-β-d-glucopyranoside 7, as well as two new compounds for the genus <i>Helianthemum</i> (2 and 7). With a focus on compounds 1, 2, 3, and 4, the results clearly showed that the extract and the compounds tested from this species had a high antioxidant capacity. Within the xanthine oxidase enzyme's pocket, all of the components tested showed strong and stable binding. In light of these findings, the xanthine oxidase/methyl gallate 2 complex was simulated using the Desmond module of the Schrodinger suite molecular dynamics (MD) for 100 ns. Substantially stable receptor-ligand complexes were observed following 1 ns of MD simulation.",
+      "normalized_facts": {
+        "journal": "RSC advances",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "ccd0fd7991fed7d179a827f9b5854a5c118d4c076566370580ec0f4d568fcce6"
+    },
+    {
+      "evidence_id": "evd_366dc0f3e83646849e48497e1bf460a1",
+      "title": "Drug Safety Assessment Based on Target Affinity, Drug Exposure and Plasma Protein Binding: Drug-Induced Cardiotoxicity from a Translational Pharmacology Perspective.",
+      "authors": [
+        "Catozzi S",
+        "Sips F",
+        "Totis N",
+        "Bisotti MA",
+        "Stathopoulos S",
+        "Torchia M",
+        "Emili L",
+        "Carbone V"
+      ],
+      "published_at": "2026-05-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms27104563",
+        "pmid": "42196540",
+        "pmcid": "PMC13207947",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42196540",
+      "abstract_or_excerpt": "Cardiac safety assessment is an integral part of drug discovery and development. Drug candidates that adversely affect cardiac or hemodynamic function should be discontinued early unless a favorable benefit-risk ratio for patients can be justified. In this hypothesis-generating work, we aimed to develop a conceptual framework for informing early safety risk assessment based on in vitro drug affinities to pharmacological targets. For illustration, we used the drug-induced cardiotoxicity rank (DICTrank) data comprising 1318 drugs with cardiac safety concerns according to FDA labeling. The data was enriched with information on affinity to the most plausible mechanistic targets, clinical drug exposure, and human plasma protein binding. We descriptively identified 18 target classes potentially associated with elevated cardiovascular risk: potassium channels (accounting alone for 20% of the 'most concern' safety group); adrenergic, dopamine, serotonin, androgen, sex hormone, and opioid receptors; cyclooxygenase; sodium and calcium channels; muscarinic and glucocorticoid receptors; phosphodiesterase; topoisomerase; angiotensin-converting enzyme; angiotensin II type 1 receptor; monoamine transporters, and acetylcholinesterase. Overall, 80% of the 'most concern' drugs compared with only 12% of the 'no concern' drugs were associated with these targets in this exploratory descriptive analysis. Concentration-response analyses revealed differences in target potency and free drug exposure that appeared associated with variability in the severity of cardiotoxicity among drugs acting on the same target. This framework demonstrates how in vitro data can be used to benchmark new compounds early in development, enabling the timely discontinuation of candidates associated with substantial risk.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "18cfc0a998342cc2bc0f58c98492be014b022d85ff053f88ab0e17698190fb89"
+    },
+    {
+      "evidence_id": "evd_c44071d0fa4b46a99b0fe07a04ddca6f",
+      "title": "Cardiotoxicity adverse outcome pathway network: towards mechanistic and quantitative modelling.",
+      "authors": [
+        "Ladeira L",
+        "Barnes DA",
+        "Masereeuw R",
+        "Geris L",
+        "Staumont B"
+      ],
+      "published_at": "2026-05-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/ftox.2026.1781536",
+        "pmid": "42233048",
+        "pmcid": "PMC13224945",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42233048",
+      "abstract_or_excerpt": "<h4>Introduction</h4>Chemical-induced heart toxicity remains a major challenge in drug development and environmental safety, largely because current testing often relies on narrow, late-stage endpoints that miss the complex biological progression of the toxicities. To address this, we developed a comprehensive Adverse Outcome Pathway (AOP) network that maps how early (bio) chemical triggers evolve into organ-level dysfunction.<h4>Methods</h4>By integrating data from the OECD AOP-Wiki, we constructed a unified network of 64 biological events and 94 documented relationships that identifies the critical biological \"crossroads\" where different toxic chemicals converge to cause heart damage.<h4>Results/discussion</h4>Our analysis reveals a compact core of central biological events, such as oxidative stress and mitochondrial dysfunction, which act as the primary drivers of cardiac injury. This network approach moves beyond single, linear pathways to show how systemic factors, including interactions with other organs like the kidneys, contribute to cardiotoxicity. To translate these findings into a practical resource for the broader scientific community, we developed a methods catalogue that links these biological events to specific laboratory assays. To ensure this work is accessible and actionable, we hosted the network on an interactive, FAIRaligned web platform. By providing a clear scaffold for understanding heart safety, this resource enables the design of more human-relevant, animal-free testing strategies and helps prioritise the most impactful biomarkers for future safety assessments.",
+      "normalized_facts": {
+        "journal": "Frontiers in toxicology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "d3c7c68dddb622add9f7d7f219d25f559476e619dcd1786ee006c9ba82bf1ce1"
+    },
+    {
+      "evidence_id": "evd_8a100cbdb8344f1b838a96b5a37ea41a",
+      "title": "Discovery of multi-target anti-gout agents from Eurycoma longifolia Jack through phenotypic screening and structural optimization.",
+      "authors": [
+        "Zhang Z",
+        "Shi X",
+        "Wu T",
+        "He Z",
+        "Liang R",
+        "Ye W",
+        "Wu Z",
+        "Liao H"
+      ],
+      "published_at": "2025-08-12",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41467-025-62645-6",
+        "pmid": "40790034",
+        "pmcid": "PMC12340016",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40790034",
+      "abstract_or_excerpt": "Developing anti-gout medications that simultaneously reduce uric acid and exert anti-inflammatory effects represents a critical breakthrough for managing gout progression. Natural products with polypharmacological properties offer promising leads for drug discovery. In this study, β-carboline-1-propionic acid, a bioactive constituent of Eurycoma longifolia Jack, served as the starting point for drug design. Guided by a dual-target pharmacophore model, we design and synthesize 64 derivatives. Through systematic screening, 32 emerges as a drug candidate, demonstrating potent uric acid-lowering activity in male hyperuricemia mouse models (efficacy comparable to febuxostat and superior to lesinurad and benzbromarone) by inhibiting key urate transporters. In a male rat model of acute gouty arthritis, 32 mitigates NOD-like receptor protein 3 inflammasome-mediated inflammation. Notably, 32 exhibits enhanced safety compared to control drugs. This study exemplifies a natural product-inspired, dual-mechanism drug discovery approach, showcasing the potential of a rational polypharmacology and thus offering therapeutic opportunities for gout management.",
+      "normalized_facts": {
+        "journal": "Nature communications",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "10d8dc9ff15d4f59212dcd2af03d30eb1dd8a6301c462568b1ac9e0982fc3549"
+    },
+    {
+      "evidence_id": "evd_180761e2feaa48da811934ca42dc2ea9",
+      "title": "Preclinical evaluation of tridecaptin M: &lt;i&gt;in vitro&lt;/i&gt; and &lt;i&gt;in vivo&lt;/i&gt; efficacy against colistin-resistant Gram-negative bacterial pathogens and pharmacokinetics.",
+      "authors": [
+        "Raka V",
+        "Jangra M",
+        "Kaur P",
+        "Dadwal R",
+        "Kansal S",
+        "Angrup A",
+        "Ray P",
+        "Nandanwar H"
+      ],
+      "published_at": "2025-09-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1128/aac.01083-25",
+        "pmid": "40934374",
+        "pmcid": "PMC12486805",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40934374",
+      "abstract_or_excerpt": "The escalating threat of antimicrobial resistance (AMR), particularly among gram-negative pathogens, necessitates the development of novel therapeutic agents. Tridecaptins, a class of non-ribosomally synthesized lipopeptides with a novel mode of action, have garnered renewed interest in the fight against AMR. Our group previously identified tridecaptin M, a compound with a promising safety profile, prompting further investigation into its efficacy and preclinical characteristics. Here, we show that tridecaptin M exhibits potent activity against multidrug-resistant (MDR) <i>Klebsiella pneumoniae</i> and <i>Escherichia coli</i> without cross-resistance to colistin. It effectively inhibits biofilm formation and disrupts 50% of established biofilm at 10 µg/mL. Tridecaptin M demonstrates a favorable safety profile, as it does not inhibit the cardiac hERG channel and shows minimal interaction with cytochrome P450 enzymes, with no IC₅₀ detected up to 44.6 µg/mL. <i>In vivo</i> toxicity studies via subcutaneous administration confirm its safety up to 600 mg/kg, whereas intravenous administration reveals acute toxicity at ≥30  mg/kg, with biochemical evidence of skeletal muscle, cardiac, and hepatic involvement. In mouse infection models using a colistin-resistant MDR strain of <i>K. pneumoniae</i> reveal the <i>in vivo</i> potential of tridecaptin M and a dose-dependent efficacy at 10 mg/kg, 20 mg/kg, 50 mg/kg, and 100 mg/kg doses, showing a non-linear relationship. Tridecaptin M is metabolized by liver microsomes, with low clearance, and pharmacokinetic analysis in rats indicates favorable attributes, with a terminal half-life (T₁/₂) of 3.65 h intravenously and 8.81 h subcutaneously. Collectively, these data support the continued preclinical development of tridecaptin M as a promising candidate for treating severe gram-negative infections.",
+      "normalized_facts": {
+        "journal": "Antimicrobial agents and chemotherapy",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "3ad449875e100260caf11711ed1a6af8711331630a713cdeb5dd83e8b69d17f2"
+    },
+    {
+      "evidence_id": "evd_2a2a219de50541d7afbf4fa9afe09306",
+      "title": "Epithelial plasma membrane transporters as drug targets.",
+      "authors": [
+        "Verkman AS"
+      ],
+      "published_at": "2026-03-04",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1152/physrev.00045.2025",
+        "pmid": "41778727",
+        "pmcid": "PMC13021041",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41778727",
+      "abstract_or_excerpt": "Small-molecule discovery and drug development are increasingly being pursued in academic settings, expanding beyond their traditional confinement to the pharmaceutical industry. The initial steps in drug discovery typically include identification and validation of a target, screening of chemical libraries to identify modulators of target activity, and subsequent prioritization and optimization of lead compounds using in vitro systems and animal models, with emphasis on compound potency, selectivity, and pharmacological properties. This review focuses on early-stage discovery of small molecules that target plasma membrane transporters on epithelial cells, including absorptive and secretory epithelia in kidney, gastrointestinal tract, lung, and eye. Of the estimated 500 distinct epithelial plasma membrane transporters, fewer than a dozen are the targets of approved drugs, most of which have been in clinical use for decades. We discuss the logistics and challenges associated with small-molecule discovery in an academic setting. Specific epithelial cell targets are considered, including chloride channels, solute-coupled transporters, urea transporters, and aquaporins, with therapeutic implications spanning constipation and secretory diarrheas, cystic fibrosis, dry eye disease, edema, hypertension, and kidney stones. We conclude by identifying unmet needs and outlining opportunities to enable next-generation pharmacological modulation of epithelial transport processes.",
+      "normalized_facts": {
+        "journal": "Physiological reviews",
+        "pub_type": "research-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "b841a9993acd1c6da26ec8452d7461c0668f48db970d4dcd09b68a81b5e8f275"
+    },
+    {
+      "evidence_id": "evd_fd16fd8b9ab243e9afea82299d6515bd",
+      "title": "The Latest Advances in Omics Technology for Assessing Tissue Damage: Implications for the Study of Sudden Cardiac Death.",
+      "authors": [
+        "Căținaș RM",
+        "Hostiuc S"
+      ],
+      "published_at": "2025-07-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms26146818",
+        "pmid": "40725061",
+        "pmcid": "PMC12295138",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40725061",
+      "abstract_or_excerpt": "Sudden cardiac death (SCD) is a major public health concern, being a leading cause of death worldwide. SCD is particularly alarming for individuals with apparently good health, as it often occurs without preceding warning signs. Unfortunately, traditional autopsy methods frequently fail to identify the precise cause of death in these cases, highlighting the need for advanced techniques to elucidate underlying mechanisms. Recent advances in molecular biology over the past few years, particularly in proteomics, transcriptomics, and metabolomics techniques, have led to an expanded understanding of gene expression, protein activity, and metabolic changes, offering valuable insights into fatal cardiac events. Combining multi-omics methods with bioinformatics and machine learning algorithms significantly enhances our ability to uncover the processes behind lethal cardiac dysfunctions by identifying new useful biomarkers (like cardiac myosin-binding protein C, acylcarnitines, or microRNAs) to reveal molecular pathways linked to SCD. This narrative review summarizes the role of multi-omics approaches in forensic diagnosis by exploring current applications in unexplained cases and the benefits of integrating merged techniques in otherwise negative autopsies. We also discuss the potential for developing personalized and preventive forensic medicine, the technical limitations of currently available methods, and the ethical considerations arising from these advancements.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:40:35.954039+00:00",
+      "content_sha256": "52ade820bafe4e3e47230c16bdd69e0e6ae05b619a087eee820b950f7de27c1c"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_536b6268419142cca813d42577167aea",
+        "session_id": "ses_88dd59dd8518420cbeeab308e7d0c731",
+        "subject_key": "analysis:ana_5c09537b895a4ef9bbc3749afca4f25b",
+        "question": "For uric acid in the screening queue, are there toxicity or assay signals that warrant concern or follow-up?",
+        "decision_context": "Assess the fixed predictor's hERG and Tox21 outputs together with direct external evidence, without treating them as an aggregate safety verdict.",
+        "subject_refs": [
+          "analysis:ana_5c09537b895a4ef9bbc3749afca4f25b"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The model's Tox21 activity flags are meaningful screening liabilities for uric acid under the intended use and exposure.",
+            "kind": "model_signal",
+            "refutation_condition": "Orthogonal testing at relevant concentrations shows no reproducible activity, or exposure is demonstrably below the assay-relevant range.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "h2",
+            "statement": "The Tox21 flags may be model or assay signals without established human relevance for this compound.",
+            "kind": "alternative_explanation",
+            "refutation_condition": "Reproducible concentration-response activity is confirmed in orthogonal assays and aligns with relevant exposure.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "h3",
+            "statement": "Uric-acid burden and exposure context can create renal or gout-related concern that is outside hERG/Tox21 assay coverage.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "The intended use cannot produce relevant urate exposure or independent clinical/biological evidence does not support the concern.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The predictor reports activity flags in four independent Tox21 assays and inactivity in the remaining listed assays.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "locator": "predictions.tox21.assays.*.active",
+            "scope": {
+              "assay": "NR-AhR; NR-ER; SR-ATAD5; SR-p53",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "e2",
+            "claim": "The hERG endpoint is predicted non-blocking.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "stance": "contradicts",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label",
+            "scope": {
+              "compound": "uric acid",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "e3",
+            "claim": "External literature gives context for urate-associated renal and gout concerns but does not directly validate these predictor outputs for this exact use.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+            "stance": "supports",
+            "directness": "indirect",
+            "hypothesis_ids": [
+              "h3"
+            ],
+            "locator": "title",
+            "scope": {
+              "compound": "uric acid"
+            },
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "e4",
+            "claim": "Kidney-stone relevance is a context to investigate, not a direct finding that this screening material causes renal injury.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2",
+            "stance": "contextual",
+            "directness": "indirect",
+            "hypothesis_ids": [
+              "h3"
+            ],
+            "locator": "title",
+            "scope": {
+              "compound": "uric acid"
+            },
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "e5",
+            "claim": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while hERG is predicted non-blocking.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "tox21"
+            },
+            "actor": "server",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "e6",
+            "claim": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the evidence is indirect for this exact material and use.",
+            "source_class": "external_experimental",
+            "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+            "stance": "contextual",
+            "directness": "indirect",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {},
+            "actor": "server",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "assay_mismatch",
+            "description": "Tox21 activity flags are screening endpoints and do not establish mechanism, adversity, or human relevance; no orthogonal confirmation or concentration context is available.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "description": "Intended use, route, dose, duration, formulation, solubility, and resulting urate exposure are not supplied.",
+            "severity": "blocking",
+            "hypothesis_ids": [
+              "h3"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Search for compound-specific or endpoint-relevant evidence that would weaken the model flags or reveal exposure-dependent renal/gout concerns.",
+            "decision": "continue",
+            "outcome": "No direct, compound-specific hERG confirmation was found; contextual literature was retrieved for hyperuricemia and kidney-stone relevance.",
+            "hypothesis_ids": [
+              "h1",
+              "h2",
+              "h3"
+            ],
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Confirm the four flagged Tox21 activities with orthogonal concentration-response assays, including cytotoxicity and chemical-interference controls, using exposure-relevant concentrations.",
+            "rationale": "This distinguishes reproducible assay liability from model or assay artifact.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "reproducible concentration-response activity",
+              "no activity with matched viability and interference controls",
+              "exposure margin relative to intended use"
+            ],
+            "actor": "model",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while the hERG endpoint is predicted non-blocking.",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the retrieved evidence is indirect for this exact material and use.",
+              "evidence_ids": [
+                "e3",
+                "e4"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "These results do not establish that uric acid is clinically toxic, mechanistically active in those pathways, or safe for a particular use.",
+            "They do not support an aggregate toxicity or safety score."
+          ],
+          "what_would_change": [
+            "Orthogonal, exposure-relevant confirmation or refutation of the four Tox21 flags.",
+            "The intended route, dose, duration, formulation, and expected urate exposure."
+          ],
+          "approver": "",
+          "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395"
+        },
+        "runs": [
+          {
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "goal": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+            "stop_reason": "sufficient",
+            "answer_id": "ans_18d297edf4fd4ca0ab82b53dee1ffb0a",
+            "usage": {
+              "searches": 3,
+              "tool_calls": 27,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 3
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 3,
+          "with_any_source": 3,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 3,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 1
+        },
+        "revision": 18,
+        "created_at": "2026-09-30T15:40:03.619415+00:00",
+        "updated_at": "2026-09-30T15:43:15.586146+00:00"
+      },
+      "events": {
+        "case_id": "scase_536b6268419142cca813d42577167aea",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_536b6268419142cca813d42577167aea",
+              "question": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+              "requester": "dev-user",
+              "session_id": "ses_88dd59dd8518420cbeeab308e7d0c731",
+              "subject_key": "analysis:ana_5c09537b895a4ef9bbc3749afca4f25b",
+              "subject_refs": [
+                "analysis:ana_5c09537b895a4ef9bbc3749afca4f25b"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:40:03.619415+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:40:03.619415+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 2
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "For uric acid in the screening queue, are there toxicity or assay signals that warrant concern or follow-up?",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "decision_context": "Assess the fixed predictor's hERG and Tox21 outputs together with direct external evidence, without treating them as an aggregate safety verdict.",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.364368+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The model's Tox21 activity flags are meaningful screening liabilities for uric acid under the intended use and exposure.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Orthogonal testing at relevant concentrations shows no reproducible activity, or exposure is demonstrably below the assay-relevant range."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.364390+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "alternative_explanation",
+              "can_say": [],
+              "statement": "The Tox21 flags may be model or assay signals without established human relevance for this compound.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Reproducible concentration-response activity is confirmed in orthogonal assays and aligns with relevant exposure."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.364397+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 5
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "can_say": [],
+              "statement": "Uric-acid burden and exposure context can create renal or gout-related concern that is outside hERG/Tox21 assay coverage.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "The intended use cannot produce relevant urate exposure or independent clinical/biological evidence does not support the concern."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.364404+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor reports activity flags in four independent Tox21 assays and inactivity in the remaining listed assays.",
+              "scope": {
+                "assay": "NR-AhR; NR-ER; SR-ATAD5; SR-p53",
+                "compound": "uric acid",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.*.active",
+              "statement": "The predictor classifies uric acid as active in Tox21 NR-AhR, NR-ER, SR-ATAD5, and SR-p53, while the other eight listed Tox21 assays are inactive.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.365588+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 7
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The hERG endpoint is predicted non-blocking.",
+              "scope": {
+                "compound": "uric acid",
+                "endpoint": "herg"
+              },
+              "stance": "contradicts",
+              "can_say": [],
+              "locator": "predictions.herg.label",
+              "statement": "The predictor classifies uric acid as a hERG non-blocker with a low model score for blocker probability.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.366508+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 8
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "External literature gives context for urate-associated renal and gout concerns but does not directly validate these predictor outputs for this exact use.",
+              "scope": {
+                "compound": "uric acid"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "title",
+              "statement": "Recent literature records retrieved for this compound discuss hyperuricemia and kidney-stone/renal implications, but the retrieved records are secondary or indirect for this screening decision.",
+              "cannot_say": [],
+              "directness": "indirect",
+              "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+              "evidence_ids": [],
+              "source_class": "external_experimental",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.367798+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 9
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "Kidney-stone relevance is a context to investigate, not a direct finding that this screening material causes renal injury.",
+              "scope": {
+                "compound": "uric acid"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "title",
+              "statement": "A retrieved systematic review is specifically about kidney stones and anti-urolithiasis approaches, providing contextual rather than compound-specific hazard evidence.",
+              "cannot_say": [],
+              "directness": "indirect",
+              "source_ref": "evidence:evd_ef14d11e473d4e2c9a6d5c19358db0f2",
+              "evidence_ids": [],
+              "source_class": "external_experimental",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.368509+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 10
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "No direct, compound-specific hERG confirmation was found; contextual literature was retrieved for hyperuricemia and kidney-stone relevance.",
+              "purpose": "Search for compound-specific or endpoint-relevant evidence that would weaken the model flags or reveal exposure-dependent renal/gout concerns.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2",
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.368526+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 11
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "assay_mismatch",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "Tox21 activity flags are screening endpoints and do not establish mechanism, adversity, or human relevance; no orthogonal confirmation or concentration context is available.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.368536+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 12
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "blocking",
+              "cannot_say": [],
+              "description": "Intended use, route, dose, duration, formulation, solubility, and resulting urate exposure are not supplied.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h3"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.368543+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 13
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Confirm the four flagged Tox21 activities with orthogonal concentration-response assays, including cytotoxicity and chemical-interference controls, using exposure-relevant concentrations.",
+              "can_say": [],
+              "rationale": "This distinguishes reproducible assay liability from model or assay artifact.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "reproducible concentration-response activity",
+                "no activity with matched viability and interference controls",
+                "exposure margin relative to intended use"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.368550+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 14
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while the hERG endpoint is predicted non-blocking.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                },
+                {
+                  "text": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the retrieved evidence is indirect for this exact material and use.",
+                  "evidence_ids": [
+                    "e3",
+                    "e4"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "These results do not establish that uric acid is clinically toxic, mechanistically active in those pathways, or safe for a particular use.",
+                "They do not support an aggregate toxicity or safety score."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Orthogonal, exposure-relevant confirmation or refutation of the four Tox21 flags.",
+                "The intended route, dose, duration, formulation, and expected urate exposure."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:42:14.368563+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 15
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The screening result warrants follow-up because four independent Tox21 assays are flagged active, while hERG is predicted non-blocking.",
+              "scope": {
+                "endpoint": "tox21"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_47ec277aeb5241c780fda630e6a8548a",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:43:12.703859+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 16
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "External literature makes urate-associated hyperuricemia and renal/kidney-stone context relevant, but the evidence is indirect for this exact material and use.",
+              "scope": {},
+              "stance": "contextual",
+              "directness": "indirect",
+              "source_ref": "evidence:evd_36736ef323f246deb647371a050cbdf6",
+              "source_class": "external_experimental",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:43:12.703859+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 17
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 3,
+                "tool_calls": 27,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 3
+              },
+              "answer_id": "ans_18d297edf4fd4ca0ab82b53dee1ffb0a",
+              "stop_reason": "sufficient"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:43:15.586146+00:00",
+            "run_id": "run_16eae8cf629b4d13bbc3b5461ac07395",
+            "revision": 18
+          }
+        ]
+      }
+    }
+  ]
+}

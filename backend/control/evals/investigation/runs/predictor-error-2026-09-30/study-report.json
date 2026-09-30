@@ -1,0 +1,242 @@
+{
+  "schema_version": "investigation-study-report-v1",
+  "study_id": "predictor-error-2026-09-30",
+  "case_set_sha256": "d26ee37a3029890d2f67c399fee5c38f120f05e6cab2817ae078a55206b7ff0b",
+  "environment": {
+    "git_commit": "dfc5b285795cbb3f5dd2d0dc3bc020f47a916188",
+    "git_branch": "feat/agent-predictor-error-study",
+    "git_dirty_tracked": false,
+    "host": "LAPTOP-T7GOJFP2",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.10.20",
+    "pid": 171395
+  },
+  "systems": {
+    "A_predictor_template": {
+      "arm": "A",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [],
+      "median_turn_seconds": 0.0,
+      "usage_totals": {},
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "B_anthropic_snapshot": {
+      "arm": "B",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [
+        "claude-opus-5",
+        "claude-opus-5-5"
+      ],
+      "median_turn_seconds": 29.0,
+      "usage_totals": {
+        "cache_creation_input_tokens": 27952,
+        "cache_read_input_tokens": 0,
+        "cost_usd": 0.591262,
+        "input_tokens": 26,
+        "output_tokens": 15829
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "B_openai_snapshot": {
+      "arm": "B",
+      "expected": 8,
+      "ok": 1,
+      "error": 0,
+      "pending": 0,
+      "not_run": 7,
+      "attempts_recorded": 1,
+      "models": [
+        "gpt-5.6-sol"
+      ],
+      "median_turn_seconds": 111.1,
+      "usage_totals": {
+        "cached_input_tokens": 48128,
+        "input_tokens": 69268,
+        "output_tokens": 1744,
+        "reasoning_output_tokens": 1001
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "D_toxagent_investigator": {
+      "arm": "D",
+      "expected": 8,
+      "ok": 2,
+      "error": 0,
+      "pending": 0,
+      "not_run": 6,
+      "attempts_recorded": 3,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "median_turn_seconds": 146.8,
+      "usage_totals": {
+        "tokens_cache_read": 96768,
+        "tokens_cache_write": 0,
+        "tokens_input": 75066,
+        "tokens_output": 8802,
+        "tokens_reasoning": 1705,
+        "tokens_total": 182341
+      },
+      "errors": {},
+      "error_attempts_by_class": {
+        "other": 1
+      },
+      "toxagent": {
+        "turns": 2,
+        "fallback_turns": 0,
+        "median_tool_calls_per_turn": 9.5,
+        "stop_reasons": {
+          "insufficient_evidence": 2
+        },
+        "tool_use": {
+          "get_artifact_inventory": 2,
+          "read_scientific_skill": 2,
+          "get_analysis_slice": 3,
+          "search_toxicology_evidence": 4,
+          "get_scientific_case": 2,
+          "update_scientific_case": 2,
+          "submit_grounded_answer": 2,
+          "get_report_summary": 1,
+          "get_analysis_bundle": 1
+        }
+      },
+      "skill_triggers": {
+        "assess-conflicting-evidence": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "critique-case": {
+          "cases_read": [
+            "inv-11-sotalol-low-affinity-high-risk",
+            "inv-12-sotalol-anonymous"
+          ],
+          "positive_cases": [
+            "inv-11-sotalol-low-affinity-high-risk"
+          ],
+          "negative_cases": [],
+          "trigger_precision": 0.5,
+          "trigger_recall": 1.0,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "interpret-model-attribution": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "assemble-report-context": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "compose-scientific-report": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "explain-predictor-results": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "preflight-report-draft": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "research-toxicology-evidence": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        }
+      }
+    },
+    "P_anthropic_bare": {
+      "arm": "P",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [
+        "claude-opus-5",
+        "claude-opus-5-5"
+      ],
+      "median_turn_seconds": 29.7,
+      "usage_totals": {
+        "cache_creation_input_tokens": 10584,
+        "cache_read_input_tokens": 0,
+        "cost_usd": 0.388431,
+        "input_tokens": 422,
+        "output_tokens": 12682
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "P_openai_bare": {
+      "arm": "P",
+      "expected": 8,
+      "ok": 1,
+      "error": 0,
+      "pending": 0,
+      "not_run": 7,
+      "attempts_recorded": 1,
+      "models": [
+        "gpt-5.6-sol"
+      ],
+      "median_turn_seconds": 140.0,
+      "usage_totals": {
+        "cached_input_tokens": 115712,
+        "input_tokens": 151039,
+        "output_tokens": 2295,
+        "reasoning_output_tokens": 1426
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    }
+  },
+  "note": "Process description only; quality is graded by the lab."
+}

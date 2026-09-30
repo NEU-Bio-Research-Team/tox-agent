@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nWe are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+    "result": {
+      "duration_api_ms": 34552,
+      "stop_reason": "end_turn",
+      "session_id": "6cfe6c3f-53cd-48b2-b6af-39a073ed49c2",
+      "total_cost_usd": 0.06141325,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 1535,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 1978,
+        "output_tokens_details": {
+          "thinking_tokens": 98
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1535,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 982,
+          "outputTokens": 17,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001067,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 734,
+          "webSearchRequests": 0,
+          "costUSD": 0.00588,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 1978,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 801,
+          "webSearchRequests": 0,
+          "costUSD": 0.05446625,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 98,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "## Short answer\n\nYes — but that's the point. Sotalol is not a compound with an unexpected hERG liability; it is a *deliberate* hERG blocker, and it is one of the best-characterised reference agents in cardiac safety science. If it's being used as a comparator, it should be framed as a **positive control / high-risk benchmark**, not as a tolerated-risk precedent.\n\n## What the molecule tells you\n\nThe SMILES you gave is racemic sotalol — a methanesulfonamide-substituted aryl ethanolamine:\n\n- **β-blockade** (both enantiomers, predominantly *l*-/(R)-sotalol) — class II activity\n- **hERG (I_Kr) blockade** (both enantiomers roughly equally) — class III activity\n\nSo it is a mixed class II/III agent, and the I_Kr block is the intended pharmacology of the *d*-enantiomer. Note the structural contrast with most hERG liabilities: sotalol is small, very polar (cLogP ≈ 0.2–0.5), basic amine, and renally cleared with essentially no CYP metabolism. It does **not** fit the classic lipophilic-amine hERG pharmacophore, which is exactly why it's a useful and slightly awkward comparator.\n\n## Potency and margin\n\n- hERG IC₅₀ is in the **high micromolar range** — roughly 100–300 µM in most patch-clamp datasets (it's a weak blocker in absolute terms).\n- Therapeutic free plasma C_max is ~10–20 µM (80–160 mg BID), and protein binding is negligible (~0 %), so **free** exposure sits within ~10-fold of the IC₅₀.\n- Net result: a **very low safety margin** despite weak intrinsic potency. This is the key teaching point — negligible plasma protein binding plus renal accumulation collapses what looks like a comfortable in vitro margin.\n\n## Clinical translation\n\nSotalol is a **CredibleMeds \"Known Risk of TdP\"** drug and a CiPA \"high-risk\" training compound. Real-world numbers worth having on a slide:\n\n- Dose-dependent QTc prolongation, ~10–25 ms at typical doses, more at higher doses\n- TdP incidence ~1–4 % overall, rising to >5 % at ≥320 mg/day and in heart failure\n- Risk concentrated in: renal impairment (CrCl-based dosing is mandatory), hypokalaemia/hypomagnesaemia, bradycardia, female sex, structural heart disease\n- US label carries a boxed warning; initiation requires ECG/telemetry monitoring and a QTc cutoff (~450 ms baseline; discontinue/reduce if >500 ms)\n- **Reverse use-dependence** — block is greater at slow heart rates, which is why bradycardia is such a potent risk amplifier\n\n## What I'd tell the project team\n\n1. **Sotalol is a tier-1 positive control, full stop.** Use it to qualify your hERG patch assay, your hiPSC-CM arrhythmia readout (it reliably produces early afterdepolarisations/prolonged field potential duration), and your in silico/CiPA models. If your assay doesn't flag sotalol, the assay is not fit for purpose.\n\n2. **Don't let it be used as a \"de-risking\" argument.** I've seen teams argue \"our compound's hERG IC₅₀ is similar to sotalol's, and sotalol is marketed.\" That reasoning fails because sotalol's benefit-risk is justified only by treating life-threatening arrhythmia, under mandatory ECG monitoring, CrCl-adjusted dosing, and a boxed warning. Unless your indication carries comparable severity, the precedent doesn't transfer.\n\n3. **Make the free-fraction point explicitly.** Sotalol is the textbook case for why margins must be computed on **unbound** C_max. Agree with the team now on the margin convention (e.g. hERG IC₅₀ / free C_max ≥ 30× as a go criterion) so it isn't renegotiated later.\n\n4. **Go beyond hERG alone.** Sotalol is relatively \"clean\" multi-ion-channel-wise (little Ca_v1.2 or late Na offset), which is precisely why its I_Kr block translates so efficiently into TdP. If your candidate has balanced inward-current block, a CiPA-style multichannel model will give a more honest risk estimate than hERG IC₅₀ in isolation — and sotalol is the right anchor for that comparison.\n\n5. **Consider adding a second comparator.** Pairing sotalol (high risk) with something like moxifloxacin (modest QT, low TdP) and verapamil or ranolazine (hERG block, low TdP due to multichannel offset) gives the team a risk gradient rather than a single point.\n\n## Useful caveats\n\n- Racemic vs *d*-sotalol matters for interpretation: SWORD showed *d*-sotalol alone **increased** mortality post-MI, so don't cite the racemate's β-blocker-derived benefits when discussing pure I_Kr block.\n- Sotalol's QT effect is exposure-linear and well modelled — it's a good dataset if you want to build or validate a concentration–QTc (C-QTc) model ahead of a formal thorough-QT or ICH E14/S7B integrated-risk-assessment package.\n\nHappy to pull together a comparator table with IC₅₀s, free C_max, margins and CredibleMeds categories for whichever panel you settle on, or to sanity-check the margin criteria against recent ICH E14/S7B Q&A expectations.",
+      "ttft_ms": 5489,
+      "type": "result",
+      "duration_ms": 33886,
+      "uuid": "2441a124-8317-4a37-b592-08081f6b45c1",
+      "ttft_stream_ms": 1310,
+      "time_to_request_ms": 43,
+      "first_content_frame_ms": 5490,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 1535,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 1978,
+      "cost_usd": 0.06141325
+    },
+    "exit_code": 0
+  }
+]

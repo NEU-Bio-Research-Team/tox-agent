@@ -87,8 +87,9 @@ def build_case(spec: dict[str, Any], *, set_id: str, resolver: Resolver, now: st
     }
 
 
-def build(resolver: Resolver = pubchem_resolver, *, out_dir: Path = CASES_DIR) -> list[dict[str, Any]]:
-    specs = json.loads(SPECS_PATH.read_text())
+def build(resolver: Resolver = pubchem_resolver, *, out_dir: Path = CASES_DIR,
+          specs_path: Path = SPECS_PATH) -> list[dict[str, Any]]:
+    specs = json.loads(specs_path.read_text())
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     cases = [build_case(spec, set_id=specs["set_id"], resolver=resolver, now=now)
              for spec in specs["cases"]]
@@ -136,12 +137,16 @@ def main(argv: list[str] | None = None) -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--build", action="store_true")
     group.add_argument("--check", action="store_true")
+    parser.add_argument("--specs", type=Path, default=SPECS_PATH,
+                        help="case spec file to build from (default: the pilot set)")
+    parser.add_argument("--cases-dir", type=Path, default=CASES_DIR,
+                        help="where the built cases live; a set of its own keeps studies separate")
     args = parser.parse_args(argv)
     if args.build:
-        cases = build()
-        print(f"wrote {len(cases)} cases to {CASES_DIR}")
+        cases = build(out_dir=args.cases_dir, specs_path=args.specs)
+        print(f"wrote {len(cases)} cases to {args.cases_dir}")
     else:
-        cases = load_cases()
+        cases = load_cases(args.cases_dir)
         print(f"{len(cases)} cases valid; set sha256 {case_set_sha256(cases)}")
     return 0
 

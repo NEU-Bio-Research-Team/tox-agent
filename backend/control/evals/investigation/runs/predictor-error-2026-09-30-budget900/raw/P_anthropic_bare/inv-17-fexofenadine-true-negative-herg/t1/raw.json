@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nIs hERG liability a concern for fexofenadine (CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O) at therapeutic exposure?",
+    "result": {
+      "duration_api_ms": 28359,
+      "stop_reason": "end_turn",
+      "session_id": "c1867c1a-008a-4e54-b4be-6ef995151b5d",
+      "total_cost_usd": 0.055250749999999994,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 1555,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 1725,
+        "output_tokens_details": {
+          "thinking_tokens": 582
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1555,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 997,
+          "outputTokens": 18,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001087,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 744,
+          "webSearchRequests": 0,
+          "costUSD": 0.00596,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 1725,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 811,
+          "webSearchRequests": 0,
+          "costUSD": 0.04820375,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 582,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "**Short answer: no — fexofenadine is essentially the textbook case of a successful hERG de-risking, and the margin at therapeutic exposure is large.**\n\n**Why the question is reasonable to ask.** The molecule contains a canonical hERG pharmacophore: a basic piperidine nitrogen (pKa ~9) flanked by a diphenylmethanol head group and a lipophilic aryl tail — exactly the arrangement that gives high-affinity block via Tyr652/Phe656 in the inner cavity. Its parent, terfenadine, is one of the most potent hERG blockers ever marketed (IC50 ~10–60 nM) and was withdrawn in the late 1990s after QT prolongation/torsades, especially with CYP3A4 inhibitors (ketoconazole, erythromycin, grapefruit).\n\n**What changed.** Fexofenadine is terfenadine's *tert*-butyl oxidation metabolite — the carboxylic acid. That single change does two things:\n- Creates a zwitterion, killing the net cationic character needed for productive interaction with the hERG inner cavity. Reported hERG IC50s fall in the tens of micromolar (order ~10–100 µM depending on assay/temperature), i.e. a ~1000-fold potency drop versus terfenadine.\n- Drops logD sharply and makes the compound a P-gp/OATP substrate with low passive permeability — low CNS exposure (hence non-sedating) and no reliance on CYP3A4 for clearance, so the DDI-driven exposure spikes that killed terfenadine don't occur (fexofenadine is largely excreted unchanged; transporter-mediated DDIs shift AUC only ~2-fold).\n\n**Exposure math.** Cmax at standard doses is roughly 200–700 ng/mL ≈ 0.4–1.4 µM total, with ~60–70% plasma protein binding → free Cmax on the order of 0.15–0.5 µM. Against a hERG IC50 in the tens of µM, that's a free margin of ~50–200x, comfortably above the ≥30x total / ~100x screening thresholds most groups use. Clinical QT studies, including supratherapeutic dosing well above label and co-administration with ketoconazole/erythromycin, showed no meaningful QTc effect.\n\n**Practical read-across for your program.** Two things worth taking from this:\n1. Appending an ionizable acid (or a zwitterion, or shifting amine pKa down) remains one of the highest-yield hERG mitigations, and it often buys CNS exclusion for free. The trade-off you'll pay is permeability and oral bioavailability — fexofenadine's F is only ~30% and it has high inter-individual variability from transporter involvement.\n2. Don't judge the parent by the metabolite or vice versa. If you're carrying an analog with a *tert*-butyl-on-aryl motif, check whether the acid metabolite is the circulating species — and equally, whether a low-hERG parent can generate a *more* cationic/lipophilic metabolite that reintroduces liability. Metabolite hERG profiling is the step most often skipped.\n\nIf you're benchmarking a series against this scaffold, I'd suggest measuring hERG at 10 and 30 µM patch-clamp rather than relying on a binding displacement assay — the zwitterionic compounds in this chemotype tend to give misleadingly flat binding data.",
+      "ttft_ms": 3819,
+      "type": "result",
+      "duration_ms": 27721,
+      "uuid": "f893c678-6522-4c5c-9854-d0e647806a98",
+      "ttft_stream_ms": 1610,
+      "time_to_request_ms": 157,
+      "first_content_frame_ms": 3820,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 1555,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 1725,
+      "cost_usd": 0.055250749999999994
+    },
+    "exit_code": 0
+  }
+]

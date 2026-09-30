@@ -12,6 +12,22 @@ collected by Duc Minh (commit `b5a4452`). The table is in
 | `chatgpt` | `prompts_web/` (unblinded) pasted into the web UI | `web_results/chatgpt_batch_*.json`; model id and date were not recorded |
 | `gemini` | same | `web_results/gemini_batch_*.json`; model id and date were not recorded |
 
+## The agent was measured separately, and it changes the reading
+
+These numbers are the predictor's. The agent was run on eight cases built
+around the predictor's own errors (`evals/investigation`, study
+`predictor-error-2026-09-30-budget900`) and, on the two dimensions that carry
+over, it is the strongest arm here: `screening_not_safety_assessment` in 8 of 8
+answers against the predictor's 0 and the web models' 6.1%, and an
+FActScore_tox of 0.855 that no other arm can even be scored on. It also never
+passed a wrong prediction through as a finding on any of the eight cases.
+
+What it did not do is notice the predictor's errors: it never reached sotalol's
+own IKr mechanism or moxifloxacin's role as the standard positive control. That
+is a retrieval problem, not a reasoning one —
+[PREDICTOR_ERROR_FINDINGS.md](../../../investigation/PREDICTOR_ERROR_FINDINGS.md)
+has the evidence and the ordered fixes.
+
 ## Why the arms are not yet comparable
 
 1. **The web prompts leak the answer.** Each case is shown with its dataset id

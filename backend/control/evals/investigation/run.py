@@ -226,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--systems", required=True, help="comma-separated system ids")
     parser.add_argument("--cases", default="", help="comma-separated case ids (default: all)")
     parser.add_argument("--trials", type=int, default=1)
+    parser.add_argument("--cases-dir", type=Path, default=case_module.CASES_DIR)
     parser.add_argument("--toxagent", action="append", default=[], metavar="SYSTEM=URL")
     parser.add_argument("--snapshot-from", default=None)
     parser.add_argument("--token", default=os.environ.get("TOXAGENT_STUDY_TOKEN", ""))
@@ -244,6 +245,7 @@ def main(argv: list[str] | None = None) -> int:
         study_id=args.study, root=args.root,
         system_ids=[s for s in args.systems.split(",") if s],
         case_ids=[c for c in args.cases.split(",") if c] or None, trials=args.trials,
+        cases_dir=args.cases_dir,
         toxagent_urls=_pairs(args.toxagent), snapshot_from=args.snapshot_from, token=args.token,
         claude_model=args.claude_model, rerun_errors=args.rerun_errors, parallel=args.parallel,
         google={

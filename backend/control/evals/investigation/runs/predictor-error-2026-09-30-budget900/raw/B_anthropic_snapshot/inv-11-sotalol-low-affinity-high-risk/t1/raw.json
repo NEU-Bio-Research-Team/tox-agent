@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nFor reference, this is the output of our in-house toxicity predictor (ToxPred) for the compound in the question, as JSON:\n```json\n{\n  \"applicability\": {\n    \"chemical_guard\": {\n      \"method\": \"element_rules_v1\",\n      \"reasons\": [\n        \"all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition\"\n      ],\n      \"status\": \"ok\"\n    },\n    \"method\": \"element_rules_v1\",\n    \"reasons\": [\n      \"all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition\"\n    ],\n    \"similarity_domain\": null,\n    \"status\": \"ok\"\n  },\n  \"canonical_smiles\": \"CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1\",\n  \"predictions\": {\n    \"herg\": {\n      \"label\": \"non_blocker\",\n      \"measurement\": \"hERG channel blockade liability\",\n      \"model_id\": \"herg-tox21-chemberta-v1\",\n      \"probability_blocker\": 0.31389203667640686,\n      \"threshold\": 0.4133453071117401,\n      \"threshold_source\": \"artifact\"\n    },\n    \"tox21\": {\n      \"assays\": {\n        \"NR-AR\": {\n          \"active\": false,\n          \"probability_activity\": 0.34105294942855835,\n          \"threshold\": 0.9399998188018799,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-AR-LBD\": {\n          \"active\": false,\n          \"probability_activity\": 0.06216741353273392,\n          \"threshold\": 0.489999920129776,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-AhR\": {\n          \"active\": false,\n          \"probability_activity\": 0.08216343820095062,\n          \"threshold\": 0.6799998879432678,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-Aromatase\": {\n          \"active\": false,\n          \"probability_activity\": 0.08428068459033966,\n          \"threshold\": 0.7099998593330383,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-ER\": {\n          \"active\": false,\n          \"probability_activity\": 0.22940246760845184,\n          \"threshold\": 0.5099999308586121,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-ER-LBD\": {\n          \"active\": false,\n          \"probability_activity\": 0.04601017385721207,\n          \"threshold\": 0.6799998879432678,\n          \"threshold_source\": \"artifact\"\n        },\n        \"NR-PPAR-gamma\": {\n          \"active\": false,\n          \"probability_activity\": 0.015566597692668438,\n          \"threshold\": 0.4199999272823334,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-ARE\": {\n          \"active\": false,\n          \"probability_activity\": 0.08565910905599594,\n          \"threshold\": 0.49999991059303284,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-ATAD5\": {\n          \"active\": false,\n          \"probability_activity\": 0.009625843726098537,\n          \"threshold\": 0.47999992966651917,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-HSE\": {\n          \"active\": false,\n          \"probability_activity\": 0.07914239168167114,\n          \"threshold\": 0.5099999308586121,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-MMP\": {\n          \"active\": false,\n          \"probability_activity\": 0.04595719650387764,\n          \"threshold\": 0.5399999022483826,\n          \"threshold_source\": \"artifact\"\n        },\n        \"SR-p53\": {\n          \"active\": false,\n          \"probability_activity\": 0.045055847615003586,\n          \"threshold\": 0.34999996423721313,\n          \"threshold_source\": \"artifact\"\n        }\n      },\n      \"measurement\": \"Twelve independent Tox21 assay activities\",\n      \"model_id\": \"herg-tox21-chemberta-v1\",\n      \"task_order_version\": \"tox21-12task-v1\"\n    }\n  },\n  \"requested_endpoints\": [\n    \"herg\",\n    \"tox21\"\n  ],\n  \"unavailable_endpoints\": []\n}\n```\n\nWe are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+    "result": {
+      "duration_api_ms": 29189,
+      "stop_reason": "end_turn",
+      "session_id": "95a4c369-229f-4134-a195-07f432889f73",
+      "total_cost_usd": 0.07184825,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 4303,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 1559,
+        "output_tokens_details": {
+          "thinking_tokens": 101
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4303,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 2170,
+          "outputTokens": 17,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.002255,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 2118,
+          "webSearchRequests": 0,
+          "costUSD": 0.016952000000000002,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 1559,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 2185,
+          "webSearchRequests": 0,
+          "costUSD": 0.05264125000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 101,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "**Short answer: yes, hERG liability is a real and well-characterised concern for sotalol — the ToxPred output is wrong here, and this is a useful false-negative case study for the team.**\n\n## The prediction\n\nToxPred returns `non_blocker` (p = 0.31, threshold 0.41) and no Tox21 flags. Applicability domain is reported \"ok\", but note the caveat in the JSON itself: the chemical guard only checks element composition and explicitly says it \"cannot confirm distributional similarity beyond element composition.\" `similarity_domain` is `null` — so there is no real domain check behind that \"ok\".\n\n## Why it's wrong\n\nSotalol's *mechanism of action* as a class III antiarrhythmic is IKr (hERG/KCNH2) blockade — it's a non-selective β-blocker plus a potassium channel blocker. Blocking hERG is what it's for. Specifically:\n\n- It is one of the reference positive controls in the CiPA initiative's compound set and is routinely used as a positive control in hERG patch-clamp and QT studies.\n- It carries a boxed warning for QT prolongation and torsades de pointes; dosing requires baseline/on-treatment ECG monitoring and renal dose adjustment (renally cleared, so accumulation drives QT risk).\n- hERG IC50 is in the high-micromolar range (roughly hundreds of µM in patch clamp), so on a raw potency basis it's a *weak* blocker — but it's dosed at high plasma concentrations (tens of µM), so the safety margin is narrow. That combination is the whole point.\n\nThat last point is probably why the model missed it. Sotalol is small (MW 272), hydrophilic (logP ~0.24), and lacks the canonical hERG pharmacophore — a basic centre plus bulky lipophilic/aromatic domains. It does have the secondary amine, but the methanesulfonanilide head group is polar and the molecule is overall unlike the classic cationic amphiphile blockers (dofetilide, astemizole, terfenadine) that dominate hERG training sets. The model is essentially reading physicochemistry and concluding \"too polar to block hERG,\" which is right about intrinsic potency and wrong about clinical risk.\n\n## What I'd tell the project team\n\n1. **Don't use ToxPred to triage sotalol or any methanesulfonanilide.** The chemotype (sotalol, dofetilide, ibutilide, E-4031) is a known hERG-blocking series that structure-based classifiers tend to under-call. Treat a `non_blocker` call on this scaffold as uninformative.\n\n2. **Sotalol remains a good comparator — but be clear what it's a comparator *for*.** It's a positive control for QT prolongation in vivo and a CiPA reference compound. It is a poor choice if you want a potency-matched hERG positive control in patch clamp, because the IC50 is so high; use dofetilide or E-4031 for that.\n\n3. **This is a margin problem, not a potency problem.** If the programme's internal decision rule is \"hERG IC50 > X µM = clear,\" sotalol would pass and is nonetheless a torsadogenic drug. Worth using it to pressure-test the safety-margin criterion — the team should be computing IC50 / free Cmax (or an exposure-adjusted margin), not IC50 alone. A ~30x or narrower margin is typically where concern starts.\n\n4. **On the Tox21 panel:** the all-negative result is unremarkable and I'd read it as roughly consistent with what's known — sotalol's liability is cardiac electrophysiology, which Tox21 doesn't interrogate. Absence of nuclear-receptor/stress-response flags says nothing about proarrhythmia. Don't let a clean Tox21 card read as a clean safety profile.\n\n5. **Process point.** If the team is relying on this predictor for go/no-go, I'd push for (a) a real applicability-domain check with nearest-neighbour Tanimoto similarity rather than the element-composition rule, and (b) a curated set of known blockers — including the sulfonanilides and other polar blockers — run as a standing regression test. Sotalol failing silently suggests the validation set is skewed toward lipophilic amines.\n\nHappy to pull the CiPA reference values and put together a small benchmark set of known blockers to run through ToxPred if that would be useful for the validation question.",
+      "ttft_ms": 4176,
+      "type": "result",
+      "duration_ms": 28323,
+      "uuid": "e61dc09d-7a97-4d7b-8ec1-a4e44d170a3e",
+      "ttft_stream_ms": 1516,
+      "time_to_request_ms": 81,
+      "first_content_frame_ms": 2920,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 4303,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 1559,
+      "cost_usd": 0.07184825
+    },
+    "exit_code": 0
+  }
+]

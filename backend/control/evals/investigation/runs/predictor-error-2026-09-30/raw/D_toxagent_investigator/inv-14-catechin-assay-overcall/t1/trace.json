@@ -1,0 +1,1592 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_a581f68201124afbb94601485eefdf16",
+        "status": "failed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_5129458c9d774885a240c04971dc3a3d",
+        "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+        "recovery_of_run_id": null,
+        "failure_code": "deadline_exceeded",
+        "potentially_billed": true,
+        "deadline_at": "2026-09-30T15:09:58.819658+00:00",
+        "created_at": "2026-09-30T15:04:58.819658+00:00",
+        "started_at": "2026-09-30T15:04:58.946846+00:00",
+        "ended_at": "2026-09-30T15:07:58.940447+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "0c8a03160d56d9a7a0856e1d19940d23d47585161dae7937826b49104510d92e"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:04:58.820407+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_f3ca1e25fd1b44dfbd4b094efc94eef3",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:11.345736+00:00",
+              "tokens": {
+                "input": 5589,
+                "output": 26,
+                "reasoning": 59,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 8234
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_f7ff7dd2ce549b02a11c5193358d89a8",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d8f963001Vmb1YvJx53kTcK",
+                "step_id": "prt_0f2d921ab001S5XHz7hrK7rnKr",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_d7994e5aae81474e8c4f02d90cd31363",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:17.838397+00:00",
+              "tokens": {
+                "input": 744,
+                "output": 152,
+                "reasoning": 42,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8618
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a5c12518d1ca252cb76531934f869451",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d921c8001BHnLp2D2550q7v",
+                "step_id": "prt_0f2d93b07001XGqkEY8GZkg5UH",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_9ea89b9afd8a40e7a3738dc941c2b1cf",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:22.565835+00:00",
+              "tokens": {
+                "input": 2913,
+                "output": 129,
+                "reasoning": 17,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10739
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_f80269f597478d0ceec7dbda62e133d1",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d93b25001PryhFqRo3kqQES",
+                "step_id": "prt_0f2d94d7e001GJOuMH1Tjx3j8c",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_80b47e5ce2b34d56825e32778453fed7",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:26.978060+00:00",
+              "tokens": {
+                "input": 1574,
+                "output": 61,
+                "reasoning": 69,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 11432
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a91f9e8969ebbdd8b99aa9ad4380e601",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d94d99001QwfFkjazOV69lT",
+                "step_id": "prt_0f2d95ebd001Yj6DI2NXDXuhhV",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_d2bfbf11fb6e4492bc232872d345e43f",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:44.981170+00:00",
+              "tokens": {
+                "input": 798,
+                "output": 694,
+                "reasoning": 25,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 12269
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6557f00464758df0efcad3b5f0f28786",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d95ed800162WQgsE1pkj6kD",
+                "step_id": "prt_0f2d9a510001FxlOpuDqwz7VJh",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8acba6996f7540e39866a82beac8ddad",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:52.306890+00:00",
+              "tokens": {
+                "input": 6313,
+                "output": 105,
+                "reasoning": 31,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 17201
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_79e92e2c15e612bf1cc6ba66332f39b8",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d9a539001DvyPN0TeWJ71Aa",
+                "step_id": "prt_0f2d9c1ac001rzT7cXqI667jQM",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_021fff5ac96d4e0b998fd54b597f5264",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:05:57.128705+00:00",
+              "tokens": {
+                "input": 414,
+                "output": 88,
+                "reasoning": 22,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 17420
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_cb20c1eae9a25f26ffb3e1787fbc2920",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d9c1d40011ifeU7c8Zgx7UW",
+                "step_id": "prt_0f2d9d47c001jhXI8io6hwpQ74",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_196ef16eadf7498abd9623bbe0369db8",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:06:47.745316+00:00",
+              "tokens": {
+                "input": 638,
+                "output": 2528,
+                "reasoning": 173,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 20235
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ac34d549f4a424d5099c0c054ba25783",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d9d494001KMjdmTlh7SqN5U",
+                "step_id": "prt_0f2da9a3a001riCAFmKO74ZhhX",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_6a17e8e85c5048bda26cc65e8115213f",
+              "runtime_binding_id": "rtb_3d0ba1b69b8d4d3ea08c3009524db08d",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:07:30.999783+00:00",
+              "tokens": {
+                "input": 3573,
+                "output": 1528,
+                "reasoning": 714,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 22711
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_421dc54bf9f69fd38ed2966abf47e728",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2da9a5d001NZTaoU5aUL54fG",
+                "step_id": "prt_0f2db4332001uBbsaj0EBVkgOX",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_0aca5805d2574f78a84eb46c2a510049",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "7135fee5090deb33262db936f34b9e071ce2e7c7dd3ea10e826272e0467a1979",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:05:11.285402+00:00",
+            "ended_at": "2026-09-30T15:05:11.296403+00:00"
+          },
+          {
+            "call_id": "call_d0d08ca298704268831554a24291618a",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:05:17.594424+00:00",
+            "ended_at": "2026-09-30T15:05:17.606363+00:00"
+          },
+          {
+            "call_id": "call_b8aff201bf3d421eb71c1fbf1cfa9398",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:05:17.774016+00:00",
+            "ended_at": "2026-09-30T15:05:17.797492+00:00"
+          },
+          {
+            "call_id": "call_7c7b0e2e98984d53bfb5f55c4b754f9a",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "b1ed67950c6373aa332147b210ef1eae39e00304356f7014bf9021c3656a4d37",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:17.792997+00:00",
+            "ended_at": "2026-09-30T15:05:17.803937+00:00"
+          },
+          {
+            "call_id": "call_d0149f2d8ec4472ab89fceee93c24538",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "81509deb7a5d0e0192df780aea56f637b7c0ef0927d1e16c31b6cb724d61aad7",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:22.385145+00:00",
+            "ended_at": "2026-09-30T15:05:22.397554+00:00"
+          },
+          {
+            "call_id": "call_a04803fe46dc4db5a24066151e796ae8",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "3c4f5eeca1a88965de2b1e0a65f5f26fafec32340ffbb1fd3b6d880af8d2a69b",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:22.503551+00:00",
+            "ended_at": "2026-09-30T15:05:22.514476+00:00"
+          },
+          {
+            "call_id": "call_0ba8d7b0cf65403d99bdc421366ec27a",
+            "tool_name": "get_analysis_slice",
+            "status": "error",
+            "error_code": "invalid_request",
+            "duration_ms": 10,
+            "arguments_sha256": "a3bbcd7ed491ab82106a7247c33a39dab0c95bffaabfcfcb6bef77c1a31cb0f7",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:05:26.896758+00:00",
+            "ended_at": "2026-09-30T15:05:26.905389+00:00"
+          },
+          {
+            "call_id": "call_e8102abf774c4a5889425747dc072986",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "ad6b52c781332542163d12fffb29f56fffd8334b78d7645bafe28f3245ea2461",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:43.726188+00:00",
+            "ended_at": "2026-09-30T15:05:43.740019+00:00"
+          },
+          {
+            "call_id": "call_b9813a8db71f404d820804fbffe371a0",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 123,
+            "arguments_sha256": "898df5ee2ad80cb790c0fe4c1b776b6c030ff294f15d85f87e6e2528ddef18e1",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:43.807719+00:00",
+            "ended_at": "2026-09-30T15:05:43.949556+00:00"
+          },
+          {
+            "call_id": "call_71d522f0085047118ef1679a857c9b42",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 171,
+            "arguments_sha256": "5043ef1700183783b328e8496e64d3ecaeaded875b0084b188226d6502726a33",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:43.891267+00:00",
+            "ended_at": "2026-09-30T15:05:44.044971+00:00"
+          },
+          {
+            "call_id": "call_f495a83d180d4850975075859f739b25",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 280,
+            "arguments_sha256": "986d1d6c3820f760d4744facf5299c75a04891eea1f8a6a8e879be80855197e2",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:43.901428+00:00",
+            "ended_at": "2026-09-30T15:05:44.174146+00:00"
+          },
+          {
+            "call_id": "call_281d5d4b85804691934a21719634bc81",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 255,
+            "arguments_sha256": "9771e34602aab5cf8023276826c69f12304ae75ad1c801f8dd8f0d3a072e713d",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:43.956699+00:00",
+            "ended_at": "2026-09-30T15:05:44.178796+00:00"
+          },
+          {
+            "call_id": "call_817cfc39b88a42a0afc5c84d4804d8c6",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 239,
+            "arguments_sha256": "0a26e339c384d003c8e5f74933d0806087612cea12a501536ac4d3cb675398e5",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:43.960012+00:00",
+            "ended_at": "2026-09-30T15:05:44.185421+00:00"
+          },
+          {
+            "call_id": "call_78cabfe796a34fc2bd24002b74207d4f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 83,
+            "arguments_sha256": "aaf9ce8b4e8a3bf18fc5cc6b726eacf5e24c8ef566b051ec25825c9d530d8abe",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:44.140158+00:00",
+            "ended_at": "2026-09-30T15:05:44.192830+00:00"
+          },
+          {
+            "call_id": "call_e88b01bc36ac4bb6b6ee13872867962b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 71,
+            "arguments_sha256": "a490b20a075dc002f6f2965b797ccaa84f5748160d6e666a2360aa6000624a7d",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:44.167021+00:00",
+            "ended_at": "2026-09-30T15:05:44.205234+00:00"
+          },
+          {
+            "call_id": "call_506e076c12084e6ba5296c1b75e70df6",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 128,
+            "arguments_sha256": "a54a620c2e6917c8acf37fa4b337142454b9617505de7494d3f55470a4c67aa6",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:44.167486+00:00",
+            "ended_at": "2026-09-30T15:05:44.222539+00:00"
+          },
+          {
+            "call_id": "call_0890c8be264c4db3b90932a4b2c9c360",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 91,
+            "arguments_sha256": "e0c1ae58f919f0154151336bb349d151c1881903f632e7b0b3cf9c7b8d5b8511",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:44.173736+00:00",
+            "ended_at": "2026-09-30T15:05:44.258487+00:00"
+          },
+          {
+            "call_id": "call_55ea009c197d4984a405e89fe53f01d1",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 24,
+            "arguments_sha256": "bec76cf50e6c794ef4fe8439e4afe59dcee846af9a544399a8e7a313114bbc3f",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:44.378323+00:00",
+            "ended_at": "2026-09-30T15:05:44.397521+00:00"
+          },
+          {
+            "call_id": "call_8203c5e756184dec94744cbe2d8e797c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "1c5f6168d93cde524110cb6831f123f33ee417c8114f18ef4d4ccee9cd505aa1",
+            "observation_ids": [
+              "obs_618a2459fdd344b28d3eaff502c24420"
+            ],
+            "started_at": "2026-09-30T15:05:44.913422+00:00",
+            "ended_at": "2026-09-30T15:05:44.925960+00:00"
+          },
+          {
+            "call_id": "call_bdbb68ac46154bbba07a76a4aa228ecb",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 2655,
+            "arguments_sha256": "48eed31519238e00bcbbded927cfef0bd6add0866436145f26f6b61ce82094e8",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:05:49.615370+00:00",
+            "ended_at": "2026-09-30T15:05:52.268194+00:00"
+          },
+          {
+            "call_id": "call_05039dc6f9804919b14030b72bb45b25",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 14,
+            "arguments_sha256": "7c7c18575d17cd56791e5ceaee419542db0285826fb897f5da9de3e7ce35dbf6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:05:57.059525+00:00",
+            "ended_at": "2026-09-30T15:05:57.072530+00:00"
+          },
+          {
+            "call_id": "call_ad1c07cb7da845848766c96b8251ff53",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "35c8b330e13f1f020ac983ac22f1270c05a407ef1abfa400b1d43c802790f8da",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:06:47.664554+00:00",
+            "ended_at": "2026-09-30T15:06:47.688029+00:00"
+          }
+        ]
+      },
+      "answer": null,
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_daf9c3a4f7d345afa09e94b8cee07f60",
+        "run_id": "run_a581f68201124afbb94601485eefdf16",
+        "goal": "What does the Tox21 profile of catechin (C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O) tell us, and how should we act on it?",
+        "subject_refs": [
+          "analysis:ana_7bf3f42a411c4e3c88b519841b68783a"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 22,
+          "denied_calls": 0,
+          "failed_calls": 3,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_618a2459fdd344b28d3eaff502c24420"
+        ],
+        "found_refs": [],
+        "stop_reason": "blocked",
+        "answer_outcome": null,
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 26
+      },
+      "dossier": {
+        "run_id": "run_a581f68201124afbb94601485eefdf16",
+        "case_id": "scase_80c3e70999ae4231a33722659befc898",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "What does the Tox21 profile of catechin tell us, and how should we act on it?",
+        "answer_id": null,
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_a581f68201124afbb94601485eefdf16",
+          "can_say": [
+            {
+              "text": "The predictor gives catechin a multi-assay Tox21 signal, with activity calls in eight of twelve independent assays, including NR-AhR, NR-aromatase, NR-ER, NR-ER-LBD, SR-ARE, SR-HSE, SR-MMP, and SR-p53.",
+              "sources": [
+                "observation:obs_618a2459fdd344b28d3eaff502c24420"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The appropriate action is to hold advancement decisions pending targeted orthogonal confirmation of the flagged assay signals, rather than treating the profile as a composite toxicity or safety verdict.",
+              "sources": [
+                "observation:obs_618a2459fdd344b28d3eaff502c24420"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "This profile does not establish clinical toxicity, safety, regulatory status, mechanism, potency, or exposure relevance.",
+            "The assay calls cannot be summed into a severity or aggregate toxicity score.",
+            "Independent external evidence could not be assessed in this turn because the evidence provider was unavailable."
+          ],
+          "what_would_change": [
+            "Reproducible concentration-response activity in orthogonal assays with suitable interference controls would strengthen the case for holding or deprioritizing the candidate for the intended use context.",
+            "Consistent negative orthogonal results would weaken the model-signal interpretation and support reassessing the advancement posture."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "status": "open",
+            "context": [],
+            "statement": "The Tox21 predictions identify a model-level signal for activity in multiple catechin assays, warranting targeted verification before advancement.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The fixed predictor reports a multi-assay Tox21 activity pattern for catechin.",
+                "scope": {
+                  "assay": "12 independent Tox21 assays",
+                  "compound": "catechin",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_a581f68201124afbb94601485eefdf16",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.*.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_618a2459fdd344b28d3eaff502c24420",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Orthogonal repeat testing of the flagged assays does not reproduce activity under relevant, exposure-informed conditions."
+          },
+          {
+            "id": "h2",
+            "kind": "alternative_explanation",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "status": "open",
+            "context": [],
+            "statement": "The apparent multi-assay pattern could reflect predictor limitations, assay artifacts, or exposure-independent model behavior rather than reproducible biological activity.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Independent, orthogonal assays reproduce the relevant activities with concentration-response and confirmed catechin identity and exposure."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run orthogonal, concentration-response confirmation for the highest-priority flagged pathways, starting with NR-AhR, ER/ER-LBD, SR-MMP, and SR-p53, with assay-interference controls and verified catechin identity.",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "rationale": "This directly tests whether the model-level signals reproduce as assay activity and distinguishes reproducible activity from model or assay artifacts.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response curves",
+              "orthogonal assay agreement or disagreement",
+              "interference-control results",
+              "confirmed test-article identity and exposure"
+            ]
+          }
+        ],
+        "stop_reason": "blocked",
+        "subject_refs": [
+          "analysis:ana_7bf3f42a411c4e3c88b519841b68783a"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The fixed predictor reports a multi-assay Tox21 activity pattern for catechin.",
+            "scope": {
+              "assay": "12 independent Tox21 assays",
+              "compound": "catechin",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.*.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_618a2459fdd344b28d3eaff502c24420",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          }
+        ],
+        "decision_context": "Interpret the fixed predictor's Tox21 assay signals and choose a scoped development-screening posture without treating them as clinical or aggregate toxicity.",
+        "unlinked_evidence": [],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_a581f68201124afbb94601485eefdf16",
+              "outcome": "Search was attempted twice but the evidence provider was unavailable; no independent evidence was accepted.",
+              "purpose": "Look for compound-specific independent evidence that could contradict or contextualize the model signal.",
+              "decision": "stop",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_a581f68201124afbb94601485eefdf16",
+              "outcome": "Conclusion kept conditional on model-level screening signals; no safety, clinical, regulatory, or aggregate-toxicity claim made.",
+              "purpose": "Check that the recommendation stays within the independent assay scope, does not aggregate assay hits into severity, and does not treat model scores as independent evidence.",
+              "decision": "answer",
+              "hypothesis_ids": []
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The returned probabilities are uncalibrated model scores and do not establish biological effect size, potency, or real-world risk.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "provider_coverage",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "Independent literature/database verification could not be obtained because the evidence provider was unavailable.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_daf9c3a4f7d345afa09e94b8cee07f60",
+  "analysis": {
+    "run": {
+      "run_id": "run_0f15ff87bf0d4fe9b12c74e6db51816f",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_b15bb21438e142628b370fe03a701a74",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:09:57.769806+00:00",
+      "created_at": "2026-09-30T15:04:57.769806+00:00",
+      "started_at": "2026-09-30T15:04:57.778604+00:00",
+      "ended_at": "2026-09-30T15:04:57.806299+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:04:57.770767+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_7bf3f42a411c4e3c88b519841b68783a",
+      "input_smiles": "C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O",
+      "canonical_smiles": "Oc1cc(O)c2c(c1)O[C@H](c1ccc(O)c(O)c1)[C@@H](O)C2",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.29659193754196167,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.5059399008750916,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.7731657028198242,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.8874990344047546,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.6858834028244019,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.7892703413963318,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.9702465534210205,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.9343217611312866,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.20999597012996674,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.14195029437541962,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.9371397495269775,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.8251615762710571,
+              "active": true,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.3839118778705597,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "043cd5b1-7ac3-4f0e-a725-72bc40bee5e6",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 41,
+            "encoded_token_count": 41
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "8ce22ff5ee4c8fcc0dd654c223f3f40f00099c836d8de5d11756a08ea6c1a97e"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:04:57.802988+00:00"
+    }
+  },
+  "evidence": [],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_80c3e70999ae4231a33722659befc898",
+        "session_id": "ses_daf9c3a4f7d345afa09e94b8cee07f60",
+        "subject_key": "analysis:ana_7bf3f42a411c4e3c88b519841b68783a",
+        "question": "What does the Tox21 profile of catechin tell us, and how should we act on it?",
+        "decision_context": "Interpret the fixed predictor's Tox21 assay signals and choose a scoped development-screening posture without treating them as clinical or aggregate toxicity.",
+        "subject_refs": [
+          "analysis:ana_7bf3f42a411c4e3c88b519841b68783a"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The Tox21 predictions identify a model-level signal for activity in multiple catechin assays, warranting targeted verification before advancement.",
+            "kind": "model_signal",
+            "refutation_condition": "Orthogonal repeat testing of the flagged assays does not reproduce activity under relevant, exposure-informed conditions.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          },
+          {
+            "id": "h2",
+            "statement": "The apparent multi-assay pattern could reflect predictor limitations, assay artifacts, or exposure-independent model behavior rather than reproducible biological activity.",
+            "kind": "alternative_explanation",
+            "refutation_condition": "Independent, orthogonal assays reproduce the relevant activities with concentration-response and confirmed catechin identity and exposure.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The fixed predictor reports a multi-assay Tox21 activity pattern for catechin.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_618a2459fdd344b28d3eaff502c24420",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.*.active",
+            "scope": {
+              "assay": "12 independent Tox21 assays",
+              "compound": "catechin",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "description": "The returned probabilities are uncalibrated model scores and do not establish biological effect size, potency, or real-world risk.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          },
+          {
+            "id": "u2",
+            "kind": "provider_coverage",
+            "description": "Independent literature/database verification could not be obtained because the evidence provider was unavailable.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific independent evidence that could contradict or contextualize the model signal.",
+            "decision": "stop",
+            "outcome": "Search was attempted twice but the evidence provider was unavailable; no independent evidence was accepted.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the recommendation stays within the independent assay scope, does not aggregate assay hits into severity, and does not treat model scores as independent evidence.",
+            "decision": "answer",
+            "outcome": "Conclusion kept conditional on model-level screening signals; no safety, clinical, regulatory, or aggregate-toxicity claim made.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run orthogonal, concentration-response confirmation for the highest-priority flagged pathways, starting with NR-AhR, ER/ER-LBD, SR-MMP, and SR-p53, with assay-interference controls and verified catechin identity.",
+            "rationale": "This directly tests whether the model-level signals reproduce as assay activity and distinguishes reproducible activity from model or assay artifacts.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response curves",
+              "orthogonal assay agreement or disagreement",
+              "interference-control results",
+              "confirmed test-article identity and exposure"
+            ],
+            "actor": "model",
+            "run_id": "run_a581f68201124afbb94601485eefdf16"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The predictor gives catechin a multi-assay Tox21 signal, with activity calls in eight of twelve independent assays, including NR-AhR, NR-aromatase, NR-ER, NR-ER-LBD, SR-ARE, SR-HSE, SR-MMP, and SR-p53.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The appropriate action is to hold advancement decisions pending targeted orthogonal confirmation of the flagged assay signals, rather than treating the profile as a composite toxicity or safety verdict.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "This profile does not establish clinical toxicity, safety, regulatory status, mechanism, potency, or exposure relevance.",
+            "The assay calls cannot be summed into a severity or aggregate toxicity score.",
+            "Independent external evidence could not be assessed in this turn because the evidence provider was unavailable."
+          ],
+          "what_would_change": [
+            "Reproducible concentration-response activity in orthogonal assays with suitable interference controls would strengthen the case for holding or deprioritizing the candidate for the intended use context.",
+            "Consistent negative orthogonal results would weaken the model-signal interpretation and support reassessing the advancement posture."
+          ],
+          "approver": "",
+          "run_id": "run_a581f68201124afbb94601485eefdf16"
+        },
+        "runs": [
+          {
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "goal": "What does the Tox21 profile of catechin (C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O) tell us, and how should we act on it?",
+            "stop_reason": "blocked",
+            "answer_id": null,
+            "usage": {
+              "searches": 2,
+              "tool_calls": 22,
+              "denied_calls": 0,
+              "failed_calls": 3,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-30T15:04:58.831920+00:00",
+        "updated_at": "2026-09-30T15:07:58.920859+00:00"
+      },
+      "events": {
+        "case_id": "scase_80c3e70999ae4231a33722659befc898",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_80c3e70999ae4231a33722659befc898",
+              "question": "What does the Tox21 profile of catechin (C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O) tell us, and how should we act on it?",
+              "requester": "dev-user",
+              "session_id": "ses_daf9c3a4f7d345afa09e94b8cee07f60",
+              "subject_key": "analysis:ana_7bf3f42a411c4e3c88b519841b68783a",
+              "subject_refs": [
+                "analysis:ana_7bf3f42a411c4e3c88b519841b68783a"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:04:58.831920+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "What does the Tox21 profile of catechin (C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O) tell us, and how should we act on it?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:04:58.831920+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 2
+          },
+          {
+            "op": "set_question",
+            "payload": {
+              "can_say": [],
+              "question": "What does the Tox21 profile of catechin tell us, and how should we act on it?",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "decision_context": "Interpret the fixed predictor's Tox21 assay signals and choose a scoped development-screening posture without treating them as clinical or aggregate toxicity.",
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.680555+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The Tox21 predictions identify a model-level signal for activity in multiple catechin assays, warranting targeted verification before advancement.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Orthogonal repeat testing of the flagged assays does not reproduce activity under relevant, exposure-informed conditions."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.680580+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 4
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "alternative_explanation",
+              "can_say": [],
+              "statement": "The apparent multi-assay pattern could reflect predictor limitations, assay artifacts, or exposure-independent model behavior rather than reproducible biological activity.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Independent, orthogonal assays reproduce the relevant activities with concentration-response and confirmed catechin identity and exposure."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.680588+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The fixed predictor reports a multi-assay Tox21 activity pattern for catechin.",
+              "scope": {
+                "assay": "12 independent Tox21 assays",
+                "compound": "catechin",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.*.active",
+              "statement": "The fixed predictor labels NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, SR-ARE, SR-HSE, SR-MMP, and SR-p53 active, while it labels NR-AR, NR-AR-LBD, NR-PPAR-gamma, and SR-ATAD5 inactive.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_618a2459fdd344b28d3eaff502c24420",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681581+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 6
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "model_calibration",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The returned probabilities are uncalibrated model scores and do not establish biological effect size, potency, or real-world risk.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681600+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 7
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "provider_coverage",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "Independent literature/database verification could not be obtained because the evidence provider was unavailable.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681608+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 8
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "Search was attempted twice but the evidence provider was unavailable; no independent evidence was accepted.",
+              "purpose": "Look for compound-specific independent evidence that could contradict or contextualize the model signal.",
+              "decision": "stop",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681616+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 9
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Conclusion kept conditional on model-level screening signals; no safety, clinical, regulatory, or aggregate-toxicity claim made.",
+              "purpose": "Check that the recommendation stays within the independent assay scope, does not aggregate assay hits into severity, and does not treat model scores as independent evidence.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681623+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 10
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run orthogonal, concentration-response confirmation for the highest-priority flagged pathways, starting with NR-AhR, ER/ER-LBD, SR-MMP, and SR-p53, with assay-interference controls and verified catechin identity.",
+              "can_say": [],
+              "rationale": "This directly tests whether the model-level signals reproduce as assay activity and distinguishes reproducible activity from model or assay artifacts.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [],
+              "expected_readouts": [
+                "concentration-response curves",
+                "orthogonal assay agreement or disagreement",
+                "interference-control results",
+                "confirmed test-article identity and exposure"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681632+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 11
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The predictor gives catechin a multi-assay Tox21 signal, with activity calls in eight of twelve independent assays, including NR-AhR, NR-aromatase, NR-ER, NR-ER-LBD, SR-ARE, SR-HSE, SR-MMP, and SR-p53.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The appropriate action is to hold advancement decisions pending targeted orthogonal confirmation of the flagged assay signals, rather than treating the profile as a composite toxicity or safety verdict.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "This profile does not establish clinical toxicity, safety, regulatory status, mechanism, potency, or exposure relevance.",
+                "The assay calls cannot be summed into a severity or aggregate toxicity score.",
+                "Independent external evidence could not be assessed in this turn because the evidence provider was unavailable."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Reproducible concentration-response activity in orthogonal assays with suitable interference controls would strengthen the case for holding or deprioritizing the candidate for the intended use context.",
+                "Consistent negative orthogonal results would weaken the model-signal interpretation and support reassessing the advancement posture."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:06:47.681647+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 2,
+                "tool_calls": 22,
+                "denied_calls": 0,
+                "failed_calls": 3,
+                "evidence_reads": 0
+              },
+              "answer_id": null,
+              "stop_reason": "blocked"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:07:58.920859+00:00",
+            "run_id": "run_a581f68201124afbb94601485eefdf16",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

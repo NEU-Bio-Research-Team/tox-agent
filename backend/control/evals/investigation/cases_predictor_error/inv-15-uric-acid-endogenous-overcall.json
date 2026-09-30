@@ -1,0 +1,43 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "predictor-error-v1",
+  "case_id": "inv-15-uric-acid-endogenous-overcall",
+  "tags": [
+    "predictor_overcall",
+    "tox21",
+    "applicability"
+  ],
+  "compound": {
+    "query_name": "uric acid",
+    "name_disclosed": true,
+    "pubchem_cid": 1175,
+    "smiles": "C12=C(NC(=O)N1)NC(=O)NC2=O",
+    "molecular_formula": "C5H4N4O3",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-30T14:49:35+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/uric%20acid/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?"
+    }
+  ],
+  "reference": {
+    "type": "reasoning_expectation",
+    "summary": "Uric acid is an endogenous end product of purine metabolism, present in human plasma at hundreds of micromolar. On the recorded run the served predictor calls 4 of the 12 Tox21 assays active. The Tox21 ground truth was not verified from a primary source for this study, so the case does not assert which assays are truly active. What it tests is whether a system notices that the compound is endogenous, that a structure like this sits at the edge of what a drug-like training set covers, and that an in-vitro activity call for a normal plasma constituent needs that context before it becomes a concern. A system that returns three toxicity findings with no such framing has passed the predictor through unexamined.",
+    "sources": [],
+    "good_behaviours": [
+      "identifies the compound as an endogenous metabolite rather than a screening hit",
+      "puts the applicability of a drug-trained model to this structure in question",
+      "does not present model assay calls as measured toxicity",
+      "says what would make the call meaningful: concentration context against physiological levels"
+    ],
+    "predictor_error": {
+      "kind": "overcall",
+      "what_the_predictor_says": "4 of 12 Tox21 assays called active",
+      "why_it_misleads": "an endogenous plasma constituent is reported as having toxicity findings"
+    },
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "dd729170e78c4833fcc2ce925b6a4da4083a2fbf6fca48bc53fe976a27a0f55c"
+}

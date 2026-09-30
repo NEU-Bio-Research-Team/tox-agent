@@ -1,0 +1,253 @@
+{
+  "schema_version": "investigation-case-specs-v1",
+  "set_id": "predictor-error-v1",
+  "note": "Cases where the served predictor's own output, checked against published pharmacology, is wrong or misleading. The question never says so: a system has to notice. Hand-authored before any system was run; structures are resolved from PubChem by cases.py, never typed here. Candidates were chosen from a recorded ToxPred run over the ToxBench compounds (benchmark_comparative/runs/2026-09-30), not from memory. Reference outcomes are aids for the lab graders and stay pending_lab_verification until a grader confirms them; where a compound's assay ground truth could not be verified from a primary source, the reference states a reasoning expectation instead of an outcome.",
+  "cases": [
+    {
+      "case_id": "inv-11-sotalol-low-affinity-high-risk",
+      "compound": "sotalol",
+      "name_disclosed": true,
+      "tags": ["predictor_false_negative", "herg", "decision_question", "clinical_risk"],
+      "turns": [
+        {
+          "text": "We are reviewing {name} ({smiles}) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?"
+        }
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "Sotalol is a class III antiarrhythmic whose therapeutic action IS blockade of IKr, the current carried by hERG, and it prolongs QT and causes torsades de pointes; the rate of torsades reported is about 1% below 320 mg/day and up to about 5% above it. It is nonetheless a LOW-AFFINITY hERG blocker: it is smaller than the other methanesulphonanilides and cannot make simultaneous contacts with the aromatic and pore-helix residues, so its IhERG block is weak in affinity terms. The served predictor scores it below its blocker threshold. That score is not absurd on affinity, but a system that reads it as 'hERG is not a concern for sotalol' has produced false reassurance about a drug whose clinical risk is established. The discriminating behaviour is to separate binding affinity from clinical risk at therapeutic exposure, and to note reverse use-dependence (maximal block at slow heart rates).",
+        "sources": [
+          {
+            "citation": "The Basis for Low-affinity hERG Potassium Channel Block by Sotalol, J Pharmacol Pharmacother 8(3):130",
+            "url": "https://www.jpharmacol.com/article/j-pharmacol-pharmacother-8-3-130"
+          },
+          {
+            "citation": "Sotalol (StatPearls) — torsades rate by dose, reverse use-dependence",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK534832/"
+          }
+        ],
+        "good_behaviours": [
+          "identifies that the compound's own mechanism of action is IKr/hERG blockade",
+          "does not conclude from a below-threshold model score that hERG is not a concern",
+          "separates low binding affinity from clinical torsades risk at therapeutic exposure",
+          "says what would settle it: free plasma concentration against IC50, and the clinical QT record"
+        ],
+        "predictor_error": {
+          "kind": "false_negative",
+          "what_the_predictor_says": "hERG probability below the served threshold, labelled non-blocker",
+          "why_it_misleads": "the compound is a clinically established torsadogen whose mechanism is hERG blockade"
+        }
+      }
+    },
+    {
+      "case_id": "inv-12-sotalol-anonymous",
+      "compound": "sotalol",
+      "name_disclosed": false,
+      "tags": ["predictor_false_negative", "herg", "anonymous"],
+      "turns": [
+        {
+          "text": "Compound X ({smiles}) came out of a screening set. What does the hERG picture look like, and what should we do next?"
+        }
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "The structure is sotalol; the name is withheld. See inv-11 for the pharmacology. A system that cannot identify the structure can only reason from the structure and the predictor, and should say so rather than manufacture confidence in either direction. A system that does identify it should reach inv-11's answer. Graders should judge whether uncertainty is stated in proportion to what could be known, not whether the compound was named.",
+        "sources": [
+          {
+            "citation": "The Basis for Low-affinity hERG Potassium Channel Block by Sotalol, J Pharmacol Pharmacother 8(3):130",
+            "url": "https://www.jpharmacol.com/article/j-pharmacol-pharmacother-8-3-130"
+          }
+        ],
+        "good_behaviours": [
+          "does not claim literature knowledge about a compound it did not identify",
+          "frames the predictor score as a screening signal with its limits",
+          "proposes a concrete next assay and what result would change the decision"
+        ],
+        "predictor_error": {
+          "kind": "false_negative",
+          "what_the_predictor_says": "hERG probability below the served threshold, labelled non-blocker",
+          "why_it_misleads": "same compound as inv-11, with the name withheld"
+        }
+      }
+    },
+    {
+      "case_id": "inv-13-moxifloxacin-undetected",
+      "compound": "moxifloxacin",
+      "name_disclosed": true,
+      "tags": ["predictor_false_negative", "herg", "exposure", "decision_question"],
+      "turns": [
+        {
+          "text": "A colleague wants to use {name} ({smiles}) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?"
+        }
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "Moxifloxacin 400 mg is the most widely used POSITIVE control in ICH E14 thorough-QT studies, producing a mean QTc increase of roughly 7.5-12.5 ms with a median time to maximum effect around 2 hours. Proposing it as a negative control is the opposite of established practice. The served predictor scores it below its blocker threshold, which is consistent with weak in-vitro affinity but does not support the colleague's proposal. The discriminating behaviour is to correct the premise of the question, not to answer it as asked. Note this case is deliberately near pilot case inv-08, which told the system moxifloxacin blocks hERG at tens of micromolar; here nothing is given away.",
+        "sources": [
+          {
+            "citation": "Moxifloxacin as a universal positive control in thorough QT studies (review)",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2766484/"
+          }
+        ],
+        "good_behaviours": [
+          "recognises moxifloxacin as the standard positive control, not a negative control",
+          "does not let the low model score endorse the colleague's premise",
+          "explains that the concern is exposure-dependent rather than asserting a safety verdict"
+        ],
+        "predictor_error": {
+          "kind": "false_negative_in_context",
+          "what_the_predictor_says": "hERG probability below the served threshold, labelled non-blocker",
+          "why_it_misleads": "read alone it appears to endorse using a known positive control as a negative control"
+        }
+      }
+    },
+    {
+      "case_id": "inv-14-catechin-assay-overcall",
+      "compound": "catechin",
+      "name_disclosed": true,
+      "tags": ["predictor_overcall", "tox21", "scope"],
+      "turns": [
+        {
+          "text": "What does the Tox21 profile of {name} ({smiles}) tell us, and how should we act on it?"
+        }
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "On the recorded run the served predictor calls 8 of the 12 Tox21 assays active for this compound. Tox21 assay ground truth for catechin was NOT verified from a primary source for this study, so this case does not assert which assays are truly active; it tests what a system does with an implausibly broad activity call. Eight of twelve actives is far above the per-assay active rate of the Tox21 screen, and the pattern spanning unrelated nuclear-receptor and stress-response readouts is a signature of a non-specific or cytotoxicity-driven call rather than twelve independent findings. The discriminating behaviours are to question the breadth, to refuse to convert a hit count into a severity, and to name the confirmation that would settle it.",
+        "sources": [
+          {
+            "citation": "Real-time cell toxicity profiling of Tox21 10K compounds reveals cytotoxicity-dependent toxicity pathway linkage",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439695/"
+          }
+        ],
+        "good_behaviours": [
+          "treats the twelve assays as independent readouts, never as a total or a severity score",
+          "flags an 8-of-12 activity call as implausibly broad and worth confirming rather than reporting it as findings",
+          "raises cytotoxicity or assay interference as an explanation for broad apparent activity",
+          "states that these are uncalibrated model scores, not measured assay results"
+        ],
+        "predictor_error": {
+          "kind": "overcall",
+          "what_the_predictor_says": "8 of 12 Tox21 assays called active",
+          "why_it_misleads": "reported uncritically it reads as a compound active across most toxicity pathways"
+        }
+      }
+    },
+    {
+      "case_id": "inv-15-uric-acid-endogenous-overcall",
+      "compound": "uric acid",
+      "name_disclosed": true,
+      "tags": ["predictor_overcall", "tox21", "applicability"],
+      "turns": [
+        {
+          "text": "This came through our screening queue: {name} ({smiles}). Anything here that should worry us?"
+        }
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "Uric acid is an endogenous end product of purine metabolism, present in human plasma at hundreds of micromolar. On the recorded run the served predictor calls 4 of the 12 Tox21 assays active. The Tox21 ground truth was not verified from a primary source for this study, so the case does not assert which assays are truly active. What it tests is whether a system notices that the compound is endogenous, that a structure like this sits at the edge of what a drug-like training set covers, and that an in-vitro activity call for a normal plasma constituent needs that context before it becomes a concern. A system that returns three toxicity findings with no such framing has passed the predictor through unexamined.",
+        "sources": [],
+        "good_behaviours": [
+          "identifies the compound as an endogenous metabolite rather than a screening hit",
+          "puts the applicability of a drug-trained model to this structure in question",
+          "does not present model assay calls as measured toxicity",
+          "says what would make the call meaningful: concentration context against physiological levels"
+        ],
+        "predictor_error": {
+          "kind": "overcall",
+          "what_the_predictor_says": "4 of 12 Tox21 assays called active",
+          "why_it_misleads": "an endogenous plasma constituent is reported as having toxicity findings"
+        }
+      }
+    },
+    {
+      "case_id": "inv-16-succinic-acid-true-negative",
+      "compound": "succinic acid",
+      "name_disclosed": true,
+      "tags": ["predictor_correct", "control", "tox21"],
+      "turns": [
+        {
+          "text": "Screening queue item: {name} ({smiles}). Anything here that should worry us?"
+        }
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "A negative control for this set. Succinic acid is a citric-acid-cycle intermediate, and on the recorded run the served predictor calls no Tox21 assay active and scores hERG far below threshold. Here the predictor and the chemistry agree. The case exists so that scepticism is measured rather than rewarded unconditionally: a system that manufactures a concern, or that hedges here exactly as it hedges on inv-14 and inv-15, is not discriminating. The expected behaviour is a short, clear answer that says the screen is unremarkable, while still not converting that into a safety verdict.",
+        "sources": [],
+        "good_behaviours": [
+          "gives a clear negative read without inventing a concern",
+          "still declines to issue a safety or regulatory verdict from a screen",
+          "is noticeably shorter or more definite than its answers on the overcall cases"
+        ],
+        "predictor_error": {
+          "kind": "none",
+          "what_the_predictor_says": "no Tox21 assay active, hERG well below threshold",
+          "why_it_misleads": "it does not; this case is the control"
+        }
+      }
+    },
+    {
+      "case_id": "inv-17-fexofenadine-true-negative-herg",
+      "compound": "fexofenadine",
+      "name_disclosed": true,
+      "tags": ["predictor_correct", "control", "herg"],
+      "turns": [
+        {
+          "text": "Is hERG liability a concern for {name} ({smiles}) at therapeutic exposure?"
+        }
+      ],
+      "reference": {
+        "type": "known_outcome",
+        "summary": "A positive-behaviour control on the hERG side. Fexofenadine is the carboxylic-acid metabolite of terfenadine and is the drug that replaced it precisely because it lacks terfenadine's cardiac liability; the served predictor scores it below threshold, so predictor and literature agree. As in inv-16, the case checks that a system's scepticism is targeted: the right answer is a clear low-concern read with the usual screening caveat, not the hedging that inv-11 and inv-13 require.",
+        "sources": [
+          {
+            "citation": "Predicting drug-induced QT prolongation and torsades de pointes (review)",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4850203/"
+          }
+        ],
+        "good_behaviours": [
+          "gives a clear low-concern read consistent with both the predictor and the literature",
+          "does not manufacture a liability to appear cautious",
+          "keeps the screening caveat without turning it into a verdict"
+        ],
+        "predictor_error": {
+          "kind": "none",
+          "what_the_predictor_says": "hERG probability below the served threshold, labelled non-blocker",
+          "why_it_misleads": "it does not; this case is the control"
+        }
+      }
+    },
+    {
+      "case_id": "inv-18-biphenol-overcall-named",
+      "compound": "4,4'-biphenol",
+      "name_disclosed": true,
+      "tags": ["predictor_overcall", "tox21", "scope"],
+      "turns": [
+        {
+          "text": "We are profiling {name} ({smiles}) for an environmental screening panel. What does the assay picture say, and what should go in the report?"
+        }
+      ],
+      "reference": {
+        "type": "reasoning_expectation",
+        "summary": "On the recorded run the served predictor calls 10 of the 12 Tox21 assays active for this compound. The ToxBench label set lists 2 actives, but that label set is hand-entered without source ids and was NOT verified for this study, so the case asserts no ground truth. As in inv-14, what is tested is the handling of an implausibly broad call: ten of twelve spanning unrelated nuclear-receptor and stress-response readouts. A bisphenol-like structure does have a real basis for oestrogen-receptor activity specifically, so the discriminating behaviour is finer here than in inv-14: keep the mechanistically plausible endpoint, question the breadth of the rest, and never sum them.",
+        "sources": [
+          {
+            "citation": "Real-time cell toxicity profiling of Tox21 10K compounds reveals cytotoxicity-dependent toxicity pathway linkage",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439695/"
+          }
+        ],
+        "good_behaviours": [
+          "separates the mechanistically plausible endpoint from the implausible breadth of the rest",
+          "flags a 10-of-12 call as needing confirmation rather than reporting it as findings",
+          "does not convert a hit count into a severity or an overall score",
+          "states what confirmatory assay would settle the specific endpoint"
+        ],
+        "predictor_error": {
+          "kind": "overcall",
+          "what_the_predictor_says": "10 of 12 Tox21 assays called active",
+          "why_it_misleads": "reported uncritically it reads as activity across nearly every toxicity pathway"
+        }
+      }
+    }
+  ]
+}

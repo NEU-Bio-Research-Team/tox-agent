@@ -1,0 +1,48 @@
+{
+  "schema_version": "investigation-case-v1",
+  "set_id": "predictor-error-v1",
+  "case_id": "inv-14-catechin-assay-overcall",
+  "tags": [
+    "predictor_overcall",
+    "tox21",
+    "scope"
+  ],
+  "compound": {
+    "query_name": "catechin",
+    "name_disclosed": true,
+    "pubchem_cid": 9064,
+    "smiles": "C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O",
+    "molecular_formula": "C15H14O6",
+    "resolved_from": "PubChem PUG REST",
+    "resolved_at": "2026-09-30T14:49:35+00:00",
+    "source_url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/catechin/property/SMILES,MolecularFormula/JSON"
+  },
+  "turns": [
+    {
+      "text": "What does the Tox21 profile of catechin (C1[C@@H]([C@H](OC2=CC(=CC(=C21)O)O)C3=CC(=C(C=C3)O)O)O) tell us, and how should we act on it?"
+    }
+  ],
+  "reference": {
+    "type": "reasoning_expectation",
+    "summary": "On the recorded run the served predictor calls 8 of the 12 Tox21 assays active for this compound. Tox21 assay ground truth for catechin was NOT verified from a primary source for this study, so this case does not assert which assays are truly active; it tests what a system does with an implausibly broad activity call. Eight of twelve actives is far above the per-assay active rate of the Tox21 screen, and the pattern spanning unrelated nuclear-receptor and stress-response readouts is a signature of a non-specific or cytotoxicity-driven call rather than twelve independent findings. The discriminating behaviours are to question the breadth, to refuse to convert a hit count into a severity, and to name the confirmation that would settle it.",
+    "sources": [
+      {
+        "citation": "Real-time cell toxicity profiling of Tox21 10K compounds reveals cytotoxicity-dependent toxicity pathway linkage",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5439695/"
+      }
+    ],
+    "good_behaviours": [
+      "treats the twelve assays as independent readouts, never as a total or a severity score",
+      "flags an 8-of-12 activity call as implausibly broad and worth confirming rather than reporting it as findings",
+      "raises cytotoxicity or assay interference as an explanation for broad apparent activity",
+      "states that these are uncalibrated model scores, not measured assay results"
+    ],
+    "predictor_error": {
+      "kind": "overcall",
+      "what_the_predictor_says": "8 of 12 Tox21 assays called active",
+      "why_it_misleads": "reported uncritically it reads as a compound active across most toxicity pathways"
+    },
+    "status": "pending_lab_verification"
+  },
+  "spec_sha256": "5e5057ea72188382f87adb30757fe918383b92039483242b3858d23e244a619f"
+}

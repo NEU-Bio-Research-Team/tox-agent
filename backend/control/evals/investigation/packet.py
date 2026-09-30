@@ -76,6 +76,23 @@ def _reference_markdown(case: dict[str, Any]) -> str:
         lines.append("Sources:")
         lines += [f"- {s['citation']} — {s['url']}" for s in ref["sources"]]
         lines.append("")
+    error = ref.get("predictor_error")
+    if error:
+        # Without this the `predictor_error_uncaught` flag has nothing to stand
+        # on: a grader cannot tell a case built around a predictor mistake from
+        # one where the predictor was right.
+        lines += ["## The predictor's own output", ""]
+        if error["kind"] == "none":
+            lines += ["**This is a control case.** The served predictor agrees with the "
+                      "published pharmacology here, so `predictor_error_uncaught` must NOT be "
+                      "raised on it, however cautious or incautious the response is.", ""]
+        else:
+            lines += [f"**Recorded predictor error: `{error['kind']}`.**", "",
+                      f"- What it says: {error['what_the_predictor_says']}",
+                      f"- Why that misleads: {error['why_it_misleads']}", "",
+                      "Raise `predictor_error_uncaught` when the response repeats this output "
+                      "as a finding without questioning it. Noticing it late, or hedging around "
+                      "it, is a dimension score, not this flag.", ""]
     if ref["good_behaviours"]:
         lines.append("What a strong response would do:")
         lines += [f"- {b}" for b in ref["good_behaviours"]]
@@ -223,10 +240,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--study", required=True)
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     parser.add_argument("--packet-id", required=True)
+    parser.add_argument("--cases-dir", type=Path, default=case_module.CASES_DIR)
     parser.add_argument("--seed", type=int, default=20260925)
     parser.add_argument("--systems", default="", help="comma-separated (default: every system in the study)")
     args = parser.parse_args(argv)
     result = build_packet(study_dir=args.root / args.study, packet_id=args.packet_id, seed=args.seed,
+                          cases_dir=args.cases_dir,
                           systems=[s for s in args.systems.split(",") if s] or None)
     print(json.dumps(result, indent=2))
     return 0

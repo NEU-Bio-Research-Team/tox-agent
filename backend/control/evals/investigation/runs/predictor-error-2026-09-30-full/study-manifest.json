@@ -1,0 +1,224 @@
+{
+  "schema_version": "investigation-study-manifest-v1",
+  "study_id": "predictor-error-2026-09-30-full",
+  "created_at": "2026-09-30T15:11:40.926238+00:00",
+  "updated_at": "2026-09-30T15:20:14.640193+00:00",
+  "runner_version": "investigation-runner-v1",
+  "case_set": {
+    "set_id": "predictor-error-v1",
+    "sha256": "d26ee37a3029890d2f67c399fee5c38f120f05e6cab2817ae078a55206b7ff0b",
+    "cases": {
+      "inv-11-sotalol-low-affinity-high-risk": "fa7dd21a9661db0793d0565168acd2b61d28f812aefe61288635d379b52b7573",
+      "inv-12-sotalol-anonymous": "fbd250147b5eb5333ed2c24dbc4d9adc36b23fe9d0c141545a5c0c30d9cad128",
+      "inv-13-moxifloxacin-undetected": "3d5d6911fcb0b239d412dcebf7195eed3d5b0eb5854838ec1f710b2c8b144b2a",
+      "inv-14-catechin-assay-overcall": "6095858af35ea345744e572a5f544f7f09fabba59423415c480048b0fb4d9e21",
+      "inv-15-uric-acid-endogenous-overcall": "ac7556a77863b3bbebb3970159d0c6ff4177a10b71c483e8f5da20d17f4d5b89",
+      "inv-16-succinic-acid-true-negative": "3657a45eddc5b1be299bc34be1fe31e967e169889439b3feaae7eadd48fe62c5",
+      "inv-17-fexofenadine-true-negative-herg": "dee8e7e781acc355e00eba8df5f6fd40e6ab5b90f4f054a4bf9edccdc832e123",
+      "inv-18-biphenol-overcall-named": "9ef7399c8731d41dd00974830c504c3cd1117cd6d2d11c8db552722756b09849"
+    }
+  },
+  "systems": {
+    "B_anthropic_snapshot": {
+      "system_id": "B_anthropic_snapshot",
+      "rethink_arm": "B",
+      "family": "platform",
+      "adapter": "claude_cli",
+      "label": "Anthropic model through the claude CLI (no tools), with the ToxPred snapshot",
+      "uses_snapshot": true,
+      "platform": "anthropic",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "ClaudeCLIAdapter",
+        "binary": "claude",
+        "version": "2.1.285 (Claude Code)",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "model_requested": "opus",
+        "tool_policy": "--tools '' --strict-mcp-config --setting-sources '' in an empty temporary directory; no session persisted"
+      }
+    },
+    "P_anthropic_bare": {
+      "system_id": "P_anthropic_bare",
+      "rethink_arm": "P",
+      "family": "platform",
+      "adapter": "claude_cli",
+      "label": "Anthropic model through the claude CLI (no tools), question only",
+      "uses_snapshot": false,
+      "platform": "anthropic",
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "ClaudeCLIAdapter",
+        "binary": "claude",
+        "version": "2.1.285 (Claude Code)",
+        "prompt_version": "platform-prompt-v1",
+        "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+        "model_requested": "opus",
+        "tool_policy": "--tools '' --strict-mcp-config --setting-sources '' in an empty temporary directory; no session persisted"
+      }
+    },
+    "A_predictor_template": {
+      "system_id": "A_predictor_template",
+      "rethink_arm": "A",
+      "family": "predictor",
+      "adapter": "predictor_template",
+      "label": "ToxPred output rendered by a fixed template; no language model",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {},
+      "skills_mode": null,
+      "adapter_config": {
+        "adapter": "predictor_template",
+        "template_version": "predictor-template-v1"
+      }
+    },
+    "D_toxagent_investigator": {
+      "system_id": "D_toxagent_investigator",
+      "rethink_arm": "D",
+      "family": "toxagent",
+      "adapter": "toxagent",
+      "label": "ToxAgent case-based investigator, skills loaded on demand",
+      "uses_snapshot": false,
+      "platform": null,
+      "required_flags": {
+        "scientific_case_v1": true,
+        "scientific_skills_v1": true,
+        "answer_draft_v2": true,
+        "claim_reviewer_v1": false
+      },
+      "skills_mode": "dynamic",
+      "adapter_config": {
+        "adapter": "toxagent",
+        "base_url_host": "127.0.0.1",
+        "effective_product_hash": "1514948eba5b091c3ca08cafe3311cfbd94da8a0cd5333705348f30d5d5243a3",
+        "runtime": {
+          "kind": "opencode",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "runtime_version": "1.17.11",
+          "agent_name": "toxagent",
+          "report_agent_name": "toxagent-report",
+          "auth_mode_default": "runtime_host"
+        },
+        "scientific_skills": {
+          "mode": "dynamic",
+          "schema_version": "scientific-skill-catalog-v1",
+          "catalog_sha256": "d557c97ea1e68356a01fccba673512deea9ab317d241ea4bd708df737ae85c35",
+          "skills": [
+            {
+              "skill_id": "assess-conflicting-evidence",
+              "version": "1.2.0",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922",
+              "status": "active"
+            },
+            {
+              "skill_id": "critique-case",
+              "version": "1.1.0",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7",
+              "status": "active"
+            },
+            {
+              "skill_id": "interpret-model-attribution",
+              "version": "1.1.0",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb",
+              "status": "active"
+            },
+            {
+              "skill_id": "assemble-report-context",
+              "version": "1.0.0",
+              "content_sha256": "7e102fbd2fec637288f3559385a4f0d90d8390173e5a71e187785f6744674457",
+              "status": "active"
+            },
+            {
+              "skill_id": "compose-scientific-report",
+              "version": "1.0.0",
+              "content_sha256": "9dfbf90b01b05104d3aaeda1450478d1b9d141d6b483a0232a5f827c65e561c8",
+              "status": "active"
+            },
+            {
+              "skill_id": "explain-predictor-results",
+              "version": "1.0.0",
+              "content_sha256": "cbcdf55d80283b66402bbc53883db82a6b9eb5558ecd3f5974379a91a28dea01",
+              "status": "active"
+            },
+            {
+              "skill_id": "preflight-report-draft",
+              "version": "1.0.0",
+              "content_sha256": "250dc45396d35ac79c18b718106ba55984f823eae6629bf9c676f6a6433bba23",
+              "status": "active"
+            },
+            {
+              "skill_id": "research-toxicology-evidence",
+              "version": "1.0.0",
+              "content_sha256": "a5dea10946f8ce6b52d5fa693d774ca9a025c95be091cc459d7f2234264621ca",
+              "status": "active"
+            }
+          ]
+        },
+        "flags": {
+          "runtime_profile_selector_v2": true,
+          "normalized_usage_v2": true,
+          "answer_draft_v2": true,
+          "evidence_pipeline_v2": false,
+          "report_orchestrator_v2": false,
+          "router_v2": false,
+          "external_worker_mode": false,
+          "trust_envelope_v1": false,
+          "decision_state_plan_tool": false,
+          "scientific_case_v1": true,
+          "subjectless_research_v1": false,
+          "scientific_primitives_v1": false,
+          "claim_reviewer_v1": false,
+          "skill_drafts_v1": false,
+          "scientific_skills_v1": true
+        }
+      }
+    }
+  },
+  "platform_prompt": {
+    "version": "platform-prompt-v1",
+    "preamble": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.",
+    "preamble_sha256": "af05a515da290ba0757e27d9b50dfe994713c5f60364da3a55ec2f85a98e490c",
+    "snapshot_header": "For reference, this is the output of our in-house toxicity predictor (ToxPred) for the compound in the question, as JSON:"
+  },
+  "trials": 1,
+  "environment": {
+    "git_commit": "8db3880b0ede5fc8c10acf3cb72d682aee7db557",
+    "git_branch": "feat/agent-predictor-error-study",
+    "git_dirty_tracked": false,
+    "host": "LAPTOP-T7GOJFP2",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.10.20",
+    "pid": 185099
+  },
+  "denominators": {
+    "cases": 8,
+    "systems": 4,
+    "trials": 1,
+    "expected_records": 32,
+    "by_system": {
+      "A_predictor_template": {
+        "ok": 3,
+        "error": 0,
+        "pending": 0
+      },
+      "B_anthropic_snapshot": {
+        "ok": 8,
+        "error": 0,
+        "pending": 0
+      },
+      "P_anthropic_bare": {
+        "ok": 8,
+        "error": 0,
+        "pending": 0
+      },
+      "D_toxagent_investigator": {
+        "ok": 2,
+        "error": 0,
+        "pending": 0
+      }
+    }
+  }
+}

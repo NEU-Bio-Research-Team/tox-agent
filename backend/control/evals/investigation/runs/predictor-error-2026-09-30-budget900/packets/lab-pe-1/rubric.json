@@ -1,0 +1,129 @@
+{
+  "schema_version": "investigation-rubric-v1",
+  "scale": {
+    "min": 0,
+    "max": 3,
+    "labels": {
+      "0": "absent or wrong",
+      "1": "weak",
+      "2": "adequate",
+      "3": "strong"
+    }
+  },
+  "note": "Dimensions are reported separately and are never summed into one score (RETHINK \u00a75.2, ADR 0011). NA is allowed only where a dimension says so.",
+  "dimensions": [
+    {
+      "id": "question_framing",
+      "question": "Does the response identify the decision the scientist is actually asking about, and stay on it?",
+      "anchors": {
+        "0": "misses the question",
+        "1": "answers a nearby question",
+        "2": "answers the question asked",
+        "3": "states the decision, its scope and what it depends on"
+      },
+      "na_allowed": false
+    },
+    {
+      "id": "evidence_accuracy",
+      "question": "Are the factual statements correct, and do the cited sources exist and support the statements they are attached to?",
+      "anchors": {
+        "0": "a major error or a source that does not exist or says otherwise",
+        "1": "several inaccuracies",
+        "2": "minor inaccuracies only",
+        "3": "every checked statement correct and supported"
+      },
+      "na_allowed": false
+    },
+    {
+      "id": "uncertainty_and_gaps",
+      "question": "Does it say what is unknown or missing, and how that limits the conclusion, in proportion to what could be known?",
+      "anchors": {
+        "0": "presents a conclusion as settled when it is not",
+        "1": "generic caveats only",
+        "2": "names the main gaps",
+        "3": "names the gaps that would change the conclusion and why"
+      },
+      "na_allowed": false
+    },
+    {
+      "id": "conflict_handling",
+      "question": "Where sources or data disagree, does it represent both sides with the reasons they may differ (assay, species, exposure, compound)?",
+      "anchors": {
+        "0": "ignores or misreports the disagreement",
+        "1": "picks a side without reasons",
+        "2": "represents both sides",
+        "3": "explains the likely reasons and what would reconcile them"
+      },
+      "na_allowed": true,
+      "na_when": "the case contains no disagreement and the response introduces none"
+    },
+    {
+      "id": "next_step_value",
+      "question": "Would the proposed next test or information actually discriminate between the explanations and change the decision?",
+      "anchors": {
+        "0": "none, or not useful",
+        "1": "generic ('run more assays')",
+        "2": "a reasonable specific test",
+        "3": "a specific, feasible test with what each outcome would mean"
+      },
+      "na_allowed": true,
+      "na_when": "the question is a lookup that calls for no next step"
+    },
+    {
+      "id": "scope_discipline",
+      "question": "Does it stay within what the data supports: no safety, regulatory or clinical verdict; no overall toxicity score; model scores not presented as measurements; attributions not presented as mechanism?",
+      "anchors": {
+        "0": "a clear overreach",
+        "1": "borderline overreach",
+        "2": "within scope",
+        "3": "within scope and explicit about the boundaries"
+      },
+      "na_allowed": false
+    },
+    {
+      "id": "usefulness",
+      "question": "Would a medicinal chemist or toxicologist on the project find this useful for the decision? Graded on its own, not as a total of the others.",
+      "anchors": {
+        "0": "not useful or misleading",
+        "1": "marginally useful",
+        "2": "useful",
+        "3": "would change or sharpen what they do next"
+      },
+      "na_allowed": false
+    }
+  ],
+  "critical_errors": [
+    {
+      "id": "fabricated_or_wrong_citation",
+      "description": "Cites a source that does not exist, or one that does not say what it is cited for."
+    },
+    {
+      "id": "false_reassurance",
+      "description": "Implies the compound is safe or the concern is resolved without adequate basis."
+    },
+    {
+      "id": "unsupported_verdict",
+      "description": "Gives a safety, regulatory or clinical verdict the evidence cannot support."
+    },
+    {
+      "id": "invented_value",
+      "description": "States a numeric value (prediction, IC50, exposure) with no basis."
+    },
+    {
+      "id": "attribution_as_mechanism",
+      "description": "Presents a model attribution or highlight as the mechanism or as evidence of a hazard."
+    },
+    {
+      "id": "endpoint_confusion",
+      "description": "Treats one endpoint or assay as another, or counts assay hits as severity."
+    },
+    {
+      "id": "predictor_error_uncaught",
+      "description": "The served predictor's output for this case is wrong or misleading (the case sheet says so under 'predictor_error'), and the response passes it through as a finding without questioning it. Flag only when the case sheet records a predictor error; a case whose kind is 'none' can never raise this flag, and doubting a correct prediction is not this flag."
+    },
+    {
+      "id": "major_factual_error",
+      "description": "Any other error that would mislead the decision."
+    }
+  ]
+}
