@@ -1,0 +1,2224 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_04a710ca1f4a448fa66da88c80b68038",
+        "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T15:58:17.485348+00:00",
+        "created_at": "2026-09-30T15:43:17.485348+00:00",
+        "started_at": "2026-09-30T15:43:17.657050+00:00",
+        "ended_at": "2026-09-30T15:46:08.265680+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "37b7cc270de2940de389d69f84a225efcdef4ccf5dd3dbf93b94a511e7df4a7c"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 900,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 900,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:43:17.486824+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_6311b992bc1e4e4085cbe5d9dc86a293",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:43:29.444584+00:00",
+              "tokens": {
+                "input": 8062,
+                "output": 46,
+                "reasoning": 41,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8149
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_2f253a09137dc5a394646b6b74ad7eb9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fc0e2a001KH2YNrhpSq5Pco",
+                "step_id": "prt_0f2fc329f001AXz4Rp6CUwniEc",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_ebd11e5eea4c47f8b6bfe1c4d78a0804",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:43:35.270832+00:00",
+              "tokens": {
+                "input": 635,
+                "output": 120,
+                "reasoning": 32,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8467
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_56b90de2e5fafb97954666ce90de897a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fc32bb001CVipSPieGvbJWr",
+                "step_id": "prt_0f2fc49610012eLItGfarQ9Fr1",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_6c77684829224e3d90e69b63e77fe3bf",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:43:54.367162+00:00",
+              "tokens": {
+                "input": 2660,
+                "output": 787,
+                "reasoning": 59,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 11186
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c51828cbf16ad9cf10c2e4a204207f57",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fc4989001enDfLmEhJzK2j0",
+                "step_id": "prt_0f2fc93f70011MV2Sj1flRsxIY",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_43db3ffe265d4d9bae1704932cb6fd35",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:44:04.166227+00:00",
+              "tokens": {
+                "input": 6868,
+                "output": 215,
+                "reasoning": 38,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 16849
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d36875a080f933fc6221d57a8d8e7478",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fc9420001PCRAvLugaEIVsb",
+                "step_id": "prt_0f2fcba40001MuLMlTv7U4G2tB",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f9928047e41f495a92496637a3bcc15c",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:44:10.638391+00:00",
+              "tokens": {
+                "input": 1296,
+                "output": 96,
+                "reasoning": 59,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 17323
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_3fdaed43738f4518b8db89a7f7bc2625",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fcba6d001Pr3ygHqzbttr74",
+                "step_id": "prt_0f2fcd389001jZO15VtvQi5k33",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_41d5ce4f97484f57924f364d0c409371",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:45:04.353233+00:00",
+              "tokens": {
+                "input": 1079,
+                "output": 2262,
+                "reasoning": 471,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 20708
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_11879d039e01b29a182d8e4d52d72aab",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fcd3a6001pvXx9TiC8aYIDf",
+                "step_id": "prt_0f2fda552001t6537r67hRPHpv",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f96aba41985a4464b459b5d382261416",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:45:39.187391+00:00",
+              "tokens": {
+                "input": 4045,
+                "output": 1265,
+                "reasoning": 423,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 22629
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_f7f93561dd3eca3e1fcdda76f87c3695",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fda589001kbb2CcOdFtwDsI",
+                "step_id": "prt_0f2fe2d6d001uboQRwOjbs2Yph",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_efb0568e531745d4845d3f8cf6aa0dd1",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:46:05.746887+00:00",
+              "tokens": {
+                "input": 3111,
+                "output": 1256,
+                "reasoning": 60,
+                "cache_read": 19968,
+                "cache_write": 0,
+                "total": 24395
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8ea4928363f26b7b01164d1a404d7ea8",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fe2da5001X6nRaYrgFi8pXL",
+                "step_id": "prt_0f2fe952c0017ndK3F3X1xd3pB",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8242e17c3b2a4a8bbb4739eee423a0ac",
+              "runtime_binding_id": "rtb_6df1ee16850042cdb4bcda3caa7a4f17",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:46:08.185216+00:00",
+              "tokens": {
+                "input": 2688,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 22016,
+                "cache_write": 0,
+                "total": 24708
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8d0a6ba9e50cd8267449be6d0fe40cd1",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2fe9558001AHkhiy1OE1syi5",
+                "step_id": "prt_0f2fe9eb4001PjPHiWbXgrG4OM",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_1b85b86e154643df86782ebf61109d18",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 23,
+            "arguments_sha256": "4e5054a78e65f6de7c006a8281839216135dd01aa92a0fce4e91c94d148c504f",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:43:29.373489+00:00",
+            "ended_at": "2026-09-30T15:43:29.393767+00:00"
+          },
+          {
+            "call_id": "call_d108a34280454b01a77007900ceb2bc5",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "4e35fa1b904e94ebd6bab245184e7fa3d50c35c7b88813cee30c6e3b33cbb8fc",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:35.027750+00:00",
+            "ended_at": "2026-09-30T15:43:35.042800+00:00"
+          },
+          {
+            "call_id": "call_e0a80d78503c45c78833c7e659dd56c0",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 34,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:43:35.199949+00:00",
+            "ended_at": "2026-09-30T15:43:35.230348+00:00"
+          },
+          {
+            "call_id": "call_174a42390b75486f88a02abc77dde608",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:43:35.225504+00:00",
+            "ended_at": "2026-09-30T15:43:35.236896+00:00"
+          },
+          {
+            "call_id": "call_c6aa02561b834c2a88d717c8171451d8",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "06cc8b5d6dbf84a8b38a92c184498c5a989b26bf4ad122334739de3768a64797",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.172560+00:00",
+            "ended_at": "2026-09-30T15:43:53.191577+00:00"
+          },
+          {
+            "call_id": "call_51635142751b4772a50cd4c5097d8e12",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 90,
+            "arguments_sha256": "9f0d195ae32916be4149bae888d429d99af07a170444166149e58803340d97e6",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.272538+00:00",
+            "ended_at": "2026-09-30T15:43:53.356779+00:00"
+          },
+          {
+            "call_id": "call_d16d502d92b24586896f360b43dd9fc0",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 66,
+            "arguments_sha256": "b4f0fbf765b7ee1b0aeee207a4b1cdd8c3e9e04f5038263c03e08fb69700be02",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.299284+00:00",
+            "ended_at": "2026-09-30T15:43:53.359523+00:00"
+          },
+          {
+            "call_id": "call_d1fadd1656ec437ba0e515551c2a3575",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "fe7774a640e45ec7fff51e7c49d62edf9be82b577fb76d2a4c060feb541f2faf",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.353699+00:00",
+            "ended_at": "2026-09-30T15:43:53.378551+00:00"
+          },
+          {
+            "call_id": "call_a91286a394114277b47b7a39786dd104",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 32,
+            "arguments_sha256": "c55596a106a6aa2e6ba37d3260bee53eae7c50a98055ad2cd160fa04b714ab27",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.353903+00:00",
+            "ended_at": "2026-09-30T15:43:53.368662+00:00"
+          },
+          {
+            "call_id": "call_886c9c2c949f415dbe62d335d842cd86",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "8d0cf9977bbef7d2099d8da8775ceeb17f18032526845dfc7fb227dd696fc3d6",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.421866+00:00",
+            "ended_at": "2026-09-30T15:43:53.438378+00:00"
+          },
+          {
+            "call_id": "call_4cbdca4ffbda4d549b0d8e1c5c53501c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 44,
+            "arguments_sha256": "a2c227ebfc656b1b1bcf78e78271a7f429658135b005a71d8581fc94962c4865",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.465324+00:00",
+            "ended_at": "2026-09-30T15:43:53.504688+00:00"
+          },
+          {
+            "call_id": "call_4c440170b6ad4355a972fad62fa1254f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "e064eb34566e9e171cef2fe3813e29361e1a0feec0536daa8dbb6050d8c86e37",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.500383+00:00",
+            "ended_at": "2026-09-30T15:43:53.514416+00:00"
+          },
+          {
+            "call_id": "call_75ba4e2828e645f78d7c04f3935b37f9",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 76,
+            "arguments_sha256": "0366f14bdabd5d81af8d39ef22695f953b1a9452934e04f7485e8ed4ae994109",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.744375+00:00",
+            "ended_at": "2026-09-30T15:43:53.795760+00:00"
+          },
+          {
+            "call_id": "call_f1e3b503b2024fbb9ade2f6d8f03108a",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 63,
+            "arguments_sha256": "bcf079ad3d28b61e41c616c82589efeec81d02dae00d62e52742bcc8b90d177d",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.749009+00:00",
+            "ended_at": "2026-09-30T15:43:53.804185+00:00"
+          },
+          {
+            "call_id": "call_fbd334e7d01445e09436cd7b74fdbe92",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 42,
+            "arguments_sha256": "76c0dac0d6e0ecc514a4ab3420b002062b486cba113ee8ab74f40367a79e9b9d",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.790377+00:00",
+            "ended_at": "2026-09-30T15:43:53.811517+00:00"
+          },
+          {
+            "call_id": "call_b64c5f2c6a7f479e9f6a320965f7090c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 35,
+            "arguments_sha256": "19a8808e390da31a5de68691e3617fb71612fb2c61c0f09615c2aea1385eec6d",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:53.792882+00:00",
+            "ended_at": "2026-09-30T15:43:53.825443+00:00"
+          },
+          {
+            "call_id": "call_73f42dd5b57947eb9ecf6707db743711",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 35,
+            "arguments_sha256": "88423bb52de4f60ef37596f3ef8ba4c6d1af17de8c44eb08b8d6735adf51b38b",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:54.266724+00:00",
+            "ended_at": "2026-09-30T15:43:54.298706+00:00"
+          },
+          {
+            "call_id": "call_07230d6f1b5b4b22a3eb267afec2061b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "62d5eba12b863c9245603ac85400081b482fafddfc8720e78ea948049ef17a98",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:43:54.292224+00:00",
+            "ended_at": "2026-09-30T15:43:54.306325+00:00"
+          },
+          {
+            "call_id": "call_c689ed0c6e624a37a84e8c35fe5fb99a",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2649,
+            "arguments_sha256": "eed0c384cb28c8460040531a4701c5ecd42a63ed6550ad8f55ce85d784a794fa",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:44:01.454143+00:00",
+            "ended_at": "2026-09-30T15:44:04.100615+00:00"
+          },
+          {
+            "call_id": "call_1bfc4941ad0548ddbb44ff64ae2388d1",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2385,
+            "arguments_sha256": "75ca1a11e2a0581ce2c486002368bff1361786dc857fe3a7d7e235f6eeec1c7f",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:44:01.532783+00:00",
+            "ended_at": "2026-09-30T15:44:03.916228+00:00"
+          },
+          {
+            "call_id": "call_6fc65403bcba4bd9b490a3ac802a4542",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1108,
+            "arguments_sha256": "ba3a07573f406b19b800a1942d5b9976efc3066535b7e6e98e29968ed758a65e",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:44:09.502832+00:00",
+            "ended_at": "2026-09-30T15:44:10.608962+00:00"
+          },
+          {
+            "call_id": "call_7f76552afe7246f580828cf9f953e4d6",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 24,
+            "arguments_sha256": "d9b7529494803f92c290841a5044d151b6503f0ec4d9ce78cbc5ca5fbe303c8c",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:45:04.284840+00:00",
+            "ended_at": "2026-09-30T15:45:04.305803+00:00"
+          },
+          {
+            "call_id": "call_066beac200564e1ca2e22a51746ec477",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 57,
+            "arguments_sha256": "8e09a591e0046c7b952020f2108e8faf979a4a9cd2e47c5712b00b6c8c089544",
+            "observation_ids": [
+              "obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "started_at": "2026-09-30T15:46:05.656858+00:00",
+            "ended_at": "2026-09-30T15:46:05.711972+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_668b97a4f6fa449ab03b605e4a470fca",
+        "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+        "answer_markdown": "No immediate flag from the available screening endpoints. The hERG model classified succinic acid as **non-blocker** (model blocker probability: 0.008669676259), and the NR-ER Tox21 assay was classified **inactive** (False). These are uncalibrated model outputs, not clinical risk estimates or a general toxicity/safety conclusion.\n\nI would keep it in the screening queue rather than escalate on this result alone. The main unresolved issue is context: intended use, route, dose, formulation, and exposure are unspecified, and this deployment does not assess broader hazards. If the compound is decision-critical, obtain that context and use direct hERG plus exposure-relevant toxicology review as follow-up screening, not as a standalone safety assessment.",
+        "claims": [
+          {
+            "claim_id": "clm_971a19dd2883490191fe40b74f83ad07",
+            "kind": "numeric",
+            "text": "The hERG model blocker probability is the reported model score.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_72bb9984364141458e06878b93cb1b50",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.008669676259160042,
+            "rendered_value": "0.008669676259"
+          },
+          {
+            "claim_id": "clm_eded7f9be814429da7b6a9e08a10baba",
+            "kind": "classification",
+            "text": "The hERG model classified succinic acid as non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_72bb9984364141458e06878b93cb1b50",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_78062979b9e5461bb7e2099fa2d3946b",
+            "kind": "classification",
+            "text": "The NR-ER Tox21 assay was classified inactive by the predictor.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_72bb9984364141458e06878b93cb1b50",
+            "field_path": "predictions.tox21.assays.NR-ER.active",
+            "source_value": false,
+            "rendered_value": "False"
+          },
+          {
+            "claim_id": "clm_4c20f9f6bd1c4a768597ea10d0a54d0a",
+            "kind": "limitation",
+            "text": "The result is limited to the served hERG and Tox21 model endpoints and does not establish general safety, clinical risk, or suitability for a particular use.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_72bb9984364141458e06878b93cb1b50",
+            "field_path": "prediction_summary.available_sections"
+          },
+          {
+            "claim_id": "clm_d331620581114ac18eeef0806002d20c",
+            "kind": "limitation",
+            "text": "Intended use, route, dose, formulation, and exposure context were not supplied, and no accepted compound-specific independent evidence was available for these endpoints in this run.",
+            "transform": "identity",
+            "citation_ids": []
+          },
+          {
+            "claim_id": "clm_35dab4143bf14e409e8d25c0e9565c70",
+            "kind": "recommendation",
+            "text": "If the compound is decision-critical, obtain the exposure context and perform direct hERG plus exposure-relevant toxicology review as follow-up screening.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The reported probabilities are model scores and are not calibrated clinical or population risks."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Any direct assay or toxicology follow-up is screening and does not by itself establish safety."
+          },
+          {
+            "code": "endpoint_unavailable",
+            "text": "The deployment serves hERG and Tox21 only; broader toxicity endpoints are unavailable here."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Provide the intended use, route, dose, formulation, and expected exposure; then prioritize direct hERG and exposure-relevant toxicology review if the decision depends on this compound.",
+            "basis_claim_ids": [
+              "clm_d331620581114ac18eeef0806002d20c",
+              "clm_35dab4143bf14e409e8d25c0e9565c70"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "e8f837509151933b3738f1ae6a8a5ad2e669157912c31fe562928489ef77a317",
+        "created_at": "2026-09-30T15:46:05.682262+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_c88c5fd6f27b418e87d6720b563ca93e",
+        "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+        "goal": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?",
+        "subject_refs": [
+          "analysis:ana_8b5e4143659941a4b354c558ead1a3ec"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The available model endpoints do not raise an immediate screening flag for succinic acid.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_72bb9984364141458e06878b93cb1b50"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "A broader safety or use decision remains unresolved because exposure context and independent endpoint-specific confirmation are missing.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 900,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 900,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 3,
+          "tool_calls": 23,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_72bb9984364141458e06878b93cb1b50"
+        ],
+        "found_refs": [
+          "evidence:evd_74c5b33b0e8c468b918af05830294379",
+          "evidence:evd_46bd2759deab4c15a09215d47fc2dd51",
+          "evidence:evd_8fcbbd038b6d4185831ce0f21260546a"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 28
+      },
+      "dossier": {
+        "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+        "case_id": "scase_2c227d9461494db49b813a84e209176e",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?",
+        "answer_id": "ans_668b97a4f6fa449ab03b605e4a470fca",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+          "can_say": [
+            {
+              "text": "For the served predictor endpoints, succinic acid does not produce a hERG blocker flag or an active classification in the twelve independent Tox21 assays.",
+              "sources": [
+                "observation:obs_72bb9984364141458e06878b93cb1b50",
+                "observation:obs_72bb9984364141458e06878b93cb1b50"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "This is a model-screening result, not independent confirmation of absence of toxicity or a broader safety conclusion.",
+              "sources": [
+                "observation:obs_72bb9984364141458e06878b93cb1b50",
+                "observation:obs_72bb9984364141458e06878b93cb1b50"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Cannot conclude that the compound is safe, suitable for a particular use, or free of hazards outside the served endpoints without intended-use and exposure information."
+          ],
+          "what_would_change": [
+            "A direct hERG result, exposure-relevant independent toxicology evidence, or a specified intended use and exposure scenario that introduces a concern."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "status": "open",
+            "context": [],
+            "statement": "The predictor does not flag succinic acid in the served hERG and Tox21 endpoints.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The served hERG model signal is non-blocker for this compound.",
+                "scope": {
+                  "compound": "succinic acid",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+                "directness": "direct",
+                "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The served Tox21 model signals are inactive across all twelve independent assays.",
+                "scope": {
+                  "assay": "12 served assays",
+                  "compound": "succinic acid",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.NR-ER.probability_activity",
+                "directness": "direct",
+                "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A rerun with the same analysis snapshot produces a blocker or active classification in a served endpoint, or direct assay data contradict the model signal."
+          },
+          {
+            "id": "h2",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "status": "open",
+            "context": [],
+            "statement": "A real-world hazard or exposure-related concern could exist outside the served hERG and Tox21 predictions and would not be ruled out by this analysis.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Compound-specific, exposure-relevant independent evidence covers the intended use and finds no material concern, or the intended use is shown not to involve meaningful exposure."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Obtain the intended use and exposure context, then run a direct hERG assay and exposure-relevant toxicology review if the compound remains decision-critical.",
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "rationale": "The model only covers hERG and twelve independent Tox21 assays and cannot resolve use-, route-, dose-, or formulation-dependent concerns.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "Direct hERG result; exposure- and use-specific hazard findings; comparison with the predictor signal without treating agreement as proof."
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_8b5e4143659941a4b354c558ead1a3ec"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The served hERG model signal is non-blocker for this compound.",
+            "scope": {
+              "compound": "succinic acid",
+              "endpoint": "herg"
+            },
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+            "directness": "direct",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The served Tox21 model signals are inactive across all twelve independent assays.",
+            "scope": {
+              "assay": "12 served assays",
+              "compound": "succinic acid",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.NR-ER.probability_activity",
+            "directness": "direct",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The available model endpoints do not raise an immediate screening flag for succinic acid.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The available model endpoints do not raise an immediate screening flag for succinic acid.",
+            "scope": {
+              "endpoint": "herg"
+            },
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+              "outcome": "No compound-and-endpoint-specific citable results were returned; the broader search results were not sufficiently specific to use as evidence.",
+              "purpose": "Look for compound-specific independent evidence about hERG, Tox21-related activity, and broader toxicology that could contradict or qualify the model signal.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+              "outcome": "Keep the conclusion conditional: no immediate flag from these model endpoints, but insufficient basis for a broader safety or development judgment.",
+              "purpose": "Check that the conclusion stays limited to the served endpoints, distinguishes model signals from independent evidence, represents the negative search correctly, and identifies what would change the queue decision.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_data",
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No accepted independent compound-specific evidence was found for the served endpoints, and the intended use, exposure, route, dose, and formulation are unspecified.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_c88c5fd6f27b418e87d6720b563ca93e",
+  "analysis": {
+    "run": {
+      "run_id": "run_1152030094054ef992f6a2d1aa220fe5",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_f285457c96fc47ce9c16822371eb3553",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:58:16.426759+00:00",
+      "created_at": "2026-09-30T15:43:16.426759+00:00",
+      "started_at": "2026-09-30T15:43:16.438768+00:00",
+      "ended_at": "2026-09-30T15:43:16.469664+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 900,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:43:16.427858+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_8b5e4143659941a4b354c558ead1a3ec",
+      "input_smiles": "C(CC(=O)O)C(=O)O",
+      "canonical_smiles": "O=C(O)CCC(=O)O",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.008669676259160042,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.23355039954185486,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.26637351512908936,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.010346651077270508,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.11762240529060364,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.011801675893366337,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.0007164900889620185,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.004447891842573881,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.004103520885109901,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.007068364880979061,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.05079612508416176,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.006422117818146944,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.05596821755170822,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "ea798eb6-3234-489f-b6cd-8da7ac26337f",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 16,
+            "encoded_token_count": 16
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "a54666870c40300ad87714c82bcbc7055527a13063062e395278382f1f174f96"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:43:16.463287+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_8fcbbd038b6d4185831ce0f21260546a",
+      "title": "Upcycling Vegetable Waste Into Functional Food Ingredients via Synergistic Microbial Engineering and Artificial Intelligence.",
+      "authors": [
+        "Sun J",
+        "Ma D",
+        "Meng Q",
+        "Bi C",
+        "Li J",
+        "Shan A"
+      ],
+      "published_at": "2026-09-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1111/1541-4337.70611",
+        "pmid": "42675028",
+        "pmcid": "PMC13529936",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42675028",
+      "abstract_or_excerpt": "The escalating generation of global vegetable waste represents a critical loss of bioactive resources, necessitating a paradigm shift from passive disposal to active nutrient upcycling. However, the industrial conversion of this heterogeneous biomass into standardized functional food ingredients is currently impeded by significant techno-economic barriers, primarily structural recalcitrance, compositional inconsistency, and the presence of toxic fermentation inhibitors. This review provides a comprehensive analysis of the synergistic application of microbial engineering and artificial intelligence (AI) to resolve these bioprocessing bottlenecks within a food-to-food closed-loop framework (as shown in the graphical abstract). We evaluate recent advances in engineering food-grade microbial chassis (e.g., Saccharomyces cerevisiae and Escherichia coli) to enhance lignocellulose degradation and stress tolerance. Concurrently, we examine the integration of AI across the entire value chain, covering deep learning-based rational enzyme design, genome-scale metabolic modeling, and intelligent process control for precision fermentation. Current evidence demonstrates that the hardware-software coupling of engineered strains and AI algorithms significantly enhances conversion efficiency and process robustness. Key findings highlight that AI-driven Design-Build-Test-Learn cycles facilitate the de novo creation of enzymes with superior kinetics and strains with adaptive stress response capabilities against toxins. Moreover, dynamic digital twin models effectively mitigate the impact of substrate variability, ensuring the batch-to-batch consistency required for food applications. We conclude that this data-driven synergistic paradigm is pivotal for establishing a resilient circular bioeconomy, enabling the reliable bioconversion of waste into high-value single-cell proteins, natural flavor additives, and sustainable packaging materials.",
+      "normalized_facts": {
+        "journal": "Comprehensive reviews in food science and food safety",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:10.589833+00:00",
+      "content_sha256": "4db3a0b20a934ce9efede32324dc852a7cb5de4a443f8b7eead41d8f6e1cbf60"
+    },
+    {
+      "evidence_id": "evd_74c5b33b0e8c468b918af05830294379",
+      "title": "Integrated Chemical and Hazard Assessment of Plastic Pellets from the &lt;i&gt;Toconao&lt;/i&gt; Spill (Galicia, Spain) Indicates Potential for Environmental Harm.",
+      "authors": [
+        "Morales-Caselles C",
+        "Booth AM",
+        "Baztan J",
+        "Berget LM",
+        "Carmona E",
+        "Corcoll N",
+        "Dirven H",
+        "Filella M"
+      ],
+      "published_at": "2026-02-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.est.5c16166",
+        "pmid": "41711563",
+        "pmcid": "PMC12961947",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41711563",
+      "abstract_or_excerpt": "Plastic pellet spills are a major source of microplastic pollution, and pellets are found on beaches worldwide. However, the potential environmental impacts of these spills remain poorly understood. In December 2023, approximately 25,000 kg of polyethylene pellets containing high concentrations of the additive Tinuvin UV-622 were spilled during a shipping accident off the northern coast of Portugal. Pellets collected from an affected beach located in Galicia, Spain, along with solvent extracts and aqueous leachates, were subjected to both target and nontarget chemical analyses and tested in a battery of toxicity assays including a green microalga (<i>Raphidocelis subcapitata</i>), a marine copepod (<i>Apocyclops royi</i>), a fish model (<i>Danio rerio</i>), and a human cell line. Chemical screening identified on the order of 50 chemical substances in addition to Tinuvin UV-622, including a range of known plastic additives and nonintentionally added substances (NIAS). Toxicity assays revealed significant growth inhibition and stress-induced cell aggregation in <i>R. subcapitata</i> and acute toxicity causing immobilization in copepods, which could have potential implications in the environment via the disruption of primary producers and food web dynamics. In contrast, zebrafish embryos showed no significant developmental effects, while human cells exhibited modest, time-dependent reductions in viability. Our findings underscore the complex chemical burden associated with pellet spills and stress the need for policies and regulations to prevent them, reinforcing the importance of applying the precautionary principle in managing the environmental risks linked to plastic pellet production, transport, and accidental release.",
+      "normalized_facts": {
+        "journal": "Environmental science & technology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:10.589833+00:00",
+      "content_sha256": "eb80b7892a3e2af8ac51b3aad1a85b30de6bb7b5a88992ba6ee7286597c4fd92"
+    },
+    {
+      "evidence_id": "evd_46bd2759deab4c15a09215d47fc2dd51",
+      "title": "In vitro metabolomics approaches to decipher the biochemical and cellular response to genotoxic compounds.",
+      "authors": [
+        "Amaro F",
+        "Siniscalchi E",
+        "Varalda GM",
+        "Azzinnari E",
+        "Pinto J",
+        "de Pinho PG",
+        "Iorio E",
+        "Marcon F"
+      ],
+      "published_at": "2025-12-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.2903/j.efsa.2025.e231110",
+        "pmid": "41404315",
+        "pmcid": "PMC12703804",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41404315",
+      "abstract_or_excerpt": "New approach methodologies (NAMs) are gaining increasing attention within the scientific community as strategies to reduce the use of animal testing. Their integration into regulatory frameworks for chemical hazard and risk assessment in food and feed would directly support the goals of the European Food Safety Authority (EFSA). Within the framework of the EU-FORA fellowship programme, this study investigated the use of metabolomic approaches to evaluate cellular responses to genotoxic agents, serving as a proof of concept for the development, standardisation and future regulatory application of metabolomics in genotoxicity testing. Human liver-derived cells (HepRG) were exposed to two well-characterised genotoxicants, and both intracellular (endometabolome) and extracellular (exometabolome) metabolites were extracted and analysed using gas chromatography-mass spectrometry (GC-MS). Metabolites associated with energy metabolism, sugar metabolism and antioxidant capacity were identified, and both multivariate and univariate statistical analyses were applied to characterise metabolic profiles. Results obtained under the experimental conditions tested in this pilot study, do not highlight significant differences between exposed and control cultures. Nevertheless, the findings demonstrate the potential of metabolomics to capture biologically relevant pathways, supporting its future application in genotoxicity assessment under alternative experimental conditions and designs.",
+      "normalized_facts": {
+        "journal": "EFSA journal. European Food Safety Authority",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:10.589833+00:00",
+      "content_sha256": "9e6d7646663b58ca26c4bc7da733f3dbe052868762a14c4bfb437a9b297477bb"
+    },
+    {
+      "evidence_id": "evd_a20e207a9c8548829be59a9bbeb875e4",
+      "title": "Nitrogen-containing FDA-approved drugs in 2025: synthesis, significance and therapeutic applications.",
+      "authors": [
+        "Jadala C",
+        "Mishra S",
+        "Potuganti GR",
+        "Cardoza S",
+        "Velma GR"
+      ],
+      "published_at": "2026-04-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1039/d6ra00737f",
+        "pmid": "42052191",
+        "pmcid": "PMC13116056",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42052191",
+      "abstract_or_excerpt": "Nitrogen-containing heterocycles (N-Hets) are among the most prevalent and versatile structural motifs in pharmaceuticals, serving as key scaffolds in over 85% of biologically active small molecules. Their structural diversity and functional versatility have made them integral components of both U.S. Food and Drug Administration (FDA) approved and investigational drug molecules, modulating biological activity across a range of molecular targets. In 2025, the FDA approved 26 small-molecule drugs featuring N-Het frameworks, spanning multiple therapeutic areas, including oncology, metabolic disorders, infectious diseases, and rare/orphan conditions. This review offers a comprehensive overview of these newly approved compounds, emphasizing their biological activity and synthetic approaches. Special attention is given to drug-target interactions, focusing on receptor binding and highlighting the important role of N-Hets in medicinal chemistry. By exploiting the intrinsic chemical properties of N-Hets and leveraging modern synthetic methodologies, these scaffolds continue to drive the discovery of therapeutically relevant molecules, highlighting their sustained significance in modern drug discovery.",
+      "normalized_facts": {
+        "journal": "RSC advances",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "87328b308b02a8ea050e8b509563b8165830e9242c6a7f46171292173a706f60"
+    },
+    {
+      "evidence_id": "evd_084127f9ff8446f4b903184b967f9f42",
+      "title": "PDE1B and PDE10A as novel targets for schizophrenia: from molecular design and synthesis to therapeutic promise.",
+      "authors": [
+        "Rautela J",
+        "Gaurav A",
+        "Nissapatorn V",
+        "Tan CK",
+        "Girol AP",
+        "Pereira ML",
+        "Lee VS"
+      ],
+      "published_at": "2026-02-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1735760",
+        "pmid": "41835457",
+        "pmcid": "PMC12982385",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41835457",
+      "abstract_or_excerpt": "Phosphodiesterase 1B (PDE1B) and phosphodiesterase 10A (PDE10A), members of the phosphodiesterase superfamily, are responsible for cyclic nucleotide hydrolysis, thereby regulating key intracellular signaling pathways such as cAMP response element-binding protein (CREB) activation and brain-derived neurotrophic factor (BDNF) gene transcription. Both enzymes are predominantly expressed in the brain and co-localize with dopamine receptors, positioning them as potential targets for addressing schizophrenia, a disorder characterized by dopamine system dysfunction. PDE1B inhibition enhances D1-receptor signaling, ameliorating negative symptoms and cognitive deficits, while PDE10A inhibition modulates D2-receptor activity, potentially alleviating positive symptoms. Together, these mechanisms suggest that targeting PDE1B and PDE10A could offer an innovative avenue for the comprehensive management of schizophrenia. Recent advancements in structural and synthetic methodologies have significantly facilitated the design of small-molecule PDE1B and PDE10A inhibitors. Among these, ITI-214 (PDE1 inhibitors) and MK-8189 and EVP-6308 (PDE10A inhibitors) have proceeded to clinical trials, demonstrating promising therapeutic agents. Furthermore, dual PDE1B/10A inhibitors remain underexplored, with only compound 2 undergoing limited preclinical evaluation for its pharmacological efficacy and safety. Studies published between 2014 and 2025 were retrieved from the PubMed, Web of Science, and Scopus databases, highlighting advances in PDE1B and PDE10A inhibitors. This review provides a detailed overview of the structural and synthetic strategies employed in developing PDE1B, PDE10A, and dual PDE1/10 inhibitors, with a focus on their binding sites and structure-activity relationships (SARs). By addressing the limitations of current candidates and emphasizing the need for dual inhibitors, this review aims to guide future research efforts toward the discovery of more selective, potent, and clinically viable PDE1B and PDE10A inhibitors for schizophrenia.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "926c18a24220e38610e021cc78018afb4ef10dc83431728bf1adce263e7ee089"
+    },
+    {
+      "evidence_id": "evd_80c40da44a1c4d04a550bcd27c9c8a7e",
+      "title": "Targeting Siderophore Biosynthesis to Thwart Microbial Growth.",
+      "authors": [
+        "Rocha BM",
+        "Pinto E",
+        "Sousa E",
+        "Resende DISP"
+      ],
+      "published_at": "2025-04-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms26083611",
+        "pmid": "40332123",
+        "pmcid": "PMC12026967",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40332123",
+      "abstract_or_excerpt": "The growing threat of antibiotic resistance has made treating bacterial and fungal infections increasingly difficult. With the discovery of new antibiotics slowing down, alternative strategies are urgently needed. Siderophores, small iron-chelating molecules produced by microorganisms, play a crucial role in iron acquisition and serve as virulence factors in many pathogens. Because iron is essential for microbial survival, targeting siderophore biosynthesis and transport presents a promising approach to combating drug-resistant infections. This review explores the key genetic and biochemical mechanisms involved in siderophore production, emphasizing potential drug targets within these pathways. Three major biosynthetic routes are examined: nonribosomal peptide synthetase (NRPS)-dependent, polyketide synthase (PKS)-based, and NRPS-independent (NIS) pathways. Additionally, microbial iron uptake mechanisms and membrane-associated transport systems are discussed, providing insights into their role in sustaining pathogenic growth. Recent advances in inhibitor development have shown that blocking critical enzymes in siderophore biosynthesis can effectively impair microbial growth. By disrupting these pathways, new antimicrobial strategies can be developed, offering alternatives to traditional antibiotics and potentially reducing the risk of resistance. A deeper understanding of siderophore biosynthesis and its regulation not only reveals fundamental microbial processes but also provides a foundation for designing targeted therapeutics. Leveraging these insights could lead to novel drugs that overcome antibiotic resistance, offering new hope in the fight against persistent infections.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "0996bf173b4e6b54e8abb234bd73ee42270c1d67e23ff71177b1491ef12398df"
+    },
+    {
+      "evidence_id": "evd_a84d9b4afda14ca5b08b41ffe5b96d45",
+      "title": "Risk Compounds, Preclinical Toxicity Evaluation, and Potential Mechanisms of Chinese Materia Medica-Induced Cardiotoxicity.",
+      "authors": [
+        "Zhou J",
+        "Peng F",
+        "Cao X",
+        "Xie X",
+        "Chen D",
+        "Yang L",
+        "Rao C",
+        "Peng C"
+      ],
+      "published_at": "2021-03-30",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2021.578796",
+        "pmid": "33867974",
+        "pmcid": "PMC8044783",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33867974",
+      "abstract_or_excerpt": "Chinese materia medica (CMM) has been applied for the prevention and treatment of diseases for thousands of years. However, arrhythmia, myocardial ischemia, heart failure, and other cardiac adverse reactions during CMM application were gradually reported. CMM-induced cardiotoxicity has aroused widespread attention. Our review aimed to summarize the risk compounds, preclinical toxicity evaluation, and potential mechanisms of CMM-induced cardiotoxicity. All relevant articles published on the PubMed, Embase, and China National Knowledge Infrastructure (CNKI) databases for the latest twenty years were searched and manually extracted. The risk substances of CMM-induced cardiotoxicity are relatively complex. A single CMM usually contains various risk compounds, and the same risk substance may exist in various CMM. The active and risk substances in CMM may be transformed into each other under different conditions, such as drug dosage, medication methods, and body status. Generally, the risk compounds of CMM-induced cardiotoxicity can be classified into alkaloids, terpenoids, steroids, heavy metals, organic acids, toxic proteins, and peptides. Traditional evaluation methods of chemical drug-induced cardiotoxicity primarily include cardiac function monitoring, endomyocardial biopsy, myocardial zymogram, and biomarker determination. In the preclinical stage, CMM-induced cardiotoxicity should be systematically evaluated at the overall, tissue, cellular, and molecular levels, including cardiac function, histopathology, cytology, myocardial zymogram, and biomarkers. Thanks to the development of systematic biology, the higher specificity and sensitivity of biomarkers, such as genes, proteins, and metabolic small molecules, are gradually applied for evaluating CMM-induced cardiotoxicity. Previous studies on the mechanisms of CMM-induced cardiotoxicity focused on a single drug, monomer or components of CMM. The interaction among ion homeostasis (sodium, potassium, and calcium ions), oxidative damage, mitochondrial injury, apoptosis and autophagy, and metabolic disturbance is involved in CMM-induced cardiotoxicity. Clarification on the risk compounds, preclinical toxicity evaluation, and potential mechanisms of CMM-induced cardiotoxicity must be beneficial to guide new CMM development and post-marketed CMM reevaluation.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "b495331bb5e42b139bc40addfe171ef544a20868b681b62c7ac4171ca5a91712"
+    },
+    {
+      "evidence_id": "evd_48fdc4b2f1024f49911be36a3ae2545c",
+      "title": "Assessing Drug-Induced Mitochondrial Toxicity in Cardiomyocytes: Implications for Preclinical Cardiac Safety Evaluation.",
+      "authors": [
+        "Tang X",
+        "Wang Z",
+        "Hu S",
+        "Zhou B"
+      ],
+      "published_at": "2022-06-21",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/pharmaceutics14071313",
+        "pmid": "35890211",
+        "pmcid": "PMC9319223",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35890211",
+      "abstract_or_excerpt": "Drug-induced cardiotoxicity not only leads to the attrition of drugs during development, but also contributes to the high morbidity and mortality rates of cardiovascular diseases. Comprehensive testing for proarrhythmic risks of drugs has been applied in preclinical cardiac safety assessment for over 15 years. However, other mechanisms of cardiac toxicity have not received such attention. Of them, mitochondrial impairment is a common form of cardiotoxicity and is known to account for over half of cardiovascular adverse-event-related black box warnings imposed by the U.S. Food and Drug Administration. Although it has been studied in great depth, mitochondrial toxicity assessment has not yet been incorporated into routine safety tests for cardiotoxicity at the preclinical stage. This review discusses the main characteristics of mitochondria in cardiomyocytes, drug-induced mitochondrial toxicities, and high-throughput screening strategies for cardiomyocytes, as well as their proposed integration into preclinical safety pharmacology. We emphasize the advantages of using adult human primary cardiomyocytes for the evaluation of mitochondrial morphology and function, and the need for a novel cardiac safety testing platform integrating mitochondrial toxicity and proarrhythmic risk assessments in cardiac safety evaluation.",
+      "normalized_facts": {
+        "journal": "Pharmaceutics",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "b32652354fd2b95192d57cf5f82b7a37f03eb0d9232fd83b87c2610bb99ce001"
+    },
+    {
+      "evidence_id": "evd_7f5c5928aeb74aee83fa2ef9b5ebeabd",
+      "title": "An Overview of Degradation Strategies for Amitriptyline.",
+      "authors": [
+        "Comanescu C",
+        "Racovita RC"
+      ],
+      "published_at": "2024-03-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms25073822",
+        "pmid": "38612638",
+        "pmcid": "PMC11012176",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/38612638",
+      "abstract_or_excerpt": "Antidepressant drugs play a crucial role in the treatment of mental health disorders, but their efficacy and safety can be compromised by drug degradation. Recent reports point to several drugs found in concentrations ranging from the limit of detection (LOD) to hundreds of ng/L in wastewater plants around the globe; hence, antidepressants can be considered emerging pollutants with potential consequences for human health and wellbeing. Understanding and implementing effective degradation strategies are essential not only to ensure the stability and potency of these medications but also for their safe disposal in line with current environment remediation goals. This review provides an overview of degradation pathways for amitriptyline, a typical tricyclic antidepressant drug, by exploring chemical routes such as oxidation, hydrolysis, and photodegradation. Connex issues such as stability-enhancing approaches through formulation and packaging considerations, regulatory guidelines, and quality control measures are also briefly noted. Specific case studies of amitriptyline degradation pathways forecast the future perspectives and challenges in this field, helping researchers and pharmaceutical manufacturers to provide guidelines for the most effective degradation pathways employed for minimal environmental impact.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "7a5c4f64c143bb1b9ece50ce6c762ba8706d20870abee3fad5f17bd9c43fc526"
+    },
+    {
+      "evidence_id": "evd_c8b0a9c8a57f4132863b64696f776464",
+      "title": "Discovery of Novel Quinoline-Based Proteasome Inhibitors for Human African Trypanosomiasis (HAT).",
+      "authors": [
+        "Koester DC",
+        "Marx VM",
+        "Williams S",
+        "Jiricek J",
+        "Dauphinais M",
+        "René O",
+        "Miller SL",
+        "Zhang L"
+      ],
+      "published_at": "2022-08-22",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acs.jmedchem.2c00791",
+        "pmid": "35993839",
+        "pmcid": "PMC9469205",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35993839",
+      "abstract_or_excerpt": "Human African Trypanosomiasis (HAT) is a vector-borne disease caused by kinetoplastid parasites of the <i>Trypanosoma</i> genus. The disease proceeds in two stages, with a hemolymphatic blood stage and a meningo-encephalic brain stage. In the latter stage, the parasite causes irreversible damage to the brain leading to sleep cycle disruption and is fatal if untreated. An orally bioavailable treatment is highly desirable. In this study, we present a brain-penetrant, parasite-selective 20S proteasome inhibitor that was rapidly optimized from an HTS singleton hit to drug candidate compound <b>7</b> that showed cure in a stage II mouse efficacy model. Here, we describe hit expansion and lead optimization campaign guided by cryo-electron microscopy and an <i>in silico</i> model to predict the brain-to-plasma partition coefficient <i>K</i><sub>p</sub> as an important parameter to prioritize compounds for synthesis. The model combined with in vitro and in vivo experiments allowed us to advance compounds with favorable unbound brain-to-plasma ratios (<i>K</i><sub>p,uu</sub>) to cure a CNS disease such as HAT.",
+      "normalized_facts": {
+        "journal": "Journal of medicinal chemistry",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "2a1b5397ca99ecf418489de19ffce6e80a776931a0dfd7f1e460dfae16400a34"
+    },
+    {
+      "evidence_id": "evd_0af5690d1e5a46b8b5ac9fa20051d3ea",
+      "title": "Acute arsenic trioxide inhibits the cardiac transient outward K&lt;sup&gt;+&lt;/sup&gt; current (I&lt;sub&gt;to&lt;/sub&gt;) and human K&lt;sub&gt;v&lt;/sub&gt;4.3/KChIP2c channels.",
+      "authors": [
+        "Mancilla Simbro C",
+        "Islas ÁA",
+        "Herrera Salcedo FD",
+        "Pérez Cortes E",
+        "Ramírez Mata A",
+        "Sanchéz González J",
+        "Reyes Carmona S",
+        "Villa Diaz F"
+      ],
+      "published_at": "2026-02-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.crstbi.2026.100182",
+        "pmid": "41743504",
+        "pmcid": "PMC12930176",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41743504",
+      "abstract_or_excerpt": "Arsenic trioxide (As<sub>2</sub>O<sub>3</sub>) has been useful to treat acute promyelocytic leukaemia, as it inhibits the growth of various tumour cell lines and promotes apoptosis. However, its employment has been hindered by its cardiotoxic potential, since it prolongs cardiac repolarization. The transient outward K<sup>+</sup> current (I<sub>to</sub>) in the heart is a critical component of the early repolarization phase and a plateau of the cardiac action potential. While the molecular changes that explain the chronic effects of As<sub>2</sub>O<sub>3</sub> on cardiac K<sup>+</sup> currents are known, its immediate repercussions remain elusive. In the present work, we characterize the acute electrophysiological effects of As<sub>2</sub>O<sub>3</sub> on the I<sub>to</sub> in rat myocytes and on K<sub>v</sub>4.3 channels co-expressed with their auxiliary subunit KChIP2c, which constitute the principal mediator of the I<sub>to</sub> in the human ventricle. We found that this anion causes a reversible, voltage and concentration dependent inhibition (IC<sub>50</sub> ≈ 4 μM), reaching a maximum (38% block) at 100 μM, on both cell types. Bath perfusion of 4 μM As<sub>2</sub>O<sub>3</sub> had no significant effect on the current kinetics or on the steady-state inactivation of the I<sub>to</sub>, but it shifted the steady-state tail activation curve to more depolarized potentials. The development of As<sub>2</sub>O<sub>3</sub> inhibition was fourfold faster upon intracellular administration. A ligand and structure-based computational strategy including pharmacophore and molecular docking was implemented to identify the stereochemistry of the ligand-protein binding.",
+      "normalized_facts": {
+        "journal": "Current research in structural biology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "a112293fe94a36124dbede2e856605427afd80b50e239cf87ffa99c2516d55a5"
+    },
+    {
+      "evidence_id": "evd_abbd3d123193403fa546b47c4848f4ee",
+      "title": "The mechanism of electrical remodeling in atrial fibrillation and current research status of natural drugs and active ingredients inhibiting atrial electrical remodeling.",
+      "authors": [
+        "Huang X",
+        "Wang C",
+        "Wang Y",
+        "Yang S",
+        "Du L",
+        "Li L",
+        "Wang T",
+        "Lu Y"
+      ],
+      "published_at": "2026-03-11",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2026.1705565",
+        "pmid": "41890880",
+        "pmcid": "PMC13012934",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41890880",
+      "abstract_or_excerpt": "Atrial fibrillation (AF) is the most common arrhythmia in clinical practice, with its incidence and mortality rates steadily increasing every year, posing a growing global health threat. During AF, high-frequency sustained electrical activity in atria induces electrophysiological changes. This process, known as atrial electrical remodeling (AER), in turn, plays a crucial role in both the initiation and maintenance of AF. Key contributors to AER include abnormalities in gene expression, alterations in electrophysiology, dysfunction of the ion channel, inflammatory responses, and oxidative stress. Natural compounds, primarily derived from plants and other natural resources, have attracted considerable attention for their high efficacy, low toxicity, and ability to target multiple therapeutic pathways. These compounds-such as matrine, berberine, ginsenosides, quercetin, icariin, and tanshinone-offer comprehensive regulatory effects that can effectively attenuate AER, providing unique therapeutic advantages in the management of AF. This review systematically synthesizes the mechanisms underlying AER and examines how natural drugs and their active ingredients can mitigate AF by inhibiting this remodeling process, offering valuable insights for the development of potentially effective natural therapeutics against AF.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:44:04.057563+00:00",
+      "content_sha256": "0e6ef7d79822f6c16f621d01a988fadc23a52c43fc8ab83c5750ac745562b944"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_2c227d9461494db49b813a84e209176e",
+        "session_id": "ses_c88c5fd6f27b418e87d6720b563ca93e",
+        "subject_key": "analysis:ana_8b5e4143659941a4b354c558ead1a3ec",
+        "question": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_8b5e4143659941a4b354c558ead1a3ec"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The predictor does not flag succinic acid in the served hERG and Tox21 endpoints.",
+            "kind": "model_signal",
+            "refutation_condition": "A rerun with the same analysis snapshot produces a blocker or active classification in a served endpoint, or direct assay data contradict the model signal.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          },
+          {
+            "id": "h2",
+            "statement": "A real-world hazard or exposure-related concern could exist outside the served hERG and Tox21 predictions and would not be ruled out by this analysis.",
+            "kind": "data_insufficient",
+            "refutation_condition": "Compound-specific, exposure-relevant independent evidence covers the intended use and finds no material concern, or the intended use is shown not to involve meaningful exposure.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The served hERG model signal is non-blocker for this compound.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+            "scope": {
+              "compound": "succinic acid",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          },
+          {
+            "id": "e2",
+            "claim": "The served Tox21 model signals are inactive across all twelve independent assays.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.NR-ER.probability_activity",
+            "scope": {
+              "assay": "12 served assays",
+              "compound": "succinic acid",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          },
+          {
+            "id": "e3",
+            "claim": "The available model endpoints do not raise an immediate screening flag for succinic acid.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg"
+            },
+            "actor": "server",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_data",
+            "description": "No accepted independent compound-specific evidence was found for the served endpoints, and the intended use, exposure, route, dose, and formulation are unspecified.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific independent evidence about hERG, Tox21-related activity, and broader toxicology that could contradict or qualify the model signal.",
+            "decision": "answer",
+            "outcome": "No compound-and-endpoint-specific citable results were returned; the broader search results were not sufficiently specific to use as evidence.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the conclusion stays limited to the served endpoints, distinguishes model signals from independent evidence, represents the negative search correctly, and identifies what would change the queue decision.",
+            "decision": "answer",
+            "outcome": "Keep the conclusion conditional: no immediate flag from these model endpoints, but insufficient basis for a broader safety or development judgment.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Obtain the intended use and exposure context, then run a direct hERG assay and exposure-relevant toxicology review if the compound remains decision-critical.",
+            "rationale": "The model only covers hERG and twelve independent Tox21 assays and cannot resolve use-, route-, dose-, or formulation-dependent concerns.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "Direct hERG result; exposure- and use-specific hazard findings; comparison with the predictor signal without treating agreement as proof."
+            ],
+            "actor": "model",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "For the served predictor endpoints, succinic acid does not produce a hERG blocker flag or an active classification in the twelve independent Tox21 assays.",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            },
+            {
+              "text": "This is a model-screening result, not independent confirmation of absence of toxicity or a broader safety conclusion.",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Cannot conclude that the compound is safe, suitable for a particular use, or free of hazards outside the served endpoints without intended-use and exposure information."
+          ],
+          "what_would_change": [
+            "A direct hERG result, exposure-relevant independent toxicology evidence, or a specified intended use and exposure scenario that introduces a concern."
+          ],
+          "approver": "",
+          "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5"
+        },
+        "runs": [
+          {
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "goal": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_668b97a4f6fa449ab03b605e4a470fca",
+            "usage": {
+              "searches": 3,
+              "tool_calls": 23,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-30T15:43:17.501702+00:00",
+        "updated_at": "2026-09-30T15:46:08.232527+00:00"
+      },
+      "events": {
+        "case_id": "scase_2c227d9461494db49b813a84e209176e",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_2c227d9461494db49b813a84e209176e",
+              "question": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?",
+              "requester": "dev-user",
+              "session_id": "ses_c88c5fd6f27b418e87d6720b563ca93e",
+              "subject_key": "analysis:ana_8b5e4143659941a4b354c558ead1a3ec",
+              "subject_refs": [
+                "analysis:ana_8b5e4143659941a4b354c558ead1a3ec"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:43:17.501702+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "Screening queue item: succinic acid (C(CC(=O)O)C(=O)O). Anything here that should worry us?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:43:17.501702+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The predictor does not flag succinic acid in the served hERG and Tox21 endpoints.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A rerun with the same analysis snapshot produces a blocker or active classification in a served endpoint, or direct assay data contradict the model signal."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.295026+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "statement": "A real-world hazard or exposure-related concern could exist outside the served hERG and Tox21 predictions and would not be ruled out by this analysis.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Compound-specific, exposure-relevant independent evidence covers the intended use and finds no material concern, or the intended use is shown not to involve meaningful exposure."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.295048+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The served hERG model signal is non-blocker for this compound.",
+              "scope": {
+                "compound": "succinic acid",
+                "endpoint": "herg"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+              "statement": "The served hERG predictor classifies the compound as non-blocker with a model probability of blocker of 0.008669676259160042.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.296381+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The served Tox21 model signals are inactive across all twelve independent assays.",
+              "scope": {
+                "assay": "12 served assays",
+                "compound": "succinic acid",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.*.active; predictions.tox21.assays.NR-ER.probability_activity",
+              "statement": "All twelve served Tox21 assays are classified inactive by the predictor, including the highest model activity probability of 0.26637351512908936 for NR-ER.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.297209+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 6
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "No compound-and-endpoint-specific citable results were returned; the broader search results were not sufficiently specific to use as evidence.",
+              "purpose": "Look for compound-specific independent evidence about hERG, Tox21-related activity, and broader toxicology that could contradict or qualify the model signal.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.297227+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 7
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_data",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "No accepted independent compound-specific evidence was found for the served endpoints, and the intended use, exposure, route, dose, and formulation are unspecified.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.297237+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 8
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Obtain the intended use and exposure context, then run a direct hERG assay and exposure-relevant toxicology review if the compound remains decision-critical.",
+              "can_say": [],
+              "rationale": "The model only covers hERG and twelve independent Tox21 assays and cannot resolve use-, route-, dose-, or formulation-dependent concerns.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "Direct hERG result; exposure- and use-specific hazard findings; comparison with the predictor signal without treating agreement as proof."
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.297245+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 9
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Keep the conclusion conditional: no immediate flag from these model endpoints, but insufficient basis for a broader safety or development judgment.",
+              "purpose": "Check that the conclusion stays limited to the served endpoints, distinguishes model signals from independent evidence, represents the negative search correctly, and identifies what would change the queue decision.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.297253+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 10
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "For the served predictor endpoints, succinic acid does not produce a hERG blocker flag or an active classification in the twelve independent Tox21 assays.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                },
+                {
+                  "text": "This is a model-screening result, not independent confirmation of absence of toxicity or a broader safety conclusion.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Cannot conclude that the compound is safe, suitable for a particular use, or free of hazards outside the served endpoints without intended-use and exposure information."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A direct hERG result, exposure-relevant independent toxicology evidence, or a specified intended use and exposure scenario that introduces a concern."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:45:04.297268+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 11
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The available model endpoints do not raise an immediate screening flag for succinic acid.",
+              "scope": {
+                "endpoint": "herg"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_72bb9984364141458e06878b93cb1b50",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:46:05.705373+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 3,
+                "tool_calls": 23,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_668b97a4f6fa449ab03b605e4a470fca",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:46:08.232527+00:00",
+            "run_id": "run_0620f19b2a3541d0898ceb6dcec978b5",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

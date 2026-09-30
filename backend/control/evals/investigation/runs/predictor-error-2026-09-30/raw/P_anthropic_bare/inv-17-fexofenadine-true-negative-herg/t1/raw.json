@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nIs hERG liability a concern for fexofenadine (CC(C)(C1=CC=C(C=C1)C(CCCN2CCC(CC2)C(C3=CC=CC=C3)(C4=CC=CC=C4)O)O)C(=O)O) at therapeutic exposure?",
+    "result": {
+      "duration_api_ms": 36074,
+      "stop_reason": "end_turn",
+      "session_id": "b29fbb71-f059-4085-9ecf-c57daa1b7c18",
+      "total_cost_usd": 0.0661285,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 1561,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 2158,
+        "output_tokens_details": {
+          "thinking_tokens": 981
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1561,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 997,
+          "outputTokens": 20,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001097,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 747,
+          "webSearchRequests": 0,
+          "costUSD": 0.005984000000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 2158,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 814,
+          "webSearchRequests": 0,
+          "costUSD": 0.05904750000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 981,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "**Short answer: no — fexofenadine is the textbook example of a hERG liability that was successfully engineered out.**\n\n**Context.** Fexofenadine is the carboxylic acid metabolite of terfenadine. Terfenadine was the compound with the problem: potent hERG block (IC₅₀ ~10–60 nM in most patch-clamp reports) combined with near-complete first-pass CYP3A4 clearance. Co-administration with ketoconazole/erythromycin, or grapefruit juice, caused parent accumulation, QT prolongation and torsades — hence its 1997–98 withdrawal. Fexofenadine retains the antihistamine pharmacology but not the channel pharmacology.\n\n**Why the liability drops.**\n- The terminal `C(=O)O` converts the molecule from a lipophilic basic amine (classic cationic-amphiphile hERG pharmacophore: basic N + 2 aromatic rings + lipophilic tail) into a zwitterion. The measured hERG IC₅₀ shifts into the ~10–30 µM range depending on assay — roughly a 3-log loss of affinity relative to terfenadine, from a single functional-group change.\n- Same change removes the metabolic liability: fexofenadine is <10% metabolized, cleared largely unchanged by biliary/renal routes, so there's no CYP3A4-driven accumulation mechanism.\n\n**Exposure margin.** Cmax at 180 mg is ~250–400 ng/mL; MW 501.7, so ~0.5–0.8 µM total. Plasma protein binding is ~60–70%, giving free Cmax ~0.2–0.3 µM. Against a ~10–20 µM IC₅₀ that's a free-drug margin of roughly 50–100×, comfortably past the conventional ≥30× in vitro/in vivo screening threshold. Even the worst-case DDI — P-gp/OATP perturbation by erythromycin, ketoconazole or fruit juices, which moves AUC ~2–3× in either direction — doesn't erode that margin meaningfully.\n\n**Clinical confirmation.** This is unusually well characterized for a marketed antihistamine: supratherapeutic dosing (hundreds of mg BID for weeks) and deliberate co-administration with ketoconazole and erythromycin produced no QTc signal. Fexofenadine has consequently been used as a *negative* control compound in thorough-QT and ICH S7B/E14 proarrhythmia model validation work.\n\n**Practical implication if you're using this as a design precedent.** The relevant lesson is the acid-metabolite / \"zwitterionization\" tactic for de-risking cationic amphiphile hERG binders — it works well when the target tolerates the anionic charge, but it comes with the trade-offs fexofenadine also shows: P-gp substrate status, low and food-sensitive oral bioavailability (~30%), and essentially no CNS exposure (which was desirable here, but is a liability if your target is central).\n\nOne caveat on the numbers: literature hERG IC₅₀s for fexofenadine scatter more than you'd like (assay temperature, cell line, and the zwitterion's poor membrane permeability all contribute), so if margin calculation is decision-critical for an analog series I'd generate your own values in a single consistent assay rather than mixing published ones.\n\nHappy to pull the terfenadine/fexofenadine physicochemical comparison into a table, or run hERG/cardiotox predictions on analogs if you have a series in mind.",
+      "ttft_ms": 4511,
+      "type": "result",
+      "duration_ms": 35937,
+      "uuid": "1dec1722-66aa-4d29-98bf-583ab50ada64",
+      "ttft_stream_ms": 1886,
+      "time_to_request_ms": 635,
+      "first_content_frame_ms": 4512,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 1561,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 2158,
+      "cost_usd": 0.0661285
+    },
+    "exit_code": 0
+  }
+]

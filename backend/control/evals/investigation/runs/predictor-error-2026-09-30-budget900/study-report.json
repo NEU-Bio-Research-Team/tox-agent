@@ -1,0 +1,207 @@
+{
+  "schema_version": "investigation-study-report-v1",
+  "study_id": "predictor-error-2026-09-30-budget900",
+  "case_set_sha256": "d26ee37a3029890d2f67c399fee5c38f120f05e6cab2817ae078a55206b7ff0b",
+  "environment": {
+    "git_commit": "8db3880b0ede5fc8c10acf3cb72d682aee7db557",
+    "git_branch": "feat/agent-predictor-error-study",
+    "git_dirty_tracked": false,
+    "host": "LAPTOP-T7GOJFP2",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.10.20",
+    "pid": 225741
+  },
+  "systems": {
+    "A_predictor_template": {
+      "arm": "A",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [],
+      "median_turn_seconds": 0.0,
+      "usage_totals": {},
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "B_anthropic_snapshot": {
+      "arm": "B",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [
+        "claude-opus-5",
+        "claude-opus-5-5"
+      ],
+      "median_turn_seconds": 34.1,
+      "usage_totals": {
+        "cache_creation_input_tokens": 28136,
+        "cache_read_input_tokens": 2172,
+        "cost_usd": 0.655425,
+        "input_tokens": 28,
+        "output_tokens": 18242
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    },
+    "D_toxagent_investigator": {
+      "arm": "D",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "median_turn_seconds": 188.1,
+      "usage_totals": {
+        "tokens_cache_read": 940032,
+        "tokens_cache_write": 0,
+        "tokens_input": 255623,
+        "tokens_output": 53867,
+        "tokens_reasoning": 9293,
+        "tokens_total": 1258815
+      },
+      "errors": {},
+      "error_attempts_by_class": {},
+      "toxagent": {
+        "turns": 8,
+        "fallback_turns": 0,
+        "median_tool_calls_per_turn": 19.0,
+        "stop_reasons": {
+          "insufficient_evidence": 6,
+          "budget_exhausted": 1,
+          "sufficient": 1
+        },
+        "tool_use": {
+          "get_artifact_inventory": 8,
+          "read_scientific_skill": 9,
+          "get_analysis_slice": 66,
+          "search_toxicology_evidence": 22,
+          "get_evidence_record": 11,
+          "update_scientific_case": 8,
+          "submit_grounded_answer": 10,
+          "get_analysis_bundle": 6,
+          "get_scientific_case": 4
+        }
+      },
+      "skill_triggers": {
+        "assess-conflicting-evidence": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "critique-case": {
+          "cases_read": [
+            "inv-11-sotalol-low-affinity-high-risk",
+            "inv-12-sotalol-anonymous",
+            "inv-13-moxifloxacin-undetected",
+            "inv-14-catechin-assay-overcall",
+            "inv-15-uric-acid-endogenous-overcall",
+            "inv-16-succinic-acid-true-negative",
+            "inv-17-fexofenadine-true-negative-herg",
+            "inv-18-biphenol-overcall-named"
+          ],
+          "positive_cases": [
+            "inv-11-sotalol-low-affinity-high-risk",
+            "inv-13-moxifloxacin-undetected"
+          ],
+          "negative_cases": [],
+          "trigger_precision": 0.25,
+          "trigger_recall": 1.0,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "interpret-model-attribution": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "assemble-report-context": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "compose-scientific-report": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "explain-predictor-results": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "preflight-report-draft": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        },
+        "research-toxicology-evidence": {
+          "cases_read": [],
+          "positive_cases": [],
+          "negative_cases": [],
+          "trigger_precision": null,
+          "trigger_recall": null,
+          "false_triggers_on_negative_cases": [],
+          "misses": []
+        }
+      }
+    },
+    "P_anthropic_bare": {
+      "arm": "P",
+      "expected": 8,
+      "ok": 8,
+      "error": 0,
+      "pending": 0,
+      "not_run": 0,
+      "attempts_recorded": 8,
+      "models": [
+        "claude-opus-5",
+        "claude-opus-5-5"
+      ],
+      "median_turn_seconds": 37.1,
+      "usage_totals": {
+        "cache_creation_input_tokens": 11375,
+        "cache_read_input_tokens": 0,
+        "cost_usd": 0.520384,
+        "input_tokens": 30,
+        "output_tokens": 17624
+      },
+      "errors": {},
+      "error_attempts_by_class": {}
+    }
+  },
+  "note": "Process description only; quality is graded by the lab."
+}

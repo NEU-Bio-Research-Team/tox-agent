@@ -1,0 +1,118 @@
+{
+  "case_id": "inv-16-succinic-acid-true-negative",
+  "computed_at": "2026-09-30T15:27:34.149041+00:00",
+  "deployment_effective_product_hash": "efac6686ec1b5f7af8afb7f09d05b36cf9acfa192a3a387973ae06a8cd53f98a",
+  "analysis_run_status": "completed",
+  "snapshot": {
+    "canonical_smiles": "O=C(O)CCC(=O)O",
+    "requested_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "unavailable_endpoints": [],
+    "predictions": {
+      "herg": {
+        "measurement": "hERG channel blockade liability",
+        "probability_blocker": 0.008669676259160042,
+        "label": "non_blocker",
+        "threshold": 0.4133453071117401,
+        "threshold_source": "artifact",
+        "model_id": "herg-tox21-chemberta-v1"
+      },
+      "tox21": {
+        "measurement": "Twelve independent Tox21 assay activities",
+        "task_order_version": "tox21-12task-v1",
+        "model_id": "herg-tox21-chemberta-v1",
+        "assays": {
+          "NR-AR": {
+            "probability_activity": 0.23355039954185486,
+            "active": false,
+            "threshold": 0.9399998188018799,
+            "threshold_source": "artifact"
+          },
+          "NR-ER": {
+            "probability_activity": 0.26637351512908936,
+            "active": false,
+            "threshold": 0.5099999308586121,
+            "threshold_source": "artifact"
+          },
+          "NR-AhR": {
+            "probability_activity": 0.010346651077270508,
+            "active": false,
+            "threshold": 0.6799998879432678,
+            "threshold_source": "artifact"
+          },
+          "SR-ARE": {
+            "probability_activity": 0.11762240529060364,
+            "active": false,
+            "threshold": 0.49999991059303284,
+            "threshold_source": "artifact"
+          },
+          "SR-HSE": {
+            "probability_activity": 0.011801675893366337,
+            "active": false,
+            "threshold": 0.5099999308586121,
+            "threshold_source": "artifact"
+          },
+          "SR-MMP": {
+            "probability_activity": 0.0007164900889620185,
+            "active": false,
+            "threshold": 0.5399999022483826,
+            "threshold_source": "artifact"
+          },
+          "SR-p53": {
+            "probability_activity": 0.004447891842573881,
+            "active": false,
+            "threshold": 0.34999996423721313,
+            "threshold_source": "artifact"
+          },
+          "SR-ATAD5": {
+            "probability_activity": 0.004103520885109901,
+            "active": false,
+            "threshold": 0.47999992966651917,
+            "threshold_source": "artifact"
+          },
+          "NR-AR-LBD": {
+            "probability_activity": 0.007068364880979061,
+            "active": false,
+            "threshold": 0.489999920129776,
+            "threshold_source": "artifact"
+          },
+          "NR-ER-LBD": {
+            "probability_activity": 0.05079612508416176,
+            "active": false,
+            "threshold": 0.6799998879432678,
+            "threshold_source": "artifact"
+          },
+          "NR-Aromatase": {
+            "probability_activity": 0.006422117818146944,
+            "active": false,
+            "threshold": 0.7099998593330383,
+            "threshold_source": "artifact"
+          },
+          "NR-PPAR-gamma": {
+            "probability_activity": 0.05596821755170822,
+            "active": false,
+            "threshold": 0.4199999272823334,
+            "threshold_source": "artifact"
+          }
+        }
+      }
+    },
+    "applicability": {
+      "method": "element_rules_v1",
+      "status": "ok",
+      "reasons": [
+        "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+      ],
+      "chemical_guard": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ]
+      },
+      "similarity_domain": null
+    }
+  }
+}

@@ -63,6 +63,18 @@ assay-interference controls" — the right mechanism for exactly this kind of
 overcall. What it still does not do is say that ten of twelve is implausible.
 It handles the pattern correctly without ever doubting it.
 
+## 2b. It knows it is short of evidence
+
+The process report for the 900 s study records the investigator's own stop
+reasons over the eight cases: `insufficient_evidence` 6, `sufficient` 1,
+`budget_exhausted` 1. So in six of eight cases the system concluded, correctly,
+that it did not have the evidence it needed — and answered anyway, with the
+shortfall stated in the limitations. The self-assessment is right; what is
+missing is any path from "I do not have the evidence" to getting it.
+
+Median 188 s per turn and 19 tool calls per turn, against Claude's 34-37 s.
+The work is being done; it is not landing on the compound.
+
 ## 3. What the transcripts show instead
 
 **Method discipline is good.** On uric acid it states that the twelve Tox21
@@ -127,5 +139,8 @@ One pair is not evidence.
    positive control in the methods. Something has to read that.
 4. **How acceptance is reported to drafting** — one answer reported no accepted
    evidence while holding 11 accepted records.
+5. **What happens after `insufficient_evidence`** — six of eight runs ended
+   there. A run that knows it is short could re-query differently instead of
+   drafting around the gap.
 
 None of this is the lab's verdict, and none of it should be quoted as one.

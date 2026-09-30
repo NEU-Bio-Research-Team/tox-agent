@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 0,
+    "prompt": "You are assisting a scientist in early-stage drug discovery. Answer their message as you would for a colleague.\n\nWe are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+    "result": {
+      "duration_api_ms": 32434,
+      "stop_reason": "end_turn",
+      "session_id": "bbee7670-30f0-46aa-aba5-419bd1200d2f",
+      "total_cost_usd": 0.0473705,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 1529,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 1418,
+        "output_tokens_details": {
+          "thinking_tokens": 50
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1529,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "modelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 982,
+          "outputTokens": 17,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.001067,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-haiku-4-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5-5": {
+          "inputTokens": 2,
+          "outputTokens": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 731,
+          "webSearchRequests": 0,
+          "costUSD": 0.005856,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        },
+        "claude-opus-5": {
+          "inputTokens": 2,
+          "outputTokens": 1418,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 798,
+          "webSearchRequests": 0,
+          "costUSD": 0.040447500000000004,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000,
+          "thinkingTokens": 50,
+          "canonicalModel": "claude-opus-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "permission_denials": [],
+      "terminal_reason": "completed",
+      "fast_mode_state": "off",
+      "subagent_stats": {
+        "spawned": 0,
+        "requested": {
+          "background": 0,
+          "foreground": 0,
+          "unset": 0
+        },
+        "started_in_background": 0,
+        "max_depth": 0,
+        "spawned_by_subagents": 0,
+        "completed": 0,
+        "failed": 0,
+        "killed": {
+          "parent": 0,
+          "user": 0,
+          "system": 0
+        },
+        "refused": {
+          "depth_limit": 0,
+          "concurrency_limit": 0,
+          "budget": 0
+        },
+        "by_type": {}
+      },
+      "is_error": false,
+      "num_turns": 2,
+      "subtype": "success",
+      "api_error_status": null,
+      "result": "Short answer: yes — hERG block is not a liability *risk* for sotalol, it's sotalol's primary mechanism. That distinction matters a lot for how you use it as a comparator.\n\n**What sotalol actually is**\n\nSotalol is a racemate with two pharmacologies bundled into one molecule:\n- **l-sotalol** — non-selective β-adrenoceptor antagonist (Class II)\n- **Both enantiomers** — IKr/hERG (KCNH2) blockade (Class III)\n\nThe Class III effect is the dominant clinical action at therapeutic doses. Reported hERG IC50 values cluster in the ~20–300 µM range depending on assay and voltage protocol — i.e. sotalol is a *weak* blocker on a potency basis, but it's dosed at 80–320 mg BID and is renally cleared with minimal protein binding, so free plasma concentrations reach the tens-of-micromolar range. Potency is low; **exposure-corrected margin is essentially zero by design**.\n\n**Consequences you should flag to the team**\n\n- Dose-dependent QT prolongation is expected and is the on-target readout, not an off-target signal.\n- Torsades de pointes incidence is real and well documented (~1–4% depending on population and dose), which is why it carries a boxed warning, requires in-hospital initiation/telemetry in many labels, and mandates creatinine clearance–based dosing.\n- Reverse use-dependence: the QT effect is *greater* at slow heart rates, so bradycardia from the β-blockade compounds the IKr effect. Risk factors stack — hypokalaemia, hypomagnesaemia, renal impairment, female sex, LV hypertrophy.\n\n**How I'd position it in the programme**\n\n1. **It's an excellent positive control, not a benchmark to beat.** Use it to demonstrate assay sensitivity in hERG patch-clamp, CiPA-style in silico models, hiPSC-CM field potential/impedance, and in vivo telemetry (dog/guinea pig QT). It's one of the best-characterised clinical QT-prolonging agents and features in the CiPA reference compound set as an intermediate-to-high risk drug.\n\n2. **Don't let anyone read across from \"low IC50 potency\" to \"safe.\"** Sotalol is the textbook case for why raw IC50 is a poor risk predictor and why you need free Cmax margins (target ≥30× is a common internal heuristic) plus multi-channel context.\n\n3. **Multi-ion-channel profile is relatively clean.** Sotalol is a fairly selective IKr blocker with little Ca²⁺ or late-Na⁺ counterbalance — which is precisely why it's proarrhythmic. Compare to amiodarone or verapamil, which block hERG but carry much lower TdP risk due to concomitant ICaL/INa effects. If your candidate blocks hERG, characterising the multichannel profile is more informative than the hERG number alone.\n\n4. **Structurally, sotalol is atypical for hERG binders.** The canonical pharmacophore is a basic amine plus lipophilic aromatic(s) engaging Tyr652/Phe656 in the pore. Sotalol has the secondary isopropylamine but is polar (methanesulfonanilide, benzylic alcohol, logP ~0). So it's a poor template for SAR-based hERG mitigation — for structure-driven de-risking you'd want the more lipophilic cationic amphiphile series (dofetilide, terfenadine, cisapride, astemizole). I wouldn't use sotalol to guide medicinal chemistry decisions.\n\n5. **If sotalol is a clinical comparator rather than just a lab tool,** loop in clinical pharmacology early — the protocol will need ECG monitoring, electrolyte management, renal-function-based dosing, and exclusion of baseline QTc prolongation and concomitant QT-prolonging agents.\n\nHappy to pull together a comparator panel with IC50s, free Cmax values, calculated margins and CiPA risk categories if that would be useful for the team document — just say the word.",
+      "ttft_ms": 4159,
+      "type": "result",
+      "duration_ms": 31729,
+      "uuid": "6b30d5fc-96ff-45e9-ad58-3e5a76e90ab1",
+      "ttft_stream_ms": 1360,
+      "time_to_request_ms": 43,
+      "first_content_frame_ms": 4160,
+      "queued_turn_count": 0,
+      "result_index": 0
+    },
+    "stderr_tail": "",
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 1529,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 1418,
+      "cost_usd": 0.0473705
+    },
+    "exit_code": 0
+  }
+]

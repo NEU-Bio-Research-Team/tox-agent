@@ -1,0 +1,118 @@
+{
+  "case_id": "inv-13-moxifloxacin-undetected",
+  "computed_at": "2026-09-30T15:11:35.550422+00:00",
+  "deployment_effective_product_hash": "1514948eba5b091c3ca08cafe3311cfbd94da8a0cd5333705348f30d5d5243a3",
+  "analysis_run_status": "completed",
+  "snapshot": {
+    "canonical_smiles": "COc1c(N2C[C@@H]3CCCN[C@@H]3C2)c(F)cc2c(=O)c(C(=O)O)cn(C3CC3)c12",
+    "requested_endpoints": [
+      "herg",
+      "tox21"
+    ],
+    "unavailable_endpoints": [],
+    "predictions": {
+      "herg": {
+        "measurement": "hERG channel blockade liability",
+        "probability_blocker": 0.14254340529441833,
+        "label": "non_blocker",
+        "threshold": 0.4133453071117401,
+        "threshold_source": "artifact",
+        "model_id": "herg-tox21-chemberta-v1"
+      },
+      "tox21": {
+        "measurement": "Twelve independent Tox21 assay activities",
+        "task_order_version": "tox21-12task-v1",
+        "model_id": "herg-tox21-chemberta-v1",
+        "assays": {
+          "NR-AR": {
+            "probability_activity": 0.7929943203926086,
+            "active": false,
+            "threshold": 0.9399998188018799,
+            "threshold_source": "artifact"
+          },
+          "NR-ER": {
+            "probability_activity": 0.2799506187438965,
+            "active": false,
+            "threshold": 0.5099999308586121,
+            "threshold_source": "artifact"
+          },
+          "NR-AhR": {
+            "probability_activity": 0.3516481816768646,
+            "active": false,
+            "threshold": 0.6799998879432678,
+            "threshold_source": "artifact"
+          },
+          "SR-ARE": {
+            "probability_activity": 0.5250524282455444,
+            "active": true,
+            "threshold": 0.49999991059303284,
+            "threshold_source": "artifact"
+          },
+          "SR-HSE": {
+            "probability_activity": 0.29065704345703125,
+            "active": false,
+            "threshold": 0.5099999308586121,
+            "threshold_source": "artifact"
+          },
+          "SR-MMP": {
+            "probability_activity": 0.25407832860946655,
+            "active": false,
+            "threshold": 0.5399999022483826,
+            "threshold_source": "artifact"
+          },
+          "SR-p53": {
+            "probability_activity": 0.489885538816452,
+            "active": true,
+            "threshold": 0.34999996423721313,
+            "threshold_source": "artifact"
+          },
+          "SR-ATAD5": {
+            "probability_activity": 0.4063534140586853,
+            "active": false,
+            "threshold": 0.47999992966651917,
+            "threshold_source": "artifact"
+          },
+          "NR-AR-LBD": {
+            "probability_activity": 0.6900485754013062,
+            "active": true,
+            "threshold": 0.489999920129776,
+            "threshold_source": "artifact"
+          },
+          "NR-ER-LBD": {
+            "probability_activity": 0.3181741237640381,
+            "active": false,
+            "threshold": 0.6799998879432678,
+            "threshold_source": "artifact"
+          },
+          "NR-Aromatase": {
+            "probability_activity": 0.3984413146972656,
+            "active": false,
+            "threshold": 0.7099998593330383,
+            "threshold_source": "artifact"
+          },
+          "NR-PPAR-gamma": {
+            "probability_activity": 0.5965786576271057,
+            "active": true,
+            "threshold": 0.4199999272823334,
+            "threshold_source": "artifact"
+          }
+        }
+      }
+    },
+    "applicability": {
+      "method": "element_rules_v1",
+      "status": "ok",
+      "reasons": [
+        "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+      ],
+      "chemical_guard": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ]
+      },
+      "similarity_domain": null
+    }
+  }
+}

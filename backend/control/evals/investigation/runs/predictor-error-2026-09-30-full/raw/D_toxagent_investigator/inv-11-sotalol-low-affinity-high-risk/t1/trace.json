@@ -1,0 +1,2515 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_dd11e53af1d640d8ae11ee24f6b4c47b",
+        "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T15:16:42.092949+00:00",
+        "created_at": "2026-09-30T15:11:42.092949+00:00",
+        "started_at": "2026-09-30T15:11:42.257095+00:00",
+        "ended_at": "2026-09-30T15:14:15.276560+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "b4811d92d9e8687d2f0277f3f585c5d86325a2a068822cc89e6aefe93d9a43fc"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:11:42.093802+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_63f8916c2e9b47c1bb6f06b2b6416ebe",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:12:00.593754+00:00",
+              "tokens": {
+                "input": 5566,
+                "output": 193,
+                "reasoning": 44,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 8363
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_c51b349cf588168bfa944c9c98b5ad17",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2df1cc4001JXYfzytRaUtNcm",
+                "step_id": "prt_0f2df604d001lv1vKTCfs9Z79y",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_33806fa4013047bf93ebe3c86ae87eb5",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:12:11.327778+00:00",
+              "tokens": {
+                "input": 2799,
+                "output": 209,
+                "reasoning": 52,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10740
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a0148825b0b063412ffb4ab2db1bab20",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2df6066001HR0UZkG75pqQtV",
+                "step_id": "prt_0f2df8a3a001e4qVgncxI1Lunz",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e13b26bf8ab645119332b07df4c4f706",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:12:16.422570+00:00",
+              "tokens": {
+                "input": 1894,
+                "output": 91,
+                "reasoning": 27,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 11740
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a236b09c7a1e6a345a8716c8e1a579e5",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2df8a53001AMAkiyy2aHK5vG",
+                "step_id": "prt_0f2df9e220015JfjSSGvgndfh1",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_0ee023ea0009498baa09763c9f2bdf97",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:12:21.734401+00:00",
+              "tokens": {
+                "input": 1142,
+                "output": 91,
+                "reasoning": 37,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 12022
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_3d9585a062d6592a167b130126507551",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2df9e3a001ANaMBPG2dDU5sT",
+                "step_id": "prt_0f2dfb2e00010GrFsfIeRkni3o",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_36d5f4af6ab0449f9d1879e09dc824bd",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:13:13.827574+00:00",
+              "tokens": {
+                "input": 405,
+                "output": 2295,
+                "reasoning": 478,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 14954
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_63e5ecb1c603d068f80e2e86ee9e5f96",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dfb2fe001o0hmqxGKFmDXnf",
+                "step_id": "prt_0f2e07e5d001uqASCMjtBrFwnD",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_16a10c99c25d4c47965d3818ef2e23ff",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:13:24.814625+00:00",
+              "tokens": {
+                "input": 3492,
+                "output": 329,
+                "reasoning": 74,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 15671
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_45ea1848ae1510c2b18ab117ec88e133",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2e07e8f0011Tsfeplmmuj5XY",
+                "step_id": "prt_0f2e0a947001i0AAhOnOqgXMLC",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_ddd16606777c4d199c7a58f634399626",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:13:51.486953+00:00",
+              "tokens": {
+                "input": 15850,
+                "output": 951,
+                "reasoning": 399,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 17200
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7ee429d322edae4a0d4924798e406030",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2e0a964001jseilXcdDqaTpw",
+                "step_id": "prt_0f2e11170001PTLMeyOPEu1PG4",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_8112b161d95e4cd7ab7e5856982e6bd6",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:14:12.509177+00:00",
+              "tokens": {
+                "input": 2824,
+                "output": 945,
+                "reasoning": 41,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 18658
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_329ef0e4212ee371ca97af59246dd14a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2e111a4001Xd7Cqr3A7bg7Tc",
+                "step_id": "prt_0f2e16398001WcA3uZkHaZcUhD",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_1071012491724dec9ec647927f106e28",
+              "runtime_binding_id": "rtb_d7978332b71540daa4906ac8e3c4e760",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:14:15.211157+00:00",
+              "tokens": {
+                "input": 2040,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 18940
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_fafd2a0f001319a03437ae05f1f0864f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2e163bd0012M01oXszC3vOo6",
+                "step_id": "prt_0f2e16e250011r2IBY7MV5jrbL",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_a5d6f415fe1a4f7f8dc4b053e0544130",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "8d249de79095a0b0311f9ad5fb1d53ed312e0adbd40a7c3cfc7a5036ad7fec0c",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:12:00.262476+00:00",
+            "ended_at": "2026-09-30T15:12:00.276041+00:00"
+          },
+          {
+            "call_id": "call_e8e8ba28c4224826b70067c6912aa690",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:12:00.325563+00:00",
+            "ended_at": "2026-09-30T15:12:00.339356+00:00"
+          },
+          {
+            "call_id": "call_6c4f66ec2a6c4b19b22c0ddd22ff74b4",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "f17f13bbad9b76dc0ea5cab19836381639eba0c634222198bbebdffc82db7ae0",
+            "observation_ids": [
+              "obs_2312afe7b7e8493f9ca38374f7f6869c"
+            ],
+            "started_at": "2026-09-30T15:12:00.381864+00:00",
+            "ended_at": "2026-09-30T15:12:00.393460+00:00"
+          },
+          {
+            "call_id": "call_bea6aa4ccf8a479590e08df859f9eb2b",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 10,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:12:00.548998+00:00",
+            "ended_at": "2026-09-30T15:12:00.557767+00:00"
+          },
+          {
+            "call_id": "call_91a63e76a9914661848fa64078d447ae",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "8e607cafe21cec9c393cbd00a501cf651b76d4a04d902715df9ee9cd23586262",
+            "observation_ids": [
+              "obs_2312afe7b7e8493f9ca38374f7f6869c"
+            ],
+            "started_at": "2026-09-30T15:12:07.984259+00:00",
+            "ended_at": "2026-09-30T15:12:07.995056+00:00"
+          },
+          {
+            "call_id": "call_5cbf8c3d206a4589a4266a265c83e9ca",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 34,
+            "arguments_sha256": "07227dcd956822805a612ffe7b5d3e6a656ddfff7d2c23e3e72850339fb4109d",
+            "observation_ids": [
+              "obs_2312afe7b7e8493f9ca38374f7f6869c"
+            ],
+            "started_at": "2026-09-30T15:12:08.121588+00:00",
+            "ended_at": "2026-09-30T15:12:08.135267+00:00"
+          },
+          {
+            "call_id": "call_d94fbf37555741708150338123db3f3b",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 3179,
+            "arguments_sha256": "c72362871447ead0a21b2b984e78fe6fb15c1f62bb6317f3fa570917c9bb2a6f",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:12:08.122107+00:00",
+            "ended_at": "2026-09-30T15:12:11.299300+00:00"
+          },
+          {
+            "call_id": "call_eba3767197ba474ba218795c044e8bc0",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 525,
+            "arguments_sha256": "142f67760979a16cd761778a2fcb42fff108863d6673c4abe176c902994e138d",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:12:15.861306+00:00",
+            "ended_at": "2026-09-30T15:12:16.384937+00:00"
+          },
+          {
+            "call_id": "call_200d340f45d443788c968d1af2ca9162",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 429,
+            "arguments_sha256": "0815e8dfd6d8ba4953b6a253b1f397ca79997a3fad3a004cbcb14adf43780231",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:12:21.276245+00:00",
+            "ended_at": "2026-09-30T15:12:21.704295+00:00"
+          },
+          {
+            "call_id": "call_64fda2d0427b4d0789d1c460bd2a977e",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 33,
+            "arguments_sha256": "da104f9db9da7572d11f872c212753187946c385027020e3c59d2f3923fcf200",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:13:13.730139+00:00",
+            "ended_at": "2026-09-30T15:13:13.761001+00:00"
+          },
+          {
+            "call_id": "call_17da76c910d64edea5bf67a4383e03fb",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "0b36ffecf74c916ccfba755832e0d8c6bc8b422c2b0faed6ea759862a72f5188",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:13:24.734406+00:00",
+            "ended_at": "2026-09-30T15:13:24.751110+00:00"
+          },
+          {
+            "call_id": "call_6f127219530a41fd9cc22ad57ffb5b72",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 39,
+            "arguments_sha256": "1ac4ed2cd756c684a664cfde2aab6e2d51960c43c3c87f1bbfd532c73e425ee0",
+            "observation_ids": [
+              "obs_2312afe7b7e8493f9ca38374f7f6869c"
+            ],
+            "started_at": "2026-09-30T15:14:12.394556+00:00",
+            "ended_at": "2026-09-30T15:14:12.431111+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_2d8b5f1218b64872a7affeda1b56339a",
+        "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+        "answer_markdown": "The stored predictor classifies sotalol as non_blocker for hERG. That is a favorable model signal, but not evidence that hERG liability is absent.\n\nI would tell the project team: treat hERG liability as **unresolved, not dismissed**. Keep sotalol as a comparator, but do not use this prediction alone as a cardiac-safety conclusion. Run compound-specific functional hERG testing with concentration-response and exposure context before drawing a stronger conclusion.",
+        "claims": [
+          {
+            "claim_id": "clm_ecaf56888d224435abece48dc566b59d",
+            "kind": "classification",
+            "text": "The stored predictor classifies sotalol as a hERG non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_43145fb1b6eb402aa30121f113af1450",
+            "kind": "scientific",
+            "text": "The hERG result is a model-specific signal and does not establish absence of real-world hERG liability.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_45f4039c8ea9450ca8e06abb8a78d758",
+            "kind": "recommendation",
+            "text": "Use sotalol as a comparator with hERG liability treated as unresolved pending compound-specific functional verification.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_2b1b3e37c10a4e83b95642dbfe189015",
+            "kind": "recommendation",
+            "text": "Run compound-specific functional hERG testing with concentration-response characterization and exposure-relevant interpretation.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The predictor output is a model score/classification, not a calibrated clinical or experimental risk estimate."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The bounded search did not yield an accepted compound-specific independent hERG record; that absence is not evidence that liability is absent."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Functional hERG testing is a verification screen and does not by itself establish overall cardiac safety."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run a compound-specific functional hERG assay with concentration-response characterization and exposure context.",
+            "basis_claim_ids": [
+              "clm_ecaf56888d224435abece48dc566b59d",
+              "clm_43145fb1b6eb402aa30121f113af1450"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "0d3aa6c3020179c094669f786f0156a9f0b2ac06b13042ab3785002d8fe00561",
+        "created_at": "2026-09-30T15:14:12.406081+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_ee20168b92cf457783a55c9730b44f39",
+        "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+        "goal": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+        "subject_refs": [
+          "analysis:ana_7d7fffd1ed684c31bebea034610d13ab"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The stored predictor classifies sotalol as a hERG non-blocker.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_2312afe7b7e8493f9ca38374f7f6869c"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "Sotalol's real-world hERG liability remains unresolved pending compound-specific functional verification.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 3,
+          "tool_calls": 12,
+          "denied_calls": 0,
+          "failed_calls": 0,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_2312afe7b7e8493f9ca38374f7f6869c"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 17
+      },
+      "dossier": {
+        "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+        "case_id": "scase_c326b404bf5e43f9963a99b7b458dd90",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+        "answer_id": "ans_2d8b5f1218b64872a7affeda1b56339a",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+          "can_say": [
+            {
+              "text": "For this predictor only, sotalol is classified as a hERG non-blocker.",
+              "sources": [
+                "observation:obs_2312afe7b7e8493f9ca38374f7f6869c"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The applicability check is an element-based rule and does not establish distributional similarity beyond element composition.",
+              "sources": [
+                "observation:obs_2312afe7b7e8493f9ca38374f7f6869c"
+              ],
+              "evidence_ids": [
+                "e2"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Do not conclude that sotalol has no hERG liability, is safe, or is cleared for clinical or regulatory use.",
+            "Do not generalize the hERG output to aggregate toxicity or overall cardiac safety."
+          ],
+          "what_would_change": [
+            "Compound-specific functional hERG data showing concentration-dependent inhibition would increase concern.",
+            "Well-controlled compound-specific functional hERG data showing no meaningful inhibition under relevant conditions would reduce the unresolved concern."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "status": "open",
+            "context": [],
+            "statement": "The stored hERG predictor signal is directionally informative for sotalol and supports a non-blocker classification in this model.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored predictor assigns sotalol the hERG label non_blocker and reports a blocker probability below the stored classification threshold.",
+                "scope": {
+                  "compound": "sotalol",
+                  "endpoint": "herg",
+                  "use_context": "cardiac safety comparator"
+                },
+                "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "direct",
+                "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The applicability check is marked ok by an element-composition rule, while explicitly noting that this does not confirm distributional similarity beyond element composition.",
+                "scope": {
+                  "compound": "sotalol",
+                  "endpoint": "herg",
+                  "use_context": "cardiac safety comparator"
+                },
+                "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+                "stance": "supports",
+                "locator": "applicability.status; applicability.method; applicability.reasons",
+                "directness": "direct",
+                "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A reproducible analysis rerun or validated benchmark evidence shows the stored model output is not applicable to this structure or the classification changes materially."
+          },
+          {
+            "id": "h2",
+            "kind": "alternative_explanation",
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "status": "open",
+            "context": [],
+            "statement": "The model may understate or fail to resolve experimentally relevant hERG liability for sotalol; the current record is insufficient to decide the real-world cardiac liability.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Compound-specific experimental hERG data under a relevant assay design show no meaningful channel inhibition across relevant concentrations and conditions."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a compound-specific hERG functional assay with concentration-response characterization and exposure-relevant interpretation.",
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "rationale": "This directly tests whether the model's non-blocker signal corresponds to measurable channel inhibition and can discriminate the model-signal hypothesis from the underestimation alternative.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "hERG current inhibition concentration-response",
+              "assay quality controls and concentration/exposure context"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_7d7fffd1ed684c31bebea034610d13ab"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored predictor assigns sotalol the hERG label non_blocker and reports a blocker probability below the stored classification threshold.",
+            "scope": {
+              "compound": "sotalol",
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "direct",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The applicability check is marked ok by an element-composition rule, while explicitly noting that this does not confirm distributional similarity beyond element composition.",
+            "scope": {
+              "compound": "sotalol",
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "stance": "supports",
+            "locator": "applicability.status; applicability.method; applicability.reasons",
+            "directness": "direct",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored predictor classifies sotalol as a hERG non-blocker.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored predictor classifies sotalol as a hERG non-blocker.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+              "outcome": "The bounded search returned no accepted compound-specific hERG record; absence of retrieval is not evidence of absence of liability.",
+              "purpose": "Look for compound-specific evidence that could contradict or independently confirm the model's non-blocker signal.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+              "outcome": "Keep the conclusion conditional on the model and require targeted verification before using it as a cardiac safety conclusion.",
+              "purpose": "Check that the recommendation remains within the predictor endpoint and does not treat a model signal as an independent safety conclusion.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_endpoint",
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No accepted compound-specific independent hERG evidence was retrieved in the bounded literature search, so the model signal is not independently confirmed.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_ee20168b92cf457783a55c9730b44f39",
+  "analysis": {
+    "run": {
+      "run_id": "run_8f00164e2b304dd5be1035d94685d39d",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_4f008038762b4b51bfbc077d6965bbd9",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:16:41.017190+00:00",
+      "created_at": "2026-09-30T15:11:41.017190+00:00",
+      "started_at": "2026-09-30T15:11:41.040127+00:00",
+      "ended_at": "2026-09-30T15:11:41.088360+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:11:41.019813+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_7d7fffd1ed684c31bebea034610d13ab",
+      "input_smiles": "CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O",
+      "canonical_smiles": "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.31389203667640686,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.34105294942855835,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.22940246760845184,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.08216343820095062,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.08565910905599594,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.07914239168167114,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.04595719650387764,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.045055847615003586,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.009625843726098537,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.06216741353273392,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.04601017385721207,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.08428068459033966,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.015566597692668438,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "01c19f15-ff3f-46b8-9909-431c33aff3d1",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 34,
+            "encoded_token_count": 34
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "956c7c60d1ea76963d6b31dfa34a86e8944a5ebcbc5070f8a30b553391bfa224"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:11:41.081480+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_1f1c0305d13640d3925ab6f19f45a0f4",
+      "title": "Artificial Intelligence for Precision Antiarrhythmic Drug Therapy in Atrial Fibrillation: From Recurrence Prediction to Comparative Treatment Selection.",
+      "authors": [
+        "Scridon A",
+        "Halațiu VB",
+        "Cozac DA"
+      ],
+      "published_at": "2026-09-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/medicina62091783",
+        "pmid": "42796389",
+        "pmcid": "PMC13609021",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42796389",
+      "abstract_or_excerpt": "Rhythm control therapy has an important role in atrial fibrillation (AF) management, and antiarrhythmic drugs (AADs) remain essential for pharmacological cardioversion, maintenance of sinus rhythm, reduction in AF burden, and treatment before or after catheter ablation. However, their efficacy varies substantially among patients, while proarrhythmia, organ toxicity, drug interactions, and treatment discontinuation frequently limit their use. Current drug selection therefore relies mainly on safety-based exclusion based on structural heart disease, ventricular function, coronary disease, renal or hepatic function, and baseline conduction and repolarization characteristics, rather than on individualized prediction of comparative therapeutic benefit. This narrative review examines the potential role of artificial intelligence (AI), machine learning (ML), computational electrophysiology, and cardiac digital twins across the AAD treatment pathway. Particular attention is given to patient selection, comparative drug choice, prediction of cardioversion success and sinus-rhythm maintenance, dose optimization, proarrhythmia assessment, extracardiac toxicity, and longitudinal safety surveillance. AI can potentially integrate clinical, electrocardiographic (ECG), imaging, wearable, genomic, and pharmacological data to estimate patient-specific efficacy and toxicity. ML models have already demonstrated the feasibility of predicting drug-induced QT prolongation from electronic health records and detecting ECG signatures associated with drug-induced arrhythmic risk. Moreover, patient-specific AF digital twins have been used to simulate electrophysiological responses to amiodarone and identify patients with different subsequent rhythm outcomes. Nevertheless, most available applications remain retrospective, single-center, non-comparative, or proof-of-concept, and few directly support selection among alternative AADs. Most are prognostic, estimate outcomes under observed care, or predict drug-specific toxicity; models that estimate outcomes under alternative AADs remain the essential missing element. AI-supported antiarrhythmic therapy represents a promising transition from population-based prescribing toward individualized estimation of efficacy, toxicity, and monitoring requirements. Its clinical adoption will require multicenter external validation, causal treatment-effect modeling, prospective workflow evaluation, randomized impact trials, transparent uncertainty reporting, and continued clinician oversight.",
+      "normalized_facts": {
+        "journal": "Medicina (Kaunas, Lithuania)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:21.678613+00:00",
+      "content_sha256": "542206a4762a11d2b2ce8f4ac69c66cd910b3507101b530d446235bfeb27261d"
+    },
+    {
+      "evidence_id": "evd_0712be294263438f9578131b6eb2a0dc",
+      "title": "Emerging Environmental Contaminants Targeting Cardiovascular Ion Channels: Exposure Effects, Underlying Mechanisms, and Implications for Cardiovascular Health Risks.",
+      "authors": [
+        "Zhan D",
+        "Li D",
+        "Guo S",
+        "Chai X",
+        "Cao R",
+        "Deng W",
+        "Wu K",
+        "Li Y"
+      ],
+      "published_at": "2026-05-21",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/toxics14050450",
+        "pmid": "42198576",
+        "pmcid": "PMC13211365",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42198576",
+      "abstract_or_excerpt": "Emerging contaminants (ECs) encompass a wide spectrum of pollutants, from endocrine disruptors and persistent organic pollutants to microplastics and pharmaceutical residues. These contaminants often exhibit distinct chemical and physical properties compared with traditional pollutants and potentially pose risks to human health, especially as they have become pervasive in environmental and biological systems. ECs can also pose a significant threat to cardiovascular health, as they may target the ion channels that are critical to regulating cardiac excitability and contraction. However, the impact of ECs on the cardiovascular system, particularly on cardiac ion channels, remains elusive. In this review, we aim to provide an overview of the knowledge base concerning the impact of emerging contaminants on cardiac ion channels, with an emphasis on the effects of these compounds on cardiac excitability, contractility, and overall cardiovascular function. We first outline the structural and functional characteristics of ion channels, along with how these transmembrane proteins regulate cardiac physiology. Subsequently, we detail how typical ECs directly or indirectly interact with various ion channels-including sodium, calcium, potassium channels, as well as ion transporters and exchangers. Special attention is given to studies that have demonstrated cell-level responses or examined how pollutant concentration and chemical structure affect the modulation of ion channels. This review compiles recent research reports to elucidate the mechanisms by which EC exposure disrupts cardiac ion channels, potentially leading to cardiotoxicity. Moreover, the insights gathered herein illuminate critical research gaps and outline essential directions for future investigations.",
+      "normalized_facts": {
+        "journal": "Toxics",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:21.678613+00:00",
+      "content_sha256": "b125c076c2f53589b63e0b320a6e76c9aeb54148a3686e0d51a4516160184789"
+    },
+    {
+      "evidence_id": "evd_8e04ddb618d147518fc3eceff4ccdc62",
+      "title": "Sex-specific virtual population for the prediction and assessment of arrhythmia risk.",
+      "authors": [
+        "Sui F",
+        "Yan D",
+        "Meng X",
+        "Duan C",
+        "Zhang Y",
+        "Gao W",
+        "Song Z"
+      ],
+      "published_at": "2026-06-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/europace/euag133",
+        "pmid": "42216678",
+        "pmcid": "PMC13317967",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42216678",
+      "abstract_or_excerpt": "<h4>Aims</h4>Women are at higher risk of serious ventricular arrhythmias, including torsades de pointes, when repolarization reserve is reduced, but sex-stratified mechanisms and quantitative risk assessment remain challenging. We aimed to develop scalable, tissue-scale, sex-aware ventricular virtual populations to quantify and explain sex differences in inherited and acquired proarrhythmic susceptibility.<h4>Methods and results</h4>We constructed male and female virtual cohorts using a one-dimensional ventricular cable model with pseudo-electrocardiogram (pseudo-ECG), integrating sex-specific ionic conductance backgrounds and acute sex-hormone modulation. Virtual populations were filtered under multi-condition stress tests and calibrated to clinical corrected QT interval (QTc) distributions. We generated long QT syndrome types 1-3 (LQT1-3) cohorts, simulated sympathetic stress, and performed virtual drug trials for 109 compounds using multichannel block profiles at 1× effective free therapeutic plasma concentration. Proarrhythmic risk was defined by tissue-scale instability events (premature ventricular complexes, T-wave alternans, or repolarization failure). Drivers were analysed using regression and channel-sensitivity analysis, and clinical 24 h concentration-ECG data after dosing were used for external validation. The female cohorts exhibited higher simulated event risk across long QT syndrome subtypes and across multichannel drug block profiles, including drugs with <10 ms mean QTc prolongation. Female-to-male risk ratios tracked clinical risk categories. Simulated QTc time-courses and concentration-QTc trends agreed with 24 h clinical ECG data for key reference drugs.<h4>Conclusion</h4>Sex-aware tissue-scale virtual populations enable in silico trials that quantify proarrhythmic risk beyond mean ΔQTc, provide mechanistic drivers, and support sex-informed cardiac safety evaluation and monitoring strategies.",
+      "normalized_facts": {
+        "journal": "Europace : European pacing, arrhythmias, and cardiac electrophysiology : journal of the working groups on cardiac pacing, arrhythmias, and cardiac cellular electrophysiology of the European Society of Cardiology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:21.678613+00:00",
+      "content_sha256": "539f6c924b915a1871a5d0c1d931e7f11b3c5cc1074a09e788ea7959a674d155"
+    },
+    {
+      "evidence_id": "evd_0cdda53ec9a445c8b281c4368d6bd115",
+      "title": "Conventional Antiarrhythmics Class I-IV, Late INa Inhibitors, IKs Enhancers, RyR2 Stabilizers, Gap Junction Modulators, Atrial-Selective Antiarrhythmics, and Stable Gastric Pentadecapeptide BPC 157 as Useful Cytoprotective Therapy in Arrhythmias.",
+      "authors": [
+        "Sikiric P",
+        "Barisic I",
+        "Udovicic M",
+        "Lovric Bencic M",
+        "Balenovic D",
+        "Strinic D",
+        "Zivanovic Posilovic G",
+        "Uzun S"
+      ],
+      "published_at": "2026-01-29",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ph19020235",
+        "pmid": "41754776",
+        "pmcid": "PMC12943208",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41754776",
+      "abstract_or_excerpt": "This review examines and hypothesizes cytoprotection as a conceptual therapeutic criterion for antiarrhythmic drugs, referring to the possibility of suppressing arrhythmias while avoiding adverse electrophysiological or systemic effects. Toward a theoretically complete cytoprotective profile-preserving benefits and eliminating toxicity-the criterion was the degree of counteraction of arrhythmias (i.e., bradycardia, tachycardia, atrioventricular (AV) block, ventricular tachycardia (VT), ST-segment changes, prolonged P, PR, QRS, and QT/QTc intervals, and repolarization). Conventional and new antiarrhythmics share class I-IV ≈ partial cytoprotection/narrow range; late INa inhibitors, IKs enhancers, RyR2 stabilizers, gap junction modulators, and atrial-selective antiarrhythmics ≈ partial cytoprotection/more extended range. Still predominantly in preclinical models, stable gastric pentadecapeptide BPC 157, in the clinic, has not demonstrated adverse effects in available human trials (non-cardiac) to date. As a prominent cytoprotection mediator (LD1 not achieved in toxicology studies), it demonstrates well-matched cytoprotective-antiarrhythmic effects, BPC 157 ≈ full cytoprotection/wide-range homeostasis. In vivo, this was across models of hypo-/hyperkalemia, hypermagnesemia, ischemia-reperfusion, myocardial infarction, drug-induced arrhythmias (including local anesthetics), and vascular occlusion. BPC 157 restores sinus rhythm, normalizes P/QRS/QT intervals, prevents AV block, suppresses VT, attenuates ST-segment changes, and stabilizes heart rate, even when insults are advanced. In vitro, HEK293 studies confirm direct membrane-stabilizing actions: BPC 157 prevents hypokalemia-induced hyperpolarization, reduces hyperkalemia- and hypermagnesemia-induced depolarization, and mitigates local anesthetic-induced Na<sup>+</sup>/Ca<sup>2+</sup> dysregulation, reflecting bidirectional homeostatic modulation of membrane potential. Thus, to confirm the hypothesis, these BPC 157 conditional, not constitutive effects, in rodent models or in vitro systems (HEK293 cells), mandate expansion of now limited clinical data and mechanisms in human investigated as a translational cytoprotective strategy for complex arrhythmias.",
+      "normalized_facts": {
+        "journal": "Pharmaceuticals (Basel, Switzerland)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:21.678613+00:00",
+      "content_sha256": "6f3e3e5652da1beb1cb02459378540e610bcba0530c85ebe29af6e845a923219"
+    },
+    {
+      "evidence_id": "evd_69354afd5dcf4a4b8e14f804532fd3c9",
+      "title": "QT monitoring in chemotherapy.",
+      "authors": [
+        "Kim PY",
+        "Ostos Mendoza KC",
+        "Kim JH",
+        "López Moreno SF",
+        "Casso-Chapa B",
+        "Beinart NI",
+        "Paniagua-Bojorges A",
+        "Ruesta Carrion AM"
+      ],
+      "published_at": "2026-05-19",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2026.1748382",
+        "pmid": "42238267",
+        "pmcid": "PMC13226599",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42238267",
+      "abstract_or_excerpt": "This review provides a comprehensive overview of cardiac electrophysiology principles as they apply to oncology care, with a focus on QT interval assessment and monitoring. Accurate measurement of the QT interval and appropriate heart rate correction-particularly using the tangent method and Fridericia formula-are essential for evaluating arrhythmic risk in cancer patients, who are especially vulnerable due to the cardiotoxic potential of many chemotherapeutic agents. We highlight key risk factors for QT prolongation, including electrolyte imbalances, underlying cardiac conditions, and concurrent use of QT-prolonging medications. Current cardiac monitoring protocols during chemotherapy are examined, with specific reference to clinical practices at The University of Texas MD Anderson Cancer Center. These practices underscore the importance of structured surveillance and timely intervention. Effective management requires a multi-pronged approach involving standardized measurement techniques, proactive risk stratification, and patient education. Counseling patients on symptoms such as palpitations, dizziness, or syncope facilitates early detection and evaluation. Given the expanding list of QT-prolonging agents, clinicians are encouraged to use resources like Torsades.org for up-to-date drug information. In the absence of formal guidelines for certain agents, institution-specific protocols defining thresholds for treatment initiation, dose adjustment, and monitoring frequency are critical for ensuring consistency, safety, and evidence-based decision-making in cardio-oncology.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:21.678613+00:00",
+      "content_sha256": "b8ab845030988c94ee01604af8c5dd4b68136322247c81305dd8bc1019805fb3"
+    },
+    {
+      "evidence_id": "evd_d307844330d843878650c3eb2ad6bc0a",
+      "title": "Cardiovascular adverse effects of common non-oncologic medications: from mechanisms to clinical management.",
+      "authors": [
+        "Bahit MC",
+        "Agudo-Quilez P",
+        "Zamorano J",
+        "Gibson CM"
+      ],
+      "published_at": "2026-02-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/ehjcvp/pvag007",
+        "pmid": "41627848",
+        "pmcid": "PMC12946981",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41627848",
+      "abstract_or_excerpt": "Cardiovascular adverse effects of drugs have significant practical implications for patient management. While cardiovascular adverse effects have commonly been associated with oncologic therapeutics, a growing body of evidence suggests that non-oncologic medications can also be associated with significant cardiovascular harm. These adverse effects range from arrhythmias, conduction abnormalities, QT prolongation, heart failure, myocardial infarction, or structural cardiomyopathy. Non-oncologic drugs that have been implicated include antibiotics (e.g. macrolides, fluoroquinolones), antidiabetics (e.g. thiazolidinediones), non-steroidal anti-inflammatory drugs, drugs for gastrointestinal and urological conditions, and most importantly, cardiovascular drugs. In this narrative review, we focus on the most common non-oncologic drugs that cause cardiovascular adverse effects, their proposed underlying mechanisms with particular emphasis on their clinical manifestations and clinical implications for everyday cardiovascular practice.",
+      "normalized_facts": {
+        "journal": "European heart journal. Cardiovascular pharmacotherapy",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "d06651e31e3b6220aa368e9dc0c66c094d2e2991ce8451a7873081c0272630da"
+    },
+    {
+      "evidence_id": "evd_233e723c69da4d95bb476789fff1a308",
+      "title": "Integrating drug effects on individual cardiac ionic currents and cardiac action potentials to understand nonclinical translation to clinical ECG changes.",
+      "authors": [
+        "Johannesen L",
+        "Abi-Gerges N",
+        "Sweat K",
+        "Roup A",
+        "Page G",
+        "Baron CA",
+        "Yu H",
+        "Wu WW"
+      ],
+      "published_at": "2025-11-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1674861",
+        "pmid": "41293243",
+        "pmcid": "PMC12640937",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41293243",
+      "abstract_or_excerpt": "Concomitant inhibition of the late Na<sup>+</sup> current (I<sub>NaL</sub>) and/or the L-type Ca<sup>2+</sup> current (I<sub>CaL</sub>) has been hypothesized to mitigate hERG block-mediated QT<sub>C</sub> prolongation. This hypothesis was tested in a clinical trial using drugs selected based on available patch clamp data at the time. The results showed that hERG block-mediated QT<sub>C</sub> prolongation with dofetilide was shortened by co-administration of lidocaine or mexiletine-drugs that inhibit I<sub>NaL.</sub> However, diltiazem, selected as the preferential I<sub>CaL</sub> inhibitor, did not shorten hERG block-mediated QT<sub>C</sub> prolongation by moxifloxacin. Patch clamp results can be sensitive to experimental differences across laboratories. Therefore, this study reexamined the effects of all drugs on I<sub>NaL</sub>, I<sub>CaL</sub>, and hERG current using overexpression cell lines and physiologically relevant experimental protocols aimed at producing drug-channel interaction characteristics in humans. Drug effects on ventricular action potentials (APs) from adult human trabeculae were also tested to better understand the nonclinical and clinical findings. Mexiletine and lidocaine showed similar potencies on inhibiting I<sub>NaL</sub> and I<sub>CaL</sub> in the prior and present patch clamp studies. Both drugs reduced dofetilide-induced AP duration (APD) prolongation, consistent with the clinical data. For diltiazem, the I<sub>CaL</sub> potency and the separation between I<sub>CaL</sub> and hERG potencies (I<sub>CaL</sub>: 1.3 µM; hERG: 8.9 µM; hERG-to-I<sub>CaL</sub> ratio = 7) is much reduced comparing to the prior results (I<sub>CaL</sub>: 112.1 nM; hERG: 6.6 µM; ratio = 59). These new findings are consistent with diltiazem-induced APD shortening and AP triangulation caused by greater reductions in the early rather than late repolarization-a signature of multi-ion channel block. Consistent with this interpretation, nifedipine, which preferentially inhibits I<sub>CaL</sub> over hERG (I<sub>CaL</sub>: 13.2 nM; hERG: 35 μM; ratio = 2,651) caused APD shortening without AP triangulation. Results from this study thus support the following: 1) diltiazem failed to reduce moxifloxacin-induced QT<sub>C</sub> prolongation due to its concomitant hERG block at clinical exposure levels; and 2) the importance of using physiologically relevant protocols to generate ion channel pharmacology and obtaining functional recordings from myocytes to provide a better understanding of nonclinical data translation to clinical ECG signals. Data used in this manuscript, including the original electrophysiology records, may be found at: https://osf.io/69ght/.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "35e175d61f8b5a912ef0554aeeeefdd82b72758af79d05449306427fdbac72c6"
+    },
+    {
+      "evidence_id": "evd_b4016421eb9e4973a845121a10226bfb",
+      "title": "The Potential Role of Verapamil Against Fluconazole-Induced Torsade de Pointes: A Critical Review.",
+      "authors": [
+        "Abdel-Razik NE",
+        "Al-Kuraishy HM",
+        "Al-Gareeb AI",
+        "Soliman MM",
+        "Alexiou A",
+        "Papadakis M",
+        "Aluwaili M",
+        "Batiha GE"
+      ],
+      "published_at": "2026-05-13",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/hsr2.72288",
+        "pmid": "42146719",
+        "pmcid": "PMC13172258",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42146719",
+      "abstract_or_excerpt": "<h4>Background and aims</h4>Fluconazole (FZL) is a broad-spectrum antifungal drug associated with certain serious adverse effects such as polymorphic ventricular arrhythmia due to QT prolongation. Torsade de Pointes (TdP) is a unique type of polymorphic ventricular arrhythmia due to QT prolongation. It has been shown that the calcium-channel blocker verapamil is effective in the management of TdP. Therefore, the present critical review aims to discuss and explain the possible role of verapamil in the prevention of FZL-induced TdP.<h4>Methods</h4>Databases of Scopus, Cochran, Embase, PubMed, and CENTRAL were examined to recognize suitable publications. Screened articles were designated rendering to exact eligibility criteria including original articles such as prospective and retrospective studies recognizing the role verapamil in the prevention of FZL-induced TdP.<h4>Results</h4>The use of FZL is linked with the development of TdP and prolongation of QT, and verapamil use could be effective in the management of TdP. In addition, verapamil has antifungal effects, affects the pharmacokinetics and pharmacodynamics of FZL. Verapamil inhibits the propagation of TdP by inhibiting the deregulation of repolarization early after depolarization in the heart.<h4>Conclusions</h4>This critical review suggests that combination of verapamil with FZL leads to more beneficial effects by increasing the antifungal activity of FZL with a significant reduction the development of TdP which is a serious adverse effect of FZL.",
+      "normalized_facts": {
+        "journal": "Health science reports",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "5f8973b941e788fb180e4d1e7e1a162982ae3f7dbe77034c8138fa08c39ddbcd"
+    },
+    {
+      "evidence_id": "evd_492327c659da4a1983f7ec7f99be8a5e",
+      "title": "Multi-laboratory comparisons of manual patch clamp hERG data generated using standardized protocols and following ICH S7B Q&amp;A 2.1 best practices.",
+      "authors": [
+        "Alvarez Baron C",
+        "Zhao J",
+        "Yu H",
+        "Ren M",
+        "Thiebaud N",
+        "Guo D",
+        "Vegesna G",
+        "Hsiao CH"
+      ],
+      "published_at": "2025-08-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1038/s41598-025-15761-8",
+        "pmid": "40819150",
+        "pmcid": "PMC12357877",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40819150",
+      "abstract_or_excerpt": "Acute block of hERG channels is the most common mechanism underlying drug-induced QT<sub>C</sub> prolongation and potentially fatal Torsade de Pointes arrhythmia. Updates to ICH E14 Q&As now allow for using negative nonclinical data, including hERG, to support QT<sub>C</sub> risk assessment in late-stage clinical development. To interpret the hERG results, understanding hERG assay reproducibility or hERG data variability is pivotal. Protocol and best practice recommendations have been provided with the goal of minimizing lab-to-lab data differences, but the impact remains unclear. To fill this knowledge gap, hERG data from a HESI-coordinated multi-laboratory study were leveraged. Using standardized protocol and following best practices for patch clamp studies, five laboratories tested 28 drugs using the manual patch clamp technique. Systematic differences in block potencies were observed for data generated by one laboratory for the first 21 drugs, and these differences disappeared for the last seven drugs. Exposure, pharmacological sensitivity of the cell lines, and cell/data qualities were ruled out as the factors underlying systematic differences. All laboratories retested two drugs and obtained results within 1.6X of the initial testings, except for another laboratory that obtained data for one drug that differed from its initial testing by 7.6X. Descriptive statistics and meta-analysis were applied to the dataset to estimate what the distribution in hERG block potencies would be if a laboratory were to test the same drug repeatedly. This measure, or hERG data variability, was ~ 5X. Based on these results, hERG block potency values within 5X of each other should not be considered different, since these values are within the natural data distribution of the hERG assay; laboratory-specific safety margin threshold may be required to account for systematic data differences.",
+      "normalized_facts": {
+        "journal": "Scientific reports",
+        "pub_type": "Comparative Study, research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "d657034b4ce8589d04f817edff110a5a9c3eae6c0a14e8d7ee503d1c9bc71b7a"
+    },
+    {
+      "evidence_id": "evd_6a142d4414164b1c97bd847dcc87197e",
+      "title": "The present and future of antiarrhythmic drugs.",
+      "authors": [
+        "Nistor S",
+        "Dan GA"
+      ],
+      "published_at": "2026-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1177/20480040261431981",
+        "pmid": "42186481",
+        "pmcid": "PMC13198644",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42186481",
+      "abstract_or_excerpt": "The saga of antiarrhythmic drug (AAD) therapy reflects a field shaped by empiricism and burdened by challenges related to safety. The Singh-Vaughan-Williams classification was a timely necessity that eventually slowed pharmacological innovation by prioritizing electrophysiologic properties over arrhythmogenic mechanisms. The present, limited pharmacological armamentarium demands efforts to reassess legacy antiarrhythmics, repurpose non-antiarrhythmic agents as upstream or downstream therapy, and develop novel compounds. Flecainide, propafenone, and dronedarone have demonstrated their reliable efficacy and safety, even in patients with structural heart disease, which should allow clinicians to reduce their reliance on amiodarone. Previous concerns regarding the proarrhythmic risk of dofetilide and ibutilide are currently managed through careful patient selection and adequate QT interval monitoring. Novel targeted AADs are advancing through the development pipeline, of which etripamil and landiolol have already been approved. Other emerging drugs, such as SK channel blockers (AP30663 and AP31969), RyR2 blockers, CaMKII inhibitors, and TASK-1 blockers (doxapram), are aligned with the new paradigm of atrial fibrillation that focuses on triggers and re-entry. Once triggered, arrhythmias are perpetuated by the underlying substrate, which could be directly targeted by antifibrotic therapy. Developing concepts such as atrial cardiomyopathy allows clinicians to characterize substrate objectively, in order to assess disease severity and individualize antiarrhythmic treatment. The future of antiarrhythmic therapy will be reshaped by artificial intelligence and digital twinning, which allow precise phenotyping and a tailored approach based on individual patient profiles, complemented by rhythm monitoring through wearables.",
+      "normalized_facts": {
+        "journal": "JRSM cardiovascular disease",
+        "pub_type": "Editorial",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "56dbe49593b591c8baddbd2d74dd752c60f39b827a865ca8342fc7d4f2ac4183"
+    },
+    {
+      "evidence_id": "evd_237f99f8380b419da6f5640fda3295f6",
+      "title": "Nonclinical Human Cardiac New Approach Methodologies (NAMs) Predict Vanoxerine-Induced Proarrhythmic Potential.",
+      "authors": [
+        "Garcia MI",
+        "Bhardwaj B",
+        "Dame K",
+        "Charwat V",
+        "Siemons BA",
+        "Goswami I",
+        "Ismaiel OA",
+        "Mistry S"
+      ],
+      "published_at": "2025-07-26",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/jcdd12080285",
+        "pmid": "40863351",
+        "pmcid": "PMC12387051",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40863351",
+      "abstract_or_excerpt": "New approach methodologies (NAMs), including microphysiological systems (MPSs), can recapitulate structural and functional complexities of organs. Vanoxerine was reported to induce cardiac adverse events, including torsade de points (TdP), in a Phase III clinical trial. Despite earlier nonclinical animal models and Phase I-II clinical trials, events of QT prolongation or proarrhythmia were not observed. Here, we utilized cardiac NAMs to evaluate the functional consequences of vanoxerine treatment on human cardiac excitation-contraction coupling. The cardiac MPS used in this study was a microfabricated fluidic culture platform with human-induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CMs) capable of evaluating voltage, intracellular calcium handling, and contractility. Likewise, the hiPSC-CM comprehensive in vitro proarrhythmia assay (CiPA) was employed based on multielectrode array (MEA). Vanoxerine treatment delayed repolarization in a concentration-dependent manner and induced proarrhythmic events in both NAM platforms. The complex cardiac MPS displayed a frequency-dependent vanoxerine response such that EADs were eliminated at a faster pacing rate (1.5 Hz). Moreover, exposure analysis revealed a 99% vanoxerine loss in the cardiac MPS. TdP risk analysis demonstrated high to intermediate TdP risk at clinically relevant concentrations of vanoxerine and frequency-independent EAD events in the hiPSC-CM CiPA model. These findings demonstrate that nonclinical cardiac NAMs can recapitulate clinical outcomes, including detection of vanoxerine-induced delayed repolarization and proarrhythmic effects. Moreover, this work provides a foundation to evaluate the safety and efficacy of novel compounds to reduce the dependence on animal studies.",
+      "normalized_facts": {
+        "journal": "Journal of cardiovascular development and disease",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "f5c4c7f4f9d622a399bea9401fa20e37ad122c09d007af38e193f408a032314b"
+    },
+    {
+      "evidence_id": "evd_6f96371b3219465f933351d373a67ba3",
+      "title": "Machine learning-guided risk stratification for long QT syndrome genetic variants with hiPSC-derived cardiomyocytes.",
+      "authors": [
+        "Khudiakov A",
+        "Mura M",
+        "Giannetti F",
+        "Leonov V",
+        "Alberio C",
+        "Eskandr M",
+        "Lonati PA",
+        "Borghi MO"
+      ],
+      "published_at": "2026-07-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/cvr/cvag105",
+        "pmid": "42133816",
+        "pmcid": "PMC13355840",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42133816",
+      "abstract_or_excerpt": "<h4>Aims</h4>Long QT syndrome (LQTS) is a life-threatening genetic disorder characterized by prolonged QT intervals on electrocardiograms. Congenital forms are mostly associated with variants in the KCNQ1 and KCNH2 genes. Among pathogenic or likely pathogenic (P/LP) variants, some are associated with a significantly higher incidence of cardiac events compared to others. While therapies have significantly reduced mortality, some patients are unresponsive or intolerant to therapy, perpetuating their arrhythmic risk, including sudden cardiac death. Current approaches for risk stratification are insufficient, highlighting the critical need for more accurate identification and management of patients carrying high-risk genetic variants. Here, we aimed to develop a refined risk stratification model for P/LP variants by applying machine learning classification to electrophysiological data measured in patient-specific human-induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CMs).<h4>Methods and results</h4>Ten patient-specific hiPSC lines, each carrying one of six pathogenic or likely pathogenic (P/LP) variants in the KCNQ1 or KCNH2 genes, along with two healthy control hiPSC lines, were differentiated into hiPSC-CMs. Electrophysiological responses from multielectrode array recordings at baseline and after application of selective ion channel blockers or pro-arrhythmic compounds were used to train a machine learning model to classify variant-specific risk levels based on in vitro electrophysiological readouts. An independent validation cohort of two additional KCNH2 hiPSC lines was used to test the model's performance in predicting single-variant risk. Our findings revealed a correlation between variant risk level, hiPSC-CM electrophysiological profiles, and drug responses. The machine learning classifier, trained on multielectrode array recordings, achieved 89% accuracy in the classification of P/LP genetic variants according to the associated risk levels.<h4>Conclusion</h4>This study demonstrates that integrating hiPSC-CM electrophysiological profiling with machine learning provides a robust method for granular variant-specific risk stratification of LQTS patients.",
+      "normalized_facts": {
+        "journal": "Cardiovascular research",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "e0d1f15e76aba211326f9cd054bbeca29822a39cbfe8456c75f12e2c594c2a23"
+    },
+    {
+      "evidence_id": "evd_6b1b7310145f4337be4aa5ace0c7e258",
+      "title": "Ionic Disorders in Persistent Atrial Fibrillation: Therapeutic Targeting by Plant-Derived Bioactive Compounds.",
+      "authors": [
+        "Zhai Y",
+        "Shi N",
+        "Duan W",
+        "Yang J"
+      ],
+      "published_at": "2026-07-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1155/crp/2123244",
+        "pmid": "42433284",
+        "pmcid": "PMC13349995",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42433284",
+      "abstract_or_excerpt": "Persistent atrial fibrillation (AF) is associated with distinct ion channel abnormalities and their regulatory mechanisms. This review explores the potential of plant-derived bioactive compounds to correct these dysfunctions. As a prevalent cardiac arrhythmia, AF involves a complex pathogenesis featuring dysregulated activity in potassium, sodium, and calcium channels. Such ionic disturbances foster electrophysiological instability in cardiomyocytes, which contributes to AF initiation and sustenance. Plant-based compounds have attracted considerable attention for their multitargeted actions, low toxicity, and biocompatibility. Emerging evidence indicates that specific phytochemicals can modulate ion channel function and improve myocardial electrical stability, offering potential avenues for AF therapy. However, the precise mechanisms and clinical translational potential of these compounds require further elucidation. By systematically synthesizing current knowledge, this review assesses the value of plant-derived compounds in rectifying ionic imbalances, with the aim of informing the development of novel antiarrhythmic therapies and future research directions.",
+      "normalized_facts": {
+        "journal": "Cardiology research and practice",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "557556713b28bf4cc44b115bf8f83c7d87e00767711fa374478e90d5b6ccadd3"
+    },
+    {
+      "evidence_id": "evd_cb9462ccb56440f08a1859b66a652e3b",
+      "title": "Response of human iPSC-cardiomyocytes to adrenergic drugs assessed by high-throughput pericellular oxygen measurements and computational modeling.",
+      "authors": [
+        "Li W",
+        "Forouzandehmehr MA",
+        "McLeod D",
+        "Pozo MR",
+        "Heinson YW",
+        "Kay MW",
+        "Li Z",
+        "Morotti S"
+      ],
+      "published_at": "2026-02-03",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.jmccpl.2026.100834",
+        "pmid": "41716202",
+        "pmcid": "PMC12914693",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41716202",
+      "abstract_or_excerpt": "Rate- and contractility-modulating drugs, such as adrenergic agonists and antagonists, are widely used in the treatment of cardiovascular conditions. Preclinical assessment of new modulators of rate, inotropy and metabolism can be aided by high-throughput (HT) methods for chronic measurements, coupled with scalable human induced pluripotent stem cell-derived cardiomyocytes (hiPSC-CMs). Here, we evaluate the utility of long-term optical (label-free) measurements of pericellular oxygen in a HT format (96-well plates) for the assessment of the effectiveness of adrenergic drugs in hiPSC-CMs. Quantitative oxygen consumption metrics were derived and correlated to measurements performed in the same samples using all-optical electrophysiology. Adrenergic agonists significantly increased oxygen consumption rate (OCR), best seen in the kinetics of initial depletion of pericellular oxygen, i.e. time to reach 5%. Adrenergic antagonists decreased OCR, best quantified using steady-state values for pericellular oxygen after at least 5 h. OCR-based drug type identification correlated well with the acute spontaneous rate measurements in the same samples. Direct rate modulation with chronic optogenetic pacing sped up OCR in hiPSC-CMs. Blebbistatin, an excitation-contraction uncoupler, significantly reduced OCR. Computational modeling helped interpret our results by capturing the effects of pacing rate, adrenergic stimulation, and blebbistatin on oxygen consumption, thereby highlighting the key contribution of inotropy and mechanical contraction to OCR in hiPSC-CMs. We conclude that HT label-free optical oxygen measurements and the comprehensive in silico hiPSC-CM models, constrained by such measurements, represent valuable human-based approaches for non-invasive assessment of rate- and metabolism-modulating drugs in preclinical studies.",
+      "normalized_facts": {
+        "journal": "Journal of molecular and cellular cardiology plus",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "140b88697e7305391a80e890c91ff2ea7e0a5163710428c64325923777e87c40"
+    },
+    {
+      "evidence_id": "evd_992f1766957747d1812e284bd3e6527f",
+      "title": "Dofetilide in atrial fibrillation: A comprehensive review.",
+      "authors": [
+        "Mahendru D",
+        "Joshi HD",
+        "Kowey P"
+      ],
+      "published_at": "2025-11-28",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.ipej.2025.11.013",
+        "pmid": "41319865",
+        "pmcid": "PMC12790294",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41319865",
+      "abstract_or_excerpt": "Atrial fibrillation is the most common sustained cardiac arrhythmia and is associated with significant morbidity, mortality, and healthcare burden worldwide. The management of AF remains complex, encompassing rate and rhythm control strategies, anticoagulation, and comorbidity optimization. Dofetilide, a class III antiarrhythmic agent, has emerged as an important therapeutic option for rhythm control due to its relatively selective blockade of the rapid component of the delayed rectifier potassium current (IKr). Unlike many other antiarrhythmics, it lacks significant negative inotropy, making it safe for use in patients with structural heart disease and left ventricular dysfunction. However, its use is limited by concerns regarding torsades de pointes, mandatory in-hospital initiation, and stringent monitoring requirements. This review provides a comprehensive analysis of dofetilide, including its pharmacology, clinical trial evidence, safety profile, guideline recommendations, role in special populations, real-world application in India, and future perspectives.",
+      "normalized_facts": {
+        "journal": "Indian pacing and electrophysiology journal",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:16.343381+00:00",
+      "content_sha256": "3aca1d582dde290c58f6dfb1f0d9f4f4c5ba388a592e9aa28a8d5b59ddbf3c36"
+    },
+    {
+      "evidence_id": "evd_acdd4fca0b80485c95ec753ee013a0ea",
+      "title": "Cardiovascular safety pharmacology: beyond arrhythmic risk assessment.",
+      "authors": [
+        "Fares R",
+        "Champéroux P"
+      ],
+      "published_at": "2025-12-09",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fcvm.2025.1623644",
+        "pmid": "41445862",
+        "pmcid": "PMC12722936",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41445862",
+      "abstract_or_excerpt": "Cardiovascular safety pharmacology arose from the need to assess certain forms of drug induced functional cardiotoxicity in toxicology within a regulatory framework. Cardiotoxic effects resulting from direct or indirect pharmacological effects are difficult to apprehend in conventional toxicology studies, whether electrophysiological and/or hemodynamic. The reflex regulatory systems of the cardiovascular system, and in particular the autonomic nervous system, interfere with and very often minimize the functional impact of these pharmacological effects, which are sometimes only visible over a very short time window. Modeling approaches now make it possible to assess key hemodynamic parameters, going beyond blood pressure alone. Non-clinical cardiovascular safety pharmacology must continue to evolve toward a comprehensive framework for arrhythmic risk, in order to improve its translational relevance to humans and better bridge non-clinical QT prolongation data with clinical risk assessment. It also needs to integrate concepts from clinical research, such as Coumel's triangle, autonomic conflict or hidden cardiotoxicity. The ultimate goal of cardiovascular safety pharmacology should extend beyond protecting participants in clinical trials. It should broaden its scope to include patient subpopulations with underlying cardiovascular disease, who are often the most vulnerable to functional cardiotoxic effects. Twenty-five years after their initial publication, the safety pharmacology guidelines are currently undergoing revision. This review aims to foster a more balanced and comprehensive approach to cardiovascular safety pharmacology, beyond arrhythmic risk.",
+      "normalized_facts": {
+        "journal": "Frontiers in cardiovascular medicine",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "9e437a48c94a4fc6d66f164e43c20d4e32f2df3383a7aa0677cf5ccdd0d7ea36"
+    },
+    {
+      "evidence_id": "evd_64733eb6afa148b09f190f4d9fb10072",
+      "title": "Drug-induced adverse events in modern pharmacotherapy: mechanisms, clinical manifestations, and implications for risk assessment and management.",
+      "authors": [
+        "Chen Z",
+        "Zhong X",
+        "Jiang M",
+        "Liu W",
+        "Cai K"
+      ],
+      "published_at": "2026-07-10",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2026.1857708",
+        "pmid": "42499498",
+        "pmcid": "PMC13395785",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42499498",
+      "abstract_or_excerpt": "Drug-induced adverse events remain a major challenge in modern pharmacotherapy, particularly with the increasing use of targeted therapies, biologics, and combination regimens. In clinical practice, toxicity is often difficult to predict, interpret, and manage because adverse events arise from complex interactions between drug mechanisms, patient susceptibility, and treatment context. This review provides a clinically oriented framework for understanding drug-induced adverse events across multiple levels. We first summarize key mechanistic drivers, including pathway perturbation, off-target effects, metabolic and mitochondrial dysfunction, and immune dysregulation. We then discuss how these mechanisms translate into organ-specific toxicity patterns involving the liver, heart, kidney, nervous system, and immune system, which represent the most common clinical presentations. In addition, we examine how safety profiles are defined and refined through different layers of evidence, including randomized clinical trials, meta-analyses, and real-world pharmacovigilance data. These complementary evidence sources are essential for identifying both common and rare adverse events, particularly those that emerge after broader clinical use. Importantly, this review highlights practical considerations for clinical risk assessment and management. We discuss key factors influencing toxicity risk, including patient comorbidity, polypharmacy, and baseline organ function, as well as the role of dynamic monitoring, biomarkers, and early signal detection. Emphasis is placed on translating mechanistic insight into actionable strategies for prevention, early recognition, and individualized management of adverse events. Overall, drug safety should be viewed as a dynamic and context-dependent process. Integrating mechanistic understanding with clinical evidence and real-world data can improve risk prediction and support more effective and personalized pharmacotherapy.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "a0ab7d5c795f99968aeb6035045ce7ad9070cb6aefff13185b8fa4f382e79b80"
+    },
+    {
+      "evidence_id": "evd_396d1fc3f63640578167155b446c8694",
+      "title": "QT-prolonging medications: prevalence of use and associated risks in CKD.",
+      "authors": [
+        "Liabeuf S",
+        "Berdougo-Tritz J",
+        "Augey L",
+        "Laville SM",
+        "Mbarek A",
+        "Deray G",
+        "Massy ZA",
+        "Jadoul M"
+      ],
+      "published_at": "2026-03-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/ndt/gfaf196",
+        "pmid": "40996451",
+        "pmcid": "PMC13037475",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40996451",
+      "abstract_or_excerpt": "Chronic kidney disease (CKD) affects >10% of the global adult population and is associated with substantial cardiovascular morbidity and mortality. Sudden cardiac death (often precipitated by ventricular arrhythmias like torsades de pointes) is a leading cause of death in patients with CKD. Prolongation of the QT interval (a marker of delayed ventricular repolarization) is a significant risk factor for arrhythmia in patients with CKD, whether they are on dialysis or not. QT prolongation in CKD is multifactorial and may result from electrolyte imbalances, myocardial remodelling, autonomic dysfunction and exposure to QT-prolonging drugs. Patients on haemodialysis are particularly vulnerable to QT prolongation due to rapid intradialytic electrolyte and fluid shifts. Many drugs known to prolong the QT interval (including various selective serotonin reuptake inhibitors, antibiotics, antiemetics and antipsychotics) are frequently prescribed to patients with CKD, even though there are few data on their safety in this population. The results of several well-designed pharmaco-epidemiological analyses (all based on data from the US Renal Data System) have shown associations between QT-prolonging drugs and an elevated risk of sudden cardiac death among patients on dialysis. These findings are concerning, given the widespread use of such drugs. The objective of this narrative review is to critically evaluate the pathophysiological relevance, prevalence and cardiovascular consequences of QT-prolonging drug use in the CKD setting.",
+      "normalized_facts": {
+        "journal": "Nephrology, dialysis, transplantation : official publication of the European Dialysis and Transplant Association - European Renal Association",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "368fbb27e9cb2d3ece4b5befde2876a28812de3f9821ec2696e4f3d643a1028f"
+    },
+    {
+      "evidence_id": "evd_1d24714ab55645d2b374670c67af6e5a",
+      "title": "Ventricular Arrhythmia Risk Based on Ethnicity in COVID-19 Patients on Hydroxychloroquine and Azithromycin Combination: Viewpoint.",
+      "authors": [
+        "Roy S",
+        "MainakMukhopadhyay"
+      ],
+      "published_at": "2020-06-27",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s42399-020-00370-5",
+        "pmid": "32838150",
+        "pmcid": "PMC7320242",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/32838150",
+      "abstract_or_excerpt": "There are many reports available now, which are mostly observational or registry trial outcomes having varied results on coronavirus 2019 (COVID-19) patients put on hydroxychloroquine and azithromycin combination. Some are showing increased in-hospital mortality and ventricular arrhythmia increase, while some are showing overall benefit with significant viral RNA load reduction. Everyday things are getting more complicated with the publication of these different outcomes. This needs to be addressed.",
+      "normalized_facts": {
+        "journal": "SN comprehensive clinical medicine",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2020"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "9fb7e939fcbfcd69655f6cacaaa1e861c92bc81508b1ecc49cc612f566931987"
+    },
+    {
+      "evidence_id": "evd_3518e438f6004ba9bf4d54f1717cc2da",
+      "title": "Piperaquine-Induced QTc Prolongation Decreases With Repeated Monthly Dihydroartemisinin-Piperaquine Dosing in Pregnant Ugandan Women.",
+      "authors": [
+        "Hughes E",
+        "Wallender E",
+        "Kajubi R",
+        "Jagannathan P",
+        "Ochieng T",
+        "Kakuru A",
+        "Kamya MR",
+        "Clark TD"
+      ],
+      "published_at": "2022-08-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1093/cid/ciab965",
+        "pmid": "34864925",
+        "pmcid": "PMC9427153",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/34864925",
+      "abstract_or_excerpt": "<h4>Background</h4>Intermittent preventive treatment with monthly dihydroartemisinin-piperaquine (DHA-PQ) is highly effective at preventing both malaria during pregnancy and placental malaria. Piperaquine prolongs the corrected QT interval (QTc), and it is possible that repeated monthly dosing could lead to progressive QTc prolongation. Intensive characterization of the relationship between piperaquine concentration and QTc interval throughout pregnancy can inform effective, safe prevention guidelines.<h4>Methods</h4>Data were collected from a randomized controlled trial, where pregnant Ugandan women received malaria chemoprevention with monthly DHA-PQ (120/960 mg DHA/PQ; n = 373) or sulfadoxine-pyrimethamine (SP; 1500/75 mg; n = 375) during the second and third trimesters of pregnancy. Monthly trough piperaquine samples were collected throughout pregnancy, and pre- and postdose electrocardiograms were recorded at 20, 28, and 36 weeks' gestation in each woman. The pharmacokinetics-QTc relationship for piperaquine and QTc for SP were assessed using nonlinear mixed-effects modeling.<h4>Results</h4>A positive linear relationship between piperaquine concentration and Fridericia corrected QTc interval was identified. This relationship progressively decreased from a 4.42 to 3.28 to 2.13 millisecond increase per 100 ng/mL increase in piperaquine concentration at 20, 28, and 36 weeks' gestation, respectively. Furthermore, 61% (n = 183) of women had a smaller change in QTc at week 36 than week 20. Nine women given DHA-PQ had grade 3-4 cardiac adverse events. SP was not associated with any change in QTc.<h4>Conclusions</h4>Repeated DHA-PQ dosing did not result in increased risk of QTc prolongation and the postdose QTc intervals progressively decreased. Monthly dosing of DHA-PQ in pregnant women carries minimal risk of QTc prolongation.<h4>Clinical trials registration</h4>NCT02793622.",
+      "normalized_facts": {
+        "journal": "Clinical infectious diseases : an official publication of the Infectious Diseases Society of America",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Randomized Controlled Trial, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "a301080cc368b11dca32ea8da8bac6132fbaff2dee5055e762ecc7067e27ba42"
+    },
+    {
+      "evidence_id": "evd_72a0d09dbf7c46f0bf6aa3e960e59ed0",
+      "title": "Androgenic Effects on Ventricular Repolarization: A Translational Study From the International Pharmacovigilance Database to iPSC-Cardiomyocytes.",
+      "authors": [
+        "Salem JE",
+        "Yang T",
+        "Moslehi JJ",
+        "Waintraub X",
+        "Gandjbakhch E",
+        "Bachelot A",
+        "Hidden-Lucet F",
+        "Hulot JS"
+      ],
+      "published_at": "2019-08-05",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1161/circulationaha.119.040162",
+        "pmid": "31378084",
+        "pmcid": "PMC6756939",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/31378084",
+      "abstract_or_excerpt": "<h4>Background</h4>Male hypogonadism, arising from a range of etiologies including androgen-deprivation therapies (ADTs), has been reported as a risk factor for acquired long-QT syndrome (aLQTS) and torsades de pointes (TdP). A full description of the clinical features of aLQTS associated with ADT and of underlying mechanisms is lacking.<h4>Methods</h4>We searched the international pharmacovigilance database VigiBase for men (n=6 560 565 individual case safety reports) presenting with aLQTS, TdP, or sudden death associated with ADT. In cardiomyocytes derived from induced pluripotent stem cells from men, we studied electrophysiological effects of ADT and dihydrotestosterone.<h4>Results</h4>Among subjects receiving ADT in VigiBase, we identified 184 cases of aLQTS (n=168) and/or TdP (n=68; 11% fatal), and 99 with sudden death. Of the 10 ADT drugs examined, 7 had a disproportional association (reporting odds ratio=1.4-4.7; <i>P</i><0.05) with aLQTS, TdP, or sudden death. The minimum and median times to sudden death were 0.25 and 92 days, respectively. The androgen receptor antagonist enzalutamide was associated with more deaths (5430/31 896 [17%]; <i>P</i><0.0001) than other ADT used for prostate cancer (4208/52 089 [8.1%]). In induced pluripotent stem cells, acute and chronic enzalutamide (25 µM) significantly prolonged action potential durations (action potential duration at 90% when paced at 0.5 Hz; 429.7±27.1 (control) versus 982.4±33.2 (acute, <i>P</i><0.001) and 1062.3±28.9 ms (chronic; <i>P</i><0.001), and generated afterdepolarizations and/or triggered activity in drug-treated cells (11/20 acutely and 8/15 chronically). Enzalutamide acutely and chronically inhibited delayed rectifier potassium current, and chronically enhanced late sodium current. Dihydrotestosterone (30 nM) reversed enzalutamide electrophysiological effects on induced pluripotent stem cells.<h4>Conclusions</h4>QT prolongation and TdP are a risk in men receiving enzalutamide and other ADTs.<h4>Clinical trial registration</h4>URL: https://www.clinicaltrials.gov. Unique identifier: NCT03193138.",
+      "normalized_facts": {
+        "journal": "Circulation",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2019"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "5ead8c8207d885a11a6ab15222275391f67bbf6a33a695ce97c0c44da34fcef3"
+    },
+    {
+      "evidence_id": "evd_acec1a0d042140cfad61698a2a53c68b",
+      "title": "An open-label, single-arm, dose-escalating concentration-QT study to investigate the cardiac effects and safety of paroxetine in healthy adults.",
+      "authors": [
+        "van Dijkman SC",
+        "Félices M",
+        "Pandurangavittal B",
+        "Ghorpade S",
+        "Easterbrook C",
+        "Zabielski M",
+        "Della Pasqua O"
+      ],
+      "published_at": "2026-01-14",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/bcp.70398",
+        "pmid": "41535245",
+        "pmcid": "PMC13122290",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/41535245",
+      "abstract_or_excerpt": "<h4>Aims</h4>Paroxetine is a selective serotonin reuptake inhibitor (SSRI), approved for treatment of major depressive disorder and anxiety disorders. Some SSRIs are known to prolong the QT interval; however, clinical evidence to establish a lack of association between paroxetine and corrected QT interval (QTc) prolongation is limited. Therefore, this study aimed to characterize the relationship between paroxetine concentration and QT/QTc interval following therapeutic doses in healthy individuals.<h4>Methods</h4>This open-label, single-arm, dose-escalating concentration-QT study (NCT06065735) was performed in healthy adults (18-65 years) without a history of cardiac disease or pre-diagnosed mood disorder. Eligible individuals (n = 38) received paroxetine 20 to 60 mg QD for 1 week per dose level. Paroxetine plasma concentrations and electrocardiogram recordings were monitored over a 12 h period on Days 1 (baseline), 7 (20 mg), 14 (40 mg) and 21 (60 mg).<h4>Results</h4>Mean change from baseline in QTcF (ΔQTcF) fluctuated between -7.1 and +4.7 ms. However, diurnal variation was also observed without treatment. A linear regression model showed no clinically significant effect of paroxetine concentrations on ΔQTcF, with a weak slope of 0.0108 ms/ng/mL (90% CI: 0.01, 0.03) and maximum ΔQTcF of +0.42 ms (90% CI: -2.68, 3.52) at 60 mg QD, corresponding to a Cmax of 221.4 (95%CI: 179.6-272.8) ng/mL. Similarly, paroxetine did not affect the mean change in PR or QRS interval, or heart rate relative to baseline.<h4>Conclusions</h4>Paroxetine does not prolong QTc interval in healthy individuals to any clinically meaningful extent at therapeutically relevant doses. This study supports the favourable cardiac safety profile of paroxetine.",
+      "normalized_facts": {
+        "journal": "British journal of clinical pharmacology",
+        "pub_type": "research-article, Clinical Trial, Phase I, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "31b41c05b3d6f57cc0bb1a1b9757c1fa39108724ab6e1ba1037c86740ed1bd16"
+    },
+    {
+      "evidence_id": "evd_03b9a24445574b58862b0bcaf112f567",
+      "title": "BoltzOmics: Predicting genetic variant effects on drug binding with Boltz-2.",
+      "authors": [
+        "Ngo K",
+        "Carraway KL",
+        "Clancy CE",
+        "Amini H"
+      ],
+      "published_at": "2026-07-16",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.isci.2026.116797",
+        "pmid": "42502384",
+        "pmcid": "PMC13401010",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42502384",
+      "abstract_or_excerpt": "A mechanistic understanding of how genetic variants alter drug-receptor binding is central to precision medicine, drug response prediction, and drug development. Yet, experimental mutation-drug profiling remains slow and expensive, while existing computational approaches often trade accuracy for scalability. We developed BoltzOmics, an interactive, open-source platform that integrates Boltz-2, a deep learning model for biomolecular structure prediction, to rapidly assess mutation effects on drug binding. Starting from amino acid sequences, the workflow queries databases for genetic variants, generates wild-type and mutant protein structures, and screens multiple drugs across variants to predict binding affinity changes. We evaluated BoltzOmics across four targets: hERG, Na<sub>V</sub>1.5, HER2, and CYP3A4. Predictions achieved Pearson correlations with experimental drug IC<sub>50</sub> data up to 0.76 for wild-type proteins and 0.60 for mutants. By enabling scalable, high-throughput assessment of drug-variant interactions, BoltzOmics establishes a practical AI-driven framework for accelerating computational drug discovery and advancing precision medicine research.",
+      "normalized_facts": {
+        "journal": "iScience",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "6e4bdcc81e9e34d3d098a63e60d5235da8e33e35577e55278015658620ae82c2"
+    },
+    {
+      "evidence_id": "evd_a4994dbe264d45d38224f0296c3f0cd3",
+      "title": "&lt;i&gt;In silico&lt;/i&gt; predictions of drug-induced changes in human cardiac contractility align with experimental recordings.",
+      "authors": [
+        "Trovato C",
+        "Longobardi S",
+        "Passini E",
+        "Beattie KA",
+        "Holmes M",
+        "Chaudhary KW",
+        "Rossman EI",
+        "Rodriguez B"
+      ],
+      "published_at": "2025-03-17",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3389/fphar.2025.1500668",
+        "pmid": "40166463",
+        "pmcid": "PMC11955705",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/40166463",
+      "abstract_or_excerpt": "Drug-induced changes in cardiac contractility (inotropy) can lead to cardiotoxicity, a major cause of discontinuation in drug development. Preclinical approaches to assess cardiac inotropy are imperfect, with <i>in vitro</i> assays limited to stem cell-derived or adult human primary cardiomyocytes. Human mechanistic <i>in silico</i> modelling and simulations are already successfully applied for proarrhythmia prediction, contributing to cardiac safety assessment strategies in early drug development. In this study, we investigated their ability to predict drug-induced effects on cardiac inotropy. We considered a validation set of 28 neutral/negative inotropic and 13 positive inotropic reference compounds and simulated their effects on cell contractility via ion channel inhibition and perturbation of nine biomechanical modelling parameters, respectively. For each compound, a wide range of drug concentrations was simulated in an experimentally calibrated control population of 323 human ventricular <i>in silico</i> cells. Simulated biomarkers indicating drug-induced inotropic effects were compared with <i>in vitro</i> preclinical data from the literature. Computer simulations predicted drug-induced inotropic changes observed <i>in vitro</i> for 25 neutral/negative inotropes and 10 positive inotropes. Predictions of negative inotropic changes were quantitatively in agreement for 86% of tested drugs. Active tension peak was identified as the biomarker with highest predictive potential. This study describes the validation and application of an <i>in silico</i> cardiac electromechanical model for drug safety evaluation, combining ion channel inhibition data and information on potential inotropic mechanisms to predict inotropic changes. Furthermore, a route for its integration as part of a preclinical drug safety assessment strategy is outlined.",
+      "normalized_facts": {
+        "journal": "Frontiers in pharmacology",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2025"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "4d49a09f8b1802adcc1fc9bb6711d666df07bce74db03100ce96e80fb1445122"
+    },
+    {
+      "evidence_id": "evd_b1822924da5940f1b32ead45f1f08bdf",
+      "title": "From Molecules to Machines: An Integrative Framework Linking Molecular Pathogenesis, Multi-Factorial Risk, Risk Stratification, Clinical Management, and Artificial Intelligence in QT Prolongation and Sudden Cardiac Death.",
+      "authors": [
+        "Farjam M",
+        "Yazdanpanah MH",
+        "Fereydouni N"
+      ],
+      "published_at": "2026-06-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/clc.70370",
+        "pmid": "42274161",
+        "pmcid": "PMC13255155",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/42274161",
+      "abstract_or_excerpt": "QT prolongation causes torsades de pointes sudden death from heritable, pharmacologic, metabolic, nutritional triggers. Its dimensions have been studied separately. This integrative review synthesizes research on molecular pathogenesis, acquired/metabolic/nutritional risks, clinical stratification, therapy, and AI prediction. Dual-function channel mutations and post-translational defects underlie congenital LQTS beyond classic three genes. Drug-gene-metabolic interactions amplify acquired risk; insulin resistance, NAFLD, and adiposity are independent risk factors. Nutritional exposures (grapefruit juice, licorice, energy drinks) compound arrhythmic risk. QTc threshold alone is insufficient; T-wave morphology, genotype, electromechanical window dynamics, and M-FACT score add prognostic value. Nonpenetrant LQTS carries near-population-level event risk. Genotype-targeted mexiletine and left cardiac sympathetic denervation are validated alternatives. Machine learning outperforms clinical scores; deep learning distinguishes congenital from acquired QT prolongation on ECG. Precision QT management requires integrated strategies including nutritional and metabolic determinants, QTc measurement, and AI-enhanced prediction. Prospective data remain essential before algorithmic tools guide decisions.",
+      "normalized_facts": {
+        "journal": "Clinical cardiology",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2026"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:12:11.257697+00:00",
+      "content_sha256": "4c4e84885a592808a442519956fdb2b7985ca1a6ca1f191c3cc4615929ea1ee8"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_c326b404bf5e43f9963a99b7b458dd90",
+        "session_id": "ses_ee20168b92cf457783a55c9730b44f39",
+        "subject_key": "analysis:ana_7d7fffd1ed684c31bebea034610d13ab",
+        "question": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_7d7fffd1ed684c31bebea034610d13ab"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The stored hERG predictor signal is directionally informative for sotalol and supports a non-blocker classification in this model.",
+            "kind": "model_signal",
+            "refutation_condition": "A reproducible analysis rerun or validated benchmark evidence shows the stored model output is not applicable to this structure or the classification changes materially.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          },
+          {
+            "id": "h2",
+            "statement": "The model may understate or fail to resolve experimentally relevant hERG liability for sotalol; the current record is insufficient to decide the real-world cardiac liability.",
+            "kind": "alternative_explanation",
+            "refutation_condition": "Compound-specific experimental hERG data under a relevant assay design show no meaningful channel inhibition across relevant concentrations and conditions.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored predictor assigns sotalol the hERG label non_blocker and reports a blocker probability below the stored classification threshold.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "scope": {
+              "compound": "sotalol",
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          },
+          {
+            "id": "e2",
+            "claim": "The applicability check is marked ok by an element-composition rule, while explicitly noting that this does not confirm distributional similarity beyond element composition.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "applicability.status; applicability.method; applicability.reasons",
+            "scope": {
+              "compound": "sotalol",
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          },
+          {
+            "id": "e3",
+            "claim": "The stored predictor classifies sotalol as a hERG non-blocker.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "actor": "server",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_endpoint",
+            "description": "No accepted compound-specific independent hERG evidence was retrieved in the bounded literature search, so the model signal is not independently confirmed.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific evidence that could contradict or independently confirm the model's non-blocker signal.",
+            "decision": "answer",
+            "outcome": "The bounded search returned no accepted compound-specific hERG record; absence of retrieval is not evidence of absence of liability.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the recommendation remains within the predictor endpoint and does not treat a model signal as an independent safety conclusion.",
+            "decision": "answer",
+            "outcome": "Keep the conclusion conditional on the model and require targeted verification before using it as a cardiac safety conclusion.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a compound-specific hERG functional assay with concentration-response characterization and exposure-relevant interpretation.",
+            "rationale": "This directly tests whether the model's non-blocker signal corresponds to measurable channel inhibition and can discriminate the model-signal hypothesis from the underestimation alternative.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "hERG current inhibition concentration-response",
+              "assay quality controls and concentration/exposure context"
+            ],
+            "actor": "model",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "For this predictor only, sotalol is classified as a hERG non-blocker.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The applicability check is an element-based rule and does not establish distributional similarity beyond element composition.",
+              "evidence_ids": [
+                "e2"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Do not conclude that sotalol has no hERG liability, is safe, or is cleared for clinical or regulatory use.",
+            "Do not generalize the hERG output to aggregate toxicity or overall cardiac safety."
+          ],
+          "what_would_change": [
+            "Compound-specific functional hERG data showing concentration-dependent inhibition would increase concern.",
+            "Well-controlled compound-specific functional hERG data showing no meaningful inhibition under relevant conditions would reduce the unresolved concern."
+          ],
+          "approver": "",
+          "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8"
+        },
+        "runs": [
+          {
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "goal": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_2d8b5f1218b64872a7affeda1b56339a",
+            "usage": {
+              "searches": 3,
+              "tool_calls": 12,
+              "denied_calls": 0,
+              "failed_calls": 0,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-30T15:11:42.112502+00:00",
+        "updated_at": "2026-09-30T15:14:15.257137+00:00"
+      },
+      "events": {
+        "case_id": "scase_c326b404bf5e43f9963a99b7b458dd90",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_c326b404bf5e43f9963a99b7b458dd90",
+              "question": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+              "requester": "dev-user",
+              "session_id": "ses_ee20168b92cf457783a55c9730b44f39",
+              "subject_key": "analysis:ana_7d7fffd1ed684c31bebea034610d13ab",
+              "subject_refs": [
+                "analysis:ana_7d7fffd1ed684c31bebea034610d13ab"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:11:42.112502+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:11:42.112502+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The stored hERG predictor signal is directionally informative for sotalol and supports a non-blocker classification in this model.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A reproducible analysis rerun or validated benchmark evidence shows the stored model output is not applicable to this structure or the classification changes materially."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.746409+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "alternative_explanation",
+              "can_say": [],
+              "statement": "The model may understate or fail to resolve experimentally relevant hERG liability for sotalol; the current record is insufficient to decide the real-world cardiac liability.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Compound-specific experimental hERG data under a relevant assay design show no meaningful channel inhibition across relevant concentrations and conditions."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.746437+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor assigns sotalol the hERG label non_blocker and reports a blocker probability below the stored classification threshold.",
+              "scope": {
+                "compound": "sotalol",
+                "endpoint": "herg",
+                "use_context": "cardiac safety comparator"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+              "statement": "The stored predictor assigns sotalol the hERG label non_blocker and reports a blocker probability below the stored classification threshold.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.748235+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The applicability check is marked ok by an element-composition rule, while explicitly noting that this does not confirm distributional similarity beyond element composition.",
+              "scope": {
+                "compound": "sotalol",
+                "endpoint": "herg",
+                "use_context": "cardiac safety comparator"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "applicability.status; applicability.method; applicability.reasons",
+              "statement": "The applicability check is marked ok by an element-composition rule, while explicitly noting that this does not confirm distributional similarity beyond element composition.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.749719+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 6
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_endpoint",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "No accepted compound-specific independent hERG evidence was retrieved in the bounded literature search, so the model signal is not independently confirmed.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.749746+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 7
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The bounded search returned no accepted compound-specific hERG record; absence of retrieval is not evidence of absence of liability.",
+              "purpose": "Look for compound-specific evidence that could contradict or independently confirm the model's non-blocker signal.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.749756+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 8
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Keep the conclusion conditional on the model and require targeted verification before using it as a cardiac safety conclusion.",
+              "purpose": "Check that the recommendation remains within the predictor endpoint and does not treat a model signal as an independent safety conclusion.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.749764+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 9
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run a compound-specific hERG functional assay with concentration-response characterization and exposure-relevant interpretation.",
+              "can_say": [],
+              "rationale": "This directly tests whether the model's non-blocker signal corresponds to measurable channel inhibition and can discriminate the model-signal hypothesis from the underestimation alternative.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "hERG current inhibition concentration-response",
+                "assay quality controls and concentration/exposure context"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:13.749772+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 10
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "For this predictor only, sotalol is classified as a hERG non-blocker.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The applicability check is an element-based rule and does not establish distributional similarity beyond element composition.",
+                  "evidence_ids": [
+                    "e2"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Do not conclude that sotalol has no hERG liability, is safe, or is cleared for clinical or regulatory use.",
+                "Do not generalize the hERG output to aggregate toxicity or overall cardiac safety."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Compound-specific functional hERG data showing concentration-dependent inhibition would increase concern.",
+                "Well-controlled compound-specific functional hERG data showing no meaningful inhibition under relevant conditions would reduce the unresolved concern."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:13:24.746178+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 11
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor classifies sotalol as a hERG non-blocker.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "cardiac safety comparator"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_2312afe7b7e8493f9ca38374f7f6869c",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:14:12.424886+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 3,
+                "tool_calls": 12,
+                "denied_calls": 0,
+                "failed_calls": 0,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_2d8b5f1218b64872a7affeda1b56339a",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:14:15.257137+00:00",
+            "run_id": "run_f9ca290d15594b4eb3438dc16c01eaa8",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

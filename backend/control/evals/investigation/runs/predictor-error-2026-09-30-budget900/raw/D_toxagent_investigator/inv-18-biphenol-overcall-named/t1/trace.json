@@ -1,0 +1,2321 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_b8f1dd2201894e2ba263b4a89f4cf372",
+        "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T16:03:46.673588+00:00",
+        "created_at": "2026-09-30T15:48:46.673588+00:00",
+        "started_at": "2026-09-30T15:48:46.829445+00:00",
+        "ended_at": "2026-09-30T15:54:22.426350+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "87f29f23081f6fe5e6d035aeef6ba2064af890e0edea589735dd49441bbe88f7"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 900,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 900,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:48:46.674560+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_4f65772158844b04be663b54818135f4",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:49:03.090629+00:00",
+              "tokens": {
+                "input": 5559,
+                "output": 81,
+                "reasoning": 30,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 8230
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_4e381a5db3f7c9542c4a759ff37ec159",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f301207b001Lcf1tJdef4mgza",
+                "step_id": "prt_0f30149ec001nB2fVwSQ1GiJ6r",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_b823eccd7e9f444dbc04f7014066fa2c",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:49:08.681844+00:00",
+              "tokens": {
+                "input": 721,
+                "output": 99,
+                "reasoning": 76,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8576
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_412e1014c4b3aa7be9064c7e73c890c9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f3014a1a001vCH9Zty7dkrlIs",
+                "step_id": "prt_0f3015fc2001KUgTn1CHT9iCpY",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_764d0fab687a4178bcbd60dbaba8d711",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:49:27.456041+00:00",
+              "tokens": {
+                "input": 2516,
+                "output": 801,
+                "reasoning": 42,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 11039
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_0287f7418e3907e45229eeb62401afaa",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f3015fef001usFCd2cUoLWv7H",
+                "step_id": "prt_0f301a8f1001tcTj8yti2WNs4c",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c810bc7847fa48ffa0de1987e98aa6bf",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:49:39.631529+00:00",
+              "tokens": {
+                "input": 6908,
+                "output": 329,
+                "reasoning": 69,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 17034
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_1f17d75c1d23cfd37dc1429a77b5e40e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f301a945001uozxbsQdkr3P9B",
+                "step_id": "prt_0f301d8a6001fjBgwoPLyqZ9dB",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_59d28b4877964d79aa8570de97b84471",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:49:50.315325+00:00",
+              "tokens": {
+                "input": 1621,
+                "output": 60,
+                "reasoning": 9,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 17562
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_86d7af85f6f8bb056fc88d9900a8f286",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f301d8df001kXDnXa6CP0rvwh",
+                "step_id": "prt_0f3020266001WCEZr8WfBI3Xqd",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_d733cc24b28a40158cfc3db0db248561",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:50:52.331396+00:00",
+              "tokens": {
+                "input": 829,
+                "output": 2529,
+                "reasoning": 716,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 20970
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_9d735a02458b83e5787a5b1a1e1d4316",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f30202900010U4MhJSopifviL",
+                "step_id": "prt_0f302f4a5001AJawk5jDsX2zUM",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_d1a29530be434094b942e73d09338235",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:52:51.427539+00:00",
+              "tokens": {
+                "input": 4319,
+                "output": 2267,
+                "reasoning": 291,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 23773
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_463c1adbc2215e07998ab86c4e52afff",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f302f4cc001mk0ykXROakQp0M",
+                "step_id": "prt_0f304c5dc001UeEzdBdAtwLEjv",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_7da0a7fd366e4159a8b32302335f0338",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:53:35.338206+00:00",
+              "tokens": {
+                "input": 3122,
+                "output": 2261,
+                "reasoning": 53,
+                "cache_read": 20992,
+                "cache_write": 0,
+                "total": 26428
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6200159049629ada445105d0e7b409bd",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f304c61a001oZ5lK38aQfA2wI",
+                "step_id": "prt_0f3057162001oU5DrmftC1bihx",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_64499cc0babd4dae8aaef691bffbb256",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:54:20.123812+00:00",
+              "tokens": {
+                "input": 3628,
+                "output": 2256,
+                "reasoning": 75,
+                "cache_read": 23040,
+                "cache_write": 0,
+                "total": 28999
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_1f2f052623b53f155d895e1019a7c88c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f305718b001uYno7OFKPsUoyx",
+                "step_id": "prt_0f3062053001dCwz9ItQsGygae",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_6ed445826be7475986de8e9c891c22b2",
+              "runtime_binding_id": "rtb_b7d1759e290d4d56b387c5d7434387e7",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:54:22.323667+00:00",
+              "tokens": {
+                "input": 3176,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 26112,
+                "cache_write": 0,
+                "total": 29292
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_91ad4b6b6950e69a9cc48c416dc420e9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f306209d001GQCE9NFBqFUuD0",
+                "step_id": "prt_0f30628ed0016HszEnqZSrkNnK",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_0a53116997fe46f7bb064fb427b644a1",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "f1b54628bb6a9d6f4cdca5a95f412c11b2298fa87e802f9c75684b83e9d4a09a",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:49:02.994404+00:00",
+            "ended_at": "2026-09-30T15:49:03.011272+00:00"
+          },
+          {
+            "call_id": "call_376d648a5c534368acf364f79a9fedcb",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 26,
+            "arguments_sha256": "6743e069ca250880b88164ca6ec58162c964c2a8c564e0356c4f62f76e718187",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:08.531907+00:00",
+            "ended_at": "2026-09-30T15:49:08.556393+00:00"
+          },
+          {
+            "call_id": "call_dc43b5e5b78848319724724c8587e308",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:49:08.626768+00:00",
+            "ended_at": "2026-09-30T15:49:08.643427+00:00"
+          },
+          {
+            "call_id": "call_f52f9344737a44e8a790b1a7122384bc",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 37,
+            "arguments_sha256": "6078f6015c1d19f860e712c9cb3014f27fc0e6c8b209af5e1c11405ace25e99a",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.245970+00:00",
+            "ended_at": "2026-09-30T15:49:26.276146+00:00"
+          },
+          {
+            "call_id": "call_d6a4fbd7a0534968a7cc2f95f3da4d26",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 22,
+            "arguments_sha256": "cb0d6828977c08be09f9ebe839c376e3fa50b0dc5903b97f424e4fd8426720a3",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.368350+00:00",
+            "ended_at": "2026-09-30T15:49:26.388074+00:00"
+          },
+          {
+            "call_id": "call_1b83c8d9a05b4238997e54326244cb2a",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "2a16a14cb181269c0feda613dad58c400ccd4a5c2c6c89a4cc4d601da6d9e398",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.625528+00:00",
+            "ended_at": "2026-09-30T15:49:26.639657+00:00"
+          },
+          {
+            "call_id": "call_1c2d14642acc474986bc20e6b5c23719",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 149,
+            "arguments_sha256": "04fbc784e6cad7759d78575d1d22d4a36b8c6243d3e6b4f22cbe1e88885e9fcf",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.749508+00:00",
+            "ended_at": "2026-09-30T15:49:26.883432+00:00"
+          },
+          {
+            "call_id": "call_ea3a4514d3fb461c9f75a0d6b86e29ab",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 169,
+            "arguments_sha256": "71b674d656ffa66238497fed65ae7baf5426e712ea435889596ee6b4874a67d3",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.795953+00:00",
+            "ended_at": "2026-09-30T15:49:26.955825+00:00"
+          },
+          {
+            "call_id": "call_7831bdb07f5a4a3bacbc50db4b96647a",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 217,
+            "arguments_sha256": "9538b70484238bbc7556a7caa3076b9f2631a33f31ff8fff1c2aeaf022d1f828",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.805575+00:00",
+            "ended_at": "2026-09-30T15:49:27.047138+00:00"
+          },
+          {
+            "call_id": "call_41419bf40d1046f297d16e7d253d61a9",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 255,
+            "arguments_sha256": "034e86e0bb8cbfb692a1aefd0f40997f598c9effb35adc85b7bcd8c25e2920d1",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.812022+00:00",
+            "ended_at": "2026-09-30T15:49:27.083128+00:00"
+          },
+          {
+            "call_id": "call_41250a6bd6c749fc812e24b9f4efcfc1",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 235,
+            "arguments_sha256": "8294366f3329d6b1b276308b8a1e4e94fd9f86a57d098be3dd71b9e5288ea8b3",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.890375+00:00",
+            "ended_at": "2026-09-30T15:49:27.111408+00:00"
+          },
+          {
+            "call_id": "call_9b320b62dc63455bb354376ed66a409f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 235,
+            "arguments_sha256": "db26aba9405452cd69ebb233adb8de956fe776a5c36418ac6140e057555aec89",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.989491+00:00",
+            "ended_at": "2026-09-30T15:49:27.153645+00:00"
+          },
+          {
+            "call_id": "call_807ff96e5ba74c9e93979b2a69f46d3d",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 279,
+            "arguments_sha256": "f680bd470a8bb9faf8bc7e8529786b7c8cb77d654faaf4ca7ae3e723170aa7c3",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:26.994117+00:00",
+            "ended_at": "2026-09-30T15:49:27.239002+00:00"
+          },
+          {
+            "call_id": "call_5c1d5e57bdb04f43825e86eda5230790",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 288,
+            "arguments_sha256": "4694f27c0c6df01998f7f91a3c44fdd0a832aa8afb38e72bd9f82b15656149db",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:27.045059+00:00",
+            "ended_at": "2026-09-30T15:49:27.281477+00:00"
+          },
+          {
+            "call_id": "call_557c4c4f2c8648978b4420f185b6249c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 213,
+            "arguments_sha256": "a4853fd8b686101f7f134aae92c71ecab88b0c22b8e14a70570cc6352724ea6e",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:27.096605+00:00",
+            "ended_at": "2026-09-30T15:49:27.294822+00:00"
+          },
+          {
+            "call_id": "call_dffc0c8e317848dd8fc19c047015e7c9",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 174,
+            "arguments_sha256": "0f458c7cf53cecac1d81d74072b23eb637cab63abffeaf2856043da1baebf2b1",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:27.149533+00:00",
+            "ended_at": "2026-09-30T15:49:27.314015+00:00"
+          },
+          {
+            "call_id": "call_af7220e92dea48309eea0c3472da1378",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 59,
+            "arguments_sha256": "eef0971f53d52d984739ded97f8da3aa373e674fb4fe050c742f165dbc9d10f9",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:49:27.285672+00:00",
+            "ended_at": "2026-09-30T15:49:27.333405+00:00"
+          },
+          {
+            "call_id": "call_6e10f173ba1b4052b9b16f6b70f8c081",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2182,
+            "arguments_sha256": "5953d9c61b1a39a0e14de3b7bcad97da371e7e273d857b1133a64c7e034d3b37",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:49:37.412382+00:00",
+            "ended_at": "2026-09-30T15:49:39.591896+00:00"
+          },
+          {
+            "call_id": "call_1f8bbb8635064a89869272152073f2cb",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1390,
+            "arguments_sha256": "dd2f8030f1768187c5a011f37f28798c18244282c0752bc3d15600ec3c6f5169",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:49:37.511447+00:00",
+            "ended_at": "2026-09-30T15:49:38.900114+00:00"
+          },
+          {
+            "call_id": "call_44889136aa1c408a97385a05d05bb193",
+            "tool_name": "get_evidence_record",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "d8e60a0fb18c7bd8293e46529d899d818b14c636aa0b284b6736275a0a45a833",
+            "observation_ids": [
+              "evd_c26408615cd64cd5b93921d20640a9ac"
+            ],
+            "started_at": "2026-09-30T15:49:49.904759+00:00",
+            "ended_at": "2026-09-30T15:49:49.919693+00:00"
+          },
+          {
+            "call_id": "call_49a6d6e4679e4f4599e97bdb46019481",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 404,
+            "arguments_sha256": "0d4d39f8dc682399249497ed074f938393d2e13a9d3a2bc84c82ce1e3fc9ab49",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:50:52.265246+00:00",
+            "ended_at": "2026-09-30T15:50:52.293264+00:00"
+          },
+          {
+            "call_id": "call_ee0932401d9f406ba7ef0f076b78daf9",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 32,
+            "arguments_sha256": "e9cd2f701523388478fe04672c573ea4152bf7c966450f5e2aebc91b9ab689e0",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:53:35.259372+00:00",
+            "ended_at": "2026-09-30T15:53:35.289496+00:00"
+          },
+          {
+            "call_id": "call_e542531f3db9444a8e64a21826c21c55",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 75,
+            "arguments_sha256": "480777474d60f790268dc2af7c833ffcf002826502bb7088b6e0f325e1546437",
+            "observation_ids": [
+              "obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "started_at": "2026-09-30T15:54:19.974840+00:00",
+            "ended_at": "2026-09-30T15:54:20.047643+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_4dade376680c40668e0a897e3946db08",
+        "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+        "answer_markdown": "**Assay picture**\n\n- hERG is predicted non_blocker; this is a model classification, not a cardiac-safety conclusion.\n- Tox21 predictions are active for NR-AhR (True), NR-Aromatase (True), NR-ER (True), NR-ER-LBD (True), NR-PPAR-gamma (True), SR-ARE (True), SR-ATAD5 (True), SR-HSE (True), SR-MMP (True), and SR-p53 (True).\n- NR-AR (False) and NR-AR-LBD (False) are predicted inactive.\n- These are independent assay predictions; do not turn the pattern into an aggregate toxicity score or interpret the number of active assays as severity. The reported probabilities are uncalibrated model scores.\n\n**Recommended report wording**\n\n“The profiled compound produced a multi-assay in-silico Tox21 screening flag, spanning estrogen-related, AhR/aromatase, PPAR-gamma, and cellular-stress endpoints, with a predicted hERG non-blocker classification. The result warrants screening follow-up, but does not establish environmental hazard, ecological effects, exposure relevance, mechanism, or safety.”\n\nRecord the applicability result as ok, with the explicit caveat that it is an element-based rule and does not establish broader distributional similarity. Treat this as a prioritization flag, not a decision-grade environmental determination. The most useful follow-up is orthogonal concentration-response testing of the leading receptor/stress signals with cytotoxicity and assay-interference controls, paired with exposure and bioavailability assessment.",
+        "claims": [
+          {
+            "claim_id": "clm_69eda251254642f18c4e7418b39cc940",
+            "kind": "classification",
+            "text": "The hERG prediction is classified as non_blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_ecca62366732473b955540601add34e0",
+            "kind": "classification",
+            "text": "NR-AhR is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-AhR.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_8cf8b3c3e638450f828b90c536820291",
+            "kind": "classification",
+            "text": "NR-Aromatase is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-Aromatase.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_c233e2a350f74e0f9ab0984ba842d909",
+            "kind": "classification",
+            "text": "NR-ER is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-ER.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_94b9d8da39cc41f9bff0269facc3300c",
+            "kind": "classification",
+            "text": "NR-ER-LBD is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-ER-LBD.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_bdaf175af8e1401f922055a8b0bbce88",
+            "kind": "classification",
+            "text": "NR-PPAR-gamma is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-PPAR-gamma.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_822aafb0f8664fe6a0e177a86e2fbbf7",
+            "kind": "classification",
+            "text": "SR-ARE is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.SR-ARE.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_d7b70d99844a4072a78968541b75dbd4",
+            "kind": "classification",
+            "text": "SR-ATAD5 is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.SR-ATAD5.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_463fab989a4048959d3ae06af0c9d99a",
+            "kind": "classification",
+            "text": "SR-HSE is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.SR-HSE.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_11e3113ddd6a4d5c8d9762800ea822b2",
+            "kind": "classification",
+            "text": "SR-MMP is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.SR-MMP.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_5546f2fa789c4942ae0dea4b4ba79316",
+            "kind": "classification",
+            "text": "SR-p53 is predicted active.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.SR-p53.active",
+            "source_value": true,
+            "rendered_value": "True"
+          },
+          {
+            "claim_id": "clm_3f4792f107bb45ab80ba43f0f5037afc",
+            "kind": "classification",
+            "text": "NR-AR is predicted inactive.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-AR.active",
+            "source_value": false,
+            "rendered_value": "False"
+          },
+          {
+            "claim_id": "clm_958871ed38864e4fb648f482088f96a2",
+            "kind": "classification",
+            "text": "NR-AR-LBD is predicted inactive.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays.NR-AR-LBD.active",
+            "source_value": false,
+            "rendered_value": "False"
+          },
+          {
+            "claim_id": "clm_556c3d4e10df46a1bc8da32ce122659d",
+            "kind": "scientific",
+            "text": "The Tox21 assays are independent measurements, so active-assay count is not a severity score.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions.tox21.assays"
+          },
+          {
+            "claim_id": "clm_88e05f0959a04be7927253b02fa04c35",
+            "kind": "scientific",
+            "text": "The model output is a multi-assay screening signal spanning endocrine-related and cellular-stress endpoints, with a predicted hERG non-blocker classification.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "predictions"
+          },
+          {
+            "claim_id": "clm_c2473cd51338412c8fcf0893c7220e5c",
+            "kind": "classification",
+            "text": "Applicability is classified as ok by the element-rules method.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_b8a0aa0786ae4c4293349d096eea41be",
+            "field_path": "applicability.status",
+            "source_value": "ok",
+            "rendered_value": "ok"
+          },
+          {
+            "claim_id": "clm_c90cd23e95df456bbc62551f5631c0f9",
+            "kind": "recommendation",
+            "text": "Report this as a screening-priority flag and not as an environmental hazard, ecological-effect, exposure, mechanism, or safety determination.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "Any underlying probabilities are uncalibrated model scores, not calibrated environmental or clinical risks."
+          },
+          {
+            "code": "applicability_is_rule_based",
+            "text": "Applicability is an element-composition rule and cannot establish broader distributional similarity."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Orthogonal assays and exposure assessment are screening/follow-up steps, not a safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run orthogonal concentration-response confirmation for the leading receptor and stress-response signals, with cytotoxicity and assay-interference controls, alongside exposure and bioavailability assessment.",
+            "basis_claim_ids": [
+              "clm_88e05f0959a04be7927253b02fa04c35",
+              "clm_c90cd23e95df456bbc62551f5631c0f9"
+            ]
+          }
+        ],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "061f76be3932c4ab5681dbe5353501e6a3bb86ce2ae45e97d6ecc7c368b5aa03",
+        "created_at": "2026-09-30T15:54:19.991372+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_686bc67e414c410087a71e231b0f965e",
+        "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+        "goal": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?",
+        "subject_refs": [
+          "analysis:ana_4ddfcd9969b84be7b1eda96d4df3c634"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The stored predictor reports a multi-assay Tox21 screening pattern and a hERG non-blocker classification.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_b8a0aa0786ae4c4293349d096eea41be"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The predictor output should be used as a screening-priority flag rather than an environmental hazard or safety determination.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 900,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 900,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 23,
+          "denied_calls": 0,
+          "failed_calls": 1,
+          "evidence_reads": 1
+        },
+        "available_refs": [
+          "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+          "evidence:evd_c26408615cd64cd5b93921d20640a9ac"
+        ],
+        "found_refs": [
+          "evidence:evd_c26408615cd64cd5b93921d20640a9ac"
+        ],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 28
+      },
+      "dossier": {
+        "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+        "case_id": "scase_4f90f91fce204073908fd19a4b8bb57b",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 1,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?",
+        "answer_id": "ans_4dade376680c40668e0a897e3946db08",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+          "can_say": [
+            {
+              "text": "The predictor flags a multi-assay Tox21 screening pattern, especially endocrine-receptor, AhR/aromatase, and stress-response endpoints, while predicting hERG non-blockade.",
+              "sources": [
+                "observation:obs_b8a0aa0786ae4c4293349d096eea41be"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The result supports placing 4,4'-biphenol in a screening-priority or follow-up category, not assigning an environmental hazard or safety classification.",
+              "sources": [
+                "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+                "observation:obs_b8a0aa0786ae4c4293349d096eea41be"
+              ],
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Do not report an aggregate toxicity score, assay-count severity, calibrated environmental risk, ecological effect, or safety conclusion.",
+            "Do not infer mechanism from the model's assay predictions or applicability flag."
+          ],
+          "what_would_change": [
+            "Compound-specific orthogonal concentration-response data and exposure/bioavailability information that confirm or weaken the predicted signals.",
+            "A validated, relevant environmental or regulatory assessment covering the use context and species of interest."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "status": "open",
+            "context": [],
+            "statement": "The predictor signal is consistent with possible activity in endocrine-receptor and cellular-stress screening assays for 4,4'-biphenol.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored predictor classifies hERG as non_blocker and predicts activity in NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53, while classifying NR-AR and NR-AR-LBD as inactive.",
+                "scope": {
+                  "assay": "12-task Tox21 panel",
+                  "compound": "4,4'-biphenol",
+                  "endpoint": "herg/tox21",
+                  "use_context": "environmental screening"
+                },
+                "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.tox21.assays.*.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Orthogonal testing of the same compound shows no reproducible activity in the relevant receptor or stress-response assays at environmentally relevant concentrations."
+          },
+          {
+            "id": "h2",
+            "kind": "assay_or_exposure",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "status": "open",
+            "context": [],
+            "statement": "The apparent assay pattern may be a model or assay-context signal that does not establish environmental hazard because exposure, potency, matrix effects, and ecological endpoints are not measured here.",
+            "evidence_for": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The analysis applicability result is an element-composition rule outcome and explicitly cannot confirm distributional similarity beyond element composition.",
+                "scope": {
+                  "compound": "4,4'-biphenol",
+                  "endpoint": "herg/tox21",
+                  "use_context": "environmental screening"
+                },
+                "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+                "stance": "supports",
+                "locator": "applicability.status; applicability.reasons",
+                "directness": "direct",
+                "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Compound-specific environmental exposure and orthogonal bioassay data demonstrate that the in-silico pattern predicts a relevant adverse ecological outcome."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run orthogonal, concentration-response confirmation for the strongest predicted Tox21 signals, prioritizing estrogen-receptor, AhR, aromatase, and stress-response assays, alongside an exposure/context assessment.",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "rationale": "This separates reproducible compound activity from an in-silico signal and tests whether concentrations relevant to the panel are plausible.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response activity or inactivity in orthogonal assays",
+              "measured or bounded environmental exposure and bioavailability",
+              "assay-interference and cytotoxicity controls"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_4ddfcd9969b84be7b1eda96d4df3c634"
+        ],
+        "case_revision": 14,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored predictor classifies hERG as non_blocker and predicts activity in NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53, while classifying NR-AR and NR-AR-LBD as inactive.",
+            "scope": {
+              "assay": "12-task Tox21 panel",
+              "compound": "4,4'-biphenol",
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.tox21.assays.*.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The analysis applicability result is an element-composition rule outcome and explicitly cannot confirm distributional similarity beyond element composition.",
+            "scope": {
+              "compound": "4,4'-biphenol",
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "stance": "supports",
+            "locator": "applicability.status; applicability.reasons",
+            "directness": "direct",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h2"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored predictor reports a multi-assay Tox21 screening pattern and a hERG non-blocker classification.",
+            "scope": {
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The stored predictor reports a multi-assay Tox21 screening pattern and a hERG non-blocker classification.",
+            "scope": {
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+              "outcome": "No accepted compound-specific hERG record was found; one retrieved article concerned biotransformation rather than direct confirmation of the reported assays.",
+              "purpose": "Look for compound-specific evidence that could contradict or contextualize the model signal before setting report posture.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+              "outcome": "Keep the conclusion as a screening flag, state that probabilities are uncalibrated model scores, and avoid counting active assays as severity.",
+              "purpose": "Check that the report recommendation stays within model endpoints and does not convert independent assay predictions into an aggregate hazard or safety conclusion.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The predictor probabilities are uncalibrated model scores, and applicability is only an element-based rule; predictive reliability for this compound and environmental context is not established.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "status": "open",
+            "severity": "blocking",
+            "resolution": "",
+            "description": "No environmental concentration, bioavailability, species, dose, or ecological endpoint is supplied or measured, so environmental relevance cannot be determined.",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_686bc67e414c410087a71e231b0f965e",
+  "analysis": {
+    "run": {
+      "run_id": "run_07bb120726db4a64a025fb0f5494e835",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_0663b69fd90a48dfa70b5de8af573317",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T16:03:45.616673+00:00",
+      "created_at": "2026-09-30T15:48:45.616673+00:00",
+      "started_at": "2026-09-30T15:48:45.628227+00:00",
+      "ended_at": "2026-09-30T15:48:45.656091+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 900,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:48:45.617965+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_4ddfcd9969b84be7b1eda96d4df3c634",
+      "input_smiles": "C1=CC(=CC=C1C2=CC=C(C=C2)O)O",
+      "canonical_smiles": "Oc1ccc(-c2ccc(O)cc2)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.1508563905954361,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.8349927067756653,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.9942409992218018,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.9383863210678101,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.975950300693512,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.5872246623039246,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.9973719120025635,
+              "active": true,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.9299798607826233,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.9830195307731628,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.11599725484848022,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.9958437085151672,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.8521090745925903,
+              "active": true,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.7448371052742004,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "aa690df7-d5d7-4cfc-94fd-0ad3d29143f7",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 25,
+            "encoded_token_count": 25
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "bee92e9ddaf4669a2dd35262bd2674c14bbecec017b476810d9070006bd21943"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:48:45.651757+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_c26408615cd64cd5b93921d20640a9ac",
+      "title": "Thermostable Bacterial Laccase: Catalytic Properties and Its Application in Biotransformation of Emerging Pollutants.",
+      "authors": [
+        "Panwar V",
+        "Lzaod S",
+        "Dutta T"
+      ],
+      "published_at": "2023-09-13",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1021/acsomega.3c03627",
+        "pmid": "37779991",
+        "pmcid": "PMC10536042",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/37779991",
+      "abstract_or_excerpt": "Laccases have been predominantly reported in fungi, and primarily, fungal laccases are currently exploited in industrial applications. However, extremophilic bacterial laccases possess immense potential, as they can withstand extreme temperatures, pH, and salt concentrations. In addition, unlike fungal laccases, the production of bacterial laccases is cost-effective. Therefore, bacterial laccases are gaining significant attention for their large-scale applications. Previously, we reported a novel thermostable laccase (LacT) from <i>Brevibacillus agri</i>. Herein, we have confirmed that LacT shares a high sequence similarity with CotA laccase from <i>Bacillus amyloliquefaciens</i>. Peptide mass fingerprinting of LacT was conducted via matrix-assisted laser desorption ionization-time-of-flight mass spectrometry (MALDI-TOF/MS-MS). Inductively coupled plasma-optical emission spectroscopic (ICP-OES) analysis revealed the presence of ∼3.95 copper ions per protein molecule. Moreover, the secondary and tertiary structure of LacT was studied using circular dichroism (CD) and fluorescence spectroscopy. The absence of notable shifts in CD and fluorescence spectra with an increase in temperature established that LacT remains intact even at elevated temperatures. Analysis of the thermal denaturation profile of LacT by thermogravimetric analysis (TGA) also confirmed its temperature stability. Thereafter, we exploited LacT in its application for the bioremediation of phenolic endocrine disruptors, namely, triclosan, 4,4'-dihydroxybiphenyl, and dienestrol. LacT oxidizes 4,4'-dihydroxybiphenyl and triclosan but no LacT activity was detected with dienestrol. The rate of biotransformation of 4,4'-dihydroxybiphenyl and triclosan increased in the presence of CuSO<sub>4</sub> and a redox mediator, ABTS. Transformation of dienestrol was observed only with LacT in the presence of ABTS. This study establishes the application of LacT for the bioremediation of phenolic compounds.",
+      "normalized_facts": {
+        "journal": "ACS omega",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "accepted",
+      "rejection_reason": null,
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "8dcabe0a49aceb5f3348dfc4e1b792bd73fc980fd3f52d87279e58984e44367a"
+    },
+    {
+      "evidence_id": "evd_70f1a92ff0844d5d8f963559fa262dae",
+      "title": "Mitigating Dietary Bisphenol Exposure Through the Gut Microbiota: The Role of Next-Generation Probiotics in Bacterial Detoxification.",
+      "authors": [
+        "Emanowicz P",
+        "Średnicka P",
+        "Wójcicki M",
+        "Roszko M",
+        "Juszczuk-Kubiak E"
+      ],
+      "published_at": "2024-10-31",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/nu16213757",
+        "pmid": "39519589",
+        "pmcid": "PMC11547510",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/39519589",
+      "abstract_or_excerpt": "Bisphenols, such as bisphenol A and its analogs, which include bisphenol S, bisphenol F, bisphenol AF, and tetramethyl bisphenol F, are chemical contaminants commonly found in food that raise serious health concerns. These xenobiotics can potentially have harmful effects on human health. The gut microbiota plays a crucial role in metabolizing and neutralizing these substances, which is essential for their detoxification and elimination. Probiotic supplementation has been studied for its ability to modulate the gut microbiota's composition and function, enhancing detoxification processes. Next-Generation Probiotics (NGPs) may exhibit better properties than traditional strains and are designed for targeted action on specific conditions, such as obesity. By modulating inflammatory responses and reducing the secretion of pro-inflammatory cytokines, they can significantly improve host health. Research on NGPs' ability to neutralize obesogenic bisphenols remains limited, but their potential makes this a promising area for future exploration. This review aims to understand the mechanisms of the chemical transformation of bisphenol through its interactions with the gut microbiota and the role of probiotics, particularly NGPs, in these processes. Understanding the interplay between bisphenols, gut microbiota, and NGPs may pave the way for strategies to counteract the negative health effects associated with daily and chronic exposure to bisphenols, which is crucial for food safety and consumer health protection.",
+      "normalized_facts": {
+        "journal": "Nutrients",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2024"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "afdf8758bf2e25e78a42bbe112021e15b0699acb8c9082cd179601671c82e0bb"
+    },
+    {
+      "evidence_id": "evd_9e14298b5cf84a03901b383131b9c222",
+      "title": "Tris(4-chlorophenyl)methane and tris(4-chlorophenyl)methanol disrupt pancreatic organogenesis and gene expression in zebrafish embryos.",
+      "authors": [
+        "Wilson PW",
+        "Cho C",
+        "Allsing N",
+        "Khanum S",
+        "Bose P",
+        "Grubschmidt A",
+        "Sant KE"
+      ],
+      "published_at": "2022-12-05",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1002/bdr2.2132",
+        "pmid": "36470842",
+        "pmcid": "PMC10284116",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36470842",
+      "abstract_or_excerpt": "<h4>Objectives</h4>Tris(4-chlorophenyl) methane (TCPM) and tris(4-chlorophenyl)methanol (TCPMOH) are anthropogenic environmental contaminants believed to be manufacturing byproducts of the organochlorine pesticide dichlorodiphenyltrichloroethane (DDT) due to environmental co-occurrence. TCPM and TCPMOH are persistent, bioaccumulate in the environment, and are detected in human breast milk and adipose tissues. DDT exposures have been previously shown to disrupt insulin signaling and glucoregulation, increasing risk for diabetes. We have previously shown that embryonic exposures organochlorines such as polychlorinated biphenyls disrupted pancreatic development and early embryonic glucoregulatory networks. Here, we determined the impacts of the similar compounds TCPM and TCPMOH on zebrafish pancreatic growth and gene expression following developmental exposures.<h4>Methods</h4>Zebrafish embryos were exposed to 50 nM TCPM or TCPMOH beginning at 24 hr postfertilization (hpf) and exposures were refreshed daily. At 96 hpf, pancreatic growth and islet area were directly visualized in Tg(ptf1a::GFP) and Tg(insulin::GFP) embryos, respectively, using microscopy. Gene expression was assessed at 100 hpf with RNA sequencing.<h4>Results</h4>Islet and total pancreas area were reduced by 20.8% and 13% in embryos exposed to 50 nM TCPMOH compared to controls. TCPM did not induce significant morphological changes to the developing pancreas, indicating TCPMOH, but not TCPM, impairs pancreatic development despite similarity in molecular responses. Transcriptomic responses to TCPM and TCPMOH were correlated (R<sup>2</sup>  = .903), and pathway analysis found downregulation of processes including retinol metabolism, circadian rhythm, and steroid biosynthesis.<h4>Conclusion</h4>Overall, our data suggest that TCPM and TCPMOH may be hazardous to embryonic growth and development.",
+      "normalized_facts": {
+        "journal": "Birth defects research",
+        "pub_type": "Research Support, Non-U.S. Gov't, research-article, Journal Article, Research Support, N.I.H., Extramural",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "d1f0c0d2ffdda7fc9facb7c8bbf47ad434c54ef6a50127925b721608bfa59089"
+    },
+    {
+      "evidence_id": "evd_e3660d88eafd4f728b6e87d24067496b",
+      "title": "Dietary Intake of Endocrine Disrupting Substances Presents in Environment and Their Impact on Thyroid Function.",
+      "authors": [
+        "Sokal A",
+        "Jarmakiewicz-Czaja S",
+        "Tabarkiewicz J",
+        "Filip R"
+      ],
+      "published_at": "2021-03-06",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/nu13030867",
+        "pmid": "33800806",
+        "pmcid": "PMC7998837",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/33800806",
+      "abstract_or_excerpt": "According to the available data, environmental pollution is a serious problem all over the world. Between 2015 and 2016, pollution was responsible for approximately nine million deaths worldwide. They also include endocrine disrupting chemicals (EDCs) that can interfere with the functioning of the thyroid gland. They are characterized by high persistence in the environment. These substances can enter the body through the gastrointestinal tract, respiratory system, as well as contact with the skin and overcome the placental barrier. EDC can be found in food, water, and personal care products. They can get into food from the environment and as a result of their migration to food products and cosmetics from packaging. EDCs can disrupt the functioning of the thyroid gland through a number of mechanisms, including disrupting the activation of thyroid receptors and the expression of genes that are related to the metabolism, synthesis, and transport of thyroid hormones (HT). There is a need to strengthen the food safety policy that aimed at the use of appropriate materials in direct contact with food. At the same time, an important action is to reduce the production of all waste and, when possible, use biodegradable packaging, which may contribute to the improvement of the quality of the entire ecosystem and the health of food, thus reducing the risk of developing thyroid diseases.",
+      "normalized_facts": {
+        "journal": "Nutrients",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "4bd854c725f7b1751add9eb9438ef36c1ce6e99ad89276099135063e49241c00"
+    },
+    {
+      "evidence_id": "evd_e98dd658283844a4a8ac60cb7e5c2154",
+      "title": "UV aged epoxy coatings - Ecotoxicological effects and released compounds.",
+      "authors": [
+        "Bell AM",
+        "Keltsch N",
+        "Schweyen P",
+        "Reifferscheid G",
+        "Ternes T",
+        "Buchinger S"
+      ],
+      "published_at": "2021-06-02",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1016/j.wroa.2021.100105",
+        "pmid": "34189451",
+        "pmcid": "PMC8219897",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/34189451",
+      "abstract_or_excerpt": "Organic coatings can guarantee long-term protection of steel structures due to causing a physical barrier against water and oxygen. Because of their mechanical properties and resistances to heat and chemicals, epoxy resin-based coatings are widely used for corrosion protection. Despite of the aromatic backbone and the resulting susceptibility to UV degradation, epoxy resins are frequently used as binding agent in top layers of anti-corrosion coating systems. Consequently, these organic polymers are directly exposed to sunlight and thus UV radiation. The present study was designed to investigate if toxic effects of epoxy resin-based-coatings are changed by UV-A irradiation. For this purpose, two epoxide-based top coatings were examined with and without UV aging for their bacterial toxicity and estrogenicity. In addition, chemical analyses were performed to identify released compounds as well as photolytic degradation products and to assign toxic effects to individual substances. UV-A irradiation of epoxy resin based top coatings resulted in an overall decrease of acute and specific ecotoxicological effects but as well to the formation of toxic transformation products. Both, in leachates of untreated and UV-A irradiated coatings, 4<i>t</i>BP was identified as the main driver of estrogenicity and toxicity to luminescent bacteria. BPA and structural analogs contributing to estrogenic effects in leachates were formed by UV-A irradiation. The combination of HPTLC coupled bioassays and LC-MS analyses supported the identification of bioactive compounds in terms of an effect-directed analysis. The present findings indicate that epoxide-based coatings are less suitable for the application as top coatings and more UV stable coatings like aliphatic polyurethanes should be preferred.",
+      "normalized_facts": {
+        "journal": "Water research X",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2021"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "7783f10c85e39f3fd7c195620d55da2c5c23dbddb9a7a7e6c439839dd5b6bf3d"
+    },
+    {
+      "evidence_id": "evd_766c9e4d6c0d4634a4f781f9890dae77",
+      "title": "The Role of Silver Nanoparticles in Electrochemical Sensors for Aquatic Environmental Analysis.",
+      "authors": [
+        "Ivanišević I"
+      ],
+      "published_at": "2023-04-02",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/s23073692",
+        "pmid": "37050752",
+        "pmcid": "PMC10099384",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/37050752",
+      "abstract_or_excerpt": "With rapidly increasing environmental pollution, there is an urgent need for the development of fast, low-cost, and effective sensing devices for the detection of various organic and inorganic substances. Silver nanoparticles (AgNPs) are well known for their superior optoelectronic and physicochemical properties, and have, therefore, attracted a great deal of interest in the sensor arena. The introduction of AgNPs onto the surface of two-dimensional (2D) structures, incorporation into conductive polymers, or within three-dimensional (3D) nanohybrid architectures is a common strategy to fabricate novel platforms with improved chemical and physical properties for analyte sensing. In the first section of this review, the main wet chemical reduction approaches for the successful synthesis of functional AgNPs for electrochemical sensing applications are discussed. Then, a brief section on the sensing principles of voltammetric and amperometric sensors is given. The current utilization of silver nanoparticles and silver-based composite nanomaterials for the fabrication of voltammetric and amperometric sensors as novel platforms for the detection of environmental pollutants in water matrices is summarized. Finally, the current challenges and future directions for the nanosilver-based electrochemical sensing of environmental pollutants are outlined.",
+      "normalized_facts": {
+        "journal": "Sensors (Basel, Switzerland)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2023"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "06dfcc99fc2156eca536c05b043f4a289e7a2f189d30ba9f0160c61739644665"
+    },
+    {
+      "evidence_id": "evd_74a4759cdadc47a7b47422558ecc622c",
+      "title": "Emerging Estrogenic Pollutants in the Aquatic Environment and Breast Cancer.",
+      "authors": [
+        "Lecomte S",
+        "Habauzit D",
+        "Charlier TD",
+        "Pakdel F"
+      ],
+      "published_at": "2017-09-15",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/genes8090229",
+        "pmid": "28914763",
+        "pmcid": "PMC5615362",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/28914763",
+      "abstract_or_excerpt": "The number and amount of man-made chemicals present in the aquatic environment has increased considerably over the past 50 years. Among these contaminants, endocrine-disrupting chemicals (EDCs) represent a significant proportion. This family of compounds interferes with normal hormonal processes through multiple molecular pathways. They represent a potential risk for human and wildlife as they are suspected to be involved in the development of diseases including, but not limited to, reprotoxicity, metabolic disorders, and cancers. More precisely, several studies have suggested that the increase of breast cancers in industrialized countries is linked to exposure to EDCs, particularly estrogen-like compounds. Estrogen receptors alpha (ERα) and beta (ERβ) are the two main transducers of estrogen action and therefore important targets for these estrogen-like endocrine disrupters. More than 70% of human breast cancers are ERα-positive and estrogen-dependent, and their development and growth are not only influenced by endogenous estrogens but also likely by environmental estrogen-like endocrine disrupters. It is, therefore, of major importance to characterize the potential estrogenic activity from contaminated surface water and identify the molecules responsible for the hormonal effects. This information will help us understand how environmental contaminants can potentially impact the development of breast cancer and allow us to fix a maximal limit to the concentration of estrogen-like compounds that should be found in the environment. The aim of this review is to provide an overview of emerging estrogen-like compounds in the environment, sum up studies demonstrating their direct or indirect interactions with ERs, and link their presence to the development of breast cancer. Finally, we emphasize the use of in vitro and in vivo methods based on the zebrafish model to identify and characterize environmental estrogens.",
+      "normalized_facts": {
+        "journal": "Genes",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2017"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "888f90ed84d69f2d4c28e0a424bc0a3e2b1ae87968de87c86e7344112b6164c0"
+    },
+    {
+      "evidence_id": "evd_f19b403f559942b4b91217c54e132923",
+      "title": "Bio-Based Aromatic Epoxy Monomers for Thermoset Materials.",
+      "authors": [
+        "Ng F",
+        "Couture G",
+        "Philippe C",
+        "Boutevin B",
+        "Caillol S"
+      ],
+      "published_at": "2017-01-18",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/molecules22010149",
+        "pmid": "28106795",
+        "pmcid": "PMC6155700",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/28106795",
+      "abstract_or_excerpt": "The synthesis of polymers from renewable resources is a burning issue that is actively investigated. Polyepoxide networks constitute a major class of thermosetting polymers and are extensively used as coatings, electronic materials, adhesives. Owing to their outstanding mechanical and electrical properties, chemical resistance, adhesion, and minimal shrinkage after curing, they are used in structural applications as well. Most of these thermosets are industrially manufactured from bisphenol A (BPA), a substance that was initially synthesized as a chemical estrogen. The awareness on BPA toxicity combined with the limited availability and volatile cost of fossil resources and the non-recyclability of thermosets implies necessary changes in the field of epoxy networks. Thus, substitution of BPA has witnessed an increasing number of studies both from the academic and industrial sides. This review proposes to give an overview of the reported aromatic multifunctional epoxide building blocks synthesized from biomass or from molecules that could be obtained from transformed biomass. After a reminder of the main glycidylation routes and mechanisms and the recent knowledge on BPA toxicity and legal issues, this review will provide a brief description of the main natural sources of aromatic molecules. The different epoxy prepolymers will then be organized from simple, mono-aromatic di-epoxy, to mono-aromatic poly-epoxy, to di-aromatic di-epoxy compounds, and finally to derivatives possessing numerous aromatic rings and epoxy groups.",
+      "normalized_facts": {
+        "journal": "Molecules (Basel, Switzerland)",
+        "pub_type": "review-article, Review, Journal Article",
+        "pub_year": "2017"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "c95b1d31496fe750172674bbefd7c76ca0ab9191e5477a4df5702d941574188a"
+    },
+    {
+      "evidence_id": "evd_1ff7d3c0ef7547229e2a734a374e8c8c",
+      "title": "Pesticide exposure: the hormonal function of the female reproductive system disrupted?",
+      "authors": [
+        "Bretveld RW",
+        "Thomas CM",
+        "Scheepers PT",
+        "Zielhuis GA",
+        "Roeleveld N"
+      ],
+      "published_at": "2006-05-31",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1186/1477-7827-4-30",
+        "pmid": "16737536",
+        "pmcid": "PMC1524969",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/16737536",
+      "abstract_or_excerpt": "Some pesticides may interfere with the female hormonal function, which may lead to negative effects on the reproductive system through disruption of the hormonal balance necessary for proper functioning. Previous studies primarily focused on interference with the estrogen and/or androgen receptor, but the hormonal function may be disrupted in many more ways through pesticide exposure. The aim of this review is to give an overview of the various ways in which pesticides may disrupt the hormonal function of the female reproductive system and in particular the ovarian cycle. Disruption can occur in all stages of hormonal regulation: 1. hormone synthesis; 2. hormone release and storage; 3. hormone transport and clearance; 4. hormone receptor recognition and binding; 5. hormone postreceptor activation; 6. the thyroid function; and 7. the central nervous system. These mechanisms are described for effects of pesticide exposure in vitro and on experimental animals in vivo. For the latter, potential effects of endocrine disrupting pesticides on the female reproductive system, i.e. modulation of hormone concentrations, ovarian cycle irregularities, and impaired fertility, are also reviewed. In epidemiological studies, exposure to pesticides has been associated with menstrual cycle disturbances, reduced fertility, prolonged time-to-pregnancy, spontaneous abortion, stillbirths, and developmental defects, which may or may not be due to disruption of the female hormonal function. Because pesticides comprise a large number of distinct substances with dissimilar structures and diverse toxicity, it is most likely that several of the above-mentioned mechanisms are involved in the pathophysiological pathways explaining the role of pesticide exposure in ovarian cycle disturbances, ultimately leading to fertility problems and other reproductive effects. In future research, information on the ways in which pesticides may disrupt the hormonal function as described in this review, can be used to generate specific hypotheses for studies on the effects of pesticides on the ovarian cycle, both in toxicological and epidemiological settings.",
+      "normalized_facts": {
+        "journal": "Reproductive biology and endocrinology : RB&E",
+        "pub_type": "Research Support, Non-U.S. Gov't, review-article, Review, Journal Article",
+        "pub_year": "2006"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for tox21: compound_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:49:39.540335+00:00",
+      "content_sha256": "89863a2e11c4202fa7ecb9a8e4288ed6bafc3491e876b83d08222acc455c889e"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_4f90f91fce204073908fd19a4b8bb57b",
+        "session_id": "ses_686bc67e414c410087a71e231b0f965e",
+        "subject_key": "analysis:ana_4ddfcd9969b84be7b1eda96d4df3c634",
+        "question": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_4ddfcd9969b84be7b1eda96d4df3c634"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The predictor signal is consistent with possible activity in endocrine-receptor and cellular-stress screening assays for 4,4'-biphenol.",
+            "kind": "model_signal",
+            "refutation_condition": "Orthogonal testing of the same compound shows no reproducible activity in the relevant receptor or stress-response assays at environmentally relevant concentrations.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          },
+          {
+            "id": "h2",
+            "statement": "The apparent assay pattern may be a model or assay-context signal that does not establish environmental hazard because exposure, potency, matrix effects, and ecological endpoints are not measured here.",
+            "kind": "assay_or_exposure",
+            "refutation_condition": "Compound-specific environmental exposure and orthogonal bioassay data demonstrate that the in-silico pattern predicts a relevant adverse ecological outcome.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored predictor classifies hERG as non_blocker and predicts activity in NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53, while classifying NR-AR and NR-AR-LBD as inactive.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.tox21.assays.*.active",
+            "scope": {
+              "assay": "12-task Tox21 panel",
+              "compound": "4,4'-biphenol",
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          },
+          {
+            "id": "e2",
+            "claim": "The analysis applicability result is an element-composition rule outcome and explicitly cannot confirm distributional similarity beyond element composition.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "applicability.status; applicability.reasons",
+            "scope": {
+              "compound": "4,4'-biphenol",
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          },
+          {
+            "id": "e3",
+            "claim": "The stored predictor reports a multi-assay Tox21 screening pattern and a hERG non-blocker classification.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg/tox21",
+              "use_context": "environmental screening"
+            },
+            "actor": "server",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "description": "The predictor probabilities are uncalibrated model scores, and applicability is only an element-based rule; predictive reliability for this compound and environmental context is not established.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "description": "No environmental concentration, bioavailability, species, dose, or ecological endpoint is supplied or measured, so environmental relevance cannot be determined.",
+            "severity": "blocking",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific evidence that could contradict or contextualize the model signal before setting report posture.",
+            "decision": "continue",
+            "outcome": "No accepted compound-specific hERG record was found; one retrieved article concerned biotransformation rather than direct confirmation of the reported assays.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the report recommendation stays within model endpoints and does not convert independent assay predictions into an aggregate hazard or safety conclusion.",
+            "decision": "answer",
+            "outcome": "Keep the conclusion as a screening flag, state that probabilities are uncalibrated model scores, and avoid counting active assays as severity.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run orthogonal, concentration-response confirmation for the strongest predicted Tox21 signals, prioritizing estrogen-receptor, AhR, aromatase, and stress-response assays, alongside an exposure/context assessment.",
+            "rationale": "This separates reproducible compound activity from an in-silico signal and tests whether concentrations relevant to the panel are plausible.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response activity or inactivity in orthogonal assays",
+              "measured or bounded environmental exposure and bioavailability",
+              "assay-interference and cytotoxicity controls"
+            ],
+            "actor": "model",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The predictor flags a multi-assay Tox21 screening pattern, especially endocrine-receptor, AhR/aromatase, and stress-response endpoints, while predicting hERG non-blockade.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The result supports placing 4,4'-biphenol in a screening-priority or follow-up category, not assigning an environmental hazard or safety classification.",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Do not report an aggregate toxicity score, assay-count severity, calibrated environmental risk, ecological effect, or safety conclusion.",
+            "Do not infer mechanism from the model's assay predictions or applicability flag."
+          ],
+          "what_would_change": [
+            "Compound-specific orthogonal concentration-response data and exposure/bioavailability information that confirm or weaken the predicted signals.",
+            "A validated, relevant environmental or regulatory assessment covering the use context and species of interest."
+          ],
+          "approver": "",
+          "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418"
+        },
+        "runs": [
+          {
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "goal": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_4dade376680c40668e0a897e3946db08",
+            "usage": {
+              "searches": 2,
+              "tool_calls": 23,
+              "denied_calls": 0,
+              "failed_calls": 1,
+              "evidence_reads": 1
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 1
+        },
+        "revision": 14,
+        "created_at": "2026-09-30T15:48:46.687465+00:00",
+        "updated_at": "2026-09-30T15:54:22.382271+00:00"
+      },
+      "events": {
+        "case_id": "scase_4f90f91fce204073908fd19a4b8bb57b",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_4f90f91fce204073908fd19a4b8bb57b",
+              "question": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?",
+              "requester": "dev-user",
+              "session_id": "ses_686bc67e414c410087a71e231b0f965e",
+              "subject_key": "analysis:ana_4ddfcd9969b84be7b1eda96d4df3c634",
+              "subject_refs": [
+                "analysis:ana_4ddfcd9969b84be7b1eda96d4df3c634"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:48:46.687465+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "We are profiling 4,4'-biphenol (C1=CC(=CC=C1C2=CC=C(C=C2)O)O) for an environmental screening panel. What does the assay picture say, and what should go in the report?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:48:46.687465+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The predictor signal is consistent with possible activity in endocrine-receptor and cellular-stress screening assays for 4,4'-biphenol.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Orthogonal testing of the same compound shows no reproducible activity in the relevant receptor or stress-response assays at environmentally relevant concentrations."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.278736+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "assay_or_exposure",
+              "can_say": [],
+              "statement": "The apparent assay pattern may be a model or assay-context signal that does not establish environmental hazard because exposure, potency, matrix effects, and ecological endpoints are not measured here.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Compound-specific environmental exposure and orthogonal bioassay data demonstrate that the in-silico pattern predicts a relevant adverse ecological outcome."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.278761+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor classifies hERG as non_blocker and predicts activity in NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, NR-PPAR-gamma, SR-ARE, SR-ATAD5, SR-HSE, SR-MMP, and SR-p53, while classifying NR-AR and NR-AR-LBD as inactive.",
+              "scope": {
+                "assay": "12-task Tox21 panel",
+                "compound": "4,4'-biphenol",
+                "endpoint": "herg/tox21",
+                "use_context": "environmental screening"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.tox21.assays.*.active",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.284116+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The analysis applicability result is an element-composition rule outcome and explicitly cannot confirm distributional similarity beyond element composition.",
+              "scope": {
+                "compound": "4,4'-biphenol",
+                "endpoint": "herg/tox21",
+                "use_context": "environmental screening"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "applicability.status; applicability.reasons",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285101+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 6
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "No accepted compound-specific hERG record was found; one retrieved article concerned biotransformation rather than direct confirmation of the reported assays.",
+              "purpose": "Look for compound-specific evidence that could contradict or contextualize the model signal before setting report posture.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285119+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 7
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Keep the conclusion as a screening flag, state that probabilities are uncalibrated model scores, and avoid counting active assays as severity.",
+              "purpose": "Check that the report recommendation stays within model endpoints and does not convert independent assay predictions into an aggregate hazard or safety conclusion.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285128+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 8
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "model_calibration",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The predictor probabilities are uncalibrated model scores, and applicability is only an element-based rule; predictive reliability for this compound and environmental context is not established.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285139+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 9
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "blocking",
+              "cannot_say": [],
+              "description": "No environmental concentration, bioavailability, species, dose, or ecological endpoint is supplied or measured, so environmental relevance cannot be determined.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285147+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 10
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run orthogonal, concentration-response confirmation for the strongest predicted Tox21 signals, prioritizing estrogen-receptor, AhR, aromatase, and stress-response assays, alongside an exposure/context assessment.",
+              "can_say": [],
+              "rationale": "This separates reproducible compound activity from an in-silico signal and tests whether concentrations relevant to the panel are plausible.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "concentration-response activity or inactivity in orthogonal assays",
+                "measured or bounded environmental exposure and bioavailability",
+                "assay-interference and cytotoxicity controls"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285155+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 11
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The predictor flags a multi-assay Tox21 screening pattern, especially endocrine-receptor, AhR/aromatase, and stress-response endpoints, while predicting hERG non-blockade.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The result supports placing 4,4'-biphenol in a screening-priority or follow-up category, not assigning an environmental hazard or safety classification.",
+                  "evidence_ids": [
+                    "e1",
+                    "e2"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Do not report an aggregate toxicity score, assay-count severity, calibrated environmental risk, ecological effect, or safety conclusion.",
+                "Do not infer mechanism from the model's assay predictions or applicability flag."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Compound-specific orthogonal concentration-response data and exposure/bioavailability information that confirm or weaken the predicted signals.",
+                "A validated, relevant environmental or regulatory assessment covering the use context and species of interest."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:50:52.285172+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 12
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor reports a multi-assay Tox21 screening pattern and a hERG non-blocker classification.",
+              "scope": {
+                "endpoint": "herg/tox21",
+                "use_context": "environmental screening"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_b8a0aa0786ae4c4293349d096eea41be",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:54:20.036100+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 13
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 2,
+                "tool_calls": 23,
+                "denied_calls": 0,
+                "failed_calls": 1,
+                "evidence_reads": 1
+              },
+              "answer_id": "ans_4dade376680c40668e0a897e3946db08",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:54:22.382271+00:00",
+            "run_id": "run_fdb0d7fcc76943ae83f996cd8a3c5418",
+            "revision": 14
+          }
+        ]
+      }
+    }
+  ]
+}

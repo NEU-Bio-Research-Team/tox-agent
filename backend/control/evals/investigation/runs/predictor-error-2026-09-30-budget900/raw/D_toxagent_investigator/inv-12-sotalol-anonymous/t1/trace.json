@@ -1,0 +1,1884 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_21470de684b44d268f8f2f1b485ce89f",
+        "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T15:45:50.308048+00:00",
+        "created_at": "2026-09-30T15:30:50.308048+00:00",
+        "started_at": "2026-09-30T15:30:50.447863+00:00",
+        "ended_at": "2026-09-30T15:33:53.928456+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "064323cebd496f2ce342b0b80f2a5615a0c9e3f987991fa115d1bfce6d55bc27"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 900,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 900,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:30:50.309104+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_313f261979194bf5aef9e5bdcfa6f37c",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:31:08.531890+00:00",
+              "tokens": {
+                "input": 5550,
+                "output": 79,
+                "reasoning": 47,
+                "cache_read": 2560,
+                "cache_write": 0,
+                "total": 8236
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_090ac0c9a1d633f893465f6cbd366e4a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f0b3e2001io8h0wMHatHCj4",
+                "step_id": "prt_0f2f0e46c001VIaAHddd1GlK9g",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_7d9efad4126c4429b7114c645628469d",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:31:15.842710+00:00",
+              "tokens": {
+                "input": 735,
+                "output": 124,
+                "reasoning": 40,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8579
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ce87be5bafa4aa05350a28c2a52b3cc6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f0e494001HXxqDkZ2QObY4u",
+                "step_id": "prt_0f2f100fd001fro7pG0AO6o4QQ",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e88f6495e1f94d8baa6ae8b374cdacc0",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:31:21.404180+00:00",
+              "tokens": {
+                "input": 2103,
+                "output": 142,
+                "reasoning": 18,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 9943
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_0fb81802d13b390c169adee9a89cb059",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f101170014p1fUSMHA4yK11",
+                "step_id": "prt_0f2f116b7001jFJW6FmhR8BHiD",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_9776fc309ffb452b9247a208e018e225",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:31:41.685829+00:00",
+              "tokens": {
+                "input": 696,
+                "output": 279,
+                "reasoning": 75,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 11802
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b10b0852f561287744ffe32c3b4eecd6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f116cf0014HzeDCC7KCOI6y",
+                "step_id": "prt_0f2f165f0001L4mC05gWFAaNZj",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_33fa6ef17ee74929bf7c51f68cf745e6",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:32:36.026040+00:00",
+              "tokens": {
+                "input": 1622,
+                "output": 2300,
+                "reasoning": 581,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 15255
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_31c1c7c86280800c802f85c11410fd3e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f1671c0015MiMxxOiGiQSXq",
+                "step_id": "prt_0f2f23a340013MVTi02fFWCnTR",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_82a246dec1d144cdb9e62db6ea71bf88",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:33:06.577689+00:00",
+              "tokens": {
+                "input": 3713,
+                "output": 1008,
+                "reasoning": 516,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 17013
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_7a1fb5a77fbe66df451aca0ff52c633f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f23a5b0013xrnsg2gcylqf7",
+                "step_id": "prt_0f2f2b18c0015RqgAPEFR0jq25",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_4ebd046163f04af58e6b959e4c33f840",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:33:27.959891+00:00",
+              "tokens": {
+                "input": 2574,
+                "output": 1008,
+                "reasoning": 11,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 18441
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_770a030c55abac46b26c0118379ce03e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f2b1a80012zCsHuA51x8Vqe",
+                "step_id": "prt_0f2f3050f0010EMbyAAEi7oOaL",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_5f84529814e94b5fbeec8e93cde0f6bc",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:33:51.178311+00:00",
+              "tokens": {
+                "input": 1765,
+                "output": 1065,
+                "reasoning": 44,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 19770
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_17e50a4c530bbdea47db5ca363e33907",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f30549001ct6dm7ATx3sQ3g",
+                "step_id": "prt_0f2f35fc10011hQzT36cj7KS6n",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_eb2b0c91fe8146a0afaa49eb0f627cbb",
+              "runtime_binding_id": "rtb_6e5251b2d5e74154a6aa9863c59292c5",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:33:53.773683+00:00",
+              "tokens": {
+                "input": 2137,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 17920,
+                "cache_write": 0,
+                "total": 20061
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_d8f4e0e5db446551e981ecfe016c94de",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2f3602100178GZQYel61Y0ms",
+                "step_id": "prt_0f2f369e4001w7yS4W0hVd6SFe",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_0a99b93afc4b4cf3a5c6a75a86bf3c7b",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "19d81c32ab6cac899025e43e4951261343bff3f8ded53b0a4df6849ffe9ee876",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:08.481789+00:00",
+            "ended_at": "2026-09-30T15:31:08.495140+00:00"
+          },
+          {
+            "call_id": "call_27817fc7748b47d68e3a0dd14994e78a",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "bb7d545d3b6e7b1257fb8f73af7181d26442251af2cc3b76092caf24a1150089",
+            "observation_ids": [
+              "obs_7861184fa6834f65bee88279aff0a716"
+            ],
+            "started_at": "2026-09-30T15:31:14.812458+00:00",
+            "ended_at": "2026-09-30T15:31:14.828439+00:00"
+          },
+          {
+            "call_id": "call_f19f12956d6b47328b0f7cb4f6cd2f93",
+            "tool_name": "read_scientific_skill",
+            "status": "error",
+            "error_code": "invalid_request",
+            "duration_ms": 8,
+            "arguments_sha256": "624a79d40b6e894d7b790c8550c2be821a2c58a7b74cef0f4c0c93193130b6ee",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:15.544405+00:00",
+            "ended_at": "2026-09-30T15:31:15.551361+00:00"
+          },
+          {
+            "call_id": "call_8446a04b0507443b853c216c1d6edc63",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:15.739740+00:00",
+            "ended_at": "2026-09-30T15:31:15.752265+00:00"
+          },
+          {
+            "call_id": "call_1eeffd1966e54452b57ff63119b314f6",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:21.066674+00:00",
+            "ended_at": "2026-09-30T15:31:21.080466+00:00"
+          },
+          {
+            "call_id": "call_b85d5645ab1c4d519aad60de7ba8bf19",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "4fa1ddda29c5b551d9f5971f6213d6c1642ca88955704f0856978549593bf575",
+            "observation_ids": [
+              "obs_7861184fa6834f65bee88279aff0a716"
+            ],
+            "started_at": "2026-09-30T15:31:21.170438+00:00",
+            "ended_at": "2026-09-30T15:31:21.180967+00:00"
+          },
+          {
+            "call_id": "call_d96c48fb03f54e04adf4e01180ba3d1e",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "ccfa26b6f819ab1d8421e246519d5fe6d4172fb6c64a6083f180cb5194cb8ae0",
+            "observation_ids": [
+              "obs_7861184fa6834f65bee88279aff0a716"
+            ],
+            "started_at": "2026-09-30T15:31:21.357186+00:00",
+            "ended_at": "2026-09-30T15:31:21.368864+00:00"
+          },
+          {
+            "call_id": "call_6ed4477ccd884801849a321e3b89df21",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1155,
+            "arguments_sha256": "fe5ab6cde7374ebf8ef4e37185adaae85180efed8c3ecdd294b005902b48e70a",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:27.020222+00:00",
+            "ended_at": "2026-09-30T15:31:28.174173+00:00"
+          },
+          {
+            "call_id": "call_2628872f580a493da4b0282a3ed90bdb",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 2571,
+            "arguments_sha256": "9ab7fb859ee838e3b2e1213be854c429739ab4e4124001a5bff56deeaf46dfde",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:39.086017+00:00",
+            "ended_at": "2026-09-30T15:31:41.655377+00:00"
+          },
+          {
+            "call_id": "call_3b63e3b790db43b89b1eece2cde8ce60",
+            "tool_name": "search_toxicology_evidence",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 1639,
+            "arguments_sha256": "23c360647fb3428a2d4acec62f7e575dbdd44b0bc2fd0b7fa5f7171a2ad17235",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:31:39.174822+00:00",
+            "ended_at": "2026-09-30T15:31:40.811705+00:00"
+          },
+          {
+            "call_id": "call_ce5fc55fc8c14265aa46df435a39ff05",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 21,
+            "arguments_sha256": "9e4774a1cf4abf38af962470e2fb5dfdcbb18c0a0f434328f77d9b6c00984257",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:32:35.972732+00:00",
+            "ended_at": "2026-09-30T15:32:35.991499+00:00"
+          },
+          {
+            "call_id": "call_907e015ac6f24beaa043620c0dff3a4b",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 26,
+            "arguments_sha256": "176f0209e1ea08f6fb7c4cbabe581b39f23870c8428fdd207110e9bdd891ba0e",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:33:27.891056+00:00",
+            "ended_at": "2026-09-30T15:33:27.915094+00:00"
+          },
+          {
+            "call_id": "call_1535247696e74c6d8a7491f25e66675f",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 138,
+            "arguments_sha256": "12d7b63b6d49e4a527e0c70ea20894e280dd18bd17795f926679a3cd0a2032dc",
+            "observation_ids": [
+              "obs_7861184fa6834f65bee88279aff0a716"
+            ],
+            "started_at": "2026-09-30T15:33:50.960082+00:00",
+            "ended_at": "2026-09-30T15:33:51.090209+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_6dad69829634479abf6e5ea8a88a0569",
+        "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+        "answer_markdown": "**hERG picture**\n\nThe model gives Compound X a blocker probability of 0.313892036676 and labels it non_blocker. This is an uncalibrated model output, not a clinical risk estimate or direct assay result.\n\n**What to do next**\n\nHold advancement at this screening gate and run a direct concentration-response hERG assay with appropriate controls. No accepted exact-compound independent hERG record was found in the bounded search, so the assay is the decision-relevant next step. This hERG result should not be generalized to other toxicity endpoints.",
+        "claims": [
+          {
+            "claim_id": "clm_22f8add7afe44e28b73c31cfa208478a",
+            "kind": "numeric",
+            "text": "The predicted hERG blocker probability for Compound X.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7861184fa6834f65bee88279aff0a716",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.31389203667640686,
+            "rendered_value": "0.313892036676"
+          },
+          {
+            "claim_id": "clm_f27528264d7f469f84b8347e30137415",
+            "kind": "classification",
+            "text": "The predicted hERG label for Compound X is non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7861184fa6834f65bee88279aff0a716",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_5a2b3c6324d9418ca985862abbe3ef71",
+            "kind": "scientific",
+            "text": "The hERG result is an uncalibrated model signal rather than direct experimental confirmation or a clinical risk estimate.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7861184fa6834f65bee88279aff0a716",
+            "field_path": "predictions.herg.probability_blocker"
+          },
+          {
+            "claim_id": "clm_450b208f41a542929e0f81da3d6d9fb6",
+            "kind": "recommendation",
+            "text": "Hold advancement at this screening gate pending a direct concentration-response hERG assay with appropriate controls.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7861184fa6834f65bee88279aff0a716",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_07825262ce2e47ce99ebcb7e2e996a73",
+            "kind": "limitation",
+            "text": "The hERG result should not be generalized to other toxicity endpoints.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7861184fa6834f65bee88279aff0a716",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_0da827f8e9614af0a66fcb057ebe03da",
+            "kind": "limitation",
+            "text": "The bounded search found no accepted exact-compound independent hERG record; this is a coverage limitation, not evidence of absence.",
+            "transform": "identity",
+            "citation_ids": []
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a model score and is not a calibrated experimental probability."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "The proposed direct hERG assay is a screening follow-up, not a complete assessment of the compound."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run a direct concentration-response hERG assay with exposure-relevant concentrations and appropriate positive and vehicle controls before advancing the compound beyond this screening gate.",
+            "basis_claim_ids": [
+              "clm_f27528264d7f469f84b8347e30137415",
+              "clm_5a2b3c6324d9418ca985862abbe3ef71",
+              "clm_0da827f8e9614af0a66fcb057ebe03da"
+            ]
+          }
+        ],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "bd62fbca7b184c84980d8843dedf1315632d00169b6e668a7e3f8d1f2df6ca04",
+        "created_at": "2026-09-30T15:33:51.015409+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_23aef0a99cbd485b8249f95d947dc107",
+        "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+        "goal": "Compound X (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) came out of a screening set. What does the hERG picture look like, and what should we do next?",
+        "subject_refs": [
+          "analysis:ana_043bafa2baa348f09579461011b7805c"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The predictor classifies Compound X as a hERG non-blocker with an uncalibrated blocker probability.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_7861184fa6834f65bee88279aff0a716"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "Direct concentration-response hERG testing is the appropriate next screening step because the case lacks direct experimental hERG evidence.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 900,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 900,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 3,
+          "tool_calls": 13,
+          "denied_calls": 0,
+          "failed_calls": 2,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_7861184fa6834f65bee88279aff0a716"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 18
+      },
+      "dossier": {
+        "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+        "case_id": "scase_862b2076a6064b45a87f242f045c0321",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "Compound X (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) came out of a screening set. What does the hERG picture look like, and what should we do next?",
+        "answer_id": "ans_6dad69829634479abf6e5ea8a88a0569",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+          "can_say": [
+            {
+              "text": "The predictor's narrow hERG output is a non-blocker classification for Compound X, but it is an uncalibrated model signal rather than direct experimental confirmation.",
+              "sources": [
+                "observation:obs_7861184fa6834f65bee88279aff0a716"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The next decision-relevant step is direct concentration-response hERG testing, because the case has no direct experimental hERG result.",
+              "sources": [
+                "observation:obs_7861184fa6834f65bee88279aff0a716"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Cannot conclude that Compound X is safe, clinically acceptable, or free of hERG liability.",
+            "Cannot infer an aggregate toxicity or risk judgment from this hERG result."
+          ],
+          "what_would_change": [
+            "A qualified direct hERG assay showing concentration-dependent inhibition would support holding or deprioritizing the compound for the scoped program.",
+            "A qualified direct hERG assay showing minimal inhibition under relevant conditions would support reconsidering advancement beyond this screening gate."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "status": "open",
+            "context": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The applicability status is 'ok' under element_rules_v1, but its reason explicitly limits the check to element composition rather than broader distributional similarity.",
+                "scope": {
+                  "compound": "Compound X",
+                  "endpoint": "herg",
+                  "use_context": "screening prioritization"
+                },
+                "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+                "stance": "contextual",
+                "locator": "applicability.status; applicability.method; applicability.reasons",
+                "directness": "direct",
+                "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The predictor's hERG signal is directionally informative for prioritization: Compound X is classified as a model non-blocker.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored predictor assigns Compound X a hERG non-blocker label with an uncalibrated blocker probability and an artifact-defined threshold.",
+                "scope": {
+                  "compound": "Compound X",
+                  "endpoint": "herg",
+                  "use_context": "screening prioritization"
+                },
+                "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "direct",
+                "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A direct, fit-for-purpose hERG assay shows meaningful channel inhibition under the planned screening conditions."
+          },
+          {
+            "id": "h2",
+            "kind": "alternative_explanation",
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "status": "open",
+            "context": [
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The applicability status is 'ok' under element_rules_v1, but its reason explicitly limits the check to element composition rather than broader distributional similarity.",
+                "scope": {
+                  "compound": "Compound X",
+                  "endpoint": "herg",
+                  "use_context": "screening prioritization"
+                },
+                "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+                "stance": "contextual",
+                "locator": "applicability.status; applicability.method; applicability.reasons",
+                "directness": "direct",
+                "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1",
+                  "h2"
+                ]
+              }
+            ],
+            "statement": "The apparent non-blocker result may not predict the compound's experimental hERG behavior because the model signal is uncalibrated and no exact-compound independent record was found.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A direct hERG assay confirms minimal inhibition across relevant concentrations and conditions."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a direct concentration-response hERG assay using Compound X, with exposure-relevant concentrations and appropriate positive/vehicle controls.",
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "rationale": "This directly tests whether the model non-blocker signal transfers to measured channel inhibition and resolves the missing direct endpoint.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response inhibition",
+              "potency estimate such as IC50 or an assay-qualified equivalent",
+              "assay quality-control acceptance"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_043bafa2baa348f09579461011b7805c"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored predictor assigns Compound X a hERG non-blocker label with an uncalibrated blocker probability and an artifact-defined threshold.",
+            "scope": {
+              "compound": "Compound X",
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "direct",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The applicability status is 'ok' under element_rules_v1, but its reason explicitly limits the check to element composition rather than broader distributional similarity.",
+            "scope": {
+              "compound": "Compound X",
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "stance": "contextual",
+            "locator": "applicability.status; applicability.method; applicability.reasons",
+            "directness": "direct",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The predictor classifies Compound X as a hERG non-blocker with an uncalibrated blocker probability.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The predictor classifies Compound X as a hERG non-blocker with an uncalibrated blocker probability.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+              "outcome": "The bounded literature search returned no accepted exact-compound hERG record; absence of a result is not evidence of absence.",
+              "purpose": "Look for exact-compound independent hERG evidence that could contradict or confirm the predictor signal.",
+              "decision": "stop",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+              "outcome": "Recommendation kept conditional on direct assay confirmation; no safety, clinical, or regulatory conclusion is made.",
+              "purpose": "Check that the recommendation does not treat the model score as independent evidence or extend beyond hERG screening.",
+              "decision": "continue",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_endpoint",
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No direct experimental hERG result, assay conditions, concentration-response, or exposure context is available for Compound X.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_23aef0a99cbd485b8249f95d947dc107",
+  "analysis": {
+    "run": {
+      "run_id": "run_6460925fb01f429a8afc69bb541efb95",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_a086311e70d14b9a9125c5a7a01ed8ef",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:45:49.259953+00:00",
+      "created_at": "2026-09-30T15:30:49.259953+00:00",
+      "started_at": "2026-09-30T15:30:49.268425+00:00",
+      "ended_at": "2026-09-30T15:30:49.292151+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 900,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:30:49.260772+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_043bafa2baa348f09579461011b7805c",
+      "input_smiles": "CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O",
+      "canonical_smiles": "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.31389203667640686,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.34105294942855835,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.22940246760845184,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.08216343820095062,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.08565910905599594,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.07914239168167114,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.04595719650387764,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.045055847615003586,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.009625843726098537,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.06216741353273392,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.04601017385721207,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.08428068459033966,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.015566597692668438,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "89a5e6d5-d1c5-4fa7-9caa-010e85ddb06e",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 34,
+            "encoded_token_count": 34
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "987fd518b0cd2ad512812a553802f531eb042b286682b585ef8b7169bb714c65"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:30:49.288560+00:00"
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evd_325ac8758ff142758a5aafb947733e1a",
+      "title": "In Silico Identification of Multi-Target Ligands as Promising Hit Compounds for Neurodegenerative Diseases Drug Development.",
+      "authors": [
+        "Alov P",
+        "Stoimenov H",
+        "Lessigiarska I",
+        "Pencheva T",
+        "Tzvetkov NT",
+        "Pajeva I",
+        "Tsakovska I"
+      ],
+      "published_at": "2022-11-07",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.3390/ijms232113650",
+        "pmid": "36362434",
+        "pmcid": "PMC9655539",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/36362434",
+      "abstract_or_excerpt": "The conventional treatment of neurodegenerative diseases (NDDs) is based on the \"one molecule-one target\" paradigm. To combat the multifactorial nature of NDDs, the focus is now shifted toward the development of small-molecule-based compounds that can modulate more than one protein target, known as \"multi-target-directed ligands\" (MTDLs), while having low affinity for proteins that are irrelevant for the therapy. The in silico approaches have demonstrated a potential to be a suitable tool for the identification of MTDLs as promising drug candidates with reduction in cost and time for research and development. In this study more than 650,000 compounds were screened by a series of in silico approaches to identify drug-like compounds with predicted activity simultaneously towards three important proteins in the NDDs symptomatic treatment: acetylcholinesterase (AChE), histone deacetylase 2 (HDAC2), and monoamine oxidase B (MAO-B). The compounds with affinities below 5.0 µM for all studied targets were additionally filtered to remove known non-specifically binding or unstable compounds. The selected four hits underwent subsequent refinement through in silico blood-brain barrier penetration estimation, safety evaluation, and molecular dynamics simulations resulting in two hit compounds that constitute a rational basis for further development of multi-target active compounds against NDDs.",
+      "normalized_facts": {
+        "journal": "International journal of molecular sciences",
+        "pub_type": "research-article, Journal Article",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:31:41.646704+00:00",
+      "content_sha256": "0411efe6627deef7bdd946044cfd88c3a7c6ee44df8ef45491fc36eda1bb1ade"
+    },
+    {
+      "evidence_id": "evd_7ccc2a986b754df98453c00bc3c956fd",
+      "title": "UEG Week 2013 Poster Presentations",
+      "authors": [],
+      "published_at": "2013-10-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC4070603",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC4070603",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "United European gastroenterology journal",
+        "pub_type": "Abstract",
+        "pub_year": "2013"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:31:40.793065+00:00",
+      "content_sha256": "43a5f46f53ba7004fd2bbc2dadbbf0f6545368b46b1b9323dc821a813fc9a5dc"
+    },
+    {
+      "evidence_id": "evd_094f5a6192af45429440aa4662aed4bc",
+      "title": "Österreichische Kardiologische Gesellschaft Jahrestagung 2022 : \"Zurück in die Zukunft\".",
+      "authors": [],
+      "published_at": "2022-05-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1007/s00508-022-02035-w",
+        "pmid": "35608672",
+        "pmcid": "PMC9127041",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/35608672",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Wiener klinische Wochenschrift",
+        "pub_type": "News",
+        "pub_year": "2022"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:31:40.793065+00:00",
+      "content_sha256": "883f6a4f5bae5a3ba81fdcf13df0127038fd76fed2d6ac4198aade902e0da700"
+    },
+    {
+      "evidence_id": "evd_494e619d554a4d3d80c05fd5939149b6",
+      "title": "48th Annual Meeting February 14-18, 2004 Baltimore, Maryland : February 16, 2004 Monday Posters, Part 2",
+      "authors": [],
+      "published_at": "2004-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC1913821",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC1913821",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "2004"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:31:40.793065+00:00",
+      "content_sha256": "e033fd15b5260328f8af2c85f86042c49ab0174f12c906f8dad61884e7221230"
+    },
+    {
+      "evidence_id": "evd_d3d613e1340d4b84b4c1718d9a769a6b",
+      "title": "43rd Annual Meeting 13-17 February 1999 Baltimore, Maryland : February 15, 1999 Monday Posters, Part 1",
+      "authors": [],
+      "published_at": "1999-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": "PMC1913974",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/PMC/PMC1913974",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Biophysical journal",
+        "pub_type": "meeting-report, Meeting Report",
+        "pub_year": "1999"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:31:40.793065+00:00",
+      "content_sha256": "28a751ee948341fe1ce1b2558f2bf10c9d453491e77ff6df7db9b3e46d51ab79"
+    },
+    {
+      "evidence_id": "evd_3db4098718ad460b97b3485d46989a8f",
+      "title": "Abstracts of the 16th Annual Meeting of the Israel Society for Neuroscience, November 25-27, 2007, Eilat, Israel.",
+      "authors": [],
+      "published_at": "2007-01-01",
+      "source_type": "article",
+      "source_quality_tier": "authoritative_secondary",
+      "identifier": {
+        "doi": "10.1155/2007/30585",
+        "pmid": "25148070",
+        "pmcid": "PMC2366074",
+        "cid": null,
+        "other": null
+      },
+      "canonical_url": "https://europepmc.org/article/MED/25148070",
+      "abstract_or_excerpt": null,
+      "normalized_facts": {
+        "journal": "Neural plasticity",
+        "pub_type": "Overall, Conference Proceedings, meeting-report",
+        "pub_year": "2007"
+      },
+      "status": "rejected",
+      "rejection_reason": "assessed irrelevant for herg: compound_mismatch, endpoint_mismatch",
+      "untrusted_external_content": true,
+      "provider": "europepmc",
+      "retrieved_at": "2026-09-30T15:31:40.793065+00:00",
+      "content_sha256": "fdd4eb4385b5c744a1ad5a252db9411593a760431d5f6b42dc9d8a42f6033110"
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_862b2076a6064b45a87f242f045c0321",
+        "session_id": "ses_23aef0a99cbd485b8249f95d947dc107",
+        "subject_key": "analysis:ana_043bafa2baa348f09579461011b7805c",
+        "question": "Compound X (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) came out of a screening set. What does the hERG picture look like, and what should we do next?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_043bafa2baa348f09579461011b7805c"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The predictor's hERG signal is directionally informative for prioritization: Compound X is classified as a model non-blocker.",
+            "kind": "model_signal",
+            "refutation_condition": "A direct, fit-for-purpose hERG assay shows meaningful channel inhibition under the planned screening conditions.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          },
+          {
+            "id": "h2",
+            "statement": "The apparent non-blocker result may not predict the compound's experimental hERG behavior because the model signal is uncalibrated and no exact-compound independent record was found.",
+            "kind": "alternative_explanation",
+            "refutation_condition": "A direct hERG assay confirms minimal inhibition across relevant concentrations and conditions.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored predictor assigns Compound X a hERG non-blocker label with an uncalibrated blocker probability and an artifact-defined threshold.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "scope": {
+              "compound": "Compound X",
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          },
+          {
+            "id": "e2",
+            "claim": "The applicability status is 'ok' under element_rules_v1, but its reason explicitly limits the check to element composition rather than broader distributional similarity.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "locator": "applicability.status; applicability.method; applicability.reasons",
+            "scope": {
+              "compound": "Compound X",
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          },
+          {
+            "id": "e3",
+            "claim": "The predictor classifies Compound X as a hERG non-blocker with an uncalibrated blocker probability.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "screening prioritization"
+            },
+            "actor": "server",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_endpoint",
+            "description": "No direct experimental hERG result, assay conditions, concentration-response, or exposure context is available for Compound X.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for exact-compound independent hERG evidence that could contradict or confirm the predictor signal.",
+            "decision": "stop",
+            "outcome": "The bounded literature search returned no accepted exact-compound hERG record; absence of a result is not evidence of absence.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the recommendation does not treat the model score as independent evidence or extend beyond hERG screening.",
+            "decision": "continue",
+            "outcome": "Recommendation kept conditional on direct assay confirmation; no safety, clinical, or regulatory conclusion is made.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a direct concentration-response hERG assay using Compound X, with exposure-relevant concentrations and appropriate positive/vehicle controls.",
+            "rationale": "This directly tests whether the model non-blocker signal transfers to measured channel inhibition and resolves the missing direct endpoint.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "concentration-response inhibition",
+              "potency estimate such as IC50 or an assay-qualified equivalent",
+              "assay quality-control acceptance"
+            ],
+            "actor": "model",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The predictor's narrow hERG output is a non-blocker classification for Compound X, but it is an uncalibrated model signal rather than direct experimental confirmation.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The next decision-relevant step is direct concentration-response hERG testing, because the case has no direct experimental hERG result.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Cannot conclude that Compound X is safe, clinically acceptable, or free of hERG liability.",
+            "Cannot infer an aggregate toxicity or risk judgment from this hERG result."
+          ],
+          "what_would_change": [
+            "A qualified direct hERG assay showing concentration-dependent inhibition would support holding or deprioritizing the compound for the scoped program.",
+            "A qualified direct hERG assay showing minimal inhibition under relevant conditions would support reconsidering advancement beyond this screening gate."
+          ],
+          "approver": "",
+          "run_id": "run_3b7f470bffc74d0596fe1c033cff503f"
+        },
+        "runs": [
+          {
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "goal": "Compound X (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) came out of a screening set. What does the hERG picture look like, and what should we do next?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_6dad69829634479abf6e5ea8a88a0569",
+            "usage": {
+              "searches": 3,
+              "tool_calls": 13,
+              "denied_calls": 0,
+              "failed_calls": 2,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-30T15:30:50.319741+00:00",
+        "updated_at": "2026-09-30T15:33:53.886455+00:00"
+      },
+      "events": {
+        "case_id": "scase_862b2076a6064b45a87f242f045c0321",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_862b2076a6064b45a87f242f045c0321",
+              "question": "Compound X (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) came out of a screening set. What does the hERG picture look like, and what should we do next?",
+              "requester": "dev-user",
+              "session_id": "ses_23aef0a99cbd485b8249f95d947dc107",
+              "subject_key": "analysis:ana_043bafa2baa348f09579461011b7805c",
+              "subject_refs": [
+                "analysis:ana_043bafa2baa348f09579461011b7805c"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:30:50.319741+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "Compound X (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) came out of a screening set. What does the hERG picture look like, and what should we do next?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:30:50.319741+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The predictor's hERG signal is directionally informative for prioritization: Compound X is classified as a model non-blocker.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A direct, fit-for-purpose hERG assay shows meaningful channel inhibition under the planned screening conditions."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.982937+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "alternative_explanation",
+              "can_say": [],
+              "statement": "The apparent non-blocker result may not predict the compound's experimental hERG behavior because the model signal is uncalibrated and no exact-compound independent record was found.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A direct hERG assay confirms minimal inhibition across relevant concentrations and conditions."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.982966+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor assigns Compound X a hERG non-blocker label with an uncalibrated blocker probability and an artifact-defined threshold.",
+              "scope": {
+                "compound": "Compound X",
+                "endpoint": "herg",
+                "use_context": "screening prioritization"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+              "statement": "The stored predictor assigns Compound X a hERG non-blocker label with an uncalibrated blocker probability and an artifact-defined threshold.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984017+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The applicability status is 'ok' under element_rules_v1, but its reason explicitly limits the check to element composition rather than broader distributional similarity.",
+              "scope": {
+                "compound": "Compound X",
+                "endpoint": "herg",
+                "use_context": "screening prioritization"
+              },
+              "stance": "contextual",
+              "can_say": [],
+              "locator": "applicability.status; applicability.method; applicability.reasons",
+              "statement": "The applicability status is 'ok' under element_rules_v1, but its reason explicitly limits the check to element composition rather than broader distributional similarity.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984892+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 6
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The bounded literature search returned no accepted exact-compound hERG record; absence of a result is not evidence of absence.",
+              "purpose": "Look for exact-compound independent hERG evidence that could contradict or confirm the predictor signal.",
+              "decision": "stop",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984912+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 7
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_endpoint",
+              "scope": {
+                "compound": "Compound X",
+                "endpoint": "herg",
+                "use_context": "screening prioritization"
+              },
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "No direct experimental hERG result, assay conditions, concentration-response, or exposure context is available for Compound X.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984923+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 8
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Recommendation kept conditional on direct assay confirmation; no safety, clinical, or regulatory conclusion is made.",
+              "purpose": "Check that the recommendation does not treat the model score as independent evidence or extend beyond hERG screening.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984931+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 9
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run a direct concentration-response hERG assay using Compound X, with exposure-relevant concentrations and appropriate positive/vehicle controls.",
+              "scope": {
+                "assay": "direct concentration-response hERG assay",
+                "compound": "Compound X",
+                "endpoint": "herg",
+                "use_context": "screening follow-up"
+              },
+              "can_say": [],
+              "rationale": "This directly tests whether the model non-blocker signal transfers to measured channel inhibition and resolves the missing direct endpoint.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "concentration-response inhibition",
+                "potency estimate such as IC50 or an assay-qualified equivalent",
+                "assay quality-control acceptance"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984942+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 10
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The predictor's narrow hERG output is a non-blocker classification for Compound X, but it is an uncalibrated model signal rather than direct experimental confirmation.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The next decision-relevant step is direct concentration-response hERG testing, because the case has no direct experimental hERG result.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Cannot conclude that Compound X is safe, clinically acceptable, or free of hERG liability.",
+                "Cannot infer an aggregate toxicity or risk judgment from this hERG result."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A qualified direct hERG assay showing concentration-dependent inhibition would support holding or deprioritizing the compound for the scoped program.",
+                "A qualified direct hERG assay showing minimal inhibition under relevant conditions would support reconsidering advancement beyond this screening gate."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:32:35.984956+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 11
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor classifies Compound X as a hERG non-blocker with an uncalibrated blocker probability.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "screening prioritization"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_7861184fa6834f65bee88279aff0a716",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:33:51.081434+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 3,
+                "tool_calls": 13,
+                "denied_calls": 0,
+                "failed_calls": 2,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_6dad69829634479abf6e5ea8a88a0569",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:33:53.886455+00:00",
+            "run_id": "run_3b7f470bffc74d0596fe1c033cff503f",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

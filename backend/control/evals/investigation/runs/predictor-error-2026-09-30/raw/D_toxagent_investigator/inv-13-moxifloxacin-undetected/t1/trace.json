@@ -1,0 +1,1618 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_f793b08bce624b658ba90fe349bee248",
+        "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T15:07:33.936692+00:00",
+        "created_at": "2026-09-30T15:02:33.936692+00:00",
+        "started_at": "2026-09-30T15:02:34.071270+00:00",
+        "ended_at": "2026-09-30T15:04:57.628334+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "8f7037dbe610d51bf351f360a9443c2661f33760d5017e57a837eeb15258a990"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [
+              "study"
+            ],
+            "confidence": "high",
+            "reason_codes": [
+              "research_phrase"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:02:33.937330+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_5396d794e7ad4a6c89bdc3158dc9ebdf",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:02:43.424031+00:00",
+              "tokens": {
+                "input": 8204,
+                "output": 46,
+                "reasoning": 44,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8294
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_490e20e0f7a9ef77881c09f40739631f",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d6c8300013FnuNd7dJ14ZZV",
+                "step_id": "prt_0f2d6dfda001Ci7DE5ua2dTJK0",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_a3242c99dbfa4666ae2d70e0f54b1819",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:02:49.525634+00:00",
+              "tokens": {
+                "input": 815,
+                "output": 116,
+                "reasoning": 46,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8657
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_ff515eef0854df2453da605c8e3a181a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d6e006001okCzb7mULHRqb1",
+                "step_id": "prt_0f2d6f7b00014XRXmXc7yKAkyd",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c0e42093b7bc4a9da137f145f97ef06e",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:03:05.207202+00:00",
+              "tokens": {
+                "input": 3001,
+                "output": 314,
+                "reasoning": 91,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 11086
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6bd5c08438aa18d638e04937b4d41b7a",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d6f7ce001xqrC8bgGL7pKCk",
+                "step_id": "prt_0f2d734ec001PU6RTYtL1K4dZP",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_2d17751eb529454bb4263bd45ba91008",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:03:11.141216+00:00",
+              "tokens": {
+                "input": 12005,
+                "output": 94,
+                "reasoning": 34,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 12133
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_12ca00501e45a3f704619b8135c47ca3",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d7351d001vtK3sbHbOK0sdE",
+                "step_id": "prt_0f2d74c1e001fg9rFLnfVUfJzM",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e216987ce2c64a5db1fa4730ca711bcb",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:03:56.855932+00:00",
+              "tokens": {
+                "input": 474,
+                "output": 2135,
+                "reasoning": 266,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 14651
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_06cf91f88ae4ca7d6792dd5c50a0dcda",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d74c3c0017RaQ2LIvFwWWMl",
+                "step_id": "prt_0f2d7feb2001Tw490AfxPXQuJw",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f2c95ecefde943fabfd2ef41c4096354",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:04:10.908624+00:00",
+              "tokens": {
+                "input": 3109,
+                "output": 949,
+                "reasoning": 478,
+                "cache_read": 11776,
+                "cache_write": 0,
+                "total": 16312
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_aeca518bc7bc63217cabdcda0be0dba6",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d7fece001xYQlyvbgEbOkzt",
+                "step_id": "prt_0f2d83598001xOd6w73DzwtbE3",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_0a3226785f4e4f87a847e6753a1950e0",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:04:30.364333+00:00",
+              "tokens": {
+                "input": 2839,
+                "output": 949,
+                "reasoning": 13,
+                "cache_read": 13824,
+                "cache_write": 0,
+                "total": 17625
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8a4e2948ab2531305b11c3b521542ca1",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d835af001M841BWU9SGfDLd",
+                "step_id": "prt_0f2d88197001LBdig9M1ARpmdT",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_ac6cdd383a0f414ab9af5c2fc0884556",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:04:55.373446+00:00",
+              "tokens": {
+                "input": 1971,
+                "output": 955,
+                "reasoning": 212,
+                "cache_read": 15872,
+                "cache_write": 0,
+                "total": 19010
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b441583b36a8b15b30708eb4202588a5",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d881bd001cCYDdiX5s8DuEc",
+                "step_id": "prt_0f2d8e346001lxhVeH4Up8Hlf3",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_698ec770d4024385ac51507bfe563d38",
+              "runtime_binding_id": "rtb_2df3244fae6f4cd7a3b5f0a08d70236a",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:04:57.573289+00:00",
+              "tokens": {
+                "input": 2381,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 19281
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_cf02df4f20b93e346eac570bcd533c37",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d8e362001znMfErIgcl328L",
+                "step_id": "prt_0f2d8ebe0001lmgBanNeoYu5cs",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_b428697164ef4a2e996d8c462b04f821",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 31,
+            "arguments_sha256": "9f17b3db1c7fd302d95b3a1c498ba158c2396dbc8f8c575e638b2d4832a7aa8e",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:02:43.326594+00:00",
+            "ended_at": "2026-09-30T15:02:43.355675+00:00"
+          },
+          {
+            "call_id": "call_439d6ff1210f49f480bba0b389ba1e04",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:02:49.326361+00:00",
+            "ended_at": "2026-09-30T15:02:49.337771+00:00"
+          },
+          {
+            "call_id": "call_4f6daa24be3f45cb92e5a198e26a963a",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "677ec9a20508c907b75db67145a734e5fd0b4f2050340a9db63f39965d439762",
+            "observation_ids": [
+              "obs_7f18b782878245d1b6001094e241aa7b"
+            ],
+            "started_at": "2026-09-30T15:02:49.367659+00:00",
+            "ended_at": "2026-09-30T15:02:49.379088+00:00"
+          },
+          {
+            "call_id": "call_9f0547e4e41f45e1a94860d4e3c18024",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:02:49.476941+00:00",
+            "ended_at": "2026-09-30T15:02:49.491336+00:00"
+          },
+          {
+            "call_id": "call_3590c02d920040dfade5e92378829dde",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "7d2667d1eff562058d7a63709d923dd381a20a32ceddd3338250c411e617eb51",
+            "observation_ids": [
+              "obs_7f18b782878245d1b6001094e241aa7b"
+            ],
+            "started_at": "2026-09-30T15:03:04.010407+00:00",
+            "ended_at": "2026-09-30T15:03:04.023629+00:00"
+          },
+          {
+            "call_id": "call_14c4980351a8489f8084d7a377b7ba40",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 19,
+            "arguments_sha256": "5cedcf257e19d82f8aa4cc41dee2de579b8f3148825b199988a2c0eb412492dc",
+            "observation_ids": [
+              "obs_7f18b782878245d1b6001094e241aa7b"
+            ],
+            "started_at": "2026-09-30T15:03:04.080754+00:00",
+            "ended_at": "2026-09-30T15:03:04.097217+00:00"
+          },
+          {
+            "call_id": "call_9427a5cae71e4044b2c1e8eb141939b3",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 1009,
+            "arguments_sha256": "6b179a59858a5819df804cb872eb84e0299db1f1c198783606d373bb2bb230dd",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:03:04.142088+00:00",
+            "ended_at": "2026-09-30T15:03:05.148381+00:00"
+          },
+          {
+            "call_id": "call_a1395102299d4bccb97b5cbb2fd474e3",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 17,
+            "arguments_sha256": "507c404ae859932a53f851d68aa025c3494efb926d23cd5600e524f420e066b7",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:03:04.168028+00:00",
+            "ended_at": "2026-09-30T15:03:04.183266+00:00"
+          },
+          {
+            "call_id": "call_e9cb2a39e1c348b8b232edd9de2e22cd",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 22,
+            "arguments_sha256": "8ddfb898de7207e686735f4c6edc25addf4fefcc9a5f1df6046b7a41dd838b5f",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:03:11.025701+00:00",
+            "ended_at": "2026-09-30T15:03:11.046130+00:00"
+          },
+          {
+            "call_id": "call_8e988d20f83a498991a5668af749de2c",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 24,
+            "arguments_sha256": "7f7184fb249d285202151bf2cc411058462a7ce8ae75306dc1a723755d11cc97",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:03:56.799231+00:00",
+            "ended_at": "2026-09-30T15:03:56.822071+00:00"
+          },
+          {
+            "call_id": "call_f182d5282d9740209590b84ea3a3ac0a",
+            "tool_name": "submit_grounded_answer",
+            "status": "error",
+            "error_code": "answer_validation_failed",
+            "duration_ms": 21,
+            "arguments_sha256": "5cab4f9616a59f2b7d4011c216a0192737b7e372775d53d1c1d8feb0f565e8e7",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:04:30.311390+00:00",
+            "ended_at": "2026-09-30T15:04:30.330582+00:00"
+          },
+          {
+            "call_id": "call_a85f4a5338ed40f1b8143042683a9438",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 46,
+            "arguments_sha256": "41fd1ad48f1218d49410755e600ee5976078c34a39bdc1f3361cea244947de8d",
+            "observation_ids": [
+              "obs_7f18b782878245d1b6001094e241aa7b"
+            ],
+            "started_at": "2026-09-30T15:04:54.031034+00:00",
+            "ended_at": "2026-09-30T15:04:54.075515+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_39e203a30678449c932753b15c895382",
+        "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+        "answer_markdown": "Not as a standalone negative control for **general cardiac liability**. The stored model classifies this structure as hERG `non_blocker`, with an uncalibrated blocker score of `0.142543405294`.[^model]\n\nThat is only a narrow model signal, not evidence that the compound is negative across cardiac assays, concentrations, or exposure contexts. Use an established assay-specific negative control instead, or first verify moxifloxacin in the planned cardiac assay alongside established positive and negative controls.",
+        "claims": [
+          {
+            "claim_id": "clm_0d5bed4cd56f4782a60ad831e2bd05aa",
+            "kind": "classification",
+            "text": "The stored predictor classifies the submitted moxifloxacin structure as a hERG non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7f18b782878245d1b6001094e241aa7b",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_4bc1b810329a4ff3bc1f65b57fc658b6",
+            "kind": "numeric",
+            "text": "The stored predictor's hERG blocker probability for the submitted structure.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7f18b782878245d1b6001094e241aa7b",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.14254340529441833,
+            "rendered_value": "0.142543405294"
+          },
+          {
+            "claim_id": "clm_1169b021e2a84574add34418d7f154f4",
+            "kind": "limitation",
+            "text": "This deployment's analysis is limited to its served hERG and Tox21 outputs rather than a general cardiac-liability assessment.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7f18b782878245d1b6001094e241aa7b",
+            "field_path": "prediction_summary.available_sections"
+          },
+          {
+            "claim_id": "clm_a2d399ef6d3f4c62bb2eadd86e73d6ff",
+            "kind": "recommendation",
+            "text": "Do not use moxifloxacin as a standalone negative control for general cardiac liability on the basis of this analysis; verify it in the planned assay or use an established assay-specific negative control.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7f18b782878245d1b6001094e241aa7b",
+            "field_path": "prediction_summary.available_sections"
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The hERG probability is a model score, not a calibrated clinical or experimental risk."
+          },
+          {
+            "code": "endpoint_unavailable",
+            "text": "General cardiac liability beyond the served hERG endpoint is not assessed by this deployment."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "Assay verification is a screening step, not a safety assessment."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "Independent literature verification could not be completed because the evidence provider was unavailable."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run the planned cardiac assay with moxifloxacin plus established positive and negative controls before assigning it negative-control status.",
+            "basis_claim_ids": [
+              "clm_0d5bed4cd56f4782a60ad831e2bd05aa",
+              "clm_1169b021e2a84574add34418d7f154f4",
+              "clm_a2d399ef6d3f4c62bb2eadd86e73d6ff"
+            ]
+          }
+        ],
+        "candidate_generation": 2,
+        "is_fallback": false,
+        "content_sha256": "d6504719324dff049e5fe68f141007b5e97c7f8367b9923267ede8da5c1e9fe9",
+        "created_at": "2026-09-30T15:04:54.046248+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_cc15c123e5414861b5cc8975a08b00fb",
+        "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+        "goal": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?",
+        "subject_refs": [
+          "analysis:ana_8617ce7cd0ad4da78a3cfc494de444c3"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The stored model gives moxifloxacin a hERG non-blocker signal.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_7f18b782878245d1b6001094e241aa7b"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The hERG model output alone establishes suitability as a general cardiac-liability negative control.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "insufficient",
+            "artifact_refs": [
+              "observation:obs_7f18b782878245d1b6001094e241aa7b"
+            ],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 3,
+          "tool_calls": 12,
+          "denied_calls": 0,
+          "failed_calls": 4,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_7f18b782878245d1b6001094e241aa7b"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "accepted_after_correction",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 17
+      },
+      "dossier": {
+        "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+        "case_id": "scase_cb4f0b4c601b4263a784361e42f2dbf5",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 1,
+          "with_counterevidence_considered": 0,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?",
+        "answer_id": "ans_39e203a30678449c932753b15c895382",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+          "can_say": [
+            {
+              "text": "The stored predictor gives this moxifloxacin structure a narrow hERG non-blocker signal.",
+              "sources": [
+                "observation:obs_7f18b782878245d1b6001094e241aa7b"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "This analysis cannot establish moxifloxacin as a generally appropriate negative control for cardiac liability.",
+            "It cannot establish absence of cardiac liability, clinical safety, or suitability across other cardiac endpoints, assays, concentrations, or exposure contexts.",
+            "Independent counter-evidence was not obtained because the evidence provider was unavailable."
+          ],
+          "what_would_change": [
+            "Directly relevant experimental verification in the planned cardiac assay, compared with established controls, would resolve the suitability question."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "status": "unresolvable",
+            "context": [],
+            "statement": "The predictor's non-blocker signal is an adequate basis to use moxifloxacin as a negative control for the study's cardiac-liability readout.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The predictor output is a non-blocker hERG signal for this structure.",
+                "scope": {
+                  "assay": "model-predicted hERG blocker classification",
+                  "compound": "moxifloxacin",
+                  "endpoint": "herg",
+                  "use_context": "candidate negative control"
+                },
+                "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+                "directness": "direct",
+                "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "The model supports the narrow hERG signal, but the blocking uncertainty and lack of independent direct evidence prevent deciding whether it is suitable as a general cardiac-liability negative control.",
+            "evidence_against": [],
+            "refutation_condition": "A directly relevant hERG or cardiac electrophysiology result for the same compound and study context shows meaningful liability or demonstrates that the chosen readout is not covered by the predictor."
+          },
+          {
+            "id": "h2",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "status": "open",
+            "context": [],
+            "statement": "The predictor's narrow hERG signal is insufficient to establish moxifloxacin as a generally negative control for cardiac liability.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Independent, directly relevant evidence shows no liability in the specific cardiac endpoint, assay, exposure range and use context of the planned study."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a directly relevant orthogonal cardiac electrophysiology verification in the planned assay context, with an established negative and positive control.",
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "rationale": "This distinguishes a narrow model hERG signal from suitability as a negative control for the actual cardiac-liability readout.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "The compound's response in the planned cardiac assay relative to established controls.",
+              "Exposure- or concentration-dependent changes in the assay readout, if present."
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_8617ce7cd0ad4da78a3cfc494de444c3"
+        ],
+        "case_revision": 14,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The predictor output is a non-blocker hERG signal for this structure.",
+            "scope": {
+              "assay": "model-predicted hERG blocker classification",
+              "compound": "moxifloxacin",
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "directness": "direct",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The stored model gives moxifloxacin a hERG non-blocker signal.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The hERG model output alone establishes suitability as a general cardiac-liability negative control.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "stance": "insufficient",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The stored model gives moxifloxacin a hERG non-blocker signal.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          },
+          {
+            "id": "e3",
+            "actor": "server",
+            "claim": "The hERG model output alone establishes suitability as a general cardiac-liability negative control.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "stance": "insufficient",
+            "locator": null,
+            "directness": "indirect",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+              "outcome": "The evidence provider was unavailable, so no independent counter-evidence was accepted.",
+              "purpose": "Look for directly relevant evidence that could contradict treating the compound as a cardiac-liability negative control.",
+              "decision": "stop",
+              "hypothesis_ids": []
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+              "outcome": "The recommendation is narrowed to the stored hERG model signal; general cardiac-liability suitability remains unresolved.",
+              "purpose": "Check whether the proposed recommendation exceeds the endpoint coverage and independent evidence available.",
+              "decision": "answer",
+              "hypothesis_ids": []
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_endpoint",
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "status": "open",
+            "severity": "blocking",
+            "resolution": "",
+            "description": "The analysis serves hERG and Tox21 assays, not a general cardiac-liability endpoint; no independent experimental evidence was retrieved because the evidence provider was unavailable.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_cc15c123e5414861b5cc8975a08b00fb",
+  "analysis": {
+    "run": {
+      "run_id": "run_791432f3dea046dfa45c2dd20f28c9df",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_ba2212a668f846a995c3805ab073491e",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:07:32.893614+00:00",
+      "created_at": "2026-09-30T15:02:32.893614+00:00",
+      "started_at": "2026-09-30T15:02:32.901286+00:00",
+      "ended_at": "2026-09-30T15:02:32.921558+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:02:32.894380+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_8617ce7cd0ad4da78a3cfc494de444c3",
+      "input_smiles": "COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O",
+      "canonical_smiles": "COc1c(N2C[C@@H]3CCCN[C@@H]3C2)c(F)cc2c(=O)c(C(=O)O)cn(C3CC3)c12",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.14254340529441833,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.7929943203926086,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.2799506187438965,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.3516481816768646,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.5250524282455444,
+              "active": true,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.29065704345703125,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.25407832860946655,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.489885538816452,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.4063534140586853,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.6900485754013062,
+              "active": true,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.3181741237640381,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.3984413146972656,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.5965786576271057,
+              "active": true,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "4ced4b58-702c-4b0e-b62b-3679d97277a8",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 55,
+            "encoded_token_count": 55
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "d2e7a78a9da3d462b1e3a259c7f4a4079c5acd886a2022a150c8d7aabc10864c"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:02:32.918624+00:00"
+    }
+  },
+  "evidence": [],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_cb4f0b4c601b4263a784361e42f2dbf5",
+        "session_id": "ses_cc15c123e5414861b5cc8975a08b00fb",
+        "subject_key": "analysis:ana_8617ce7cd0ad4da78a3cfc494de444c3",
+        "question": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_8617ce7cd0ad4da78a3cfc494de444c3"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The predictor's non-blocker signal is an adequate basis to use moxifloxacin as a negative control for the study's cardiac-liability readout.",
+            "kind": "model_signal",
+            "refutation_condition": "A directly relevant hERG or cardiac electrophysiology result for the same compound and study context shows meaningful liability or demonstrates that the chosen readout is not covered by the predictor.",
+            "status": "unresolvable",
+            "status_reason": "The model supports the narrow hERG signal, but the blocking uncertainty and lack of independent direct evidence prevent deciding whether it is suitable as a general cardiac-liability negative control.",
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          },
+          {
+            "id": "h2",
+            "statement": "The predictor's narrow hERG signal is insufficient to establish moxifloxacin as a generally negative control for cardiac liability.",
+            "kind": "data_insufficient",
+            "refutation_condition": "Independent, directly relevant evidence shows no liability in the specific cardiac endpoint, assay, exposure range and use context of the planned study.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The predictor output is a non-blocker hERG signal for this structure.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+            "scope": {
+              "assay": "model-predicted hERG blocker classification",
+              "compound": "moxifloxacin",
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          },
+          {
+            "id": "e2",
+            "claim": "The stored model gives moxifloxacin a hERG non-blocker signal.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "actor": "server",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          },
+          {
+            "id": "e3",
+            "claim": "The hERG model output alone establishes suitability as a general cardiac-liability negative control.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+            "stance": "insufficient",
+            "directness": "indirect",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "candidate negative control"
+            },
+            "actor": "server",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "missing_endpoint",
+            "description": "The analysis serves hERG and Tox21 assays, not a general cardiac-liability endpoint; no independent experimental evidence was retrieved because the evidence provider was unavailable.",
+            "severity": "blocking",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for directly relevant evidence that could contradict treating the compound as a cardiac-liability negative control.",
+            "decision": "stop",
+            "outcome": "The evidence provider was unavailable, so no independent counter-evidence was accepted.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check whether the proposed recommendation exceeds the endpoint coverage and independent evidence available.",
+            "decision": "answer",
+            "outcome": "The recommendation is narrowed to the stored hERG model signal; general cardiac-liability suitability remains unresolved.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a directly relevant orthogonal cardiac electrophysiology verification in the planned assay context, with an established negative and positive control.",
+            "rationale": "This distinguishes a narrow model hERG signal from suitability as a negative control for the actual cardiac-liability readout.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "The compound's response in the planned cardiac assay relative to established controls.",
+              "Exposure- or concentration-dependent changes in the assay readout, if present."
+            ],
+            "actor": "model",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "The stored predictor gives this moxifloxacin structure a narrow hERG non-blocker signal.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "This analysis cannot establish moxifloxacin as a generally appropriate negative control for cardiac liability.",
+            "It cannot establish absence of cardiac liability, clinical safety, or suitability across other cardiac endpoints, assays, concentrations, or exposure contexts.",
+            "Independent counter-evidence was not obtained because the evidence provider was unavailable."
+          ],
+          "what_would_change": [
+            "Directly relevant experimental verification in the planned cardiac assay, compared with established controls, would resolve the suitability question."
+          ],
+          "approver": "",
+          "run_id": "run_f6efe159a7e24750befffd1da850c7c9"
+        },
+        "runs": [
+          {
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "goal": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_39e203a30678449c932753b15c895382",
+            "usage": {
+              "searches": 3,
+              "tool_calls": 12,
+              "denied_calls": 0,
+              "failed_calls": 4,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 0,
+          "open_uncertainties": 1,
+          "blocking_uncertainties": 1
+        },
+        "revision": 14,
+        "created_at": "2026-09-30T15:02:33.950674+00:00",
+        "updated_at": "2026-09-30T15:04:57.608397+00:00"
+      },
+      "events": {
+        "case_id": "scase_cb4f0b4c601b4263a784361e42f2dbf5",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_cb4f0b4c601b4263a784361e42f2dbf5",
+              "question": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?",
+              "requester": "dev-user",
+              "session_id": "ses_cc15c123e5414861b5cc8975a08b00fb",
+              "subject_key": "analysis:ana_8617ce7cd0ad4da78a3cfc494de444c3",
+              "subject_refs": [
+                "analysis:ana_8617ce7cd0ad4da78a3cfc494de444c3"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:02:33.950674+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "A colleague wants to use moxifloxacin (COC1=C2C(=CC(=C1N3C[C@@H]4CCCN[C@@H]4C3)F)C(=O)C(=CN2C5CC5)C(=O)O) as a negative control for cardiac liability in an upcoming study. Is that a reasonable choice?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:02:33.950674+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The predictor's non-blocker signal is an adequate basis to use moxifloxacin as a negative control for the study's cardiac-liability readout.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A directly relevant hERG or cardiac electrophysiology result for the same compound and study context shows meaningful liability or demonstrates that the chosen readout is not covered by the predictor."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.814224+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "statement": "The predictor's narrow hERG signal is insufficient to establish moxifloxacin as a generally negative control for cardiac liability.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Independent, directly relevant evidence shows no liability in the specific cardiac endpoint, assay, exposure range and use context of the planned study."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.814250+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The predictor output is a non-blocker hERG signal for this structure.",
+              "scope": {
+                "assay": "model-predicted hERG blocker classification",
+                "compound": "moxifloxacin",
+                "endpoint": "herg",
+                "use_context": "candidate negative control"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker; predictions.herg.threshold",
+              "statement": "For the submitted moxifloxacin structure, the stored predictor classified the hERG endpoint as non_blocker with blocker probability 0.14254340529441833 and threshold 0.4133453071117401.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815205+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 5
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_endpoint",
+              "can_say": [],
+              "severity": "blocking",
+              "cannot_say": [],
+              "description": "The analysis serves hERG and Tox21 assays, not a general cardiac-liability endpoint; no independent experimental evidence was retrieved because the evidence provider was unavailable.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815223+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 6
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The evidence provider was unavailable, so no independent counter-evidence was accepted.",
+              "purpose": "Look for directly relevant evidence that could contradict treating the compound as a cardiac-liability negative control.",
+              "decision": "stop",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815232+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 7
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "The recommendation is narrowed to the stored hERG model signal; general cardiac-liability suitability remains unresolved.",
+              "purpose": "Check whether the proposed recommendation exceeds the endpoint coverage and independent evidence available.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815240+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 8
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run a directly relevant orthogonal cardiac electrophysiology verification in the planned assay context, with an established negative and positive control.",
+              "can_say": [],
+              "rationale": "This distinguishes a narrow model hERG signal from suitability as a negative control for the actual cardiac-liability readout.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "The compound's response in the planned cardiac assay relative to established controls.",
+                "Exposure- or concentration-dependent changes in the assay readout, if present."
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815249+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 9
+          },
+          {
+            "op": "revise_hypothesis",
+            "payload": {
+              "reason": "The model supports the narrow hERG signal, but the blocking uncertainty and lack of independent direct evidence prevent deciding whether it is suitable as a general cardiac-liability negative control.",
+              "status": "unresolvable",
+              "can_say": [],
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_id": "h1",
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815257+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 10
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "The stored predictor gives this moxifloxacin structure a narrow hERG non-blocker signal.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "This analysis cannot establish moxifloxacin as a generally appropriate negative control for cardiac liability.",
+                "It cannot establish absence of cardiac liability, clinical safety, or suitability across other cardiac endpoints, assays, concentrations, or exposure contexts.",
+                "Independent counter-evidence was not obtained because the evidence provider was unavailable."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "Directly relevant experimental verification in the planned cardiac assay, compared with established controls, would resolve the suitability question."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:03:56.815278+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 11
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored model gives moxifloxacin a hERG non-blocker signal.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "candidate negative control"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:04:54.068930+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 12
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The hERG model output alone establishes suitability as a general cardiac-liability negative control.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "candidate negative control"
+              },
+              "stance": "insufficient",
+              "directness": "indirect",
+              "source_ref": "observation:obs_7f18b782878245d1b6001094e241aa7b",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:04:54.068930+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 13
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 3,
+                "tool_calls": 12,
+                "denied_calls": 0,
+                "failed_calls": 4,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_39e203a30678449c932753b15c895382",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:04:57.608397+00:00",
+            "run_id": "run_f6efe159a7e24750befffd1da850c7c9",
+            "revision": 14
+          }
+        ]
+      }
+    }
+  ]
+}

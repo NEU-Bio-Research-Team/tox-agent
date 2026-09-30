@@ -1,0 +1,1495 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+        "status": "completed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_d69370105f8e4238bfc671b1d57ddd66",
+        "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+        "recovery_of_run_id": null,
+        "failure_code": null,
+        "potentially_billed": false,
+        "deadline_at": "2026-09-30T15:02:38.088149+00:00",
+        "created_at": "2026-09-30T14:57:38.088149+00:00",
+        "started_at": "2026-09-30T14:57:38.259310+00:00",
+        "ended_at": "2026-09-30T15:00:24.956771+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "43f112a6e506ba9f407715cfe1197733a02d7fcd39ff8e2feb6fdf89edcfa243"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T14:57:38.089483+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_0d0fa89859fe465a8082dbfbdb71b348",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T14:57:49.171864+00:00",
+              "tokens": {
+                "input": 8126,
+                "output": 45,
+                "reasoning": 51,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8222
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_a8596068ca6207a2aca5455068217424",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d2459a001dSbDH5Lbt5zmL0",
+                "step_id": "prt_0f2d2626d001gd9dQDAXseOc5L",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f464c16b618c4820aca2546ba105c361",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T14:58:01.969320+00:00",
+              "tokens": {
+                "input": 8400,
+                "output": 205,
+                "reasoning": 71,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8676
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6a11f653a358191d5645f15e67efeb2e",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d2629a001L5GgpDfZiEmvdB",
+                "step_id": "prt_0f2d2946c001SBr5iuHKpz9tKK",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_9bd8eef9557945dab0b1563df356128d",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T14:58:44.257231+00:00",
+              "tokens": {
+                "input": 2625,
+                "output": 138,
+                "reasoning": 23,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10466
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_8185c6c9f0d330be2b61d2a6a4cedce0",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d29489001jYP46e3lbMMflb",
+                "step_id": "prt_0f2d33996001ckOvLmo0CsGITD",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c4e4935b1fda4b03a8c5d5693e2e06bf",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T14:59:31.048363+00:00",
+              "tokens": {
+                "input": 2897,
+                "output": 2084,
+                "reasoning": 375,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 13036
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_705373abc25af8a7e429e4c314994126",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d339e9001T4l7FAyA5ayIp6",
+                "step_id": "prt_0f2d3f062001TnDzz2w627ngIM",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_c0e6cb7f4c5d4466ae3715440901d2a4",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T14:59:58.942158+00:00",
+              "tokens": {
+                "input": 13266,
+                "output": 1075,
+                "reasoning": 348,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 14689
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_727823ad9f43e387d337c11e1a008b0c",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d3f088001ba0nMrCErQLU0O",
+                "step_id": "prt_0f2d45d58001GAgIOW0FHVhP3n",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_5e1680011b41410fbc385e185af3ce78",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:00:21.872915+00:00",
+              "tokens": {
+                "input": 2289,
+                "output": 1069,
+                "reasoning": 27,
+                "cache_read": 12800,
+                "cache_write": 0,
+                "total": 16185
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_9f0fab2e06ec3ca9c484bd6d21dc66a9",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d45d7c001Z66zQmxpHT2k9v",
+                "step_id": "prt_0f2d4b6eb001HZAvnc2KfGLAHv",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_f303e514a34949e3ab7ab06c9116cef2",
+              "runtime_binding_id": "rtb_39b04c88b60d4ca99baa9e362d6ff2e0",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:00:24.897461+00:00",
+              "tokens": {
+                "input": 1642,
+                "output": 4,
+                "reasoning": 0,
+                "cache_read": 14848,
+                "cache_write": 0,
+                "total": 16494
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_5cb4899d24b98b7d78f0eff6a6443427",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2d4b708001ptNpf4GbqlUKHQ",
+                "step_id": "prt_0f2d4c2bd00121AtzQm9RBbn51",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_9c6202bf7f7a476b8f6fc847480f91b4",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 17,
+            "arguments_sha256": "64129e6034f8225f9408a112866976ae774b05ceda17d9a520b7551ac2c39a0e",
+            "observation_ids": [],
+            "started_at": "2026-09-30T14:57:49.070633+00:00",
+            "ended_at": "2026-09-30T14:57:49.085419+00:00"
+          },
+          {
+            "call_id": "call_646556dac1d348729662ad4bc3987ae3",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T14:57:57.728970+00:00",
+            "ended_at": "2026-09-30T14:57:57.745386+00:00"
+          },
+          {
+            "call_id": "call_069adea0602e4eda9304eb703b8510b3",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 56,
+            "arguments_sha256": "c33d16b48068624554b7c4569aea9f878897f94c8e1f5fde24d217322f5297ee",
+            "observation_ids": [
+              "obs_7b20757d80e74529886513273cd92cc2"
+            ],
+            "started_at": "2026-09-30T14:57:57.853480+00:00",
+            "ended_at": "2026-09-30T14:57:57.898422+00:00"
+          },
+          {
+            "call_id": "call_e85a29c8963447fc9e4418720f3f23d8",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 4083,
+            "arguments_sha256": "4048cbe0f5adee7bfa0fa139b8cf1e1a0fc093017ca3f457bbe1ea715cd248fb",
+            "observation_ids": [],
+            "started_at": "2026-09-30T14:57:57.872438+00:00",
+            "ended_at": "2026-09-30T14:58:01.933489+00:00"
+          },
+          {
+            "call_id": "call_783aba29a3224b67a6d3693f0455b399",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 11,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T14:57:57.900297+00:00",
+            "ended_at": "2026-09-30T14:57:57.909527+00:00"
+          },
+          {
+            "call_id": "call_7ce7393d8fce489c9f5c726715de0490",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 35060,
+            "arguments_sha256": "707e9b6e00c33d6d0dbafa4b8a77e0ef3c19fbffe525af5e125f7f4704d82a44",
+            "observation_ids": [],
+            "started_at": "2026-09-30T14:58:09.133171+00:00",
+            "ended_at": "2026-09-30T14:58:44.192957+00:00"
+          },
+          {
+            "call_id": "call_731e654ee3244fc187ce09cb75bec36b",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 20,
+            "arguments_sha256": "cf1606b9632fcb591623e4425e3e70e7bd80496422ed7b03505980e2541075bc",
+            "observation_ids": [],
+            "started_at": "2026-09-30T14:59:30.973258+00:00",
+            "ended_at": "2026-09-30T14:59:30.991114+00:00"
+          },
+          {
+            "call_id": "call_fbae53403ff94bb99d5b02cc0c8e19a1",
+            "tool_name": "submit_grounded_answer",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 45,
+            "arguments_sha256": "99a86dda02daa45d9bb19ea547266926bab1f7299e2f6dccbd6423afa45e5b75",
+            "observation_ids": [
+              "obs_7b20757d80e74529886513273cd92cc2"
+            ],
+            "started_at": "2026-09-30T15:00:21.707207+00:00",
+            "ended_at": "2026-09-30T15:00:21.750682+00:00"
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "grounded-answer-v1",
+        "answer_id": "ans_b3c717d11de440019b3c7c68b0f24d2c",
+        "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+        "answer_markdown": "The fixed hERG model does not flag sotalol as a blocker: its blocker-probability score is 0.313892036676, with label non_blocker.\n\nI would tell the project team: treat this as a reassuring model signal for the narrow hERG endpoint, not as evidence that hERG liability is absent or that the compound is cleared for cardiac safety. Keep sotalol as a comparator, but confirm the comparator behavior with a compound-specific direct hERG assay before using it to anchor programme decisions. The targeted independent-evidence search was unavailable, so no external confirmation was established in this review.",
+        "claims": [
+          {
+            "claim_id": "clm_9e3114f9f2924b92adaf485a3901c311",
+            "kind": "numeric",
+            "text": "The fixed hERG model's blocker-probability score for sotalol.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7b20757d80e74529886513273cd92cc2",
+            "field_path": "predictions.herg.probability_blocker",
+            "source_value": 0.31389203667640686,
+            "rendered_value": "0.313892036676"
+          },
+          {
+            "claim_id": "clm_e89705afa87b4857a87f313518aeae4e",
+            "kind": "classification",
+            "text": "The fixed hERG model label for sotalol is non-blocker.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7b20757d80e74529886513273cd92cc2",
+            "field_path": "predictions.herg.label",
+            "source_value": "non_blocker",
+            "rendered_value": "non_blocker"
+          },
+          {
+            "claim_id": "clm_26f415c90aa94c56836d4fabe74a20bb",
+            "kind": "scientific",
+            "text": "This result is a model signal for the narrow hERG endpoint, not independent confirmation of compound-specific hERG behavior or an overall cardiac-safety conclusion.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7b20757d80e74529886513273cd92cc2",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_d4656de371614ac7a7f2e22b2a2ded44",
+            "kind": "recommendation",
+            "text": "Retain sotalol as a comparator, but do not use this prediction as hERG clearance; obtain compound-specific direct hERG data before relying on it for programme decisions.",
+            "transform": "identity",
+            "citation_ids": [],
+            "observation_id": "obs_7b20757d80e74529886513273cd92cc2",
+            "field_path": "predictions.herg.label"
+          },
+          {
+            "claim_id": "clm_db636947e6684c96be3ef4cb46531b79",
+            "kind": "recommendation",
+            "text": "Run a compound-specific direct hERG assay with exposure-relevant concentration coverage and appropriate assay controls.",
+            "transform": "identity",
+            "citation_ids": [],
+            "input_claim_ids": [
+              "clm_d4656de371614ac7a7f2e22b2a2ded44"
+            ]
+          }
+        ],
+        "limitations": [
+          {
+            "code": "uncalibrated_probability",
+            "text": "The blocker probability is an uncalibrated model score, not a clinical or experimental risk."
+          },
+          {
+            "code": "evidence_scope_limited",
+            "text": "The targeted independent-evidence search was unavailable because the provider returned an error; this review therefore established no accepted external confirmation."
+          },
+          {
+            "code": "screening_not_safety_assessment",
+            "text": "A direct hERG assay is a verification step, not by itself a complete cardiac-safety assessment."
+          }
+        ],
+        "recommended_next_steps": [
+          {
+            "text": "Run the compound-specific direct hERG assay before using sotalol's predicted behavior as a programme anchor.",
+            "basis_claim_ids": [
+              "clm_d4656de371614ac7a7f2e22b2a2ded44",
+              "clm_db636947e6684c96be3ef4cb46531b79"
+            ]
+          }
+        ],
+        "candidate_generation": 1,
+        "is_fallback": false,
+        "content_sha256": "392373d11e2fece204ef01d82cb28e9545972a3a07ae64fabb96111b7086b32d",
+        "created_at": "2026-09-30T15:00:21.719307+00:00"
+      },
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_85bc7547d2d74874961279b628d78d30",
+        "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+        "goal": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+        "subject_refs": [
+          "analysis:ana_b5d5fa420ea24dcebd9664fde0fa2e63"
+        ],
+        "propositions": [
+          {
+            "id": "p1",
+            "question": "The fixed hERG predictor gives sotalol a non-blocker signal.",
+            "required_sources": [
+              "prediction"
+            ],
+            "status": "supported",
+            "artifact_refs": [
+              "observation:obs_7b20757d80e74529886513273cd92cc2"
+            ],
+            "origin": "answer"
+          },
+          {
+            "id": "p2",
+            "question": "The prediction should not be treated as proof that hERG liability is absent.",
+            "required_sources": [],
+            "status": "insufficient",
+            "artifact_refs": [],
+            "origin": "answer"
+          }
+        ],
+        "coverage": {
+          "required": 2,
+          "resolved": 1
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 8,
+          "denied_calls": 0,
+          "failed_calls": 2,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_7b20757d80e74529886513273cd92cc2"
+        ],
+        "found_refs": [],
+        "stop_reason": "insufficient_evidence",
+        "answer_outcome": "first_pass",
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 13
+      },
+      "dossier": {
+        "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+        "case_id": "scase_d423283abac641b6914cc4da0caf2880",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 1,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+        "answer_id": "ans_b3c717d11de440019b3c7c68b0f24d2c",
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+          "can_say": [
+            {
+              "text": "For the fixed predictor's hERG endpoint, sotalol is classified as non-blocker with a blocker probability score of 0.31389203667640686.",
+              "sources": [
+                "observation:obs_7b20757d80e74529886513273cd92cc2"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The result is a model signal, not independent confirmation of compound-specific hERG behavior or an overall cardiac-safety conclusion.",
+              "sources": [
+                "observation:obs_7b20757d80e74529886513273cd92cc2"
+              ],
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "approver": "",
+          "cannot_say": [
+            "Whether sotalol has no hERG liability in an experimental assay.",
+            "Whether the compound is safe, unsafe, or suitable for clinical or regulatory use.",
+            "Whether the hERG result generalizes to other cardiac endpoints or exposure conditions."
+          ],
+          "what_would_change": [
+            "A reliable compound-specific direct hERG measurement or validated programme-relevant evidence that materially differs from the model signal."
+          ]
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "status": "open",
+            "context": [],
+            "statement": "The fixed predictor's hERG signal is directionally reassuring for sotalol in this narrowly modeled endpoint.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The fixed hERG predictor labels the compound non-blocker and reports a blocker probability of 0.31389203667640686.",
+                "scope": {
+                  "compound": "sotalol",
+                  "endpoint": "herg",
+                  "use_context": "cardiac safety comparator"
+                },
+                "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+                "stance": "supports",
+                "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+                "directness": "direct",
+                "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "A validated direct hERG measurement for this compound shows meaningful channel inhibition, or the predictor output is found invalid for this structure."
+          },
+          {
+            "id": "h2",
+            "kind": "data_insufficient",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "status": "open",
+            "context": [],
+            "statement": "The model signal may not represent real-world cardiac liability because model calibration, assay evidence, and exposure context are not established here.",
+            "evidence_for": [],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Compound-specific, exposure-relevant direct hERG data and adequate model validation show that the predictor signal is reliable for this decision."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a compound-specific direct hERG assay with exposure-relevant concentration coverage, interpreted alongside the programme's cardiac safety context.",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "rationale": "It directly tests whether the reassuring model signal corresponds to measurable hERG channel activity.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "Concentration-response inhibition data with assay quality controls",
+              "Comparison of observed activity with the model's non-blocker direction"
+            ]
+          }
+        ],
+        "stop_reason": "insufficient_evidence",
+        "subject_refs": [
+          "analysis:ana_b5d5fa420ea24dcebd9664fde0fa2e63"
+        ],
+        "case_revision": 13,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The fixed hERG predictor labels the compound non-blocker and reports a blocker probability of 0.31389203667640686.",
+            "scope": {
+              "compound": "sotalol",
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "stance": "supports",
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+            "directness": "direct",
+            "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The fixed hERG predictor gives sotalol a non-blocker signal.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [
+          {
+            "id": "e2",
+            "actor": "server",
+            "claim": "The fixed hERG predictor gives sotalol a non-blocker signal.",
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "stance": "contextual",
+            "locator": null,
+            "directness": "direct",
+            "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": []
+          }
+        ],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+              "outcome": "The evidence provider returned HTTP 503 on two targeted searches; no accepted external record was produced.",
+              "purpose": "Look for compound-specific independent evidence that could contradict the predictor's direction.",
+              "decision": "stop",
+              "hypothesis_ids": [
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+              "outcome": "Recommendation remains conditional and requires direct verification before using the result for a programme decision.",
+              "purpose": "Check that the recommendation stays limited to the modeled hERG endpoint, distinguishes model signal from independent evidence, and does not imply a safety or clinical verdict.",
+              "decision": "continue",
+              "hypothesis_ids": []
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The blocker probability is a model score; calibration and decision performance for this compound and programme context are not established.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "provider_coverage",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "status": "open",
+            "severity": "medium",
+            "resolution": "",
+            "description": "Two compound-specific hERG literature searches were unavailable because the evidence provider returned HTTP 503; no accepted independent evidence is available in this turn.",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_85bc7547d2d74874961279b628d78d30",
+  "analysis": {
+    "run": {
+      "run_id": "run_35805c6b39ca406fa648b7f83017726b",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_227374471dd34206a3c3d241fe5225a8",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:02:37.031025+00:00",
+      "created_at": "2026-09-30T14:57:37.031025+00:00",
+      "started_at": "2026-09-30T14:57:37.041822+00:00",
+      "ended_at": "2026-09-30T14:57:37.086146+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T14:57:37.032264+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_b5d5fa420ea24dcebd9664fde0fa2e63",
+      "input_smiles": "CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O",
+      "canonical_smiles": "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.31389203667640686,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.34105294942855835,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.22940246760845184,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.08216343820095062,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.08565910905599594,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.07914239168167114,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.04595719650387764,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.045055847615003586,
+              "active": false,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.009625843726098537,
+              "active": false,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.06216741353273392,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.04601017385721207,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.08428068459033966,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.015566597692668438,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "ed1e74c6-de98-4fa3-83de-65db96131592",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 34,
+            "encoded_token_count": 34
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "bf64282f90990867098320a7797dedcde9799a7ab9741e188ac5cc9f07be1bc2"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T14:57:37.078410+00:00"
+    }
+  },
+  "evidence": [],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_d423283abac641b6914cc4da0caf2880",
+        "session_id": "ses_85bc7547d2d74874961279b628d78d30",
+        "subject_key": "analysis:ana_b5d5fa420ea24dcebd9664fde0fa2e63",
+        "question": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_b5d5fa420ea24dcebd9664fde0fa2e63"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The fixed predictor's hERG signal is directionally reassuring for sotalol in this narrowly modeled endpoint.",
+            "kind": "model_signal",
+            "refutation_condition": "A validated direct hERG measurement for this compound shows meaningful channel inhibition, or the predictor output is found invalid for this structure.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          },
+          {
+            "id": "h2",
+            "statement": "The model signal may not represent real-world cardiac liability because model calibration, assay evidence, and exposure context are not established here.",
+            "kind": "data_insufficient",
+            "refutation_condition": "Compound-specific, exposure-relevant direct hERG data and adequate model validation show that the predictor signal is reliable for this decision.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The fixed hERG predictor labels the compound non-blocker and reports a blocker probability of 0.31389203667640686.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+            "scope": {
+              "compound": "sotalol",
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          },
+          {
+            "id": "e2",
+            "claim": "The fixed hERG predictor gives sotalol a non-blocker signal.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+            "stance": "contextual",
+            "directness": "direct",
+            "hypothesis_ids": [],
+            "locator": null,
+            "scope": {
+              "endpoint": "herg",
+              "use_context": "cardiac safety comparator"
+            },
+            "actor": "server",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "description": "The blocker probability is a model score; calibration and decision performance for this compound and programme context are not established.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          },
+          {
+            "id": "u2",
+            "kind": "provider_coverage",
+            "description": "Two compound-specific hERG literature searches were unavailable because the evidence provider returned HTTP 503; no accepted independent evidence is available in this turn.",
+            "severity": "medium",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific independent evidence that could contradict the predictor's direction.",
+            "decision": "stop",
+            "outcome": "The evidence provider returned HTTP 503 on two targeted searches; no accepted external record was produced.",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the recommendation stays limited to the modeled hERG endpoint, distinguishes model signal from independent evidence, and does not imply a safety or clinical verdict.",
+            "decision": "continue",
+            "outcome": "Recommendation remains conditional and requires direct verification before using the result for a programme decision.",
+            "hypothesis_ids": [],
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run a compound-specific direct hERG assay with exposure-relevant concentration coverage, interpreted alongside the programme's cardiac safety context.",
+            "rationale": "It directly tests whether the reassuring model signal corresponds to measurable hERG channel activity.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "Concentration-response inhibition data with assay quality controls",
+              "Comparison of observed activity with the model's non-blocker direction"
+            ],
+            "actor": "model",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+          }
+        ],
+        "conclusion": {
+          "can_say": [
+            {
+              "text": "For the fixed predictor's hERG endpoint, sotalol is classified as non-blocker with a blocker probability score of 0.31389203667640686.",
+              "evidence_ids": [
+                "e1"
+              ]
+            },
+            {
+              "text": "The result is a model signal, not independent confirmation of compound-specific hERG behavior or an overall cardiac-safety conclusion.",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ],
+          "cannot_say": [
+            "Whether sotalol has no hERG liability in an experimental assay.",
+            "Whether the compound is safe, unsafe, or suitable for clinical or regulatory use.",
+            "Whether the hERG result generalizes to other cardiac endpoints or exposure conditions."
+          ],
+          "what_would_change": [
+            "A reliable compound-specific direct hERG measurement or validated programme-relevant evidence that materially differs from the model signal."
+          ],
+          "approver": "",
+          "run_id": "run_8114e9f6f2b541e3829dd4e885f659df"
+        },
+        "runs": [
+          {
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "goal": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+            "stop_reason": "insufficient_evidence",
+            "answer_id": "ans_b3c717d11de440019b3c7c68b0f24d2c",
+            "usage": {
+              "searches": 2,
+              "tool_calls": 8,
+              "denied_calls": 0,
+              "failed_calls": 2,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 1,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 1,
+          "open_uncertainties": 2,
+          "blocking_uncertainties": 0
+        },
+        "revision": 13,
+        "created_at": "2026-09-30T14:57:38.101129+00:00",
+        "updated_at": "2026-09-30T15:00:24.935555+00:00"
+      },
+      "events": {
+        "case_id": "scase_d423283abac641b6914cc4da0caf2880",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_d423283abac641b6914cc4da0caf2880",
+              "question": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?",
+              "requester": "dev-user",
+              "session_id": "ses_85bc7547d2d74874961279b628d78d30",
+              "subject_key": "analysis:ana_b5d5fa420ea24dcebd9664fde0fa2e63",
+              "subject_refs": [
+                "analysis:ana_b5d5fa420ea24dcebd9664fde0fa2e63"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T14:57:38.101129+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "We are reviewing sotalol (CC(C)NCC(C1=CC=C(C=C1)NS(=O)(=O)C)O) as a comparator in a cardiac safety programme. Is hERG liability a concern here, and what would you tell the project team?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T14:57:38.101129+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The fixed predictor's hERG signal is directionally reassuring for sotalol in this narrowly modeled endpoint.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "A validated direct hERG measurement for this compound shows meaningful channel inhibition, or the predictor output is found invalid for this structure."
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.983775+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "data_insufficient",
+              "can_say": [],
+              "statement": "The model signal may not represent real-world cardiac liability because model calibration, assay evidence, and exposure context are not established here.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Compound-specific, exposure-relevant direct hERG data and adequate model validation show that the predictor signal is reliable for this decision."
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.983799+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The fixed hERG predictor labels the compound non-blocker and reports a blocker probability of 0.31389203667640686.",
+              "scope": {
+                "compound": "sotalol",
+                "endpoint": "herg",
+                "use_context": "cardiac safety comparator"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label; predictions.herg.probability_blocker",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984861+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 5
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "model_calibration",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The blocker probability is a model score; calibration and decision performance for this compound and programme context are not established.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984885+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 6
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "provider_coverage",
+              "can_say": [],
+              "severity": "medium",
+              "cannot_say": [],
+              "description": "Two compound-specific hERG literature searches were unavailable because the evidence provider returned HTTP 503; no accepted independent evidence is available in this turn.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984893+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 7
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The evidence provider returned HTTP 503 on two targeted searches; no accepted external record was produced.",
+              "purpose": "Look for compound-specific independent evidence that could contradict the predictor's direction.",
+              "decision": "stop",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984901+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 8
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Recommendation remains conditional and requires direct verification before using the result for a programme decision.",
+              "purpose": "Check that the recommendation stays limited to the modeled hERG endpoint, distinguishes model signal from independent evidence, and does not imply a safety or clinical verdict.",
+              "decision": "continue",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984908+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 9
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run a compound-specific direct hERG assay with exposure-relevant concentration coverage, interpreted alongside the programme's cardiac safety context.",
+              "can_say": [],
+              "rationale": "It directly tests whether the reassuring model signal corresponds to measurable hERG channel activity.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [],
+              "expected_readouts": [
+                "Concentration-response inhibition data with assay quality controls",
+                "Comparison of observed activity with the model's non-blocker direction"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984916+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 10
+          },
+          {
+            "op": "set_conclusion",
+            "payload": {
+              "can_say": [
+                {
+                  "text": "For the fixed predictor's hERG endpoint, sotalol is classified as non-blocker with a blocker probability score of 0.31389203667640686.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                },
+                {
+                  "text": "The result is a model signal, not independent confirmation of compound-specific hERG behavior or an overall cardiac-safety conclusion.",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ],
+              "cannot_say": [
+                "Whether sotalol has no hERG liability in an experimental assay.",
+                "Whether the compound is safe, unsafe, or suitable for clinical or regulatory use.",
+                "Whether the hERG result generalizes to other cardiac endpoints or exposure conditions."
+              ],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [
+                "A reliable compound-specific direct hERG measurement or validated programme-relevant evidence that materially differs from the model signal."
+              ]
+            },
+            "actor": "model",
+            "at": "2026-09-30T14:59:30.984931+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 11
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The fixed hERG predictor gives sotalol a non-blocker signal.",
+              "scope": {
+                "endpoint": "herg",
+                "use_context": "cardiac safety comparator"
+              },
+              "stance": "contextual",
+              "directness": "direct",
+              "source_ref": "observation:obs_7b20757d80e74529886513273cd92cc2",
+              "source_class": "predictor_fact",
+              "hypothesis_ids": []
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:00:21.745198+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 12
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 2,
+                "tool_calls": 8,
+                "denied_calls": 0,
+                "failed_calls": 2,
+                "evidence_reads": 0
+              },
+              "answer_id": "ans_b3c717d11de440019b3c7c68b0f24d2c",
+              "stop_reason": "insufficient_evidence"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:00:24.935555+00:00",
+            "run_id": "run_8114e9f6f2b541e3829dd4e885f659df",
+            "revision": 13
+          }
+        ]
+      }
+    }
+  ]
+}

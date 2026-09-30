@@ -1,0 +1,1734 @@
+{
+  "runs": [
+    {
+      "run": {
+        "run_id": "run_93945af136e4468e835d40af830c5a81",
+        "status": "failed",
+        "lane": "agentic",
+        "intent": "decision_support",
+        "trigger_message_id": "msg_9cf1fa284bea469f9c4027068cfcd11c",
+        "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+        "recovery_of_run_id": null,
+        "failure_code": "deadline_exceeded",
+        "potentially_billed": true,
+        "deadline_at": "2026-09-30T15:13:00.221810+00:00",
+        "created_at": "2026-09-30T15:08:00.221810+00:00",
+        "started_at": "2026-09-30T15:08:00.354189+00:00",
+        "ended_at": "2026-09-30T15:11:00.318230+00:00",
+        "runtime": {
+          "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+          "runtime_kind": "opencode",
+          "runtime_version": "1.17.11",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "auth_mode": "none",
+          "connection_id": null,
+          "profile_hash": "b20cf682db2f72784c060a402155b19150aa3210f395965284f7d3afb8504ff1",
+          "tool_schema_hash": "d38d46a77d62336702b3b5c487272bd47ad22b75860c152972b51f3c2305e2ab",
+          "system_prompt_hash": "151c1a0f0f5c27ff1a071931193f925f6b368b4fa71d9f5655d4e19d7abc4d28"
+        },
+        "configuration_snapshot": {
+          "ai_profile_id": null,
+          "predictor_bindings": {},
+          "intent_decision": {
+            "intent": "decision_support",
+            "matched": [],
+            "confidence": "medium",
+            "reason_codes": [
+              "question_about_active"
+            ],
+            "hint_honoured": true,
+            "requested_hint": "auto",
+            "router_version": "router-2",
+            "required_context": [],
+            "clarification_options": []
+          },
+          "effective_budget": {
+            "intent": "decision_support",
+            "deadline_s": 300,
+            "max_searches": 4,
+            "max_tool_calls": 40,
+            "schema_version": "effective-run-budget-v1",
+            "turn_deadline_s": 180,
+            "max_evidence_reads": 8,
+            "requested_step_cap": 32,
+            "max_identical_calls": 2,
+            "max_correction_turns": 1,
+            "max_answer_candidates": 2
+          },
+          "created_at": "2026-09-30T15:08:00.223144+00:00"
+        },
+        "usage": {
+          "status": "reported",
+          "events": [
+            {
+              "usage_event_id": "use_605d5335bc504cc1ae57a1f706e9ddca",
+              "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:08:11.537418+00:00",
+              "tokens": {
+                "input": 8092,
+                "output": 74,
+                "reasoning": 39,
+                "cache_read": 0,
+                "cache_write": 0,
+                "total": 8205
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_6ca3c80a62da613ed5ca0859c0302e8d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dbc215001FwmZDJ9ItKy71p",
+                "step_id": "prt_0f2dbe18c0012E3uKYjm2unQ9T",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_df33a1ae885d4920bd9b28f46af2755b",
+              "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:08:18.810249+00:00",
+              "tokens": {
+                "input": 710,
+                "output": 141,
+                "reasoning": 20,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 8551
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_2b1b2bcbcc6a1e439cccb51515b1e8e4",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dbe1ac0016zIUAKFoibm0Ka",
+                "step_id": "prt_0f2dbfdf6001oW397OZEIc6COF",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_395729d15ec5499e9e3537583ee10a4c",
+              "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:08:24.315008+00:00",
+              "tokens": {
+                "input": 2820,
+                "output": 142,
+                "reasoning": 17,
+                "cache_read": 7680,
+                "cache_write": 0,
+                "total": 10659
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_514bd689b7033454b48c8e2398bfbfb3",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dbfe0f001Iv8oVrle7Xpo7q",
+                "step_id": "prt_0f2dc1377001MJvvwYv0gkrxaK",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_e556f9c2c0fa4073863c6d62cd95d648",
+              "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:08:51.315860+00:00",
+              "tokens": {
+                "input": 1867,
+                "output": 887,
+                "reasoning": 56,
+                "cache_read": 9728,
+                "cache_write": 0,
+                "total": 12538
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_194a21fe07504efcc2ec1b3f1e207ece",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dc138e001y0FssgLSeevLIf",
+                "step_id": "prt_0f2dc7cee001JWCHMtMjW8FBXd",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_cf7104f1319545ed8601c5ca264f54e3",
+              "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:10:04.048739+00:00",
+              "tokens": {
+                "input": 6826,
+                "output": 3436,
+                "reasoning": 434,
+                "cache_read": 10752,
+                "cache_write": 0,
+                "total": 21448
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_38504343a056237cc9eb6d01729a312d",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dc7d16001Rj5PIeJUimnVOW",
+                "step_id": "prt_0f2dd990b001nPKfQMtfBScoC6",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            },
+            {
+              "usage_event_id": "use_4c2327917c284ca3b364b9656e7184a7",
+              "runtime_binding_id": "rtb_01a24ed6d4564e70a3524868919a14b4",
+              "provider_id": "openai",
+              "model_id": "gpt-5.6-luna",
+              "reported_at": "2026-09-30T15:10:18.550413+00:00",
+              "tokens": {
+                "input": 4912,
+                "output": 605,
+                "reasoning": 41,
+                "cache_read": 16896,
+                "cache_write": 0,
+                "total": 22454
+              },
+              "cost": {
+                "amount": null,
+                "currency": null
+              },
+              "source": {
+                "event_id": "usg_b86d8ae0c2f8d1ffa7d5727dec195fac",
+                "event_type": "message.part.updated:step-finish",
+                "message_id": "msg_0f2dd9932001j0DmRKQZSL1Lz8",
+                "step_id": "prt_0f2ddd1b0001HwcvFyupIh1w1A",
+                "revision": null
+              },
+              "semantics": "cumulative",
+              "is_normalized": true
+            }
+          ]
+        },
+        "tool_calls": [
+          {
+            "call_id": "call_1d4b491dd8da42f28f1059b9cbd52933",
+            "tool_name": "get_artifact_inventory",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 22,
+            "arguments_sha256": "6a5124d9be3bdb1258341d366468e2a8770c4049c77efb4215b34218bd53f9b0",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:08:11.487485+00:00",
+            "ended_at": "2026-09-30T15:08:11.507976+00:00"
+          },
+          {
+            "call_id": "call_4885ad5f1a814319ad0d973717d73d3a",
+            "tool_name": "get_analysis_bundle",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 18,
+            "arguments_sha256": "ec7933c0661e4687341dbe5b4110dc1fa5e8382acfe2d4e2ea8ecdf5e258828c",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:18.660447+00:00",
+            "ended_at": "2026-09-30T15:08:18.677386+00:00"
+          },
+          {
+            "call_id": "call_b15d321119f649faa4c94ea3dfb6a522",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "233aeccf566f5275429241d3cc9e3ec10d426faf9b6f83ab132bea9aa35b3173",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:18.707455+00:00",
+            "ended_at": "2026-09-30T15:08:18.719893+00:00"
+          },
+          {
+            "call_id": "call_731c511f57b7423c93f9930ba851c3c2",
+            "tool_name": "read_scientific_skill",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:08:18.769234+00:00",
+            "ended_at": "2026-09-30T15:08:18.779805+00:00"
+          },
+          {
+            "call_id": "call_d036accf83af41a099338825930841b5",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "f041ac27acaaf773f6ae20bbdb05a857c36f182899749b3117dfdcc6180da545",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:24.124703+00:00",
+            "ended_at": "2026-09-30T15:08:24.137765+00:00"
+          },
+          {
+            "call_id": "call_2c5f9f1f3316460181633cd0b7cd8036",
+            "tool_name": "get_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 13,
+            "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:08:24.193999+00:00",
+            "ended_at": "2026-09-30T15:08:24.231718+00:00"
+          },
+          {
+            "call_id": "call_9a16429cd4a04ca8b23c20ffab9cfa36",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 46,
+            "arguments_sha256": "817f293a8164e578bff772f7d82fe25dea4a051201b927686f800b729fdca35e",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:24.235992+00:00",
+            "ended_at": "2026-09-30T15:08:24.271941+00:00"
+          },
+          {
+            "call_id": "call_9c98077b17eb4410b6ee26409ec6c578",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 14,
+            "arguments_sha256": "4c1c2a49cee0c97d2314254abe3f493e5ccee030e2887cb3b2c0a32c96fede3a",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.576431+00:00",
+            "ended_at": "2026-09-30T15:08:44.588427+00:00"
+          },
+          {
+            "call_id": "call_bdad4e865b0d4ef69e08378d3da64c1a",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 16,
+            "arguments_sha256": "81b5ab4f220a428fceac029369f7710b748593981f1f95f7d893de473475db3f",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.748253+00:00",
+            "ended_at": "2026-09-30T15:08:44.761042+00:00"
+          },
+          {
+            "call_id": "call_52752a3ed4974d5d92d8e7db5072544b",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 79,
+            "arguments_sha256": "f11c9503fffcdeb1351c8151e3b041bee8051d5592c47dcafacc0dfd00141ae9",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.825302+00:00",
+            "ended_at": "2026-09-30T15:08:44.898156+00:00"
+          },
+          {
+            "call_id": "call_37167bfb4bf941349e6c2e5cdf5f99b1",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 57,
+            "arguments_sha256": "0cda337b0de6bb45df3687ae6cb593ba455e0e3cc9eeae64dcae21b94910d366",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.849467+00:00",
+            "ended_at": "2026-09-30T15:08:44.904872+00:00"
+          },
+          {
+            "call_id": "call_cab12e4f600347f4a5b4ccdb04c54882",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 62,
+            "arguments_sha256": "0dccda726314e6ccab3c911f53a29f1ce08727a09fc6fd391949dac278f269cc",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.892111+00:00",
+            "ended_at": "2026-09-30T15:08:44.938272+00:00"
+          },
+          {
+            "call_id": "call_d2be385771b243989d920694bae68d0c",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 58,
+            "arguments_sha256": "b5f03f07340fdc35761f4bb02909abbc5765d72bafd25892cc8144d5e575c891",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.893628+00:00",
+            "ended_at": "2026-09-30T15:08:44.948694+00:00"
+          },
+          {
+            "call_id": "call_28f09942414d4746ae6c498679810f07",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 34,
+            "arguments_sha256": "082978b46453a61a810fb65130dfa629ae3ee95497aa7847d137b485cd768173",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:44.929759+00:00",
+            "ended_at": "2026-09-30T15:08:44.961845+00:00"
+          },
+          {
+            "call_id": "call_dfcb00d07d854edc9065f38577550dc8",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 6289,
+            "arguments_sha256": "6436dc3b895ed1924630284e2be9bf75a77b2c86bcaeb4a085fa5d18c1d1c8cf",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:08:44.994633+00:00",
+            "ended_at": "2026-09-30T15:08:51.281294+00:00"
+          },
+          {
+            "call_id": "call_17d6b8fe59eb4c4686d96b91ee0ad03f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 37,
+            "arguments_sha256": "26c8a713920c33fefe49586dd2a4adb9fbe9a85e972f6b5fefb7ae7149c179bf",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:45.027115+00:00",
+            "ended_at": "2026-09-30T15:08:45.060179+00:00"
+          },
+          {
+            "call_id": "call_83889566683942868a8b467f48179f9f",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 15,
+            "arguments_sha256": "3cb0be3e55266d955bbb79ecb1926d4ce78a82c28bcbe92fde6a0eca3be1930e",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:45.055577+00:00",
+            "ended_at": "2026-09-30T15:08:45.067796+00:00"
+          },
+          {
+            "call_id": "call_238e1d4d520a4499a7e7f4be7abe3105",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 12,
+            "arguments_sha256": "8e352371d13f71f627aec95cc0222628e03ca230bb06274cd2d5da03a9ec5eb8",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:45.224218+00:00",
+            "ended_at": "2026-09-30T15:08:45.234667+00:00"
+          },
+          {
+            "call_id": "call_638e0c66c4d24035935d140d72a8f6ba",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 41,
+            "arguments_sha256": "5d004db994669d8184096db3d2c16f77ad9ec74e3d84f1b5253d2e8845eee599",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:45.277236+00:00",
+            "ended_at": "2026-09-30T15:08:45.315561+00:00"
+          },
+          {
+            "call_id": "call_e3a251c094e540a1bb4ea3381cdf3e42",
+            "tool_name": "get_analysis_slice",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 39,
+            "arguments_sha256": "cac25b46adf1c1424680aea0b605710650ea2d42685a6e26e8154c1fd6ba394b",
+            "observation_ids": [
+              "obs_da9c3cafdacd48d0831d2672a0698cd6"
+            ],
+            "started_at": "2026-09-30T15:08:45.308155+00:00",
+            "ended_at": "2026-09-30T15:08:45.343250+00:00"
+          },
+          {
+            "call_id": "call_c8b2f120903345118a4881381b6c3ef9",
+            "tool_name": "search_toxicology_evidence",
+            "status": "error",
+            "error_code": "evidence_unavailable",
+            "duration_ms": 20,
+            "arguments_sha256": "d8a4ced65cf4464819656f9d5f933e8762fbdbd16646a682afa7df35f058cefc",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:08:45.340553+00:00",
+            "ended_at": "2026-09-30T15:08:45.358681+00:00"
+          },
+          {
+            "call_id": "call_7268cdd0592f44458212d5c12d437a43",
+            "tool_name": "update_scientific_case",
+            "status": "completed",
+            "error_code": null,
+            "duration_ms": 28,
+            "arguments_sha256": "2ff3932a38a8a9f86f8348cc1a181d08f7729390db8f91ca32b9eb9c70a9ae47",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:10:03.982192+00:00",
+            "ended_at": "2026-09-30T15:10:04.008371+00:00"
+          },
+          {
+            "call_id": "call_8d3c9fe985ea41059d9c9f66b21ac5c4",
+            "tool_name": "update_scientific_case",
+            "status": "error",
+            "error_code": "invalid_request",
+            "duration_ms": 16,
+            "arguments_sha256": "4ffda5a4009a33e0cf6971ffc0509299e5801a07e47c3bbed40684f81dbacc58",
+            "observation_ids": [],
+            "started_at": "2026-09-30T15:10:18.502294+00:00",
+            "ended_at": "2026-09-30T15:10:18.516497+00:00"
+          }
+        ]
+      },
+      "answer": null,
+      "decision_state": {
+        "schema_version": "decision-support-state-v1",
+        "session_id": "ses_1aceb8392fd04a0aa4cc89f5239b4bda",
+        "run_id": "run_93945af136e4468e835d40af830c5a81",
+        "goal": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+        "subject_refs": [
+          "analysis:ana_f98bce196ec041df93dba54321887e5a"
+        ],
+        "propositions": [],
+        "coverage": {
+          "required": 0,
+          "resolved": 0
+        },
+        "budget_snapshot": {
+          "intent": "decision_support",
+          "deadline_s": 300,
+          "max_searches": 4,
+          "max_tool_calls": 40,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": 180,
+          "max_evidence_reads": 8,
+          "requested_step_cap": 32,
+          "max_identical_calls": 2,
+          "max_correction_turns": 1,
+          "max_answer_candidates": 2
+        },
+        "usage": {
+          "searches": 2,
+          "tool_calls": 23,
+          "denied_calls": 0,
+          "failed_calls": 3,
+          "evidence_reads": 0
+        },
+        "available_refs": [
+          "observation:obs_da9c3cafdacd48d0831d2672a0698cd6"
+        ],
+        "found_refs": [],
+        "stop_reason": "blocked",
+        "answer_outcome": null,
+        "skills": {
+          "mode": "dynamic",
+          "loaded": [
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            }
+          ],
+          "offered": [
+            {
+              "version": "1.2.0",
+              "skill_id": "assess-conflicting-evidence",
+              "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "critique-case",
+              "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+            },
+            {
+              "version": "1.1.0",
+              "skill_id": "interpret-model-attribution",
+              "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+            }
+          ],
+          "references_loaded": []
+        },
+        "claim_review": {},
+        "revision": 27
+      },
+      "dossier": {
+        "run_id": "run_93945af136e4468e835d40af830c5a81",
+        "case_id": "scase_645355bc3be341868570f148088686a6",
+        "context": [],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "open_uncertainties": 3,
+          "blocking_uncertainties": 0,
+          "with_counterevidence_considered": 2,
+          "with_independent_direct_evidence": 0
+        },
+        "question": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+        "answer_id": null,
+        "requester": "dev-user",
+        "conclusion": {
+          "run_id": null,
+          "can_say": [],
+          "approver": "",
+          "cannot_say": [],
+          "what_would_change": []
+        },
+        "data_scope": {
+          "reason": "",
+          "run_id": null,
+          "external_search": true
+        },
+        "hypotheses": [
+          {
+            "id": "h1",
+            "kind": "model_signal",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "status": "open",
+            "context": [],
+            "statement": "The screening model's positive Tox21 calls indicate assay-level liability signals worth follow-up for uric acid, especially NR-AhR, NR-ER, SR-ATAD5, and SR-p53.",
+            "evidence_for": [
+              {
+                "id": "e1",
+                "actor": "model",
+                "claim": "The stored predictor classifies NR-AhR as active for this analysis.",
+                "scope": {
+                  "assay": "NR-AhR",
+                  "compound": "uric acid",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_93945af136e4468e835d40af830c5a81",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.NR-AhR.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e2",
+                "actor": "model",
+                "claim": "The stored predictor classifies NR-ER as active for this analysis.",
+                "scope": {
+                  "assay": "NR-ER",
+                  "compound": "uric acid",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_93945af136e4468e835d40af830c5a81",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.NR-ER.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              },
+              {
+                "id": "e3",
+                "actor": "model",
+                "claim": "The stored predictor classifies SR-ATAD5 as active for this analysis.",
+                "scope": {
+                  "assay": "SR-ATAD5",
+                  "compound": "uric acid",
+                  "endpoint": "tox21"
+                },
+                "run_id": "run_93945af136e4468e835d40af830c5a81",
+                "stance": "supports",
+                "locator": "predictions.tox21.assays.SR-ATAD5.active",
+                "directness": "direct",
+                "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h1"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Orthogonal assay results for the same endpoints are consistently inactive at relevant, non-cytotoxic concentrations, or the model calls fail predefined assay-quality and reproducibility checks."
+          },
+          {
+            "id": "h2",
+            "kind": "alternative_explanation",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "status": "open",
+            "context": [],
+            "statement": "The apparent Tox21 flags may be model or assay-context signals that do not represent a compound-level hazard under the intended exposure context.",
+            "evidence_for": [
+              {
+                "id": "e4",
+                "actor": "model",
+                "claim": "The stored predictor labels hERG as non-blocker for this analysis.",
+                "scope": {
+                  "compound": "uric acid",
+                  "endpoint": "herg"
+                },
+                "run_id": "run_93945af136e4468e835d40af830c5a81",
+                "stance": "supports",
+                "locator": "predictions.herg.label",
+                "directness": "direct",
+                "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+                "source_class": "predictor_fact",
+                "hypothesis_ids": [
+                  "h2"
+                ]
+              }
+            ],
+            "status_reason": "",
+            "evidence_against": [],
+            "refutation_condition": "Reproducible, concentration-responsive activity is observed in orthogonal assays with suitable controls and exposure relevance."
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run orthogonal, concentration-response confirmation for NR-AhR, NR-ER, SR-ATAD5, and SR-p53 with cytotoxicity and assay-interference controls.",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "rationale": "This directly tests whether the four model flags reproduce as assay activity rather than nonspecific or model-only signals.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "reproducible concentration-response with acceptable viability and controls",
+              "no reproducible activity or activity only at cytotoxic/interfering concentrations"
+            ]
+          }
+        ],
+        "stop_reason": "blocked",
+        "subject_refs": [
+          "analysis:ana_f98bce196ec041df93dba54321887e5a"
+        ],
+        "case_revision": 15,
+        "schema_version": "decision-dossier-v1",
+        "predictor_facts": [
+          {
+            "id": "e1",
+            "actor": "model",
+            "claim": "The stored predictor classifies NR-AhR as active for this analysis.",
+            "scope": {
+              "assay": "NR-AhR",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.NR-AhR.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e2",
+            "actor": "model",
+            "claim": "The stored predictor classifies NR-ER as active for this analysis.",
+            "scope": {
+              "assay": "NR-ER",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.NR-ER.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e3",
+            "actor": "model",
+            "claim": "The stored predictor classifies SR-ATAD5 as active for this analysis.",
+            "scope": {
+              "assay": "SR-ATAD5",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "stance": "supports",
+            "locator": "predictions.tox21.assays.SR-ATAD5.active",
+            "directness": "direct",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h1"
+            ]
+          },
+          {
+            "id": "e4",
+            "actor": "model",
+            "claim": "The stored predictor labels hERG as non-blocker for this analysis.",
+            "scope": {
+              "compound": "uric acid",
+              "endpoint": "herg"
+            },
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "stance": "supports",
+            "locator": "predictions.herg.label",
+            "directness": "direct",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "source_class": "predictor_fact",
+            "hypothesis_ids": [
+              "h2"
+            ]
+          }
+        ],
+        "decision_context": "",
+        "unlinked_evidence": [],
+        "explanation_layers": {
+          "agent_decisions": [
+            {
+              "id": "a1",
+              "actor": "model",
+              "action": "counterevidence_search",
+              "run_id": "run_93945af136e4468e835d40af830c5a81",
+              "outcome": "The evidence provider returned no usable records, so no independent counter-evidence was accepted.",
+              "purpose": "Look for compound-specific independent evidence that could contradict or contextualize the model signals.",
+              "decision": "stop",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            },
+            {
+              "id": "a2",
+              "actor": "model",
+              "action": "critique",
+              "run_id": "run_93945af136e4468e835d40af830c5a81",
+              "outcome": "Keep the posture conditional; do not treat assay count as severity or model labels as independent evidence.",
+              "purpose": "Check that the recommendation remains scoped to predictor signals and does not overstate hazard or safety.",
+              "decision": "answer",
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ]
+            }
+          ],
+          "model_attribution": [],
+          "scientific_evidence": []
+        },
+        "open_uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "The scores are uncalibrated model outputs and do not establish effect size or real-world risk.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "status": "open",
+            "severity": "high",
+            "resolution": "",
+            "description": "No exposure, concentration, cytotoxicity, or intended-use context is available to interpret assay relevance.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "resolving_refs": []
+          },
+          {
+            "id": "u3",
+            "kind": "provider_coverage",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "status": "open",
+            "severity": "medium",
+            "resolution": "",
+            "description": "Independent evidence search did not return a usable accepted record for this turn.",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "resolving_refs": []
+          }
+        ],
+        "resolved_uncertainties": []
+      }
+    }
+  ],
+  "context_posts": [],
+  "session_id": "ses_1aceb8392fd04a0aa4cc89f5239b4bda",
+  "analysis": {
+    "run": {
+      "run_id": "run_7fb3b19cea0349d2a88f35174915c9c5",
+      "status": "completed",
+      "lane": "deterministic",
+      "intent": "analysis",
+      "trigger_message_id": "msg_d4e4e9fc139b488e988cf27c8cab7582",
+      "runtime_binding_id": null,
+      "recovery_of_run_id": null,
+      "failure_code": null,
+      "potentially_billed": false,
+      "deadline_at": "2026-09-30T15:12:59.170199+00:00",
+      "created_at": "2026-09-30T15:07:59.170199+00:00",
+      "started_at": "2026-09-30T15:07:59.179611+00:00",
+      "ended_at": "2026-09-30T15:07:59.205415+00:00",
+      "runtime": null,
+      "configuration_snapshot": {
+        "ai_profile_id": null,
+        "predictor_bindings": {},
+        "intent_decision": {
+          "intent": "analysis",
+          "matched": [],
+          "confidence": "medium",
+          "reason_codes": [
+            "bare_molecule"
+          ],
+          "hint_honoured": true,
+          "requested_hint": "auto",
+          "router_version": "router-2",
+          "required_context": [],
+          "clarification_options": []
+        },
+        "effective_budget": {
+          "intent": "analysis",
+          "deadline_s": 300,
+          "max_searches": null,
+          "max_tool_calls": null,
+          "schema_version": "effective-run-budget-v1",
+          "turn_deadline_s": null,
+          "max_evidence_reads": null,
+          "requested_step_cap": null,
+          "max_identical_calls": null,
+          "max_correction_turns": null,
+          "max_answer_candidates": null
+        },
+        "created_at": "2026-09-30T15:07:59.171399+00:00"
+      },
+      "usage": {
+        "status": "unknown",
+        "events": []
+      },
+      "tool_calls": []
+    },
+    "analysis": {
+      "analysis_id": "ana_f98bce196ec041df93dba54321887e5a",
+      "input_smiles": "C12=C(NC(=O)N1)NC(=O)NC2=O",
+      "canonical_smiles": "O=c1[nH]c(=O)c2[nH]c(=O)[nH]c2[nH]1",
+      "requested_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "served_endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "unavailable_endpoints": [],
+      "sections": {
+        "herg": {
+          "measurement": "hERG channel blockade liability",
+          "probability_blocker": 0.06193488836288452,
+          "label": "non_blocker",
+          "threshold": 0.4133453071117401,
+          "threshold_source": "artifact",
+          "model_id": "herg-tox21-chemberta-v1"
+        },
+        "tox21": {
+          "measurement": "Twelve independent Tox21 assay activities",
+          "task_order_version": "tox21-12task-v1",
+          "model_id": "herg-tox21-chemberta-v1",
+          "assays": {
+            "NR-AR": {
+              "probability_activity": 0.359287291765213,
+              "active": false,
+              "threshold": 0.9399998188018799,
+              "threshold_source": "artifact"
+            },
+            "NR-ER": {
+              "probability_activity": 0.5244221687316895,
+              "active": true,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "NR-AhR": {
+              "probability_activity": 0.9641017913818359,
+              "active": true,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "SR-ARE": {
+              "probability_activity": 0.2179337441921234,
+              "active": false,
+              "threshold": 0.49999991059303284,
+              "threshold_source": "artifact"
+            },
+            "SR-HSE": {
+              "probability_activity": 0.4354153573513031,
+              "active": false,
+              "threshold": 0.5099999308586121,
+              "threshold_source": "artifact"
+            },
+            "SR-MMP": {
+              "probability_activity": 0.5229397416114807,
+              "active": false,
+              "threshold": 0.5399999022483826,
+              "threshold_source": "artifact"
+            },
+            "SR-p53": {
+              "probability_activity": 0.8121622800827026,
+              "active": true,
+              "threshold": 0.34999996423721313,
+              "threshold_source": "artifact"
+            },
+            "SR-ATAD5": {
+              "probability_activity": 0.5138293504714966,
+              "active": true,
+              "threshold": 0.47999992966651917,
+              "threshold_source": "artifact"
+            },
+            "NR-AR-LBD": {
+              "probability_activity": 0.27803587913513184,
+              "active": false,
+              "threshold": 0.489999920129776,
+              "threshold_source": "artifact"
+            },
+            "NR-ER-LBD": {
+              "probability_activity": 0.09174373000860214,
+              "active": false,
+              "threshold": 0.6799998879432678,
+              "threshold_source": "artifact"
+            },
+            "NR-Aromatase": {
+              "probability_activity": 0.4701090455055237,
+              "active": false,
+              "threshold": 0.7099998593330383,
+              "threshold_source": "artifact"
+            },
+            "NR-PPAR-gamma": {
+              "probability_activity": 0.01663414016366005,
+              "active": false,
+              "threshold": 0.4199999272823334,
+              "threshold_source": "artifact"
+            }
+          }
+        }
+      },
+      "applicability": {
+        "method": "element_rules_v1",
+        "status": "ok",
+        "reasons": [
+          "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+        ],
+        "chemical_guard": {
+          "method": "element_rules_v1",
+          "status": "ok",
+          "reasons": [
+            "all elements are common in the training sets; this rule cannot confirm distributional similarity beyond element composition"
+          ]
+        },
+        "similarity_domain": null
+      },
+      "provenance": {
+        "predictor_base_url_id": "toxpred-local",
+        "predictor_service_version": "0.1.0.dev0",
+        "predictor_git_commit": null,
+        "artifact_hashes": [
+          "herg-tox21-chemberta-v1:tokenizer_sha256=ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+          "herg-tox21-chemberta-v1:weights_sha256=c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690"
+        ],
+        "raw": {
+          "models": [
+            "herg-tox21-chemberta-v1"
+          ],
+          "artifacts": [
+            {
+              "model_id": "herg-tox21-chemberta-v1",
+              "base_model": {
+                "id": "DeepChem/ChemBERTa-77M-MTR",
+                "revision": "66b895cab8adebea0cb59a8effa66b2020f204ca",
+                "config_source": "vendored",
+                "weights_source": "checkpoint"
+              },
+              "weights_sha256": "c851e81541f8975f66589879ba9bd35c3068c3fbd57417bb7939214183f62690",
+              "tokenizer_sha256": "ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785",
+              "feature_schema_version": "chemberta-smiles-v1"
+            }
+          ],
+          "request_id": "b148019d-d1a5-4a71-93a9-435755b78f07",
+          "tokenization": {
+            "truncated": false,
+            "max_length": 128,
+            "input_token_count": 25,
+            "encoded_token_count": 25
+          },
+          "policy_version": "tox-policy-v1",
+          "schema_version": "toxpred-provenance-v2",
+          "truncated_input": false,
+          "predictor_version": "0.1.0.dev0",
+          "tox21_task_order_version": "tox21-12task-v1"
+        },
+        "content_sha256": "772d3b5765227cd8eaf221d00dccff57f89a88c332baec34e2d04d6c240174c5"
+      },
+      "policy_snapshot": {
+        "authorised_roles": [
+          "expert"
+        ],
+        "explanation_mode": "on_demand",
+        "explanation_targets": [],
+        "requested_endpoints": [
+          "herg",
+          "tox21"
+        ],
+        "threshold_overrides": null,
+        "threshold_override_source": "model_default"
+      },
+      "required_limitations": [
+        "uncalibrated_probability",
+        "applicability_is_rule_based"
+      ],
+      "created_at": "2026-09-30T15:07:59.200325+00:00"
+    }
+  },
+  "evidence": [],
+  "cases": [
+    {
+      "case": {
+        "schema_version": "scientific-case-v1",
+        "case_id": "scase_645355bc3be341868570f148088686a6",
+        "session_id": "ses_1aceb8392fd04a0aa4cc89f5239b4bda",
+        "subject_key": "analysis:ana_f98bce196ec041df93dba54321887e5a",
+        "question": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+        "decision_context": "",
+        "subject_refs": [
+          "analysis:ana_f98bce196ec041df93dba54321887e5a"
+        ],
+        "status": "open",
+        "requester": "dev-user",
+        "data_scope": {
+          "external_search": true,
+          "reason": "",
+          "run_id": null
+        },
+        "context": [],
+        "hypotheses": [
+          {
+            "id": "h1",
+            "statement": "The screening model's positive Tox21 calls indicate assay-level liability signals worth follow-up for uric acid, especially NR-AhR, NR-ER, SR-ATAD5, and SR-p53.",
+            "kind": "model_signal",
+            "refutation_condition": "Orthogonal assay results for the same endpoints are consistently inactive at relevant, non-cytotoxic concentrations, or the model calls fail predefined assay-quality and reproducibility checks.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "h2",
+            "statement": "The apparent Tox21 flags may be model or assay-context signals that do not represent a compound-level hazard under the intended exposure context.",
+            "kind": "alternative_explanation",
+            "refutation_condition": "Reproducible, concentration-responsive activity is observed in orthogonal assays with suitable controls and exposure relevance.",
+            "status": "open",
+            "status_reason": "",
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          }
+        ],
+        "evidence": [
+          {
+            "id": "e1",
+            "claim": "The stored predictor classifies NR-AhR as active for this analysis.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.NR-AhR.active",
+            "scope": {
+              "assay": "NR-AhR",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "e2",
+            "claim": "The stored predictor classifies NR-ER as active for this analysis.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.NR-ER.active",
+            "scope": {
+              "assay": "NR-ER",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "e3",
+            "claim": "The stored predictor classifies SR-ATAD5 as active for this analysis.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "locator": "predictions.tox21.assays.SR-ATAD5.active",
+            "scope": {
+              "assay": "SR-ATAD5",
+              "compound": "uric acid",
+              "endpoint": "tox21"
+            },
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "e4",
+            "claim": "The stored predictor labels hERG as non-blocker for this analysis.",
+            "source_class": "predictor_fact",
+            "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+            "stance": "supports",
+            "directness": "direct",
+            "hypothesis_ids": [
+              "h2"
+            ],
+            "locator": "predictions.herg.label",
+            "scope": {
+              "compound": "uric acid",
+              "endpoint": "herg"
+            },
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          }
+        ],
+        "uncertainties": [
+          {
+            "id": "u1",
+            "kind": "model_calibration",
+            "description": "The scores are uncalibrated model outputs and do not establish effect size or real-world risk.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "u2",
+            "kind": "missing_exposure",
+            "description": "No exposure, concentration, cytotoxicity, or intended-use context is available to interpret assay relevance.",
+            "severity": "high",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "u3",
+            "kind": "provider_coverage",
+            "description": "Independent evidence search did not return a usable accepted record for this turn.",
+            "severity": "medium",
+            "hypothesis_ids": [
+              "h1"
+            ],
+            "status": "open",
+            "resolution": "",
+            "resolving_refs": [],
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          }
+        ],
+        "actions": [
+          {
+            "id": "a1",
+            "action": "counterevidence_search",
+            "purpose": "Look for compound-specific independent evidence that could contradict or contextualize the model signals.",
+            "decision": "stop",
+            "outcome": "The evidence provider returned no usable records, so no independent counter-evidence was accepted.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          },
+          {
+            "id": "a2",
+            "action": "critique",
+            "purpose": "Check that the recommendation remains scoped to predictor signals and does not overstate hazard or safety.",
+            "decision": "answer",
+            "outcome": "Keep the posture conditional; do not treat assay count as severity or model labels as independent evidence.",
+            "hypothesis_ids": [
+              "h1",
+              "h2"
+            ],
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          }
+        ],
+        "next_tests": [
+          {
+            "id": "t1",
+            "test": "Run orthogonal, concentration-response confirmation for NR-AhR, NR-ER, SR-ATAD5, and SR-p53 with cytotoxicity and assay-interference controls.",
+            "rationale": "This directly tests whether the four model flags reproduce as assay activity rather than nonspecific or model-only signals.",
+            "discriminates": [
+              "h1",
+              "h2"
+            ],
+            "expected_readouts": [
+              "reproducible concentration-response with acceptable viability and controls",
+              "no reproducible activity or activity only at cytotoxic/interfering concentrations"
+            ],
+            "actor": "model",
+            "run_id": "run_93945af136e4468e835d40af830c5a81"
+          }
+        ],
+        "conclusion": {
+          "can_say": [],
+          "cannot_say": [],
+          "what_would_change": [],
+          "approver": "",
+          "run_id": null
+        },
+        "runs": [
+          {
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "goal": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+            "stop_reason": "blocked",
+            "answer_id": null,
+            "usage": {
+              "searches": 2,
+              "tool_calls": 23,
+              "denied_calls": 0,
+              "failed_calls": 3,
+              "evidence_reads": 0
+            }
+          }
+        ],
+        "coverage": {
+          "hypotheses": 2,
+          "with_any_source": 2,
+          "with_independent_direct_evidence": 0,
+          "with_counterevidence_considered": 2,
+          "open_uncertainties": 3,
+          "blocking_uncertainties": 0
+        },
+        "revision": 15,
+        "created_at": "2026-09-30T15:08:00.234053+00:00",
+        "updated_at": "2026-09-30T15:11:00.305267+00:00"
+      },
+      "events": {
+        "case_id": "scase_645355bc3be341868570f148088686a6",
+        "events": [
+          {
+            "op": "open",
+            "payload": {
+              "case_id": "scase_645355bc3be341868570f148088686a6",
+              "question": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?",
+              "requester": "dev-user",
+              "session_id": "ses_1aceb8392fd04a0aa4cc89f5239b4bda",
+              "subject_key": "analysis:ana_f98bce196ec041df93dba54321887e5a",
+              "subject_refs": [
+                "analysis:ana_f98bce196ec041df93dba54321887e5a"
+              ]
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:08:00.234053+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 1
+          },
+          {
+            "op": "attach_run",
+            "payload": {
+              "goal": "This came through our screening queue: uric acid (C12=C(NC(=O)N1)NC(=O)NC2=O). Anything here that should worry us?"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:08:00.234053+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 2
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "model_signal",
+              "can_say": [],
+              "statement": "The screening model's positive Tox21 calls indicate assay-level liability signals worth follow-up for uric acid, especially NR-AhR, NR-ER, SR-ATAD5, and SR-p53.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Orthogonal assay results for the same endpoints are consistently inactive at relevant, non-cytotoxic concentrations, or the model calls fail predefined assay-quality and reproducibility checks."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.994933+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 3
+          },
+          {
+            "op": "add_hypothesis",
+            "payload": {
+              "kind": "alternative_explanation",
+              "can_say": [],
+              "statement": "The apparent Tox21 flags may be model or assay-context signals that do not represent a compound-level hazard under the intended exposure context.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [],
+              "expected_readouts": [],
+              "what_would_change": [],
+              "refutation_condition": "Reproducible, concentration-responsive activity is observed in orthogonal assays with suitable controls and exposure relevance."
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.994954+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 4
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor classifies NR-AhR as active for this analysis.",
+              "scope": {
+                "assay": "NR-AhR",
+                "compound": "uric acid",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.NR-AhR.active",
+              "statement": "The stored predictor classifies NR-AhR as active for this analysis.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.996125+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 5
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor classifies NR-ER as active for this analysis.",
+              "scope": {
+                "assay": "NR-ER",
+                "compound": "uric acid",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.NR-ER.active",
+              "statement": "The stored predictor classifies NR-ER as active for this analysis.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.996927+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 6
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor classifies SR-ATAD5 as active for this analysis.",
+              "scope": {
+                "assay": "SR-ATAD5",
+                "compound": "uric acid",
+                "endpoint": "tox21"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.tox21.assays.SR-ATAD5.active",
+              "statement": "The stored predictor classifies SR-ATAD5 as active for this analysis.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.997662+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 7
+          },
+          {
+            "op": "record_evidence",
+            "payload": {
+              "claim": "The stored predictor labels hERG as non-blocker for this analysis.",
+              "scope": {
+                "compound": "uric acid",
+                "endpoint": "herg"
+              },
+              "stance": "supports",
+              "can_say": [],
+              "locator": "predictions.herg.label",
+              "statement": "The stored predictor labels hERG as non-blocker for this analysis.",
+              "cannot_say": [],
+              "directness": "direct",
+              "source_ref": "observation:obs_da9c3cafdacd48d0831d2672a0698cd6",
+              "evidence_ids": [],
+              "source_class": "predictor_fact",
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999026+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 8
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "counterevidence_search",
+              "can_say": [],
+              "outcome": "The evidence provider returned no usable records, so no independent counter-evidence was accepted.",
+              "purpose": "Look for compound-specific independent evidence that could contradict or contextualize the model signals.",
+              "decision": "stop",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999042+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 9
+          },
+          {
+            "op": "record_action",
+            "payload": {
+              "action": "critique",
+              "can_say": [],
+              "outcome": "Keep the posture conditional; do not treat assay count as severity or model labels as independent evidence.",
+              "purpose": "Check that the recommendation remains scoped to predictor signals and does not overstate hazard or safety.",
+              "decision": "answer",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999049+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 10
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "model_calibration",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "The scores are uncalibrated model outputs and do not establish effect size or real-world risk.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999058+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 11
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "missing_exposure",
+              "can_say": [],
+              "severity": "high",
+              "cannot_say": [],
+              "description": "No exposure, concentration, cytotoxicity, or intended-use context is available to interpret assay relevance.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999064+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 12
+          },
+          {
+            "op": "record_uncertainty",
+            "payload": {
+              "kind": "provider_coverage",
+              "can_say": [],
+              "severity": "medium",
+              "cannot_say": [],
+              "description": "Independent evidence search did not return a usable accepted record for this turn.",
+              "evidence_ids": [],
+              "discriminates": [],
+              "hypothesis_ids": [
+                "h1"
+              ],
+              "expected_readouts": [],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999070+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 13
+          },
+          {
+            "op": "propose_next_test",
+            "payload": {
+              "test": "Run orthogonal, concentration-response confirmation for NR-AhR, NR-ER, SR-ATAD5, and SR-p53 with cytotoxicity and assay-interference controls.",
+              "can_say": [],
+              "rationale": "This directly tests whether the four model flags reproduce as assay activity rather than nonspecific or model-only signals.",
+              "cannot_say": [],
+              "evidence_ids": [],
+              "discriminates": [
+                "h1",
+                "h2"
+              ],
+              "hypothesis_ids": [
+                "h1",
+                "h2"
+              ],
+              "expected_readouts": [
+                "reproducible concentration-response with acceptable viability and controls",
+                "no reproducible activity or activity only at cytotoxic/interfering concentrations"
+              ],
+              "what_would_change": []
+            },
+            "actor": "model",
+            "at": "2026-09-30T15:10:03.999077+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 14
+          },
+          {
+            "op": "finish_run",
+            "payload": {
+              "usage": {
+                "searches": 2,
+                "tool_calls": 23,
+                "denied_calls": 0,
+                "failed_calls": 3,
+                "evidence_reads": 0
+              },
+              "answer_id": null,
+              "stop_reason": "blocked"
+            },
+            "actor": "server",
+            "at": "2026-09-30T15:11:00.305267+00:00",
+            "run_id": "run_93945af136e4468e835d40af830c5a81",
+            "revision": 15
+          }
+        ]
+      }
+    }
+  ]
+}
