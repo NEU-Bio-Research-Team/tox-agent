@@ -1,0 +1,432 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "investigation-case-v2",
+  "title": "One case of the ToxAgent comparison study (v2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "acceptable_conclusions",
+    "answerability",
+    "case_id",
+    "compound",
+    "evidence_mode",
+    "limitation_scoring",
+    "reference",
+    "schema_version",
+    "set_id",
+    "spec_sha256",
+    "tags",
+    "task_group",
+    "turns"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "investigation-case-v2"
+    },
+    "set_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^inv-[0-9]{2}-[a-z0-9-]+$"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "compound": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query_name",
+        "name_disclosed",
+        "pubchem_cid",
+        "smiles",
+        "molecular_formula",
+        "resolved_from",
+        "resolved_at",
+        "source_url"
+      ],
+      "properties": {
+        "query_name": {
+          "type": "string"
+        },
+        "name_disclosed": {
+          "type": "boolean"
+        },
+        "pubchem_cid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "smiles": {
+          "type": "string",
+          "minLength": 1
+        },
+        "molecular_formula": {
+          "type": "string"
+        },
+        "resolved_from": {
+          "const": "PubChem PUG REST"
+        },
+        "resolved_at": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        }
+      }
+    },
+    "turns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "value"
+            ],
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "summary",
+        "sources",
+        "good_behaviours",
+        "status"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "known_outcome",
+            "known_outcome_with_hypothetical_scenario",
+            "reasoning_expectation"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "citation",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "citation": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "good_behaviours": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "enum": [
+            "pending_lab_verification",
+            "lab_verified",
+            "lab_disputed"
+          ]
+        },
+        "predictor_error": {
+          "type": "object",
+          "properties": {
+            "actually_wrong": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "spec_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "task_group": {
+      "description": "Which of the six groups this case measures (§4.2).",
+      "enum": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6"
+      ]
+    },
+    "answerability": {
+      "description": "Whether the case can be settled, and by what.",
+      "enum": [
+        "answerable_from_corpus",
+        "needs_user_input",
+        "unanswerable"
+      ]
+    },
+    "evidence_mode": {
+      "description": "frozen is the main comparison; live is supplementary and never pooled with it.",
+      "enum": [
+        "frozen",
+        "live"
+      ]
+    },
+    "prediction_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "endpoints"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The frozen artifact this case's numbers come from."
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "stage_status": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "acceptable_conclusions": {
+      "description": "One question may have several valid answers. A gap statement is one of them.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "statement"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "committed",
+              "gap_statement"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requires_sources": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "required_limitations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+          "L5",
+          "L6",
+          "L7",
+          "L8",
+          "L9"
+        ]
+      }
+    },
+    "optional_limitations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+          "L5",
+          "L6",
+          "L7",
+          "L8",
+          "L9"
+        ]
+      }
+    },
+    "limitation_scoring": {
+      "description": "not_applicable when the case requires none, so recall is not scored 100% for free.",
+      "enum": [
+        "scored",
+        "not_applicable"
+      ]
+    },
+    "forbidden_inferences": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "activity_reused_across_target",
+          "attribution_as_mechanism",
+          "clinical_or_regulatory_overreach",
+          "contradiction_across_endpoints",
+          "fabricated_value_or_assay",
+          "hit_count_as_severity",
+          "not_run_as_negative",
+          "pic50_as_efficacy",
+          "relabelled_predictor_output",
+          "unauthorised_override",
+          "wrong_molecule"
+        ]
+      }
+    },
+    "evidence_spans": {
+      "description": "Where in a source the answer is found. An excerpt without a locator cannot be checked.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_ref",
+          "locator"
+        ],
+        "properties": {
+          "evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "pattern": "^(abstract|sec:\\d+/p:\\d+|table-wrap:\\d+)$"
+          },
+          "quote": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "paired_with": {
+      "description": "The control this case is paired with, and the single axis that varies.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "varies"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "varies": {
+          "enum": [
+            "evidence_relevance",
+            "interval_crosses_threshold",
+            "target_or_context",
+            "toxicity_stage_status"
+          ]
+        }
+      }
+    },
+    "cohort": {
+      "description": "Where a measurement disagreement was sampled from.",
+      "enum": [
+        "herg_chembl_disagreement",
+        "sair_span",
+        "tox21_assay_disagreement"
+      ]
+    },
+    "stress_set": {
+      "type": "boolean"
+    },
+    "fault": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mechanism"
+      ],
+      "properties": {
+        "mechanism": {
+          "enum": [
+            "citation_unresolvable",
+            "identity_mismatch",
+            "instruction_in_source",
+            "model_not_admitted",
+            "provider_unavailable",
+            "stage_failed",
+            "stage_skipped"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "predictor_error": {
+      "description": "T3 only: whether the predictor was genuinely wrong, or right beside a distracting source.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actually_wrong"
+      ],
+      "properties": {
+        "actually_wrong": {
+          "type": "boolean"
+        },
+        "verified_label_source": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

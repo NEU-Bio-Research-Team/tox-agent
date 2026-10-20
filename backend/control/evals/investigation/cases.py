@@ -24,6 +24,14 @@ SPECS_PATH = HERE / "case_specs.json"
 CASES_DIR = HERE / "cases"
 SCHEMA_PATH = HERE / "schema" / "investigation-case.schema.json"
 SCHEMA_VERSION = "investigation-case-v1"
+#: v2 adds the declarations a case needs before it can be scored: its task
+#: group, whether it is answerable at all, the conclusions a grader may
+#: accept, the limitations it requires and the inferences it forbids.
+SCHEMA_VERSION_V2 = "investigation-case-v2"
+SCHEMA_PATHS = {
+    SCHEMA_VERSION: SCHEMA_PATH,
+    SCHEMA_VERSION_V2: HERE / "schema" / "investigation-case-v2.schema.json",
+}
 
 PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/property/SMILES,MolecularFormula/JSON"
 
@@ -103,13 +111,41 @@ def build(resolver: Resolver = pubchem_resolver, *, out_dir: Path = CASES_DIR,
 
 
 def validate(cases: list[dict[str, Any]]) -> None:
+    """Shape against the schema its own ``schema_version`` names, then meaning.
+
+    v2 cases carry declarations JSON Schema cannot check against each other --
+    a conflict case's predictor polarity, a pair's two halves, whether a case
+    with no required limitation says its recall is not scored. Those go
+    through ``case_validator``; v1 cases are left exactly as they were.
+    """
     import jsonschema
 
-    validator = jsonschema.Draft202012Validator(json.loads(SCHEMA_PATH.read_text()))
-    problems = [
-        f"{case.get('case_id', '?')}: {list(error.path)} {error.message}"
-        for case in cases for error in validator.iter_errors(case)
-    ]
+    from .case_validator import validate_set
+
+    validators = {
+        version: jsonschema.Draft202012Validator(json.loads(path.read_text()))
+        for version, path in SCHEMA_PATHS.items()
+    }
+    problems: list[str] = []
+    for case in cases:
+        version = case.get("schema_version")
+        validator = validators.get(version)
+        if validator is None:
+            problems.append(
+                f"{case.get('case_id', '?')}: unknown schema_version {version!r}; "
+                f"expected one of {sorted(validators)}"
+            )
+            continue
+        problems.extend(
+            f"{case.get('case_id', '?')}: {list(error.path)} {error.message}"
+            for error in validator.iter_errors(case)
+        )
+    problems.extend(
+        str(finding)
+        for finding in validate_set(
+            [c for c in cases if c.get("schema_version") == SCHEMA_VERSION_V2]
+        )
+    )
     ids = [case.get("case_id") for case in cases]
     if len(ids) != len(set(ids)):
         problems.append("duplicate case ids")
