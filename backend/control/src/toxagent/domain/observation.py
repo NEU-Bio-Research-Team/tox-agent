@@ -27,6 +27,13 @@ class Producer(str, Enum):
     VALIDATOR = "validator"
     #: A server-side scientific calculation over cited inputs (W9-13).
     CALCULATOR = "calculator"
+    #: A versioned rule evaluated by the server, e.g. the activity
+    #: prioritisation policy. Its output is the result of a rule, not a
+    #: measurement, so it does not come from PREDICTOR (ADR 0014).
+    POLICY = "policy"
+    #: The workflow itself, for stage status: which stages ran, which were
+    #: skipped and why.
+    WORKFLOW = "workflow"
 
 
 class ObservationKind(str, Enum):
@@ -37,6 +44,14 @@ class ObservationKind(str, Enum):
     ANALYSIS_SLICE = "analysis_slice"
     #: The result of a server calculation, e.g. an exposure margin (W9-13).
     CALCULATION = "calculation"
+    #: A target-conditioned pIC50 estimate. Deliberately not PREDICTION: that
+    #: kind carries endpoint-keyed probabilities in [0, 1], and a pIC50 is
+    #: neither (ADR 0013, ADR 0014).
+    ACTIVITY_ESTIMATE = "activity_estimate"
+    #: The output of the versioned prioritisation policy over one estimate.
+    PRIORITISATION_DECISION = "prioritisation_decision"
+    #: Which workflow stages ran, and why a stage did not.
+    SCREENING_STATE = "screening_state"
 
 
 # A model projection that outgrows this is a prompt-budget bug, not a reason to
