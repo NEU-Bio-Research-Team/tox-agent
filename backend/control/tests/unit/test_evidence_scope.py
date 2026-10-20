@@ -197,3 +197,51 @@ def test_an_assay_type_that_was_not_stated_is_its_own_group():
     ]
     summary = activity_summary.summarize(records)
     assert set(summary["by_type_and_assay"]) == {"IC50|F", "IC50|not_stated"}
+
+
+def test_a_contradiction_between_two_scopeless_sources_is_refused():
+    """Found while doing #43: two scopes that declare nothing produce no
+    differences, which must not read as "the same measurement"."""
+    proposition = new_proposition_id()
+    relations = [
+        _relation(
+            proposition_id=proposition,
+            relation=RelationLabel.SUPPORTS,
+            scope=EvidenceScope(),
+            source_id="evi_a",
+        ),
+        _relation(
+            proposition_id=proposition,
+            relation=RelationLabel.CONTRADICTS,
+            scope=EvidenceScope(),
+            source_id="evi_b",
+        ),
+    ]
+
+    conflicts = scope_conflicts(relations)
+
+    assert len(conflicts) == 1
+    assert conflicts[0].reason == "scope_undeclared"
+    assert conflicts[0].differing_axes == ()
+    assert "shares no declared measurement axis" in conflicts[0].describe()
+
+
+def test_one_shared_declared_axis_is_enough_to_be_comparable():
+    both_herg = EvidenceScope(endpoint="herg")
+    assert both_herg.comparable_with(EvidenceScope(endpoint="herg", assay_type="F"))
+    proposition = new_proposition_id()
+    relations = [
+        _relation(
+            proposition_id=proposition,
+            relation=RelationLabel.SUPPORTS,
+            scope=EvidenceScope(endpoint="herg"),
+            source_id="evi_a",
+        ),
+        _relation(
+            proposition_id=proposition,
+            relation=RelationLabel.CONTRADICTS,
+            scope=EvidenceScope(endpoint="herg"),
+            source_id="evi_b",
+        ),
+    ]
+    assert scope_conflicts(relations) == ()

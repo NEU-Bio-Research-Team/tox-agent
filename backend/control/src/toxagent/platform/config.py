@@ -415,6 +415,9 @@ class ResearchSettings:
     #: Content types that may be parsed. `accept: application/json` is a
     #: request header — a wish, not a constraint on what comes back.
     allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
+    #: Full text comes back as JATS XML, so it gets its own allowlist rather
+    #: than widening the JSON one every search response is checked against.
+    allowed_full_text_content_types: tuple[str, ...] = ("application/xml", "text/xml")
     #: provider=snapshot only: an eval-fixture-v1 file whose ``evidence``
     #: section is served instead of a network provider, and an optional
     #: injected fault (research/providers/snapshot.py). Benchmarks only.

@@ -135,6 +135,22 @@ class EvidenceScope:
             if axis in mine and axis in theirs and mine[axis] != theirs[axis]
         )
 
+    def shared_axes(self, other: "EvidenceScope") -> tuple[str, ...]:
+        mine, theirs = self.declared(), other.declared()
+        return tuple(
+            axis for axis in MEASUREMENT_AXES if axis in mine and axis in theirs
+        )
+
+    def comparable_with(self, other: "EvidenceScope") -> bool:
+        """Whether these two can be set against each other at all.
+
+        Agreeing on nothing is not agreement. Two scopes that declare no
+        common axis produce no differences, which must not read as "the same
+        measurement" -- that is exactly how "both say hERG" becomes a
+        contradiction between a binding affinity and a clinical outcome.
+        """
+        return bool(self.shared_axes(other)) and not self.differences(other)
+
 
 #: The axes that decide whether two sources measured the same thing. A
 #: difference on any of them means the two numbers are not commensurable, so a
@@ -289,8 +305,18 @@ class ScopeConflict:
     contradicting_relation_id: str
     other_relation_id: str
     differing_axes: tuple[str, ...]
+    #: ``scope_differs`` when a declared axis disagrees; ``scope_undeclared``
+    #: when the two share no declared axis at all, so comparability was never
+    #: established either way.
+    reason: str = "scope_differs"
 
     def describe(self) -> str:
+        if self.reason == "scope_undeclared":
+            return (
+                f"relation {self.contradicting_relation_id} contradicts a source it "
+                "shares no declared measurement axis with; state the endpoint, assay "
+                "and unit the two have in common before calling them contradictory"
+            )
         axes = ", ".join(self.differing_axes)
         return (
             f"relation {self.contradicting_relation_id} contradicts a source whose "
@@ -334,6 +360,19 @@ def scope_conflicts(
                             contradicting_relation_id=assessment.id,
                             other_relation_id=other.id,
                             differing_axes=axes,
+                            reason="scope_differs",
+                        )
+                    )
+                elif not assessment.scope.shared_axes(other.scope):
+                    # No declared axis in common. Agreeing on nothing is not
+                    # agreement, so comparability has not been shown.
+                    conflicts.append(
+                        ScopeConflict(
+                            proposition_id=proposition_id,
+                            contradicting_relation_id=assessment.id,
+                            other_relation_id=other.id,
+                            differing_axes=(),
+                            reason="scope_undeclared",
                         )
                     )
     return tuple(conflicts)

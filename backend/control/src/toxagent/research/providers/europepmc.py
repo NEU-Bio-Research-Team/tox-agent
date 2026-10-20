@@ -21,8 +21,10 @@ from ...platform.config import ResearchSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ...domain.evidence import SourceIdentifier, SourceType
 from ..circuit_breaker import CircuitBreaker, CircuitOpen
+from ..fulltext import parse_jats
 from ..transport import rebuild_decoded_response
-from ..interfaces import SearchHit
+from ..interfaces import FullTextFetch, SearchHit
+from ..text_access import access_facts
 
 #: EuropePMC's own source codes for a peer-reviewed-journal record space
 #: (MED = MEDLINE, PMC = PubMed Central full text); everything else this API
@@ -88,6 +90,11 @@ def hit_from_record(record: dict[str, Any]) -> SearchHit | None:
             "journal": _journal_title(record),
             "pub_type": _pub_type(record),
             "pub_year": record.get("pubYear"),
+            # Whether the text can be read at all, derived from what the
+            # provider declared rather than assumed (research/text_access.py).
+            # An abstract-only hit now says so, so a search that found
+            # abstracts is never reported as an absence of evidence.
+            **access_facts(record, has_abstract=bool(record.get("abstractText"))),
         },
         raw=record,
     )
@@ -167,7 +174,53 @@ class EuropePmcProvider:
         hits = [hit_from_record(r) for r in records]
         return [h for h in hits if h is not None]
 
-    async def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+    async def fetch_full_text(self, *, provider_record_id: str) -> FullTextFetch:
+        """Ask for this record's text, as located passages.
+
+        A record with no full text in Europe PMC answers 404. That is an
+        ordinary, expected answer about one document, so it is reported as a
+        failed access rather than raised -- and it must not count against the
+        circuit breaker, which exists for a provider that is unwell.
+        """
+        source, _, identifier = provider_record_id.partition(":")
+        if not source or not identifier:
+            return FullTextFetch(
+                retrieved=False,
+                reason=f"{provider_record_id!r} is not a '<source>:<id>' record id",
+            )
+        try:
+            response = await self._request(
+                "GET", f"/{source}/{identifier}/fullTextXML", not_found_ok=True
+            )
+        except (EvidenceUnavailable, ProviderRateLimited) as exc:
+            return FullTextFetch(retrieved=False, reason=str(exc))
+        if response.status_code == 404:
+            return FullTextFetch(
+                retrieved=False,
+                reason="the provider holds no full text for this record",
+            )
+        media_type = (response.headers.get("content-type") or "").split(";")[0].strip().lower()
+        if media_type and media_type not in self._settings.allowed_full_text_content_types:
+            return FullTextFetch(
+                retrieved=False,
+                reason=f"the provider answered {media_type!r}, which is not XML",
+            )
+        document = parse_jats(response.text)
+        if not document.passages:
+            return FullTextFetch(
+                retrieved=False,
+                reason="the provider returned a document with no readable passages",
+            )
+        return FullTextFetch(
+            retrieved=True,
+            passages=document.passages,
+            section_titles=document.section_titles,
+            truncated=document.truncated,
+        )
+
+    async def _request(
+        self, method: str, path: str, *, not_found_ok: bool = False, **kwargs: Any
+    ) -> httpx.Response:
         # remaining-plan W3-06: fail fast, without even attempting the
         # network call, once the provider has failed enough consecutive
         # times in a row — never pummel a struggling provider with more
@@ -200,6 +253,12 @@ class EuropePmcProvider:
                 "the research provider rate-limited this request",
                 retry_after_ms=int(float(retry_after) * 1000) if retry_after else None,
             )
+        # A 404 for one record is the provider answering correctly about a
+        # document it does not hold, so the caller interprets it and the
+        # breaker counts it as a healthy call.
+        if response.status_code == 404 and not_found_ok:
+            self._circuit.record_success()
+            return response
         if not response.is_success:
             self._circuit.record_failure()
             raise EvidenceUnavailable(

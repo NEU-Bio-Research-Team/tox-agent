@@ -302,3 +302,81 @@ async def test_an_oversized_response_counts_as_a_provider_failure():
     with pytest.raises(EvidenceUnavailable, match="(?i)circuit|unavailable"):
         await provider.search(query="hERG")
     await provider.aclose()
+
+
+# ── full text (issue #43) ────────────────────────────────────────────────
+
+FULL_TEXT_XML = """<article>
+  <front><article-meta><abstract><p>We measured hERG block.</p></abstract></article-meta></front>
+  <body>
+    <sec><title>Results</title><p>The IC50 was 0.9 nM.</p></sec>
+  </body>
+</article>"""
+
+
+async def test_full_text_comes_back_as_located_passages():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith("/MED/42593910/fullTextXML")
+        return httpx.Response(
+            200, text=FULL_TEXT_XML, headers={"content-type": "application/xml"}
+        )
+
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:42593910")
+
+    assert fetch.retrieved
+    assert fetch.section_titles == ("Results",)
+    assert any(p.locator == "sec:1/p:1" and "0.9 nM" in p.text for p in fetch.passages)
+
+
+async def test_a_record_with_no_full_text_is_a_failed_access_not_an_exception():
+    """404 here is the provider answering correctly about one document."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, text="not found")
+
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:1")
+
+    assert not fetch.retrieved
+    assert "no full text" in (fetch.reason or "")
+    assert fetch.passages == ()
+
+
+async def test_an_ordinary_404_does_not_trip_the_circuit_breaker():
+    """The breaker exists for a provider that is unwell, not for a paper that
+    has no deposited text."""
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        if request.url.path.endswith("fullTextXML"):
+            calls += 1
+            return httpx.Response(404, text="not found")
+        return httpx.Response(200, json=RESPONSE_BODY)
+
+    provider = _mock(handler)
+    for index in range(SETTINGS.circuit_failure_threshold + 2):
+        assert not (
+            await provider.fetch_full_text(provider_record_id=f"MED:{index}")
+        ).retrieved
+    assert calls == SETTINGS.circuit_failure_threshold + 2
+    # the search path still works afterwards
+    hits = await provider.search(query="hERG", source_types=None, date_from=None, limit=1)
+    assert len(hits) == 1
+
+
+async def test_a_non_xml_full_text_answer_is_refused():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>paywall</html>",
+                              headers={"content-type": "text/html"})
+
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:42593910")
+    assert not fetch.retrieved
+    assert "not XML" in (fetch.reason or "")
+
+
+async def test_a_provider_outage_during_a_full_text_fetch_is_reported_not_raised():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(503, text="unavailable")
+
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:42593910")
+    assert not fetch.retrieved
+    assert fetch.reason
