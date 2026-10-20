@@ -25,6 +25,29 @@ class ActivityApplicability(str, Enum):
     UNKNOWN = "unknown"
 
 
+class TargetRole(str, Enum):
+    """Why this target is being screened.
+
+    A pIC50 threshold only points one way once this is known.  "High pIC50
+    deserves more screening" is a statement about an intended target; for an
+    anti-target the same number argues the opposite, and for an unspecified
+    role it argues nothing.  Prioritisation policies therefore declare the
+    role they are valid for instead of assuming one.
+    """
+
+    INTENDED_TARGET = "intended_target"
+    OFF_TARGET = "off_target"
+    UNSPECIFIED = "unspecified"
+
+
+class ActivityIdentityMismatch(ValueError):
+    """An artifact describes a different ligand, target or assay context."""
+
+    def __init__(self, mismatches: tuple[str, ...], detail: str) -> None:
+        super().__init__(f"activity identity mismatch on {', '.join(mismatches)}: {detail}")
+        self.mismatches = mismatches
+
+
 @dataclass(frozen=True, slots=True)
 class TargetIdentity:
     """A resolved target, not an untraceable free-text protein name."""
@@ -47,6 +70,75 @@ class TargetIdentity:
             "target_id": self.target_id,
             "uniprot_id": self.uniprot_id,
             "sequence_sha256": self.sequence_sha256,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ActivitySubject:
+    """What one activity artifact is about: one ligand, one target, one context.
+
+    Identity is carried by the canonical SMILES, not by the string a caller
+    typed.  Normalisation is owned by the application boundary, so the domain
+    compares already-canonical forms and never guesses that two spellings are
+    the same molecule.
+
+    ``uniprot_id`` and ``sequence_sha256`` are compared only when both sides
+    declare them: a caller may legitimately open a screening knowing only the
+    target id and have the predictor resolve the sequence.  Once both sides
+    declare a value, a difference is a mismatch.
+    """
+
+    canonical_smiles: str
+    target: TargetIdentity
+    assay_context: str
+
+    def __post_init__(self) -> None:
+        if not self.canonical_smiles.strip():
+            raise ValueError("subject.canonical_smiles is required")
+        if not self.assay_context.strip():
+            raise ValueError("subject.assay_context is required")
+
+    def mismatches(self, other: "ActivitySubject") -> tuple[str, ...]:
+        found: list[str] = []
+        if self.canonical_smiles != other.canonical_smiles:
+            found.append("canonical_smiles")
+        if self.target.target_id != other.target.target_id:
+            found.append("target_id")
+        if (
+            self.target.uniprot_id is not None
+            and other.target.uniprot_id is not None
+            and self.target.uniprot_id != other.target.uniprot_id
+        ):
+            found.append("uniprot_id")
+        if (
+            self.target.sequence_sha256 is not None
+            and other.target.sequence_sha256 is not None
+            and self.target.sequence_sha256 != other.target.sequence_sha256
+        ):
+            found.append("sequence_sha256")
+        if self.assay_context != other.assay_context:
+            found.append("assay_context")
+        return tuple(found)
+
+    def require_same(self, other: "ActivitySubject", *, artifact: str) -> None:
+        mismatches = self.mismatches(other)
+        if mismatches:
+            raise ActivityIdentityMismatch(
+                mismatches,
+                f"{artifact} describes {other.describe()}, screening is {self.describe()}",
+            )
+
+    def describe(self) -> str:
+        return (
+            f"{self.canonical_smiles} on {self.target.target_id} "
+            f"in {self.assay_context}"
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "canonical_smiles": self.canonical_smiles,
+            "target": self.target.to_dict(),
+            "assay_context": self.assay_context,
         }
 
 
@@ -142,6 +234,15 @@ class ActivitySnapshot:
             raise ValueError("input_smiles and canonical_smiles are required")
         if not self.assay_context.strip():
             raise ValueError("assay_context is required")
+
+    @property
+    def subject(self) -> ActivitySubject:
+        """The identity this observation claims, for comparison against a screening."""
+        return ActivitySubject(
+            canonical_smiles=self.canonical_smiles,
+            target=self.target,
+            assay_context=self.assay_context,
+        )
 
     @classmethod
     def create(

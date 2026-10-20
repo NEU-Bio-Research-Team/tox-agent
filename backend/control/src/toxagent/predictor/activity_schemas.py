@@ -22,8 +22,17 @@ class ActivityTargetRequest(_Strict):
 
 
 class ActivityPredictionRequest(_Strict):
+    """A request names the assay context it wants a pIC50 for.
+
+    The response carries a required ``assay_context``, so leaving it out of
+    the request meant the server picked one the caller never chose and could
+    not check.  A threshold is calibrated per context, so the caller has to
+    state it and the application boundary compares it against the response.
+    """
+
     smiles: str = Field(min_length=1, max_length=4000)
     target: ActivityTargetRequest
+    assay_context: str = Field(min_length=1)
     model_id: str | None = Field(default=None, min_length=1)
 
 

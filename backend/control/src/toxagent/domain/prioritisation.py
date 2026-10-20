@@ -5,7 +5,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
-from .activity import ActivityApplicability, ActivitySnapshot, finite_number
+from .activity import (
+    ActivityApplicability,
+    ActivitySnapshot,
+    TargetRole,
+    finite_number,
+)
 from .ids import ACTIVITY_SNAPSHOT, PRIORITISATION, new_id, require_id
 
 
@@ -15,6 +20,14 @@ class PriorityStatus(str, Enum):
     LOW_PRIORITY = "low_priority"
 
 
+class PolicyNotApplicable(ValueError):
+    """The policy was asked to decide outside the scope it was defined for."""
+
+
+class UnsupportedTargetRole(PolicyNotApplicable):
+    """No decision rule has been defined for this target role."""
+
+
 @dataclass(frozen=True, slots=True)
 class PrioritisationDecision:
     id: str
@@ -22,6 +35,8 @@ class PrioritisationDecision:
     status: PriorityStatus
     policy_id: str
     target_id: str
+    assay_context: str
+    intended_target_role: TargetRole
     threshold_pic50: float
     threshold_source: str
     reason_codes: tuple[str, ...]
@@ -41,6 +56,8 @@ class PrioritisationDecision:
         )
         if not self.policy_id.strip() or not self.target_id.strip():
             raise ValueError("policy_id and target_id are required")
+        if not self.assay_context.strip():
+            raise ValueError("assay_context is required: a threshold has no meaning without it")
         if not self.threshold_source.strip():
             raise ValueError("threshold_source is required")
         if not self.reason_codes:
@@ -49,17 +66,32 @@ class PrioritisationDecision:
 
 @dataclass(frozen=True, slots=True)
 class TargetPriorityPolicy:
-    """Conservative target-specific policy over an activity interval."""
+    """Conservative policy over an activity interval, scoped to one context.
+
+    The policy key is ``(target_id, assay_context)``, not ``target_id`` alone.
+    A pIC50 threshold is calibrated against a particular kind of measurement,
+    so applying it to a snapshot from another assay context would compare two
+    different quantities.
+
+    ``intended_target_role`` records what the threshold assumes.  The rule
+    below ("the whole interval clears the threshold" means prioritise) is only
+    defined for an intended target; other roles are refused rather than
+    silently inverted.
+    """
 
     policy_id: str
     target_id: str
+    assay_context: str
     threshold_pic50: float
     threshold_source: str
     max_uncertainty: float
+    intended_target_role: TargetRole = TargetRole.INTENDED_TARGET
 
     def __post_init__(self) -> None:
         if not self.policy_id.strip() or not self.target_id.strip():
             raise ValueError("policy_id and target_id are required")
+        if not self.assay_context.strip():
+            raise ValueError("assay_context is required: a threshold is calibrated per context")
         if not self.threshold_source.strip():
             raise ValueError("threshold_source is required")
         object.__setattr__(
@@ -72,12 +104,27 @@ class TargetPriorityPolicy:
             raise ValueError("max_uncertainty must be non-negative")
         object.__setattr__(self, "max_uncertainty", maximum)
 
-    def decide(self, snapshot: ActivitySnapshot, *, now: datetime) -> PrioritisationDecision:
+    def _require_in_scope(self, snapshot: ActivitySnapshot) -> None:
         if snapshot.target.target_id != self.target_id:
-            raise ValueError(
+            raise PolicyNotApplicable(
                 f"policy for target {self.target_id!r} cannot decide snapshot for "
                 f"{snapshot.target.target_id!r}"
             )
+        if snapshot.assay_context != self.assay_context:
+            raise PolicyNotApplicable(
+                f"policy threshold is calibrated for assay context "
+                f"{self.assay_context!r} and cannot decide a snapshot measured in "
+                f"{snapshot.assay_context!r}"
+            )
+        if self.intended_target_role is not TargetRole.INTENDED_TARGET:
+            raise UnsupportedTargetRole(
+                f"no prioritisation rule is defined for target role "
+                f"{self.intended_target_role.value!r}; the interval-above-threshold "
+                "rule assumes an intended target"
+            )
+
+    def decide(self, snapshot: ActivitySnapshot, *, now: datetime) -> PrioritisationDecision:
+        self._require_in_scope(snapshot)
 
         estimate = snapshot.estimate
         reasons: list[str] = []
@@ -109,6 +156,8 @@ class TargetPriorityPolicy:
             status=status,
             policy_id=self.policy_id,
             target_id=self.target_id,
+            assay_context=self.assay_context,
+            intended_target_role=self.intended_target_role,
             threshold_pic50=self.threshold_pic50,
             threshold_source=self.threshold_source,
             reason_codes=tuple(reasons),
