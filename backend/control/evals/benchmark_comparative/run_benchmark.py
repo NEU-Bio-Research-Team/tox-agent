@@ -72,14 +72,20 @@ def print_scorecard(report: dict) -> None:
     for sys_name in systems:
         p = pred.get(sys_name, {})
         herg_acc = p.get("herg_classification_accuracy")
+        herg_strict = p.get("herg_strict_accuracy")
+        herg_cov = p.get("herg_coverage")
         f1 = p.get("tox21_f1")
         prec = p.get("tox21_precision")
         rec = p.get("tox21_recall")
         lim = p.get("limitation_awareness_rate")
         abs_rate = p.get("abstention_rate")
+        # The winner marker sits on strict accuracy, which is what the ranking
+        # uses: accuracy when committed rewards declining the hard cases.
         w = "  ← winner" if winners.get("predictive_accuracy") == sys_name else ""
         print(f"  {sys_name}")
-        print(f"    {'hERG classification accuracy':<33} {_fmt(herg_acc)}   {_bar(herg_acc)}{w}")
+        print(f"    {'hERG strict accuracy (all labelled)':<35} {_fmt(herg_strict)}   {_bar(herg_strict)}{w}")
+        print(f"    {'hERG accuracy, committed calls only':<35} {_fmt(herg_acc)}")
+        print(f"    {'hERG coverage (committed / labelled)':<35} {_fmt(herg_cov)}")
         print(f"    {'Tox21 F1':<33} {_fmt(f1)}   {_bar(f1)}")
         print(f"    {'Tox21 Precision':<33} {_fmt(prec)}")
         print(f"    {'Tox21 Recall':<33} {_fmt(rec)}")
