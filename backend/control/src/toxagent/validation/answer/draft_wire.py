@@ -158,6 +158,19 @@ class EvidenceRelationInputV2(_Wire):
     species: str | None = None
     dose: str | None = None
     use_context: str | None = None
+    # What makes a measurement the same measurement. Two records can both say
+    # "hERG" and measure different things, so a `contradicts` whose scope
+    # differs from the source it contradicts on any of these is rejected and
+    # has to be restated as `contextual` (domain/evidence_relation.py).
+    ligand_id: str | None = Field(default=None, max_length=200)
+    target_id: str | None = Field(default=None, max_length=200)
+    target_variant: str | None = Field(default=None, max_length=200)
+    target_sequence_sha256: str | None = Field(default=None, max_length=64)
+    assay_type: str | None = Field(default=None, max_length=200)
+    readout: str | None = Field(default=None, max_length=200)
+    unit: str | None = Field(default=None, max_length=40)
+    comparator: str | None = Field(default=None, max_length=8)
+    experimental_context: str | None = Field(default=None, max_length=300)
     input_source_refs: list[str] = Field(
         default_factory=list, max_length=8,
         description=(

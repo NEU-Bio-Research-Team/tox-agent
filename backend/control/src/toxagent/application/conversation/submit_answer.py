@@ -26,6 +26,7 @@ from ...domain.evidence_relation import (
     SourceRef,
     Strength,
     new_proposition_id,
+    scope_conflicts,
 )
 from ...domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ...domain.observation import Observation
@@ -439,9 +440,37 @@ class SubmitAnswer:
                     scope=EvidenceScope(
                         endpoint=item.endpoint, species=item.species, dose=item.dose,
                         use_context=item.use_context,
+                        ligand_id=item.ligand_id, target_id=item.target_id,
+                        target_variant=item.target_variant,
+                        target_sequence_sha256=item.target_sequence_sha256,
+                        assay_type=item.assay_type, readout=item.readout,
+                        unit=item.unit, comparator=item.comparator,
+                        experimental_context=item.experimental_context,
                     ),
                     input_refs=tuple(item.input_source_refs),
                     now=now,
+                )
+            )
+        # A `contradicts` claims two sources cannot both hold, which requires
+        # them to have measured the same thing. Where the scopes differ, the
+        # model is told which axis differs and asked for `contextual` instead —
+        # a false contradiction is on the critical-error list, so this is a
+        # violation rather than a silent downgrade.
+        for conflict in scope_conflicts(assessments):
+            position = next(
+                (
+                    index
+                    for index, assessment in enumerate(assessments)
+                    if assessment.id == conflict.contradicting_relation_id
+                ),
+                0,
+            )
+            violations.append(
+                Violation(
+                    "evidence_relation_contradiction_out_of_scope",
+                    f"{conflict.describe()}; state it as 'contextual' and name the "
+                    "differing scope, or correct the scope if they do match",
+                    path=f"evidence_relations[{position}].relation",
                 )
             )
         if violations:

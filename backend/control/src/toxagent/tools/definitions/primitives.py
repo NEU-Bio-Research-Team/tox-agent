@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from datetime import datetime, timezone
-from typing import Final, Literal
+from typing import Any, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -68,9 +68,71 @@ class ExposureMarginInput(_Input):
 
 
 class ChemblActivitiesInput(_Input):
+    """``target`` is a closed literal on purpose.
+
+    This tool looks up hERG. It does not become a general activity tool for
+    any target by being handed a string: widening it means adding the target
+    to this literal, with the assay semantics for that target settled first.
+
+    ``assay_type`` and ``standard_type`` are typed filters over what comes
+    back. Two records can both be "hERG" and measure different things -- a
+    binding affinity and a patch-clamp functional block are not interchangeable
+    -- so the caller can ask for one kind rather than reading a pooled set as
+    though it were one measurement.
+    """
+
     analysis_id: str
     target: Literal["herg"] = "herg"
     limit: int = Field(default=10, ge=1, le=20)
+    assay_type: Literal["B", "F", "A", "T", "P", "U"] | None = Field(
+        default=None,
+        description=(
+            "ChEMBL assay type to keep: B binding, F functional, A ADMET, "
+            "T toxicity, P physicochemical, U unclassified. Omit to keep all "
+            "and read the per-assay breakdown in the summary."
+        ),
+    )
+    standard_type: Literal["IC50", "Ki", "Kd", "EC50"] | None = Field(
+        default=None,
+        description="Measurement type to keep. Omit to keep all.",
+    )
+
+
+def _filter_hits(
+    hits, *, assay_type: str | None, standard_type: str | None
+) -> tuple[list, dict[str, Any]]:
+    """Keep the hits the caller asked for, and say what was left out.
+
+    A filter that silently shrinks a result set turns a coverage gap into
+    apparent absence, so the excluded counts are reported beside the records.
+    """
+    if assay_type is None and standard_type is None:
+        return list(hits), {"applied": False, "excluded": 0, "excluded_by_assay_type": {}}
+    kept: list = []
+    excluded_by_assay: dict[str, int] = {}
+    excluded = 0
+    for hit in hits:
+        facts = getattr(hit, "normalized_facts", None) or {}
+        hit_assay = str(facts.get("assay_type") or "").strip() or "not_stated"
+        hit_type = str(facts.get("standard_type") or "").strip()
+        if (assay_type is not None and hit_assay != assay_type) or (
+            standard_type is not None and hit_type != standard_type
+        ):
+            excluded += 1
+            excluded_by_assay[hit_assay] = excluded_by_assay.get(hit_assay, 0) + 1
+            continue
+        kept.append(hit)
+    return kept, {
+        "applied": True,
+        "assay_type": assay_type,
+        "standard_type": standard_type,
+        "excluded": excluded,
+        "excluded_by_assay_type": excluded_by_assay,
+        "note": (
+            "these records exist and were not read; the filter narrowed what was "
+            "returned, it did not establish that nothing else was measured"
+        ) if excluded else None,
+    }
 
 
 async def _source_text(uow, context: ToolContext, ref: str) -> str:
@@ -166,8 +228,11 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
         retrieved_at = _now()
         records: list[dict] = []
         ids: list[str] = []
+        kept, excluded = _filter_hits(
+            lookup.hits, assay_type=payload.assay_type, standard_type=payload.standard_type
+        )
         async with database.unit_of_work() as uow:
-            for hit in lookup.hits:
+            for hit in kept:
                 candidate = hit_to_evidence(hit, provider="chembl", session_id=context.session_id,
                                             retrieved_at=retrieved_at)
                 existing = await uow.evidence.find_by_dedupe_key(context.session_id,
@@ -237,6 +302,7 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
             "target_chembl_id": lookup.target_chembl_id,
             "summary": {"observation_id": observation.id, **summary},
             "records": records,
+            "filter": excluded,
             "note": "Measured values from ChEMBL, each under its own assay conditions; compare "
                     "them only with their assay type and units. Read the summary before any "
                     "single record. Cite a record by evidence_id in citation_ids; cite the "

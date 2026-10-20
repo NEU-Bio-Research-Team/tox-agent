@@ -12,6 +12,7 @@ introduced without touching either existing type's live wire contract.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -73,12 +74,37 @@ class Strength(str, Enum):
 class EvidenceScope:
     """What the assessed relation is actually scoped to. Two sources that
     look contradictory often disagree because one of these differs, not
-    because either is wrong (plan section 9.4)."""
+    because either is wrong (plan section 9.4).
+
+    ``endpoint``/``species``/``dose``/``use_context`` were not enough to tell
+    a real disagreement from two different measurements: two records can both
+    say "hERG" and measure different things. The axes below name what makes a
+    measurement the same measurement -- which molecule, which protein, and by
+    what assay read out in what unit against what comparator.
+
+    A field left ``None`` is *not stated*, not "the same as yours". Comparison
+    therefore only looks at axes both sides declare.
+    """
 
     endpoint: str | None = None
     species: str | None = None
     dose: str | None = None
     use_context: str | None = None
+    #: Which molecule. A canonical identifier, not a name a paper used.
+    ligand_id: str | None = None
+    #: Which protein, and which form of it.
+    target_id: str | None = None
+    target_variant: str | None = None
+    target_sequence_sha256: str | None = None
+    #: How it was measured.
+    assay_type: str | None = None
+    readout: str | None = None
+    unit: str | None = None
+    #: The relation the value is stated against, e.g. "<" for a censored IC50.
+    comparator: str | None = None
+    #: Conditions that change what the number means, e.g. the cell system or
+    #: temperature a channel assay was run at.
+    experimental_context: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -86,7 +112,52 @@ class EvidenceScope:
             "species": self.species,
             "dose": self.dose,
             "use_context": self.use_context,
+            "ligand_id": self.ligand_id,
+            "target_id": self.target_id,
+            "target_variant": self.target_variant,
+            "target_sequence_sha256": self.target_sequence_sha256,
+            "assay_type": self.assay_type,
+            "readout": self.readout,
+            "unit": self.unit,
+            "comparator": self.comparator,
+            "experimental_context": self.experimental_context,
         }
+
+    def declared(self) -> dict[str, str]:
+        return {k: v for k, v in self.to_dict().items() if v is not None}
+
+    def differences(self, other: "EvidenceScope") -> tuple[str, ...]:
+        """Axes both sides declare and disagree on."""
+        mine, theirs = self.declared(), other.declared()
+        return tuple(
+            axis
+            for axis in MEASUREMENT_AXES
+            if axis in mine and axis in theirs and mine[axis] != theirs[axis]
+        )
+
+
+#: The axes that decide whether two sources measured the same thing. A
+#: difference on any of them means the two numbers are not commensurable, so a
+#: disagreement between them is not yet a contradiction.
+#: ``dose`` is included: downgrading a contradiction to a contextual relation
+#: with a named axis is the cheaper error. A false contradiction is on the
+#: critical-error list; an over-cautious ``contextual`` is an argument the
+#: reviewer can reopen.
+MEASUREMENT_AXES: tuple[str, ...] = (
+    "endpoint",
+    "species",
+    "dose",
+    "use_context",
+    "ligand_id",
+    "target_id",
+    "target_variant",
+    "target_sequence_sha256",
+    "assay_type",
+    "readout",
+    "unit",
+    "comparator",
+    "experimental_context",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,6 +274,69 @@ class EvidenceRelationAssessment:
             "method_version": self.method_version,
             "created_at": self.created_at.isoformat(),
         }
+
+
+@dataclass(frozen=True, slots=True)
+class ScopeConflict:
+    """A ``contradicts`` that rests on a scope difference, not a disagreement.
+
+    ``differing_axes`` names what makes the two sources incommensurable, so the
+    relation can be restated as ``contextual`` on that axis instead of being
+    argued about in prose.
+    """
+
+    proposition_id: str
+    contradicting_relation_id: str
+    other_relation_id: str
+    differing_axes: tuple[str, ...]
+
+    def describe(self) -> str:
+        axes = ", ".join(self.differing_axes)
+        return (
+            f"relation {self.contradicting_relation_id} contradicts a source whose "
+            f"scope differs on {axes}; two sources that did not measure the same "
+            "thing are not in disagreement"
+        )
+
+
+def scope_conflicts(
+    assessments: Sequence[EvidenceRelationAssessment],
+) -> tuple[ScopeConflict, ...]:
+    """Find contradictions that only a scope difference makes look like one.
+
+    Within one proposition, a ``contradicts`` is a claim that this source and
+    another source of the same proposition cannot both hold. That claim needs
+    the two to be commensurable. Where they differ on a measurement axis, the
+    honest label is ``contextual``, and this returns the axes that say so.
+
+    Four outcomes are kept apart this way: a real contradiction (comparable
+    scope), different measurement conditions (this function's findings),
+    indirect evidence (``directness``) and not enough data
+    (``RelationLabel.INSUFFICIENT``).
+    """
+    by_proposition: dict[str, list[EvidenceRelationAssessment]] = {}
+    for assessment in assessments:
+        by_proposition.setdefault(assessment.proposition_id, []).append(assessment)
+
+    conflicts: list[ScopeConflict] = []
+    for proposition_id, group in by_proposition.items():
+        for assessment in group:
+            if assessment.relation is not RelationLabel.CONTRADICTS:
+                continue
+            for other in group:
+                if other.id == assessment.id:
+                    continue
+                axes = assessment.scope.differences(other.scope)
+                if axes:
+                    conflicts.append(
+                        ScopeConflict(
+                            proposition_id=proposition_id,
+                            contradicting_relation_id=assessment.id,
+                            other_relation_id=other.id,
+                            differing_axes=axes,
+                        )
+                    )
+    return tuple(conflicts)
 
 
 def new_proposition_id() -> str:
