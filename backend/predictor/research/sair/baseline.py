@@ -35,6 +35,17 @@ FEATURE_NAMES = (
 )
 
 
+BENCHMARK_SPLITS = ("train", "validation", "test")
+
+#: ``training_eligible`` excludes pairs whose replicate measurements disagree by
+#: more than the Phase-1 span policy.  That is a *training-time* label filter:
+#: it keeps contradictory labels out of the fit and out of the calibration set.
+#: Applying it to the evaluation split would measure the model on the easy part
+#: of SAIR and report the result as if it covered the whole distribution, so
+#: ``test`` is deliberately absent here.
+LABEL_FILTER_SPLITS = ("train", "validation")
+
+
 class BaselineInputError(ValueError):
     pass
 
@@ -104,6 +115,54 @@ def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, floa
     }
 
 
+def partition_splits(frame: Any) -> dict[str, Any]:
+    """Split the pair table, applying the label filter only where it belongs.
+
+    Returns one frame per benchmark split.  ``train`` and ``validation`` are
+    restricted to ``training_eligible`` rows; ``test`` keeps every row so the
+    reported numbers describe the distribution the model would meet.
+    """
+    partitions: dict[str, Any] = {}
+    for split in BENCHMARK_SPLITS:
+        rows = frame[frame["split"] == split]
+        if split in LABEL_FILTER_SPLITS:
+            rows = rows[rows["training_eligible"]]
+        partitions[split] = rows
+    return partitions
+
+
+def label_filter_report(frame: Any) -> dict[str, Any]:
+    """How much the span policy removes, per split and per primary assay."""
+    per_split: dict[str, Any] = {}
+    for split in BENCHMARK_SPLITS:
+        rows = frame[frame["split"] == split]
+        total = int(len(rows))
+        eligible = int(rows["training_eligible"].sum()) if total else 0
+        per_split[split] = {
+            "rows": total,
+            "training_eligible_rows": eligible,
+            "excluded_rows": total - eligible,
+            "excluded_fraction": (total - eligible) / total if total else 0.0,
+            "filter_applied": split in LABEL_FILTER_SPLITS,
+        }
+    by_assay: dict[str, Any] = {}
+    if "assay_primary" in getattr(frame, "columns", ()):
+        for assay, rows in frame.groupby("assay_primary", observed=True):
+            total = int(len(rows))
+            eligible = int(rows["training_eligible"].sum())
+            by_assay[str(assay)] = {
+                "rows": total,
+                "excluded_rows": total - eligible,
+                "excluded_fraction": (total - eligible) / total if total else 0.0,
+            }
+    return {
+        "policy": "max_label_span is a provisional policy, not a scientific constant",
+        "filtered_splits": list(LABEL_FILTER_SPLITS),
+        "per_split": per_split,
+        "by_primary_assay": by_assay,
+    }
+
+
 def train_baseline(
     *,
     phase1_path: Path,
@@ -116,6 +175,7 @@ def train_baseline(
     sample_salt: str,
 ) -> dict[str, Any]:
     import pandas as pd
+    import pyarrow.parquet as pq
     from sklearn.ensemble import HistGradientBoostingRegressor
 
     manifest = json.loads(phase1_manifest_path.read_text())
@@ -133,8 +193,11 @@ def train_baseline(
         "training_eligible",
         "split",
     ]
+    if "assay_primary" in set(pq.read_schema(phase1_path).names):
+        columns.append("assay_primary")
     frame = pd.read_parquet(phase1_path, columns=columns)
-    frame = frame[frame["training_eligible"]]
+    label_filter = label_filter_report(frame)
+    partitions = partition_splits(frame)
     limits = {
         "train": max_train,
         "validation": max_validation,
@@ -142,7 +205,7 @@ def train_baseline(
     }
     sampled = {
         split: deterministic_sample(
-            frame[frame["split"] == split],
+            partitions[split],
             limit=limit,
             salt=f"{sample_salt}:{split}",
         )
@@ -183,6 +246,22 @@ def train_baseline(
     metrics["test"]["interval_90_coverage"] = float(
         np.mean(np.abs(labels["test"] - predictions["test"]) <= interval_half_width)
     )
+    # The same test molecules, minus the ones the span policy would have
+    # excluded.  Reported beside the full test set because earlier runs
+    # filtered every split, so this is the view those numbers belong to.
+    eligible_test = sampled["test"]["training_eligible"].to_numpy(dtype=bool)
+    eligible_view: dict[str, Any] = {
+        "rows": int(eligible_test.sum()),
+        "excluded_rows": int((~eligible_test).sum()),
+    }
+    if 2 <= eligible_test.sum() < len(eligible_test):
+        y_true = labels["test"][eligible_test]
+        y_pred = predictions["test"][eligible_test]
+        eligible_view.update(regression_metrics(y_true, y_pred))
+        eligible_view["interval_90_coverage"] = float(
+            np.mean(np.abs(y_true - y_pred) <= interval_half_width)
+        )
+    metrics["test_training_eligible_only"] = eligible_view
     lower = np.quantile(features["train"], 0.005, axis=0).astype(float)
     upper = np.quantile(features["train"], 0.995, axis=0).astype(float)
     model_id = "sair-descriptor-hgb-b0"
@@ -200,6 +279,7 @@ def train_baseline(
             "phase1_sha256": observed_sha,
             "source_sha256": manifest["source"]["sha256"],
             "split_policy": manifest["split_policy"],
+            "label_filter": label_filter,
         },
         "sample": {
             "salt": sample_salt,

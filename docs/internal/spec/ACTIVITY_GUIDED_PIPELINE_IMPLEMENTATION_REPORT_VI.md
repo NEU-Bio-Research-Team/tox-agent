@@ -167,16 +167,29 @@ Tập benchmark:
 
 ### Metric
 
+> **Các số dưới đây đã hết hạn — chờ chạy lại.** Chúng được tạo khi
+> `baseline.py` áp bộ lọc `training_eligible` cho **cả ba** split, nên hàng
+> `Test` đo trên phần SAIR đã bỏ các pair có measurement bất đồng
+> (`pic50_span > max_label_span`), không phải trên phân phối test đầy đủ.
+> Bộ lọc giờ chỉ áp cho train/validation (xem `LABEL_FILTER_SPLITS`), và
+> `train_baseline` báo hai view cạnh nhau: `metrics.test` trên toàn bộ test
+> và `metrics.test_training_eligible_only` tương ứng với các số cũ. Cần chạy
+> lại B0 rồi thay bảng này bằng cả hai view. Issue #36.
+
 | Partition | MAE | RMSE | R² | Pearson |
 |---|---:|---:|---:|---:|
 | Train | 0,802 | 1,004 | 0,446 | 0,676 |
 | Validation | 1,043 | 1,273 | 0,081 | 0,321 |
-| Test | 1,024 | 1,250 | 0,143 | 0,406 |
+| Test (đã lọc span) | 1,024 | 1,250 | 0,143 | 0,406 |
 
 Prediction interval 90%:
 
-- half-width: khoảng 2,040 pIC50;
-- test coverage: 0,902.
+- half-width: khoảng 2,040 pIC50 — tức full width khoảng 4,08 pIC50;
+- test coverage: 0,902, trên tập test **đã lọc** nói trên.
+
+Half-width là **một** quantile của absolute residual trên validation, dùng
+chung cho mọi cặp, nên coverage 0,902 không chứng minh uncertainty thích ứng
+theo từng target hay candidate (issue #41).
 
 Artifact:
 
