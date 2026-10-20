@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
+from toxagent.application.policy import Actor, authorise_toxicity_continuation
+from toxagent.domain.errors import Forbidden, InvalidRequest
 from toxagent.domain.ids import ANALYSIS, RUN, SESSION, new_id
 from toxagent.domain.screening import (
     ActivityApplicability,
@@ -15,6 +17,7 @@ from toxagent.domain.screening import (
     ActivityModelProvenance,
     ActivitySnapshot,
     ActivitySubject,
+    ContinuationNotAuthorised,
     IllegalScreeningTransition,
     PolicyNotApplicable,
     PriorityStatus,
@@ -24,6 +27,7 @@ from toxagent.domain.screening import (
     TargetRole,
     UnsupportedTargetRole,
 )
+from toxagent.platform.config import PolicySettings
 from toxagent.predictor.activity_schemas import (
     ActivityPredictionRequest,
     ActivityPredictionResponse,
@@ -101,6 +105,11 @@ def _screening(
         intended_target_role=role,
         now=NOW,
     )
+
+
+def _reviewer() -> Actor:
+    """An authenticated principal holding the review role."""
+    return Actor(subject_id="reviewer@example.org", roles=frozenset({"expert"}))
 
 
 def _policy(
@@ -199,7 +208,7 @@ def test_low_priority_cannot_silently_start_toxicity_or_look_negative():
     screening = screening.record_activity(snapshot, now=NOW)
     screening = screening.record_decision(_policy().decide(snapshot, now=NOW), now=NOW)
     assert screening.status is ScreeningStatus.LOW_PRIORITY
-    with pytest.raises(ValueError, match="requires an actor"):
+    with pytest.raises(ContinuationNotAuthorised):
         screening.start_toxicity(now=NOW)
 
     screening = screening.complete_without_toxicity(
@@ -221,32 +230,67 @@ def test_review_and_low_priority_need_explicit_authorisation_to_continue():
     )
     screening = screening.record_activity(snapshot, now=NOW)
     screening = screening.record_decision(_policy().decide(snapshot, now=NOW), now=NOW)
-    with pytest.raises(ValueError, match="requires an actor"):
+    with pytest.raises(ContinuationNotAuthorised):
         screening.start_toxicity(now=NOW)
+
     screening = screening.start_toxicity(
         now=NOW,
-        authorised_by="reviewer@example.org",
-        authorisation_reason="manual review accepted the uncertain estimate",
+        authorisation=authorise_toxicity_continuation(
+            actor=_reviewer(),
+            reason="manual review accepted the uncertain estimate",
+            settings=PolicySettings(),
+        ),
     )
     assert screening.status is ScreeningStatus.TOXICITY_RUNNING
     assert screening.toxicity_authorised_by == "reviewer@example.org"
     assert screening.toxicity_authorisation_reason
+    assert screening.toxicity_authorisation_basis == "screening_continuation_roles"
 
 
-def test_manual_toxicity_authorisation_requires_both_actor_and_reason():
+def test_nothing_can_hand_the_state_machine_an_actor_it_chose_itself():
+    """The transition takes a granted authorisation, not an actor string, so a
+    caller -- or a model writing a tool call -- has no parameter to name its
+    own approver in."""
     session_id, run_id = new_id(SESSION), new_id(RUN)
     screening = _screening(session_id=session_id, run_id=run_id).start_activity(now=NOW)
     snapshot = _snapshot(
-        predicted=6.2,
-        interval=(5.9, 6.5),
-        session_id=session_id,
-        run_id=run_id,
+        predicted=7.0, interval=(6.6, 7.4), session_id=session_id, run_id=run_id
     )
     screening = screening.record_activity(snapshot, now=NOW)
     screening = screening.record_decision(_policy().decide(snapshot, now=NOW), now=NOW)
 
-    with pytest.raises(ValueError, match="requires a reason"):
-        screening.start_toxicity(now=NOW, authorised_by="reviewer@example.org")
+    with pytest.raises(TypeError):
+        screening.start_toxicity(
+            now=NOW,
+            authorised_by="reviewer@example.org",
+            authorisation_reason="looks fine to me",
+        )
+
+
+def test_continuing_past_the_gate_needs_a_role_not_a_well_written_reason():
+    with pytest.raises(Forbidden):
+        authorise_toxicity_continuation(
+            actor=Actor(subject_id="agent-run", roles=frozenset({"user"})),
+            reason="the interval only just crosses the threshold, so proceed",
+            settings=PolicySettings(),
+        )
+
+
+def test_an_authorisation_still_needs_a_reason_for_the_audit_trail():
+    with pytest.raises(InvalidRequest):
+        authorise_toxicity_continuation(
+            actor=_reviewer(), reason="   ", settings=PolicySettings()
+        )
+
+
+def test_the_recorded_principal_comes_from_authentication():
+    granted = authorise_toxicity_continuation(
+        actor=_reviewer(),
+        reason="assay evidence resolved the uncertainty",
+        settings=PolicySettings(),
+    )
+    assert granted.authorised_by == "reviewer@example.org"
+    assert granted.granted_by_policy == "screening_continuation_roles"
 
 
 def test_activity_failure_is_terminal_and_never_becomes_low_priority():

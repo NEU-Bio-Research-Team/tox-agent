@@ -125,6 +125,11 @@ class PolicySettings:
     default_endpoints: tuple[str, ...] = ("herg", "tox21")
     allow_threshold_overrides: bool = False
     threshold_override_roles: tuple[str, ...] = ("expert",)
+    #: Who may run toxicity on a candidate the activity policy put in REVIEW or
+    #: LOW_PRIORITY. The gate exists to stop work the policy judged unwarranted,
+    #: so stepping past it is an authorisation decision about the authenticated
+    #: principal, not a reason string a caller or a model can fill in (ADR 0014).
+    screening_continuation_roles: tuple[str, ...] = ("expert",)
     max_message_bytes: int = 32_768
     max_batch_size: int = 64
     #: Bounds the upload itself, independent of whether an OCR service is even
@@ -198,6 +203,9 @@ class PolicySettings:
             ),
             threshold_override_roles=_list(
                 "TOXAGENT_THRESHOLD_OVERRIDE_ROLES", cls.threshold_override_roles
+            ),
+            screening_continuation_roles=_list(
+                "TOXAGENT_SCREENING_CONTINUATION_ROLES", cls.screening_continuation_roles
             ),
             max_message_bytes=_int("TOXAGENT_MAX_MESSAGE_BYTES", cls.max_message_bytes),
             max_batch_size=_int("TOXAGENT_MAX_BATCH_SIZE", cls.max_batch_size),

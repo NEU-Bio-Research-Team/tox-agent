@@ -47,6 +47,8 @@ __all__ = [
     "ActivityModelProvenance",
     "ActivitySnapshot",
     "ActivitySubject",
+    "ContinuationAuthorisation",
+    "ContinuationNotAuthorised",
     "IllegalScreeningTransition",
     "PolicyNotApplicable",
     "PrioritisationDecision",
@@ -90,6 +92,43 @@ class IllegalScreeningTransition(ValueError):
         self.action = action
 
 
+class ContinuationNotAuthorised(ValueError):
+    """Toxicity was asked to run past a policy gate without a grant."""
+
+
+@dataclass(frozen=True, slots=True)
+class ContinuationAuthorisation:
+    """A granted permission to run toxicity past a REVIEW or LOW_PRIORITY gate.
+
+    ``authorised_by`` is a principal the server authenticated.  It is never a
+    name taken from a request body and never one a model produced: the gate
+    exists to stop screening work the policy judged unwarranted, so stepping
+    past it is an authorisation decision about who is asking.
+
+    ``reason`` is the reviewer's own words.  It is recorded as data for audit
+    and carries no authority of its own -- a well-written reason does not
+    substitute for the role check.
+
+    The supported way to obtain one of these is
+    ``application.policy.authorise_toxicity_continuation``, which checks the
+    principal's roles against the deployment's policy.  Taking a
+    ``ContinuationAuthorisation`` rather than two strings is what keeps the
+    domain from accepting an actor that was never authenticated.
+    """
+
+    authorised_by: str
+    reason: str
+    granted_by_policy: str
+
+    def __post_init__(self) -> None:
+        if not self.authorised_by.strip():
+            raise ValueError("authorisation requires an authenticated principal")
+        if not self.reason.strip():
+            raise ValueError("authorisation requires a reason")
+        if not self.granted_by_policy.strip():
+            raise ValueError("authorisation must record which policy granted it")
+
+
 @dataclass(frozen=True, slots=True)
 class ActivityGuidedScreening:
     id: str
@@ -106,6 +145,7 @@ class ActivityGuidedScreening:
     toxicity_analysis_id: str | None = None
     toxicity_authorised_by: str | None = None
     toxicity_authorisation_reason: str | None = None
+    toxicity_authorisation_basis: str | None = None
     toxicity_not_run_reason: str | None = None
     failure_code: str | None = None
     version: int = 1
@@ -134,10 +174,18 @@ class ActivityGuidedScreening:
             )
         if not self.input_smiles.strip():
             raise ValueError("screening.input_smiles is required")
-        if (self.toxicity_authorised_by is None) != (
-            self.toxicity_authorisation_reason is None
+        granted = (
+            self.toxicity_authorised_by,
+            self.toxicity_authorisation_reason,
+            self.toxicity_authorisation_basis,
+        )
+        if any(part is not None for part in granted) and not all(
+            part is not None for part in granted
         ):
-            raise ValueError("toxicity authorisation requires both actor and reason")
+            raise ValueError(
+                "toxicity authorisation requires the principal, the reason and the "
+                "policy that granted it"
+            )
 
     @classmethod
     def create(
@@ -249,11 +297,17 @@ class ActivityGuidedScreening:
         self,
         *,
         now: datetime,
-        authorised_by: str | None = None,
-        authorisation_reason: str | None = None,
+        authorisation: ContinuationAuthorisation | None = None,
     ) -> "ActivityGuidedScreening":
+        """Run the toxicity stage.
+
+        From ``prioritised`` the policy already decided, so no grant is taken.
+        From ``review_required`` or ``low_priority`` a
+        :class:`ContinuationAuthorisation` is required -- not an actor string,
+        so that nothing on the way here can name its own approver.
+        """
         if self.status is ScreeningStatus.PRIORITISED:
-            if authorised_by is not None or authorisation_reason is not None:
+            if authorisation is not None:
                 raise ValueError(
                     "policy-prioritised toxicity does not require manual authorisation"
                 )
@@ -264,15 +318,17 @@ class ActivityGuidedScreening:
             ScreeningStatus.LOW_PRIORITY,
         }:
             raise IllegalScreeningTransition(self.status, "start toxicity")
-        if not authorised_by or not authorised_by.strip():
-            raise ValueError("manual toxicity authorisation requires an actor")
-        if not authorisation_reason or not authorisation_reason.strip():
-            raise ValueError("manual toxicity authorisation requires a reason")
+        if authorisation is None:
+            raise ContinuationNotAuthorised(
+                f"screening in {self.status.value!r} needs a server-granted "
+                "continuation authorisation to start toxicity"
+            )
         return self._advance(
             ScreeningStatus.TOXICITY_RUNNING,
             now=now,
-            toxicity_authorised_by=authorised_by,
-            toxicity_authorisation_reason=authorisation_reason,
+            toxicity_authorised_by=authorisation.authorised_by,
+            toxicity_authorisation_reason=authorisation.reason,
+            toxicity_authorisation_basis=authorisation.granted_by_policy,
         )
 
     def complete_toxicity(

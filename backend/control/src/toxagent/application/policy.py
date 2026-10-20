@@ -11,6 +11,7 @@ from typing import Any, Mapping
 
 from ..platform.config import PolicySettings
 from ..domain.errors import Forbidden, InvalidRequest
+from ..domain.screening import ContinuationAuthorisation
 from ..predictor.contract import ENDPOINTS, TOX21_TASKS
 
 
@@ -41,6 +42,34 @@ def resolve_endpoints(
         if endpoint not in seen:
             seen.append(endpoint)
     return tuple(seen)
+
+
+def authorise_toxicity_continuation(
+    *, actor: Actor, reason: str | None, settings: PolicySettings
+) -> ContinuationAuthorisation:
+    """Grant permission to run toxicity past a REVIEW or LOW_PRIORITY gate.
+
+    The activity policy put the candidate behind that gate, so continuing is
+    an authorisation decision about the authenticated principal -- the same
+    shape as a moved threshold. The actor is taken from ``actor.subject_id``
+    and never from the request body, so neither a caller nor a model can name
+    its own approver. The reason is required and recorded, but it is evidence
+    for the audit trail, not a substitute for the role.
+    """
+    if not (actor.roles & set(settings.screening_continuation_roles)):
+        raise Forbidden(
+            "continuing past an activity prioritisation gate requires a review role",
+            required_roles=sorted(settings.screening_continuation_roles),
+        )
+    if not reason or not reason.strip():
+        raise InvalidRequest(
+            "continuing past an activity prioritisation gate requires a reason"
+        )
+    return ContinuationAuthorisation(
+        authorised_by=actor.subject_id,
+        reason=reason.strip(),
+        granted_by_policy="screening_continuation_roles",
+    )
 
 
 def authorise_threshold_overrides(
