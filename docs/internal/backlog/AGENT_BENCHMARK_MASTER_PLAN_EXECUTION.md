@@ -20,13 +20,13 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 | P04 strict-release | #47 | done | see below |
 | P05 budget-phases | #46/#53 | done | see below |
 | P06 case-inputs | #51 | done (engineering part) | SME gold still needed |
-| P07a shared-replay-A | #50 | in progress | template v2 for arm A drafted, not wired |
-| P07b strong-B-fairness | #50 | todo | |
-| P08 stories-skills | #46 | todo | |
-| P09 research-UI | AG-UI | todo | |
-| P10 scoring-packets | #53 | todo | |
-| P11 pilot-24 | #52 | todo | needs SME-verified gold; engineering side only |
-| P12 freeze-agent | #56 | todo | needs the pilot; engineering side only |
+| P07a shared-replay-A | #50 | done | four arms on one case set's frozen inputs |
+| P07b strong-B-fairness | #50 | done | effective fairness, attempt isolation, B v3 |
+| P08 stories-skills | #46 | done (engineering part) | live-LLM level of two variants is declared, not run |
+| P09 research-UI | AG-UI | partly done | subject panel, screening card, release banner; passage viewer and case diff not done |
+| P10 scoring-packets | #53 | done | packet v2, scorer v2, cluster-paired D-B |
+| P11 pilot-24 | #52 | engineering done | the CLI runs a pilot; the 24 cases need SME gold |
+| P12 freeze-agent | #56 | engineering done | `agent_benchmark.py freeze`; the report needs the pilot |
 
 ## P01 — subject binding (#44)
 
@@ -212,3 +212,169 @@ errors, verified T3 labels and source checks for the 24-case pilot.
 Tests: `tests/unit/test_case_inputs.py`. Suite: 2794 passed; the one failure
 (`describe()` gained `analyses: 0` for every replay file) is fixed and its
 file rerun.
+
+## P07 — the four arms on one case set's frozen inputs (#50)
+
+### P07a: shared inputs, and arm A on them
+
+- `evals/investigation/turn_actions.py` (`turn-actions-text-v1`): one place
+  renders a v3 turn into the message every arm receives -- the researcher's
+  words plus the facts their `add_context` / `attach_evidence_ref` actions
+  carry. `switch_subject` is not text: it is the subject the next message
+  names, as a selection in the UI is. A case arm *additionally* files
+  `add_context` into the subject's case; nothing reaches D that B and C do
+  not see.
+- `frozen_analysis` subjects: a message may name a toxicity analysis the
+  deployment's replay file holds (`{"kind": "frozen_analysis",
+  "analysis_ref": ...}`). The run is bound to a session-local copy, made in
+  the run's transaction, hash-checked, never by calling the predictor; the
+  binding keeps the origin id and hash beside the local id, which is what
+  arms compare. This is how a toxicity-only case has a subject at all.
+- `adapters/template_v2.py` (arm A): reads the set's pinned replay file --
+  the same bytes the deployments replay -- and renders the estimate, the
+  interval, the policy decision, each stage's status and the frozen toxicity
+  output, following `switch_subject` because the subject is an input, not a
+  judgement. It refuses when a rendered artifact's hash is not the one the
+  inputs declare.
+- `adapters/toxagent_replay.py` (B, C, D): attaches the case's screenings,
+  names its subject per turn, sends the rendered text, files context on a
+  case arm, and reads back every run with its result, drafts, decision state,
+  dossier, phase usage and binding. The record's text per turn is what the
+  researcher saw -- the published answer, or the incomplete-result message
+  the policy showed instead.
+- `case_inputs.load_case_set`: a set is a directory with `cases/`, `inputs/`,
+  `gold/` and a set manifest naming the replay and evidence files with their
+  hashes; a pinned file whose bytes differ is refused before any arm runs.
+- `run.run_protocol_study`: the protocol v2 runner. Arms may run in several
+  invocations (a laptop runs one deployment at a time) and every later one is
+  held to the first -- each arm's effective product is kept under
+  `products/`, compared with every other arm in the study, and the case set,
+  its pins, the turn rendering and the arm order are fingerprinted, so a
+  changed study is refused (`study_manifest_mismatch`) instead of silently
+  mixing conditions.
+
+### P07b: fairness that compares conditions, not labels
+
+- `systems.fairness_problems` now compares the **whole effective budget**
+  (the probe the plan quotes -- 360 s/20 calls against 900 s/50 calls under
+  one preset name -- is now refused), the contracts block, every pinned
+  provider file, and the prompt/profile hashes; a **mandatory pin** no arm
+  reports is a missing pin, not agreement; and a flag that differs between
+  two arms and is not one of the protocol's declared `treatment_fields` is a
+  confound, not a treatment.
+- `product_mismatch` also holds a deployment to `required_product`, so an arm
+  of protocol v2 must report `release_policy=strict-reviewed-v1`.
+- The arm files now pin `investigator-pilot-v2`, `subject_binding_v1` and the
+  strict release policy, and declare the three treatment flags.
+- Attempt isolation: a (case, arm, trial) has one **primary** attempt, and
+  that is what the packet and the scorer read (`primary_records`). A rerun is
+  a `diagnostic_rerun`: kept, costed, reported, never a replacement. Each
+  attempt writes its raw files under its own attempt id, and `write_raw`
+  refuses to overwrite one.
+- Arm B is now `fixed-workflow-b-v3`: it reads only the bound subject's
+  screening (another screening of the same ligand is named, not read), and
+  takes an exposure or measurement the researcher already stated in the
+  conversation instead of asking for it again.
+- `providers.research_snapshot` in the effective product gained the
+  snapshot file's `sha256`, so two arms on files of one name are told apart.
+
+Tests: `tests/e2e/test_protocol_v2_four_arms.py` (four arms, one case set:
+same digests, same sent text, context filed only on the case arm, a second
+case opened on a target switch, a wrong budget and a wrong replay file both
+refused, a repeat invocation skipping the primary),
+`tests/e2e/test_frozen_analysis_subject.py`,
+`tests/unit/test_investigation_protocol_arms.py`.
+
+## P08 — the four stories and the skills (#46)
+
+- Three skills added to the catalog: `read-activity-screening` (what an
+  estimate, a policy decision and a stage status each are, and what settles a
+  REVIEW), `update-case-across-turns` (what new information changes and what
+  it must leave untouched; another target is another case) and
+  `estimate-exposure-margin` (compute the ratio with the server's tool, ask
+  for the exposure instead of assuming one, and never read a ratio as a
+  clinical conclusion).
+- `tests/e2e/test_user_story_acceptance.py` holds the acceptance matrix:
+  every story and control variant names the test that proves it, two tests
+  keep the matrix honest (every named test exists; all four stories and their
+  variants have rows), and the variants nothing covered yet run there -- a
+  failed activity stage, an interval clear of the threshold, an unadmitted
+  model, and a measured value that changes the assessment while the estimate,
+  interval, decision and stage statuses stay the frozen artifact's.
+- Two rows are marked `live_only` and say so: a live model choosing its own
+  reads, and a predictor that is genuinely wrong against an SME-verified
+  label.
+- A failed activity stage now carries `activity_failure_code` in the
+  screening-state model view: it was already a citable field path, and a
+  model may cite only what it was shown.
+- Arm B gained the test its provider-failure branch lacked: a provider that
+  cannot be reached is reported as a failure, and an empty corpus as an empty
+  result -- a reader can tell them apart.
+
+## P09 — the research workbench (AG-UI), partly done
+
+Done: `listScreenings` / `getScreening` / `getRunResult` and `subject_ref` on
+`sendMessage`; `SubjectSelector` (one ligand on two targets is two subjects,
+the variant is part of the target, nothing is selected automatically, and a
+queued run keeps the subject it was sent with); `ScreeningCard` (estimate,
+policy decision and stage statuses in three zones, `not_run`/`failed` in
+words with "not a negative result"); `SubjectPanel` above the composer, so
+the numbers appear without waiting for a model; `ReleaseBanner` on every
+answer and on a withheld result (reviewed / repaired-and-reviewed /
+partial-facts / withheld / no-review-by-design / legacy unknown, never
+"scientifically correct").
+
+Not done: the evidence passage viewer's table/locator extension, the case
+board's "what changed / what was kept" diff, the audit view's stage lineage,
+and the browser-level e2e of the four stories.
+
+## P10 — packet v2 and scorer v2 (#53)
+
+- `packet_v2.py`: per case the turns exactly as every arm received them and a
+  grader reference built from the gold (reference outcome, acceptable
+  conclusions, owed facts, required and optional limitations, forbidden
+  inferences, spans, the predictor-error control note, the across-turn
+  expectations), with the gold's verification status printed at the top. Per
+  response, the result the researcher saw per turn and, folded away, the
+  stages behind it, so a repair's effect can be judged. The key stays outside
+  the packet; only primary attempts are packed.
+- `scorecard_v2.py`: Task Success over every *assigned* case and trial (a
+  response that never came is in the denominator), partitioned by workflow
+  context, task group and the T6 stress set, with one named cause per
+  failure; the paired D - B discordance with a bootstrap over **dependency
+  clusters**; mandatory-information recall; limitation recall, stated
+  precision and all-required, with NA where a case requires none; critical
+  errors and forbidden inferences n/N; retrieval from the traces alone; cost
+  over every attempt with unknown usage kept unknown; and a completeness
+  block that refuses to call the table publishable while anything is
+  ungraded, unadjudicated or not SME-verified.
+
+Tests: `tests/unit/test_scorecard_v2.py` (fourteen hand-calculated controls
+from §14.5), `tests/e2e/test_protocol_v2_packet_and_score.py` (a study
+becomes a blinded packet and a card; the gold reaches only the grader
+reference).
+
+## P11/P12 — the benchmark CLI, and what still needs people (#52/#56)
+
+`backend/control/scripts/agent_benchmark.py` is the single entry point §17.2
+asks for: `preflight` (audit the case set, then check each deployment is the
+arm it claims, replays the set's own files, and differs from the others in
+nothing but a declared treatment), `run`, `packet`, `score` and `freeze`
+(the repro bundle: manifest, arms' effective products, case-set pins, file
+hashes and the commands, deliberately without packets or keys).
+
+Still needed from people, not code:
+
+- **SME gold for 24 cases** (#51/#52): real cases, acceptable conclusions,
+  owed facts and limitations, critical errors, verified T3 labels (a genuinely
+  wrong predictor and a correct one with a distractor), and source checks.
+  Until then every gold file says `synthetic_engineering_gold` and the
+  scorer refuses to call its table publishable.
+- **A scientific owner's review of arm B** before test, per #50.
+- **Two graders** and the adjudication of their disagreements; the scorer
+  reports them and resolves nothing by itself.
+- **A live LLM budget**: the four-arm study here runs on the scripted
+  runtime. The two `live_only` story rows and §17.4 step 4 need a deployment
+  with a model and a declared quota.
+- **The live ChEMBL mappings** for EGFR and ABL1 in the target catalog are
+  still recorded as unverified.

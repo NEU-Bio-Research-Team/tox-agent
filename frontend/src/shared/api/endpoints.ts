@@ -110,10 +110,38 @@ export interface SendMessageInput {
     explanation_targets?: Array<{ endpoint: 'herg' | 'tox21'; task?: string }>;
   };
   analysis_id?: string;
+  /** #44: which of the session's subjects this message is about. The server
+   * reads what that subject is; the client only names one it already holds,
+   * and a run keeps the subject it was bound to even if the selection
+   * changes while it is queued. */
+  subject_ref?: SubjectRef;
 }
 
 export function sendMessage(sessionId: string, input: SendMessageInput): Promise<AcceptedResponse> {
   return apiRequest(`/v1/sessions/${sessionId}/messages`, { method: 'POST', body: input });
+}
+
+export type SubjectRef = Schemas['SubjectRefInput'];
+export type ScreeningSummary = Schemas['ScreeningSummary'];
+export type ScreeningDetail = Schemas['ScreeningDetail'];
+export type ScreeningListResponse = Schemas['ScreeningList'];
+export type RunResult = Schemas['RunResult'];
+
+/** The frozen activity screenings attached to this session (#44). 404 on a
+ * deployment where activity replay is off, which is not an error: that
+ * deployment simply has no screenings. */
+export function listScreenings(sessionId: string): Promise<ScreeningListResponse> {
+  return apiRequest(`/v1/sessions/${sessionId}/screenings`);
+}
+
+export function getScreening(sessionId: string, screeningId: string): Promise<ScreeningDetail> {
+  return apiRequest(`/v1/sessions/${sessionId}/screenings/${screeningId}`);
+}
+
+/** What a run ended with (#47): its publication disposition, review status and
+ * outcomes. Never a candidate's text. */
+export function getRunResult(sessionId: string, runId: string): Promise<RunResult> {
+  return apiRequest(`/v1/sessions/${sessionId}/runs/${runId}/result`);
 }
 
 export function getReport(sessionId: string, reportId: string): Promise<ReportArtifact> {

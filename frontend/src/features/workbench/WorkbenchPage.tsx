@@ -11,6 +11,8 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../../shar
 import { MessageComposer, type AnalysisContext, type SmilesPrefill, type TextPrefill } from '../composer/MessageComposer';
 import { EmptyStateHero } from '../composer/EmptyStateHero';
 import { Transcript } from './transcript/Transcript';
+import { SubjectPanel } from './subject/SubjectPanel';
+import type { SubjectOption } from './subject/SubjectSelector';
 import {
   getHealthReady,
   getSession,
@@ -87,6 +89,9 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   const [smilesPrefill, setSmilesPrefill] = useState<SmilesPrefill>();
   const [textPrefill, setTextPrefill] = useState<TextPrefill>();
   const [analysisContext, setAnalysisContext] = useState<AnalysisContext | null>(null);
+  // Which of the session's subjects the next message is about. Never set
+  // automatically: with two subjects the server asks rather than guesses.
+  const [subject, setSubject] = useState<SubjectOption>();
   // Section 8.2.1's UI state: none of this is a durable preference (7.6) —
   // it resets whenever the session itself changes (WorkbenchView remounts
   // via `key={sessionId}` above), which is exactly right: an artifact from
@@ -327,7 +332,16 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
             paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
           }}
         >
-          <div className="mx-auto max-w-[820px]">
+          <div className="mx-auto max-w-[820px] space-y-2">
+            {/* #44/AG-UI: chọn chủ thể trước khi hỏi, và đọc ngay dữ kiện của
+                nó. Lựa chọn đi theo message; run đang chạy giữ chủ thể cũ. */}
+            <SubjectPanel
+              sessionId={sessionId}
+              activeAnalysis={session.active_analysis ?? null}
+              selected={subject}
+              onSelect={setSubject}
+              runPending={activeRunBusy}
+            />
             <MessageComposer
               sessionId={sessionId}
               hasActiveAnalysis={Boolean(session.active_analysis)}
@@ -339,10 +353,13 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
               analysisContext={analysisContext}
               onClearAnalysisContext={() => setAnalysisContext(null)}
               onSend={async (input) => {
+                // The subject is named on the message, never read from the
+                // selection when the run starts (#44).
+                const withSubject = subject ? { ...input, subject_ref: subject.ref } : input;
                 setPendingSends((current) => addPendingSend(current, pendingSendFromInput(input)));
                 try {
                   await profileSynced();
-                  await sendMutation.mutateAsync(input);
+                  await sendMutation.mutateAsync(withSubject);
                   setAnalysisContext(null);
                   return true;
                 } catch {

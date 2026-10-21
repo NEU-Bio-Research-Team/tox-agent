@@ -5,7 +5,7 @@ import type { RecoveryBanner as RecoveryBannerData, ToolCallLive } from '../hook
 import { MessageBubble } from './MessageBubble';
 import { ClarificationCard } from './ClarificationCard';
 import { StructureRecognitionCard } from './StructureRecognitionCard';
-import { AnswerBlock } from './AnswerBlock';
+import { AnswerBlock, RunResultBanner } from './AnswerBlock';
 import { ReportBlock } from '../report/ReportBlock';
 import { DossierBlock } from './DossierBlock';
 import { ActivityPresence } from './ActivityPresence';
@@ -228,6 +228,10 @@ function renderAssistant(
 ) {
   const textPart = message.parts.find((p) => p.type === 'text');
   const answerRefPart = message.parts.find((p) => p.type === 'answer_ref');
+  // #47: the run's terminal result. Present only on a deployment with a
+  // declared release policy, and the only place the message says which run
+  // produced it.
+  const resultRefPart = message.parts.find((p) => p.type === 'result_ref');
   const reportRefPart = message.parts.find((p) => p.type === 'report_ref');
   const dossierRefPart = message.parts.find((p) => p.type === 'dossier_ref');
 
@@ -242,7 +246,11 @@ function renderAssistant(
   if (answerRefPart) {
     return (
       <MessageBubble role="assistant">
-        <AnswerBlock sessionId={sessionId} answerId={answerRefPart.content.answer_id as string} />
+        <AnswerBlock
+          sessionId={sessionId}
+          answerId={answerRefPart.content.answer_id as string}
+          runId={resultRefPart?.content.run_id as string | undefined}
+        />
         {dossierRefPart && (
           <DossierBlock sessionId={sessionId} runId={dossierRefPart.content.run_id as string} />
         )}
@@ -259,7 +267,22 @@ function renderAssistant(
   }
 
   if (textPart) {
-    return <MessageBubble role="assistant">{String(textPart.content.text ?? '')}</MessageBubble>;
+    return (
+      <MessageBubble role="assistant">
+        {/* A run whose answer was not published has no answer_ref at all:
+            the reader gets the server's confirmed facts as text, and the
+            banner is what says why there is no answer (#47). */}
+        {resultRefPart && (
+          <div className="mb-2">
+            <RunResultBanner
+              sessionId={sessionId}
+              runId={resultRefPart.content.run_id as string}
+            />
+          </div>
+        )}
+        {String(textPart.content.text ?? '')}
+      </MessageBubble>
+    );
   }
 
   return null;
