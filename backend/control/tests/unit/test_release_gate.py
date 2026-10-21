@@ -185,3 +185,32 @@ def test_an_untouched_answer_reports_no_repair():
     assert effect.removed_claim_ids == ()
     assert effect.reworded_claim_ids == ()
     assert not effect.removal_only
+
+
+@dataclass(frozen=True)
+class _V2Claim:
+    claim_id: str
+    text: str
+    local_ref: str
+
+
+def test_a_repaired_answer_is_compared_claim_by_claim_through_local_refs():
+    """The audit's case: every submission gets new claim ids, so by id an
+    untouched claim reads as one deletion and one addition, and a narrowed
+    claim as nothing at all. Lineage follows the draft's own label."""
+    before = _Answer(claims=(
+        _V2Claim("clm_a1", "IC50 is 1 nM", "potency"),
+        _V2Claim("clm_a2", "the compound blocks hERG in patients", "scope"),
+        _V2Claim("clm_a3", "it is cardiotoxic", "overreach"),
+    ))
+    after = _Answer(claims=(
+        _V2Claim("clm_b1", "IC50 is 1 nM", "potency"),
+        _V2Claim("clm_b2", "the model predicts hERG block in vitro", "scope"),
+    ))
+
+    effect = repair_effect(before, after)
+
+    assert effect.removed_claim_ids == ("overreach",)
+    assert effect.reworded_claim_ids == ("scope",)
+    assert effect.added_claim_ids == ()
+    assert not effect.removal_only

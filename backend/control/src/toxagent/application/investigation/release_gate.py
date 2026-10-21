@@ -122,7 +122,14 @@ def release_decision(
 
 
 def _claim_texts(answer: Any) -> dict[str, str]:
-    return {c.claim_id: c.text for c in getattr(answer, "claims", ())}
+    """Claims by their lineage key. The server issues a new claim_id on every
+    submission, so comparing ids reports an unchanged claim as one removed and
+    one added; the draft's own ``local_ref`` survives a repair, and is used
+    whenever the claim has one."""
+    return {
+        (getattr(c, "local_ref", None) or c.claim_id): c.text
+        for c in getattr(answer, "claims", ())
+    }
 
 
 def _limitation_codes(answer: Any) -> set[str]:
@@ -144,6 +151,7 @@ class RepairEffect:
 
     claims_before: int
     claims_after: int
+    #: Lineage keys: a claim's local_ref where it has one, else its claim_id.
     removed_claim_ids: tuple[str, ...]
     added_claim_ids: tuple[str, ...]
     reworded_claim_ids: tuple[str, ...]

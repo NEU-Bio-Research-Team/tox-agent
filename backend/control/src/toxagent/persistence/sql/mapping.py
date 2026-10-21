@@ -358,6 +358,7 @@ def claim_to_row(claim: Claim, answer_id: str, position: int) -> dict[str, Any]:
         "transform": claim.transform,
         "input_claim_ids": list(claim.input_claim_ids),
         "position": position,
+        "local_ref": claim.local_ref,
     }
 
 
@@ -379,6 +380,7 @@ def row_to_claim(
         citation_ids=citation_ids,
         input_claim_ids=tuple(row["input_claim_ids"]),
         evidence_spans=evidence_spans,
+        local_ref=row.get("local_ref"),
     )
 
 

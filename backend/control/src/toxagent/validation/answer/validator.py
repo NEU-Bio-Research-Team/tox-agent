@@ -231,6 +231,7 @@ def _build_answer(
             transform=c.transform, citation_ids=tuple(c.citation_ids),
             input_claim_ids=tuple(c.input_claim_ids),
             evidence_spans=tuple(tuple(span) for span in c.evidence_spans),
+            local_ref=c.local_ref,
         )
         for c in candidate.claims
     )

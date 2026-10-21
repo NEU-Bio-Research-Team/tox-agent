@@ -196,6 +196,8 @@ class UnitOfWork(Protocol):
     #: Frozen activity screenings attached to sessions (#44).
     screenings: Any
     answers: AnswerStore
+    #: Every draft a run submitted, with what the server made of it (#47).
+    answer_drafts: Any
     runtime_bindings: RuntimeBindingStore
     runtime_usage: RuntimeUsageStore
     tool_calls: ToolCallStore

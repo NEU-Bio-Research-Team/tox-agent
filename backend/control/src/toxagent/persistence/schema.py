@@ -356,6 +356,22 @@ evidence_records = Table(
     UniqueConstraint("session_id", "dedupe_key", name="uq_evidence_dedupe"),
 )
 
+# 0024 (#47): every draft a run submitted, as the model sent it, with what the
+# server made of it. The first is the raw draft a grader compares the
+# released answer against; a repair is judged on what it changed.
+answer_drafts = Table(
+    "answer_drafts", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    Column("generation", Integer, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("schema_version", String(32), nullable=False),
+    Column("payload", Json, nullable=False),
+    Column("outcome", String(16), nullable=False),
+    Column("answer_id", _ID),
+    Column("violations", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+)
+
 # 0022 (#43): what was read of a record's full text. One row per record and
 # only a definitive outcome: read, or refused with a reason. A provider outage
 # is not stored, so a later call asks again.
@@ -432,6 +448,8 @@ claims = Table(
     Column("transform", String(32), nullable=False),
     Column("input_claim_ids", Json, nullable=False),
     Column("position", Integer, nullable=False),
+    # 0024 (#47): the v2 draft's label, for lineage across a repair.
+    Column("local_ref", String(32)),
     CheckConstraint(
         "kind NOT IN ('numeric', 'classification') "
         "OR (observation_id IS NOT NULL AND field_path IS NOT NULL)",
@@ -839,7 +857,7 @@ event_outbox = Table(
 IMMUTABLE_TABLES = frozenset(
     {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox",
      # What a document said when it was read, and what a claim quoted from it.
-     "evidence_full_texts", "evidence_passages", "claim_evidence_spans",
+     "evidence_full_texts", "evidence_passages", "claim_evidence_spans", "answer_drafts",
      # A frozen screening is a record of what was produced; never edited.
      "session_screenings",
      "case_revisions", "investigation_plans", "kernel_transitions",

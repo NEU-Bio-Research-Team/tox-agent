@@ -69,6 +69,8 @@ class ClaimCandidate(_Wire):
     #: draft's evidence_spans (#43). Server-side only: not part of the v1 tool
     #: schema, which has no way to read a passage.
     evidence_spans: SkipJsonSchema[list[tuple[str, str]]] = Field(default_factory=list)
+    #: The v2 draft's local_ref, kept for lineage across submissions (#47).
+    local_ref: SkipJsonSchema[str | None] = None
 
     @field_validator("transform")
     @classmethod

@@ -135,6 +135,9 @@ class SubmitAnswer:
                 )
 
             generation = await self._attempt_number(uow, run_id)
+            # #47: the draft exactly as the model sent it, before resolution
+            # replaces ``candidate`` with the internal form.
+            raw_draft = (candidate.schema_version, candidate.model_dump(mode="json"))
             observations_by_id = await self._resolve_observations(uow, session_id, candidate)
             evidence_by_id = await self._resolve_evidence(uow, session_id, candidate)
             read_evidence_ids = await self._resolve_read_evidence_ids(uow, run_id)
@@ -165,7 +168,7 @@ class SubmitAnswer:
                 if resolved.candidate is None:
                     return await self._reject(
                         uow, session, session_id, run_id, generation,
-                        list(resolved.violations), language,
+                        list(resolved.violations), language, raw_draft=raw_draft,
                     )
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
@@ -219,6 +222,11 @@ class SubmitAnswer:
 
             if result.ok:
                 await uow.answers.add(result.answer)
+                await self._record_draft(
+                    uow, run_id=run_id, session_id=session_id, generation=generation,
+                    raw_draft=raw_draft, outcome="accepted", answer_id=result.answer.id,
+                    violations=(),
+                )
                 for assessment in resolved_relations:
                     await uow.evidence_relations.add(assessment)
                 if posture is not None:
@@ -240,6 +248,11 @@ class SubmitAnswer:
                     result.answer, is_fallback=False, development_posture=posture
                 )
 
+            await self._record_draft(
+                uow, run_id=run_id, session_id=session_id, generation=generation,
+                raw_draft=raw_draft, outcome="rejected", answer_id=None,
+                violations=result.violations,
+            )
             if generation >= self._settings.max_answer_candidates_per_run:
                 fallback = await self._build_fallback(uow, session, session_id, run_id, generation, language)
                 await uow.answers.add(fallback)
@@ -283,9 +296,27 @@ class SubmitAnswer:
             attempts_remaining=attempts_remaining,
         )
 
+    async def _record_draft(
+        self, uow, *, run_id: str, session_id: str, generation: int, raw_draft,
+        outcome: str, answer_id: str | None, violations,
+    ) -> None:
+        """#47: keep the draft as sent, beside what the server made of it, so
+        the raw draft, the accepted candidate and the released answer can each
+        be graded. A retried tool call that replays a generation is already
+        recorded and is not written twice."""
+        schema_version, payload = raw_draft
+        existing = {d["generation"] for d in await uow.answer_drafts.list_for_run(run_id)}
+        if generation in existing:
+            return
+        await uow.answer_drafts.add(
+            run_id=run_id, session_id=session_id, generation=generation,
+            schema_version=schema_version, payload=payload, outcome=outcome,
+            answer_id=answer_id, violations=[v.to_dict() for v in violations], now=_now(),
+        )
+
     async def _reject(
         self, uow, session, session_id: str, run_id: str, generation: int,
-        violations: list, language: str,
+        violations: list, language: str, *, raw_draft=None,
     ) -> SubmitOutcome:
         """The shared rejection path: one more attempt, or the fallback.
 
@@ -294,6 +325,11 @@ class SubmitAnswer:
         and giving it a different shape of error would spend a correction
         attempt on a message the model cannot act on.
         """
+        if raw_draft is not None:
+            await self._record_draft(
+                uow, run_id=run_id, session_id=session_id, generation=generation,
+                raw_draft=raw_draft, outcome="rejected", answer_id=None, violations=violations,
+            )
         if generation >= self._settings.max_answer_candidates_per_run:
             fallback = await self._build_fallback(
                 uow, session, session_id, run_id, generation, language

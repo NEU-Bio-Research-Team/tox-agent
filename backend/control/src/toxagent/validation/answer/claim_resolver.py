@@ -197,6 +197,7 @@ def _resolve_claim(
                 (span.evidence_id, span.locator)
                 for span in getattr(claim, "evidence_spans", None) or ()
             ],
+            local_ref=claim.local_ref,
         ),
         [],
     )

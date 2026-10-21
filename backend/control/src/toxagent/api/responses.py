@@ -395,6 +395,8 @@ class Claim(_Response):
     input_claim_ids: list[str] = None
     #: The passages of cited records this claim quotes (#43); absent when none.
     evidence_spans: list[EvidenceSpan] = None
+    #: The draft's own label (grounded-answer v2), stable across a repair (#47).
+    local_ref: str = None
 
 
 class Limitation(_Response):
@@ -419,6 +421,24 @@ class GroundedAnswer(_Response):
     is_fallback: bool
     content_sha256: str
     created_at: str
+
+
+class AnswerDraft(_Response):
+    """One submission of a run as the model sent it (#47), with what the
+    server made of it. The first is the raw draft; the accepted one is the
+    candidate; the run's released answer is GET .../answers/{id}."""
+
+    generation: int
+    schema_version: str
+    payload: dict[str, Any]
+    outcome: Literal["accepted", "rejected"]
+    answer_id: str | None
+    violations: list[dict[str, Any]]
+    created_at: str
+
+
+class AnswerDraftList(_Response):
+    drafts: list[AnswerDraft]
 
 
 class ScreeningSummary(_Response):

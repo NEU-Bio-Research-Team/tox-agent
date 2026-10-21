@@ -44,6 +44,7 @@ from .analyses import (  # noqa: F401
     SqlObservationStore,
     SqlExplanationCheckpointStore,
 )
+from .answer_drafts import SqlAnswerDraftStore  # noqa: F401
 from .evidence_text import SqlEvidenceTextStore  # noqa: F401
 from .screenings import SqlScreeningAttachmentStore  # noqa: F401
 from .evidence import (  # noqa: F401

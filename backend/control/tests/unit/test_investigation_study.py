@@ -427,3 +427,20 @@ def test_a_manifest_update_merges_instead_of_overwriting(tmp_path):
     store.update_manifest(lambda m: {**m, "systems": {**m.get("systems", {}), "A": {}}})
     store.update_manifest(lambda m: {**m, "systems": {**m.get("systems", {}), "B": {}}})
     assert set(store.manifest()["systems"]) == {"A", "B"}
+
+
+def test_every_attempt_is_paid_for_not_only_the_one_that_finished():
+    """Audit 2026-10-21: the report summed usage over the latest successful
+    record per case, so a failed or retried attempt cost nothing on paper."""
+    from evals.investigation.report import _usage_totals
+
+    failed = _record("inv-1", "D", "", status="error")
+    failed.usage = {"input_tokens": 900, "cost_usd": 0.02}
+    retried = _record("inv-1", "D", "answer")
+    retried.usage = {"input_tokens": 1000, "cost_usd": 0.03, "note": "text is ignored"}
+    other = _record("inv-2", "D", "answer")
+    other.usage = {"input_tokens": 500, "cost_usd": 0.01, "cached": True}
+
+    assert _usage_totals([failed, retried, other]) == {
+        "cost_usd": 0.06, "input_tokens": 2400,
+    }

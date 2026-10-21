@@ -6,7 +6,7 @@ would actually hold -- not hand-written JSON that only looks right. Every
 number here is synthetic: the model id is the SAIR B0 baseline's name, but no
 model produced these estimates.
 
-    python -m evals.investigation.activity_fixtures --write evals/fixtures/activity-replay-synthetic.json
+    python -m evals.investigation.activity_fixtures --write evals/fixtures/activity/activity-replay-synthetic.json
 
 prints the sha256 a deployment is pinned to (TOXAGENT_ACTIVITY_REPLAY_SHA256).
 """

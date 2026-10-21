@@ -77,6 +77,10 @@ class Claim:
     #: (evidence_id, locator): the passages of cited records this claim
     #: quotes (#43). Every span's record is one of ``citation_ids``.
     evidence_spans: tuple[tuple[str, str], ...] = ()
+    #: The draft's own label for this claim (grounded-answer v2). The server
+    #: issues a new claim_id on every submission, so this is what ties a
+    #: claim in a repaired answer to the same claim before the repair (#47).
+    local_ref: str | None = None
 
     def __post_init__(self) -> None:
         require_id(self.claim_id, CLAIM, field="claim.claim_id")
@@ -127,6 +131,8 @@ class Claim:
             out["rendered_value"] = self.rendered_value
         if self.input_claim_ids:
             out["input_claim_ids"] = list(self.input_claim_ids)
+        if self.local_ref:
+            out["local_ref"] = self.local_ref
         # Only when present, so an answer with no spans hashes as it always did.
         if self.evidence_spans:
             out["evidence_spans"] = [

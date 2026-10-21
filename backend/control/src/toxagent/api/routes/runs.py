@@ -8,7 +8,7 @@ from ...application.policy import Actor
 from ...domain.errors import (
     NotFound,
 )
-from ..responses import DecisionState, EvidenceRelationList, RunDetail
+from ..responses import AnswerDraftList, DecisionState, EvidenceRelationList, RunDetail
 from ..schemas import (
     CancelResponse,
 )
@@ -74,6 +74,27 @@ async def get_decision_state(
     if state is None:
         raise NotFound("this run keeps no decision-support state", run_id=run_id)
     return state.to_dict()
+
+
+@router.get("/sessions/{session_id}/runs/{run_id}/answer-drafts", responses={200: {"model": AnswerDraftList}})
+async def list_answer_drafts(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """#47: every draft the run submitted, as sent, in order -- so the raw
+    draft, the accepted candidate and the released answer can be graded
+    apart."""
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        drafts = await uow.answer_drafts.list_for_run(run_id)
+    return {"drafts": [
+        {k: d[k] for k in ("generation", "schema_version", "payload", "outcome", "answer_id",
+                           "violations", "created_at")}
+        for d in drafts
+    ]}
 
 
 @router.get("/sessions/{session_id}/runs/{run_id}/evidence-relations", responses={200: {"model": EvidenceRelationList}})

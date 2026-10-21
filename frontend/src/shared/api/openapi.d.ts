@@ -836,6 +836,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/runs/{run_id}/answer-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Answer Drafts
+         * @description #47: every draft the run submitted, as sent, in order -- so the raw
+         *     draft, the accepted candidate and the released answer can be graded
+         *     apart.
+         */
+        get: operations["list_answer_drafts_v1_sessions__session_id__runs__run_id__answer_drafts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/runs/{run_id}/decision-state": {
         parameters: {
             query?: never;
@@ -1186,6 +1208,40 @@ export interface components {
             clintox?: components["schemas"]["ClintoxSection"] | null;
             herg?: components["schemas"]["HergSection"] | null;
             tox21?: components["schemas"]["Tox21Section"] | null;
+        };
+        /**
+         * AnswerDraft
+         * @description One submission of a run as the model sent it (#47), with what the
+         *     server made of it. The first is the raw draft; the accepted one is the
+         *     candidate; the run's released answer is GET .../answers/{id}.
+         */
+        AnswerDraft: {
+            /** Answer Id */
+            answer_id: string | null;
+            /** Created At */
+            created_at: string;
+            /** Generation */
+            generation: number;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "accepted" | "rejected";
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Schema Version */
+            schema_version: string;
+            /** Violations */
+            violations: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** AnswerDraftList */
+        AnswerDraftList: {
+            /** Drafts */
+            drafts: components["schemas"]["AnswerDraft"][];
         };
         /** Applicability */
         Applicability: {
@@ -1619,6 +1675,8 @@ export interface components {
              * @enum {string}
              */
             kind: "numeric" | "classification" | "scientific" | "comparison" | "limitation" | "recommendation";
+            /** Local Ref */
+            local_ref?: string;
             /** Observation Id */
             observation_id?: string;
             /** Rendered Value */
@@ -5140,6 +5198,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_answer_drafts_v1_sessions__session_id__runs__run_id__answer_drafts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerDraftList"];
                 };
             };
             /** @description Validation Error */
