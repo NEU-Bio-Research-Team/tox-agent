@@ -27,6 +27,7 @@ from ...domain import scientific_case as sc
 from ...domain.errors import Conflict, InvalidRequest
 from ...domain.evidence import EvidenceStatus
 from ...domain.observation import ObservationKind
+from ...platform.config import release_policy
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 GET_TOOL = "get_scientific_case"
@@ -275,9 +276,14 @@ def build(database) -> list[ToolDefinition]:
                 except InvalidRequest as exc:
                     refused.append((index, operation.op, exc.message))
                     continue
+                fields = _payload(operation)
+                if operation.op == "set_conclusion" and release_policy() != "legacy":
+                    # #47: a conclusion written during a run is proposed; it
+                    # becomes the case's only if the run's answer is published.
+                    fields["status"] = sc.CONCLUSION_PROPOSED
                 updates.append((index, service.update(
                     operation.op, actor=sc.Actor.MODEL.value, run_id=context.run_id,
-                    **_payload(operation))))
+                    **fields)))
             try:
                 if not updates:
                     raise sc.InvalidCaseUpdate("; ".join(

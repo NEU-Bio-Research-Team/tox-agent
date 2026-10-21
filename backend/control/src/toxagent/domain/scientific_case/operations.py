@@ -6,6 +6,8 @@ from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
 from .model import (
+    CONCLUSION_PROPOSED,
+    CONCLUSION_RELEASED,
     MAX_ACTIONS,
     MAX_CONTEXT,
     MAX_EVIDENCE,
@@ -235,7 +237,8 @@ def _revise_hypothesis(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV
             "record_evidence first, or say why it is unresolvable"
         )
     hypotheses = tuple(
-        replace(h, status=status, status_reason=reason) if h.id == target else h
+        replace(h, status=status, status_reason=reason, status_run_id=u.run_id)
+        if h.id == target else h
         for h in case.hypotheses
     )
     return replace(case, hypotheses=hypotheses)
@@ -358,12 +361,34 @@ def _set_conclusion(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
                 "ledger belongs in cannot_say or is a hypothesis"
             )
         lines.append(ConclusionLine(text=_text(raw, "text"), evidence_ids=evidence_ids))
+    status = p.get("status", CONCLUSION_RELEASED)
+    if status not in (CONCLUSION_PROPOSED, CONCLUSION_RELEASED):
+        raise InvalidCaseUpdate(f"a conclusion is proposed or released; got {status!r}")
     conclusion = Conclusion(
         can_say=tuple(lines), cannot_say=_texts(p, "cannot_say"),
         what_would_change=_texts(p, "what_would_change"),
         approver=_text(p, "approver", required=False, limit=200), run_id=u.run_id,
+        status=status,
     )
-    return replace(case, conclusion=conclusion)
+    if status == CONCLUSION_PROPOSED:
+        # Keep what was last trusted beside the proposal (#47).
+        kept = (
+            case.conclusion if case.conclusion.status == CONCLUSION_RELEASED
+            and (case.conclusion.can_say or case.conclusion.cannot_say)
+            else case.released_conclusion
+        )
+        return replace(case, conclusion=conclusion, released_conclusion=kept)
+    return replace(case, conclusion=conclusion, released_conclusion=None)
+
+
+def _promote_conclusion(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    """#47: the run's answer was published, so the conclusion it proposed
+    becomes the case's. A conclusion another run proposed is not touched."""
+    run_id = _run_id(u)
+    if case.conclusion.status != CONCLUSION_PROPOSED or case.conclusion.run_id != run_id:
+        return case
+    return replace(case, conclusion=replace(case.conclusion, status=CONCLUSION_RELEASED),
+                   released_conclusion=None)
 
 
 def _run_id(u: CaseUpdate) -> str:
@@ -389,13 +414,14 @@ def _finish_run(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     run_id = _run_id(u)
     current = next((r for r in case.runs if r.run_id == run_id), None)
     if current is not None and (
-        current.stop_reason, current.answer_id, dict(current.usage)
+        current.stop_reason, current.answer_id, dict(current.usage), current.disposition
     ) == (u.payload.get("stop_reason"), u.payload.get("answer_id"),
-          dict(u.payload.get("usage") or {})):
+          dict(u.payload.get("usage") or {}), u.payload.get("disposition")):
         return case  # the same ending recorded twice is one ending
     runs = tuple(
         replace(r, stop_reason=u.payload.get("stop_reason"), answer_id=u.payload.get("answer_id"),
-                usage=dict(u.payload.get("usage") or {}))
+                usage=dict(u.payload.get("usage") or {}),
+                disposition=u.payload.get("disposition"))
         if r.run_id == run_id else r
         for r in case.runs
     )
@@ -419,6 +445,7 @@ _OPS = {
     "record_action": (_record_action, {Actor.MODEL, Actor.SERVER}),
     "propose_next_test": (_propose_next_test, {Actor.MODEL, Actor.USER}),
     "set_conclusion": (_set_conclusion, {Actor.MODEL}),
+    "promote_conclusion": (_promote_conclusion, {Actor.SERVER}),
     "attach_run": (_attach_run, {Actor.SERVER}),
     "finish_run": (_finish_run, {Actor.SERVER}),
     "close": (_close, {Actor.USER, Actor.SERVER}),

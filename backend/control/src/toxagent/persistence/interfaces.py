@@ -200,6 +200,8 @@ class UnitOfWork(Protocol):
     answer_drafts: Any
     #: How an answer was released, under release_gate_v1 (#47).
     answer_releases: Any
+    #: What a run ended with, under a declared release policy (#47).
+    run_results: Any
     runtime_bindings: RuntimeBindingStore
     runtime_usage: RuntimeUsageStore
     tool_calls: ToolCallStore

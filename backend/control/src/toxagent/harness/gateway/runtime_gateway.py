@@ -15,6 +15,7 @@ from ...domain import decision_state
 from ...domain.errors import RuntimeProtocolError, RuntimeUnavailable
 from ...domain.provenance import content_sha256
 from ...domain.run import Intent
+from ...domain.run_result import ReleasePolicy
 from ...domain.runtime import BindingStatus, RuntimeBinding
 from ...platform.config import RuntimeSettings
 from ...platform.flags import is_enabled
@@ -32,7 +33,7 @@ from ..runtime_profiles import RuntimeProfileRegistry
 from ._common import _now, log
 from .case import ScientificCaseMixin
 from .fixed_workflow import FixedWorkflowMixin, fixed_workflow_on
-from .release import ReleaseGateMixin, release_gate_on
+from .release import ReleaseGateMixin, declared_policy, release_gate_on
 from .completion import CompletionMixin
 from .context import ContextMixin
 from .health import HealthMixin
@@ -161,23 +162,32 @@ class AgentRuntimeGateway(
                 ),
             )
         run_status = "failed"
+        failure: BaseException | None = None
         commit = self._commit_with_case if keeps_case else self._commit_product_and_complete
         fixed = fixed_workflow_on()
+        policy = declared_policy()
+
+        def gated(base_commit, **repair):
+            # #47: a declared policy decides what is published and records a
+            # run result; the gate alone releases with a label; without
+            # either the reviewer (if on) only observes.
+            if policy is not ReleasePolicy.LEGACY:
+                return self._with_publication(base_commit, system_prompt=system_prompt, **repair)
+            if release_gate_on():
+                return self._with_release_gate(base_commit, system_prompt=system_prompt, **repair)
+            return self._with_claim_review(base_commit)
+
         try:
             if fixed:
                 # #50 arm B: the server reads by rule, one synthesis turn
                 # writes; same tools, validator and gates as the agent.
                 await self._run_fixed_workflow(
                     context, system_prompt=system_prompt, deadline=deadline,
-                    commit=(
-                        self._with_release_gate(
-                            commit, system_prompt=system_prompt,
-                            repair_profile="workflow_synthesis",
-                            prompt_for=lambda ctx: self._workflow_prompts.get(
-                                ctx.run_id, system_prompt
-                            ),
-                        )
-                        if release_gate_on() else self._with_claim_review(commit)
+                    commit=gated(
+                        commit, repair_profile="workflow_synthesis",
+                        prompt_for=lambda ctx: self._workflow_prompts.get(
+                            ctx.run_id, system_prompt
+                        ),
                     ),
                 )
             else:
@@ -188,19 +198,23 @@ class AgentRuntimeGateway(
                     deadline=deadline,
                     instructions_hash=instructions_hash,
                     has_product=self._has_answer,
-                    # #47: with the release gate the reviewer decides what is
-                    # released and may send the answer back once; without it
-                    # the reviewer (if on) only observes.
-                    commit=(
-                        self._with_release_gate(commit, system_prompt=system_prompt)
-                        if release_gate_on() else self._with_claim_review(commit)
-                    ),
+                    commit=gated(commit),
                 )
             run_status = "completed"
         except asyncio.CancelledError:
             run_status = "cancelled"
             raise
+        except Exception as exc:
+            failure = exc
+            raise
         finally:
+            if policy is not ReleasePolicy.LEGACY and run_status != "completed":
+                # A run that ended without committing still has a result:
+                # nothing was published, and why is typed -- a candidate
+                # under review is never released by a cancellation.
+                await self._record_terminal_result(
+                    context, policy=policy, run_status=run_status, failure=failure,
+                )
             self._workflow_prompts.pop(context.run_id, None)
             await decision_state_service.advance(
                 self._db, context.run_id,

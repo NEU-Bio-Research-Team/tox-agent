@@ -8,7 +8,13 @@ from ...application.policy import Actor
 from ...domain.errors import (
     NotFound,
 )
-from ..responses import AnswerDraftList, DecisionState, EvidenceRelationList, RunDetail
+from ..responses import (
+    AnswerDraftList,
+    DecisionState,
+    EvidenceRelationList,
+    RunDetail,
+    RunResult,
+)
 from ..schemas import (
     CancelResponse,
 )
@@ -91,8 +97,9 @@ async def list_answer_drafts(
             raise NotFound("no such run", run_id=run_id)
         drafts = await uow.answer_drafts.list_for_run(run_id)
     return {"drafts": [
-        {k: d[k] for k in ("generation", "schema_version", "payload", "outcome", "answer_id",
-                           "violations", "created_at")}
+        {**{k: d[k] for k in ("generation", "schema_version", "payload", "outcome",
+                              "answer_id", "violations", "created_at")},
+         "phase": d.get("phase")}
         for d in drafts
     ]}
 
@@ -125,6 +132,28 @@ async def list_evidence_relations(
             answer_id=release.answer_id if release else (latest.id if latest else None),
         )
     return {"evidence_relations": [relation.to_dict() for relation in relations]}
+
+
+@router.get("/sessions/{session_id}/runs/{run_id}/result", responses={200: {"model": RunResult}})
+async def get_run_result(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """What the run ended with (#47): its publication disposition, review
+    status, execution and knowledge outcomes, the public answer if one was
+    published -- never a candidate's text. A run admitted before a release
+    policy was declared has no recorded result, and says so."""
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        result = await uow.run_results.get(run_id)
+    if result is None:
+        return {"run_id": run_id, "recorded": False, "release_policy": "legacy",
+                "note": "this run has no recorded result; whether its answer was "
+                        "reviewed is not known"}
+    return {**result.to_dict(), "recorded": True}
 
 
 @router.post("/sessions/{session_id}/runs/{run_id}:cancel", response_model=CancelResponse)

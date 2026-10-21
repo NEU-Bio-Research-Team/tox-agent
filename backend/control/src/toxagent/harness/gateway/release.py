@@ -39,6 +39,7 @@ from ...application.investigation import (
 from ...application.runs.scheduler import RunContext
 from ...domain import decision_state
 from ...domain.answer_release import AnswerRelease, ReleaseOutcome
+from ...domain.run_result import ReleasePolicy
 from ...domain.events import EventType
 from ...domain.provenance import content_sha256
 from ...platform.flags import is_enabled
@@ -68,8 +69,65 @@ def release_gate_on() -> bool:
     )
 
 
+def declared_policy() -> ReleasePolicy:
+    """The release policy this deployment declares (TOXAGENT_RELEASE_POLICY).
+    A strict policy needs the reviewer and the v2 draft; refusing to run
+    without them is better than a strict label on an unreviewed answer."""
+    from ...platform.config import release_policy
+
+    policy = ReleasePolicy(release_policy())
+    if policy is ReleasePolicy.STRICT_REVIEWED_V1 and not (
+        is_enabled("claim_reviewer_v1") and is_enabled("answer_draft_v2")
+    ):
+        raise RuntimeError(
+            "TOXAGENT_RELEASE_POLICY=strict-reviewed-v1 needs claim_reviewer_v1 and "
+            "answer_draft_v2 on"
+        )
+    if policy is ReleasePolicy.HARD_ONLY_V1 and not is_enabled("answer_draft_v2"):
+        raise RuntimeError("TOXAGENT_RELEASE_POLICY=hard-only-v1 needs answer_draft_v2 on")
+    return policy
+
+
 class ReleaseGateMixin:
     """Review, at most one repair, and the release record, for a gated run."""
+
+    def _with_publication(self, commit, *, system_prompt: str,
+                          repair_profile: str = "decision_support", prompt_for=None):
+        """#47 under a declared policy: the server decides what is published
+        and records a run result, then the run commits. strict-reviewed-v1
+        reviews (and repairs once) first; hard-only-v1 publishes the
+        hard-validated candidate without a review, by design."""
+        policy = declared_policy()
+        if policy is ReleasePolicy.LEGACY:
+            raise RuntimeError("_with_publication is for a declared policy")
+
+        async def published(context: RunContext) -> None:
+            try:
+                if policy is ReleasePolicy.HARD_ONLY_V1:
+                    candidate = await self._latest_answer(context)
+                    if candidate is not None:
+                        await self._release(
+                            context, candidate,
+                            outcome=(ReleaseOutcome.FALLBACK if candidate.is_fallback
+                                     else ReleaseOutcome.UNGATED),
+                            ungated_reason=None if candidate.is_fallback
+                            else "hard-only-v1: no semantic review, by design",
+                        )
+                else:
+                    await self._release_through_review(
+                        context,
+                        system_prompt=prompt_for(context) if prompt_for else system_prompt,
+                        repair_profile=repair_profile,
+                    )
+            except Exception:  # noqa: BLE001 - a result is recorded, whatever the gate did
+                log.exception("the release gate failed", extra={"run_id": context.run_id})
+                await self._release_latest(
+                    context, outcome=ReleaseOutcome.UNGATED,
+                    ungated_reason="the release gate failed; no usable review",
+                )
+            await commit(context)
+
+        return published
 
     def _with_release_gate(self, commit, *, system_prompt: str,
                            repair_profile: str = "decision_support", prompt_for=None):
@@ -317,6 +375,14 @@ class ReleaseGateMixin:
         replaced: str | None = None, ungated_reason: str | None = None,
         unresolved: tuple = (),
     ) -> None:
+        policy = declared_policy()
+        if policy is not ReleasePolicy.LEGACY:
+            await self._record_publication(
+                context, answer, policy=policy, outcome=outcome, reviews=reviews,
+                repair=repair, replaced=replaced, ungated_reason=ungated_reason,
+                unresolved=unresolved,
+            )
+            return
         release = AnswerRelease(
             answer_id=answer.id, run_id=context.run_id, session_id=context.session_id,
             outcome=outcome, released_at=_now(), reviews=tuple(reviews), repair=repair,
@@ -338,7 +404,149 @@ class ReleaseGateMixin:
         if not answer.is_fallback and is_enabled("scientific_case_v1"):
             await self._record_released_in_case(context, answer)
 
-    async def _record_released_in_case(self, context: RunContext, answer) -> None:
+    async def _record_publication(
+        self, context: RunContext, answer, *, policy: ReleasePolicy, outcome: ReleaseOutcome,
+        reviews, repair, replaced, ungated_reason, unresolved,
+    ) -> None:
+        """The one writer of a run's publication (#47). Decides by the pure
+        policy, then in one unit of work records the run result and -- only
+        for a published answer -- the compatible release row and
+        answer.accepted. Idempotent on run_id: a retried commit rereads."""
+        from ...domain.run_result import (
+            Disposition,
+            ExecutionOutcome,
+            RunResultV1,
+            decide_publication,
+            knowledge_outcome_of,
+            review_status_of,
+        )
+
+        status = review_status_of(outcome.value, ungated_reason=ungated_reason)
+        decision = decide_publication(
+            policy, review_status=status, has_candidate=answer is not None,
+            is_fallback=bool(answer is not None and answer.is_fallback),
+        )
+        async with self._db.unit_of_work() as uow:
+            if await uow.run_results.get(context.run_id) is not None:
+                return
+            state = await uow.decision_states.get(context.run_id)
+            preview = (
+                decision_state.finalize(state, run_status="completed") if state is not None
+                else None
+            )
+            stop = preview.stop_reason if preview is not None else None
+            public = (
+                answer.id if decision.disposition is Disposition.PUBLISH
+                or (answer is not None and answer.is_fallback) else None
+            )
+            result = RunResultV1(
+                run_id=context.run_id, session_id=context.session_id,
+                disposition=decision.disposition, review_status=decision.review_status,
+                execution_outcome=(
+                    ExecutionOutcome.BUDGET_EXHAUSTED if stop == "budget_exhausted"
+                    else ExecutionOutcome.COMPLETED
+                ),
+                knowledge_outcome=knowledge_outcome_of(
+                    stop, published=decision.disposition is Disposition.PUBLISH,
+                ),
+                release_policy=policy, created_at=_now(),
+                public_answer_id=public,
+                candidate_answer_id=answer.id if answer is not None else None,
+                detail={
+                    "reason": decision.reason,
+                    "release_outcome": outcome.value,
+                    "reviews": [dict(r) for r in reviews],
+                    "repair": dict(repair) if repair else None,
+                    "unresolved_claim_ids": list(unresolved),
+                    "ungated_reason": ungated_reason,
+                    "replaced_answer_id": replaced,
+                    "confirmed_facts": confirmed_facts(answer),
+                    "needed_inputs": list(
+                        (preview.declared_stop if preview is not None else {})
+                        .get("needed_inputs") or ()
+                    ),
+                    "stop_reason": stop,
+                },
+            )
+            stored = await uow.run_results.add_if_absent(result)
+            published = stored.disposition is Disposition.PUBLISH
+            if published:
+                await uow.answer_releases.add(AnswerRelease(
+                    answer_id=answer.id, run_id=context.run_id, session_id=context.session_id,
+                    outcome=outcome,
+                    released_at=_now(), reviews=tuple(reviews), repair=repair,
+                    unresolved_claim_ids=tuple(unresolved),
+                    ungated_reason=ungated_reason, replaced_answer_id=replaced,
+                ))
+                if not answer.is_fallback:
+                    uow.emit(
+                        session_id=context.session_id, type=EventType.ANSWER_ACCEPTED,
+                        entity_type="answer", entity_id=answer.id, run_id=context.run_id,
+                        payload={"is_fallback": False,
+                                 "candidate_generation": answer.candidate_generation,
+                                 "release_outcome": outcome.value,
+                                 "release_policy": policy.value},
+                    )
+            uow.emit(
+                session_id=context.session_id, type=EventType.RUN_RESULT_RECORDED,
+                entity_type="run", entity_id=context.run_id, run_id=context.run_id,
+                payload={"disposition": stored.disposition.value,
+                         "review_status": stored.review_status.value,
+                         "public_answer_id": stored.public_answer_id,
+                         "release_policy": policy.value},
+            )
+            await uow.commit()
+        if published and not answer.is_fallback and is_enabled("scientific_case_v1"):
+            await self._record_released_in_case(context, answer, promote=True)
+
+    async def _record_terminal_result(self, context: RunContext, *, policy: ReleasePolicy,
+                                      run_status: str, failure: BaseException | None) -> None:
+        """The result of a run that did not commit: withheld, with the typed
+        execution outcome. Never raises -- the run's own failure stands."""
+        from ...domain.run_result import (
+            Disposition,
+            KnowledgeOutcome,
+            ReviewStatus,
+            RunResultV1,
+            execution_outcome_of,
+        )
+
+        try:
+            async with self._db.unit_of_work() as uow:
+                if await uow.run_results.get(context.run_id) is not None:
+                    return
+                candidate = await uow.answers.get_for_run(context.run_id)
+                code = getattr(failure, "code", None) if failure is not None else None
+                result = RunResultV1(
+                    run_id=context.run_id, session_id=context.session_id,
+                    disposition=Disposition.WITHHOLD,
+                    review_status=ReviewStatus.NOT_COMPLETED,
+                    execution_outcome=execution_outcome_of(code, run_status=run_status),
+                    knowledge_outcome=KnowledgeOutcome.NONE,
+                    release_policy=policy, created_at=_now(),
+                    candidate_answer_id=candidate.id if candidate is not None else None,
+                    detail={
+                        "reason": "the run ended before an answer could be published",
+                        "failure_code": code or (
+                            "cancelled" if run_status == "cancelled" else type(failure).__name__
+                            if failure is not None else None
+                        ),
+                    },
+                )
+                stored = await uow.run_results.add_if_absent(result)
+                uow.emit(
+                    session_id=context.session_id, type=EventType.RUN_RESULT_RECORDED,
+                    entity_type="run", entity_id=context.run_id, run_id=context.run_id,
+                    payload={"disposition": stored.disposition.value,
+                             "review_status": stored.review_status.value,
+                             "public_answer_id": None, "release_policy": policy.value},
+                )
+                await uow.commit()
+        except Exception:  # noqa: BLE001 - the run's own outcome is what matters
+            log.exception("could not record the run result", extra={"run_id": context.run_id})
+
+    async def _record_released_in_case(self, context: RunContext, answer, *,
+                                       promote: bool = False) -> None:
         """The released answer's relations and citations join the case ledger
         -- what submit_grounded_answer does at once without the gate, done here
         so a candidate a repair replaced never enters the case."""
@@ -351,12 +559,45 @@ class ReleaseGateMixin:
             payload = next(
                 (d["payload"] for d in drafts if d.get("answer_id") == answer.id), {}
             )
+            ledger = scientific_case_service.answer_ledger_updates(
+                payload.get("evidence_relations") or (), cited, run_id=context.run_id,
+            )
+
+            def updates_for(case):
+                updates = list(ledger(case))
+                if promote:
+                    # #47: the run's proposed conclusion becomes the case's
+                    # trusted one only now, with the published answer.
+                    updates.append(scientific_case_service.update(
+                        "promote_conclusion", actor="server", run_id=context.run_id,
+                    ))
+                return updates
+
             await scientific_case_service.advance(
                 self._db, session_id=context.session_id, run_id=context.run_id,
-                updates_for=scientific_case_service.answer_ledger_updates(
-                    payload.get("evidence_relations") or (), cited, run_id=context.run_id,
-                ),
+                updates_for=updates_for,
             )
         except Exception:  # noqa: BLE001 - bookkeeping must not fail the release
             log.exception("could not record the released answer in the case",
                           extra={"run_id": context.run_id})
+
+
+#: Claim kinds whose value the server read from an artifact itself: a
+#: withheld answer may still show these, because no review is needed to
+#: trust a value the server resolved.
+_SERVER_RESOLVED_KINDS = frozenset({"numeric", "classification", "comparison"})
+
+
+def confirmed_facts(answer) -> list[dict[str, Any]]:
+    """The facts of a candidate that stand without its review: values the
+    server resolved from an observation. Never its prose."""
+    if answer is None:
+        return []
+    facts = []
+    for claim in answer.claims:
+        kind = getattr(claim.kind, "value", claim.kind)
+        if kind in _SERVER_RESOLVED_KINDS and claim.observation_id and claim.rendered_value:
+            facts.append({"text": claim.text, "value": claim.rendered_value,
+                          "observation_id": claim.observation_id,
+                          "field_path": claim.field_path})
+    return facts

@@ -92,10 +92,15 @@ async def get_answer(
     async with services.database.unit_of_work() as uow:
         answer = await uow.answers.get(answer_id, session_id=session_id)
         release = await uow.answer_releases.get(answer_id) if answer is not None else None
+        result = await uow.run_results.get(answer.run_id) if answer is not None else None
         held = answer is not None and release is None and any(
             d.get("answer_id") == answer_id and d.get("outcome") == "candidate"
             for d in await uow.answer_drafts.list_for_run(answer.run_id)
         )
+        # #47: under a declared policy the run result names the one answer a
+        # reader is served; every other candidate of the run is audit-only.
+        if result is not None and result.public_answer_id != answer_id:
+            held = True
     # #47: a candidate the release gate has not released is not the run's
     # answer yet -- or ever, if a repair replaced it -- so it is not served.
     if answer is None or held:
@@ -103,6 +108,10 @@ async def get_answer(
     body = answer.to_dict()
     if release is not None:
         body["release"] = release.to_dict()
+    if result is not None:
+        body["result"] = {"disposition": result.disposition.value,
+                          "review_status": result.review_status.value,
+                          "release_policy": result.release_policy.value}
     return body
 
 

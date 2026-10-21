@@ -46,6 +46,9 @@ class EventType(str, Enum):
     #: not shown as the run's answer until answer.accepted follows it.
     ANSWER_CANDIDATE = "answer.candidate"
     ANSWER_REJECTED = "answer.rejected"
+    #: #47 (declared release policy): what the run ended with -- published,
+    #: partial facts or withheld -- recorded once per run.
+    RUN_RESULT_RECORDED = "run.result_recorded"
     RUNTIME_RECOVERY_STARTED = "runtime.recovery_started"
     RUNTIME_USAGE_REPORTED = "runtime.usage_reported"
     # Report builder (spec section 12.2). A build emits its own progress rather

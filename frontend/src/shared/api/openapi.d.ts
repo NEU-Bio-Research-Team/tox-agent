@@ -944,6 +944,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/runs/{run_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run Result
+         * @description What the run ended with (#47): its publication disposition, review
+         *     status, execution and knowledge outcomes, the public answer if one was
+         *     published -- never a candidate's text. A run admitted before a release
+         *     policy was declared has no recorded result, and says so.
+         */
+        get: operations["get_run_result_v1_sessions__session_id__runs__run_id__result_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/runs/{run_id}:cancel": {
         parameters: {
             query?: never;
@@ -1248,6 +1271,8 @@ export interface components {
             payload: {
                 [key: string]: unknown;
             };
+            /** Phase */
+            phase?: ("initial" | "hard_correction" | "semantic_repair") | null;
             /** Schema Version */
             schema_version: string;
             /** Violations */
@@ -2266,6 +2291,10 @@ export interface components {
             /** Recommended Next Steps */
             recommended_next_steps: components["schemas"]["RecommendedNextStep"][];
             release?: components["schemas"]["AnswerReleaseView"] | null;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
             /** Run Id */
             run_id: string;
             /** Schema Version */
@@ -3228,6 +3257,44 @@ export interface components {
             status: string;
             /** Waiting On */
             waiting_on?: string | null;
+        };
+        /**
+         * RunResult
+         * @description What a decision-support run ended with under a declared release policy
+         *     (#47). ``recorded`` false for a run before one was declared: then nothing
+         *     is known about whether its answer was reviewed.
+         */
+        RunResult: {
+            /** Candidate Answer Id */
+            candidate_answer_id?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Detail */
+            detail?: {
+                [key: string]: unknown;
+            };
+            /** Disposition */
+            disposition?: ("publish" | "partial_facts" | "withhold") | null;
+            /** Execution Outcome */
+            execution_outcome?: string | null;
+            /** Knowledge Outcome */
+            knowledge_outcome?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Public Answer Id */
+            public_answer_id?: string | null;
+            /** Recorded */
+            recorded: boolean;
+            /** Release Policy */
+            release_policy: string;
+            /** Release Policy Sha256 */
+            release_policy_sha256?: string | null;
+            /** Review Status */
+            review_status?: string | null;
+            /** Run Id */
+            run_id: string;
+            /** Schema Version */
+            schema_version?: string | null;
         };
         /** RunSummary */
         RunSummary: {
@@ -5508,6 +5575,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunQueueStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_result_v1_sessions__session_id__runs__run_id__result_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunResult"];
                 };
             };
             /** @description Validation Error */

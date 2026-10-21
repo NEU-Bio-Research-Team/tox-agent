@@ -122,9 +122,13 @@ REPAIR_SUBMISSIONS = 2
 
 
 async def release_gated(uow, run_id: str) -> bool:
-    """Whether this run's answer is held for review before release (#47):
-    release_gate_v1 with its reviewer, on a decision_support run."""
-    if not (is_enabled("release_gate_v1") and is_enabled("claim_reviewer_v1")):
+    """Whether this run's answer is held as a candidate until the server
+    decides what is published (#47): release_gate_v1 with its reviewer, or a
+    declared strict / hard-only release policy, on a decision_support run."""
+    from ...platform.config import release_policy
+
+    declared = release_policy() != "legacy"
+    if not declared and not (is_enabled("release_gate_v1") and is_enabled("claim_reviewer_v1")):
         return False
     run = await uow.runs.get(run_id)
     return run is not None and getattr(run.intent, "value", run.intent) == "decision_support"
@@ -225,6 +229,8 @@ class SubmitAnswer:
                             candidate, observations_by_id=observations_by_id,
                         )],
                         language, raw_draft=raw_draft, cap=cap,
+                        phase="semantic_repair" if repairing else (
+                            "initial" if generation == 1 else "hard_correction"),
                     )
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
@@ -276,12 +282,15 @@ class SubmitAnswer:
                         result, violations=(*result.violations, *posture_violations), answer=None
                     )
 
+            phase = "semantic_repair" if repairing else (
+                "initial" if generation == 1 else "hard_correction"
+            )
             if result.ok:
                 await uow.answers.add(result.answer)
                 await self._record_draft(
                     uow, run_id=run_id, session_id=session_id, generation=generation,
                     raw_draft=raw_draft, outcome="candidate" if gated else "accepted",
-                    answer_id=result.answer.id, violations=(),
+                    answer_id=result.answer.id, violations=(), phase=phase,
                 )
                 for assessment in resolved_relations:
                     await uow.evidence_relations.add(assessment, answer_id=result.answer.id)
@@ -310,7 +319,7 @@ class SubmitAnswer:
             await self._record_draft(
                 uow, run_id=run_id, session_id=session_id, generation=generation,
                 raw_draft=raw_draft, outcome="rejected", answer_id=None,
-                violations=result.violations,
+                violations=result.violations, phase=phase,
             )
             if generation >= cap:
                 fallback = await self._build_fallback(uow, session, session_id, run_id, generation, language)
@@ -357,7 +366,7 @@ class SubmitAnswer:
 
     async def _record_draft(
         self, uow, *, run_id: str, session_id: str, generation: int, raw_draft,
-        outcome: str, answer_id: str | None, violations,
+        outcome: str, answer_id: str | None, violations, phase: str | None = None,
     ) -> None:
         """#47: keep the draft as sent, beside what the server made of it, so
         the raw draft, the accepted candidate and the released answer can each
@@ -371,11 +380,13 @@ class SubmitAnswer:
             run_id=run_id, session_id=session_id, generation=generation,
             schema_version=schema_version, payload=payload, outcome=outcome,
             answer_id=answer_id, violations=[v.to_dict() for v in violations], now=_now(),
+            phase=phase,
         )
 
     async def _reject(
         self, uow, session, session_id: str, run_id: str, generation: int,
         violations: list, language: str, *, raw_draft=None, cap: int | None = None,
+        phase: str | None = None,
     ) -> SubmitOutcome:
         """The shared rejection path: one more attempt, or the fallback.
 
@@ -388,6 +399,7 @@ class SubmitAnswer:
             await self._record_draft(
                 uow, run_id=run_id, session_id=session_id, generation=generation,
                 raw_draft=raw_draft, outcome="rejected", answer_id=None, violations=violations,
+                phase=phase,
             )
         cap = cap if cap is not None else self._settings.max_answer_candidates_per_run
         if generation >= cap:

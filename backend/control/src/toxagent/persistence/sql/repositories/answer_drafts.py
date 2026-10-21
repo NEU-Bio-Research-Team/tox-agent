@@ -18,13 +18,13 @@ class SqlAnswerDraftStore:
     async def add(
         self, *, run_id: str, session_id: str, generation: int, schema_version: str,
         payload: dict[str, Any], outcome: str, answer_id: str | None,
-        violations: list[dict[str, Any]], now: datetime,
+        violations: list[dict[str, Any]], now: datetime, phase: str | None = None,
     ) -> None:
         await self._conn.execute(
             insert(answer_drafts).values(
                 run_id=run_id, generation=generation, session_id=session_id,
                 schema_version=schema_version, payload=payload, outcome=outcome,
-                answer_id=answer_id, violations=violations, created_at=now,
+                answer_id=answer_id, violations=violations, created_at=now, phase=phase,
             )
         )
 

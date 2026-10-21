@@ -228,10 +228,25 @@ class CompletionMixin:
                     "the run changed before its accepted answer could be committed",
                     status=run.status.value,
                 )
-            parts: list[tuple[PartType, dict]] = [
-                (PartType.TEXT, {"text": answer.answer_markdown}),
-                (PartType.ANSWER_REF, {"answer_id": answer.id}),
-            ]
+            result = await uow.run_results.get(context.run_id)
+            if result is not None and not result.published:
+                # #47: nothing the review did not clear reaches the message.
+                # The reader is told what the server could confirm, what is
+                # still open and why -- never the candidate's prose, which
+                # stays in the audit view.
+                parts = [(PartType.TEXT, {"text": incomplete_result_text(result)})]
+                if result.public_answer_id:
+                    parts.append((PartType.ANSWER_REF, {"answer_id": result.public_answer_id}))
+            else:
+                parts = [
+                    (PartType.TEXT, {"text": answer.answer_markdown}),
+                    (PartType.ANSWER_REF, {"answer_id": answer.id}),
+                ]
+            if result is not None:
+                parts.append((PartType.RESULT_REF, {
+                    "run_id": context.run_id, "disposition": result.disposition.value,
+                    "review_status": result.review_status.value,
+                }))
             if context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1"):
                 # Stored before the run completes (_commit_with_case), so it
                 # exists here for every completed case run.
@@ -258,7 +273,9 @@ class CompletionMixin:
                 entity_type="message",
                 entity_id=reply.id,
                 run_id=context.run_id,
-                payload={"role": "assistant", "answer_id": answer.id},
+                payload={"role": "assistant",
+                         "answer_id": (result.public_answer_id if result is not None
+                                       else answer.id)},
             )
             if context.intent is Intent.DECISION_SUPPORT:
                 # In the transaction that completes the run, so a client that
@@ -278,7 +295,11 @@ class CompletionMixin:
                 uow,
                 run,
                 RunStatus.COMPLETED,
-                payload={"answer_id": answer.id, "is_fallback": answer.is_fallback},
+                payload={
+                    "answer_id": result.public_answer_id if result is not None else answer.id,
+                    "is_fallback": answer.is_fallback,
+                    **({"disposition": result.disposition.value} if result is not None else {}),
+                },
             )
             await uow.commit()
 
@@ -333,3 +354,25 @@ class CompletionMixin:
             # Best-effort audit enrichment; never let it mask the real
             # terminal failure the scheduler is about to record.
             return
+
+
+def incomplete_result_text(result) -> str:
+    """What a reader is shown when the answer was not published (#47)."""
+    detail = result.detail or {}
+    lines = [
+        "The answer could not be released: " + str(detail.get("reason") or "it was not cleared")
+        + ".",
+    ]
+    facts = detail.get("confirmed_facts") or []
+    if facts:
+        lines.append("What the server confirmed from the run's artifacts:")
+        lines += [f"- {fact['text']} {fact['value']}" for fact in facts]
+    unresolved = detail.get("unresolved_claim_ids") or []
+    if unresolved:
+        lines.append(f"{len(unresolved)} claim(s) were not supported by their sources and are "
+                     "not shown.")
+    needed = detail.get("needed_inputs") or []
+    if needed:
+        lines.append("To go further, the following is needed: " + "; ".join(needed) + ".")
+    lines.append("The draft and its review are kept in the run's audit view.")
+    return "\n".join(lines)

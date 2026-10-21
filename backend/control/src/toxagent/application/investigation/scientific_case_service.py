@@ -428,6 +428,11 @@ def report_dossier_view(dossier: Mapping[str, Any]) -> dict[str, Any]:
         return [str(e.get("source_ref")) for e in entries]
 
     conclusion = dossier.get("conclusion") or {}
+    proposed = conclusion.get("status") == "proposed"
+    if proposed:
+        # #47: a report states what the case trusts, never a conclusion whose
+        # run's answer was not published.
+        conclusion = dossier.get("released_conclusion") or {}
     return {
         "case_id": dossier.get("case_id"), "run_id": dossier.get("run_id"),
         "case_revision": dossier.get("case_revision"),
@@ -445,6 +450,7 @@ def report_dossier_view(dossier: Mapping[str, Any]) -> dict[str, Any]:
                         for line in conclusion.get("can_say") or ()],
             "cannot_say": list(conclusion.get("cannot_say") or ()),
             "what_would_change": list(conclusion.get("what_would_change") or ()),
+            "unpublished_proposal_left_out": proposed,
         },
         "open_uncertainties": [
             {"kind": u.get("kind"), "severity": u.get("severity"), "description": u.get("description")}
@@ -521,12 +527,20 @@ async def finish_run(database, *, session_id: str, run_id: str,
         async with database.unit_of_work() as uow:
             state = await uow.decision_states.get(run_id)
             answer = await uow.answers.get_for_run(run_id)
+            result = await uow.run_results.get(run_id)
         if stop_reason is _UNSET:
             stop_reason = state.stop_reason if state is not None else None
         usage = dict(state.usage) if state is not None else {}
-        answer_id = answer.id if answer is not None else None
+        # #47: under a declared policy the run's answer is its public one --
+        # a withheld candidate is not what the case records as the answer.
+        answer_id = (
+            result.public_answer_id if result is not None
+            else answer.id if answer is not None else None
+        )
         finished = update("finish_run", actor=sc.Actor.SERVER.value, run_id=run_id,
-                          stop_reason=stop_reason, answer_id=answer_id, usage=usage)
+                          stop_reason=stop_reason, answer_id=answer_id, usage=usage,
+                          **({"disposition": result.disposition.value} if result is not None
+                             else {}))
         case = await advance(database, session_id=session_id, run_id=run_id,
                              updates_for=lambda _case: [finished])
         if case is None:

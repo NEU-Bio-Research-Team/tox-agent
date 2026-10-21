@@ -122,9 +122,18 @@ def _contracts() -> dict[str, Any]:
     from ..application.runs.envelope import ENVELOPE_VERSION
     from ..domain.subject import SCHEMA_VERSION as SUBJECT_BINDING_VERSION
 
+    from ..domain.run_result import ReleasePolicy, policy_sha256
+    from ..platform.config import release_policy
+
+    policy = release_policy()
     return {
         "run_envelope_version": ENVELOPE_VERSION,
         "run_subject_binding": SUBJECT_BINDING_VERSION,
+        # #47: how answers are published, and the hash of its decision table.
+        "release_policy": policy,
+        "release_policy_sha256": (
+            policy_sha256(ReleasePolicy(policy)) if policy != "legacy" else None
+        ),
     }
 
 

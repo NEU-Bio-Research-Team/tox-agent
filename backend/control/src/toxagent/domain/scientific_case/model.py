@@ -172,13 +172,19 @@ class Hypothesis:
     status_reason: str = ""
     actor: str = Actor.MODEL.value
     run_id: str | None = None
+    #: #47: the run that last changed ``status``. A later turn reads a status
+    #: set by a run whose answer was not published as proposed, not trusted.
+    status_run_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id, "statement": self.statement, "kind": self.kind,
             "refutation_condition": self.refutation_condition, "status": self.status,
             "status_reason": self.status_reason, "actor": self.actor, "run_id": self.run_id,
         }
+        if self.status_run_id is not None:
+            data["status_run_id"] = self.status_run_id
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -319,9 +325,22 @@ class ConclusionLine:
         return {"text": self.text, "evidence_ids": list(self.evidence_ids)}
 
 
+#: #47: a conclusion written by a run whose answer was not (yet) published.
+CONCLUSION_PROPOSED = "proposed"
+#: The case's trusted conclusion: written before a release policy existed, or
+#: promoted when its run's answer was published.
+CONCLUSION_RELEASED = "released"
+
+
 @dataclass(frozen=True, slots=True)
 class Conclusion:
-    """What the case can say so far, conditionally. Replaced, never merged."""
+    """What the case can say so far, conditionally. Replaced, never merged.
+
+    Under a declared release policy (#47) a run's conclusion is ``proposed``
+    until its answer is published; a later turn's checkpoint does not treat a
+    proposed conclusion as what the case can say. The last released one is
+    kept beside it, so a withheld run never erases what was trusted before.
+    """
 
     can_say: tuple[ConclusionLine, ...] = ()
     cannot_say: tuple[str, ...] = ()
@@ -329,14 +348,18 @@ class Conclusion:
     #: Who must approve any step outside the system (RETHINK §3.1 item 7).
     approver: str = ""
     run_id: str | None = None
+    status: str = CONCLUSION_RELEASED
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "can_say": [line.to_dict() for line in self.can_say],
             "cannot_say": list(self.cannot_say),
             "what_would_change": list(self.what_would_change),
             "approver": self.approver, "run_id": self.run_id,
         }
+        if self.status != CONCLUSION_RELEASED:
+            data["status"] = self.status
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -369,12 +392,17 @@ class RunRecord:
     #: hash, how it was resolved and the artifacts with their content hashes.
     #: The subject's identity is the case's; the artifacts are the run's.
     binding: Mapping[str, Any] = field(default_factory=dict)
+    #: #47: the run's publication disposition (publish / partial_facts /
+    #: withhold) under a declared release policy; None before one existed.
+    disposition: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         data = {"run_id": self.run_id, "goal": self.goal, "stop_reason": self.stop_reason,
                 "answer_id": self.answer_id, "usage": dict(self.usage)}
         if self.binding:
             data["binding"] = dict(self.binding)
+        if self.disposition is not None:
+            data["disposition"] = self.disposition
         return data
 
 
@@ -425,6 +453,8 @@ class ScientificCaseV1:
     actions: tuple[Action, ...] = ()
     next_tests: tuple[NextTest, ...] = ()
     conclusion: Conclusion = field(default_factory=Conclusion)
+    #: #47: the last released conclusion while a newer one is only proposed.
+    released_conclusion: Conclusion | None = None
     runs: tuple[RunRecord, ...] = ()
     revision: int = 0
     created_at: str = ""
@@ -489,6 +519,8 @@ class ScientificCaseV1:
             "actions": [a.to_dict() for a in self.actions],
             "next_tests": [t.to_dict() for t in self.next_tests],
             "conclusion": self.conclusion.to_dict(),
+            **({"released_conclusion": self.released_conclusion.to_dict()}
+               if self.released_conclusion is not None else {}),
             "runs": [r.to_dict() for r in self.runs],
             "coverage": self.coverage,
             "revision": self.revision, "created_at": self.created_at,
@@ -498,6 +530,21 @@ class ScientificCaseV1:
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "ScientificCaseV1":
         conclusion = data.get("conclusion") or {}
+
+        def _conclusion(raw: Mapping[str, Any]) -> Conclusion:
+            return Conclusion(
+                can_say=tuple(
+                    ConclusionLine(text=line["text"],
+                                   evidence_ids=tuple(line.get("evidence_ids") or ()))
+                    for line in raw.get("can_say") or ()
+                ),
+                cannot_say=tuple(raw.get("cannot_say") or ()),
+                what_would_change=tuple(raw.get("what_would_change") or ()),
+                approver=raw.get("approver", ""), run_id=raw.get("run_id"),
+                status=raw.get("status", CONCLUSION_RELEASED),
+            )
+
+        released = data.get("released_conclusion")
         return cls(
             id=data["case_id"], session_id=data["session_id"], subject_key=data["subject_key"],
             subject=dict(data.get("subject") or {}),
@@ -529,20 +576,14 @@ class ScientificCaseV1:
                             "expected_readouts": tuple(t.get("expected_readouts") or ())})
                 for t in data.get("next_tests") or ()
             ),
-            conclusion=Conclusion(
-                can_say=tuple(
-                    ConclusionLine(text=line["text"], evidence_ids=tuple(line.get("evidence_ids") or ()))
-                    for line in conclusion.get("can_say") or ()
-                ),
-                cannot_say=tuple(conclusion.get("cannot_say") or ()),
-                what_would_change=tuple(conclusion.get("what_would_change") or ()),
-                approver=conclusion.get("approver", ""), run_id=conclusion.get("run_id"),
-            ),
+            conclusion=_conclusion(conclusion),
+            released_conclusion=_conclusion(released) if released else None,
             runs=tuple(
                 RunRecord(run_id=r["run_id"], goal=r.get("goal", ""),
                           stop_reason=r.get("stop_reason"), answer_id=r.get("answer_id"),
                           usage=dict(r.get("usage") or {}),
-                          binding=dict(r.get("binding") or {}))
+                          binding=dict(r.get("binding") or {}),
+                          disposition=r.get("disposition"))
                 for r in data.get("runs") or ()
             ),
             revision=int(data.get("revision", 0)), created_at=data.get("created_at", ""),

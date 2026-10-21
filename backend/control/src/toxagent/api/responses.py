@@ -441,6 +441,9 @@ class GroundedAnswer(_Response):
     created_at: str
     #: Present when the answer went through the release gate.
     release: AnswerReleaseView | None = None
+    #: #47: the run's result under a declared release policy -- disposition,
+    #: review status, policy. Absent before one was declared.
+    result: dict[str, Any] | None = None
 
 
 class AnswerDraft(_Response):
@@ -456,6 +459,8 @@ class AnswerDraft(_Response):
     answer_id: str | None
     violations: list[dict[str, Any]]
     created_at: str
+    #: #47: initial, hard_correction or semantic_repair; None before 0028.
+    phase: Literal["initial", "hard_correction", "semantic_repair"] | None = None
 
 
 class AnswerDraftList(_Response):
@@ -484,6 +489,27 @@ class ScreeningSummary(_Response):
     record_sha256: str | None
     source: str
     attached_at: str
+
+
+class RunResult(_Response):
+    """What a decision-support run ended with under a declared release policy
+    (#47). ``recorded`` false for a run before one was declared: then nothing
+    is known about whether its answer was reviewed."""
+
+    run_id: str
+    recorded: bool
+    release_policy: str
+    schema_version: str | None = None
+    disposition: Literal["publish", "partial_facts", "withhold"] | None = None
+    review_status: str | None = None
+    execution_outcome: str | None = None
+    knowledge_outcome: str | None = None
+    release_policy_sha256: str | None = None
+    public_answer_id: str | None = None
+    candidate_answer_id: str | None = None
+    detail: dict[str, Any] = Field(default_factory=dict)
+    created_at: str | None = None
+    note: str | None = None
 
 
 class ScreeningDetail(_Response):

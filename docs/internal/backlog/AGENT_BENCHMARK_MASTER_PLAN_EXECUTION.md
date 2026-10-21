@@ -17,8 +17,8 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 | P01 subject-binding | #44 | done | see below |
 | P02 frozen-full-text | #43 | done | see below |
 | P03 subject-evidence | AG-EVIDENCE | done | see below |
-| P04 strict-release | #47 | in progress | |
-| P05 budget-phases | #46/#53 | todo | |
+| P04 strict-release | #47 | done | see below |
+| P05 budget-phases | #46/#53 | in progress | |
 | P06 case-inputs | #51 | todo | |
 | P07a shared-replay-A | #50 | todo | |
 | P07b strong-B-fairness | #50 | todo | |
@@ -124,3 +124,35 @@ unknown locator refused). Suite: 2732 passed, 19 skipped.
 
 Tests: `tests/unit/test_subject_relevance.py`,
 `tests/e2e/test_subject_evidence_through_the_product.py`. Suite: 2745 passed.
+
+## P04 — strict publication policy (#47)
+
+`TOXAGENT_RELEASE_POLICY` = `legacy` (default, unchanged) |
+`strict-reviewed-v1` | `hard-only-v1`, stated in the effective product with the
+hash of its decision table.
+
+- `domain/run_result.py`: `RunResultV1` keeps publication disposition
+  (publish / partial_facts / withhold), review status, execution outcome and
+  knowledge outcome apart; task success is none of them. The policy is a pure
+  table (`decide_publication`).
+- One writer: the gateway's publication coordinator records the run result
+  (`run_results`, migration 0028) and, only for a published answer, the
+  compatible `answer_releases` row and `answer.accepted`. Idempotent on
+  run_id. A run that ends without committing (failure, cancel) records a
+  withheld result with its typed execution outcome.
+- The assistant message of a non-published run carries no candidate prose:
+  server-resolved facts, the reason, needed inputs, and a `result_ref` part.
+  The answer route serves only the run's public answer.
+  `GET /runs/{rid}/result`; drafts carry their phase (initial /
+  hard_correction / semantic_repair).
+- Case isolation: under a declared policy a run's conclusion is `proposed`
+  and is promoted only with its published answer; the last released
+  conclusion is kept beside it; checkpoints and report views never present a
+  proposal as the case's conclusion; hypothesis statuses set by an
+  unpublished run are marked as proposals; runs record their disposition.
+- `hard-only-v1`: the declared no-review ablation; publishes the
+  hard-validated candidate with review status `not_reviewed_by_design`.
+
+Tests: `tests/unit/test_run_result_policy.py`, `tests/e2e/test_strict_release.py`.
+Suite: 2773 passed; `test_worker_quotas_and_drain::test_a_draining_worker...`
+failed once under full-suite load and passes in isolation (timing).

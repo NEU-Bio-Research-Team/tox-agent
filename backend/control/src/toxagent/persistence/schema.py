@@ -386,6 +386,28 @@ answer_drafts = Table(
     Column("answer_id", _ID),
     Column("violations", Json, nullable=False),
     Column("created_at", _TS, nullable=False),
+    # Which submission phase wrote it (0028, #47): initial, hard_correction or
+    # semantic_repair. NULL on drafts written before it.
+    Column("phase", String(24)),
+)
+
+#: What a decision-support run ended with, under a declared release policy
+#: (0028, #47): what was published, what the review did, why it stopped.
+run_results = Table(
+    "run_results", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("disposition", String(24), nullable=False),
+    Column("review_status", String(32), nullable=False),
+    Column("execution_outcome", String(32), nullable=False),
+    Column("knowledge_outcome", String(32), nullable=False),
+    Column("release_policy", String(32), nullable=False),
+    Column("release_policy_sha256", String(64), nullable=False),
+    Column("public_answer_id", _ID),
+    Column("candidate_answer_id", _ID),
+    Column("detail", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+    Index("ix_run_results_public_answer", "public_answer_id"),
 )
 
 # 0022 (#43): what was read of a record's full text. One row per record and

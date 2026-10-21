@@ -50,6 +50,22 @@ RUN_BUDGET_PRESETS: dict[str, dict[str, int]] = {
 }
 
 
+#: #47: how a decision-support answer is published. ``legacy`` keeps the
+#: gate's flags in charge (an unresolved review is still released, labelled);
+#: ``strict-reviewed-v1`` publishes only what the review cleared and records a
+#: run result for every run; ``hard-only-v1`` is the declared no-review
+#: ablation. A study runs every arm under one of the last two.
+RELEASE_POLICIES: tuple[str, ...] = ("legacy", "strict-reviewed-v1", "hard-only-v1")
+
+
+def release_policy() -> str:
+    """The policy this deployment publishes under (TOXAGENT_RELEASE_POLICY)."""
+    name = _env("TOXAGENT_RELEASE_POLICY") or "legacy"
+    if name not in RELEASE_POLICIES:
+        raise ValueError(f"TOXAGENT_RELEASE_POLICY={name!r} is not one of {RELEASE_POLICIES}")
+    return name
+
+
 def run_budget_preset() -> tuple[str | None, dict[str, int]]:
     """The preset this deployment runs under (TOXAGENT_RUN_BUDGET_PRESET), if any."""
     name = _env("TOXAGENT_RUN_BUDGET_PRESET")

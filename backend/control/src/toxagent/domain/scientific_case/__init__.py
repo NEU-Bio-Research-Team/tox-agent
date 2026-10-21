@@ -73,6 +73,8 @@ from .model import (  # noqa: F401
     RunRecord,
     CaseUpdate,
     ScientificCaseV1,
+    CONCLUSION_PROPOSED,
+    CONCLUSION_RELEASED,
     subject_key,
 )
 from .operations import (  # noqa: F401
@@ -96,6 +98,7 @@ from .operations import (  # noqa: F401
     _record_action,
     _propose_next_test,
     _set_conclusion,
+    _promote_conclusion,
     _run_id,
     _attach_run,
     _finish_run,
