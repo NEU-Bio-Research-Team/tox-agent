@@ -10,7 +10,33 @@ published outcomes and turned into ToxAgent questions. The numbers this study
 produces are never an `external-native` benchmark score and are not compared
 with any leaderboard.
 
-## Two case sets
+## Protocol v2 (#50/#51/#53): the four arms on frozen inputs
+
+The study above is v1 and stays as it is. Protocol v2 is a different design --
+four arms (A template, B fixed workflow, C generic ReAct, D investigator) on
+**one case set's frozen inputs**, each arm a deployment of this control plane --
+and it is run through one entry point:
+
+```bash
+python scripts/agent_benchmark.py preflight --case-set <set> [--arm ID=URL ...]
+python scripts/agent_benchmark.py run     --study <id> --case-set <set> --arm ID=URL ...
+python scripts/agent_benchmark.py packet  --study <id> --case-set <set> --packet-id <id>
+python scripts/agent_benchmark.py score   --study <id> --case-set <set> --packet-id <id> --grades *.csv
+python scripts/agent_benchmark.py freeze  --study <id> --case-set <set>
+```
+
+Its parts: `case_inputs.py` (a v3 case is a case + frozen inputs + gold, and
+the audit that holds them apart), `turn_actions.py` (one rendering of a turn,
+the same for every arm), `adapters/template_v2.py` and
+`adapters/toxagent_replay.py`, `run.py::run_protocol_study` (arms may run one
+at a time; a changed study is refused), `systems.py` (what the arms must share
+and what they are allowed to differ in), `packet_v2.py` and `scorecard_v2.py`.
+`arms/protocol-v2/*.json` are the arm configs, and
+`cases_protocol_v2_technical/` is the synthetic engineering set -- machinery
+only, never evidence about a molecule. The pilot's 24 cases need SME-verified
+gold before any of its numbers mean anything.
+
+## Two case sets (v1)
 
 | Set | Directory | Question it asks |
 |---|---|---|

@@ -378,3 +378,61 @@ Still needed from people, not code:
   with a model and a declared quota.
 - **The live ChEMBL mappings** for EGFR and ABL1 in the target catalog are
   still recorded as unverified.
+
+## Live verification on a laptop (2026-10-22)
+
+Not a pilot and not a result: a smoke test that the protocol runs outside the
+test suite, on one technical case (`inv-a01-screening-review-explained`),
+against the OpenCode runtime already on this machine (`openai` /
+`gpt-5.6-luna`). Each arm ran as its own local deployment, one at a time, which
+is how a laptop runs them.
+
+| Arm | Outcome | Tool calls | Tokens (provider-reported) |
+|---|---|---|---|
+| A2_template | rendered the pinned replay record | none (no model) | none |
+| B2_fixed_workflow | published, review passed | 12 by rule (3 searches, 2 records, 2 tables) | 40,282 |
+| D2_investigator | published after one repair | 9, one of them a skill read | 90,801 |
+
+What it showed:
+
+- all three arms were given the same artifact (one observed content hash), and
+  `preflight` passed only once every arm's deployment matched its arm, replayed
+  the set's own files and agreed on the shared fields;
+- D read `read-activity-screening` unprompted, and its phases were recorded
+  apart: investigator 49,763 tokens, review 8,398, repair 24,391, review again
+  8,249;
+- the release gate did its job and left something to measure: the reviewer
+  judged "the status is review *because* the interval crosses the threshold"
+  only partially supported, correctly -- the claim cited the screening state,
+  while the reason is in the prioritisation decision -- and the repair narrowed
+  the claim instead of re-citing the right artifact. That is a true statement
+  lost to a mis-citation, which is what §7.2's required-information retention
+  measures;
+- `packet` and `score` ran on the live study, and the card refused to call
+  itself a scientific result because the gold is synthetic;
+- `freeze` recorded both deployments' effective-product hashes;
+- the fairness check was exercised against two real deployments: a second arm
+  B under the *same* preset name but 900 s / 50 calls was refused, and the
+  refusal also caught that the skill catalogue on disk had changed between the
+  two arms' runs (`hashes.agent_profiles`), which is a condition change
+  mid-study.
+
+Commands, for a repeat:
+
+```bash
+cd backend/control
+python scripts/agent_benchmark.py preflight --case-set evals/investigation/cases_protocol_v2_technical \
+    --arm D2_investigator=http://127.0.0.1:8011 --token <token>
+python scripts/agent_benchmark.py run --study <id> --case-set evals/investigation/cases_protocol_v2_technical \
+    --arm D2_investigator=http://127.0.0.1:8011 --token <token> --cases <case-id>
+python scripts/agent_benchmark.py packet --study <id> --case-set <set> --packet-id <packet>
+python scripts/agent_benchmark.py score  --study <id> --case-set <set> --packet-id <packet> \
+    --grades <csv> --compare D2_investigator:B2_fixed_workflow
+python scripts/agent_benchmark.py freeze --study <id> --case-set <set>
+```
+
+A deployment per arm needs: the set's `replay.json` and `evidence.json` as its
+pins, `TOXAGENT_RUN_BUDGET_PRESET=investigator-pilot-v2`,
+`TOXAGENT_RELEASE_POLICY=strict-reviewed-v1`, the common flags, and only its
+own treatment flags (`fixed_workflow_v1` for B; `scientific_case_v1` +
+`scientific_skills_v1` for D).
