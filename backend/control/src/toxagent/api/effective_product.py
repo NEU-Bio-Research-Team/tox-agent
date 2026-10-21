@@ -225,6 +225,13 @@ def describe_effective_product(
                  "sha256": settings.research.corpus_sha256 or None}
                 if settings.research.provider == "corpus" else None
             ),
+            # #43: full text served offline from a pinned frozen store; a
+            # frozen deployment without one has no text tool at all.
+            "research_full_text": (
+                {"path_name": Path(settings.research.full_text_path).name,
+                 "sha256": settings.research.full_text_sha256 or None, "replay": True}
+                if settings.research.full_text_path else None
+            ),
             # #44: activity is replayed from a pinned file of frozen
             # screenings, never served; a recorded run says which file.
             "activity_replay": (

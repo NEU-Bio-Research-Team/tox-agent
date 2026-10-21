@@ -2064,6 +2064,10 @@ export interface components {
             };
             /** Passage Count */
             passage_count: number;
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            };
             /** Reason */
             reason: string | null;
             /** Run Id */

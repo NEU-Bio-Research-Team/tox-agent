@@ -449,6 +449,15 @@ def build(
             "text_access": read.state,
             "full_text_id": read.full_text_id,
         }
+        text_provenance = dict(read.full_text.provenance) if read.full_text is not None else {}
+        if text_provenance:
+            # #43: live or replayed, and from which capture -- for the trace.
+            view["text_provenance"] = {
+                k: text_provenance.get(k)
+                for k in ("served_by", "replay", "parser_version", "captured_from",
+                          "document_sha256")
+                if text_provenance.get(k) is not None
+            }
         returned: tuple[str, ...] = ()
         if read.full_text is not None and read.full_text.was_read:
             selection = evidence_text.select(
@@ -505,6 +514,7 @@ def build(
                 "evidence_id": record.id, "provider": record.provider,
                 "text_access": read.state, "fetched_now": read.fetched_now,
                 "full_text_id": read.full_text_id,
+                "text_provenance": text_provenance,
                 # Which passages this run was shown -- what a claim's
                 # evidence_spans are checked against.
                 "passage_locators": list(returned),

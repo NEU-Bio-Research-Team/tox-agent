@@ -66,6 +66,11 @@ class FullTextFetch:
     #: record's own: Europe PMC serves text by PMCID, and a MEDLINE hit names
     #: its PMCID separately. ``None`` when no request was made.
     full_text_id: str | None = None
+    #: Where the text came from (#43): the provider that served it, whether it
+    #: was replayed from a frozen store, the parser version, and for a capture
+    #: the sha256 of the bytes received. Kept with what was read, so a frozen
+    #: run's text can be traced to the live capture it replays.
+    provenance: Mapping[str, Any] = field(default_factory=dict)
 
 
 @runtime_checkable

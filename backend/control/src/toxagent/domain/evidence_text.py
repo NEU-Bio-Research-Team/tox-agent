@@ -71,6 +71,10 @@ class EvidenceFullText:
     omitted: Mapping[str, int] = field(default_factory=dict)
     truncated: bool = False
     document_sha256: str = ""
+    #: #43: where the text came from -- the provider that served it, whether
+    #: it was replayed from a frozen store and, for a replay, the capture it
+    #: replays (provider, time, sha256 of the bytes received, parser version).
+    provenance: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         require_id(self.evidence_id, EVIDENCE, field="evidence_full_text.evidence_id")
@@ -96,6 +100,7 @@ class EvidenceFullText:
         truncated: bool,
         full_text_id: str | None,
         now: datetime,
+        provenance: Mapping[str, Any] | None = None,
     ) -> "EvidenceFullText":
         return cls(
             evidence_id=evidence_id, session_id=session_id, run_id=run_id,
@@ -103,6 +108,7 @@ class EvidenceFullText:
             passages=passages, section_titles=section_titles, omitted=dict(omitted),
             truncated=truncated,
             document_sha256=content_sha256([p.to_dict() for p in passages]),
+            provenance=dict(provenance or {}),
         )
 
     @classmethod
@@ -115,10 +121,12 @@ class EvidenceFullText:
         reason: str,
         full_text_id: str | None,
         now: datetime,
+        provenance: Mapping[str, Any] | None = None,
     ) -> "EvidenceFullText":
         return cls(
             evidence_id=evidence_id, session_id=session_id, run_id=run_id,
             state=ACCESS_FAILED, fetched_at=now, full_text_id=full_text_id, reason=reason,
+            provenance=dict(provenance or {}),
         )
 
     @property

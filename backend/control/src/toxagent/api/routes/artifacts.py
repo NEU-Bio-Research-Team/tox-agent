@@ -156,6 +156,13 @@ def _full_text_view(full_text) -> dict | None:
         "omitted": dict(full_text.omitted),
         "run_id": full_text.run_id,
         "fetched_at": full_text.fetched_at.isoformat(),
+        # #43: live or replayed from a frozen store, and from which capture.
+        "provenance": {
+            k: full_text.provenance.get(k)
+            for k in ("served_by", "replay", "parser_version", "captured_from", "captured_at",
+                      "source_sha256", "document_sha256", "store_sha256")
+            if full_text.provenance.get(k) is not None
+        },
     }
 
 

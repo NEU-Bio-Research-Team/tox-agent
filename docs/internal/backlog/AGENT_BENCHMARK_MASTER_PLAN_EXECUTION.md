@@ -15,8 +15,8 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 | Slice | Issue | State | Notes |
 |---|---|---|---|
 | P01 subject-binding | #44 | done | see below |
-| P02 frozen-full-text | #43 | in progress | |
-| P03 subject-evidence | AG-EVIDENCE | todo | |
+| P02 frozen-full-text | #43 | done | see below |
+| P03 subject-evidence | AG-EVIDENCE | in progress | |
 | P04 strict-release | #47 | todo | |
 | P05 budget-phases | #46/#53 | todo | |
 | P06 case-inputs | #51 | todo | |
@@ -65,3 +65,29 @@ Flag `subject_binding_v1` (default off).
 Tests: `tests/unit/test_subject_binding.py`,
 `tests/e2e/test_subject_binding_through_the_product.py`,
 `tests/integration/test_subject_binding_queue.py`.
+
+## P02 — frozen full text (#43)
+
+- `research/fulltext_store.py`: `frozen-full-text-v1` store -- each
+  document's passages (rows with cells), the outcome (retrieved /
+  access_failed), the capture (provider, time, sha256 of the bytes received)
+  and the parser version (`jats-passages-v1`). Every document re-hashed on
+  load; a sidecar file is pinned by sha256.
+- `FrozenFullTextProvider` wraps the snapshot or corpus provider when a store
+  is configured (`TOXAGENT_RESEARCH_FULL_TEXT_PATH`/`_SHA256`, or inline in a
+  snapshot fixture under `evidence.full_text`). Only then is the provider
+  text-capable, so `read_evidence_text` exists on a frozen deployment. A
+  record the store does not hold is answered "not held", never fetched; an
+  injected snapshot outage reaches the text as transient.
+- Live Europe PMC: bounded per-provider cache of definitive answers and
+  single-flight per PMCID; an outage is never cached.
+- Provenance of every read text is stored (`evidence_full_texts.provenance`,
+  migration 0027), shown by `read_evidence_text` (`text_provenance`) and by
+  the evidence API (`full_text.provenance`).
+- `python -m evals.investigation.capture_full_text`: capture once from
+  Europe PMC into a store; transient fetches are reported, not frozen.
+
+Tests: `tests/unit/test_frozen_full_text.py`,
+`tests/e2e/test_frozen_full_text_through_the_product.py` (offline table-row
+quote validated; captured access failure owes `evidence_full_text_not_read`;
+unknown locator refused). Suite: 2732 passed, 19 skipped.

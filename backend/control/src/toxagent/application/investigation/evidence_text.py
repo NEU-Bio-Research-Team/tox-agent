@@ -107,12 +107,13 @@ async def read_full_text(
             passages=tuple(_passage(p) for p in fetch.passages),
             section_titles=tuple(fetch.section_titles), omitted=fetch.omitted,
             truncated=fetch.truncated, full_text_id=fetch.full_text_id, now=now,
+            provenance=fetch.provenance,
         )
     else:
         candidate = EvidenceFullText.failed(
             evidence_id=record.id, session_id=session_id, run_id=run_id,
             reason=fetch.reason or "the provider returned no text", full_text_id=fetch.full_text_id,
-            now=now,
+            now=now, provenance=fetch.provenance,
         )
     async with database.unit_of_work() as uow:
         stored = await uow.evidence_text.add_if_absent(candidate)

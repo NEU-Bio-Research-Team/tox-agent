@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 Endpoint = Literal["clintox", "herg", "tox21"]
 RunStatus = Literal["queued", "running", "validating", "completed", "failed", "cancelled"]
@@ -525,6 +525,9 @@ class EvidenceFullTextView(_Response):
     omitted: dict[str, int]
     run_id: str
     fetched_at: str
+    #: #43: served_by, replay, parser_version and, for a replay, the capture
+    #: (captured_from, captured_at, source_sha256, document_sha256, store_sha256).
+    provenance: dict[str, Any] = Field(default_factory=dict)
 
 
 class EvidenceRecordView(_Response):

@@ -16,6 +16,11 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import Iterator, Mapping
 
+#: Bumped when how a document is split into passages changes -- a locator
+#: frozen under one version is only guaranteed to name the same passage
+#: under the same version (#43).
+PARSER_VERSION = "jats-passages-v1"
+
 #: A passage longer than this is truncated. Values and sentences survive; a
 #: whole methods section pasted into a prompt does not.
 MAX_PASSAGE_CHARS = 2_000

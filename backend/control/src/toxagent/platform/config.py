@@ -470,6 +470,11 @@ class ResearchSettings:
     #: (research/providers/corpus.py). Benchmarks only.
     corpus_path: str = ""
     corpus_sha256: str = ""
+    #: provider=snapshot|corpus only (#43): a ``frozen-full-text-v1`` store,
+    #: pinned by hash, from which read_evidence_text is served offline. Without
+    #: one a frozen deployment has no text tool. Benchmarks only.
+    full_text_path: str = ""
+    full_text_sha256: str = ""
 
     @classmethod
     def from_env(cls) -> "ResearchSettings":
@@ -494,6 +499,8 @@ class ResearchSettings:
             snapshot_fault=_env("TOXAGENT_RESEARCH_SNAPSHOT_FAULT"),
             corpus_path=_env("TOXAGENT_RESEARCH_CORPUS_PATH"),
             corpus_sha256=_env("TOXAGENT_RESEARCH_CORPUS_SHA256"),
+            full_text_path=_env("TOXAGENT_RESEARCH_FULL_TEXT_PATH"),
+            full_text_sha256=_env("TOXAGENT_RESEARCH_FULL_TEXT_SHA256"),
         )
 
 

@@ -12,7 +12,10 @@ show either.
 """
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import re
+from collections import OrderedDict
 from datetime import date, datetime
 from typing import Any, Sequence
 from urllib.parse import urlparse
@@ -23,7 +26,7 @@ from ...platform.config import ResearchSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ...domain.evidence import SourceIdentifier, SourceType
 from ..circuit_breaker import CircuitBreaker, CircuitOpen
-from ..fulltext import parse_jats
+from ..fulltext import PARSER_VERSION, parse_jats
 from ..transport import rebuild_decoded_response
 from ..interfaces import FullTextFetch, SearchHit
 from ..text_access import access_facts
@@ -160,6 +163,12 @@ class EuropePmcProvider:
                 f"{settings.allowed_hosts!r} — this deployment is misconfigured"
             )
         self._settings = settings
+        #: #43: definitive text answers by PMCID, bounded, so concurrent
+        #: sessions reading one paper ask Europe PMC once (single-flight) and
+        #: a later session reuses the parse. Never a transient failure, which
+        #: says nothing about the document.
+        self._text_cache: "OrderedDict[str, FullTextFetch]" = OrderedDict()
+        self._text_inflight: dict[str, asyncio.Future] = {}
         self._client = httpx.AsyncClient(
             base_url=settings.base_url,
             timeout=httpx.Timeout(settings.hard_timeout_s, connect=settings.timeout_s),
@@ -235,7 +244,48 @@ class EuropePmcProvider:
                     "the record names no PMCID, and Europe PMC serves full text only "
                     "by PMCID"
                 ),
+                provenance=self._text_provenance(None),
             )
+        cached = self._text_cache.get(pmcid)
+        if cached is not None:
+            self._text_cache.move_to_end(pmcid)
+            return cached
+        pending = self._text_inflight.get(pmcid)
+        if pending is not None:
+            return await asyncio.shield(pending)
+        future: asyncio.Future = asyncio.get_running_loop().create_future()
+        self._text_inflight[pmcid] = future
+        try:
+            fetched = await self._fetch_text(pmcid)
+        except Exception as exc:
+            future.set_exception(exc)
+            # Marked retrieved: with no other waiter it is not a lost error.
+            future.exception()
+            raise
+        except BaseException:
+            future.cancel()
+            raise
+        else:
+            future.set_result(fetched)
+            if not fetched.transient:
+                self._text_cache[pmcid] = fetched
+                while len(self._text_cache) > self.TEXT_CACHE_SIZE:
+                    self._text_cache.popitem(last=False)
+            return fetched
+        finally:
+            self._text_inflight.pop(pmcid, None)
+
+    #: Parsed documents kept per provider instance.
+    TEXT_CACHE_SIZE = 64
+
+    @staticmethod
+    def _text_provenance(source: bytes | None) -> dict[str, Any]:
+        return {
+            "served_by": "europepmc", "replay": False, "parser_version": PARSER_VERSION,
+            "source_sha256": hashlib.sha256(source).hexdigest() if source is not None else None,
+        }
+
+    async def _fetch_text(self, pmcid: str) -> FullTextFetch:
         try:
             # The client asks for JSON by default (the search API), and this
             # route answers that with 406 Not Acceptable: found by the first
@@ -247,26 +297,28 @@ class EuropePmcProvider:
         except (EvidenceUnavailable, ProviderRateLimited) as exc:
             return FullTextFetch(
                 retrieved=False, reason=str(exc), full_text_id=pmcid, transient=True,
+                provenance=self._text_provenance(None),
             )
         if response.status_code == 404:
             return FullTextFetch(
                 retrieved=False,
                 reason=f"the provider holds no full text for {pmcid}",
-                full_text_id=pmcid,
+                full_text_id=pmcid, provenance=self._text_provenance(None),
             )
+        provenance = self._text_provenance(response.content)
         media_type = (response.headers.get("content-type") or "").split(";")[0].strip().lower()
         if media_type and media_type not in self._settings.allowed_full_text_content_types:
             return FullTextFetch(
                 retrieved=False,
                 reason=f"the provider answered {media_type!r}, which is not XML",
-                full_text_id=pmcid,
+                full_text_id=pmcid, provenance=provenance,
             )
         document = parse_jats(response.text)
         if not document.passages:
             return FullTextFetch(
                 retrieved=False,
                 reason="the provider returned a document with no readable passages",
-                full_text_id=pmcid,
+                full_text_id=pmcid, provenance=provenance,
             )
         return FullTextFetch(
             retrieved=True,
@@ -275,6 +327,7 @@ class EuropePmcProvider:
             truncated=document.truncated,
             omitted=dict(document.omitted),
             full_text_id=pmcid,
+            provenance=provenance,
         )
 
     async def _request(

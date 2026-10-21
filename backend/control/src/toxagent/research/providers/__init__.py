@@ -19,6 +19,42 @@ def build_provider(settings: ResearchSettings) -> ResearchProvider | None:
     """``None`` when no provider is configured — the deployment simply does
     not register the evidence tools, rather than registering ones that would
     always fail (plan section 8.1)."""
+    provider = _build_search_provider(settings)
+    if provider is None or settings.provider == "europepmc":
+        if settings.full_text_path:
+            raise ValueError(
+                "TOXAGENT_RESEARCH_FULL_TEXT_PATH is a frozen store; a live provider "
+                "fetches its own text"
+            )
+        return provider
+    store = _frozen_full_text(settings, provider)
+    if store is None:
+        return provider
+    from ..fulltext_store import FrozenFullTextProvider
+
+    return FrozenFullTextProvider(
+        provider, store,
+        transient_fault=settings.provider == "snapshot"
+        and settings.snapshot_fault in ("timeout", "unavailable", "rate_limited"),
+    )
+
+
+def _frozen_full_text(settings: ResearchSettings, provider):
+    """#43: the pinned sidecar store, or the one a snapshot fixture carries
+    inline under ``evidence.full_text`` (covered by the fixture's own hash)."""
+    from ..fulltext_store import FrozenFullTextStore
+
+    if settings.full_text_path:
+        return FrozenFullTextStore.load(
+            Path(settings.full_text_path), sha256=settings.full_text_sha256
+        )
+    inline = getattr(provider, "inline_full_text", None)
+    if inline:
+        return FrozenFullTextStore.from_document(inline, name=f"{provider.snapshot_name}#full_text")
+    return None
+
+
+def _build_search_provider(settings: ResearchSettings) -> ResearchProvider | None:
     if not settings.provider:
         return None
     if settings.provider == "europepmc":

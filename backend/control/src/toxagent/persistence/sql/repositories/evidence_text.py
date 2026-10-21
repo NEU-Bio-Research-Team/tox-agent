@@ -52,6 +52,7 @@ class SqlEvidenceTextStore:
             omitted=dict(row["omitted"] or {}),
             truncated=bool(row["truncated"]),
             document_sha256=row["document_sha256"],
+            provenance=dict(row.get("provenance") or {}),
         )
 
     async def add_if_absent(self, full_text: EvidenceFullText) -> EvidenceFullText:
@@ -77,6 +78,7 @@ class SqlEvidenceTextStore:
                 truncated=full_text.truncated,
                 document_sha256=full_text.document_sha256,
                 fetched_at=full_text.fetched_at,
+                provenance=dict(full_text.provenance) or None,
             )
             .on_conflict_do_nothing(index_elements=["evidence_id"])
         )

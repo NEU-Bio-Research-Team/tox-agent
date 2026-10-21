@@ -405,6 +405,9 @@ evidence_full_texts = Table(
     Column("truncated", Boolean, nullable=False),
     Column("document_sha256", String(64), nullable=False),
     Column("fetched_at", _TS, nullable=False),
+    # Where the text came from (0027, #43): live provider or frozen replay,
+    # and the capture a replay reproduces. NULL on texts read before it.
+    Column("provenance", Json),
 )
 
 evidence_passages = Table(
