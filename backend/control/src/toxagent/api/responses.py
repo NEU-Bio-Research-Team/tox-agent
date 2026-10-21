@@ -625,6 +625,8 @@ class ToolCallView(_Response):
     observation_ids: list[str]
     started_at: str | None
     ended_at: str | None
+    #: #46/#53: which phase of the run made the call; None before 0029.
+    phase: str | None = None
 
 
 class RuntimeManifest(_Response):
@@ -675,6 +677,8 @@ class RunDetail(RunProjection):
     runtime: RuntimeManifest | None
     usage: RuntimeUsage
     tool_calls: list[ToolCallView]
+    #: #46/#53: usage and calls per phase (phase-usage-v1), every dispatch.
+    phase_usage: dict[str, Any] | None = None
 
 
 # -- reports ---------------------------------------------------------------------

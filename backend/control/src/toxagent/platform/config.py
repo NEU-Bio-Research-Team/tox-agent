@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 #: The installed ``toxagent`` package. Anything shipped *with* the code —
 #: agent profiles, prompts, the predictor contract snapshot — resolves from
@@ -37,7 +38,7 @@ def _env(name: str, default: str = "") -> str:
 #: from the 20/10 proposal (360 s, 20 tool calls, 3 searches, 8 records, one
 #: repair), not a tuned configuration: it is to be revised on dev after the
 #: pilot and locked before test.
-RUN_BUDGET_PRESETS: dict[str, dict[str, int]] = {
+RUN_BUDGET_PRESETS: dict[str, dict[str, Any]] = {
     "investigator-pilot-v1": {
         "run_deadline_s": 360,
         "turn_deadline_s": 360,
@@ -46,8 +47,35 @@ RUN_BUDGET_PRESETS: dict[str, dict[str, int]] = {
         "max_evidence_reads": 8,
         "max_full_text_reads": 4,
         "max_repairs": 1,
+        # 20 read/action calls; the submissions are exempt. Kept as it was,
+        # and named, so it is never confused with v2's total.
+        "call_accounting": "action-read-ceiling-v1",
+    },
+    #: #46: the proposal's 20 tool calls *in total* -- case, skills, reads,
+    #: searches, candidates and reviewer submissions all count -- with six of
+    #: them reserved for the submissions (initial/correction, review, repair,
+    #: correction, review again) so acquisition cannot spend them; one root
+    #: deadline, of which the review and repair are guaranteed the last 120 s;
+    #: invalid and denied calls capped separately so they are never free; and
+    #: token limits declared as observed only, since no runtime enforces them.
+    "investigator-pilot-v2": {
+        "run_deadline_s": 360,
+        "turn_deadline_s": 360,
+        "max_tool_calls": 20,
+        "max_searches": 3,
+        "max_evidence_reads": 8,
+        "max_full_text_reads": 4,
+        "max_repairs": 1,
+        "max_hard_submissions_per_phase": 2,
+        "reserved_submission_slots": 6,
+        "max_invalid_calls": 6,
+        "review_reserve_s": 120,
+        "call_accounting": "total-logical-invocations-v2",
     },
 }
+
+#: How a preset counts tool calls.
+TOTAL_CALL_ACCOUNTING = "total-logical-invocations-v2"
 
 
 #: #47: how a decision-support answer is published. ``legacy`` keeps the
@@ -66,7 +94,12 @@ def release_policy() -> str:
     return name
 
 
-def run_budget_preset() -> tuple[str | None, dict[str, int]]:
+def total_call_accounting() -> bool:
+    """Whether the preset in force counts every logical tool call (v2)."""
+    return run_budget_preset()[1].get("call_accounting") == TOTAL_CALL_ACCOUNTING
+
+
+def run_budget_preset() -> tuple[str | None, dict[str, Any]]:
     """The preset this deployment runs under (TOXAGENT_RUN_BUDGET_PRESET), if any."""
     name = _env("TOXAGENT_RUN_BUDGET_PRESET")
     if not name:

@@ -43,3 +43,7 @@ class ToolContext:
     #: wire dict, injected like ``model_selection``. A tool that defaults to
     #: "the run's subject" reads this, never the session's current selection.
     subject: Mapping[str, Any] | None = None
+    #: #46/#53: which phase of the run this call belongs to (investigator,
+    #: workflow_acquisition, workflow_synthesis, review_initial,
+    #: semantic_repair, review_final), set by the server per dispatch.
+    phase: str = ""

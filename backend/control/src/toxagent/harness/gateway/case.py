@@ -111,7 +111,7 @@ class ScientificCaseMixin:
                 replace(context, text="Review the claims listed in your instructions."),
                 system_prompt=prompt, profile="claim_review", deadline=deadline,
                 instructions_hash=content_sha256(claim_review.REVIEW_INSTRUCTIONS),
-                has_product=has_review, commit=_no_commit,
+                has_product=has_review, commit=_no_commit, phase="review_initial",
             )
             if not await has_review(context):
                 await record({"status": "failed", "reason": "the reviewer submitted no verdicts",

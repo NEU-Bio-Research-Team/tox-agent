@@ -5691,6 +5691,18 @@
             "title": "Lane",
             "type": "string"
           },
+          "phase_usage": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase Usage"
+          },
           "potentially_billed": {
             "title": "Potentially Billed",
             "type": "boolean"
@@ -7909,6 +7921,17 @@
             },
             "title": "Observation Ids",
             "type": "array"
+          },
+          "phase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase"
           },
           "started_at": {
             "anyOf": [

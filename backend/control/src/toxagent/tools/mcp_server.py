@@ -43,6 +43,7 @@ def build_server(
     claims: CapabilityClaims,
     model_selection: Mapping[str, str] | None = None,
     subject: Mapping[str, Any] | None = None,
+    phase: str = "",
 ) -> Server:
     """One MCP server instance, closed over one run's capability claims.
 
@@ -89,6 +90,7 @@ def build_server(
                 intent=claims.intent,
                 model_selection=model_selection,
                 subject=subject,
+                phase=phase,
             )
             result = await runner.call(context, name, arguments)
 
@@ -153,6 +155,7 @@ def mcp_asgi_app(
         # mid-run must not change the run already in flight (I10, K04).
         model_selection: Mapping[str, str] | None = None
         subject: Mapping[str, Any] | None = None
+        phase = ""
         if database is not None:
             async with database.unit_of_work() as uow:
                 configuration = await uow.run_configuration_snapshots.get(claims.run_id)
@@ -160,8 +163,14 @@ def mcp_asgi_app(
                 model_selection = configuration.get("predictor_bindings") or None
                 # #44: the subject bound at admission, by the same route.
                 subject = configuration.get("subject_binding") or None
+            if claims.runtime_binding_id:
+                # #46/#53: the turn's phase, as its binding recorded it.
+                async with database.unit_of_work() as uow:
+                    binding = await uow.runtime_bindings.get(claims.runtime_binding_id)
+                phase = str(((binding.runtime_manifest if binding else None) or {})
+                            .get("phase") or "")
 
-        server = build_server(registry, runner, claims, model_selection, subject)
+        server = build_server(registry, runner, claims, model_selection, subject, phase)
         # Stateless: one transport per HTTP request. A run's tool traffic is a
         # handful of short-lived calls, not a long-lived session worth pooling.
         manager = StreamableHTTPSessionManager(app=server, json_response=True, stateless=True)

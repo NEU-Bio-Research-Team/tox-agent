@@ -584,10 +584,15 @@ class RunScheduler:
                 )
                 await uow.messages.add(notice)
                 recovery: Run | None = None
-                if _can_recover_runtime_loss(run, status=status, failure_code=code):
+                inherited = _inherited_deadline(run)
+                if _can_recover_runtime_loss(run, status=status, failure_code=code) and (
+                    inherited is None or inherited.total_seconds() >= MIN_RECOVERY_S
+                ):
                     # PROD-10: never resume a terminal run.  This is a new
                     # auditable entity and deliberately has no assistant text
-                    # appended to the failed run's transcript.
+                    # appended to the failed run's transcript. Under total
+                    # accounting (#46) it continues the original's clock and
+                    # call budget instead of starting new ones.
                     recovery = Run.create(
                         run.session_id,
                         run.trigger_message_id,
@@ -595,6 +600,7 @@ class RunScheduler:
                         run.intent,
                         now=_now(),
                         recovery_of_run_id=run.id,
+                        **({"deadline": inherited} if inherited is not None else {}),
                     )
                     await uow.runs.add(recovery)
                     uow.emit(
@@ -793,6 +799,21 @@ class RunScheduler:
     @property
     def queues(self) -> tuple[str, ...] | None:
         return self._queues
+
+
+#: A recovery with less of the original's clock left than this is not started.
+MIN_RECOVERY_S = 30.0
+
+
+def _inherited_deadline(run: Run) -> timedelta | None:
+    """What a recovery of ``run`` may still spend, when the budget preset
+    counts a run and its recoveries as one execution chain (#46); ``None``
+    when a recovery gets the default deadline, as before."""
+    from ...platform.config import total_call_accounting
+
+    if run.intent is not Intent.DECISION_SUPPORT or not total_call_accounting():
+        return None
+    return max(timedelta(0), run.deadline_at - _now())
 
 
 def _can_recover_runtime_loss(run: Run, *, status: RunStatus, failure_code: str) -> bool:

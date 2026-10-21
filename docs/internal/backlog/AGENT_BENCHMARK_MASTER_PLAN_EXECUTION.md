@@ -18,8 +18,8 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 | P02 frozen-full-text | #43 | done | see below |
 | P03 subject-evidence | AG-EVIDENCE | done | see below |
 | P04 strict-release | #47 | done | see below |
-| P05 budget-phases | #46/#53 | in progress | |
-| P06 case-inputs | #51 | todo | |
+| P05 budget-phases | #46/#53 | done | see below |
+| P06 case-inputs | #51 | in progress | |
 | P07a shared-replay-A | #50 | todo | |
 | P07b strong-B-fairness | #50 | todo | |
 | P08 stories-skills | #46 | todo | |
@@ -156,3 +156,30 @@ hash of its decision table.
 Tests: `tests/unit/test_run_result_policy.py`, `tests/e2e/test_strict_release.py`.
 Suite: 2773 passed; `test_worker_quotas_and_drain::test_a_draining_worker...`
 failed once under full-suite load and passes in isolation (timing).
+
+## P05 — budget v2 and phase attribution (#46/#53)
+
+- Preset `investigator-pilot-v2` (`total-logical-invocations-v2`): 360 s root
+  deadline; 20 tool calls in total -- case, skills, reads, searches,
+  candidates and reviewer submissions all count; 6 reserved for the
+  submissions (gathering may use 14); searches 3, records 8, full-text pages 4
+  within the total; one semantic repair; two hard submissions per phase;
+  6 invalid/denied calls then everything but the submissions is refused;
+  120 s of the deadline kept for review and repair; token/cost limits
+  declared `observed_only`. `investigator-pilot-v1` is unchanged and now
+  named `action-read-ceiling-v1`.
+- The effective budget states all of it and has a `sha256`, so two arms with
+  one preset label but different limits are told apart.
+- Tool calls and runtime bindings carry their phase (`investigator`,
+  `workflow_acquisition`, `workflow_synthesis`, `hard_correction`,
+  `review_initial`, `semantic_repair`, `review_final`; migration 0029); MCP
+  calls take it from their binding. Invalid calls are recorded.
+- `GET /runs/{rid}` reports `phase_usage` (phase-usage-v1): per phase,
+  dispatches, calls by status, tokens (cumulative latest once, deltas added,
+  unknown kept unknown), cost by currency (missing cost is unknown).
+- The investigator turn ends before the review's reserve; running into it is
+  `phase_budget_exhausted`, and the run result says `budget_exhausted`.
+- Under v2 a recovery continues the original's deadline and call budget.
+
+Tests: `tests/unit/test_budget_v2_and_phase_usage.py`,
+`tests/e2e/test_budget_phases_through_the_product.py`. Suite: 2785 passed.

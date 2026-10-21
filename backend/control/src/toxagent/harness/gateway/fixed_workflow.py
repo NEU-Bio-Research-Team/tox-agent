@@ -103,7 +103,7 @@ class FixedWorkflowMixin:
             session_id=context.session_id, run_id=context.run_id, actor=context.actor,
             profile="decision_support", deadline_at=deadline, language=context.language,
             intent=context.intent.value, model_selection=context.model_selection,
-            subject=context.subject,
+            subject=context.subject, phase="workflow_acquisition",
         )
         runner = self._workflow_runner()
         registered = set(self._registry.names())
@@ -213,7 +213,7 @@ class FixedWorkflowMixin:
             replace(context, text=question or "Answer the question from the material."),
             system_prompt=prompt, profile="workflow_synthesis", deadline=deadline,
             instructions_hash=content_sha256(WORKFLOW_SYNTHESIS_INSTRUCTIONS),
-            has_product=self._has_answer, commit=commit,
+            has_product=self._has_answer, commit=commit, phase="workflow_synthesis",
         )
 
     async def _activity_retrieval(self, call, material: dict[str, Any], *,

@@ -538,6 +538,20 @@ class SqlRuntimeBindingStore:
         ).mappings().first()
         return m.row_to_binding(row) if row else None
 
+    async def list_for_run(self, session_id: str, run_id: str) -> list[RuntimeBinding]:
+        """Every binding a run's dispatches made (#46/#53): the gateway records
+        the parent run on each phase's binding manifest."""
+        rows = (
+            await self._conn.execute(
+                select(runtime_bindings)
+                .where(runtime_bindings.c.session_id == session_id)
+                .order_by(runtime_bindings.c.created_at)
+            )
+        ).mappings().all()
+        bindings = [m.row_to_binding(row) for row in rows]
+        return [b for b in bindings
+                if (b.runtime_manifest or {}).get("parent_run_id") == run_id]
+
     async def active_for_session(self, session_id: str) -> RuntimeBinding | None:
         row = (
             await self._conn.execute(
@@ -587,6 +601,7 @@ class SqlToolCallStore:
     async def try_reserve(
         self, *, call_id: str, session_id: str, run_id: str, tool_name: str,
         arguments_sha256: str, now: datetime, max_calls: int | None, max_identical: int,
+        phase: str | None = None,
     ) -> bool:
         """Atomically check the per-run budget and duplicate-call cap and, if
         both allow it, reserve the call by inserting its ``running`` row — all
@@ -650,10 +665,11 @@ class SqlToolCallStore:
             literal(call_id), literal(session_id), literal(run_id), literal(tool_name),
             literal(arguments_sha256), literal("running"),
             literal([], type_=tool_calls.c.observation_ids.type), literal(now),
+            literal(phase, type_=tool_calls.c.phase.type),
         ).where(and_(*conditions))
         stmt = insert(tool_calls).from_select(
             ["id", "session_id", "run_id", "tool_name", "arguments_sha256", "status",
-             "observation_ids", "started_at"],
+             "observation_ids", "started_at", "phase"],
             source,
         )
         result = await self._conn.execute(stmt)
@@ -661,7 +677,7 @@ class SqlToolCallStore:
 
     async def record_denied(
         self, *, call_id: str, session_id: str, run_id: str, tool_name: str,
-        arguments_sha256: str, error_code: str, now: datetime,
+        arguments_sha256: str, error_code: str, now: datetime, phase: str | None = None,
     ) -> None:
         """A denied call still leaves an audit trail, distinct from ``running``/
         ``completed``/``error`` (which describe a call that was actually
@@ -671,8 +687,22 @@ class SqlToolCallStore:
             insert(tool_calls).values(
                 id=call_id, session_id=session_id, run_id=run_id, tool_name=tool_name,
                 arguments_sha256=arguments_sha256, status="denied", error_code=error_code,
-                observation_ids=[], started_at=now, ended_at=now, duration_ms=0,
+                observation_ids=[], started_at=now, ended_at=now, duration_ms=0, phase=phase,
             )
+        )
+
+    async def count_denied_for_run(self, run_id: str) -> int:
+        """Denied and invalid attempts (#46): not part of the call total, and
+        under total accounting capped on their own so they are never free."""
+        return int(
+            (
+                await self._conn.execute(
+                    select(func.count())
+                    .select_from(tool_calls)
+                    .where(and_(tool_calls.c.run_id == run_id, tool_calls.c.status == "denied"))
+                )
+            ).scalar()
+            or 0
         )
 
     async def finish(

@@ -3178,6 +3178,10 @@ export interface components {
              * @enum {string}
              */
             lane: "deterministic" | "agentic" | "mixed";
+            /** Phase Usage */
+            phase_usage?: {
+                [key: string]: unknown;
+            } | null;
             /** Potentially Billed */
             potentially_billed: boolean;
             /** Recovery Of Run Id */
@@ -3894,6 +3898,8 @@ export interface components {
             error_code: string | null;
             /** Observation Ids */
             observation_ids: string[];
+            /** Phase */
+            phase?: string | null;
             /** Started At */
             started_at: string | null;
             /** Status */

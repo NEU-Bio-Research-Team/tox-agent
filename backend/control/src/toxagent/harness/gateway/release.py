@@ -205,7 +205,7 @@ class ReleaseGateMixin:
                                 reviews=reviews, repair=effect, replaced=candidate.id)
             return
 
-        second, decision = await self._review_and_decide(context, repaired)
+        second, decision = await self._review_and_decide(context, repaired, phase="review_final")
         reviews.append(second)
         settled = self._settled(second, decision)
         if settled is None:
@@ -239,9 +239,10 @@ class ReleaseGateMixin:
             ), ()
         return ReleaseOutcome.REVIEWED, None, ()
 
-    async def _review_and_decide(self, context: RunContext, answer):
+    async def _review_and_decide(self, context: RunContext, answer, *,
+                                 phase: str = "review_initial"):
         """One reviewer turn over ``answer``, and what it decides."""
-        review = await self._review_round(context, answer)
+        review = await self._review_round(context, answer, phase=phase)
         decision = release_gate.release_decision(
             review.get("reviews") or (),
             reviewed_claim_ids=[
@@ -261,7 +262,8 @@ class ReleaseGateMixin:
         }
         return review, decision
 
-    async def _review_round(self, context: RunContext, answer) -> dict[str, Any]:
+    async def _review_round(self, context: RunContext, answer, *,
+                            phase: str = "review_initial") -> dict[str, Any]:
         """Dispatch the reviewer over ``answer`` and return what it recorded:
         ``completed`` with its reviews, or ``skipped``/``failed`` with why."""
         async with self._db.unit_of_work() as uow:
@@ -295,7 +297,7 @@ class ReleaseGateMixin:
                 replace(context, text="Review the claims listed in your instructions."),
                 system_prompt=prompt, profile="claim_review", deadline=deadline,
                 instructions_hash=content_sha256(claim_review.REVIEW_INSTRUCTIONS),
-                has_product=reviewed, commit=_no_commit,
+                has_product=reviewed, commit=_no_commit, phase=phase,
             )
         except Exception as exc:  # noqa: BLE001 - a failed review is an outcome, not a crash
             log.exception("claim review turn failed", extra={"run_id": context.run_id})
@@ -354,7 +356,7 @@ class ReleaseGateMixin:
                 replace(context, text="Repair your answer as your instructions describe."),
                 system_prompt=prompt, profile=profile, deadline=run.deadline_at,
                 instructions_hash=content_sha256(REPAIR_INSTRUCTIONS),
-                has_product=repaired, commit=_no_commit,
+                has_product=repaired, commit=_no_commit, phase="semantic_repair",
             )
         except Exception:  # noqa: BLE001 - a failed repair leaves the candidate
             log.exception("repair turn failed", extra={"run_id": context.run_id})

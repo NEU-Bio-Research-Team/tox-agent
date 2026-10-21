@@ -12,7 +12,12 @@ from ...application.prediction.create_analysis import CreateAnalysis
 from ...application.runs.scheduler import RunContext
 from ...connections.secrets import SecretStore
 from ...domain import decision_state
-from ...domain.errors import RuntimeProtocolError, RuntimeUnavailable
+from ...domain.errors import (
+    DeadlineExceeded,
+    PhaseBudgetExhausted,
+    RuntimeProtocolError,
+    RuntimeUnavailable,
+)
 from ...domain.provenance import content_sha256
 from ...domain.run import Intent
 from ...domain.run_result import ReleasePolicy
@@ -139,7 +144,19 @@ class AgentRuntimeGateway(
         if keeps_case:
             # Before the prompt is built, so the turn sees its own case.
             await self._begin_scientific_case(context)
-        system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
+        try:
+            system_prompt, profile, deadline, instructions_hash = await self._prepare_context(
+                context
+            )
+        except Exception as exc:
+            if context.intent is Intent.DECISION_SUPPORT \
+                    and declared_policy() is not ReleasePolicy.LEGACY:
+                # Failed before dispatch -- e.g. no time left before the
+                # review's reserve -- and still a run with a typed result.
+                await self._record_terminal_result(
+                    context, policy=declared_policy(), run_status="failed", failure=exc,
+                )
+            raise
         if context.intent is not Intent.DECISION_SUPPORT:
             await self._dispatch(
                 context,
@@ -191,15 +208,25 @@ class AgentRuntimeGateway(
                     ),
                 )
             else:
-                await self._dispatch(
-                    context,
-                    system_prompt=system_prompt,
-                    profile=profile,
-                    deadline=deadline,
-                    instructions_hash=instructions_hash,
-                    has_product=self._has_answer,
-                    commit=gated(commit),
-                )
+                try:
+                    await self._dispatch(
+                        context,
+                        system_prompt=system_prompt,
+                        profile=profile,
+                        deadline=deadline,
+                        instructions_hash=instructions_hash,
+                        has_product=self._has_answer,
+                        commit=gated(commit),
+                        phase="investigator",
+                    )
+                except DeadlineExceeded as exc:
+                    if type(exc) is DeadlineExceeded and self._review_reserve_s(context):
+                        # #46: the investigator ran into the review's reserve.
+                        raise PhaseBudgetExhausted(
+                            "the investigation used its time; the rest was kept for the review",
+                            phase="investigator",
+                        ) from exc
+                    raise
             run_status = "completed"
         except asyncio.CancelledError:
             run_status = "cancelled"
@@ -238,8 +265,13 @@ class AgentRuntimeGateway(
         instructions_hash: str | None,
         has_product: Callable[[RunContext], Awaitable[bool]],
         commit: Callable[[RunContext], Awaitable[None]],
+        phase: str = "",
     ) -> None:
-        """One runtime turn: bind, authorize, send, consume, commit, close."""
+        """One runtime turn: bind, authorize, send, consume, commit, close.
+
+        ``phase`` (#46/#53) names which part of the run this turn is -- the
+        investigator, B's synthesis, a review round, the repair -- and is
+        recorded on the binding and on every tool call the turn makes."""
         health = await self._probe_health_with_retries()
         if not health.healthy:
             raise RuntimeUnavailable("the selected runtime is not healthy", detail=health.detail)
@@ -315,6 +347,7 @@ class AgentRuntimeGateway(
             # rather than let the model choose one (I10).
             model_selection=context.model_selection,
             subject=context.subject,
+            phase=phase,
         )
         spec = RuntimeSessionSpec(
             session_id=context.session_id,
@@ -364,6 +397,7 @@ class AgentRuntimeGateway(
                 runtime_manifest={
                     **runtime_profile.to_manifest(),
                     "prompt_budget": budget.to_manifest(),
+                    **({"phase": phase, "parent_run_id": context.run_id} if phase else {}),
                 },
             )
             await self._persist_started_run(context, binding)

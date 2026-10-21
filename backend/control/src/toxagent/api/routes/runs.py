@@ -18,6 +18,7 @@ from ..responses import (
 from ..schemas import (
     CancelResponse,
 )
+from ...application.runs.phase_usage import phase_usage
 from ._common import _isoformat, _services, actor, router
 
 
@@ -38,6 +39,7 @@ async def get_run(
         tool_calls = await uow.tool_calls.list_for_run(run_id)
         usage_events = await uow.runtime_usage.list_for_run(run_id)
         configuration_snapshot = await uow.run_configuration_snapshots.get(run_id)
+        phase_bindings = await uow.runtime_bindings.list_for_run(session_id, run_id)
     projection = run_projection(run)
     projection["runtime"] = binding.manifest() if binding else None
     projection["configuration_snapshot"] = configuration_snapshot
@@ -57,9 +59,15 @@ async def get_run(
             "observation_ids": list(c.get("observation_ids") or ()),
             "started_at": _isoformat(c["started_at"]),
             "ended_at": _isoformat(c["ended_at"]),
+            "phase": c.get("phase"),
         }
         for c in tool_calls
     ]
+    # #46/#53: calls and usage per phase, over every dispatch of the run --
+    # failed attempts included, unknown usage kept unknown.
+    projection["phase_usage"] = phase_usage(
+        bindings=phase_bindings, usage_events=usage_events, tool_calls=tool_calls,
+    )
     return projection
 
 

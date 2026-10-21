@@ -81,10 +81,33 @@ class EffectiveRunBudgetV1:
     max_full_text_reads: int | None = None
     #: The named run budget preset in force (#46), or ``None`` for defaults.
     preset: str | None = None
+    #: How tool calls are counted: ``action-read-ceiling-v1`` (submissions
+    #: exempt) or ``total-logical-invocations-v2`` (every call counts).
+    call_accounting: str = "action-read-ceiling-v1"
+    #: v2: calls of the total only the submissions may use (initial/correction,
+    #: review, repair, correction, review again).
+    reserved_submission_slots: int | None = None
+    #: v2: invalid or denied calls admitted before every further call is
+    #: refused -- recorded and capped, never free.
+    max_invalid_calls: int | None = None
+    #: v2: seconds of the run deadline kept for the review and the repair.
+    review_reserve_s: int | None = None
+    max_repairs: int | None = None
+    max_hard_submissions_per_phase: int | None = None
+    #: Declared limits on tokens and cost, and whether anything enforces them.
+    #: ``observed_only``: measured after each response, never a hard cap.
+    token_limits: dict[str, Any] | None = None
     schema_version: str = SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+    @property
+    def sha256(self) -> str:
+        """The budget as a hash, for arms that must share it (#50)."""
+        from ...domain.provenance import content_sha256
+
+        return content_sha256(self.to_dict())
 
 
 _DETERMINISTIC = {
@@ -145,7 +168,29 @@ def effective_run_budget(
             decision_support_limit("max_full_text_reads") if decision_support else None
         ),
         preset=_preset_name(),
+        **(_v2_fields() if decision_support else {}),
     )
+
+
+def _v2_fields() -> dict[str, Any]:
+    from ...platform.config import run_budget_preset
+
+    _, preset = run_budget_preset()
+    accounting = str(preset.get("call_accounting") or "action-read-ceiling-v1")
+    return {
+        "call_accounting": accounting,
+        "reserved_submission_slots": preset.get("reserved_submission_slots"),
+        "max_invalid_calls": preset.get("max_invalid_calls"),
+        "review_reserve_s": preset.get("review_reserve_s"),
+        "max_repairs": preset.get("max_repairs"),
+        "max_hard_submissions_per_phase": preset.get("max_hard_submissions_per_phase"),
+        "token_limits": {
+            "max_total_tokens_per_run": preset.get("max_total_tokens_per_run"),
+            "max_output_tokens_per_turn": preset.get("max_output_tokens_per_turn"),
+            "max_cost_per_run": preset.get("max_cost_per_run"),
+            "enforcement": "observed_only",
+        },
+    }
 
 
 def budget_matrix(policy: PolicySettings, runtime: RuntimeSettings) -> dict[str, dict[str, Any]]:

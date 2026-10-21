@@ -560,6 +560,10 @@ tool_calls = Table(
     Column("duration_ms", Integer),
     Column("started_at", _TS, nullable=False),
     Column("ended_at", _TS),
+    # Which phase of the run made the call (0029, #46/#53): investigator,
+    # workflow_acquisition, workflow_synthesis, hard_correction,
+    # review_initial, semantic_repair, review_final. NULL before it.
+    Column("phase", String(24)),
     Index("ix_tool_calls_run", "run_id", "started_at"),
 )
 

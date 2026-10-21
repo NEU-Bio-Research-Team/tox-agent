@@ -245,6 +245,13 @@ class DeadlineExceeded(ToxAgentError):
     code, http_status = "deadline_exceeded", 504
 
 
+class PhaseBudgetExhausted(DeadlineExceeded):
+    """#46: a phase of the run used the time it was given -- the investigator
+    ran into the time kept for the review and the repair."""
+
+    code = "phase_budget_exhausted"
+
+
 class CaseUnavailable(ToxAgentError):
     """#44/#46: a run whose subject is bound needs its scientific case, and the
     case could not be opened or continued. The run fails with this code rather
@@ -266,7 +273,8 @@ PUBLIC_ERROR_CODES: Final[frozenset[str]] = frozenset(
         "endpoint_unavailable", "predictor_not_ready", "predictor_protocol_error",
         "runtime_unavailable", "runtime_protocol_error", "tool_denied",
         "tool_timeout", "provider_rate_limited", "evidence_unavailable",
-        "answer_validation_failed", "deadline_exceeded", "case_unavailable",
+        "answer_validation_failed", "deadline_exceeded", "phase_budget_exhausted",
+        "case_unavailable",
         "internal_error",
     }
 )

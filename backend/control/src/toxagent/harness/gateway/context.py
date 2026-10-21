@@ -8,7 +8,12 @@ from ...application.investigation.skill_catalog import render_index, render_stat
 from ...application.runs.scheduler import RunContext
 from ...connections.model import ConnectionStatus
 from ...domain import decision_state, scientific_case
-from ...domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
+from ...domain.errors import (
+    DeadlineExceeded,
+    PhaseBudgetExhausted,
+    RuntimeProtocolError,
+    RuntimeUnavailable,
+)
 from ...domain.evidence import EvidenceStatus
 from ...domain.observation import ObservationKind
 from ...domain.run import Intent
@@ -50,6 +55,17 @@ class ContextMixin:
             explanation_targets=context.explanation_targets,
             owns_run=False,
         )
+
+    def _review_reserve_s(self, context: RunContext) -> int:
+        """Seconds of the run deadline kept for review and repair, when the
+        preset keeps any and the run's answer will be reviewed."""
+        from ...platform.config import release_policy, run_budget_preset, total_call_accounting
+        from .release import release_gate_on
+
+        if context.intent is not Intent.DECISION_SUPPORT or not total_call_accounting():
+            return 0
+        reviewed = release_gate_on() or release_policy() == "strict-reviewed-v1"
+        return int(run_budget_preset()[1].get("review_reserve_s") or 0) if reviewed else 0
 
     async def _resolve_pending_subject(self, context: RunContext) -> RunContext:
         """#44: a new-molecule run's subject is the analysis its snapshot just
@@ -321,6 +337,17 @@ class ContextMixin:
                 else self._settings.turn_deadline_s
             )),
         )
+        reserve = self._review_reserve_s(context)
+        if reserve:
+            # #46 (investigator-pilot-v2): one root deadline, and the review
+            # and the repair are guaranteed its last seconds; the investigator
+            # cannot spend them.
+            deadline = min(deadline, run.deadline_at - timedelta(seconds=reserve))
+            if deadline <= _now():
+                raise PhaseBudgetExhausted(
+                    "no time is left for the investigation before the review's reserve",
+                    phase="investigator", review_reserve_s=reserve,
+                )
         if deadline <= _now():
             raise DeadlineExceeded("the run deadline elapsed before runtime dispatch")
         skills_mode, offered_skills = self._skills_for(profile)
