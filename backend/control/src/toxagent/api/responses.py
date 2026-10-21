@@ -370,6 +370,9 @@ ClaimKind = Literal[
 LimitationCode = Literal[
     "uncalibrated_probability", "applicability_is_rule_based", "attribution_not_causality",
     "endpoint_unavailable", "evidence_scope_limited", "screening_not_safety_assessment",
+    "activity_interval_is_marginal_coverage", "pic50_not_therapeutic_efficacy",
+    "activity_model_not_admitted", "policy_decision_not_a_measurement",
+    "toxicity_not_run_not_negative",
 ]
 
 

@@ -76,6 +76,56 @@ TEXT: Final[Mapping[LimitationCode, Mapping[str, str]]] = {
             "đánh giá an toàn và không có giá trị pháp lý."
         ),
     },
+    CODE.ACTIVITY_INTERVAL_IS_MARGINAL_COVERAGE: {
+        "en": (
+            "The activity interval covers the stated share of validation residuals across "
+            "many candidates. It is not a guarantee for this one candidate."
+        ),
+        "vi": (
+            "Khoảng activity bao phủ tỷ lệ đã nêu của sai số trên tập validation, tính "
+            "trên nhiều ứng viên. Đây không phải bảo đảm cho riêng ứng viên này."
+        ),
+    },
+    CODE.PIC50_NOT_THERAPEUTIC_EFFICACY: {
+        "en": (
+            "A pIC50 is an estimated in-vitro potency against one target in one assay "
+            "context. It says nothing about therapeutic efficacy."
+        ),
+        "vi": (
+            "pIC50 là ước lượng hoạt lực in vitro trên một target trong một bối cảnh "
+            "assay. Nó không nói gì về hiệu quả điều trị."
+        ),
+    },
+    CODE.ACTIVITY_MODEL_NOT_ADMITTED: {
+        "en": (
+            "The activity model behind this estimate has not passed admission, so the "
+            "estimate is not validated for decisions."
+        ),
+        "vi": (
+            "Mô hình activity tạo ra ước lượng này chưa qua admission, nên ước lượng "
+            "chưa được kiểm định để dùng cho quyết định."
+        ),
+    },
+    CODE.POLICY_DECISION_NOT_A_MEASUREMENT: {
+        "en": (
+            "The prioritisation is the output of a fixed rule applied to the estimate, "
+            "not a second measurement of anything."
+        ),
+        "vi": (
+            "Mức ưu tiên là đầu ra của một quy tắc cố định áp lên ước lượng, không phải "
+            "một phép đo thứ hai."
+        ),
+    },
+    CODE.TOXICITY_NOT_RUN_NOT_NEGATIVE: {
+        "en": (
+            "The toxicity stage did not run for this candidate. That is the absence of a "
+            "result, not a negative toxicity result."
+        ),
+        "vi": (
+            "Bước đánh giá độc tính chưa chạy cho ứng viên này. Đó là việc chưa có kết "
+            "quả, không phải kết quả độc tính âm tính."
+        ),
+    },
 }
 
 
@@ -104,11 +154,37 @@ _PROBABILITY_MARKERS: Final[tuple[str, ...]] = (
     "probability_blocker", "probability_activity", "probability_clinical_toxicity", "probability",
 )
 
+#: Carried by an observation and required of every claim that cites it,
+#: whatever field the claim read: each one says what the whole artifact is.
+OBSERVATION_WIDE: Final[frozenset[str]] = frozenset({
+    CODE.ENDPOINT_UNAVAILABLE.value,
+    CODE.ATTRIBUTION_NOT_CAUSALITY.value,
+    CODE.PIC50_NOT_THERAPEUTIC_EFFICACY.value,
+    CODE.ACTIVITY_MODEL_NOT_ADMITTED.value,
+    CODE.POLICY_DECISION_NOT_A_MEASUREMENT.value,
+    CODE.TOXICITY_NOT_RUN_NOT_NEGATIVE.value,
+})
+
+#: Carried by an observation but about one part of it: required of a claim
+#: that reads a field matching one of the fragments, or that names no field at
+#: all and so cannot be shown not to have used it.
+FIELD_SCOPED: Final[Mapping[str, tuple[str, ...]]] = {
+    CODE.ACTIVITY_INTERVAL_IS_MARGINAL_COVERAGE.value: ("interval", "uncertainty"),
+}
+
+#: Observation kinds whose fields are not the toxicity predictor's, so the
+#: predictor's path triggers do not apply to them: an activity estimate's
+#: ``applicability`` is a ligand/target domain, not the element whitelist.
+_NOT_TOXICITY_PREDICTOR: Final[frozenset[str]] = frozenset(
+    {"activity_estimate", "prioritisation_decision", "screening_state"}
+)
+
 
 def required_for_answer(
     claims: Iterable[Any],
     *,
     observation_limitations: Mapping[str, tuple[str, ...]] | None = None,
+    observation_kinds: Mapping[str, str] | None = None,
     cited_evidence: bool = False,
     has_recommendation: bool = False,
 ) -> frozenset[str]:
@@ -125,16 +201,21 @@ def required_for_answer(
     """
     required: set[str] = set()
     observation_limitations = observation_limitations or {}
+    observation_kinds = observation_kinds or {}
 
     for claim in claims:
         path = claim.field_path or ""
         kind = getattr(claim.kind, "value", claim.kind)
-        if kind == ClaimKind.NUMERIC.value and any(m in path for m in _PROBABILITY_MARKERS):
-            required.add(CODE.UNCALIBRATED_PROBABILITY.value)
-        if path.startswith("applicability"):
-            required.add(CODE.APPLICABILITY_IS_RULE_BASED.value)
-        if "attribution" in path or "tokens" in path:
-            required.add(CODE.ATTRIBUTION_NOT_CAUSALITY.value)
+        predictor_fields = (
+            observation_kinds.get(claim.observation_id or "") not in _NOT_TOXICITY_PREDICTOR
+        )
+        if predictor_fields:
+            if kind == ClaimKind.NUMERIC.value and any(m in path for m in _PROBABILITY_MARKERS):
+                required.add(CODE.UNCALIBRATED_PROBABILITY.value)
+            if path.startswith("applicability"):
+                required.add(CODE.APPLICABILITY_IS_RULE_BASED.value)
+            if "attribution" in path or "tokens" in path:
+                required.add(CODE.ATTRIBUTION_NOT_CAUSALITY.value)
         if claim.observation_id:
             # endpoint_unavailable and attribution_not_causality are genuinely
             # observation-wide — they say something about the analysis this
@@ -153,11 +234,18 @@ def required_for_answer(
             # optional) silently escaped the "attribution"/"tokens" substring
             # check above — this observation-keyed check is the actual source
             # of truth, not a substring guess at wording the model chose.
+            #
+            # The activity artifacts' limitations follow the same split: what
+            # the artifact is (a pIC50, a rule's output, a stage that did not
+            # run) is observation-wide; the interval caveat is about the
+            # interval, so it is required of a claim that reads it.
             cited_limitations = observation_limitations.get(claim.observation_id, ())
-            if CODE.ENDPOINT_UNAVAILABLE.value in cited_limitations:
-                required.add(CODE.ENDPOINT_UNAVAILABLE.value)
-            if CODE.ATTRIBUTION_NOT_CAUSALITY.value in cited_limitations:
-                required.add(CODE.ATTRIBUTION_NOT_CAUSALITY.value)
+            required.update(code for code in cited_limitations if code in OBSERVATION_WIDE)
+            for code, fragments in FIELD_SCOPED.items():
+                if code in cited_limitations and (
+                    not path or any(fragment in path for fragment in fragments)
+                ):
+                    required.add(code)
 
     if cited_evidence:
         required.add(CODE.EVIDENCE_SCOPE_LIMITED.value)

@@ -27,6 +27,7 @@ from datetime import datetime
 from typing import Any
 
 from ...domain.activity import ActivitySnapshot
+from ...domain.answer import LimitationCode
 from ...domain.observation import Observation, ObservationKind, Producer
 from ...domain.prioritisation import PrioritisationDecision
 from ...domain.provenance import content_sha256
@@ -37,17 +38,19 @@ PRIORITISATION_SCHEMA_VERSION = "prioritisation-decision-v1"
 SCREENING_SCHEMA_VERSION = "screening-state-v1"
 
 #: A marginal prediction interval is not a per-candidate guarantee (L7), and a
-#: pIC50 is not a statement about therapeutic effect (L9).
+#: pIC50 is not a statement about therapeutic effect (L9). The codes are the
+#: answer vocabulary's own, so an observation cannot require a limitation an
+#: answer has no way to declare.
 ACTIVITY_LIMITATIONS: tuple[str, ...] = (
-    "activity_interval_is_marginal_coverage",
-    "pic50_not_therapeutic_efficacy",
+    LimitationCode.ACTIVITY_INTERVAL_IS_MARGINAL_COVERAGE.value,
+    LimitationCode.PIC50_NOT_THERAPEUTIC_EFFICACY.value,
 )
 #: Stated whenever the artifact behind the estimate has not passed admission.
-NOT_ADMITTED_LIMITATION = "activity_model_not_admitted"
+NOT_ADMITTED_LIMITATION = LimitationCode.ACTIVITY_MODEL_NOT_ADMITTED.value
 #: A rule's output is not an independent measurement of anything.
-POLICY_LIMITATION = "policy_decision_not_a_measurement"
+POLICY_LIMITATION = LimitationCode.POLICY_DECISION_NOT_A_MEASUREMENT.value
 #: The one the critical-error list exists for.
-TOXICITY_NOT_RUN_LIMITATION = "toxicity_not_run_not_negative"
+TOXICITY_NOT_RUN_LIMITATION = LimitationCode.TOXICITY_NOT_RUN_NOT_NEGATIVE.value
 
 #: Statuses in which the toxicity stage has not produced a result.
 _TOXICITY_NOT_RUN = frozenset(

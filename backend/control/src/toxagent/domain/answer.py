@@ -45,6 +45,14 @@ class LimitationCode(str, Enum):
     ENDPOINT_UNAVAILABLE = "endpoint_unavailable"
     EVIDENCE_SCOPE_LIMITED = "evidence_scope_limited"
     SCREENING_NOT_SAFETY_ASSESSMENT = "screening_not_safety_assessment"
+    # The activity workflow's artifacts (application/activity/projections.py).
+    #: L7: a marginal interval is not a per-candidate guarantee.
+    ACTIVITY_INTERVAL_IS_MARGINAL_COVERAGE = "activity_interval_is_marginal_coverage"
+    #: L9: a pIC50 is a potency estimate, not a statement about therapeutic effect.
+    PIC50_NOT_THERAPEUTIC_EFFICACY = "pic50_not_therapeutic_efficacy"
+    ACTIVITY_MODEL_NOT_ADMITTED = "activity_model_not_admitted"
+    POLICY_DECISION_NOT_A_MEASUREMENT = "policy_decision_not_a_measurement"
+    TOXICITY_NOT_RUN_NOT_NEGATIVE = "toxicity_not_run_not_negative"
 
 
 # identity | round:0..6 | percent:0..6 | difference | ratio

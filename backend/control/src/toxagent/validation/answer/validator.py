@@ -191,6 +191,7 @@ def _validate_limitations(
     )
     required = required_for_answer(
         candidate.claims, observation_limitations=observation_limitations,
+        observation_kinds={obs_id: obs.kind.value for obs_id, obs in observations_by_id.items()},
         cited_evidence=cited_evidence, has_recommendation=has_recommendation,
     )
     declared = {l.code for l in candidate.limitations}

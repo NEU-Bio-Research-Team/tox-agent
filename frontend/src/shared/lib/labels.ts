@@ -30,8 +30,9 @@ export const INTENT_LABEL_VI: Record<string, string> = {
   out_of_scope: 'ngoài phạm vi',
 };
 
-/** Plan section 9.4 — six codes, each a fixed, non-optional sentence. A
- * limitation is content, not a disclaimer to summarize or shorten. */
+/** Plan section 9.4 — each code a fixed, non-optional sentence. A
+ * limitation is content, not a disclaimer to summarize or shorten. The last
+ * five belong to the activity workflow's artifacts. */
 export const LIMITATION_LABEL_VI: Record<LimitationCode, string> = {
   uncalibrated_probability:
     'Xác suất từ mô hình chưa được hiệu chỉnh (uncalibrated) — không phải nguy cơ lâm sàng đã được định cỡ.',
@@ -44,6 +45,16 @@ export const LIMITATION_LABEL_VI: Record<LimitationCode, string> = {
     'Evidence được trích dẫn có phạm vi giới hạn — không phải tổng quan toàn diện của y văn.',
   screening_not_safety_assessment:
     'Đây là kết quả sàng lọc tính toán, không phải đánh giá an toàn hay khuyến nghị lâm sàng.',
+  activity_interval_is_marginal_coverage:
+    'Khoảng activity bao phủ tỷ lệ đã nêu tính trên nhiều ứng viên, không phải bảo đảm cho riêng ứng viên này.',
+  pic50_not_therapeutic_efficacy:
+    'pIC50 là ước lượng hoạt lực in vitro trên một target trong một bối cảnh assay, không nói gì về hiệu quả điều trị.',
+  activity_model_not_admitted:
+    'Mô hình activity tạo ra ước lượng này chưa qua admission, nên chưa được kiểm định để dùng cho quyết định.',
+  policy_decision_not_a_measurement:
+    'Mức ưu tiên là đầu ra của một quy tắc cố định áp lên ước lượng, không phải một phép đo thứ hai.',
+  toxicity_not_run_not_negative:
+    'Bước đánh giá độc tính chưa chạy cho ứng viên này — đó là chưa có kết quả, không phải kết quả âm tính.',
 };
 
 export const ERROR_CODE_LABEL_VI: Record<string, string> = {
