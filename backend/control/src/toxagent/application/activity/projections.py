@@ -417,6 +417,12 @@ def screening_state_observation_from_payload(
             "status": payload["status"],
             "subject": payload["subject"],
             "toxicity": payload["toxicity"],
+            # A failed activity stage says why in the view, not only in the
+            # status: ``activity_failure_code`` is a citable field path, and a
+            # model may cite only what it was shown. Absent when the stage did
+            # not fail, so a successful screening's view is unchanged.
+            **({"activity_failure_code": payload["activity_failure_code"]}
+               if payload.get("activity_failure_code") else {}),
         },
         provenance={"screening_id": payload["screening_id"], **(provenance_extra or {})},
         now=now,

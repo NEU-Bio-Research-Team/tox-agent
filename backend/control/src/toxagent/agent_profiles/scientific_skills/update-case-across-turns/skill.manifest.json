@@ -1,0 +1,16 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "update-case-across-turns",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-scientific",
+  "allowed_profiles": ["decision_support"],
+  "required_capabilities": ["get_scientific_case", "update_scientific_case"],
+  "risk_tier": "medium",
+  "output_contract": "record_evidence for researcher context scoped as supplied (user_supplied, the context id as source_ref); resolved or added uncertainties; record_action naming what changed; the estimate, interval, policy decision and stage status left unchanged; no conclusion carried to another target",
+  "eval_set": {
+    "positive_tags": ["t5", "update_across_turns", "user_result_contradicts"],
+    "negative_tags": ["numeric_lookup", "t1"]
+  },
+  "references": []
+}
