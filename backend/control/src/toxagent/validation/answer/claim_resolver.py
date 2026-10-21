@@ -155,10 +155,18 @@ def _resolve_claim(
                     number = _numeric(source_value)
                     if claim.kind == "numeric":
                         if number is None:
+                            # A list of numbers (an interval) is the commonest
+                            # case; name the element paths rather than make the
+                            # model spend its one correction finding them.
+                            hint = (
+                                f"; it is a list, so cite one element, e.g. "
+                                f"{claim.field_path}.0 or {claim.field_path}.1"
+                                if isinstance(source_value, (list, tuple)) else ""
+                            )
                             violations.append(
                                 Violation(
                                     "claim_field_not_numeric",
-                                    f"{claim.field_path} is not a numeric field",
+                                    f"{claim.field_path} is not a numeric field{hint}",
                                     path=f"{path}.field_path",
                                     actual=source_value,
                                 )

@@ -206,3 +206,18 @@ def test_a_claim_on_a_screening_whose_toxicity_did_not_run_must_say_so():
 
     assert refused.violations[0].expected == [TOXICITY_NOT_RUN_LIMITATION]
     assert accepted.ok, accepted.violations
+
+
+def test_citing_a_whole_interval_names_the_element_paths():
+    """Live run 2026-10-21: the first draft cited estimate.prediction_interval
+    as a number and spent its one correction finding .0 and .1."""
+    observation = _estimate(admitted=True)
+    draft = GroundedAnswerDraftV2(
+        answer_markdown="The interval is {{pic50}}.",
+        claims=_cite(observation, _pic50_claim("estimate.prediction_interval")),
+        limitations=[],
+    )
+    resolved = resolve_draft(draft, observations_by_id={observation.id: observation})
+    (violation,) = resolved.violations
+    assert violation.code == "claim_field_not_numeric"
+    assert "estimate.prediction_interval.0" in violation.message
