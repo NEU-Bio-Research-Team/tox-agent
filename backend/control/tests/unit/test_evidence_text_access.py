@@ -8,7 +8,12 @@ from __future__ import annotations
 import pytest
 
 from toxagent.domain.evidence_relation import EvidenceScope, RelationLabel
-from toxagent.research.fulltext import MAX_PASSAGE_CHARS, parse_jats
+from toxagent.research.fulltext import (
+    MAX_PARAGRAPHS,
+    MAX_PASSAGE_CHARS,
+    MAX_TABLE_ROWS,
+    parse_jats,
+)
 from toxagent.research.measurement import (
     measured_value,
     measurement_scope,
@@ -127,6 +132,15 @@ _JATS = """<article>
 </article>"""
 
 
+_TABLE = """<article><body><table-wrap><label>Table 1</label>
+  <caption><p>Potencies</p></caption>
+  <table>
+    <thead><tr><th>Compound</th><th>hERG IC50 (nM)</th><th>Assay</th></tr></thead>
+    <tbody><tr><td>astemizole</td><td>0.9</td><td>patch clamp</td></tr></tbody>
+  </table>
+</table-wrap></body></article>"""
+
+
 def test_every_passage_knows_where_it_came_from():
     document = parse_jats(_JATS)
     locators = [p.locator for p in document.passages]
@@ -142,11 +156,122 @@ def test_every_passage_knows_where_it_came_from():
 
 
 def test_a_table_is_kept_as_its_own_passage_with_its_caption():
-    table = parse_jats(_JATS).passage("table-wrap:1")
+    document = parse_jats(_JATS)
+    table = document.passage("table-wrap:1")
     assert table is not None
     assert table.kind == "table"
     assert "Table 1" in table.section
-    assert "Astemizole" in table.text
+    assert "Potencies" in table.text
+    # its rows are passages of their own, under the table's name
+    row = document.passage("table-wrap:1/row:1")
+    assert row is not None
+    assert row.kind == "table_row"
+    assert row.section == table.section
+    assert row.text == "Astemizole | 0.9 nM"
+
+
+def test_cells_are_kept_apart_rather_than_run_together():
+    """The defect from the audit, as a real PMC table showed it: flattening
+    the table with itertext turned the row ``Number | 14 | 14 | 30 | 51``
+    into the single token ``Number14143051``."""
+    document = parse_jats(
+        "<article><body><table-wrap><label>Table 1</label><table><tbody>"
+        "<tr><td>Number</td><td>14</td><td>14</td><td>30</td><td>51</td></tr>"
+        "</tbody></table></table-wrap></body></article>"
+    )
+    row = document.passage("table-wrap:1/row:1")
+    assert row is not None
+    assert row.text == "Number | 14 | 14 | 30 | 51"
+    assert "Number14" not in " ".join(p.text for p in document.passages)
+
+
+def test_a_row_names_each_value_by_its_column():
+    document = parse_jats(_TABLE)
+    assert document.passage("table-wrap:1/row:1").kind == "table_header"
+    assert document.passage("table-wrap:1/row:2").text == (
+        "Compound: astemizole | hERG IC50 (nM): 0.9 | Assay: patch clamp"
+    )
+
+
+def test_one_cell_of_a_row_can_be_cited_by_its_own_locator():
+    document = parse_jats(_TABLE)
+    cell = document.passage("table-wrap:1/row:2/cell:2")
+    assert cell is not None
+    assert cell.kind == "table_cell"
+    assert cell.text == "0.9"
+    assert document.passage("table-wrap:1/row:2/cell:9") is None
+    assert document.passage("table-wrap:7/row:1/cell:1") is None
+
+
+def test_a_spanned_header_still_lines_up_with_its_columns():
+    document = parse_jats(
+        "<article><body><table-wrap><table>"
+        "<thead><tr><th>Compound</th><th colspan='2'>IC50 (nM)</th></tr></thead>"
+        "<tbody><tr><td>A</td><td>1.0</td><td>1.2</td></tr></tbody>"
+        "</table></table-wrap></body></article>"
+    )
+    assert document.passage("table-wrap:1/row:2").text == (
+        "Compound: A | IC50 (nM): 1.0 | IC50 (nM): 1.2"
+    )
+
+
+def test_a_table_after_long_prose_is_still_read():
+    """The other defect: one shared cap, filled by the paragraphs that come
+    first, left every table after them unread."""
+    paragraphs = "".join(f"<p>Paragraph {i}.</p>" for i in range(MAX_PARAGRAPHS + 10))
+    document = parse_jats(
+        f"<article><body><sec><title>Results</title>{paragraphs}"
+        "<table-wrap><table><tr><td>astemizole</td><td>0.9</td></tr></table>"
+        "</table-wrap></sec></body></article>"
+    )
+    assert document.passage("table-wrap:1/row:1").text == "astemizole | 0.9"
+    assert document.truncated
+    assert document.omitted == {"paragraph": 10}
+
+
+def test_rows_past_the_cap_are_counted_as_left_out():
+    rows = "".join(f"<tr><td>r{i}</td></tr>" for i in range(MAX_TABLE_ROWS + 5))
+    document = parse_jats(
+        f"<article><body><table-wrap><table>{rows}</table></table-wrap></body></article>"
+    )
+    assert document.passage(f"table-wrap:1/row:{MAX_TABLE_ROWS}") is not None
+    assert document.passage(f"table-wrap:1/row:{MAX_TABLE_ROWS + 1}") is None
+    assert document.omitted == {"table_row": 5}
+    assert document.truncated
+
+
+def test_a_table_gathered_after_the_body_is_read_too():
+    document = parse_jats(
+        "<article><body><sec><title>R</title><p>See Table 1.</p></sec></body>"
+        "<floats-group><table-wrap><label>Table 1</label><table>"
+        "<tr><td>astemizole</td><td>0.9</td></tr></table></table-wrap></floats-group>"
+        "</article>"
+    )
+    assert document.passage("table-wrap:1/row:1").text == "astemizole | 0.9"
+
+
+def test_a_table_inside_a_paragraph_is_not_run_into_its_prose():
+    document = parse_jats(
+        "<article><body><sec><title>R</title><p>Potencies are below."
+        "<table-wrap><table><tr><td>A</td><td>1</td></tr></table></table-wrap></p>"
+        "</sec></body></article>"
+    )
+    assert document.passage("sec:1/p:1").text == "Potencies are below."
+    assert document.passage("table-wrap:1/row:1").text == "A | 1"
+
+
+def test_a_footnote_label_does_not_fuse_with_its_text():
+    document = parse_jats(
+        "<article><body><table-wrap><label>Table 1</label><table><tr><td>A</td></tr>"
+        "</table><table-wrap-foot><fn><label>a</label><p>Measured at 37 C.</p></fn>"
+        "</table-wrap-foot></table-wrap></body></article>"
+    )
+    assert document.passage("table-wrap:1").text == "Table 1 a Measured at 37 C."
+
+
+def test_prose_straight_under_the_body_is_read():
+    document = parse_jats("<article><body><p>No sections here.</p></body></article>")
+    assert document.passage("body/p:1").text == "No sections here."
 
 
 def test_a_long_passage_is_clipped_rather_than_dropped():

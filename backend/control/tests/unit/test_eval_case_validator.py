@@ -328,6 +328,34 @@ def test_a_v2_case_passes_both_the_schema_and_the_semantic_rules():
     assert validate_case(case) == []
 
 
+def test_the_schema_and_the_validator_accept_every_locator_the_parser_mints():
+    """research/fulltext.py names table rows and cells; a gold span pointing
+    at one must not be refused as unusable."""
+    import json
+
+    import jsonschema
+
+    from evals.investigation.cases import SCHEMA_PATHS, SCHEMA_VERSION_V2
+    from toxagent.research.fulltext import parse_jats
+
+    document = parse_jats(
+        "<article><front><article-meta><abstract><p>A.</p></abstract></article-meta>"
+        "</front><body><p>Lead.</p><sec><title>R</title><p>B.</p>"
+        "<table-wrap><table><tr><td>x</td><td>1</td></tr></table></table-wrap>"
+        "</sec></body></article>"
+    )
+    locators = [p.locator for p in document.passages] + ["table-wrap:1/row:1/cell:2"]
+    assert {"abstract", "body/p:1", "sec:1/p:1", "table-wrap:1", "table-wrap:1/row:1"} <= set(
+        locators
+    )
+    schema = json.loads(SCHEMA_PATHS[SCHEMA_VERSION_V2].read_text())
+    for locator in locators:
+        case = _v2_case()
+        case["evidence_spans"] = [{"evidence_ref": "evi_1", "locator": locator}]
+        assert list(jsonschema.Draft202012Validator(schema).iter_errors(case)) == [], locator
+        assert "unusable_evidence_span" not in _codes(validate_case(case)), locator
+
+
 def test_the_schema_refuses_a_locator_the_validator_also_refuses():
     """The two checks must not disagree about what a usable span looks like."""
     import json

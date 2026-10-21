@@ -41,7 +41,12 @@ from .task_groups import (
 SCHEMA_VERSION = "investigation-case-v2"
 
 #: Locators as research/fulltext.py mints them, plus the whole-abstract case.
-_LOCATOR = re.compile(r"^(abstract|sec:\d+/p:\d+|table-wrap:\d+)$")
+#: ``table-wrap:N`` is the table's label, caption and footnotes; its rows are
+#: ``table-wrap:N/row:R`` and one cell ``table-wrap:N/row:R/cell:C``. A span on
+#: a table covers its rows, so a gold span need not name the row.
+_LOCATOR = re.compile(
+    r"^(abstract|sec:\d+/p:\d+|body/p:\d+|table-wrap:\d+(/row:\d+(/cell:\d+)?)?)$"
+)
 
 
 @dataclass(frozen=True)

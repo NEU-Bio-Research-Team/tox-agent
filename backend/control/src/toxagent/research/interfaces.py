@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any, Protocol, Sequence, runtime_checkable
+from typing import Any, Mapping, Protocol, Sequence, runtime_checkable
 
 from ..domain.evidence import SourceIdentifier, SourceType
 
@@ -56,6 +56,12 @@ class FullTextFetch:
     section_titles: tuple[str, ...] = ()
     reason: str | None = None
     truncated: bool = False
+    #: What the parser's caps left out, by passage kind (``research/fulltext``).
+    omitted: Mapping[str, int] = field(default_factory=dict)
+    #: The identifier the text was asked for under, which need not be the
+    #: record's own: Europe PMC serves text by PMCID, and a MEDLINE hit names
+    #: its PMCID separately. ``None`` when no request was made.
+    full_text_id: str | None = None
 
 
 @runtime_checkable
@@ -87,4 +93,9 @@ class FullTextCapableProvider(Protocol):
 
     name: str
 
-    async def fetch_full_text(self, *, provider_record_id: str) -> FullTextFetch: ...
+    async def fetch_full_text(
+        self, *, provider_record_id: str, identifier: SourceIdentifier | None = None,
+    ) -> FullTextFetch:
+        """``identifier`` is the stored record's own, so the provider can find
+        the text under an id other than ``provider_record_id``."""
+        ...

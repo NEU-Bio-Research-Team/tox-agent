@@ -15,8 +15,12 @@ import pytest
 
 from toxagent.platform.config import ResearchSettings
 from toxagent.domain.errors import EvidenceUnavailable, ProviderRateLimited
-from toxagent.domain.evidence import SourceType
-from toxagent.research.providers.europepmc import EuropePmcProvider, hit_from_record
+from toxagent.domain.evidence import SourceIdentifier, SourceType
+from toxagent.research.providers.europepmc import (
+    EuropePmcProvider,
+    full_text_id,
+    hit_from_record,
+)
 
 pytestmark = pytest.mark.anyio
 
@@ -314,18 +318,74 @@ FULL_TEXT_XML = """<article>
 </article>"""
 
 
+#: The one route Europe PMC serves full text on. ``/{source}/{id}/fullTextXML``
+#: answers 404 for every record (checked against the live API 2026-10-21:
+#: ``/PMC3257301/fullTextXML`` 200, ``/PMC/PMC3257301/fullTextXML`` and
+#: ``/MED/22238641/fullTextXML`` 404), so these tests pin the path exactly.
+FULL_TEXT_PATH = "/europepmc/webservices/rest/{}/fullTextXML"
+WITH_PMCID = SourceIdentifier(pmid="42593910", pmcid="PMC1234567")
+
+
+def _xml(request: httpx.Request) -> httpx.Response:
+    return httpx.Response(200, text=FULL_TEXT_XML, headers={"content-type": "application/xml"})
+
+
 async def test_full_text_comes_back_as_located_passages():
+    seen: list[str] = []
+
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path.endswith("/MED/42593910/fullTextXML")
-        return httpx.Response(
-            200, text=FULL_TEXT_XML, headers={"content-type": "application/xml"}
-        )
+        seen.append(request.url.path)
+        return _xml(request)
 
-    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:42593910")
+    fetch = await _mock(handler).fetch_full_text(
+        provider_record_id="MED:42593910", identifier=WITH_PMCID,
+    )
 
+    assert seen == [FULL_TEXT_PATH.format("PMC1234567")]
     assert fetch.retrieved
+    assert fetch.full_text_id == "PMC1234567"
     assert fetch.section_titles == ("Results",)
     assert any(p.locator == "sec:1/p:1" and "0.9 nM" in p.text for p in fetch.passages)
+
+
+async def test_a_pmc_record_is_fetched_under_its_own_id():
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return _xml(request)
+
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="PMC:PMC7654321")
+
+    assert seen == [FULL_TEXT_PATH.format("PMC7654321")]
+    assert fetch.retrieved
+
+
+async def test_a_record_naming_no_pmcid_is_reported_without_a_request():
+    """A MEDLINE record with no deposited text cannot be fetched under its
+    PMID; asking anyway is the request that always 404'd."""
+    def handler(request: httpx.Request) -> httpx.Response:  # pragma: no cover
+        raise AssertionError(f"no request expected, got {request.url}")
+
+    fetch = await _mock(handler).fetch_full_text(
+        provider_record_id="MED:42593910", identifier=SourceIdentifier(pmid="42593910"),
+    )
+
+    assert not fetch.retrieved
+    assert "PMCID" in (fetch.reason or "")
+    assert fetch.full_text_id is None
+
+
+@pytest.mark.parametrize("pmcid", ["PMC1/../../search", "PMC12?x=1", "pmc", "", "MED:1"])
+def test_a_pmcid_that_is_not_one_never_reaches_a_request_path(pmcid):
+    """The PMCID is provider content placed into a URL path."""
+    assert full_text_id("MED:1", SourceIdentifier(pmcid=pmcid)) is None
+
+
+def test_a_pmcid_is_normalised_before_it_is_used():
+    assert full_text_id("MED:1", SourceIdentifier(pmcid=" pmc42 ")) == "PMC42"
+    assert full_text_id("MED:1", SourceIdentifier(pmcid="42")) == "PMC42"
+    assert full_text_id("PMC:PMC9", None) == "PMC9"
 
 
 async def test_a_record_with_no_full_text_is_a_failed_access_not_an_exception():
@@ -333,10 +393,11 @@ async def test_a_record_with_no_full_text_is_a_failed_access_not_an_exception():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(404, text="not found")
 
-    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:1")
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="PMC:PMC1")
 
     assert not fetch.retrieved
     assert "no full text" in (fetch.reason or "")
+    assert fetch.full_text_id == "PMC1"
     assert fetch.passages == ()
 
 
@@ -355,7 +416,7 @@ async def test_an_ordinary_404_does_not_trip_the_circuit_breaker():
     provider = _mock(handler)
     for index in range(SETTINGS.circuit_failure_threshold + 2):
         assert not (
-            await provider.fetch_full_text(provider_record_id=f"MED:{index}")
+            await provider.fetch_full_text(provider_record_id=f"PMC:PMC{index + 1}")
         ).retrieved
     assert calls == SETTINGS.circuit_failure_threshold + 2
     # the search path still works afterwards
@@ -368,7 +429,9 @@ async def test_a_non_xml_full_text_answer_is_refused():
         return httpx.Response(200, text="<html>paywall</html>",
                               headers={"content-type": "text/html"})
 
-    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:42593910")
+    fetch = await _mock(handler).fetch_full_text(
+        provider_record_id="MED:42593910", identifier=WITH_PMCID,
+    )
     assert not fetch.retrieved
     assert "not XML" in (fetch.reason or "")
 
@@ -377,6 +440,8 @@ async def test_a_provider_outage_during_a_full_text_fetch_is_reported_not_raised
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(503, text="unavailable")
 
-    fetch = await _mock(handler).fetch_full_text(provider_record_id="MED:42593910")
+    fetch = await _mock(handler).fetch_full_text(
+        provider_record_id="MED:42593910", identifier=WITH_PMCID,
+    )
     assert not fetch.retrieved
     assert fetch.reason
