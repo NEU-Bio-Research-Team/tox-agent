@@ -212,6 +212,25 @@ from its abstract only: say so, and do not report it as an absence of evidence.
 evidence_full_text_not_read.
 """
 
+#: #44 (flag activity_replay_v1): reading an activity-guided screening. The
+#: invariants are the critical errors the activity workflow can produce.
+ACTIVITY_REPLAY_POLICY = """\
+Activity-guided screenings attached to this session are listed by \
+get_artifact_inventory. They are replayed frozen records: no activity model is \
+served, and the estimates come from a model that has not passed admission \
+unless model.admitted says otherwise. Read them with get_screening_state, \
+get_activity_snapshot and get_prioritisation_decision, by screening_id; each \
+returns an observation_id to cite and the limitations it requires.
+- A screening is one ligand on one target in one assay context. Never carry an \
+estimate or decision over to another target or context.
+- A stage that did not run, or failed, is not a negative result: say what \
+happened (toxicity.run false, its reason).
+- A pIC50 is an in-vitro potency estimate for that target, not efficacy.
+- A prioritisation is a fixed rule's output over the estimate, not a second \
+measurement; you cannot override it or authorise a stage, only explain it \
+and what would change it.
+"""
+
 #: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
 #: v2 has no source_value or rendered_value: the server reads and renders each
 #: value. Stating v1's rules under v2 told the model to write numbers it could
@@ -373,6 +392,8 @@ def build_system_prompt(
         sections.append(FULL_TEXT_POLICY)
     if capability_profile == "decision_support":
         sections.append(DECISION_SUPPORT_POLICY)
+        if is_enabled("activity_replay_v1"):
+            sections.append(ACTIVITY_REPLAY_POLICY)
         if subjectless:
             sections.append(SUBJECTLESS_RESEARCH_POLICY)
     if scientific_case:

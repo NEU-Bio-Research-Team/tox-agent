@@ -65,6 +65,7 @@ export const ERROR_CODE_LABEL_VI: Record<string, string> = {
   not_found: 'Không tìm thấy.',
   session_not_found: 'Không tìm thấy session.',
   analysis_not_found: 'Không tìm thấy phân tích.',
+  screening_not_found: 'Không tìm thấy screening này trong session hoặc trong dữ liệu replay.',
   api_route_not_found: 'API không có route này. Frontend và control-plane có thể đang lệch phiên bản.',
   unauthenticated: 'Token xác thực không hợp lệ hoặc đã hết hạn.',
   forbidden: 'Bạn không có quyền thực hiện thao tác này.',

@@ -56,6 +56,13 @@ class CaseScopeRequest(_Request):
     reason: str | None = Field(default=None, max_length=500)
 
 
+class AttachScreeningRequest(_Request):
+    """Attach a frozen screening the deployment's replay file holds (#44).
+    Only an id: a client can name a screening, never supply one."""
+
+    screening_id: str = Field(pattern=r"^scr_[0-9a-f]{32}$")
+
+
 class SkillDraftRequest(_Request):
     """A skill package proposed for review (W9-11): the same three parts a
     shipped skill has, with the manifest's status held at ``draft``."""

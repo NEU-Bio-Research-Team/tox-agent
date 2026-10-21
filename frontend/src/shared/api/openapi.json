@@ -520,6 +520,22 @@
         "title": "AtomImportance",
         "type": "object"
       },
+      "AttachScreeningRequest": {
+        "additionalProperties": false,
+        "description": "Attach a frozen screening the deployment's replay file holds (#44).\nOnly an id: a client can name a screening, never supply one.",
+        "properties": {
+          "screening_id": {
+            "pattern": "^scr_[0-9a-f]{32}$",
+            "title": "Screening Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "screening_id"
+        ],
+        "title": "AttachScreeningRequest",
+        "type": "object"
+      },
       "AttributionListResponse": {
         "additionalProperties": false,
         "properties": {
@@ -6242,6 +6258,161 @@
         "title": "ScientificCaseSummary",
         "type": "object"
       },
+      "ScreeningList": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "replay",
+            "title": "Mode",
+            "type": "string"
+          },
+          "screenings": {
+            "items": {
+              "$ref": "#/components/schemas/ScreeningSummary"
+            },
+            "title": "Screenings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "screenings",
+          "mode"
+        ],
+        "title": "ScreeningList",
+        "type": "object"
+      },
+      "ScreeningSummary": {
+        "additionalProperties": false,
+        "description": "A frozen activity screening attached to a session (#44): its subject\nand how far it got. The numbers are read through the activity tools.",
+        "properties": {
+          "assay_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assay Context"
+          },
+          "attached_at": {
+            "title": "Attached At",
+            "type": "string"
+          },
+          "canonical_smiles": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Smiles"
+          },
+          "has_activity_estimate": {
+            "title": "Has Activity Estimate",
+            "type": "boolean"
+          },
+          "has_prioritisation_decision": {
+            "title": "Has Prioritisation Decision",
+            "type": "boolean"
+          },
+          "intended_target_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intended Target Role"
+          },
+          "model_admitted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Admitted"
+          },
+          "record_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Sha256"
+          },
+          "screening_id": {
+            "title": "Screening Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "toxicity_run": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toxicity Run"
+          }
+        },
+        "required": [
+          "screening_id",
+          "status",
+          "canonical_smiles",
+          "target",
+          "assay_context",
+          "intended_target_role",
+          "toxicity_run",
+          "has_activity_estimate",
+          "has_prioritisation_decision",
+          "model_admitted",
+          "record_sha256",
+          "source",
+          "attached_at"
+        ],
+        "title": "ScreeningSummary",
+        "type": "object"
+      },
       "SendMessageRequest": {
         "additionalProperties": false,
         "properties": {
@@ -9917,6 +10088,98 @@
           }
         },
         "summary": "Cancel Run",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/screenings": {
+      "get": {
+        "operationId": "list_screenings_v1_sessions__session_id__screenings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Screenings",
+        "tags": [
+          "toxagent"
+        ]
+      },
+      "post": {
+        "operationId": "attach_screening_v1_sessions__session_id__screenings_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachScreeningRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Attach Screening",
         "tags": [
           "toxagent"
         ]

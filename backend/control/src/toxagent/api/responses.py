@@ -421,6 +421,31 @@ class GroundedAnswer(_Response):
     created_at: str
 
 
+class ScreeningSummary(_Response):
+    """A frozen activity screening attached to a session (#44): its subject
+    and how far it got. The numbers are read through the activity tools."""
+
+    screening_id: str
+    status: str | None
+    canonical_smiles: str | None
+    target: dict[str, Any] | None
+    assay_context: str | None
+    intended_target_role: str | None
+    toxicity_run: bool | None
+    has_activity_estimate: bool
+    has_prioritisation_decision: bool
+    model_admitted: bool | None
+    record_sha256: str | None
+    source: str
+    attached_at: str
+
+
+class ScreeningList(_Response):
+    screenings: list[ScreeningSummary]
+    #: Always "replay" until an admitted model is served (#54).
+    mode: Literal["replay"]
+
+
 class EvidenceFullTextView(_Response):
     """What was read of a record's full text (#43). Absent when nothing was
     asked; ``normalized_facts.text_access`` then says what the search knew."""

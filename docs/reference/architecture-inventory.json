@@ -23,6 +23,7 @@
     ],
     "decision_support": [
       "compute_exposure_margin",
+      "get_activity_snapshot",
       "get_analysis_bundle",
       "get_analysis_slice",
       "get_artifact_inventory",
@@ -30,8 +31,10 @@
       "get_chembl_activities",
       "get_evidence_record",
       "get_explanation_slice",
+      "get_prioritisation_decision",
       "get_report_summary",
       "get_scientific_case",
+      "get_screening_state",
       "propose_skill_draft",
       "read_evidence_text",
       "read_scientific_skill",
@@ -252,6 +255,11 @@
     "report": 20
   },
   "rollout_flags": {
+    "activity_replay_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "answer_draft_v2": {
       "default": false,
       "owner": "backend-scientific",

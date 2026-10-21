@@ -93,8 +93,12 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # way around this one. It is wider than the default ceiling because
         # the flag-gated tools are separate experiments, each measured on its
         # own arm (ADR 0012 case and skill tools, W9-11 drafts, W9-13
-        # primitives), never meant to ship all at once.
-        assert len(tools) <= ceiling + 8, f"{name} has {len(tools)} tools with every flag on"
+        # primitives), never meant to ship all at once. Raised from +8 to
+        # +11 for #44's three activity reads, which #44 names one per
+        # artifact so each states its own invariant (not-run is not negative,
+        # pIC50 is not efficacy, a policy is a rule); they are useful only
+        # with a screening attached.
+        assert len(tools) <= ceiling + 11, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

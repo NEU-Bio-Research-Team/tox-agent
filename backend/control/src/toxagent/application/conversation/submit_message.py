@@ -244,6 +244,9 @@ class SubmitMessage:
 
             await self._enforce_concurrency(uow, session_id)
 
+            has_screening = is_enabled("activity_replay_v1") and bool(
+                await uow.screenings.list_for_session(session_id)
+            )
             decision = route(
                 RouteRequest(
                     text=submission.text,
@@ -256,6 +259,7 @@ class SubmitMessage:
                     requested_endpoints=submission.endpoints or (),
                     include_attribution=submission.include_attribution,
                     allow_subjectless_research=is_enabled("subjectless_research_v1"),
+                    has_attached_screening=has_screening,
                 )
             )
 

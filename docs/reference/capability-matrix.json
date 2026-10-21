@@ -184,6 +184,17 @@
     }
   ],
   "rollout_flags": {
+    "activity_replay_v1": {
+      "default": false,
+      "description": "Issue #44: activity screenings in decision_support, replayed from the pinned file of frozen screenings (TOXAGENT_ACTIVITY_REPLAY_PATH and _SHA256). /v1/sessions/{id}/screenings attaches one to a session; get_screening_state, get_activity_snapshot and get_prioritisation_decision read it as citable observations. No activity model is served: the effective product says replay. Off, the tools and routes are absent.",
+      "gates_tools": [
+        "get_activity_snapshot",
+        "get_prioritisation_decision",
+        "get_screening_state"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "answer_draft_v2": {
       "default": false,
       "description": "Accept GroundedAnswerDraftV2 (local claim refs, server-issued ids, server-resolved source values). Off, the v1 wire shape is the only one the answer tool accepts.",
@@ -500,8 +511,11 @@
       ],
       "flag_gated": {
         "compute_exposure_margin": "scientific_primitives_v1",
+        "get_activity_snapshot": "activity_replay_v1",
         "get_chembl_activities": "scientific_primitives_v1",
+        "get_prioritisation_decision": "activity_replay_v1",
         "get_scientific_case": "scientific_case_v1",
+        "get_screening_state": "activity_replay_v1",
         "propose_skill_draft": "skill_drafts_v1",
         "read_evidence_text": "evidence_full_text_v1",
         "read_scientific_skill": "scientific_skills_v1",

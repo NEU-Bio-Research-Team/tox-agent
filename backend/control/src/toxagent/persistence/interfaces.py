@@ -193,6 +193,8 @@ class UnitOfWork(Protocol):
     evidence: EvidenceStore
     #: What was read of a record's full text, and its passages (#43).
     evidence_text: EvidenceTextStore
+    #: Frozen activity screenings attached to sessions (#44).
+    screenings: Any
     answers: AnswerStore
     runtime_bindings: RuntimeBindingStore
     runtime_usage: RuntimeUsageStore

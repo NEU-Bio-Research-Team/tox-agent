@@ -215,6 +215,14 @@ def describe_effective_product(
                  "sha256": settings.research.corpus_sha256 or None}
                 if settings.research.provider == "corpus" else None
             ),
+            # #44: activity is replayed from a pinned file of frozen
+            # screenings, never served; a recorded run says which file.
+            "activity_replay": (
+                {"path_name": Path(settings.activity.replay_path).name,
+                 "sha256": settings.activity.replay_sha256 or None, "serving": False}
+                if flags["activity_replay_v1"]["enabled"] and settings.activity.replay_path
+                else None
+            ),
             "compound_provider": getattr(settings.compound, "provider", None) or None,
             "ocr_configured": bool(settings.ocr.base_url),
         },

@@ -457,6 +457,28 @@ class ResearchSettings:
 
 
 @dataclass(frozen=True)
+class ActivitySettings:
+    """Activity screenings replayed from frozen records (#44, flag
+    activity_replay_v1).
+
+    No activity model is served by this deployment: a screening reaches a
+    session only from this pinned file of ``frozen-screening-v1`` records, so a
+    recorded run can be tied to the exact artifacts it read. Empty ``replay_path``
+    means no screening can be attached.
+    """
+
+    replay_path: str = ""
+    replay_sha256: str = ""
+
+    @classmethod
+    def from_env(cls) -> "ActivitySettings":
+        return cls(
+            replay_path=_env("TOXAGENT_ACTIVITY_REPLAY_PATH"),
+            replay_sha256=_env("TOXAGENT_ACTIVITY_REPLAY_SHA256"),
+        )
+
+
+@dataclass(frozen=True)
 class CompoundSettings:
     """The compound-information provider (report spec section 9).
 
@@ -806,6 +828,7 @@ class Settings:
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
     worker: WorkerSettings = field(default_factory=WorkerSettings)
     chembl: ChemblSettings = field(default_factory=ChemblSettings)
+    activity: ActivitySettings = field(default_factory=ActivitySettings)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -837,6 +860,7 @@ class Settings:
             log_level=_env("TOXAGENT_LOG_LEVEL", cls.log_level),
             database=DatabaseSettings.from_env(),
             worker=WorkerSettings.from_env(),
+            activity=ActivitySettings.from_env(),
         )
 
 

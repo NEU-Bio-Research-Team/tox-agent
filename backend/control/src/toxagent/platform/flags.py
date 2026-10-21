@@ -259,6 +259,21 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "abstract_only otherwise, with no rise in unsupported claims or "
                           "first-draft refusals",
     ),
+    _flag(
+        "activity_replay_v1",
+        "Issue #44: activity screenings in decision_support, replayed from the "
+        "pinned file of frozen screenings (TOXAGENT_ACTIVITY_REPLAY_PATH and "
+        "_SHA256). /v1/sessions/{id}/screenings attaches one to a session; "
+        "get_screening_state, get_activity_snapshot and "
+        "get_prioritisation_decision read it as citable observations. No "
+        "activity model is served: the effective product says replay. Off, "
+        "the tools and routes are absent.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="the four #46 user stories run on replay with typed stop reasons, "
+                          "and activity serving (#54) replaces replay behind an admitted model",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

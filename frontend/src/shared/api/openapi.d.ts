@@ -939,6 +939,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/screenings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Screenings */
+        get: operations["list_screenings_v1_sessions__session_id__screenings_get"];
+        put?: never;
+        /** Attach Screening */
+        post: operations["attach_screening_v1_sessions__session_id__screenings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/settings": {
         parameters: {
             query?: never;
@@ -1241,6 +1259,15 @@ export interface components {
             symbol: string;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * AttachScreeningRequest
+         * @description Attach a frozen screening the deployment's replay file holds (#44).
+         *     Only an id: a client can name a screening, never supply one.
+         */
+        AttachScreeningRequest: {
+            /** Screening Id */
+            screening_id: string;
         };
         /** AttributionListResponse */
         AttributionListResponse: {
@@ -3254,6 +3281,51 @@ export interface components {
             /** Updated At */
             updated_at: string;
         };
+        /** ScreeningList */
+        ScreeningList: {
+            /**
+             * Mode
+             * @constant
+             */
+            mode: "replay";
+            /** Screenings */
+            screenings: components["schemas"]["ScreeningSummary"][];
+        };
+        /**
+         * ScreeningSummary
+         * @description A frozen activity screening attached to a session (#44): its subject
+         *     and how far it got. The numbers are read through the activity tools.
+         */
+        ScreeningSummary: {
+            /** Assay Context */
+            assay_context: string | null;
+            /** Attached At */
+            attached_at: string;
+            /** Canonical Smiles */
+            canonical_smiles: string | null;
+            /** Has Activity Estimate */
+            has_activity_estimate: boolean;
+            /** Has Prioritisation Decision */
+            has_prioritisation_decision: boolean;
+            /** Intended Target Role */
+            intended_target_role: string | null;
+            /** Model Admitted */
+            model_admitted: boolean | null;
+            /** Record Sha256 */
+            record_sha256: string | null;
+            /** Screening Id */
+            screening_id: string;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string | null;
+            /** Target */
+            target: {
+                [key: string]: unknown;
+            } | null;
+            /** Toxicity Run */
+            toxicity_run: boolean | null;
+        };
         /** SendMessageRequest */
         SendMessageRequest: {
             /** Analysis Id */
@@ -5228,6 +5300,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CancelResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_screenings_v1_sessions__session_id__screenings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreeningList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attach_screening_v1_sessions__session_id__screenings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachScreeningRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreeningSummary"];
                 };
             };
             /** @description Validation Error */

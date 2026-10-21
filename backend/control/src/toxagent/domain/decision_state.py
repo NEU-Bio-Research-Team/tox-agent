@@ -74,7 +74,14 @@ _SOURCE_BY_TOOL: Mapping[str, RequiredSource] = {
     "get_explanation_slice": RequiredSource.EXPLANATION,
     "get_attribution": RequiredSource.EXPLANATION,
     "get_evidence_record": RequiredSource.EVIDENCE,
+    # #43: a record whose text was read has been read.
+    "read_evidence_text": RequiredSource.EVIDENCE,
     "get_report_summary": RequiredSource.REPORT,
+    # #44: a replayed screening's artifacts are model and workflow outputs,
+    # made available as observations like a prediction's.
+    "get_screening_state": RequiredSource.PREDICTION,
+    "get_activity_snapshot": RequiredSource.PREDICTION,
+    "get_prioritisation_decision": RequiredSource.PREDICTION,
 }
 
 _RESOLVED = frozenset(
@@ -83,7 +90,7 @@ _RESOLVED = frozenset(
 )
 
 _SEARCH_TOOLS = frozenset({"search_toxicology_evidence"})
-_READ_TOOLS = frozenset({"get_evidence_record"})
+_READ_TOOLS = frozenset({"get_evidence_record", "read_evidence_text"})
 
 #: Relation source classes -> the ref prefix and required-source kind.
 _REF_BY_SOURCE_CLASS: Mapping[str, tuple[str, RequiredSource | None]] = {

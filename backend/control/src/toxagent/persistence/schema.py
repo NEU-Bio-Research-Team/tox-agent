@@ -389,6 +389,18 @@ evidence_passages = Table(
     Index("ix_evidence_passages_order", "evidence_id", "position"),
 )
 
+# 0023 (#44): a frozen activity screening attached to a session. The row holds
+# its own copy of the record, so what a run read stays readable.
+session_screenings = Table(
+    "session_screenings", metadata,
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), primary_key=True),
+    Column("screening_id", _ID, primary_key=True),
+    Column("record", Json, nullable=False),
+    Column("record_sha256", String(64), nullable=False),
+    Column("source", String(16), nullable=False),
+    Column("attached_at", _TS, nullable=False),
+)
+
 answers = Table(
     "answers", metadata,
     Column("id", _ID, primary_key=True),
@@ -828,6 +840,8 @@ IMMUTABLE_TABLES = frozenset(
     {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox",
      # What a document said when it was read, and what a claim quoted from it.
      "evidence_full_texts", "evidence_passages", "claim_evidence_spans",
+     # A frozen screening is a record of what was produced; never edited.
+     "session_screenings",
      "case_revisions", "investigation_plans", "kernel_transitions",
      # A report is immutable for the same reason an answer is: it is cited,
      # downloaded and audited. A changed report needs a new version row, not an

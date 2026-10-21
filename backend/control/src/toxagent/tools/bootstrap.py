@@ -11,6 +11,7 @@ from ..platform.config import PolicySettings, ResearchSettings
 from ..predictor.client import PredictorClient
 from ..research.compound import CompoundProvider
 from ..research.interfaces import ResearchProvider
+from .definitions import activity as activity_tools
 from .definitions import analysis as analysis_tools
 from .definitions import answer as answer_tools
 from .definitions import claim_review as claim_review_tools
@@ -119,6 +120,10 @@ def build_registry(
     if compound_provider is not None:
         for definition in compound_tools.build(database, compound_provider):
             add(definition)
+    # Gated by activity_replay_v1 (#44). They read attached screenings, so
+    # with no replay file a session simply has none to read.
+    for definition in activity_tools.build(database):
+        add(definition)
     for definition in extra or []:
         registry.register(definition)
     return registry

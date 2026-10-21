@@ -183,32 +183,49 @@ def activity_observation(
     payload = activity_canonical_payload(
         snapshot, screening_id=screening_id, model_admitted=model_admitted
     )
+    return activity_observation_from_payload(
+        payload, session_id=snapshot.session_id, run_id=snapshot.run_id, now=now,
+    )
+
+
+def activity_observation_from_payload(
+    payload: dict[str, Any],
+    *,
+    session_id: str,
+    run_id: str,
+    now: datetime,
+    provenance_extra: dict[str, Any] | None = None,
+) -> Observation:
+    """The citable observation of one activity estimate's canonical payload --
+    built from a live snapshot or replayed from a frozen record, the same way."""
+    model = payload["model"]
     limitations = ACTIVITY_LIMITATIONS
-    if not model_admitted:
+    if not model["admitted"]:
         limitations = limitations + (NOT_ADMITTED_LIMITATION,)
     return Observation.create(
-        session_id=snapshot.session_id,
-        run_id=snapshot.run_id,
+        session_id=session_id,
+        run_id=run_id,
         producer=Producer.PREDICTOR,
         kind=ObservationKind.ACTIVITY_ESTIMATE,
         schema_version=ACTIVITY_SCHEMA_VERSION,
         canonical_payload=payload,
         model_projection={
-            "activity_snapshot_id": snapshot.id,
+            "activity_snapshot_id": payload["activity_snapshot_id"],
             "subject": payload["subject"],
             "estimate": payload["estimate"],
             "applicability": payload["applicability"],
-            "model_id": snapshot.provenance.model_id,
-            "admitted": model_admitted,
+            "model_id": model["model_id"],
+            "admitted": model["admitted"],
         },
         provenance={
-            "activity_snapshot_id": snapshot.id,
-            "screening_id": screening_id,
-            "model_id": snapshot.provenance.model_id,
-            "dataset_id": snapshot.provenance.dataset_id,
-            "split_id": snapshot.provenance.split_id,
-            "artifact_hashes": list(snapshot.provenance.artifact_hashes),
-            "assay_context": snapshot.assay_context,
+            "activity_snapshot_id": payload["activity_snapshot_id"],
+            "screening_id": payload["screening_id"],
+            "model_id": model["model_id"],
+            "dataset_id": model["dataset_id"],
+            "split_id": model["split_id"],
+            "artifact_hashes": list(model["artifact_hashes"]),
+            "assay_context": payload["subject"]["assay_context"],
+            **(provenance_extra or {}),
         },
         now=now,
         required_limitations=limitations,
@@ -244,6 +261,19 @@ def prioritisation_observation(
     now: datetime,
 ) -> Observation:
     payload = prioritisation_canonical_payload(decision, screening_id=screening_id)
+    return prioritisation_observation_from_payload(
+        payload, session_id=session_id, run_id=run_id, now=now,
+    )
+
+
+def prioritisation_observation_from_payload(
+    payload: dict[str, Any],
+    *,
+    session_id: str,
+    run_id: str,
+    now: datetime,
+    provenance_extra: dict[str, Any] | None = None,
+) -> Observation:
     return Observation.create(
         session_id=session_id,
         run_id=run_id,
@@ -252,17 +282,18 @@ def prioritisation_observation(
         schema_version=PRIORITISATION_SCHEMA_VERSION,
         canonical_payload=payload,
         model_projection={
-            "prioritisation_decision_id": decision.id,
-            "status": decision.status.value,
-            "reason_codes": list(decision.reason_codes),
+            "prioritisation_decision_id": payload["prioritisation_decision_id"],
+            "status": payload["status"],
+            "reason_codes": list(payload["reason_codes"]),
             "policy": payload["policy"],
         },
         provenance={
-            "prioritisation_decision_id": decision.id,
-            "activity_snapshot_id": decision.activity_snapshot_id,
-            "screening_id": screening_id,
-            "policy_id": decision.policy_id,
-            "threshold_source": decision.threshold_source,
+            "prioritisation_decision_id": payload["prioritisation_decision_id"],
+            "activity_snapshot_id": payload["activity_snapshot_id"],
+            "screening_id": payload["screening_id"],
+            "policy_id": payload["policy"]["policy_id"],
+            "threshold_source": payload["policy"]["threshold_source"],
+            **(provenance_extra or {}),
         },
         now=now,
         required_limitations=(POLICY_LIMITATION,),
@@ -312,27 +343,37 @@ def screening_state_observation(
     screening: ActivityGuidedScreening, *, run_id: str, now: datetime
 ) -> Observation:
     payload = screening_state_canonical_payload(screening)
+    return screening_state_observation_from_payload(
+        payload, session_id=screening.session_id, run_id=run_id, now=now,
+        provenance_extra={"session_id": screening.session_id, "run_id": screening.run_id},
+    )
+
+
+def screening_state_observation_from_payload(
+    payload: dict[str, Any],
+    *,
+    session_id: str,
+    run_id: str,
+    now: datetime,
+    provenance_extra: dict[str, Any] | None = None,
+) -> Observation:
     limitations: tuple[str, ...] = ()
     if not payload["toxicity"]["run"]:
         limitations = (TOXICITY_NOT_RUN_LIMITATION,)
     return Observation.create(
-        session_id=screening.session_id,
+        session_id=session_id,
         run_id=run_id,
         producer=Producer.WORKFLOW,
         kind=ObservationKind.SCREENING_STATE,
         schema_version=SCREENING_SCHEMA_VERSION,
         canonical_payload=payload,
         model_projection={
-            "screening_id": screening.id,
-            "status": screening.status.value,
+            "screening_id": payload["screening_id"],
+            "status": payload["status"],
             "subject": payload["subject"],
             "toxicity": payload["toxicity"],
         },
-        provenance={
-            "screening_id": screening.id,
-            "session_id": screening.session_id,
-            "run_id": screening.run_id,
-        },
+        provenance={"screening_id": payload["screening_id"], **(provenance_extra or {})},
         now=now,
         required_limitations=limitations,
     )
