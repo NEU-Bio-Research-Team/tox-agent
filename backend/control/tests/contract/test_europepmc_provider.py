@@ -335,6 +335,9 @@ async def test_full_text_comes_back_as_located_passages():
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request.url.path)
+        # The live route answers a JSON Accept header with 406.
+        if "xml" not in request.headers.get("accept", ""):
+            return httpx.Response(406, text="Not Acceptable")
         return _xml(request)
 
     fetch = await _mock(handler).fetch_full_text(

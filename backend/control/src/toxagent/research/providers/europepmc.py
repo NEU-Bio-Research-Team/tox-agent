@@ -237,7 +237,13 @@ class EuropePmcProvider:
                 ),
             )
         try:
-            response = await self._request("GET", f"/{pmcid}/fullTextXML", not_found_ok=True)
+            # The client asks for JSON by default (the search API), and this
+            # route answers that with 406 Not Acceptable: found by the first
+            # live run, 2026-10-21, after every mocked test had passed.
+            response = await self._request(
+                "GET", f"/{pmcid}/fullTextXML", not_found_ok=True,
+                headers={"accept": "application/xml"},
+            )
         except (EvidenceUnavailable, ProviderRateLimited) as exc:
             return FullTextFetch(
                 retrieved=False, reason=str(exc), full_text_id=pmcid, transient=True,
