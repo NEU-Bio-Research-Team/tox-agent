@@ -10,10 +10,16 @@ from __future__ import annotations
 
 import pytest
 
-from tests.e2e.test_release_gate import OVERREACH, REPAIR_MARKER, SUPPORTED, _script
+from tests.e2e.test_release_gate import (
+    OVERREACH,
+    REPAIR_MARKER,
+    SUPPORTED,
+    _draft,
+    _script,
+)
 from tests.e2e.test_scientific_case_e2e import _post
 from tests.e2e.test_scripted_runtime import _analyse, _install_scripted_runtime, _new_session
-from tests.support.api import AUTH, api_client
+from tests.support.api import AUTH, api_client, wait_for_run
 from tests.support.predictor import StubPredictor
 from tests.support.research import ACCEPTED_HIT, StubResearchProvider
 
@@ -228,3 +234,90 @@ async def test_duplicate_completion_records_one_result(db, strict):
     assistant = [m for m in messages if m["role"] == "assistant"
                  and any(p["type"] == "result_ref" for p in m["parts"])]
     assert len(assistant) == 1
+
+
+async def test_cancelling_a_run_in_review_never_releases_its_candidate(db, strict):
+    """§9.4: a cancellation ends the remaining dispatch and does not release
+    a candidate that was still under review. What the run spent is still
+    recorded, and the reader is told the result was withheld -- not shown the
+    draft.
+    """
+    import asyncio
+
+    state: dict = {}
+
+    async def script(turn) -> None:
+        if turn.tool_context.profile == "claim_review":
+            # The reviewer is dispatched and never answers: the test cancels
+            # the run while this turn is in flight. The flag is a plain dict
+            # entry, polled by the test -- the run executes on the app's own
+            # loop, so an asyncio.Event set here would not wake the test.
+            state["in_review"] = True
+            await asyncio.sleep(30)
+            return
+        found = await turn.call_tool("search_toxicology_evidence", {
+            "analysis_id": state["analysis_id"], "query": "hERG blockade", "limit": 3,
+        })
+        evidence_id = found["model_view"]["results"][0]["evidence_id"]
+        await turn.call_tool("get_evidence_record", {"evidence_id": evidence_id})
+        state["submitted"] = await turn.call_tool(
+            "submit_grounded_answer", _draft(evidence_id, {"lit": SUPPORTED})
+        )
+
+    provider = StubResearchProvider(hits=[ACCEPTED_HIT])
+    async with api_client(db, StubPredictor(), research_provider=provider) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        state["analysis_id"] = await _analyse(client, session_id)
+        submitted = await client.post(
+            f"/v1/sessions/{session_id}/messages", headers=AUTH,
+            json={"intent_hint": "auto",
+                  "content": [{"type": "text", "text": "Should hERG stop us developing this?"}]},
+        )
+        assert submitted.status_code == 202, submitted.text
+        run_id = submitted.json()["run_id"]
+        for _ in range(100):
+            if state.get("in_review"):
+                break
+            # Polling the run is what a client does, and it is what steps the
+            # in-process run to its reviewer dispatch.
+            await client.get(f"/v1/sessions/{session_id}/runs/{run_id}", headers=AUTH)
+            await asyncio.sleep(0.1)
+        assert state.get("in_review"), "the reviewer was never dispatched"
+        cancelled = await client.post(f"/v1/sessions/{session_id}/runs/{run_id}:cancel",
+                                      headers=AUTH)
+        assert cancelled.status_code == 200, cancelled.text
+        run = await wait_for_run(client, session_id, run_id)
+        result = (await client.get(f"/v1/sessions/{session_id}/runs/{run_id}/result",
+                                   headers=AUTH)).json()
+        detail = (await client.get(f"/v1/sessions/{session_id}/runs/{run_id}",
+                                   headers=AUTH)).json()
+        drafts = (await client.get(f"/v1/sessions/{session_id}/runs/{run_id}/answer-drafts",
+                                   headers=AUTH)).json()["drafts"]
+        messages = (await client.get(f"/v1/sessions/{session_id}/messages",
+                                     headers=AUTH)).json()["messages"]
+        candidate_id = result["candidate_answer_id"]
+        served = await client.get(f"/v1/sessions/{session_id}/answers/{candidate_id}",
+                                  headers=AUTH)
+
+    assert run["status"] == "cancelled"
+    # The candidate was hard-valid and stored, and is not published.
+    assert state["submitted"]["status"] == "completed", state["submitted"]
+    assert candidate_id and result["public_answer_id"] is None
+    assert result["disposition"] == "withhold"
+    assert result["review_status"] == "not_completed"
+    assert result["execution_outcome"] == "cancelled"
+    assert result["knowledge_outcome"] == "none"
+    assert result["detail"]["failure_code"] == "cancelled"
+    # Not through the answer route, and not as prose in the transcript.
+    assert served.status_code == 404
+    assistant = [m for m in messages if m["role"] == "assistant"]
+    text = "\n".join(p["content"].get("text", "") for m in assistant for p in m["parts"]
+                     if p["type"] == "text")
+    assert SUPPORTED not in text
+    # What it spent is kept: the draft it submitted, its tool calls and the
+    # phase they were made in.
+    assert [d["outcome"] for d in drafts] == ["candidate"]
+    phases = detail["phase_usage"]["phases"]
+    assert phases["investigator"]["tool_calls"]["completed"] >= 3
+    assert "review_initial" in phases  # the dispatch it was cancelled in
