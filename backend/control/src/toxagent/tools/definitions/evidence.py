@@ -21,10 +21,11 @@ from pydantic import BaseModel, ConfigDict, Field
 #: decision_support: evidence_research exists for intensive search, and
 #: report_build is bounded by its own step cap. The numbers live with the rest
 #: of the published run budget.
-from ...application.runs.budget import (
+from ...application.runs.budget import (  # noqa: F401 - re-exported for tests
     DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
     DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN,
     DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
+    decision_support_limit,
 )
 from ...application.investigation import evidence_text
 from ...platform.config import ResearchSettings
@@ -209,16 +210,17 @@ def build(
                     "not searched at the researcher's request.",
                     reason="case_data_scope",
                 )
+        max_searches = decision_support_limit("max_searches")
         if (
             context.profile == "decision_support"
-            and used > DECISION_SUPPORT_MAX_SEARCHES_PER_RUN
+            and used > max_searches
         ):
             raise ToolDenied(
-                f"this run has reached its budget of {DECISION_SUPPORT_MAX_SEARCHES_PER_RUN} "
+                f"this run has reached its budget of {max_searches} "
                 "evidence searches. Broadening or repeating the query further will not be "
                 "admitted — synthesize an answer from what has already been read, and say "
                 "what remains unsearched as a scope limitation rather than a negative finding.",
-                searches_used=used - 1, max_searches=DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
+                searches_used=used - 1, max_searches=max_searches,
             )
 
         budget = RetrievalBudget.from_request(payload.limit)
@@ -375,16 +377,17 @@ def build(
             raise EvidenceNotFound(
                 "no such evidence in this session", evidence_id=payload.evidence_id
             )
+        max_reads = decision_support_limit("max_evidence_reads")
         if (
             context.profile == "decision_support"
-            and used > DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN
+            and used > max_reads
         ):
             raise ToolDenied(
                 f"this run has reached its budget of "
-                f"{DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN} evidence records read. Cite "
+                f"{max_reads} evidence records read. Cite "
                 "only from what has already been read, and note anything else found but "
                 "unread as a scope limitation.",
-                records_read=used - 1, max_records=DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
+                records_read=used - 1, max_records=max_reads,
             )
         fields = tuple(payload.fields) if payload.fields else None
         view = record.model_view(fields=fields)
@@ -424,15 +427,16 @@ def build(
                 "cannot support a claim; read only records a search accepted.",
                 reason="evidence_not_citable",
             )
+        max_pages = decision_support_limit("max_full_text_reads")
         if (
             context.profile == "decision_support"
-            and used > DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN
+            and used > max_pages
         ):
             raise ToolDenied(
                 f"this run has reached its budget of "
-                f"{DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN} full-text pages. Answer from "
+                f"{max_pages} full-text pages. Answer from "
                 "the passages already read, and say which parts of the paper were not read.",
-                pages_read=used - 1, max_pages=DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN,
+                pages_read=used - 1, max_pages=max_pages,
             )
         read = await evidence_text.read_full_text(
             database, provider, session_id=context.session_id, run_id=context.run_id,

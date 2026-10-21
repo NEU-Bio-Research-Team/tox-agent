@@ -23,6 +23,10 @@ services:
       TOXAGENT_FLAG_ACTIVITY_REPLAY_V1: ${TOXAGENT_FLAG_ACTIVITY_REPLAY_V1:-0}
       TOXAGENT_FLAG_CLAIM_REVIEWER_V1: ${TOXAGENT_FLAG_CLAIM_REVIEWER_V1:-0}
       TOXAGENT_FLAG_RELEASE_GATE_V1: ${TOXAGENT_FLAG_RELEASE_GATE_V1:-0}
+      TOXAGENT_FLAG_TYPED_STOP_V1: ${TOXAGENT_FLAG_TYPED_STOP_V1:-0}
+      # A named, versioned budget for every arm of a study (#46), e.g.
+      # investigator-pilot-v1; empty keeps the defaults.
+      TOXAGENT_RUN_BUDGET_PRESET: ${TOXAGENT_RUN_BUDGET_PRESET:-}
       # e.g. /opt/toxagent-evals/fixtures/activity/activity-replay-synthetic.json and the
       # sha256 beside it; empty means no screening can be attached.
       TOXAGENT_ACTIVITY_REPLAY_PATH: ${TOXAGENT_ACTIVITY_REPLAY_PATH:-}

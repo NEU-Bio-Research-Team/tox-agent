@@ -375,3 +375,61 @@ class GroundedAnswerDraftV2Spans(GroundedAnswerDraftV2):
 
     claims: list[ClaimCandidateV2Spans] = Field(default_factory=list, max_length=64)
 
+
+class StopDeclarationV2(_Wire):
+    """Why the answer stops here (#46, flag typed_stop_v1). The server derives
+    its own stop reason from the run; this is the answer's, recorded beside
+    it. Only ``needs_user_input`` changes the run's stop reason, because only
+    the answer can know it is waiting on the researcher."""
+
+    reason: Literal["sufficient", "needs_user_input", "sources_do_not_resolve", "budget_reached"]
+    needed_inputs: list[str] = Field(
+        default_factory=list, max_length=5,
+        description=(
+            "For needs_user_input: what only the researcher can supply, each as one short "
+            "item (e.g. 'free plasma Cmax at the intended dose')."
+        ),
+    )
+
+    @field_validator("needed_inputs")
+    @classmethod
+    def _short_items(cls, value: list[str]) -> list[str]:
+        cleaned = [item.strip() for item in value if item.strip()]
+        if any(len(item) > 200 for item in cleaned):
+            raise ValueError("each needed input is one short item (at most 200 characters)")
+        return cleaned
+
+    @model_validator(mode="after")
+    def _needs_name_the_input(self) -> "StopDeclarationV2":
+        if self.reason == "needs_user_input" and not self.needed_inputs:
+            raise ValueError(
+                "a needs_user_input stop must name what the researcher has to supply "
+                "(needed_inputs)"
+            )
+        return self
+
+
+_STOP_DESCRIPTION = (
+    "Why the answer stops: sufficient (the sources settle the question), needs_user_input "
+    "(name what only the researcher can supply), sources_do_not_resolve (what was read "
+    "cannot settle it), or budget_reached."
+)
+
+
+class GroundedAnswerDraftV2Stop(GroundedAnswerDraftV2):
+    stop: StopDeclarationV2 | None = Field(default=None, description=_STOP_DESCRIPTION)
+
+
+class GroundedAnswerDraftV2SpansStop(GroundedAnswerDraftV2Spans):
+    stop: StopDeclarationV2 | None = Field(default=None, description=_STOP_DESCRIPTION)
+
+
+def draft_model(*, spans: bool, stop: bool) -> type[GroundedAnswerDraftV2]:
+    """The v2 draft schema a deployment offers, by which optional parts are on."""
+    return {
+        (False, False): GroundedAnswerDraftV2,
+        (True, False): GroundedAnswerDraftV2Spans,
+        (False, True): GroundedAnswerDraftV2Stop,
+        (True, True): GroundedAnswerDraftV2SpansStop,
+    }[(spans, stop)]
+

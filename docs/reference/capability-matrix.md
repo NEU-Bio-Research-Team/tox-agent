@@ -80,6 +80,7 @@ Any other target, or any other method, is `not_measured`.
 | `skill_drafts_v1` | no | backend-scientific | 2026-12-23 | `propose_skill_draft` |
 | `subjectless_research_v1` | no | backend-scientific | 2026-12-23 | — |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
+| `typed_stop_v1` | no | backend-scientific | 2027-01-18 | — |
 
 ## Instruction surfaces
 

@@ -30,6 +30,38 @@ def _env(name: str, default: str = "") -> str:
     return (os.getenv(name) or default).strip()
 
 
+#: Versioned run budgets (#46). A study runs every arm under one named preset
+#: so its budget is a recorded fact, not whatever the environment happened to
+#: say; an explicitly set variable still wins, and is visible in the
+#: effective product. ``investigator-pilot-v1`` is the pilot's starting point
+#: from the 20/10 proposal (360 s, 20 tool calls, 3 searches, 8 records, one
+#: repair), not a tuned configuration: it is to be revised on dev after the
+#: pilot and locked before test.
+RUN_BUDGET_PRESETS: dict[str, dict[str, int]] = {
+    "investigator-pilot-v1": {
+        "run_deadline_s": 360,
+        "turn_deadline_s": 360,
+        "max_tool_calls": 20,
+        "max_searches": 3,
+        "max_evidence_reads": 8,
+        "max_full_text_reads": 4,
+        "max_repairs": 1,
+    },
+}
+
+
+def run_budget_preset() -> tuple[str | None, dict[str, int]]:
+    """The preset this deployment runs under (TOXAGENT_RUN_BUDGET_PRESET), if any."""
+    name = _env("TOXAGENT_RUN_BUDGET_PRESET")
+    if not name:
+        return None, {}
+    if name not in RUN_BUDGET_PRESETS:
+        raise ValueError(
+            f"TOXAGENT_RUN_BUDGET_PRESET={name!r} is not one of {sorted(RUN_BUDGET_PRESETS)}"
+        )
+    return name, RUN_BUDGET_PRESETS[name]
+
+
 def _int(name: str, default: int) -> int:
     raw = _env(name)
     if not raw:
@@ -216,14 +248,20 @@ class PolicySettings:
             admission_lock_timeout_ms=_int(
                 "TOXAGENT_ADMISSION_LOCK_TIMEOUT_MS", cls.admission_lock_timeout_ms
             ),
-            max_tool_calls_per_run=_int("TOXAGENT_MAX_TOOL_CALLS", cls.max_tool_calls_per_run),
+            max_tool_calls_per_run=_int(
+                "TOXAGENT_MAX_TOOL_CALLS",
+                run_budget_preset()[1].get("max_tool_calls", cls.max_tool_calls_per_run),
+            ),
             max_tool_calls_per_report_build=_int(
                 "TOXAGENT_MAX_TOOL_CALLS_REPORT", cls.max_tool_calls_per_report_build
             ),
             max_answer_candidates_per_run=_int(
                 "TOXAGENT_MAX_ANSWER_CANDIDATES", cls.max_answer_candidates_per_run
             ),
-            run_deadline_s=_int("TOXAGENT_RUN_DEADLINE_S", cls.run_deadline_s),
+            run_deadline_s=_int(
+                "TOXAGENT_RUN_DEADLINE_S",
+                run_budget_preset()[1].get("run_deadline_s", cls.run_deadline_s),
+            ),
             report_build_deadline_s=_int(
                 "TOXAGENT_REPORT_BUILD_DEADLINE_S", cls.report_build_deadline_s
             ),
@@ -368,7 +406,10 @@ class RuntimeSettings:
             model_id=_env("TOXAGENT_MODEL_ID", cls.model_id),
             agent_name=_env("TOXAGENT_AGENT_NAME", cls.agent_name),
             report_agent_name=_env("TOXAGENT_REPORT_AGENT_NAME", cls.report_agent_name),
-            turn_deadline_s=_int("TOXAGENT_TURN_DEADLINE_S", cls.turn_deadline_s),
+            turn_deadline_s=_int(
+                "TOXAGENT_TURN_DEADLINE_S",
+                run_budget_preset()[1].get("turn_deadline_s", cls.turn_deadline_s),
+            ),
             report_turn_deadline_s=_int(
                 "TOXAGENT_REPORT_TURN_DEADLINE_S", cls.report_turn_deadline_s
             ),

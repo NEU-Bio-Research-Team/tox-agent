@@ -1149,6 +1149,10 @@ class DecisionState(_Open):
     found_refs: list[str]
     stop_reason: str | None
     answer_outcome: str | None = None
+    #: #46: claims citing an observation / evidence in the accepted answer.
+    answer_basis: dict[str, int] = {}
+    #: #46 (typed_stop_v1): the stop the answer declared.
+    declared_stop: dict[str, Any] = {}
     revision: int
 
 

@@ -58,6 +58,13 @@ class StopReason(str, Enum):
     #: deadline, or the deterministic fallback).
     BLOCKED = "blocked"
     CANCELLED = "cancelled"
+    #: #46: the answer read what the run already had -- a prediction, a
+    #: screening -- and cited no evidence; there was nothing to search for.
+    #: Recorded as "insufficient_evidence" before, which is what it is not.
+    ANSWERED_FROM_ARTIFACTS = "answered_from_artifacts"
+    #: #46 (typed_stop_v1): the answer says what only the researcher can
+    #: supply and stops there, naming it.
+    NEEDS_USER_INPUT = "needs_user_input"
 
 
 class RequiredSource(str, Enum):
@@ -150,6 +157,12 @@ class DecisionSupportStateV1:
     #: it cites. Recorded, never applied to the answer: the role stays only if
     #: it measurably helps (RETHINK §4.4 step 5). Empty without the flag.
     claim_review: Mapping[str, Any] = field(default_factory=dict)
+    #: #46: what the accepted answer rests on -- how many claims cite an
+    #: observation, how many cite evidence -- for telling a lookup apart.
+    answer_basis: Mapping[str, int] = field(default_factory=dict)
+    #: #46 (typed_stop_v1): the stop the answer declared, beside the one the
+    #: server derives in ``stop_reason``; a grader reads both.
+    declared_stop: Mapping[str, Any] = field(default_factory=dict)
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -182,6 +195,8 @@ class DecisionSupportStateV1:
             "answer_outcome": self.answer_outcome,
             "skills": dict(self.skills),
             "claim_review": dict(self.claim_review),
+            "answer_basis": dict(self.answer_basis),
+            "declared_stop": dict(self.declared_stop),
             "revision": self.revision,
         }
 
@@ -208,6 +223,8 @@ class DecisionSupportStateV1:
             answer_outcome=data.get("answer_outcome"),
             skills=dict(data.get("skills") or {}),
             claim_review=dict(data.get("claim_review") or {}),
+            answer_basis=dict(data.get("answer_basis") or {}),
+            declared_stop=dict(data.get("declared_stop") or {}),
             revision=int(data.get("revision", 0)),
         )
 
@@ -314,6 +331,7 @@ def apply_tool_result(
 def apply_answer(
     state: DecisionSupportStateV1, *, relations: Sequence[Mapping[str, Any]],
     is_fallback: bool, candidate_generation: int,
+    basis: Mapping[str, int] | None = None, declared_stop: Mapping[str, Any] | None = None,
 ) -> DecisionSupportStateV1:
     """Resolve propositions from the accepted answer's evidence relations.
 
@@ -329,7 +347,8 @@ def apply_answer(
     )
     if is_fallback:
         # A server-authored fallback resolves nothing the model investigated.
-        return _next(state, answer_outcome=outcome)
+        return _next(state, answer_outcome=outcome, answer_basis={}, declared_stop={})
+    state = _next(state, answer_basis=dict(basis or {}), declared_stop=dict(declared_stop or {}))
     by_question = {p.question.casefold(): p for p in state.propositions}
     order = [p.id for p in state.propositions]
     labels: dict[str, set[str]] = {}
@@ -474,11 +493,22 @@ def finalize(
         reason = StopReason.CANCELLED
     elif run_status != "completed" or state.answer_outcome in (None, "fallback"):
         reason = StopReason.BLOCKED
+    elif state.declared_stop.get("reason") == "needs_user_input" \
+            and state.declared_stop.get("needed_inputs"):
+        # Only the answer can know it is waiting on the researcher; it named
+        # what for, and that is the stop.
+        reason = StopReason.NEEDS_USER_INPUT
     elif not state.unresolved:
         # No plan at all and an accepted answer with no relations is not
-        # "sufficient" — nothing was established. It is an answer that did not
-        # need evidence, recorded as such rather than as coverage.
-        reason = StopReason.SUFFICIENT if state.propositions else StopReason.INSUFFICIENT_EVIDENCE
+        # "sufficient" — nothing was established. If it read only what the
+        # run already had and cited no evidence, it was a lookup, recorded as
+        # one; otherwise nothing it cited was set against a question.
+        if state.propositions:
+            reason = StopReason.SUFFICIENT
+        elif state.answer_basis.get("observations", 0) and not state.answer_basis.get("evidence", 0):
+            reason = StopReason.ANSWERED_FROM_ARTIFACTS
+        else:
+            reason = StopReason.INSUFFICIENT_EVIDENCE
     elif _budget_reached(state):
         reason = StopReason.BUDGET_EXHAUSTED
     else:

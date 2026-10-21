@@ -16,7 +16,7 @@ from ...application.conversation.submit_answer import SubmitAnswer, release_gate
 from ...platform.config import PolicySettings
 from ...platform.flags import is_enabled
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
-from ...validation.answer.draft_wire import GroundedAnswerDraftV2, GroundedAnswerDraftV2Spans
+from ...validation.answer.draft_wire import draft_model
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 #: Referenced by tools/runner.py so the final-answer tool can be excluded from
@@ -54,6 +54,13 @@ _V2_DESCRIPTION: Final[str] = (
     "rejects an unclaimed number.\n\n"
     "A rejected draft returns typed violations naming exactly what to correct; at "
     "most one correction attempt is allowed per run."
+)
+
+#: Added under typed_stop_v1 (#46), with the schema that has the field.
+_STOP_TOOL_DESCRIPTION: Final[str] = (
+    "\n\nSay why the answer stops in stop.reason. When the question turns on something "
+    "only the researcher can supply (their exposure, their assay, their constraint), use "
+    "needs_user_input and name it in needed_inputs instead of searching for it."
 )
 
 #: Added under evidence_full_text_v1 (#43), with the schema that has the field.
@@ -129,12 +136,16 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
 
     if is_enabled("answer_draft_v2"):
         spans = is_enabled("evidence_full_text_v1")
+        stop = is_enabled("typed_stop_v1")
         return [
             ToolDefinition(
                 name=ANSWER_TOOL_NAME,
                 title="Submit a grounded answer",
-                description=_V2_DESCRIPTION + (_SPANS_DESCRIPTION if spans else ""),
-                input_model=GroundedAnswerDraftV2Spans if spans else GroundedAnswerDraftV2,
+                description=(
+                    _V2_DESCRIPTION + (_SPANS_DESCRIPTION if spans else "")
+                    + (_STOP_TOOL_DESCRIPTION if stop else "")
+                ),
+                input_model=draft_model(spans=spans, stop=stop),
                 handler=submit,
                 profiles=frozenset({"analysis", "report_qa", "evidence_research", "decision_support"}),
                 soft_timeout_s=5.0,

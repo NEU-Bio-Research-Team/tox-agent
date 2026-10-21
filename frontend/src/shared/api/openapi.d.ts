@@ -1851,6 +1851,13 @@ export interface components {
          * @description ``DecisionSupportStateV1`` for one run (``domain/decision_state.py``).
          */
         DecisionState: {
+            /**
+             * Answer Basis
+             * @default {}
+             */
+            answer_basis: {
+                [key: string]: number;
+            };
             /** Answer Outcome */
             answer_outcome?: string | null;
             /** Available Refs */
@@ -1861,6 +1868,13 @@ export interface components {
             };
             /** Coverage */
             coverage: {
+                [key: string]: unknown;
+            };
+            /**
+             * Declared Stop
+             * @default {}
+             */
+            declared_stop: {
                 [key: string]: unknown;
             };
             /** Found Refs */

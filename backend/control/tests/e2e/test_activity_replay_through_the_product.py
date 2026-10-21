@@ -113,6 +113,9 @@ async def test_why_a_screening_went_to_review_and_whether_toxicity_ran(db, flags
         run = await _ask(client, session_id, "Why was this screening sent to review, and did "
                                              "the toxicity stage run?")
         product = (await client.get("/v1/system/effective-product", headers=AUTH)).json()
+        run_state = (await client.get(
+            f"/v1/sessions/{session_id}/runs/{run['run_id']}/decision-state", headers=AUTH,
+        )).json()
 
     assert run["status"] == "completed", run
     assert run["intent"] == "decision_support"
@@ -140,6 +143,44 @@ async def test_why_a_screening_went_to_review_and_whether_toxicity_ran(db, flags
 
     replayed = product["providers"]["activity_replay"]
     assert replayed["serving"] is False and replayed["path_name"] == "screenings.json"
+    # #46: read from the run's own artifacts, no evidence needed -- a lookup,
+    # not the "insufficient_evidence" the live run was given.
+    assert run_state["stop_reason"] == "answered_from_artifacts"
+    assert run_state["answer_basis"] == {"observations": 5, "evidence": 0}
+
+
+async def test_an_answer_waiting_on_the_researcher_stops_on_that(db, flags_on, tmp_path,
+                                                                 monkeypatch):
+    monkeypatch.setenv("TOXAGENT_FLAG_TYPED_STOP_V1", "1")
+    record = frozen_screening()
+
+    async def script(turn) -> None:
+        state = await turn.call_tool("get_screening_state",
+                                     {"screening_id": screening_id(record)})
+        await turn.call_tool("submit_grounded_answer", {
+            "schema_version": "grounded-answer-v2",
+            "answer_markdown": "Toxicity ran: {{tox}}. Whether to run it depends on your "
+                               "exposure target, which this session does not hold.",
+            "claims": [{"local_ref": "tox", "kind": "classification", "text": "Toxicity ran.",
+                        "observation_id": state["observation_ids"][0],
+                        "field_path": "toxicity.run"}],
+            "limitations": [{"code": "toxicity_not_run_not_negative", "text": ""}],
+            "stop": {"reason": "needs_user_input",
+                     "needed_inputs": ["the intended free plasma Cmax"]},
+        })
+
+    async with api_client(db, StubPredictor(), config=_config(tmp_path, record)) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        await _attach(client, session_id, record)
+        run = await _ask(client, session_id, "Should we run the toxicity stage now?")
+        state = (await client.get(
+            f"/v1/sessions/{session_id}/runs/{run['run_id']}/decision-state", headers=AUTH,
+        )).json()
+
+    assert run["status"] == "completed", run
+    assert state["stop_reason"] == "needs_user_input"
+    assert state["declared_stop"]["needed_inputs"] == ["the intended free plasma Cmax"]
 
 
 async def test_one_ligand_on_two_targets_is_two_screenings(db, flags_on, tmp_path):

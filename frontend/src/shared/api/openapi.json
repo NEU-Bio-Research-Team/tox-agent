@@ -2092,6 +2092,14 @@
         "additionalProperties": true,
         "description": "``DecisionSupportStateV1`` for one run (``domain/decision_state.py``).",
         "properties": {
+          "answer_basis": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Answer Basis",
+            "type": "object"
+          },
           "answer_outcome": {
             "anyOf": [
               {
@@ -2118,6 +2126,12 @@
           "coverage": {
             "additionalProperties": true,
             "title": "Coverage",
+            "type": "object"
+          },
+          "declared_stop": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Declared Stop",
             "type": "object"
           },
           "found_refs": {

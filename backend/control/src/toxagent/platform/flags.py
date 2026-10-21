@@ -290,6 +290,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "than observed ones at no loss of required-information recall, and "
                           "the repair turn does not raise deadline failures",
     ),
+    _flag(
+        "typed_stop_v1",
+        "Issue #46 (with answer_draft_v2): a v2 draft may declare why it stops "
+        "(sufficient, needs_user_input with the inputs named, "
+        "sources_do_not_resolve, budget_reached). It is recorded beside the "
+        "stop reason the server derives, and needs_user_input becomes the run's "
+        "stop reason. Off, the answer schema has no stop field.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on cases that need the researcher's input, the pilot shows "
+                          "needs_user_input declared where graders expect it and not on "
+                          "cases the corpus settles",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

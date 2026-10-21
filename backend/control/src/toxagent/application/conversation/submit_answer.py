@@ -79,7 +79,8 @@ def _synthesis_only_posture(posture, relations) -> list[Violation]:
 
 
 async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: bool,
-                                  generation: int) -> None:
+                                  generation: int, answer: GroundedAnswer | None = None,
+                                  declared_stop=None) -> None:
     """Resolve the run's DecisionSupportStateV1 from the committed answer.
 
     Inside the answer's own unit of work so the two cannot disagree; a lost
@@ -95,6 +96,13 @@ async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: b
             lambda state: ds.apply_answer(
                 state, relations=payload, is_fallback=is_fallback,
                 candidate_generation=generation,
+                basis={
+                    "observations": sum(1 for c in answer.claims if c.observation_id),
+                    "evidence": sum(1 for c in answer.claims if c.citation_ids),
+                } if answer is not None else None,
+                declared_stop=(
+                    declared_stop.model_dump(mode="json") if declared_stop is not None else None
+                ),
             ),
         )
     except Conflict:
@@ -190,6 +198,8 @@ class SubmitAnswer:
                 candidate.development_posture
                 if isinstance(candidate, GroundedAnswerDraftV2) else None
             )
+            # typed_stop_v1 (#46): the stop the draft declares, if its schema has one.
+            declared_stop = getattr(candidate, "stop", None)
 
             issued_ids: Mapping[str, str] = {}
             claimed_values: tuple[float, ...] = ()
@@ -290,7 +300,7 @@ class SubmitAnswer:
                 )
                 await _record_answer_in_state(
                     uow, run_id, relations=proposed_relations, is_fallback=False,
-                    generation=generation,
+                    generation=generation, answer=result.answer, declared_stop=declared_stop,
                 )
                 await uow.commit()
                 return SubmitOutcome(

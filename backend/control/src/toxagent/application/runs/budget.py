@@ -36,6 +36,22 @@ DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN = 8
 #: record reads: one paper's results and its table are two pages, not two papers.
 DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN = 4
 
+_DEFAULTS = {
+    "max_searches": DECISION_SUPPORT_MAX_SEARCHES_PER_RUN,
+    "max_evidence_reads": DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN,
+    "max_full_text_reads": DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN,
+}
+
+
+def decision_support_limit(name: str) -> int:
+    """A decision_support read/search ceiling: the run budget preset's when one
+    is set (#46), else the module default. Read at call time, so the tool that
+    enforces it and the budget that publishes it agree."""
+    from ...platform.config import run_budget_preset
+
+    _, preset = run_budget_preset()
+    return int(preset.get(name, _DEFAULTS[name]))
+
 SCHEMA_VERSION = "effective-run-budget-v1"
 
 
@@ -63,6 +79,8 @@ class EffectiveRunBudgetV1:
     max_correction_turns: int | None
     #: Pages of full text (read_evidence_text); ``None`` where not bounded.
     max_full_text_reads: int | None = None
+    #: The named run budget preset in force (#46), or ``None`` for defaults.
+    preset: str | None = None
     schema_version: str = SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
@@ -116,16 +134,17 @@ def effective_run_budget(
             else runtime.max_steps_qa
         ),
         max_tool_calls=policy.max_tool_calls_per_run,
-        max_searches=DECISION_SUPPORT_MAX_SEARCHES_PER_RUN if decision_support else None,
+        max_searches=decision_support_limit("max_searches") if decision_support else None,
         max_evidence_reads=(
-            DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN if decision_support else None
+            decision_support_limit("max_evidence_reads") if decision_support else None
         ),
         max_identical_calls=MAX_IDENTICAL_CALLS,
         max_answer_candidates=policy.max_answer_candidates_per_run,
         max_correction_turns=max(0, policy.max_answer_candidates_per_run - 1),
         max_full_text_reads=(
-            DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN if decision_support else None
+            decision_support_limit("max_full_text_reads") if decision_support else None
         ),
+        preset=_preset_name(),
     )
 
 
@@ -136,3 +155,9 @@ def budget_matrix(policy: PolicySettings, runtime: RuntimeSettings) -> dict[str,
         for intent in Intent
         if intent not in (Intent.REPORT_QA, Intent.EVIDENCE_RESEARCH, Intent.ATTRIBUTION)
     }
+
+
+def _preset_name() -> str | None:
+    from ...platform.config import run_budget_preset
+
+    return run_budget_preset()[0]
