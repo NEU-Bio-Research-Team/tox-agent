@@ -12,7 +12,7 @@ import logging
 from typing import Final
 
 from ...application.investigation import scientific_case_service
-from ...application.conversation.submit_answer import SubmitAnswer
+from ...application.conversation.submit_answer import SubmitAnswer, release_gated
 from ...platform.config import PolicySettings
 from ...platform.flags import is_enabled
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
@@ -73,7 +73,11 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             session_id=context.session_id, run_id=context.run_id, candidate=payload,
             language=context.language,
         )
-        if not outcome.is_fallback and is_enabled("scientific_case_v1"):
+        async with database.unit_of_work() as uow:
+            gated = await release_gated(uow, context.run_id)
+        # Under the release gate (#47) the case records the answer that is
+        # released, at release, so a candidate a repair replaces never enters it.
+        if not outcome.is_fallback and not gated and is_enabled("scientific_case_v1"):
             # ADR 0012: an accepted answer's relations (v2) and cited sources
             # (any schema, W9-04) join the case ledger as server entries —
             # after the answer committed, in their own unit of work, so case
@@ -101,6 +105,9 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             "is_fallback": outcome.is_fallback,
             "candidate_generation": outcome.answer.candidate_generation,
         }
+        if gated and not outcome.is_fallback:
+            # Validated; an independent review decides whether it is released.
+            model_view["release"] = "pending_review"
         # W6/plan section 12.1: rendered as its own labeled block, never
         # folded into answer_markdown's prose — a posture value like
         # "proceed" sitting unlabeled next to ordinary claim text is exactly

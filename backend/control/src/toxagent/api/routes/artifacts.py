@@ -91,9 +91,19 @@ async def get_answer(
     await services.sessions.get(principal, session_id)
     async with services.database.unit_of_work() as uow:
         answer = await uow.answers.get(answer_id, session_id=session_id)
-    if answer is None:
+        release = await uow.answer_releases.get(answer_id) if answer is not None else None
+        held = answer is not None and release is None and any(
+            d.get("answer_id") == answer_id and d.get("outcome") == "candidate"
+            for d in await uow.answer_drafts.list_for_run(answer.run_id)
+        )
+    # #47: a candidate the release gate has not released is not the run's
+    # answer yet -- or ever, if a repair replaced it -- so it is not served.
+    if answer is None or held:
         raise NotFound("no such answer", answer_id=answer_id)
-    return answer.to_dict()
+    body = answer.to_dict()
+    if release is not None:
+        body["release"] = release.to_dict()
+    return body
 
 
 @router.get("/sessions/{session_id}/observations/{observation_id}", responses={200: {"model": ObservationResponse}})

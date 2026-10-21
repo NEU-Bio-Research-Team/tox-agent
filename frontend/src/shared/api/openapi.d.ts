@@ -1226,7 +1226,7 @@ export interface components {
              * Outcome
              * @enum {string}
              */
-            outcome: "accepted" | "rejected";
+            outcome: "accepted" | "rejected" | "candidate";
             /** Payload */
             payload: {
                 [key: string]: unknown;
@@ -1242,6 +1242,38 @@ export interface components {
         AnswerDraftList: {
             /** Drafts */
             drafts: components["schemas"]["AnswerDraft"][];
+        };
+        /**
+         * AnswerReleaseView
+         * @description How the answer was released under the release gate (#47). Only
+         *     ``reviewed`` and ``repaired_and_reviewed`` mean the review passed.
+         */
+        AnswerReleaseView: {
+            /** Answer Id */
+            answer_id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "reviewed" | "repaired_and_reviewed" | "released_with_unresolved_review" | "ungated" | "fallback";
+            /** Released At */
+            released_at: string;
+            /** Repair */
+            repair: {
+                [key: string]: unknown;
+            } | null;
+            /** Replaced Answer Id */
+            replaced_answer_id: string | null;
+            /** Reviews */
+            reviews: {
+                [key: string]: unknown;
+            }[];
+            /** Semantically Passed */
+            semantically_passed: boolean;
+            /** Ungated Reason */
+            ungated_reason: string | null;
+            /** Unresolved Claim Ids */
+            unresolved_claim_ids: string[];
         };
         /** Applicability */
         Applicability: {
@@ -2194,6 +2226,7 @@ export interface components {
             limitations: components["schemas"]["Limitation"][];
             /** Recommended Next Steps */
             recommended_next_steps: components["schemas"]["RecommendedNextStep"][];
+            release?: components["schemas"]["AnswerReleaseView"] | null;
             /** Run Id */
             run_id: string;
             /** Schema Version */

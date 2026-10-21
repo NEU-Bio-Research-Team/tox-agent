@@ -250,6 +250,13 @@
       "owner": "backend-runtime",
       "remove_by": "2026-12-12"
     },
+    "release_gate_v1": {
+      "default": false,
+      "description": "Issue #47 (needs claim_reviewer_v1 and answer_draft_v2): an accepted decision_support answer is a candidate until the independent reviewer has judged it. A not_supported or partially_supported claim gets one repair turn, the repaired candidate is validated and reviewed again, and only then is an answer released -- answer.accepted, the answer route and the assistant message all wait for release, and the release records how it was reached. Off, the reviewer only observes.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "report_orchestrator_v2": {
       "default": false,
       "description": "Build reports through the server-owned stage machine, invoking the model only at the synthesis boundary. Off, the report intent goes to the generic runtime gateway and the model drives the workflow.",

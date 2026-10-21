@@ -116,7 +116,14 @@ async def list_evidence_relations(
         run = await uow.runs.get(run_id)
         if run is None or run.session_id != session_id:
             raise NotFound("no such run", run_id=run_id)
-        relations = await uow.evidence_relations.list_for_run(run_id)
+        # #47: a repaired run holds two candidates' relations; the run's are
+        # the released answer's, else its latest answer's.
+        release = await uow.answer_releases.get_for_run(run_id)
+        latest = await uow.answers.get_for_run(run_id)
+        relations = await uow.evidence_relations.list_for_run(
+            run_id,
+            answer_id=release.answer_id if release else (latest.id if latest else None),
+        )
     return {"evidence_relations": [relation.to_dict() for relation in relations]}
 
 

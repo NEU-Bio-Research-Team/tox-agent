@@ -58,7 +58,7 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
     """
     by_id = {c.claim_id: c for c in answer.claims}
     relations: dict[str, list[dict[str, Any]]] = {}
-    for relation in await uow.evidence_relations.list_for_run(answer.run_id):
+    for relation in await uow.evidence_relations.list_for_run(answer.run_id, answer_id=answer.id):
         relations.setdefault(relation.source_ref.source_id, []).append({
             "relation": relation.relation.value,
             "directness": relation.directness.value,

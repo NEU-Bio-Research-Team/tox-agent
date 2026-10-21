@@ -104,6 +104,29 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+#: #47: what the one repair turn may submit beyond the run's own allowance --
+#: the repaired answer, and one correction of it if validation refuses it.
+REPAIR_SUBMISSIONS = 2
+
+
+async def release_gated(uow, run_id: str) -> bool:
+    """Whether this run's answer is held for review before release (#47):
+    release_gate_v1 with its reviewer, on a decision_support run."""
+    if not (is_enabled("release_gate_v1") and is_enabled("claim_reviewer_v1")):
+        return False
+    run = await uow.runs.get(run_id)
+    return run is not None and getattr(run.intent, "value", run.intent) == "decision_support"
+
+
+async def repair_open(uow, run_id: str, candidate: GroundedAnswer) -> bool:
+    """The gateway opened a repair of exactly this candidate, and nothing has
+    been released yet."""
+    if candidate.is_fallback or await uow.answer_releases.get_for_run(run_id) is not None:
+        return False
+    state = await uow.decision_states.get(run_id)
+    return bool(state and state.claim_review.get("repair_requested_for") == candidate.id)
+
+
 @dataclass(frozen=True)
 class SubmitOutcome:
     answer: GroundedAnswer
@@ -128,11 +151,22 @@ class SubmitAnswer:
             if session is None:
                 raise SessionNotFound("no such session", session_id=session_id)
 
-            if await uow.answers.get_for_run(run_id) is not None:
-                raise Conflict(
-                    "this run has already committed an answer; it cannot be overwritten",
-                    run_id=run_id,
-                )
+            gated = await release_gated(uow, run_id)
+            repairing = False
+            existing = await uow.answers.get_for_run(run_id)
+            if existing is not None:
+                # #47: under the release gate, an accepted answer is a
+                # candidate, and the one repair turn may replace it -- only
+                # that turn, only before release, only once.
+                repairing = gated and await repair_open(uow, run_id, existing)
+                if not repairing:
+                    raise Conflict(
+                        "this run has already committed an answer; it cannot be overwritten",
+                        run_id=run_id,
+                    )
+            cap = self._settings.max_answer_candidates_per_run + (
+                REPAIR_SUBMISSIONS if repairing else 0
+            )
 
             generation = await self._attempt_number(uow, run_id)
             # #47: the draft exactly as the model sent it, before resolution
@@ -168,7 +202,7 @@ class SubmitAnswer:
                 if resolved.candidate is None:
                     return await self._reject(
                         uow, session, session_id, run_id, generation,
-                        list(resolved.violations), language, raw_draft=raw_draft,
+                        list(resolved.violations), language, raw_draft=raw_draft, cap=cap,
                     )
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
@@ -224,18 +258,21 @@ class SubmitAnswer:
                 await uow.answers.add(result.answer)
                 await self._record_draft(
                     uow, run_id=run_id, session_id=session_id, generation=generation,
-                    raw_draft=raw_draft, outcome="accepted", answer_id=result.answer.id,
-                    violations=(),
+                    raw_draft=raw_draft, outcome="candidate" if gated else "accepted",
+                    answer_id=result.answer.id, violations=(),
                 )
                 for assessment in resolved_relations:
-                    await uow.evidence_relations.add(assessment)
+                    await uow.evidence_relations.add(assessment, answer_id=result.answer.id)
                 if posture is not None:
                     await uow.development_postures.add(
                         posture, answer_id=result.answer.id, session_id=session_id,
                         run_id=run_id, now=_now(),
                     )
                 uow.emit(
-                    session_id=session_id, type=EventType.ANSWER_ACCEPTED,
+                    session_id=session_id,
+                    # Under the gate the answer is not the run's yet: the
+                    # gateway emits answer.accepted when it releases it.
+                    type=EventType.ANSWER_CANDIDATE if gated else EventType.ANSWER_ACCEPTED,
                     entity_type="answer", entity_id=result.answer.id, run_id=run_id,
                     payload={"is_fallback": False, "candidate_generation": generation},
                 )
@@ -253,7 +290,7 @@ class SubmitAnswer:
                 raw_draft=raw_draft, outcome="rejected", answer_id=None,
                 violations=result.violations,
             )
-            if generation >= self._settings.max_answer_candidates_per_run:
+            if generation >= cap:
                 fallback = await self._build_fallback(uow, session, session_id, run_id, generation, language)
                 await uow.answers.add(fallback)
                 uow.emit(
@@ -285,7 +322,7 @@ class SubmitAnswer:
             )
             await uow.commit()
 
-        attempts_remaining = self._settings.max_answer_candidates_per_run - generation
+        attempts_remaining = cap - generation
         raise AnswerValidationFailed(
             f"candidate {generation} did not pass validation ({len(result.violations)} "
             f"violation(s), listed in details.violations). Correct exactly those and call "
@@ -316,7 +353,7 @@ class SubmitAnswer:
 
     async def _reject(
         self, uow, session, session_id: str, run_id: str, generation: int,
-        violations: list, language: str, *, raw_draft=None,
+        violations: list, language: str, *, raw_draft=None, cap: int | None = None,
     ) -> SubmitOutcome:
         """The shared rejection path: one more attempt, or the fallback.
 
@@ -330,7 +367,8 @@ class SubmitAnswer:
                 uow, run_id=run_id, session_id=session_id, generation=generation,
                 raw_draft=raw_draft, outcome="rejected", answer_id=None, violations=violations,
             )
-        if generation >= self._settings.max_answer_candidates_per_run:
+        cap = cap if cap is not None else self._settings.max_answer_candidates_per_run
+        if generation >= cap:
             fallback = await self._build_fallback(
                 uow, session, session_id, run_id, generation, language
             )
@@ -363,7 +401,7 @@ class SubmitAnswer:
             },
         )
         await uow.commit()
-        attempts_remaining = self._settings.max_answer_candidates_per_run - generation
+        attempts_remaining = cap - generation
         raise AnswerValidationFailed(
             f"candidate {generation} did not pass validation ({len(violations)} "
             f"violation(s), listed in details.violations). Correct exactly those and call "

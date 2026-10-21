@@ -198,6 +198,8 @@ class UnitOfWork(Protocol):
     answers: AnswerStore
     #: Every draft a run submitted, with what the server made of it (#47).
     answer_drafts: Any
+    #: How an answer was released, under release_gate_v1 (#47).
+    answer_releases: Any
     runtime_bindings: RuntimeBindingStore
     runtime_usage: RuntimeUsageStore
     tool_calls: ToolCallStore

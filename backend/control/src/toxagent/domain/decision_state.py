@@ -423,10 +423,33 @@ CLAIM_VERDICTS = ("supported", "partially_supported", "not_supported", "cannot_j
 def record_claim_review(
     state: DecisionSupportStateV1, review: Mapping[str, Any],
 ) -> DecisionSupportStateV1:
-    """Store the reviewer's outcome (completed, skipped or failed). Once."""
-    if state.stop_reason is not None or state.claim_review.get("status") == "completed":
+    """Store the reviewer's outcome (completed, skipped or failed). Once per
+    answer: under the release gate (#47) a repaired answer is reviewed again,
+    and the earlier round is kept under ``previous``."""
+    if state.stop_reason is not None:
         return state
-    return _next(state, claim_review=dict(review))
+    current = state.claim_review
+    if current.get("status") == "completed":
+        if current.get("answer_id") == review.get("answer_id"):
+            return state
+        previous = [*current.get("previous", ()),
+                    {k: v for k, v in current.items() if k != "previous"}]
+        return _next(state, claim_review={**dict(review), "previous": previous})
+    return _next(state, claim_review={
+        **dict(review),
+        **({"previous": current["previous"]} if current.get("previous") else {}),
+        **({"repair_requested_for": current["repair_requested_for"]}
+           if current.get("repair_requested_for") else {}),
+    })
+
+
+def request_repair(state: DecisionSupportStateV1, *, answer_id: str) -> DecisionSupportStateV1:
+    """#47: the review blocked this candidate and its one repair is open.
+    submit_grounded_answer accepts one more answer for the run while this
+    names the run's current candidate."""
+    if state.stop_reason is not None:
+        return state
+    return _next(state, claim_review={**state.claim_review, "repair_requested_for": answer_id})
 
 
 def _budget_reached(state: DecisionSupportStateV1) -> bool:

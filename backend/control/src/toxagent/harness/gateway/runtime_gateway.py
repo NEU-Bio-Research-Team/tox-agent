@@ -31,13 +31,16 @@ from ..provider import (
 from ..runtime_profiles import RuntimeProfileRegistry
 from ._common import _now, log
 from .case import ScientificCaseMixin
+from .release import ReleaseGateMixin, release_gate_on
 from .completion import CompletionMixin
 from .context import ContextMixin
 from .health import HealthMixin
 from .reports import ReportsMixin
 
 
-class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, CompletionMixin, HealthMixin):
+class AgentRuntimeGateway(
+    ReleaseGateMixin, ScientificCaseMixin, ContextMixin, ReportsMixin, CompletionMixin, HealthMixin,
+):
     """Run one product turn through one pinned runtime provider.
 
     A provider is injected rather than selected by an import side effect.  The
@@ -150,6 +153,7 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
                 ),
             )
         run_status = "failed"
+        commit = self._commit_with_case if keeps_case else self._commit_product_and_complete
         try:
             await self._dispatch(
                 context,
@@ -158,8 +162,12 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
                 deadline=deadline,
                 instructions_hash=instructions_hash,
                 has_product=self._has_answer,
-                commit=self._with_claim_review(
-                    self._commit_with_case if keeps_case else self._commit_product_and_complete
+                # #47: with the release gate the reviewer decides what is
+                # released and may send the answer back once; without it the
+                # reviewer (if on) only observes.
+                commit=(
+                    self._with_release_gate(commit, system_prompt=system_prompt)
+                    if release_gate_on() else self._with_claim_review(commit)
                 ),
             )
             run_status = "completed"

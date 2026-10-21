@@ -274,6 +274,22 @@ FLAGS: tuple[RolloutFlag, ...] = (
         removal_condition="the four #46 user stories run on replay with typed stop reasons, "
                           "and activity serving (#54) replaces replay behind an admitted model",
     ),
+    _flag(
+        "release_gate_v1",
+        "Issue #47 (needs claim_reviewer_v1 and answer_draft_v2): an accepted "
+        "decision_support answer is a candidate until the independent reviewer "
+        "has judged it. A not_supported or partially_supported claim gets one "
+        "repair turn, the repaired candidate is validated and reviewed again, "
+        "and only then is an answer released -- answer.accepted, the answer "
+        "route and the assistant message all wait for release, and the release "
+        "records how it was reached. Off, the reviewer only observes.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on the paired pilot, gated answers have fewer unsupported claims "
+                          "than observed ones at no loss of required-information recall, and "
+                          "the repair turn does not raise deadline failures",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

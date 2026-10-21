@@ -36,6 +36,7 @@ from .repositories import (
     SqlEvidenceRelationStore,
     SqlEvidenceTextStore,
     SqlAnswerDraftStore,
+    SqlAnswerReleaseStore,
     SqlScreeningAttachmentStore,
     SqlExplanationCheckpointStore,
     SqlInvestigationStore,
@@ -126,6 +127,7 @@ class SqlUnitOfWork:
         self.model_connections = SqlModelConnectionStore(conn)
         self.answers = SqlAnswerStore(conn)
         self.answer_drafts = SqlAnswerDraftStore(conn)
+        self.answer_releases = SqlAnswerReleaseStore(conn)
         self.runtime_bindings = SqlRuntimeBindingStore(conn)
         self.runtime_usage = SqlRuntimeUsageStore(conn)
         self.tool_calls = SqlToolCallStore(conn)

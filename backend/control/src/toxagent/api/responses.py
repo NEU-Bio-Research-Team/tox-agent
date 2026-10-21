@@ -409,6 +409,24 @@ class RecommendedNextStep(_Response):
     basis_claim_ids: list[str]
 
 
+class AnswerReleaseView(_Response):
+    """How the answer was released under the release gate (#47). Only
+    ``reviewed`` and ``repaired_and_reviewed`` mean the review passed."""
+
+    answer_id: str
+    outcome: Literal[
+        "reviewed", "repaired_and_reviewed", "released_with_unresolved_review", "ungated",
+        "fallback",
+    ]
+    semantically_passed: bool
+    reviews: list[dict[str, Any]]
+    repair: dict[str, Any] | None
+    unresolved_claim_ids: list[str]
+    ungated_reason: str | None
+    replaced_answer_id: str | None
+    released_at: str
+
+
 class GroundedAnswer(_Response):
     schema_version: str
     answer_id: str
@@ -421,6 +439,8 @@ class GroundedAnswer(_Response):
     is_fallback: bool
     content_sha256: str
     created_at: str
+    #: Present when the answer went through the release gate.
+    release: AnswerReleaseView | None = None
 
 
 class AnswerDraft(_Response):
@@ -431,7 +451,8 @@ class AnswerDraft(_Response):
     generation: int
     schema_version: str
     payload: dict[str, Any]
-    outcome: Literal["accepted", "rejected"]
+    #: ``candidate`` under the release gate (#47): accepted, awaiting review.
+    outcome: Literal["accepted", "rejected", "candidate"]
     answer_id: str | None
     violations: list[dict[str, Any]]
     created_at: str
