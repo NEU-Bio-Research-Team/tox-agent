@@ -32,6 +32,9 @@ MAX_IDENTICAL_CALLS = 2
 #: one number.
 DECISION_SUPPORT_MAX_SEARCHES_PER_RUN = 4
 DECISION_SUPPORT_MAX_EVIDENCE_READS_PER_RUN = 8
+#: read_evidence_text calls (pages of a document's text), #43. Separate from
+#: record reads: one paper's results and its table are two pages, not two papers.
+DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN = 4
 
 SCHEMA_VERSION = "effective-run-budget-v1"
 
@@ -58,6 +61,8 @@ class EffectiveRunBudgetV1:
     max_answer_candidates: int | None
     #: Correction turns a refused submission may spend.
     max_correction_turns: int | None
+    #: Pages of full text (read_evidence_text); ``None`` where not bounded.
+    max_full_text_reads: int | None = None
     schema_version: str = SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
@@ -118,6 +123,9 @@ def effective_run_budget(
         max_identical_calls=MAX_IDENTICAL_CALLS,
         max_answer_candidates=policy.max_answer_candidates_per_run,
         max_correction_turns=max(0, policy.max_answer_candidates_per_run - 1),
+        max_full_text_reads=(
+            DECISION_SUPPORT_MAX_FULL_TEXT_READS_PER_RUN if decision_support else None
+        ),
     )
 
 

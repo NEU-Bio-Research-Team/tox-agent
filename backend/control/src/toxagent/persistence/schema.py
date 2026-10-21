@@ -356,6 +356,39 @@ evidence_records = Table(
     UniqueConstraint("session_id", "dedupe_key", name="uq_evidence_dedupe"),
 )
 
+# 0022 (#43): what was read of a record's full text. One row per record and
+# only a definitive outcome: read, or refused with a reason. A provider outage
+# is not stored, so a later call asks again.
+evidence_full_texts = Table(
+    "evidence_full_texts", metadata,
+    Column("evidence_id", _ID, ForeignKey("evidence_records.id", ondelete="CASCADE"),
+           primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("run_id", _ID, ForeignKey("runs.id"), nullable=False),
+    Column("state", String(32), nullable=False),
+    Column("full_text_id", String(64)),
+    Column("reason", Text),
+    Column("section_titles", Json, nullable=False),
+    Column("omitted", Json, nullable=False),
+    Column("truncated", Boolean, nullable=False),
+    Column("document_sha256", String(64), nullable=False),
+    Column("fetched_at", _TS, nullable=False),
+)
+
+evidence_passages = Table(
+    "evidence_passages", metadata,
+    Column("evidence_id", _ID, ForeignKey("evidence_full_texts.evidence_id", ondelete="CASCADE"),
+           primary_key=True),
+    Column("locator", String(80), primary_key=True),
+    Column("position", Integer, nullable=False),
+    Column("section", Text, nullable=False),
+    Column("kind", String(24), nullable=False),
+    Column("text", Text, nullable=False),
+    Column("truncated", Boolean, nullable=False),
+    Column("cells", Json, nullable=False),
+    Index("ix_evidence_passages_order", "evidence_id", "position"),
+)
+
 answers = Table(
     "answers", metadata,
     Column("id", _ID, primary_key=True),
@@ -399,6 +432,16 @@ claim_sources = Table(
     "claim_sources", metadata,
     Column("claim_id", _ID, ForeignKey("claims.id", ondelete="CASCADE"), primary_key=True),
     Column("evidence_id", _ID, ForeignKey("evidence_records.id"), primary_key=True),
+)
+
+# 0022 (#43): the passages a claim quotes, by locator. A span's record is also
+# one of the claim's claim_sources; the locator says where in it.
+claim_evidence_spans = Table(
+    "claim_evidence_spans", metadata,
+    Column("claim_id", _ID, ForeignKey("claims.id", ondelete="CASCADE"), primary_key=True),
+    Column("evidence_id", _ID, ForeignKey("evidence_records.id"), primary_key=True),
+    Column("locator", String(80), primary_key=True),
+    Column("position", Integer, nullable=False),
 )
 
 attachments = Table(
@@ -783,6 +826,8 @@ event_outbox = Table(
 #: Written once, never updated. Repositories expose no update path for these.
 IMMUTABLE_TABLES = frozenset(
     {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox",
+     # What a document said when it was read, and what a claim quoted from it.
+     "evidence_full_texts", "evidence_passages", "claim_evidence_spans",
      "case_revisions", "investigation_plans", "kernel_transitions",
      # A report is immutable for the same reason an answer is: it is cited,
      # downloaded and audited. A changed report needs a new version row, not an

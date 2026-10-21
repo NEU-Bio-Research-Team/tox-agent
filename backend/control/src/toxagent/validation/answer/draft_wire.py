@@ -320,3 +320,58 @@ class GroundedAnswerDraftV2(_Wire):
                     f"{unknown}"
                 )
         return self
+
+
+#: Locators as research/fulltext.py mints them (evals/investigation/
+#: case_validator.py checks gold spans against the same grammar).
+EVIDENCE_LOCATOR_PATTERN = (
+    r"^(abstract|sec:\d+/p:\d+|body/p:\d+|table-wrap:\d+(/row:\d+(/cell:\d+)?)?)$"
+)
+
+
+class EvidenceSpanV2(_Wire):
+    """One passage of a cited record, named by the locator read_evidence_text
+    returned. The server reads the passage itself; a number the claim's prose
+    quotes from it is checked against that text."""
+
+    evidence_id: str
+    locator: str = Field(max_length=80, pattern=EVIDENCE_LOCATOR_PATTERN)
+
+    @field_validator("evidence_id")
+    @classmethod
+    def _evidence_id_shape(cls, value: str) -> str:
+        if not ID_PATTERN.match(value):
+            raise ValueError(f"evidence_id {value!r} is not a ToxAgent identifier")
+        return value
+
+
+class ClaimCandidateV2Spans(ClaimCandidateV2):
+    """A v2 claim that may quote passages (flag evidence_full_text_v1)."""
+
+    evidence_spans: list[EvidenceSpanV2] = Field(
+        default_factory=list, max_length=8,
+        description=(
+            "Passages this claim quotes, each an evidence_id from citation_ids and a "
+            "locator read_evidence_text returned for it. A number taken from a paper's "
+            "text or table may appear in answer_markdown only through a span that "
+            "contains it."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _spans_are_of_cited_records(self) -> "ClaimCandidateV2Spans":
+        uncited = sorted({s.evidence_id for s in self.evidence_spans} - set(self.citation_ids))
+        if uncited:
+            raise ValueError(
+                f"claim {self.local_ref!r} quotes passages of records it does not cite: "
+                f"{uncited}; add them to citation_ids"
+            )
+        return self
+
+
+class GroundedAnswerDraftV2Spans(GroundedAnswerDraftV2):
+    """The v2 draft whose claims may quote passages (flag evidence_full_text_v1).
+    A subclass, so every check on GroundedAnswerDraftV2 still applies."""
+
+    claims: list[ClaimCandidateV2Spans] = Field(default_factory=list, max_length=64)
+

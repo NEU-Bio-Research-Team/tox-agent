@@ -67,3 +67,60 @@ class StubResearchProvider:
             {"query": query, "source_types": source_types, "date_from": date_from, "limit": limit}
         )
         return list(self.hits)[:limit]
+
+
+#: A results table a question can only be answered from: the abstract gives no
+#: number, the table gives the IC50.
+POTENCY_JATS = """<article>
+  <front><article-meta><abstract><p>We screened a series for hERG blockade.</p></abstract>
+  </article-meta></front>
+  <body>
+    <sec><title>Results</title>
+      <p>Potencies are summarised in Table 1.</p>
+      <table-wrap><label>Table 1</label><caption><p>hERG potency by patch clamp</p></caption>
+        <table>
+          <thead><tr><th>Compound</th><th>hERG IC50 (uM)</th></tr></thead>
+          <tbody>
+            <tr><td>compound 4</td><td>2.75</td></tr>
+            <tr><td>compound 7</td><td>0.38</td></tr>
+          </tbody>
+        </table>
+      </table-wrap>
+    </sec>
+  </body>
+</article>"""
+
+
+class FullTextStubProvider(StubResearchProvider):
+    """A stub that can also serve full text (``FullTextCapableProvider``).
+
+    ``documents`` maps a provider record id to JATS; a record not in it answers
+    the way Europe PMC does for a record with no deposited text. Set
+    ``outage`` to answer as a provider that cannot be reached."""
+
+    def __init__(self, *, hits: Sequence[SearchHit] = (ACCEPTED_HIT,),
+                 documents: dict[str, str] | None = None) -> None:
+        super().__init__(hits=hits)
+        self.documents = dict(documents or {})
+        self.outage = False
+        self.fetches: list[str] = []
+
+    async def fetch_full_text(self, *, provider_record_id: str, identifier=None):
+        from toxagent.research.fulltext import parse_jats
+        from toxagent.research.interfaces import FullTextFetch
+
+        self.fetches.append(provider_record_id)
+        if self.outage:
+            return FullTextFetch(retrieved=False, reason="provider unreachable", transient=True)
+        xml = self.documents.get(provider_record_id)
+        if xml is None:
+            return FullTextFetch(
+                retrieved=False, reason="the record names no PMCID, and Europe PMC serves "
+                                        "full text only by PMCID",
+            )
+        document = parse_jats(xml)
+        return FullTextFetch(
+            retrieved=True, passages=document.passages,
+            section_titles=document.section_titles, truncated=document.truncated,
+            omitted=dict(document.omitted), full_text_id="PMC1111111",
+        )

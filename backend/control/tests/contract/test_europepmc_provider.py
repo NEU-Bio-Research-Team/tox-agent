@@ -445,3 +445,14 @@ async def test_a_provider_outage_during_a_full_text_fetch_is_reported_not_raised
     )
     assert not fetch.retrieved
     assert fetch.reason
+    # an outage says nothing about the document, so it is not a stored failure
+    assert fetch.transient
+
+
+async def test_a_definitive_answer_about_the_document_is_not_transient():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, text="not found")
+
+    fetch = await _mock(handler).fetch_full_text(provider_record_id="PMC:PMC1")
+    assert not fetch.retrieved
+    assert not fetch.transient

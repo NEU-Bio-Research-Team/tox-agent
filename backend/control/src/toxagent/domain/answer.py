@@ -44,6 +44,8 @@ class LimitationCode(str, Enum):
     ATTRIBUTION_NOT_CAUSALITY = "attribution_not_causality"
     ENDPOINT_UNAVAILABLE = "endpoint_unavailable"
     EVIDENCE_SCOPE_LIMITED = "evidence_scope_limited"
+    #: #43: a cited article was read from its abstract only.
+    EVIDENCE_FULL_TEXT_NOT_READ = "evidence_full_text_not_read"
     SCREENING_NOT_SAFETY_ASSESSMENT = "screening_not_safety_assessment"
     # The activity workflow's artifacts (application/activity/projections.py).
     #: L7: a marginal interval is not a per-candidate guarantee.
@@ -72,9 +74,19 @@ class Claim:
     transform: str = "identity"
     citation_ids: tuple[str, ...] = ()
     input_claim_ids: tuple[str, ...] = ()
+    #: (evidence_id, locator): the passages of cited records this claim
+    #: quotes (#43). Every span's record is one of ``citation_ids``.
+    evidence_spans: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         require_id(self.claim_id, CLAIM, field="claim.claim_id")
+        for evidence_id, locator in self.evidence_spans:
+            if evidence_id not in self.citation_ids:
+                raise ValueError(
+                    f"claim.evidence_spans names {evidence_id}, which the claim does not cite"
+                )
+            if not locator:
+                raise ValueError("claim.evidence_spans[] needs a locator")
         if self.observation_id is not None:
             require_id(self.observation_id, OBSERVATION, field="claim.observation_id")
         for citation in self.citation_ids:
@@ -115,6 +127,12 @@ class Claim:
             out["rendered_value"] = self.rendered_value
         if self.input_claim_ids:
             out["input_claim_ids"] = list(self.input_claim_ids)
+        # Only when present, so an answer with no spans hashes as it always did.
+        if self.evidence_spans:
+            out["evidence_spans"] = [
+                {"evidence_id": evidence_id, "locator": locator}
+                for evidence_id, locator in self.evidence_spans
+            ]
         return out
 
 

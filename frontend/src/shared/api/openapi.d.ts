@@ -1581,6 +1581,8 @@ export interface components {
             citation_ids: string[];
             /** Claim Id */
             claim_id: string;
+            /** Evidence Spans */
+            evidence_spans?: components["schemas"]["EvidenceSpan"][];
             /** Field Path */
             field_path?: string;
             /** Input Claim Ids */
@@ -1898,6 +1900,32 @@ export interface components {
             /** Latest Sequence */
             latest_sequence: number;
         };
+        /**
+         * EvidenceFullTextView
+         * @description What was read of a record's full text (#43). Absent when nothing was
+         *     asked; ``normalized_facts.text_access`` then says what the search knew.
+         */
+        EvidenceFullTextView: {
+            /** Fetched At */
+            fetched_at: string;
+            /** Full Text Id */
+            full_text_id: string | null;
+            /** Omitted */
+            omitted: {
+                [key: string]: number;
+            };
+            /** Passage Count */
+            passage_count: number;
+            /** Reason */
+            reason: string | null;
+            /** Run Id */
+            run_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "full_text_retrieved" | "access_failed";
+        };
         /** EvidenceListResponse */
         EvidenceListResponse: {
             /** Count */
@@ -1921,6 +1949,7 @@ export interface components {
             content_sha256: string;
             /** Evidence Id */
             evidence_id: string;
+            full_text?: components["schemas"]["EvidenceFullTextView"] | null;
             /** Identifier */
             identifier: {
                 [key: string]: string | null;
@@ -1990,6 +2019,13 @@ export interface components {
         EvidenceRelationList: {
             /** Evidence Relations */
             evidence_relations: components["schemas"]["EvidenceRelationAssessment"][];
+        };
+        /** EvidenceSpan */
+        EvidenceSpan: {
+            /** Evidence Id */
+            evidence_id: string;
+            /** Locator */
+            locator: string;
         };
         /**
          * ExplainRequest
@@ -2154,7 +2190,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "uncalibrated_probability" | "applicability_is_rule_based" | "attribution_not_causality" | "endpoint_unavailable" | "evidence_scope_limited" | "screening_not_safety_assessment" | "activity_interval_is_marginal_coverage" | "pic50_not_therapeutic_efficacy" | "activity_model_not_admitted" | "policy_decision_not_a_measurement" | "toxicity_not_run_not_negative";
+            code: "uncalibrated_probability" | "applicability_is_rule_based" | "attribution_not_causality" | "endpoint_unavailable" | "evidence_scope_limited" | "screening_not_safety_assessment" | "evidence_full_text_not_read" | "activity_interval_is_marginal_coverage" | "pic50_not_therapeutic_efficacy" | "activity_model_not_admitted" | "policy_decision_not_a_measurement" | "toxicity_not_run_not_negative";
             /** Text */
             text: string;
         };

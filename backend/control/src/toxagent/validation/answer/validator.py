@@ -72,6 +72,7 @@ def validate_candidate(
     now: datetime,
     read_evidence_ids: frozenset[str] = frozenset(),
     claimed_values: tuple[float, ...] = (),
+    unread_article_ids: frozenset[str] = frozenset(),
 ) -> AnswerValidationResult:
     """``claimed_values``: see ``coverage.validate_markdown_numeric_coverage``;
     only the grounded-answer v2 path passes any."""
@@ -152,7 +153,8 @@ def validate_candidate(
         violations += validate_recommendation_basis(index, step.basis_claim_ids, known_claim_ids)
 
     violations += _validate_limitations(
-        candidate, observations_by_id=observations_by_id
+        candidate, observations_by_id=observations_by_id,
+        unread_article_ids=unread_article_ids,
     )
 
     if violations:
@@ -170,8 +172,11 @@ def validate_candidate(
 
 
 def _validate_limitations(
-    candidate: GroundedAnswerCandidate, *, observations_by_id: Mapping[str, Observation]
+    candidate: GroundedAnswerCandidate, *, observations_by_id: Mapping[str, Observation],
+    unread_article_ids: frozenset[str] = frozenset(),
 ) -> list[Violation]:
+    """``unread_article_ids``: cited articles whose full text was not read, as
+    the caller established it (#43); empty where full text cannot be read."""
     violations: list[Violation] = []
     for index, limitation in enumerate(candidate.limitations):
         if limitation.code not in _KNOWN_LIMITATION_CODES:
@@ -193,6 +198,9 @@ def _validate_limitations(
         candidate.claims, observation_limitations=observation_limitations,
         observation_kinds={obs_id: obs.kind.value for obs_id, obs in observations_by_id.items()},
         cited_evidence=cited_evidence, has_recommendation=has_recommendation,
+        cited_article_unread=any(
+            e in unread_article_ids for claim in candidate.claims for e in claim.citation_ids
+        ),
     )
     declared = {l.code for l in candidate.limitations}
     missing = required - declared
@@ -222,6 +230,7 @@ def _build_answer(
             source_value=c.source_value, rendered_value=c.rendered_value,
             transform=c.transform, citation_ids=tuple(c.citation_ids),
             input_claim_ids=tuple(c.input_claim_ids),
+            evidence_spans=tuple(tuple(span) for span in c.evidence_spans),
         )
         for c in candidate.claims
     )

@@ -361,7 +361,12 @@ def claim_to_row(claim: Claim, answer_id: str, position: int) -> dict[str, Any]:
     }
 
 
-def row_to_claim(row: Mapping[str, Any], citation_ids: tuple[str, ...] = ()) -> Claim:
+def row_to_claim(
+    row: Mapping[str, Any],
+    citation_ids: tuple[str, ...] = (),
+    *,
+    evidence_spans: tuple[tuple[str, str], ...] = (),
+) -> Claim:
     return Claim(
         claim_id=row["id"],
         kind=ClaimKind(row["kind"]),
@@ -373,6 +378,7 @@ def row_to_claim(row: Mapping[str, Any], citation_ids: tuple[str, ...] = ()) -> 
         transform=row["transform"],
         citation_ids=citation_ids,
         input_claim_ids=tuple(row["input_claim_ids"]),
+        evidence_spans=evidence_spans,
     )
 
 

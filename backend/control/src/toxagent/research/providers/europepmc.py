@@ -239,7 +239,9 @@ class EuropePmcProvider:
         try:
             response = await self._request("GET", f"/{pmcid}/fullTextXML", not_found_ok=True)
         except (EvidenceUnavailable, ProviderRateLimited) as exc:
-            return FullTextFetch(retrieved=False, reason=str(exc), full_text_id=pmcid)
+            return FullTextFetch(
+                retrieved=False, reason=str(exc), full_text_id=pmcid, transient=True,
+            )
         if response.status_code == 404:
             return FullTextFetch(
                 retrieved=False,

@@ -185,6 +185,10 @@ def _resolve_claim(
             transform=claim.transform,
             citation_ids=list(claim.citation_ids),
             input_claim_ids=[ids_by_ref[ref] for ref in claim.input_local_refs],
+            evidence_spans=[
+                (span.evidence_id, span.locator)
+                for span in getattr(claim, "evidence_spans", None) or ()
+            ],
         ),
         [],
     )

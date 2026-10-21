@@ -209,6 +209,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-14"
     },
+    "evidence_full_text_v1": {
+      "default": false,
+      "description": "Issue #43: register read_evidence_text in evidence_research and decision_support when the research provider can serve full text. It fetches an accepted record's text once per session, stores its located passages and the access outcome, and returns a selected page of them. A v2 claim may then cite a passage (evidence_spans) and quote numbers from it, and an answer citing an article not read in full owes evidence_full_text_not_read. Off, the tool is absent, claims cannot cite spans and the limitation vocabulary in use is unchanged.",
+      "gates_tools": [
+        "read_evidence_text"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "evidence_pipeline_v2": {
       "default": false,
       "description": "Search results become candidates with an explicit relevance assessment; only direct/contextual assessments become citable durable records. Off, an accepted provider payload is a record.",
@@ -494,6 +503,7 @@
         "get_chembl_activities": "scientific_primitives_v1",
         "get_scientific_case": "scientific_case_v1",
         "propose_skill_draft": "skill_drafts_v1",
+        "read_evidence_text": "evidence_full_text_v1",
         "read_scientific_skill": "scientific_skills_v1",
         "read_skill_reference": "scientific_skills_v1",
         "record_decision_plan": "decision_state_plan_tool",
@@ -507,7 +517,9 @@
         "search_toxicology_evidence",
         "submit_grounded_answer"
       ],
-      "flag_gated": {}
+      "flag_gated": {
+        "read_evidence_text": "evidence_full_text_v1"
+      }
     },
     "report_build": {
       "default": [

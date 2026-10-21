@@ -30,12 +30,15 @@ from ...domain.evidence_relation import (
 )
 from ...domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ...domain.observation import Observation
+from ...platform.flags import is_enabled
 from ...research.measurement import is_measured_value
+from ..investigation import evidence_text
 from ...validation.answer.validator import AnswerValidationResult, validate_candidate
 from ...validation.fallback import build_fallback_answer
 from ...validation.prohibited_claims import validate_posture_wording
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
 from ...validation.answer.claim_resolver import resolve_draft
+from ...validation.answer.coverage import passage_values
 from ...validation.answer.draft_wire import (
     DevelopmentPostureInputV2,
     EvidenceRelationInputV2,
@@ -149,6 +152,7 @@ class SubmitAnswer:
 
             issued_ids: Mapping[str, str] = {}
             claimed_values: tuple[float, ...] = ()
+            span_violations: list[Violation] = []
             if isinstance(candidate, GroundedAnswerDraftV2):
                 # The server issues the identifiers and reads the values before
                 # anything is validated, so every check below runs against
@@ -166,6 +170,10 @@ class SubmitAnswer:
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
                 claimed_values = resolved.claimed_values
+                span_values, span_violations = await self._resolve_evidence_spans(
+                    uow, session_id=session_id, run_id=run_id, candidate=candidate,
+                )
+                claimed_values = (*claimed_values, *span_values)
 
             result = validate_candidate(
                 candidate,
@@ -173,8 +181,15 @@ class SubmitAnswer:
                 observations_by_id=observations_by_id, evidence_by_id=evidence_by_id,
                 language=language, now=_now(), read_evidence_ids=read_evidence_ids,
                 claimed_values=claimed_values,
+                unread_article_ids=await self._unread_articles(
+                    uow, session_id=session_id, evidence_by_id=evidence_by_id,
+                ),
             )
             result = await self._reject_claim_id_collisions(uow, candidate, result)
+            if span_violations:
+                result = replace(
+                    result, violations=(*result.violations, *span_violations), answer=None
+                )
 
             resolved_relations: list[EvidenceRelationAssessment] = []
             if result.ok and proposed_relations:
@@ -365,11 +380,81 @@ class SubmitAnswer:
         read: set[str] = set()
         for call in calls:
             # get_chembl_activities (W9-13) returns each record whole, so a
-            # record it returned has been read, not merely listed.
-            if call["tool_name"] in ("get_evidence_record", "get_chembl_activities") \
-                    and call["status"] == "completed":
+            # record it returned has been read, not merely listed; a record
+            # whose full text was read (#43) has been read too.
+            if call["tool_name"] in (
+                "get_evidence_record", "get_chembl_activities", "read_evidence_text",
+            ) and call["status"] == "completed":
                 read.update(call.get("observation_ids") or ())
         return frozenset(read)
+
+    async def _unread_articles(
+        self, uow, *, session_id: str, evidence_by_id: Mapping[str, EvidenceRecord],
+    ) -> frozenset[str]:
+        """#43: cited articles whose full text was not read. Only where it can
+        be read at all (evidence_full_text_v1); otherwise the default
+        evidence_scope_limited wording already says no full text was read."""
+        if not is_enabled("evidence_full_text_v1"):
+            return frozenset()
+        unread: set[str] = set()
+        for evidence_id, record in evidence_by_id.items():
+            full_text = await uow.evidence_text.get(evidence_id, session_id=session_id)
+            if evidence_text.text_not_read(record, full_text):
+                unread.add(evidence_id)
+        return frozenset(unread)
+
+    async def _resolve_evidence_spans(
+        self, uow, *, session_id: str, run_id: str, candidate: GroundedAnswerCandidate,
+    ) -> tuple[tuple[float, ...], list[Violation]]:
+        """#43: the passages claims quote, checked against the text the server
+        holds. A span is accepted when this run read that record's text with
+        read_evidence_text and the locator names a passage of it; the numbers
+        in an accepted passage are then values the prose may quote."""
+        spans = [
+            (index, claim, evidence_id, locator)
+            for index, claim in enumerate(candidate.claims)
+            for evidence_id, locator in claim.evidence_spans
+        ]
+        if not spans:
+            return (), []
+        text_read: set[str] = set()
+        for call in await uow.tool_calls.list_for_run(run_id):
+            if call["tool_name"] == "read_evidence_text" and call["status"] == "completed":
+                text_read.update(call.get("observation_ids") or ())
+        values: list[float] = []
+        violations: list[Violation] = []
+        texts: dict[str, object] = {}
+        for index, claim, evidence_id, locator in spans:
+            path = f"claims[{index}].evidence_spans"
+            if evidence_id not in texts:
+                texts[evidence_id] = await uow.evidence_text.get(
+                    evidence_id, session_id=session_id
+                )
+            full_text = texts[evidence_id]
+            if evidence_id not in text_read or full_text is None or not full_text.was_read:
+                violations.append(
+                    Violation(
+                        "evidence_span_not_read",
+                        f"claim {claim.claim_id} quotes {evidence_id} at {locator!r}, but this "
+                        "run did not read that record's text with read_evidence_text; read it "
+                        "first, or cite the record without a span",
+                        path=path, actual=locator,
+                    )
+                )
+                continue
+            passage = full_text.passage(locator)
+            if passage is None:
+                violations.append(
+                    Violation(
+                        "evidence_span_locator_unknown",
+                        f"{evidence_id} has no passage at {locator!r}; use a locator "
+                        "read_evidence_text returned",
+                        path=path, actual=locator,
+                    )
+                )
+                continue
+            values.extend(passage_values(passage.text))
+        return tuple(values), violations
 
     async def _resolve_evidence_relations(
         self, uow, *, session_id: str, run_id: str, proposed: list[EvidenceRelationInputV2],

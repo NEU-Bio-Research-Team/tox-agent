@@ -241,6 +241,24 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "on the skill's positive cases with no rise in unsupported claims, "
                           "false reassurance or false triggers on its negative cases",
     ),
+    _flag(
+        "evidence_full_text_v1",
+        "Issue #43: register read_evidence_text in evidence_research and "
+        "decision_support when the research provider can serve full text. It "
+        "fetches an accepted record's text once per session, stores its located "
+        "passages and the access outcome, and returns a selected page of them. "
+        "A v2 claim may then cite a passage (evidence_spans) and quote numbers "
+        "from it, and an answer citing an article not read in full owes "
+        "evidence_full_text_not_read. Off, the tool is absent, claims cannot "
+        "cite spans and the limitation vocabulary in use is unchanged.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on cases whose answer is in a paper's body or tables, the paired "
+                          "run solves them with full text and states access_failed / "
+                          "abstract_only otherwise, with no rise in unsupported claims or "
+                          "first-draft refusals",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

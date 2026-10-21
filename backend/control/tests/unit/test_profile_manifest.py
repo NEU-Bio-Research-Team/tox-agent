@@ -77,7 +77,8 @@ def test_every_manifest_tool_is_one_the_code_can_register(monkeypatch):
         monkeypatch.setenv(f"TOXAGENT_FLAG_{flag_name.upper()}", "1")
     registry = build_registry(
         database=None, predictor=None, create_analysis=None,
-        research_provider=SimpleNamespace(name="stub"),
+        # A provider that can serve full text, so read_evidence_text registers.
+        research_provider=SimpleNamespace(name="stub", fetch_full_text=lambda **_: None),
         compound_provider=SimpleNamespace(name="stub"),
         chembl_provider=SimpleNamespace(name="stub"),
     )

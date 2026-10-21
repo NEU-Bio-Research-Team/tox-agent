@@ -1456,6 +1456,13 @@
             "title": "Claim Id",
             "type": "string"
           },
+          "evidence_spans": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceSpan"
+            },
+            "title": "Evidence Spans",
+            "type": "array"
+          },
           "field_path": {
             "title": "Field Path",
             "type": "string"
@@ -2295,6 +2302,72 @@
         "title": "EventListResponse",
         "type": "object"
       },
+      "EvidenceFullTextView": {
+        "additionalProperties": false,
+        "description": "What was read of a record's full text (#43). Absent when nothing was\nasked; ``normalized_facts.text_access`` then says what the search knew.",
+        "properties": {
+          "fetched_at": {
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "full_text_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Text Id"
+          },
+          "omitted": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Omitted",
+            "type": "object"
+          },
+          "passage_count": {
+            "title": "Passage Count",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "full_text_retrieved",
+              "access_failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "full_text_id",
+          "passage_count",
+          "omitted",
+          "run_id",
+          "fetched_at"
+        ],
+        "title": "EvidenceFullTextView",
+        "type": "object"
+      },
       "EvidenceListResponse": {
         "additionalProperties": false,
         "properties": {
@@ -2357,6 +2430,16 @@
           "evidence_id": {
             "title": "Evidence Id",
             "type": "string"
+          },
+          "full_text": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceFullTextView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "identifier": {
             "additionalProperties": {
@@ -2545,6 +2628,25 @@
           "evidence_relations"
         ],
         "title": "EvidenceRelationList",
+        "type": "object"
+      },
+      "EvidenceSpan": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "locator": {
+            "title": "Locator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "locator"
+        ],
+        "title": "EvidenceSpan",
         "type": "object"
       },
       "ExplainRequest": {
@@ -2946,6 +3048,7 @@
               "endpoint_unavailable",
               "evidence_scope_limited",
               "screening_not_safety_assessment",
+              "evidence_full_text_not_read",
               "activity_interval_is_marginal_coverage",
               "pic50_not_therapeutic_efficacy",
               "activity_model_not_admitted",

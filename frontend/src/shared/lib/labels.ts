@@ -45,6 +45,8 @@ export const LIMITATION_LABEL_VI: Record<LimitationCode, string> = {
     'Evidence được trích dẫn có phạm vi giới hạn — không phải tổng quan toàn diện của y văn.',
   screening_not_safety_assessment:
     'Đây là kết quả sàng lọc tính toán, không phải đánh giá an toàn hay khuyến nghị lâm sàng.',
+  evidence_full_text_not_read:
+    'Ít nhất một bài báo được trích dẫn chỉ được đọc phần tóm tắt; các kết quả chỉ có trong thân bài hoặc bảng chưa được kiểm tra.',
   activity_interval_is_marginal_coverage:
     'Khoảng activity bao phủ tỷ lệ đã nêu tính trên nhiều ứng viên, không phải bảo đảm cho riêng ứng viên này.',
   pic50_not_therapeutic_efficacy:

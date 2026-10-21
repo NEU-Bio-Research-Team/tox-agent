@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from ..domain.message import Message, PartType
+from ..platform.flags import is_enabled
 
 #: Plan section 2.2. Restated to every runtime turn because these are the
 #: invariants a model must not violate, not a policy the validator alone should
@@ -196,6 +197,21 @@ question is really about a specific compound's predicted toxicity, say that the 
 researcher can add the molecule for a prediction.
 """
 
+#: #43 (flag evidence_full_text_v1): reading a paper beyond its abstract, and
+#: the limitation an answer owes when it did not. Stated only with the tool, so
+#: the prompt of a deployment without it is unchanged.
+FULL_TEXT_POLICY = """\
+read_evidence_text reads an accepted paper's full text as located passages: \
+section paragraphs, and tables row by row. Use it when the question turns on a \
+value, a condition or a table the abstract does not give, and go to the part \
+you need (kinds=["table_row"], or a section such as "Results") rather than \
+paging through the whole paper. Quote a passage by naming it in the claim's \
+evidence_spans. If text_access is not full_text_retrieved, that paper was read \
+from its abstract only: say so, and do not report it as an absence of evidence.
+- Cited an article whose full text you did not read -> \
+evidence_full_text_not_read.
+"""
+
 #: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
 #: v2 has no source_value or rendered_value: the server reads and renders each
 #: value. Stating v1's rules under v2 told the model to write numbers it could
@@ -349,6 +365,12 @@ def build_system_prompt(
         ANSWER_FORMAT_V2 if answer_schema == "grounded-answer-v2" else ANSWER_FORMAT,
         REQUIRED_LIMITATIONS_GUIDE,
     ]
+    if (
+        capability_profile in ("decision_support", "evidence_research")
+        and answer_schema == "grounded-answer-v2"
+        and is_enabled("evidence_full_text_v1")
+    ):
+        sections.append(FULL_TEXT_POLICY)
     if capability_profile == "decision_support":
         sections.append(DECISION_SUPPORT_POLICY)
         if subjectless:

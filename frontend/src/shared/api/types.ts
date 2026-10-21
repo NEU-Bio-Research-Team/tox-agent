@@ -311,6 +311,7 @@ export type LimitationCode =
   | 'endpoint_unavailable'
   | 'evidence_scope_limited'
   | 'screening_not_safety_assessment'
+  | 'evidence_full_text_not_read'
   | 'activity_interval_is_marginal_coverage'
   | 'pic50_not_therapeutic_efficacy'
   | 'activity_model_not_admitted'

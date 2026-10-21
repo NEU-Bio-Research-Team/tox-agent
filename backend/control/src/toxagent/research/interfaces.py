@@ -58,6 +58,10 @@ class FullTextFetch:
     truncated: bool = False
     #: What the parser's caps left out, by passage kind (``research/fulltext``).
     omitted: Mapping[str, int] = field(default_factory=dict)
+    #: The provider could not be asked (outage, rate limit, open circuit).
+    #: That says nothing about the document, so it is not stored as an
+    #: access failure; a later call asks again.
+    transient: bool = False
     #: The identifier the text was asked for under, which need not be the
     #: record's own: Europe PMC serves text by PMCID, and a MEDLINE hit names
     #: its PMCID separately. ``None`` when no request was made.

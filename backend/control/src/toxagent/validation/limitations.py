@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any, Final, Iterable, Mapping
 
 from ..domain.answer import ClaimKind, LimitationCode
+from ..platform.flags import is_enabled
 
 CODE = LimitationCode
 
@@ -64,6 +65,18 @@ TEXT: Final[Mapping[LimitationCode, Mapping[str, str]]] = {
         "vi": (
             "Tìm kiếm tài liệu chỉ qua một provider và các bản ghi provider trả về; "
             "không đọc toàn văn. Việc không tìm thấy bằng chứng không phải bằng chứng phủ định."
+        ),
+    },
+    CODE.EVIDENCE_FULL_TEXT_NOT_READ: {
+        "en": (
+            "At least one cited paper was read from its abstract only: its full text was "
+            "unavailable, could not be retrieved, or was not read. Results reported only in "
+            "its body or tables were not checked."
+        ),
+        "vi": (
+            "Ít nhất một bài báo được trích dẫn chỉ được đọc phần tóm tắt: toàn văn không có "
+            "sẵn, không truy cập được hoặc chưa được đọc. Các kết quả chỉ có trong thân bài "
+            "hoặc bảng chưa được kiểm tra."
         ),
     },
     CODE.SCREENING_NOT_SAFETY_ASSESSMENT: {
@@ -129,8 +142,27 @@ TEXT: Final[Mapping[LimitationCode, Mapping[str, str]]] = {
 }
 
 
+#: evidence_scope_limited's wording where full text can be read (#43). The
+#: default wording says full texts were not read, which is true of every answer
+#: when no tool can read one and false of an answer that read one; with the
+#: tool, that half of the statement is evidence_full_text_not_read's, owed
+#: exactly when it is true.
+_SCOPE_WITH_FULL_TEXT: Final[Mapping[str, str]] = {
+    "en": (
+        "The literature search covered one provider and the records it returned. "
+        "Absence of evidence here is not evidence of absence."
+    ),
+    "vi": (
+        "Tìm kiếm tài liệu chỉ qua một provider và các bản ghi provider trả về. Việc không "
+        "tìm thấy bằng chứng không phải bằng chứng phủ định."
+    ),
+}
+
+
 def text_for(code: LimitationCode, language: str = "en") -> str:
     entry = TEXT[code]
+    if code is CODE.EVIDENCE_SCOPE_LIMITED and is_enabled("evidence_full_text_v1"):
+        entry = _SCOPE_WITH_FULL_TEXT
     return entry.get(language, entry["en"])
 
 
@@ -186,6 +218,7 @@ def required_for_answer(
     observation_limitations: Mapping[str, tuple[str, ...]] | None = None,
     observation_kinds: Mapping[str, str] | None = None,
     cited_evidence: bool = False,
+    cited_article_unread: bool = False,
     has_recommendation: bool = False,
 ) -> frozenset[str]:
     """The limitation codes an answer must carry, derived from what it claimed.
@@ -249,6 +282,8 @@ def required_for_answer(
 
     if cited_evidence:
         required.add(CODE.EVIDENCE_SCOPE_LIMITED.value)
+    if cited_article_unread:
+        required.add(CODE.EVIDENCE_FULL_TEXT_NOT_READ.value)
     if has_recommendation:
         required.add(CODE.SCREENING_NOT_SAFETY_ASSESSMENT.value)
     return frozenset(required)
