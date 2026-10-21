@@ -379,6 +379,17 @@ Still needed from people, not code:
 - **The live ChEMBL mappings** for EGFR and ABL1 in the target catalog are
   still recorded as unverified.
 
+## Suite after P07-P12
+
+Control suite: **2831 passed, 19 skipped** (746 s), from the 2686 of the
+baseline and the 2794 after P06. The six checks that failed on the first run
+of this stack each described the product as it was before it -- the skill
+catalogue's contents, the dynamic arm's index, a skill's measured case set,
+arm B's version and the generated capability matrix -- and were updated in
+`549627e` rather than worked around.
+
+Frontend: 202 tests, lint, typecheck and the bundle-budget build all pass.
+
 ## Live verification on a laptop (2026-10-22)
 
 Not a pilot and not a result: a smoke test that the protocol runs outside the
