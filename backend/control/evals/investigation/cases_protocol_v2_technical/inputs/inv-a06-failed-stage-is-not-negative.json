@@ -1,0 +1,63 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-a06-failed-stage-is-not-negative",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_c1ec76fe15d44fde8127906eab2aedd4"
+    },
+    "identity": {
+      "canonical_smiles": "CCOc1ccc2nc(S(N)(=O)=O)sc2c1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_c1ec76fe15d44fde8127906eab2aedd4",
+      "content_sha256": "7951e1b9fdd0e97a5fd6db21c37ef7e97e32ab0a6e600c62b37509fbd975eb9a",
+      "stage_status": {
+        "screening": "activity_failed"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "a85e9c98358e238c18fd2ec76ce97479954ec66484eb42703b470ce690bd172b"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "f635bbd1fe0adfb7abcf205824f01b143632ed2e2e7aa2314d1ad819b39e1950"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What did the activity model estimate for TX-101 on ABL1?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CCOc1ccc2nc(S(N)(=O)=O)sc2c1"
+    ],
+    "documents": [],
+    "measurements": [
+      "inv-a06-failed-stage-is-not-negative:status"
+    ],
+    "sources": []
+  }
+}

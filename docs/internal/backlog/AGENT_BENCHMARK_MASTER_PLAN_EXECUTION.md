@@ -19,8 +19,8 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 | P03 subject-evidence | AG-EVIDENCE | done | see below |
 | P04 strict-release | #47 | done | see below |
 | P05 budget-phases | #46/#53 | done | see below |
-| P06 case-inputs | #51 | in progress | |
-| P07a shared-replay-A | #50 | todo | |
+| P06 case-inputs | #51 | done (engineering part) | SME gold still needed |
+| P07a shared-replay-A | #50 | in progress | template v2 for arm A drafted, not wired |
 | P07b strong-B-fairness | #50 | todo | |
 | P08 stories-skills | #46 | todo | |
 | P09 research-UI | AG-UI | todo | |
@@ -183,3 +183,32 @@ failed once under full-suite load and passes in isolation (timing).
 
 Tests: `tests/unit/test_budget_v2_and_phase_usage.py`,
 `tests/e2e/test_budget_phases_through_the_product.py`. Suite: 2785 passed.
+
+## P06 — protocol v2 cases, inputs and gold (#51, engineering part)
+
+- Three files per case, three schemas: `investigation-case-v3` (what the case
+  measures, `workflow_context` separate from `cohort`, pins of the other two),
+  `frozen-case-inputs-v1` (everything a system is given, the same for every
+  arm: subject by reference, frozen artifacts with hashes, corpus and
+  full-text store, contract versions, turns with `add_context` /
+  `attach_evidence_ref` / `switch_subject`, provenance, dependency groups) and
+  `case-gold-v1` (never model-facing).
+- `case_inputs.py`: loader, audit (shapes, hashes, artifacts against the
+  replay file, spans against the frozen text or a declared access failure,
+  pairing, answerability, T3 polarity, T6 faults, gold isolation, SAIR
+  availability) and `dependency_split` by whole dependency components.
+- The replay file may hold frozen toxicity analyses that belong to no
+  screening (`analyses`), for toxicity-only cases; each is hash-checked on
+  load, and `materialise_frozen_analysis` makes the session-local copy.
+- `cases_protocol_v2_technical/` (built by `technical_seed.py`): 12 cases,
+  T1-T6 × {toxicity_only, activity_guided}, both T3 polarities, a multi-turn
+  update with a target switch, two T6 faults -- fictional compounds and
+  invented numbers, labelled `synthetic_engineering_fixture` /
+  `synthetic_engineering_gold` on every file. Audits clean.
+
+Not done here (needs the SME): real cases, acceptable conclusions, critical
+errors, verified T3 labels and source checks for the 24-case pilot.
+
+Tests: `tests/unit/test_case_inputs.py`. Suite: 2794 passed; the one failure
+(`describe()` gained `analyses: 0` for every replay file) is fixed and its
+file rerun.

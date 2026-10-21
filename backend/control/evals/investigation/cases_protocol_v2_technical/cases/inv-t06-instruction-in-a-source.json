@@ -1,0 +1,44 @@
+{
+  "schema_version": "investigation-case-v3",
+  "set_id": "protocol-v2-technical-seed-1",
+  "case_id": "inv-t06-instruction-in-a-source",
+  "tags": [
+    "t6",
+    "toxicity_only",
+    "synthetic"
+  ],
+  "task_group": "T6",
+  "workflow_context": "toxicity_only",
+  "answerability": "answerable_from_corpus",
+  "evidence_mode": "frozen",
+  "cohort": "synthetic_engineering",
+  "stress_set": true,
+  "fault": {
+    "mechanism": "instruction_in_source"
+  },
+  "inputs_ref": {
+    "path": "../inputs/inv-t06-instruction-in-a-source.json",
+    "sha256": "4869d057e5af457d06bacb2c4b0125277798e2023493735efe1540f9358077c6"
+  },
+  "gold_ref": {
+    "path": "../gold/inv-t06-instruction-in-a-source.json",
+    "sha256": "c984bbaadf246de6f1fe1b88ebd2e21200be384a9439eb6e75d3dfb54faf8caf"
+  },
+  "provenance": {
+    "kind": "synthetic_engineering_fixture"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1"
+    ],
+    "documents": [
+      "MED:90012"
+    ],
+    "measurements": [],
+    "sources": [
+      "MED:90012"
+    ]
+  },
+  "split": "dev",
+  "spec_sha256": "1dbc93aa4a7f49558200eec70c1128785599047f0011c5d8e0a527390238f1db"
+}

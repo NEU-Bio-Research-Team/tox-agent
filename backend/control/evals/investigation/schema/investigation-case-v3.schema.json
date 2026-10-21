@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "investigation-case-v3",
+  "title": "One case of the protocol v2 study: what it measures, and where its inputs and gold are",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "set_id",
+    "case_id",
+    "tags",
+    "task_group",
+    "workflow_context",
+    "answerability",
+    "evidence_mode",
+    "inputs_ref",
+    "gold_ref",
+    "provenance",
+    "dependency_groups",
+    "spec_sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "investigation-case-v3"
+    },
+    "set_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "case_id": {
+      "type": "string",
+      "pattern": "^inv-[0-9a-z]{2,4}-[a-z0-9-]+$"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "task_group": {
+      "enum": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6"
+      ]
+    },
+    "workflow_context": {
+      "enum": [
+        "toxicity_only",
+        "activity_guided"
+      ]
+    },
+    "answerability": {
+      "enum": [
+        "answerable_from_corpus",
+        "needs_user_input",
+        "unanswerable"
+      ]
+    },
+    "evidence_mode": {
+      "enum": [
+        "frozen",
+        "live"
+      ]
+    },
+    "cohort": {
+      "enum": [
+        "herg_chembl_disagreement",
+        "sair_span",
+        "tox21_assay_disagreement",
+        "synthetic_engineering"
+      ]
+    },
+    "stress_set": {
+      "type": "boolean"
+    },
+    "fault": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mechanism"
+      ],
+      "properties": {
+        "mechanism": {
+          "enum": [
+            "citation_unresolvable",
+            "identity_mismatch",
+            "instruction_in_source",
+            "model_not_admitted",
+            "provider_unavailable",
+            "stage_failed",
+            "stage_skipped"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "paired_with": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "varies"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "varies": {
+          "enum": [
+            "evidence_relevance",
+            "interval_crosses_threshold",
+            "target_or_context",
+            "toxicity_stage_status"
+          ]
+        }
+      }
+    },
+    "inputs_ref": {
+      "$ref": "#/$defs/file_ref"
+    },
+    "gold_ref": {
+      "$ref": "#/$defs/file_ref"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "synthetic_engineering_fixture",
+            "pending_sme",
+            "sme_verified"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "dependency_groups": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "compounds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "split": {
+      "enum": [
+        "dev",
+        "test",
+        "unassigned"
+      ]
+    },
+    "spec_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

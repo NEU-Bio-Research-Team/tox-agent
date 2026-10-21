@@ -1,0 +1,64 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-t03-predictor-missed-a-blocker",
+  "workflow_context": "toxicity_only",
+  "subject": {
+    "subject_ref": {
+      "kind": "analysis",
+      "analysis_ref": "ana_29ad2cd1c583405a99d6923249ae940a"
+    },
+    "identity": {
+      "canonical_smiles": "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "frozen_analysis",
+      "ref": "ana_29ad2cd1c583405a99d6923249ae940a",
+      "content_sha256": "44a5880bb22a93e6485840064bf93063171ff71ff322258434ae06ff4b98b1a2"
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "a85e9c98358e238c18fd2ec76ce97479954ec66484eb42703b470ce690bd172b"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "f635bbd1fe0adfb7abcf205824f01b143632ed2e2e7aa2314d1ad819b39e1950"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "The model calls TX-202 a hERG non-blocker. Do the sources agree?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1"
+    ],
+    "documents": [
+      "MED:90011"
+    ],
+    "measurements": [
+      "inv-t03-predictor-missed-a-blocker:ic50"
+    ],
+    "sources": [
+      "MED:90011"
+    ]
+  }
+}

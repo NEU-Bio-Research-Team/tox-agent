@@ -1,0 +1,43 @@
+{
+  "schema_version": "investigation-case-v3",
+  "set_id": "protocol-v2-technical-seed-1",
+  "case_id": "inv-t02-herg-ic50-from-table",
+  "tags": [
+    "t2",
+    "toxicity_only",
+    "synthetic"
+  ],
+  "task_group": "T2",
+  "workflow_context": "toxicity_only",
+  "answerability": "answerable_from_corpus",
+  "evidence_mode": "frozen",
+  "cohort": "synthetic_engineering",
+  "stress_set": false,
+  "inputs_ref": {
+    "path": "../inputs/inv-t02-herg-ic50-from-table.json",
+    "sha256": "c3831c6fda745675d3ec8610d9c6dac5d1415322e23d5a527465fda38c10e677"
+  },
+  "gold_ref": {
+    "path": "../gold/inv-t02-herg-ic50-from-table.json",
+    "sha256": "fa8609f216474df296baf5ba123fe4e8f1200d2018781fabc2f34c8b7ff41f7e"
+  },
+  "provenance": {
+    "kind": "synthetic_engineering_fixture"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1"
+    ],
+    "documents": [
+      "MED:90011"
+    ],
+    "measurements": [
+      "inv-t02-herg-ic50-from-table:ic50"
+    ],
+    "sources": [
+      "MED:90011"
+    ]
+  },
+  "split": "dev",
+  "spec_sha256": "08f9c647e662679cedf7321af04bcf1dbfaa3dcc8ad9cf33b13735c78636c00f"
+}

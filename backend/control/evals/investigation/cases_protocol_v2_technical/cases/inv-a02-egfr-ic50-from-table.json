@@ -1,0 +1,43 @@
+{
+  "schema_version": "investigation-case-v3",
+  "set_id": "protocol-v2-technical-seed-1",
+  "case_id": "inv-a02-egfr-ic50-from-table",
+  "tags": [
+    "t2",
+    "activity_guided",
+    "synthetic"
+  ],
+  "task_group": "T2",
+  "workflow_context": "activity_guided",
+  "answerability": "answerable_from_corpus",
+  "evidence_mode": "frozen",
+  "cohort": "synthetic_engineering",
+  "stress_set": false,
+  "inputs_ref": {
+    "path": "../inputs/inv-a02-egfr-ic50-from-table.json",
+    "sha256": "8c7449bce0198aa189410bf062946cb7fced41eea799751dd8a895fa40ba4f82"
+  },
+  "gold_ref": {
+    "path": "../gold/inv-a02-egfr-ic50-from-table.json",
+    "sha256": "6024771e115e30e5490bb0b2bf2563acb5282b3fa2f9664c222b09e4851427a2"
+  },
+  "provenance": {
+    "kind": "synthetic_engineering_fixture"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CCOc1ccc2nc(S(N)(=O)=O)sc2c1"
+    ],
+    "documents": [
+      "MED:90001"
+    ],
+    "measurements": [
+      "inv-a02-egfr-ic50-from-table:ic50"
+    ],
+    "sources": [
+      "MED:90001"
+    ]
+  },
+  "split": "dev",
+  "spec_sha256": "d372dcb18c760f0ea70dc655fa34c2c2df5d5f6b348439addacf2f8aba7875d3"
+}

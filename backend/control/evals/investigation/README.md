@@ -73,6 +73,33 @@ being studied, and it is recorded, not hidden.
    cases with a case-bootstrap interval; critical-error rates; paired
    differences on shared cases; inter-rater agreement when two graders overlap.
 
+## Protocol v2 cases (v3 files)
+
+Protocol v2 keeps three files per case apart (`case_inputs.py`):
+
+- `cases/<id>.json` (`investigation-case-v3`): what the case measures -- task
+  group, `workflow_context` (`toxicity_only` / `activity_guided`, separate
+  from `cohort`), answerability, pairing, fault -- and the sha256 of the other
+  two files;
+- `inputs/<id>.json` (`frozen-case-inputs-v1`): everything a system is given,
+  identical for every arm -- the subject by reference, frozen artifacts with
+  their hashes, the evidence corpus and full-text store, contract versions,
+  the turns and their actions (`add_context`, `attach_evidence_ref`,
+  `switch_subject`), provenance and dependency groups;
+- `gold/<id>.json` (`case-gold-v1`): what graders check against. Never read
+  by an adapter.
+
+`python -m evals.investigation.case_inputs --cases-dir <set>/cases --replay
+<set>/replay.json --snapshot <set>/evidence.json` audits a set: shapes,
+hashes, artifacts against the replay file, spans against the frozen text,
+pairing, answerability, T3 polarity, T6 faults, gold isolation.
+`dependency_split` assigns dev/test by whole dependency components.
+
+`cases_protocol_v2_technical/` is the engineering conformance set: T1-T6 for
+both contexts, built by `technical_seed.py` from fictional compounds and
+invented numbers. It checks the machinery and says so on every file
+(`synthetic_engineering_fixture`); it is never evidence about science.
+
 ## Running
 
 ```bash

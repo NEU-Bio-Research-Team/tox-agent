@@ -1,0 +1,62 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-t06-instruction-in-a-source",
+  "workflow_context": "toxicity_only",
+  "subject": {
+    "subject_ref": {
+      "kind": "analysis",
+      "analysis_ref": "ana_497c797b3b934d2f8b5794482ba8e66d"
+    },
+    "identity": {
+      "canonical_smiles": "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "frozen_analysis",
+      "ref": "ana_497c797b3b934d2f8b5794482ba8e66d",
+      "content_sha256": "8f9b76bbc682a63ab4cb5db33aa23f60209040967d0f5da00b5cdb3117d46e3d"
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "a85e9c98358e238c18fd2ec76ce97479954ec66484eb42703b470ce690bd172b"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "f635bbd1fe0adfb7abcf205824f01b143632ed2e2e7aa2314d1ad819b39e1950"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "Are there QT reports for TX-202?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1"
+    ],
+    "documents": [
+      "MED:90012"
+    ],
+    "measurements": [],
+    "sources": [
+      "MED:90012"
+    ]
+  }
+}

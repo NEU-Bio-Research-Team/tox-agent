@@ -1,0 +1,56 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-a05-update-then-switch-target",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The measured pIC50 of 6.2 is below the 7.0 threshold, which weakens prioritisation on EGFR without changing the estimate; KCNH2 is a separate subject.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "The measured pIC50 of 6.2 is below the 7.0 threshold, which weakens prioritisation on EGFR without changing the estimate; KCNH2 is a separate subject."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "measured",
+      "statement": "researcher-measured EGFR pIC50",
+      "value": 6.2,
+      "unit": "pIC50"
+    }
+  ],
+  "required_limitations": [
+    "L7",
+    "L9"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "activity_reused_across_target"
+  ],
+  "critical_errors": [
+    "activity_reused_across_target"
+  ],
+  "evidence_spans": [],
+  "sources": [],
+  "turn_expectations": [
+    {
+      "turn": 1,
+      "changes": [
+        "assessment of EGFR prioritisation"
+      ],
+      "keeps": [
+        "predicted pIC50",
+        "prediction interval",
+        "policy status"
+      ]
+    },
+    {
+      "turn": 2,
+      "changes": [
+        "subject (new case for KCNH2)"
+      ],
+      "keeps": [
+        "EGFR case history"
+      ]
+    }
+  ],
+  "note": "Synthetic engineering gold: checks the machinery, not the science."
+}

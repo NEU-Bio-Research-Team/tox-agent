@@ -1,0 +1,99 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-a05-update-then-switch-target",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_6c3b79bb50e54a54a314210ac82e9571"
+    },
+    "identity": {
+      "canonical_smiles": "CCOc1ccc2nc(S(N)(=O)=O)sc2c1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_6c3b79bb50e54a54a314210ac82e9571",
+      "content_sha256": "e5e331f2f97a482be5df538623e61fed26adcf9ae4fb0aedd10405f4a3db8273",
+      "stage_status": {
+        "screening": "completed_with_toxicity_not_run"
+      }
+    },
+    {
+      "kind": "screening",
+      "ref": "scr_b61cc6afe1274dd1aa2e9d2f907d2dcb",
+      "content_sha256": "81ad2561ee0ae6af4d90b09d5d9aee10c5e21d714cf3426344b65fea854b9032",
+      "stage_status": {
+        "screening": "completed_with_toxicity_not_run"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "a85e9c98358e238c18fd2ec76ce97479954ec66484eb42703b470ce690bd172b"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "f635bbd1fe0adfb7abcf205824f01b143632ed2e2e7aa2314d1ad819b39e1950"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the TX-101 EGFR screening say?"
+    },
+    {
+      "text": "Our lab measured pIC50 6.2 for it on EGFR in the same assay. What changes?",
+      "actions": [
+        {
+          "type": "add_context",
+          "key": "measured_pIC50_EGFR",
+          "value": "6.2",
+          "unit": "pIC50",
+          "source": "researcher",
+          "scope": {
+            "target_id": "EGFR",
+            "experimental_context": "IC50|wild_type"
+          }
+        }
+      ]
+    },
+    {
+      "text": "Now look at the KCNH2 screening of the same ligand.",
+      "actions": [
+        {
+          "type": "switch_subject",
+          "subject_ref": {
+            "kind": "activity_screening",
+            "screening_id": "scr_b61cc6afe1274dd1aa2e9d2f907d2dcb"
+          }
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CCOc1ccc2nc(S(N)(=O)=O)sc2c1"
+    ],
+    "documents": [],
+    "measurements": [
+      "inv-a05-update-then-switch-target:measured"
+    ],
+    "sources": []
+  }
+}

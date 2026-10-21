@@ -66,13 +66,35 @@ def screening_id_of(record: Mapping[str, Any]) -> str:
     return str((record.get("screening_state") or {}).get("screening_id") or "")
 
 
-def write_replay_file(records: Iterable[Mapping[str, Any]], path: Path) -> str:
+def write_replay_file(records: Iterable[Mapping[str, Any]], path: Path, *,
+                      analyses: Mapping[str, Mapping[str, Any]] | None = None) -> str:
     """Write frozen records as a replay file and return its sha256 -- the pin a
-    deployment is configured with (TOXAGENT_ACTIVITY_REPLAY_SHA256)."""
+    deployment is configured with (TOXAGENT_ACTIVITY_REPLAY_SHA256).
+
+    ``analyses`` (#50/#51): frozen toxicity analyses that belong to no
+    screening -- the toxicity-only cases -- keyed by their origin analysis id,
+    each a ``frozen-toxicity-snapshot-v1`` payload. Left out when empty, so a
+    file without them hashes as it always did."""
     document = {"schema_version": SCHEMA_VERSION, "screenings": [dict(r) for r in records]}
+    if analyses:
+        document["analyses"] = {k: dict(v) for k, v in sorted(analyses.items())}
     data = json.dumps(document, sort_keys=True, indent=1, ensure_ascii=False).encode("utf-8")
     path.write_bytes(data)
     return hashlib.sha256(data).hexdigest()
+
+
+def frozen_analysis_problem(analysis_ref: str, frozen: Mapping[str, Any]) -> str | None:
+    """Why a frozen toxicity analysis cannot be trusted, or ``None``."""
+    if frozen.get("schema_version") != TOXICITY_SNAPSHOT_SCHEMA_VERSION:
+        return f"analysis {analysis_ref} is not a {TOXICITY_SNAPSHOT_SCHEMA_VERSION} payload"
+    if frozen.get("origin_analysis_id") != analysis_ref:
+        return f"analysis {analysis_ref} names origin {frozen.get('origin_analysis_id')!r}"
+    if content_sha256(frozen.get("predictor_response") or {}) != frozen.get("content_sha256"):
+        return f"analysis {analysis_ref} does not match its content_sha256"
+    if (frozen.get("predictor_response") or {}).get("canonical_smiles") != frozen.get(
+            "canonical_smiles"):
+        return f"analysis {analysis_ref} states two different molecules"
+    return None
 
 
 @dataclass(frozen=True)
@@ -80,6 +102,7 @@ class FrozenReplayStore:
     path_name: str
     sha256: str
     _records: Mapping[str, Mapping[str, Any]]
+    _analyses: Mapping[str, Mapping[str, Any]] = None  # type: ignore[assignment]
 
     @classmethod
     def load(cls, path: Path, *, sha256: str) -> "FrozenReplayStore":
@@ -111,7 +134,16 @@ class FrozenReplayStore:
             if problem:
                 raise ReplayError(f"screening {screening_id} in {path.name}: {problem}")
             records[screening_id] = record
-        return cls(path_name=path.name, sha256=sha256, _records=records)
+        analyses: dict[str, Mapping[str, Any]] = {}
+        for analysis_ref, frozen in (document.get("analyses") or {}).items():
+            problem = frozen_analysis_problem(analysis_ref, frozen)
+            if problem:
+                raise ReplayError(f"{path.name}: {problem}")
+            analyses[analysis_ref] = frozen
+        return cls(path_name=path.name, sha256=sha256, _records=records, _analyses=analyses)
+
+    def get_analysis(self, analysis_ref: str) -> Mapping[str, Any] | None:
+        return (self._analyses or {}).get(analysis_ref)
 
     def get(self, screening_id: str) -> Mapping[str, Any] | None:
         return self._records.get(screening_id)
@@ -120,7 +152,12 @@ class FrozenReplayStore:
         return len(self._records)
 
     def describe(self) -> dict[str, Any]:
-        return {"path_name": self.path_name, "sha256": self.sha256, "screenings": len(self)}
+        described = {"path_name": self.path_name, "sha256": self.sha256, "screenings": len(self)}
+        if self._analyses:
+            # Only when the file holds any, so a file without them describes
+            # itself as it always did.
+            described["analyses"] = len(self._analyses)
+        return described
 
 
 def toxicity_snapshot_problem(record: Mapping[str, Any]) -> str | None:
@@ -171,7 +208,6 @@ async def materialise_toxicity(uow, record: Mapping[str, Any], *, session_id: st
     origin or it is refused. ``None`` when the screening's toxicity stage did
     not produce one -- not_run is a state, never a gap to fill.
     """
-    from ...domain.analysis import PredictorProvenance, snapshot_from_prediction
     from ...domain.errors import ArtifactHashMismatch
 
     frozen = record.get("toxicity_snapshot")
@@ -180,6 +216,22 @@ async def materialise_toxicity(uow, record: Mapping[str, Any], *, session_id: st
     problem = toxicity_snapshot_problem(record)
     if problem:
         raise ArtifactHashMismatch(problem, screening_id=screening_id_of(record))
+    return await materialise_frozen_analysis(
+        uow, frozen, session_id=session_id, run_id=run_id, now=now,
+        replayed_from={"record_sha256": record.get("content_sha256")},
+    )
+
+
+async def materialise_frozen_analysis(uow, frozen: Mapping[str, Any], *, session_id: str,
+                                      run_id: str, now: datetime,
+                                      replayed_from: Mapping[str, Any] | None = None,
+                                      ) -> AnalysisSnapshot:
+    """A frozen toxicity analysis as a session-local analysis, with the
+    prediction observation a served one is stored with -- once per session,
+    hash-checked, and never by calling the predictor."""
+    from ...domain.analysis import PredictorProvenance, snapshot_from_prediction
+    from ...domain.errors import ArtifactHashMismatch
+
     provenance = frozen.get("provenance") or {}
     candidate = snapshot_from_prediction(
         session_id=session_id, run_id=run_id, input_smiles=frozen["input_smiles"],
@@ -198,7 +250,7 @@ async def materialise_toxicity(uow, record: Mapping[str, Any], *, session_id: st
     if candidate.content_sha256 != frozen["content_sha256"]:
         raise ArtifactHashMismatch(
             "the replayed toxicity snapshot does not hash to its frozen content",
-            screening_id=screening_id_of(record),
+            analysis_ref=frozen.get("origin_analysis_id"),
         )
     existing = await uow.analyses.find_by_idempotency_key(session_id, candidate.idempotency_key)
     if existing is not None:
@@ -219,7 +271,7 @@ async def materialise_toxicity(uow, record: Mapping[str, Any], *, session_id: st
     observation = _replace(observation, provenance={
         **observation.provenance,
         "replayed_from": {
-            "record_sha256": record.get("content_sha256"),
+            **dict(replayed_from or {}),
             "origin_analysis_id": frozen["origin_analysis_id"],
         },
     })
