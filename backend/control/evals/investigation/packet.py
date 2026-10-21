@@ -149,6 +149,12 @@ a reference note for you (`grader_reference.md`).
    not say what it is cited for, is the critical error
    `fabricated_or_wrong_citation`.
 5. There is no total score. Please do not add one.
+6. `task_success` is 1 when the response meets what `grader_reference.md` says
+   the task requires -- an acceptable conclusion, with the claims that decide
+   it sourced -- and 0 otherwise. On a case the reference marks as not
+   answerable from the data, naming the gap without over-concluding is a
+   success; on a case the data settles, a generic "not enough data" is not.
+   A critical error makes the response unsuccessful whatever you mark here.
 
 Return the filled `grading_sheet.csv`. Several graders may fill copies
 independently; do not confer before grading.
@@ -207,12 +213,15 @@ def build_packet(*, study_dir: Path, packet_id: str, seed: int, systems: list[st
                     .get("model_requested"),
                 ),
                 "identity_replacements": replaced,
+                # A deterministic fallback is still in the denominator of
+                # task success, and is named as a cause when it fails (#53).
+                "is_fallback": any(t.meta.get("is_fallback") for t in record.turns),
             })
             rows.append({"case_id": case_id, "response_id": response_id})
         counts[case_id] = {"expected": len(chosen) * trials, "included": len(present), "missing": missing}
     columns = (["grader_id", "case_id", "response_id"]
                + [d["id"] for d in rubric["dimensions"]]
-               + [c["id"] for c in rubric["critical_errors"]] + ["comments"])
+               + [c["id"] for c in rubric["critical_errors"]] + ["task_success", "comments"])
     with (packet_dir / "grading_sheet.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=columns)
         writer.writeheader()

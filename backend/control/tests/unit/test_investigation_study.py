@@ -444,3 +444,73 @@ def test_every_attempt_is_paid_for_not_only_the_one_that_finished():
     assert _usage_totals([failed, retried, other]) == {
         "cost_usd": 0.06, "input_tokens": 2400,
     }
+
+
+# ── task success over every assigned case (#53) ───────────────────────────
+
+def test_the_exact_interval_matches_the_figures_the_issue_quotes():
+    from evals.investigation.scorecard import clopper_pearson
+
+    assert clopper_pearson(8, 8) == (0.6306, 1.0)
+    assert clopper_pearson(0, 8) == (0.0, 0.3694)
+    assert clopper_pearson(0, 0) is None
+
+
+def test_a_response_that_never_came_is_in_the_denominator_and_says_why():
+    """A timeout is not left out of the rate: it is an assigned case that did
+    not succeed, and the cause is named."""
+    from evals.investigation.scorecard import task_success_table
+
+    key = {"responses": [
+        {"case_id": "c1", "response_id": "R01", "system_id": "D"},
+        {"case_id": "c2", "response_id": None, "system_id": "D", "missing_reason": "error"},
+        {"case_id": "c3", "response_id": "R02", "system_id": "D", "is_fallback": True},
+        {"case_id": "c4", "response_id": "R03", "system_id": "D"},
+        {"case_id": "c5", "response_id": "R04", "system_id": "D"},
+        {"case_id": "c6", "response_id": "R05", "system_id": "D"},
+    ]}
+
+    def grade(case, response, success, critical=False, grader="g1"):
+        return {"grader_id": grader, "case_id": case, "response_id": response,
+                "scores": {}, "critical": {"invented_value": critical},
+                "task_success": success}
+
+    grades = [
+        grade("c1", "R01", True), grade("c1", "R01", True, grader="g2"),
+        grade("c3", "R02", False),
+        grade("c4", "R03", True, critical=True),
+        grade("c5", "R04", True), grade("c5", "R04", False, grader="g2"),
+        # c6 was never judged for task success
+        {**grade("c6", "R05", None), "task_success": None},
+    ]
+    cases = {"c1": {"task_group": "T1"}, "c2": {"task_group": "T1"},
+             "c3": {"task_group": "T5"}}
+
+    table = task_success_table(key=key, grades=grades, cases=cases)["D"]
+
+    assert (table["successes"], table["assigned"]) == (1, 6)
+    assert table["failure_causes"] == {
+        "critical_error": 1, "fallback": 1, "graders_disagree": 1,
+        "no_response:error": 1, "not_graded": 1,
+    }
+    assert table["by_task_group"]["T1"]["successes"] == 1
+    assert table["by_task_group"]["T1"]["assigned"] == 2
+
+
+def test_a_sheet_without_the_task_success_column_still_reads(tmp_path):
+    import csv
+
+    from evals.investigation.scorecard import read_grades
+
+    rubric = json.loads(packet_module.RUBRIC_PATH.read_text())
+    columns = (["grader_id", "case_id", "response_id"]
+               + [d["id"] for d in rubric["dimensions"]]
+               + [c["id"] for c in rubric["critical_errors"]])
+    path = tmp_path / "old.csv"
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer.writeheader()
+        writer.writerow({c: "" for c in columns} | {"grader_id": "g", "case_id": "c",
+                                                    "response_id": "R01"})
+    (row,) = read_grades([path], rubric)
+    assert row["task_success"] is None
