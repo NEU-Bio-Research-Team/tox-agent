@@ -84,6 +84,9 @@ class RunContext:
     include_external_evidence: bool = True
     report_output_formats: tuple[str, ...] = ("markdown", "html")
     report_build_id: str | None = None
+    #: #44 (subject_binding_v1): the RunSubjectBinding fixed when the message
+    #: was accepted, as its wire dict. ``None`` for a run admitted without one.
+    subject: Mapping[str, Any] | None = None
 
 
 # Imported after `RunContext`: the codec is defined in terms of it, and takes
@@ -658,6 +661,9 @@ class RunScheduler:
                     include_external_evidence=context.include_external_evidence,
                     report_output_formats=context.report_output_formats,
                     report_build_id=context.report_build_id,
+                    # #44: a recovery answers about the subject the original
+                    # was bound to, not whatever the session selects now.
+                    subject=context.subject,
                 )
                 # In the same transaction as the recovery run itself: a
                 # recovery created but never enqueued would be the original

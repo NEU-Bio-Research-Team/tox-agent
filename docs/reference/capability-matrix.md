@@ -80,6 +80,7 @@ Any other target, or any other method, is `not_measured`.
 | `scientific_primitives_v1` | no | backend-scientific | 2026-12-23 | `compute_exposure_margin`, `get_chembl_activities` |
 | `scientific_skills_v1` | no | backend-scientific | 2026-12-23 | `read_scientific_skill`, `read_skill_reference` |
 | `skill_drafts_v1` | no | backend-scientific | 2026-12-23 | `propose_skill_draft` |
+| `subject_binding_v1` | no | backend-scientific | 2027-01-18 | — |
 | `subjectless_research_v1` | no | backend-scientific | 2026-12-23 | — |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
 | `typed_stop_v1` | no | backend-scientific | 2027-01-18 | — |

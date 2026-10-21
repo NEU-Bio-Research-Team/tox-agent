@@ -8,7 +8,7 @@ that later fails — because a clarification is an answer, not an error.
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping
 
@@ -32,7 +32,9 @@ from ...domain.session import Session, TitleSource
 from ...persistence.object_store import ObjectStore
 from ..capabilities import CapabilityResolver
 from ..policy import Actor
-from .router import Clarification, RouteRequest, route
+from ...domain.subject import SubjectKind
+from .router import Clarification, RouteRequest, clarify_subject, route
+from .subject_resolution import NO_SUBJECT, SubjectRequest, bind_subject, choose_subject
 from ..runs.scheduler import RunContext, RunScheduler
 
 
@@ -96,6 +98,10 @@ class MessageSubmission:
     explanation_mode: str = "on_demand"
     explanation_targets: tuple[tuple[str, str | None], ...] = ()
     analysis_id: str | None = None
+    #: #44 (flag subject_binding_v1): the subject the client selected, by
+    #: reference only -- ``{"kind": "activity_screening", "screening_id": ...}``
+    #: or ``{"kind": "analysis", "analysis_id": ...}``.
+    subject_ref: Mapping[str, Any] | None = None
     #: Set by the API layer, which decodes and size-checks the upload before
     #: this dataclass is built. `SubmitMessage.execute` persists these bytes
     #: to the object store (remaining-plan W4-07) and hands the run only an
@@ -235,6 +241,11 @@ class SubmitMessage:
                 if existing is not None:
                     return await self._replay(uow, session, existing)
 
+            binding_on = is_enabled("subject_binding_v1")
+            if submission.subject_ref and not binding_on:
+                raise InvalidRequest(
+                    "subject_ref is not accepted by this deployment (subject binding is off)"
+                )
             if submission.analysis_id:
                 target = await uow.analyses.get(submission.analysis_id, session_id=session_id)
                 if target is None:
@@ -247,21 +258,47 @@ class SubmitMessage:
             has_screening = is_enabled("activity_replay_v1") and bool(
                 await uow.screenings.list_for_session(session_id)
             )
-            decision = route(
-                RouteRequest(
-                    text=submission.text,
-                    molecule_smiles=submission.smiles,
-                    batch_smiles=submission.batch_smiles,
-                    has_image=submission.image_mime_type is not None,
-                    intent_hint=submission.intent_hint,
-                    has_active_analysis=session.active_analysis_id is not None,
+            # #44: the subject is chosen now, from what the session holds, and
+            # frozen into the run -- never re-read from the session at dispatch.
+            choice = (
+                await choose_subject(
+                    uow, session=session,
+                    requested=SubjectRequest.from_wire(submission.subject_ref),
                     analysis_id=submission.analysis_id,
-                    requested_endpoints=submission.endpoints or (),
-                    include_attribution=submission.include_attribution,
-                    allow_subjectless_research=is_enabled("subjectless_research_v1"),
-                    has_attached_screening=has_screening,
+                    new_molecule_smiles=(
+                        submission.smiles if submission.smiles and not submission.batch_smiles
+                        else None
+                    ),
                 )
+                if binding_on else NO_SUBJECT
             )
+            route_request = RouteRequest(
+                text=submission.text,
+                molecule_smiles=submission.smiles,
+                batch_smiles=submission.batch_smiles,
+                has_image=submission.image_mime_type is not None,
+                intent_hint=submission.intent_hint,
+                has_active_analysis=session.active_analysis_id is not None,
+                analysis_id=submission.analysis_id,
+                requested_endpoints=submission.endpoints or (),
+                include_attribution=submission.include_attribution,
+                allow_subjectless_research=is_enabled("subjectless_research_v1"),
+                has_attached_screening=has_screening,
+            )
+            if choice.is_screening:
+                # A selected screening is the subject even when the session
+                # also has an active analysis: it is routed as a screening
+                # question, and the analysis is not consulted.
+                route_request = replace(
+                    route_request, has_attached_screening=True, has_active_analysis=False,
+                    analysis_id=None,
+                )
+            elif choice.kind is SubjectKind.ANALYSIS and choice.subject_id:
+                route_request = replace(route_request, analysis_id=choice.subject_id)
+            decision = route(route_request)
+            if choice.is_ambiguous and decision.intent is Intent.DECISION_SUPPORT:
+                decision = clarify_subject(choice.ambiguous_options,
+                                           intent_hint=submission.intent_hint)
 
             # Do not accept a queued OCR run unless its source image has
             # already made it to durable byte storage.  The object write is
@@ -330,6 +367,14 @@ class SubmitMessage:
                 deadline=timedelta(seconds=deadline_s),
             )
             await uow.runs.add(run)
+            # #44: bound in the transaction that creates the run, so the run
+            # and the subject it is about commit together. A replayed
+            # screening's toxicity snapshot gets its session-local copy here.
+            binding = (
+                await bind_subject(uow, choice, session_id=session_id, run_id=run.id, now=_now())
+                if binding_on and decision.intent is Intent.DECISION_SUPPORT
+                and not capability_unavailable else None
+            )
             await uow.run_configuration_snapshots.add(
                 run.id, ai_profile_id=ai_profile_id,
                 predictor_bindings=resolved_model_selection, now=_now(),
@@ -337,6 +382,7 @@ class SubmitMessage:
                     decision.decision.to_dict() if decision.decision else None
                 ),
                 effective_budget=self._effective_budget(decision.intent),
+                subject_binding=binding.to_dict() if binding is not None else None,
             )
             uow.emit(
                 session_id=session_id, type=EventType.RUN_QUEUED, entity_type="run",
@@ -364,8 +410,14 @@ class SubmitMessage:
             # answer against the molecule this run is about to replace. The
             # gateway resolves the eventual target itself once the snapshot (if
             # any) has landed.
-            if submission.analysis_id:
-                target_analysis_id: str | None = submission.analysis_id
+            if binding is not None and binding.kind is SubjectKind.ACTIVITY_SCREENING:
+                # The screening is the subject; the session's active analysis
+                # must not become it by default at dispatch.
+                target_analysis_id: str | None = None
+            elif binding is not None and binding.analysis_id:
+                target_analysis_id = binding.analysis_id
+            elif submission.analysis_id:
+                target_analysis_id = submission.analysis_id
             elif decision.needs_snapshot_first:
                 target_analysis_id = None
             else:
@@ -393,7 +445,18 @@ class SubmitMessage:
                 report_audience=submission.report_audience,
                 include_external_evidence=submission.include_external_evidence,
                 report_output_formats=submission.report_output_formats,
+                subject=binding.to_dict() if binding is not None else None,
             )
+            if binding is not None:
+                uow.emit(
+                    session_id=session_id, type=EventType.RUN_SUBJECT_BOUND, entity_type="run",
+                    entity_id=run.id, run_id=run.id,
+                    payload={
+                        "kind": binding.kind.value, "subject_ref": dict(binding.subject_ref),
+                        "binding_sha256": binding.binding_sha256,
+                        "resolved_by": binding.resolved_by,
+                    },
+                )
             # I18: the run row and the record of what the run is *for* commit
             # together. Accepting a request and then holding its only copy in
             # this process's memory is what made a `kill -9` unrecoverable —

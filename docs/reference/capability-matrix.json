@@ -324,6 +324,13 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "subject_binding_v1": {
+      "default": false,
+      "description": "Issue #44: a decision_support message is bound to one subject when it is accepted -- the analysis or activity screening the request names (subject_ref), or the session's only one -- and the binding travels frozen in a v2 run envelope to the gateway, the scientific case (keyed by the subject's identity), the decision state and the dossier. Two subjects and no selection is a subject_ambiguous clarification, never the first one. Off, the gateway reads the session's active analysis at dispatch and a screening-only case is keyed 'none'.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "subjectless_research_v1": {
       "default": false,
       "description": "A literature question with no molecule in the session runs as a decision_support turn on a subjectless case, and search_toxicology_evidence accepts a search without an analysis (results are then assessed against the endpoint only). Off, the router asks for a molecule (research_subject_missing) and the search tool's schema is unchanged.",

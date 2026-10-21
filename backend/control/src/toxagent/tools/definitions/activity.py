@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...application.activity import replay
+from ...application.conversation.subject_resolution import binding_of
 from ...domain.errors import ScreeningNotFound
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
@@ -101,6 +102,15 @@ def build(database) -> list[ToolDefinition]:
                 "required_limitations": list(observation.required_limitations),
                 "citable_field_paths": list(_CITABLE[artifact]),
             }
+            binding = binding_of(context)
+            if artifact == "screening_state" and binding is not None \
+                    and binding.screening_id == payload.screening_id:
+                # #44: the toxicity analysis id in the record is the frozen
+                # run's; this session reads the copy the server linked to it.
+                toxicity = binding.artifact("toxicity_snapshot")
+                view["linked_toxicity_analysis_id"] = (
+                    toxicity.local_id if toxicity is not None else None
+                )
             return ToolOutput(
                 canonical=observation.canonical_payload, model_view=view, ui_view=view,
                 observation_ids=(observation.id,),

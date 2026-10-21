@@ -121,6 +121,9 @@ async def send_message(
             explanation_mode=options.explanation_mode if options else "on_demand",
             explanation_targets=tuple((target.endpoint, target.task) for target in (options.explanation_targets if options else [])),
             analysis_id=body.analysis_id,
+            subject_ref=(
+                body.subject_ref.model_dump(exclude_none=True) if body.subject_ref else None
+            ),
             image_mime_type=image_mime_type,
             image_size_bytes=image_size_bytes,
             image_bytes=image_bytes,

@@ -124,6 +124,7 @@ class AgentRuntimeGateway(
 
         if context.needs_snapshot_first:
             await self._snapshot_before_runtime(context)
+            context = await self._resolve_pending_subject(context)
 
         if context.intent is Intent.BUILD_REPORT:
             from dataclasses import replace
@@ -299,6 +300,7 @@ class AgentRuntimeGateway(
             # same reason: a tool must inherit the run's predictor binding
             # rather than let the model choose one (I10).
             model_selection=context.model_selection,
+            subject=context.subject,
         )
         spec = RuntimeSessionSpec(
             session_id=context.session_id,

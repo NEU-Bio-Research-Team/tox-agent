@@ -21,6 +21,9 @@ class EventType(str, Enum):
     SESSION_SETTINGS_UPDATED = "session.settings_updated"
     MESSAGE_CREATED = "message.created"
     RUN_QUEUED = "run.queued"
+    #: #44 (subject_binding_v1): the subject the run is about, fixed at
+    #: admission. A UI shows it on the run instead of the current selection.
+    RUN_SUBJECT_BOUND = "run.subject_bound"
     RUN_STARTED = "run.started"
     RUN_VALIDATING = "run.validating"
     RUN_COMPLETED = "run.completed"

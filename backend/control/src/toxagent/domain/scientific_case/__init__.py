@@ -82,6 +82,7 @@ from .operations import (  # noqa: F401
     _known_ids,
     _next_local_id,
     parse_ref,
+    SCOPE_KEYS,
     _scope,
     _open,
     _set_question,
@@ -105,6 +106,7 @@ from .operations import (  # noqa: F401
     replay,
 )
 from .updates import (  # noqa: F401
+    RELATION_SCOPE_AXES,
     _STANCE_BY_RELATION,
     _DIRECTNESS_BY_RELATION,
     updates_from_answer,

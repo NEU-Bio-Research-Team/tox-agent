@@ -63,12 +63,20 @@ class SourceClass(str, Enum):
     EXTERNAL_REGULATORY = "external_regulatory"
     REPORT_FACT = "report_fact"
     USER_SUPPLIED = "user_supplied"
+    #: #44: the output of a fixed rule over a model output (a prioritisation
+    #: decision). A rule restating its input is not a second measurement.
+    POLICY_FACT = "policy_fact"
+    #: #44: where a workflow stands (a screening's stage status). That a stage
+    #: did not run is a fact about the workflow, never a result of the stage.
+    WORKFLOW_FACT = "workflow_fact"
 
 
 #: Which ref kind each source class must cite.
 REF_KIND: Mapping[str, str] = {
     SourceClass.PREDICTOR_FACT.value: "observation",
     SourceClass.EXPLANATION_FACT.value: "observation",
+    SourceClass.POLICY_FACT.value: "observation",
+    SourceClass.WORKFLOW_FACT.value: "observation",
     SourceClass.EXTERNAL_EXPERIMENTAL.value: "evidence",
     SourceClass.EXTERNAL_REGULATORY.value: "evidence",
     SourceClass.REPORT_FACT.value: "report",
@@ -185,22 +193,40 @@ class EvidenceEntry:
     hypothesis_ids: tuple[str, ...] = ()
     #: Where in the source: a field path, a quoted span, a section.
     locator: str | None = None
-    #: endpoint / species / assay / dose / use_context, as far as known.
+    #: What the source is scoped to, as far as known: the EvidenceScope axes
+    #: (endpoint, species, dose, use_context, ligand_id, target_id,
+    #: target_variant, target_sequence_sha256, assay_type, readout, unit,
+    #: comparator, experimental_context), plus the two older keys ``assay``
+    #: and ``compound``. Kept as written, never collapsed to fewer axes.
     scope: Mapping[str, str] = field(default_factory=dict)
     actor: str = Actor.MODEL.value
     run_id: str | None = None
+    #: #44: every passage of the source the claim quoted, by locator
+    #: (``table-wrap:1/row:3``), so a ledger entry keeps what an answer's
+    #: evidence_spans named and not only that the record was cited.
+    spans: tuple[str, ...] = ()
+    #: #44: where the source came from, as the server recorded it -- e.g. the
+    #: screening and the frozen record a replayed estimate was read from.
+    provenance: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def independent(self) -> bool:
         return self.source_class in INDEPENDENT_SOURCES
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id, "claim": self.claim, "source_class": self.source_class,
             "source_ref": self.source_ref, "stance": self.stance, "directness": self.directness,
             "hypothesis_ids": list(self.hypothesis_ids), "locator": self.locator,
             "scope": dict(self.scope), "actor": self.actor, "run_id": self.run_id,
         }
+        # Written only when set, so an entry recorded before #44 serialises
+        # exactly as it did and a replayed log still equals its snapshot.
+        if self.spans:
+            data["spans"] = list(self.spans)
+        if self.provenance:
+            data["provenance"] = dict(self.provenance)
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -339,10 +365,17 @@ class RunRecord:
     stop_reason: str | None = None
     answer_id: str | None = None
     usage: Mapping[str, int] = field(default_factory=dict)
+    #: #44: what this run was given about the case's subject -- the binding's
+    #: hash, how it was resolved and the artifacts with their content hashes.
+    #: The subject's identity is the case's; the artifacts are the run's.
+    binding: Mapping[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"run_id": self.run_id, "goal": self.goal, "stop_reason": self.stop_reason,
+        data = {"run_id": self.run_id, "goal": self.goal, "stop_reason": self.stop_reason,
                 "answer_id": self.answer_id, "usage": dict(self.usage)}
+        if self.binding:
+            data["binding"] = dict(self.binding)
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -374,6 +407,10 @@ class ScientificCaseV1:
     #: one compound's evidence never lands in another's ledger.
     subject_key: str
     question: str = ""
+    #: #44: the subject's identity as the server bound it (kind, reference,
+    #: ligand, target, assay context). Empty for a case opened before #44 or
+    #: without subject binding, whose subject is only ``subject_key``.
+    subject: Mapping[str, Any] = field(default_factory=dict)
     decision_context: str = ""
     subject_refs: tuple[str, ...] = ()
     #: Who the investigation is for: the session owner's subject id, recorded
@@ -441,6 +478,7 @@ class ScientificCaseV1:
         return {
             "schema_version": self.schema_version,
             "case_id": self.id, "session_id": self.session_id, "subject_key": self.subject_key,
+            "subject": dict(self.subject),
             "question": self.question, "decision_context": self.decision_context,
             "subject_refs": list(self.subject_refs), "status": self.status,
             "requester": self.requester, "data_scope": self.data_scope.to_dict(),
@@ -462,6 +500,7 @@ class ScientificCaseV1:
         conclusion = data.get("conclusion") or {}
         return cls(
             id=data["case_id"], session_id=data["session_id"], subject_key=data["subject_key"],
+            subject=dict(data.get("subject") or {}),
             question=data.get("question", ""), decision_context=data.get("decision_context", ""),
             subject_refs=tuple(data.get("subject_refs") or ()),
             requester=data.get("requester", ""),
@@ -471,7 +510,9 @@ class ScientificCaseV1:
             hypotheses=tuple(Hypothesis(**h) for h in data.get("hypotheses") or ()),
             evidence=tuple(
                 EvidenceEntry(**{**e, "hypothesis_ids": tuple(e.get("hypothesis_ids") or ()),
-                                 "scope": dict(e.get("scope") or {})})
+                                 "scope": dict(e.get("scope") or {}),
+                                 "spans": tuple(e.get("spans") or ()),
+                                 "provenance": dict(e.get("provenance") or {})})
                 for e in data.get("evidence") or ()
             ),
             uncertainties=tuple(
@@ -500,7 +541,8 @@ class ScientificCaseV1:
             runs=tuple(
                 RunRecord(run_id=r["run_id"], goal=r.get("goal", ""),
                           stop_reason=r.get("stop_reason"), answer_id=r.get("answer_id"),
-                          usage=dict(r.get("usage") or {}))
+                          usage=dict(r.get("usage") or {}),
+                          binding=dict(r.get("binding") or {}))
                 for r in data.get("runs") or ()
             ),
             revision=int(data.get("revision", 0)), created_at=data.get("created_at", ""),

@@ -118,6 +118,16 @@ def _skills_section(settings: Settings, flags: dict[str, Any]) -> dict[str, Any]
     return {"mode": mode, **load_catalog(settings.profiles_dir).manifest()}
 
 
+def _contracts() -> dict[str, Any]:
+    from ..application.runs.envelope import ENVELOPE_VERSION
+    from ..domain.subject import SCHEMA_VERSION as SUBJECT_BINDING_VERSION
+
+    return {
+        "run_envelope_version": ENVELOPE_VERSION,
+        "run_subject_binding": SUBJECT_BINDING_VERSION,
+    }
+
+
 def describe_effective_product(
     settings: Settings,
     *,
@@ -229,6 +239,9 @@ def describe_effective_product(
         # ADR 0012 / RETHINK §5.5: which skill arm this deployment runs and
         # the exact skill texts, so two runs of the ablation can be told apart.
         "scientific_skills": _skills_section(settings, flags),
+        # The contract versions a run is admitted and executed under (#44):
+        # a study arm compares these, not the code that happens to implement them.
+        "contracts": _contracts(),
         "hashes": {
             **prompt_hashes(settings.profiles_dir),
             **({"tool_registry": registry.schema_hash()} if registry is not None else {}),

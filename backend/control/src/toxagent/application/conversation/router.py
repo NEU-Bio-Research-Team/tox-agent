@@ -573,6 +573,25 @@ def route(request: RouteRequest) -> Route:
     )
 
 
+def clarify_subject(options: tuple[str, ...], *, intent_hint: str = "auto") -> Route:
+    """#44 (flag subject_binding_v1): the session holds more than one subject
+    and the request named none. The router never picks one for the caller --
+    not the first screening, not the active analysis -- because answering
+    about the wrong target is a critical error and asking costs one turn."""
+    return _clarify(
+        "subject_ambiguous",
+        "This session holds more than one analysis or screening. Which one is this "
+        "question about?",
+        options=options,
+        decision=IntentDecision(
+            intent=Intent.CLARIFICATION_REQUIRED, confidence="low",
+            reason_codes=("subject_ambiguous",), requested_hint=intent_hint or "auto",
+            hint_honoured=intent_hint in ("", "auto", None),
+        ),
+        required_context=("subject_ref",),
+    )
+
+
 def _clarify(
     code: str,
     question: str,

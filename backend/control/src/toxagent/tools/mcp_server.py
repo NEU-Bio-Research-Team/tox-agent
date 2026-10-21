@@ -42,6 +42,7 @@ def build_server(
     runner: ToolRunner,
     claims: CapabilityClaims,
     model_selection: Mapping[str, str] | None = None,
+    subject: Mapping[str, Any] | None = None,
 ) -> Server:
     """One MCP server instance, closed over one run's capability claims.
 
@@ -87,6 +88,7 @@ def build_server(
                 language=claims.language,
                 intent=claims.intent,
                 model_selection=model_selection,
+                subject=subject,
             )
             result = await runner.call(context, name, arguments)
 
@@ -150,13 +152,16 @@ def mcp_asgi_app(
         # admitted, not from a session setting read now: changing the session
         # mid-run must not change the run already in flight (I10, K04).
         model_selection: Mapping[str, str] | None = None
+        subject: Mapping[str, Any] | None = None
         if database is not None:
             async with database.unit_of_work() as uow:
                 configuration = await uow.run_configuration_snapshots.get(claims.run_id)
             if configuration:
                 model_selection = configuration.get("predictor_bindings") or None
+                # #44: the subject bound at admission, by the same route.
+                subject = configuration.get("subject_binding") or None
 
-        server = build_server(registry, runner, claims, model_selection)
+        server = build_server(registry, runner, claims, model_selection, subject)
         # Stateless: one transport per HTTP request. A run's tool traffic is a
         # handful of short-lived calls, not a long-lived session worth pooling.
         manager = StreamableHTTPSessionManager(app=server, json_response=True, stateless=True)

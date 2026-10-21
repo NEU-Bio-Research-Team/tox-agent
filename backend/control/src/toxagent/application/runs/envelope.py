@@ -37,7 +37,16 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle broken at runtime
 #: Bumped only for a change a reader cannot absorb by ignoring a key. Stored so
 #: an envelope written by a version this process does not understand is left
 #: for a worker that does, rather than decoded into something wrong.
-ENVELOPE_VERSION = 1
+#:
+#: v2 (#44): the envelope carries the run's subject binding. A v1 reader would
+#: ignore the key and answer about whatever the session has active at dispatch
+#: -- the wrong subject, silently -- so a run with a binding is written as v2,
+#: which a v1 worker refuses to claim (``from_envelope``) and leaves for one
+#: that understands it. A run without a binding is still written as v1, so it
+#: stays claimable by every worker during a rolling upgrade.
+ENVELOPE_VERSION = 2
+SUBJECT_ENVELOPE_VERSION = 2
+LEGACY_ENVELOPE_VERSION = 1
 
 
 class UnreadableEnvelope(ValueError):
@@ -45,8 +54,8 @@ class UnreadableEnvelope(ValueError):
 
 
 def to_envelope(context: "RunContext") -> dict[str, Any]:
-    return {
-        "v": ENVELOPE_VERSION,
+    envelope = {
+        "v": SUBJECT_ENVELOPE_VERSION if context.subject else LEGACY_ENVELOPE_VERSION,
         "actor": {
             "subject_id": context.actor.subject_id,
             "roles": sorted(context.actor.roles),
@@ -77,6 +86,9 @@ def to_envelope(context: "RunContext") -> dict[str, Any]:
         "report_output_formats": list(context.report_output_formats),
         "report_build_id": context.report_build_id,
     }
+    if context.subject:
+        envelope["subject"] = dict(context.subject)
+    return envelope
 
 
 def from_envelope(envelope: Mapping[str, Any]) -> "RunContext":
@@ -99,6 +111,14 @@ def from_envelope(envelope: Mapping[str, Any]) -> "RunContext":
     except (KeyError, ValueError) as exc:
         raise UnreadableEnvelope(f"envelope names no intent this build has: {exc}") from exc
 
+    subject = envelope.get("subject")
+    if subject is not None:
+        from ...domain.subject import InvalidSubject, RunSubjectBinding
+
+        try:
+            RunSubjectBinding.from_dict(subject)
+        except InvalidSubject as exc:
+            raise UnreadableEnvelope(f"envelope subject binding is unreadable: {exc}") from exc
     endpoints = envelope.get("endpoints")
     targets = envelope.get("explanation_targets") or []
     return RunContext(
@@ -134,4 +154,5 @@ def from_envelope(envelope: Mapping[str, Any]) -> "RunContext":
             envelope.get("report_output_formats") or ("markdown", "html")
         ),
         report_build_id=envelope.get("report_build_id"),
+        subject=dict(subject) if subject is not None else None,
     )

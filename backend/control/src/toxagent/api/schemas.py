@@ -143,6 +143,24 @@ class ExplanationTarget(_Request):
         return self
 
 
+class SubjectRefInput(_Request):
+    """#44: the subject a message is about, by reference. The server reads
+    what it is; a client names one of the session's subjects, never describes
+    one."""
+
+    kind: Literal["analysis", "activity_screening"]
+    analysis_id: str | None = Field(default=None, pattern=r"^ana_[0-9a-f]{32}$")
+    screening_id: str | None = Field(default=None, pattern=r"^scr_[0-9a-f]{32}$")
+
+    @model_validator(mode="after")
+    def _one_id_for_its_kind(self) -> "SubjectRefInput":
+        if self.kind == "analysis" and (not self.analysis_id or self.screening_id):
+            raise ValueError("an analysis subject_ref names analysis_id and nothing else")
+        if self.kind == "activity_screening" and (not self.screening_id or self.analysis_id):
+            raise ValueError("an activity_screening subject_ref names screening_id and nothing else")
+        return self
+
+
 class SendMessageRequest(_Request):
     client_message_id: str | None = Field(default=None, max_length=255)
     content: list[TextPart] = Field(default_factory=list)
@@ -154,6 +172,7 @@ class SendMessageRequest(_Request):
     image: ImageInput | None = None
     analysis_options: AnalysisOptions | None = None
     analysis_id: str | None = None
+    subject_ref: SubjectRefInput | None = None
 
     @property
     def text(self) -> str:

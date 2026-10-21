@@ -31,6 +31,7 @@ async def build_artifact_inventory(
     session_id: str,
     analysis_id: str | None,
     research_provider_configured: bool,
+    subject=None,
 ) -> dict[str, Any]:
     """Assemble the inventory for one analysis (or an empty one, if the
     session has none active yet — a decision-support run can still be asked a
@@ -109,4 +110,19 @@ async def build_artifact_inventory(
         attachments = await uow.screenings.list_for_session(session_id)
         inventory["screenings"] = [replay.summary(a.record) for a in attachments]
         inventory["activity"] = {"mode": "replay", "serving": False}
+    if subject is not None:
+        # #44: which of these the run is about, as the server bound it.
+        toxicity = subject.artifact("toxicity_snapshot")
+        inventory["subject"] = {
+            "kind": subject.kind.value,
+            "subject_ref": dict(subject.subject_ref),
+            "identity": subject.identity.to_dict(),
+            "linked_toxicity_analysis_id": toxicity.local_id if toxicity is not None else None,
+            "note": (
+                "This run is about this subject. Another screening of the same ligand is "
+                "another subject: read it only to compare, never as this one's evidence."
+            ),
+        }
+        for summary in inventory.get("screenings") or ():
+            summary["is_subject"] = summary.get("screening_id") == subject.screening_id
     return inventory

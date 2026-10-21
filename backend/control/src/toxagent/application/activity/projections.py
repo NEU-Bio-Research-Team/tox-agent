@@ -27,6 +27,7 @@ from datetime import datetime
 from typing import Any
 
 from ...domain.activity import ActivitySnapshot
+from ...domain.analysis import AnalysisSnapshot
 from ...domain.answer import LimitationCode
 from ...domain.observation import Observation, ObservationKind, Producer
 from ...domain.prioritisation import PrioritisationDecision
@@ -69,6 +70,32 @@ _TOXICITY_NOT_RUN = frozenset(
 )
 
 
+TOXICITY_SNAPSHOT_SCHEMA_VERSION = "frozen-toxicity-snapshot-v1"
+
+
+def toxicity_snapshot_payload(analysis: AnalysisSnapshot) -> dict[str, Any]:
+    """The toxicity analysis a screening's toxicity stage produced, frozen
+    with the screening so a replay can read it without calling the predictor
+    (master plan §5.2). The analysis id is the frozen run's: it does not exist
+    in a replaying session, which gets a session-local copy linked to it."""
+    return {
+        "schema_version": TOXICITY_SNAPSHOT_SCHEMA_VERSION,
+        "origin_analysis_id": analysis.id,
+        "input_smiles": analysis.input_smiles,
+        "canonical_smiles": analysis.canonical_smiles,
+        "requested_endpoints": list(analysis.requested_endpoints),
+        "predictor_response": analysis.predictor_response,
+        "provenance": {
+            "base_url_id": analysis.provenance.base_url_id,
+            "service_version": analysis.provenance.service_version,
+            "git_commit": analysis.provenance.git_commit,
+            "artifact_hashes": list(analysis.provenance.artifact_hashes),
+        },
+        "policy_snapshot": analysis.policy_snapshot,
+        "content_sha256": analysis.content_sha256,
+    }
+
+
 def freeze_screening(
     *,
     screening: ActivityGuidedScreening,
@@ -77,6 +104,7 @@ def freeze_screening(
     model_admitted: bool,
     run_id: str,
     now: datetime,
+    toxicity: AnalysisSnapshot | None = None,
 ) -> dict[str, Any]:
     """One screening as the citable artifacts a frozen eval run replays from.
 
@@ -84,7 +112,16 @@ def freeze_screening(
     observation ids: an id is minted per run, while a frozen record has to
     compare equal across runs for a manifest to mean anything. A stage that
     did not happen is ``None`` here and says so, rather than being left out.
+
+    ``toxicity`` is the analysis the toxicity stage produced, when it ran. It
+    is frozen with the screening only when given, so a record frozen without
+    it keeps the hash it always had.
     """
+    if toxicity is not None:
+        if screening.toxicity_analysis_id != toxicity.id:
+            raise ValueError("the toxicity analysis is not the one this screening completed with")
+        if toxicity.canonical_smiles != screening.subject.canonical_smiles:
+            raise ValueError("the toxicity analysis is of a different molecule than the screening")
     activity = (
         activity_canonical_payload(
             snapshot, screening_id=screening.id, model_admitted=model_admitted
@@ -114,6 +151,8 @@ def freeze_screening(
         ),
         "frozen_at": now.isoformat(),
     }
+    if toxicity is not None:
+        record["toxicity_snapshot"] = toxicity_snapshot_payload(toxicity)
     record["content_sha256"] = content_sha256(
         {k: v for k, v in record.items() if k != "frozen_at"}
     )

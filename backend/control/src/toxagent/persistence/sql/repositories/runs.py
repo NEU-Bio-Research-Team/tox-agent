@@ -31,14 +31,29 @@ class SqlRunConfigurationSnapshotStore:
     async def add(self, run_id: str, *, ai_profile_id: str | None,
                   predictor_bindings: dict[str, str], now: datetime,
                   intent_decision: dict[str, Any] | None = None,
-                  effective_budget: dict[str, Any] | None = None) -> None:
+                  effective_budget: dict[str, Any] | None = None,
+                  subject_binding: dict[str, Any] | None = None) -> None:
         await self._conn.execute(insert(run_configuration_snapshots).values(
             run_id=run_id, ai_profile_id=ai_profile_id,
             predictor_bindings=dict(predictor_bindings),
             intent_decision=dict(intent_decision) if intent_decision else None,
             effective_budget=dict(effective_budget) if effective_budget else None,
+            subject_binding=dict(subject_binding) if subject_binding else None,
             created_at=now,
         ))
+
+    async def resolve_subject_binding(self, run_id: str, binding: dict[str, Any]) -> None:
+        """#44: a new-molecule run's pending subject, once its snapshot exists.
+        Only a pending binding is ever replaced: a resolved one is final."""
+        row = await self.get(run_id)
+        current = (row or {}).get("subject_binding") or {}
+        if current and not current.get("pending_snapshot"):
+            return
+        await self._conn.execute(
+            update(run_configuration_snapshots)
+            .where(run_configuration_snapshots.c.run_id == run_id)
+            .values(subject_binding=dict(binding))
+        )
 
     async def get(self, run_id: str) -> dict[str, Any] | None:
         row = (await self._conn.execute(select(run_configuration_snapshots).where(
@@ -51,6 +66,7 @@ class SqlRunConfigurationSnapshotStore:
             "predictor_bindings": dict(row["predictor_bindings"] or {}),
             "intent_decision": dict(row["intent_decision"] or {}),
             "effective_budget": dict(row["effective_budget"]) if row.get("effective_budget") else None,
+            "subject_binding": dict(row["subject_binding"]) if row.get("subject_binding") else None,
             "created_at": row["created_at"],
         }
 

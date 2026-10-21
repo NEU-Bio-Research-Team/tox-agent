@@ -87,6 +87,9 @@ run_configuration_snapshots = Table(
     # EffectiveRunBudgetV1 the run was admitted under (0018, P1-06). Nullable:
     # runs admitted earlier recorded no budget, and must not claim one.
     Column("effective_budget", Json),
+    # RunSubjectBinding fixed at admission (0026, #44). Nullable: a run
+    # admitted without subject binding has none and must not claim one.
+    Column("subject_binding", Json),
     Column("created_at", _TS, nullable=False),
 )
 

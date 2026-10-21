@@ -17,6 +17,7 @@ from pathlib import Path
 
 from toxagent.application.activity.projections import freeze_screening
 from toxagent.application.activity.replay import write_replay_file
+from toxagent.domain.analysis import PredictorProvenance, snapshot_from_prediction
 from toxagent.domain.ids import RUN, SESSION, new_id
 from toxagent.domain.screening import (
     ActivityApplicability,
@@ -25,6 +26,7 @@ from toxagent.domain.screening import (
     ActivityModelProvenance,
     ActivitySnapshot,
     ActivitySubject,
+    ContinuationAuthorisation,
     TargetIdentity,
     TargetPriorityPolicy,
     TargetRole,
@@ -33,6 +35,50 @@ from toxagent.domain.screening import (
 NOW = datetime(2026, 10, 21, tzinfo=timezone.utc)
 LIGAND = "CCOc1ccc2nc(S(N)(=O)=O)sc2c1"
 CONTEXT = "IC50|wild_type"
+
+
+#: The Tox21 assays the frozen toxicity snapshots carry, in the predictor's order.
+TOX21_TASKS = (
+    "NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma",
+    "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53",
+)
+
+
+def toxicity_prediction(smiles: str = LIGAND, *, herg_probability: float = 0.81,
+                        active_tasks: tuple[str, ...] = ("SR-MMP",)) -> dict:
+    """A predictor response in the pinned contract's shape. Synthetic: no
+    model produced it, and the model id says so."""
+    model_id = "synthetic-toxicity-fixture-v1"
+    return {
+        "input_smiles": smiles,
+        "canonical_smiles": smiles,
+        "predictions": {
+            "herg": {
+                "probability_blocker": herg_probability,
+                "label": "blocker" if herg_probability >= 0.5 else "non_blocker",
+                "threshold": 0.5, "threshold_source": "model_default", "model_id": model_id,
+            },
+            "tox21": {
+                "task_order_version": "tox21-12task-v1",
+                "assays": {
+                    task: {
+                        "probability_activity": 0.82 if task in active_tasks else 0.07,
+                        "active": task in active_tasks, "threshold": 0.5,
+                        "threshold_source": "model_default",
+                    }
+                    for task in TOX21_TASKS
+                },
+                "model_id": model_id,
+            },
+        },
+        "applicability": {"status": "ok", "method": "element_rules_v1", "reasons": []},
+        "provenance": {
+            "predictor_version": "synthetic", "policy_version": "tox-policy-v1",
+            "tox21_task_order_version": "tox21-12task-v1", "models": [model_id],
+            "artifacts": [{"model_id": model_id, "weights_sha256": "0" * 64}],
+            "truncated_input": False,
+        },
+    }
 
 
 def frozen_screening(
@@ -44,15 +90,25 @@ def frozen_screening(
     threshold: float = 7.0,
     activity_fails: bool = False,
     close_without_toxicity: bool = True,
+    toxicity: str | None = None,
+    herg_probability: float = 0.81,
+    ligand: str = LIGAND,
+    variant: str | None = None,
+    context: str = CONTEXT,
 ) -> dict:
     """One screening taken as far as its policy decision -- by default a
     REVIEW, because the interval crosses the threshold -- and, when
-    ``close_without_toxicity``, closed with the toxicity stage not run."""
+    ``close_without_toxicity``, closed with the toxicity stage not run.
+
+    ``toxicity`` takes the toxicity stage further instead: ``"completed"``
+    runs it (authorised by a reviewer when the policy said REVIEW) and freezes
+    the analysis it produced with the screening; ``"failed"`` records a failed
+    stage. ``herg_probability`` is that analysis's synthetic hERG score."""
     session_id, run_id = new_id(SESSION), new_id(RUN)
-    target = TargetIdentity(target_id=target_id, uniprot_id=uniprot_id)
+    target = TargetIdentity(target_id=target_id, uniprot_id=uniprot_id, variant=variant)
     screening = ActivityGuidedScreening.create(
-        session_id=session_id, run_id=run_id, input_smiles=LIGAND,
-        subject=ActivitySubject(canonical_smiles=LIGAND, target=target, assay_context=CONTEXT),
+        session_id=session_id, run_id=run_id, input_smiles=ligand,
+        subject=ActivitySubject(canonical_smiles=ligand, target=target, assay_context=context),
         intended_target_role=TargetRole.INTENDED_TARGET, now=NOW,
     ).start_activity(now=NOW)
     if activity_fails:
@@ -62,8 +118,8 @@ def frozen_screening(
             run_id=run_id, now=NOW,
         )
     snapshot = ActivitySnapshot.create(
-        session_id=session_id, run_id=run_id, input_smiles=LIGAND, canonical_smiles=LIGAND,
-        target=target, assay_context=CONTEXT,
+        session_id=session_id, run_id=run_id, input_smiles=ligand, canonical_smiles=ligand,
+        target=target, assay_context=context,
         estimate=ActivityEstimate(
             predicted_pic50=predicted, uncertainty=0.2,
             interval_low=interval[0], interval_high=interval[1],
@@ -80,18 +136,38 @@ def frozen_screening(
     screening = screening.record_activity(snapshot, now=NOW)
     policy = TargetPriorityPolicy(
         policy_id=f"activity-priority-{target_id.lower()}-v1", target_id=target_id,
-        assay_context=CONTEXT, threshold_pic50=threshold,
+        assay_context=context, threshold_pic50=threshold,
         threshold_source="synthetic_test_policy", max_uncertainty=0.5,
     )
     decision = policy.decide(snapshot, now=NOW)
     screening = screening.record_decision(decision, now=NOW)
-    if close_without_toxicity:
+    analysis = None
+    if toxicity in ("completed", "failed"):
+        grant = None
+        if screening.status.value != "prioritised":
+            grant = ContinuationAuthorisation(
+                authorised_by="reviewer-1", reason="synthetic fixture: run toxicity",
+                granted_by_policy="screening-continuation-v1",
+            )
+        screening = screening.start_toxicity(now=NOW, authorisation=grant)
+        if toxicity == "completed":
+            analysis = snapshot_from_prediction(
+                session_id=session_id, run_id=run_id, input_smiles=ligand,
+                requested_endpoints=("herg", "tox21"),
+                predictor_response=toxicity_prediction(ligand, herg_probability=herg_probability),
+                provenance=PredictorProvenance(base_url_id="synthetic-fixture"),
+                policy_snapshot={"policy_version": "tox-policy-v1"}, now=NOW,
+            )
+            screening = screening.complete_toxicity(analysis.id, now=NOW)
+        else:
+            screening = screening.fail_toxicity(failure_code="predictor_unavailable", now=NOW)
+    elif close_without_toxicity:
         screening = screening.complete_without_toxicity(
             reason="review_required_awaiting_researcher", now=NOW,
         )
     return freeze_screening(
         screening=screening, snapshot=snapshot, decision=decision, model_admitted=False,
-        run_id=run_id, now=NOW,
+        run_id=run_id, now=NOW, toxicity=analysis,
     )
 
 

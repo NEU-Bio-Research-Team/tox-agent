@@ -6456,6 +6456,137 @@
         "title": "ScientificCaseSummary",
         "type": "object"
       },
+      "ScreeningDetail": {
+        "additionalProperties": false,
+        "description": "One attached screening as the research UI reads it (#44): its subject,\neach stage's status, the artifacts it holds with their hashes, and that\nit is a replay whose model has or has not passed admission. Numbers are\nshown by the artifact card from the same canonical payloads the tools\ncite; nothing here is a policy computed by the client.",
+        "properties": {
+          "activity_estimate": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Estimate"
+          },
+          "artifact_refs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Artifact Refs",
+            "type": "array"
+          },
+          "attached_at": {
+            "title": "Attached At",
+            "type": "string"
+          },
+          "intended_target_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intended Target Role"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "model_admitted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Admitted"
+          },
+          "prioritisation_decision": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prioritisation Decision"
+          },
+          "record_sha256": {
+            "title": "Record Sha256",
+            "type": "string"
+          },
+          "required_limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Required Limitations",
+            "type": "array"
+          },
+          "screening_id": {
+            "title": "Screening Id",
+            "type": "string"
+          },
+          "serving": {
+            "title": "Serving",
+            "type": "boolean"
+          },
+          "stages": {
+            "additionalProperties": true,
+            "title": "Stages",
+            "type": "object"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "subject": {
+            "additionalProperties": true,
+            "title": "Subject",
+            "type": "object"
+          },
+          "subject_key": {
+            "title": "Subject Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "screening_id",
+          "subject",
+          "subject_key",
+          "intended_target_role",
+          "status",
+          "stages",
+          "activity_estimate",
+          "prioritisation_decision",
+          "artifact_refs",
+          "required_limitations",
+          "mode",
+          "serving",
+          "model_admitted",
+          "record_sha256",
+          "attached_at"
+        ],
+        "title": "ScreeningDetail",
+        "type": "object"
+      },
       "ScreeningList": {
         "additionalProperties": false,
         "properties": {
@@ -6515,6 +6646,11 @@
           },
           "has_prioritisation_decision": {
             "title": "Has Prioritisation Decision",
+            "type": "boolean"
+          },
+          "has_toxicity_snapshot": {
+            "default": false,
+            "title": "Has Toxicity Snapshot",
             "type": "boolean"
           },
           "intended_target_role": {
@@ -6681,6 +6817,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/MoleculeInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subject_ref": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubjectRefInput"
               },
               {
                 "type": "null"
@@ -7379,6 +7525,49 @@
           "note"
         ],
         "title": "SkillDraftReviewRequest",
+        "type": "object"
+      },
+      "SubjectRefInput": {
+        "additionalProperties": false,
+        "description": "#44: the subject a message is about, by reference. The server reads\nwhat it is; a client names one of the session's subjects, never describes\none.",
+        "properties": {
+          "analysis_id": {
+            "anyOf": [
+              {
+                "pattern": "^ana_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "kind": {
+            "enum": [
+              "analysis",
+              "activity_screening"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "screening_id": {
+            "anyOf": [
+              {
+                "pattern": "^scr_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screening Id"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "SubjectRefInput",
         "type": "object"
       },
       "SupportedProvider": {
@@ -10430,6 +10619,57 @@
           }
         },
         "summary": "Attach Screening",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/screenings/{screening_id}": {
+      "get": {
+        "operationId": "get_screening_v1_sessions__session_id__screenings__screening_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "screening_id",
+            "required": true,
+            "schema": {
+              "title": "Screening Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Screening",
         "tags": [
           "toxagent"
         ]

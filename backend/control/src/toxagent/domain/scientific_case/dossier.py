@@ -45,6 +45,8 @@ def compile_dossier(
         "answer_id": answer_id,
         "question": case.question,
         "decision_context": case.decision_context,
+        "subject_key": case.subject_key,
+        "subject": dict(case.subject),
         "subject_refs": list(case.subject_refs),
         "requester": case.requester,
         "data_scope": case.data_scope.to_dict(),
@@ -86,6 +88,15 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
     ledger entries with theirs, and the conclusion so far.
     """
     lines = [f"Open scientific case {case.id} (revision {case.revision})."]
+    identity = (case.subject or {}).get("identity") or {}
+    if identity.get("target"):
+        target = identity["target"]
+        variant = f" ({target['variant']})" if target.get("variant") else ""
+        lines.append(
+            f"Subject: {identity.get('canonical_smiles')} on {target.get('target_id')}{variant} "
+            f"in {identity.get('assay_context')}. Evidence about another target or context "
+            "is not this case's evidence."
+        )
     if case.question:
         lines.append(f"Decision question: {case.question[:400]}")
     if not case.data_scope.external_search:

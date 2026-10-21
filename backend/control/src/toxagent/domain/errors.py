@@ -82,6 +82,19 @@ class ScreeningNotFound(NotFound):
     code = "screening_not_found"
 
 
+class SubjectMismatch(Conflict):
+    """#44: an artifact, a case or a request describes a different subject
+    (ligand, target, variant or assay context) than the one bound."""
+
+    code = "subject_mismatch"
+
+
+class ArtifactHashMismatch(Conflict):
+    """#44: a frozen artifact's bytes are not the ones its hash pins."""
+
+    code = "artifact_hash_mismatch"
+
+
 class AttachmentNotFound(NotFound):
     """Raised only inside application/prediction/recognize_structure.py, caught there
     and turned into a graceful run completion — never reaches an HTTP
@@ -232,17 +245,28 @@ class DeadlineExceeded(ToxAgentError):
     code, http_status = "deadline_exceeded", 504
 
 
+class CaseUnavailable(ToxAgentError):
+    """#44/#46: a run whose subject is bound needs its scientific case, and the
+    case could not be opened or continued. The run fails with this code rather
+    than proceeding without the case -- which in a study would silently turn
+    the case arm into the no-case arm."""
+
+    code, http_status = "case_unavailable", 503
+
+
 # The set the API documents. A code not listed here cannot leave the process:
 # `api.errors` maps anything else to `internal_error` without a message body.
 PUBLIC_ERROR_CODES: Final[frozenset[str]] = frozenset(
     {
         "invalid_request", "invalid_smiles", "not_found", "session_not_found",
         "analysis_not_found", "screening_not_found",
+        "subject_mismatch", "artifact_hash_mismatch",
         "attachment_unavailable", "unauthenticated", "forbidden", "conflict",
         "capability_unavailable", "structure_recognition_unavailable", "smiles_not_detected",
         "endpoint_unavailable", "predictor_not_ready", "predictor_protocol_error",
         "runtime_unavailable", "runtime_protocol_error", "tool_denied",
         "tool_timeout", "provider_rate_limited", "evidence_unavailable",
-        "answer_validation_failed", "deadline_exceeded", "internal_error",
+        "answer_validation_failed", "deadline_exceeded", "case_unavailable",
+        "internal_error",
     }
 )

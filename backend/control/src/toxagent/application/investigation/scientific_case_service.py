@@ -107,26 +107,50 @@ async def apply_model_updates(
     return current, refused
 
 
+def case_key(*, analysis_id: str | None = None, binding=None) -> str:
+    """The case key of a subject: the bound subject's when there is one (#44),
+    else the legacy key of the analysis (or ``none``)."""
+    if binding is not None and not binding.pending_snapshot:
+        return binding.subject_key
+    return sc.subject_key(analysis_id)
+
+
 async def open_or_continue(
     uow, *, session_id: str, analysis_id: str | None, run_id: str, goal: str,
     subject_refs: Iterable[str], extra_updates: Sequence[sc.CaseUpdate] = (),
-    requester: str = "",
+    requester: str = "", binding=None,
 ) -> sc.ScientificCaseV1:
     """The session's open case for this subject, with this run attached.
 
-    A subject switch (another analysis) opens another case: one compound's
-    evidence never lands in another's ledger. The first run's goal becomes the
-    case's question; later runs are recorded against it without replacing it —
-    changing the question is an explicit ``set_question``.
+    A subject switch (another analysis, another target) opens another case:
+    one compound's evidence never lands in another's ledger. The first run's
+    goal becomes the case's question; later runs are recorded against it
+    without replacing it -- changing the question is an explicit
+    ``set_question``.
+
+    With a bound subject (#44) the case is keyed by the subject's identity and
+    stores it; continuing a case whose stored identity disagrees with the
+    binding on an axis both state (a different UniProt id for the same target
+    id, say) is a ``SubjectMismatch``, never a silent merge.
     """
-    key = sc.subject_key(analysis_id)
+    from ...domain.errors import SubjectMismatch
+
+    key = case_key(analysis_id=analysis_id, binding=binding)
     case = await uow.scientific_cases.open_for_subject(session_id, key)
+    if case is not None and binding is not None and case.subject:
+        differing = binding.mismatches(case.subject.get("identity") or {})
+        if differing:
+            raise SubjectMismatch(
+                "the run's subject and the open case's subject differ on "
+                + ", ".join(differing),
+                case_id=case.id, axes=list(differing),
+            )
     now = _now()
     updates: list[sc.CaseUpdate] = []
     if case is None:
         # A researcher's restriction outlives the case it was set on: closing
         # a case must not quietly re-open the compound to external search.
-        previous = await latest_case_for_subject(uow, session_id=session_id, analysis_id=analysis_id)
+        previous = await latest_case_for_key(uow, session_id=session_id, key=key)
         inherited = (
             previous.data_scope.to_dict()
             if previous is not None and not previous.data_scope.external_search else None
@@ -136,9 +160,16 @@ async def open_or_continue(
             case_id=new_id(SCIENTIFIC_CASE), session_id=session_id, subject_key=key,
             question=(goal or "").strip()[:2000], subject_refs=list(dict.fromkeys(subject_refs)),
             requester=requester, **({"data_scope": inherited} if inherited else {}),
+            **({"subject": binding.case_subject()} if binding is not None else {}),
         ))
+    attach: dict[str, Any] = {"goal": (goal or "").strip()[:2000]}
+    if binding is not None:
+        attach["binding"] = {
+            "binding_sha256": binding.binding_sha256, "resolved_by": binding.resolved_by,
+            "artifact_refs": [ref.to_dict() for ref in binding.artifact_refs],
+        }
     updates.append(update("attach_run", actor=sc.Actor.SERVER.value, run_id=run_id, at=now,
-                          goal=(goal or "").strip()[:2000]))
+                          **attach))
     updates.extend(extra_updates)
     updated, applied = fold(case, updates)
     await uow.scientific_cases.append(
@@ -203,11 +234,12 @@ async def advance(database, *, session_id: str, run_id: str, updates_for: Update
 
 def answer_relation_updates(relations: Iterable[Any], *, run_id: str) -> UpdatesFor:
     """The accepted answer's relations as ledger updates, for ``advance_in``."""
+    keys = ("proposition", "source_class", "source_id", "relation", "directness",
+            *sc.RELATION_SCOPE_AXES)
     payload = [
         {
             key: getattr(r, key, None) if not isinstance(r, Mapping) else r.get(key)
-            for key in ("proposition", "source_class", "source_id", "relation", "directness",
-                        "endpoint", "species", "dose", "use_context")
+            for key in keys
         }
         for r in relations
     ]
@@ -226,13 +258,75 @@ def answer_ledger_updates(relations: Iterable[Any], cited: Sequence[Mapping[str,
     at = _now().isoformat()
 
     def updates_for(case: sc.ScientificCaseV1) -> list[sc.CaseUpdate]:
-        related = list(from_relations(case))
+        # #44: an activity artifact of another subject (the same ligand on
+        # another target, read by its own screening id) is not this case's
+        # evidence, whatever the answer did with it.
+        foreign = {
+            f"observation:{item['source_id']}" for item in cited
+            if item.get("subject_key") and case.subject
+            and item["subject_key"] != case.subject_key
+        }
+        if foreign:
+            log.info("left %d artifact(s) of another subject out of case %s",
+                     len(foreign), case.id, extra={"run_id": run_id})
+        related = [u for u in from_relations(case)
+                   if str(u.payload.get("source_ref")) not in foreign]
         related_refs = [str(u.payload.get("source_ref")) for u in related]
         return related + sc.updates_from_citations(
-            case, cited, run_id=run_id, at=at, skip_refs=related_refs,
+            case, [c for c in cited if f"observation:{c['source_id']}" not in foreign],
+            run_id=run_id, at=at, skip_refs=related_refs,
         )
 
     return updates_for
+
+
+def _activity_entry(observation) -> dict[str, Any]:
+    """What the ledger records about a replayed or served activity artifact:
+    its source class (a model output, a rule's output, a workflow fact -- none
+    of them independent evidence), the scope its own subject block states, and
+    where it came from. A pIC50 is scoped by target and unit, never by a
+    toxicity endpoint, so it cannot be set against a probability."""
+    from ...domain.observation import ObservationKind
+    from ...domain.subject import InvalidSubject, activity_subject_key
+
+    payload = observation.canonical_payload or {}
+    subject = payload.get("subject") or {}
+    target = subject.get("target") or {}
+    source_class = {
+        ObservationKind.ACTIVITY_ESTIMATE: sc.SourceClass.PREDICTOR_FACT.value,
+        ObservationKind.PRIORITISATION_DECISION: sc.SourceClass.POLICY_FACT.value,
+        ObservationKind.SCREENING_STATE: sc.SourceClass.WORKFLOW_FACT.value,
+    }[observation.kind]
+    scope = {
+        "ligand_id": subject.get("canonical_smiles"),
+        "target_id": target.get("target_id"),
+        "target_variant": target.get("variant"),
+        "target_sequence_sha256": target.get("sequence_sha256"),
+        "experimental_context": subject.get("assay_context"),
+    }
+    if observation.kind is ObservationKind.ACTIVITY_ESTIMATE:
+        scope["unit"] = "pIC50"
+    if observation.kind is ObservationKind.PRIORITISATION_DECISION:
+        policy = payload.get("policy") or {}
+        scope["target_id"] = scope["target_id"] or policy.get("target_id")
+        scope["experimental_context"] = scope["experimental_context"] or policy.get("assay_context")
+    replayed = (observation.provenance or {}).get("replayed_from") or {}
+    provenance = {
+        "observation_kind": observation.kind.value,
+        "screening_id": payload.get("screening_id"),
+        "record_sha256": replayed.get("record_sha256"),
+        "content_sha256": observation.content_sha256,
+    }
+    entry: dict[str, Any] = {
+        "source_class": source_class,
+        "scope": {k: v for k, v in scope.items() if v},
+        "provenance": {k: v for k, v in provenance.items() if v},
+    }
+    try:
+        entry["subject_key"] = activity_subject_key(subject) if subject else None
+    except InvalidSubject:
+        entry["subject_key"] = None
+    return entry
 
 
 async def cited_sources(uow, *, session_id: str, answer) -> list[dict[str, Any]]:
@@ -240,17 +334,28 @@ async def cited_sources(uow, *, session_id: str, answer) -> list[dict[str, Any]]
     from ...domain.evidence import SourceType
     from ...domain.observation import ObservationKind
 
+    activity_kinds = {
+        ObservationKind.ACTIVITY_ESTIMATE, ObservationKind.PRIORITISATION_DECISION,
+        ObservationKind.SCREENING_STATE,
+    }
     cited: list[dict[str, Any]] = []
     for claim in answer.claims:
         if claim.observation_id:
             observation = await uow.observations.get(claim.observation_id, session_id=session_id)
-            source_class = {
-                ObservationKind.PREDICTION: sc.SourceClass.PREDICTOR_FACT.value,
-                ObservationKind.ATTRIBUTION: sc.SourceClass.EXPLANATION_FACT.value,
-            }.get(observation.kind) if observation is not None else None
-            if source_class:
-                cited.append({"source_class": source_class, "source_id": claim.observation_id,
-                              "claim": claim.text, "locator": claim.field_path})
+            if observation is not None and observation.kind in activity_kinds:
+                # #44: the three activity artifacts reach the ledger as what
+                # they are, with the subject and scope they state.
+                cited.append({"source_id": claim.observation_id, "claim": claim.text,
+                              "locator": claim.field_path, **_activity_entry(observation)})
+            else:
+                source_class = {
+                    ObservationKind.PREDICTION: sc.SourceClass.PREDICTOR_FACT.value,
+                    ObservationKind.ATTRIBUTION: sc.SourceClass.EXPLANATION_FACT.value,
+                }.get(observation.kind) if observation is not None else None
+                if source_class:
+                    cited.append({"source_class": source_class,
+                                  "source_id": claim.observation_id,
+                                  "claim": claim.text, "locator": claim.field_path})
         for evidence_id in claim.citation_ids:
             record = await uow.evidence.get(evidence_id, session_id=session_id)
             if record is None:
@@ -260,29 +365,43 @@ async def cited_sources(uow, *, session_id: str, answer) -> list[dict[str, Any]]
                 if record.source_type is SourceType.REGULATORY
                 else sc.SourceClass.EXTERNAL_EXPERIMENTAL.value
             )
+            # #44: the passages the claim quoted, not only the record: an
+            # entry without its locator cannot be checked against the text.
+            spans = [locator for span_id, locator in claim.evidence_spans
+                     if span_id == evidence_id]
             cited.append({"source_class": source_class, "source_id": evidence_id,
-                          "claim": claim.text, "locator": None})
+                          "claim": claim.text, "locator": spans[0] if spans else None,
+                          **({"spans": spans} if spans else {})})
     return cited
 
 
-async def latest_case_for_subject(uow, *, session_id: str,
-                                  analysis_id: str | None) -> sc.ScientificCaseV1 | None:
-    """The session's most recent case about this subject, open or closed."""
-    key = sc.subject_key(analysis_id)
+async def latest_case_for_key(uow, *, session_id: str, key: str) -> sc.ScientificCaseV1 | None:
+    """The session's most recent case under this subject key, open or closed."""
     for case in await uow.scientific_cases.list_for_session(session_id, limit=200):
         if case.subject_key == key:
             return case
     return None
 
 
-async def external_search_refusal(uow, *, session_id: str, analysis_id: str | None) -> str | None:
+async def latest_case_for_subject(uow, *, session_id: str,
+                                  analysis_id: str | None,
+                                  binding=None) -> sc.ScientificCaseV1 | None:
+    """The session's most recent case about this subject, open or closed."""
+    return await latest_case_for_key(
+        uow, session_id=session_id, key=case_key(analysis_id=analysis_id, binding=binding),
+    )
+
+
+async def external_search_refusal(uow, *, session_id: str, analysis_id: str | None,
+                                  binding=None) -> str | None:
     """Why the researcher forbade external search about this subject, or ``None``.
 
     Keyed on the subject, not the run: the evidence search tool serves chat
     turns and both report paths (the orchestrator's server-side search runs the
     same tool), and a confidential structure is confidential in all of them.
     """
-    case = await latest_case_for_subject(uow, session_id=session_id, analysis_id=analysis_id)
+    case = await latest_case_for_subject(uow, session_id=session_id, analysis_id=analysis_id,
+                                         binding=binding)
     if case is None or case.data_scope.external_search:
         return None
     return case.data_scope.reason or "the researcher restricted this compound to internal data"

@@ -24,6 +24,14 @@ _STANCE_BY_RELATION = {
 }
 
 
+#: The EvidenceScope axes a relation states, carried to the ledger one by one.
+RELATION_SCOPE_AXES: tuple[str, ...] = (
+    "endpoint", "species", "dose", "use_context", "ligand_id", "target_id", "target_variant",
+    "target_sequence_sha256", "assay_type", "readout", "unit", "comparator",
+    "experimental_context",
+)
+
+
 #: grounded-answer-v2 ``directness`` -> ledger directness.
 _DIRECTNESS_BY_RELATION = {
     "direct": Directness.DIRECT.value,
@@ -55,8 +63,7 @@ def updates_from_answer(
         if stance in (Stance.SUPPORTS.value, Stance.CONTRADICTS.value) and hypothesis is None:
             # Unlinked, it can only be context: a stance needs a hypothesis to bear on.
             stance = Stance.CONTEXTUAL.value
-        scope = {k: str(relation[k]) for k in ("endpoint", "species", "dose", "use_context")
-                 if relation.get(k)}
+        scope = {k: str(relation[k]) for k in RELATION_SCOPE_AXES if relation.get(k)}
         updates.append(CaseUpdate(
             op="record_evidence", actor=Actor.SERVER.value, run_id=run_id, at=at,
             payload={
@@ -89,7 +96,8 @@ def updates_from_citations(
     (or ``skip_refs`` is about to add) is not recorded again.
 
     ``cited`` items: ``source_class``, ``source_id``, ``claim`` and optionally
-    ``locator`` (the field path the answer cited).
+    ``locator`` (the field path the answer cited), ``spans`` (the passages it
+    quoted), ``scope`` and ``provenance`` (both server-derived).
     """
     held = {e.source_ref for e in case.evidence} | set(skip_refs)
     updates: list[CaseUpdate] = []
@@ -104,14 +112,18 @@ def updates_from_citations(
         if ref in held:
             continue
         held.add(ref)
+        payload: dict[str, Any] = {
+            "claim": str(item.get("claim") or "").strip()[:MAX_TEXT] or "(cited by the answer)",
+            "source_class": source_class, "source_ref": ref,
+            "stance": Stance.CONTEXTUAL.value,
+            "directness": Directness.NOT_ASSESSED.value,
+            "locator": item.get("locator"),
+        }
+        for key in ("spans", "scope", "provenance"):
+            if item.get(key):
+                payload[key] = item[key]
         updates.append(CaseUpdate(
             op="record_evidence", actor=Actor.SERVER.value, run_id=run_id, at=at,
-            payload={
-                "claim": str(item.get("claim") or "").strip()[:MAX_TEXT] or "(cited by the answer)",
-                "source_class": source_class, "source_ref": ref,
-                "stance": Stance.CONTEXTUAL.value,
-                "directness": Directness.NOT_ASSESSED.value,
-                "locator": item.get("locator"),
-            },
+            payload=payload,
         ))
     return updates

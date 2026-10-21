@@ -14,6 +14,8 @@ from ...domain.observation import ObservationKind
 from ...domain.run import Intent
 from ...domain.runtime import AuthMode
 from ...platform.flags import is_enabled
+from ...application.conversation.subject_resolution import binding_of, subject_summary
+from ...domain.subject import SubjectKind
 from ..context import PinnedReference, SessionCheckpoint, build_system_prompt
 from ..report_profile import compose_report_profile
 from ._common import ResolvedProfile, _now
@@ -48,6 +50,33 @@ class ContextMixin:
             explanation_targets=context.explanation_targets,
             owns_run=False,
         )
+
+    async def _resolve_pending_subject(self, context: RunContext) -> RunContext:
+        """#44: a new-molecule run's subject is the analysis its snapshot just
+        made. Bind it now, before the case and the prompt read the subject."""
+        from dataclasses import replace
+
+        binding = binding_of(context)
+        if binding is None or not binding.pending_snapshot:
+            return context
+        async with self._db.unit_of_work() as uow:
+            session = await uow.sessions.get_unscoped(context.session_id)
+            analysis = (
+                await uow.analyses.get(session.active_analysis_id, session_id=context.session_id)
+                if session is not None and session.active_analysis_id else None
+            )
+        if analysis is None:
+            raise RuntimeProtocolError("the run's snapshot did not produce an analysis to bind")
+        resolved = binding.resolved_with_analysis(
+            analysis.id, canonical_smiles=analysis.canonical_smiles,
+            content_sha256_=analysis.content_sha256,
+        )
+        async with self._db.unit_of_work() as uow:
+            await uow.run_configuration_snapshots.resolve_subject_binding(
+                context.run_id, resolved.to_dict(),
+            )
+            await uow.commit()
+        return replace(context, subject=resolved.to_dict(), analysis_id=analysis.id)
 
     async def _resolve_ai_profile(self, context: RunContext) -> ResolvedProfile:
         """Resolve the run-pinned AI profile immediately before dispatch.
@@ -122,12 +151,23 @@ class ContextMixin:
             # in §10.4), not part of the prefix transcript.
             recent = [message for message in messages if message.id != run.trigger_message_id]
             pinned: list[PinnedReference] = []
+            binding = binding_of(context)
             # The run's own resolved target wins over whatever the session
             # happens to have active right now; it falls back to the active
             # analysis only when the run never named one. A run that
             # named a specific analysis_id and can't find it is a protocol
             # error, not a silent fall-through to the wrong molecule.
-            target_analysis_id = context.analysis_id or session.active_analysis_id
+            # #44: a bound run never falls back -- a screening subject has no
+            # analysis of its own, and the session's active one is not it.
+            target_analysis_id = (
+                binding.analysis_id if binding is not None
+                else context.analysis_id or session.active_analysis_id
+            )
+            if binding is not None and binding.kind is SubjectKind.ACTIVITY_SCREENING:
+                pinned.append(PinnedReference(
+                    kind="screening", id=binding.screening_id or "",
+                    summary=subject_summary(binding),
+                ))
             if target_analysis_id:
                 analysis = await uow.analyses.get(
                     target_analysis_id, session_id=context.session_id
@@ -177,7 +217,10 @@ class ContextMixin:
                     )
                     if state.run_id != context.run_id and state.stop_reason is not None
                 ]
-                subject = f"analysis:{target_analysis_id}" if target_analysis_id else None
+                subject = (
+                    binding.subject_ref_string if binding is not None
+                    else f"analysis:{target_analysis_id}" if target_analysis_id else None
+                )
                 same_subject = [s for s in prior if subject and subject in s.subject_refs]
                 if prior:
                     scoped_ids = {
@@ -297,7 +340,7 @@ class ContextMixin:
             subjectless=(
                 context.intent is Intent.DECISION_SUPPORT
                 and is_enabled("subjectless_research_v1")
-                and not any(p.kind == "analysis" for p in pinned)
+                and not any(p.kind in ("analysis", "screening") for p in pinned)
             ),
         )
         instructions_hash = None

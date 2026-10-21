@@ -979,6 +979,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/screenings/{screening_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Screening */
+        get: operations["get_screening_v1_sessions__session_id__screenings__screening_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/settings": {
         parameters: {
             query?: never;
@@ -3386,6 +3403,56 @@ export interface components {
             /** Updated At */
             updated_at: string;
         };
+        /**
+         * ScreeningDetail
+         * @description One attached screening as the research UI reads it (#44): its subject,
+         *     each stage's status, the artifacts it holds with their hashes, and that
+         *     it is a replay whose model has or has not passed admission. Numbers are
+         *     shown by the artifact card from the same canonical payloads the tools
+         *     cite; nothing here is a policy computed by the client.
+         */
+        ScreeningDetail: {
+            /** Activity Estimate */
+            activity_estimate: {
+                [key: string]: unknown;
+            } | null;
+            /** Artifact Refs */
+            artifact_refs: {
+                [key: string]: unknown;
+            }[];
+            /** Attached At */
+            attached_at: string;
+            /** Intended Target Role */
+            intended_target_role: string | null;
+            /** Mode */
+            mode: string;
+            /** Model Admitted */
+            model_admitted: boolean | null;
+            /** Prioritisation Decision */
+            prioritisation_decision: {
+                [key: string]: unknown;
+            } | null;
+            /** Record Sha256 */
+            record_sha256: string;
+            /** Required Limitations */
+            required_limitations: string[];
+            /** Screening Id */
+            screening_id: string;
+            /** Serving */
+            serving: boolean;
+            /** Stages */
+            stages: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string | null;
+            /** Subject */
+            subject: {
+                [key: string]: unknown;
+            };
+            /** Subject Key */
+            subject_key: string;
+        };
         /** ScreeningList */
         ScreeningList: {
             /**
@@ -3412,6 +3479,11 @@ export interface components {
             has_activity_estimate: boolean;
             /** Has Prioritisation Decision */
             has_prioritisation_decision: boolean;
+            /**
+             * Has Toxicity Snapshot
+             * @default false
+             */
+            has_toxicity_snapshot: boolean;
             /** Intended Target Role */
             intended_target_role: string | null;
             /** Model Admitted */
@@ -3448,6 +3520,7 @@ export interface components {
              */
             intent_hint: "auto" | "analyze" | "ask_report" | "research_evidence" | "request_attribution" | "build_report";
             molecule?: components["schemas"]["MoleculeInput"] | null;
+            subject_ref?: components["schemas"]["SubjectRefInput"] | null;
         };
         /** ServiceInfo */
         ServiceInfo: {
@@ -3676,6 +3749,23 @@ export interface components {
             decision: "approve" | "reject";
             /** Note */
             note: string;
+        };
+        /**
+         * SubjectRefInput
+         * @description #44: the subject a message is about, by reference. The server reads
+         *     what it is; a client names one of the session's subjects, never describes
+         *     one.
+         */
+        SubjectRefInput: {
+            /** Analysis Id */
+            analysis_id?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "analysis" | "activity_screening";
+            /** Screening Id */
+            screening_id?: string | null;
         };
         /** SupportedProvider */
         SupportedProvider: {
@@ -5503,6 +5593,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScreeningSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_screening_v1_sessions__session_id__screenings__screening_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                screening_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreeningDetail"];
                 };
             };
             /** @description Validation Error */

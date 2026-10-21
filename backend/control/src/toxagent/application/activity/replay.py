@@ -28,11 +28,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from ...domain.analysis import AnalysisSnapshot
 from ...domain.errors import CapabilityUnavailable, ScreeningNotFound
 from ...domain.observation import Observation
 from ...domain.provenance import content_sha256
 from ...domain.screening_attachment import ScreeningAttachment
 from .projections import (
+    TOXICITY_SNAPSHOT_SCHEMA_VERSION,
     activity_observation_from_payload,
     prioritisation_observation_from_payload,
     screening_state_observation_from_payload,
@@ -105,6 +107,9 @@ class FrozenReplayStore:
                 )
             if screening_id in records:
                 raise ReplayError(f"screening {screening_id} appears twice in {path.name}")
+            problem = toxicity_snapshot_problem(record)
+            if problem:
+                raise ReplayError(f"screening {screening_id} in {path.name}: {problem}")
             records[screening_id] = record
         return cls(path_name=path.name, sha256=sha256, _records=records)
 
@@ -116,6 +121,110 @@ class FrozenReplayStore:
 
     def describe(self) -> dict[str, Any]:
         return {"path_name": self.path_name, "sha256": self.sha256, "screenings": len(self)}
+
+
+def toxicity_snapshot_problem(record: Mapping[str, Any]) -> str | None:
+    """Why a record's linked toxicity snapshot cannot be trusted, or ``None``.
+
+    The snapshot must be the one the screening's toxicity stage names, of the
+    screening's own molecule, with a predictor response that still hashes to
+    the content hash it was frozen with.
+    """
+    frozen = record.get("toxicity_snapshot")
+    if frozen is None:
+        return None
+    if frozen.get("schema_version") != TOXICITY_SNAPSHOT_SCHEMA_VERSION:
+        return f"its toxicity snapshot is not a {TOXICITY_SNAPSHOT_SCHEMA_VERSION} payload"
+    state = record.get("screening_state") or {}
+    named = (state.get("toxicity") or {}).get("analysis_id")
+    if frozen.get("origin_analysis_id") != named:
+        return (
+            f"its toxicity snapshot is analysis {frozen.get('origin_analysis_id')!r}, "
+            f"but the screening's toxicity stage names {named!r}"
+        )
+    subject = state.get("subject") or {}
+    if frozen.get("canonical_smiles") != subject.get("canonical_smiles"):
+        return "its toxicity snapshot is of a different molecule than the screening"
+    if content_sha256(frozen.get("predictor_response") or {}) != frozen.get("content_sha256"):
+        return "its toxicity snapshot does not match its content_sha256"
+    return None
+
+
+def linked_toxicity(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The origin id and hash of the toxicity snapshot a record carries."""
+    frozen = record.get("toxicity_snapshot")
+    if frozen is None:
+        return None
+    return {
+        "origin_analysis_id": frozen["origin_analysis_id"],
+        "content_sha256": frozen["content_sha256"],
+    }
+
+
+async def materialise_toxicity(uow, record: Mapping[str, Any], *, session_id: str, run_id: str,
+                               now: datetime) -> AnalysisSnapshot | None:
+    """The session-local copy of a screening's frozen toxicity snapshot.
+
+    Made once per session (the analysis idempotency key is unique per session)
+    and never by calling the predictor: the predictor response is the frozen
+    one, byte for byte, and the copy must hash to the same content as the
+    origin or it is refused. ``None`` when the screening's toxicity stage did
+    not produce one -- not_run is a state, never a gap to fill.
+    """
+    from ...domain.analysis import PredictorProvenance, snapshot_from_prediction
+    from ...domain.errors import ArtifactHashMismatch
+
+    frozen = record.get("toxicity_snapshot")
+    if frozen is None:
+        return None
+    problem = toxicity_snapshot_problem(record)
+    if problem:
+        raise ArtifactHashMismatch(problem, screening_id=screening_id_of(record))
+    provenance = frozen.get("provenance") or {}
+    candidate = snapshot_from_prediction(
+        session_id=session_id, run_id=run_id, input_smiles=frozen["input_smiles"],
+        requested_endpoints=tuple(frozen.get("requested_endpoints") or ()),
+        predictor_response=dict(frozen["predictor_response"]),
+        provenance=PredictorProvenance(
+            base_url_id=str(provenance.get("base_url_id") or "replay"),
+            service_version=provenance.get("service_version"),
+            git_commit=provenance.get("git_commit"),
+            artifact_hashes=tuple(provenance.get("artifact_hashes") or ()),
+            raw=(frozen["predictor_response"].get("provenance") or {}),
+        ),
+        policy_snapshot=dict(frozen.get("policy_snapshot") or {}),
+        now=now,
+    )
+    if candidate.content_sha256 != frozen["content_sha256"]:
+        raise ArtifactHashMismatch(
+            "the replayed toxicity snapshot does not hash to its frozen content",
+            screening_id=screening_id_of(record),
+        )
+    existing = await uow.analyses.find_by_idempotency_key(session_id, candidate.idempotency_key)
+    if existing is not None:
+        if existing.content_sha256 != candidate.content_sha256:
+            raise ArtifactHashMismatch(
+                "this session already holds a different analysis under the same key",
+                analysis_id=existing.id,
+            )
+        return existing
+    from dataclasses import replace as _replace
+
+    from ..prediction.create_analysis import CreateAnalysis
+
+    await uow.analyses.add(candidate)
+    # The prediction observation a served analysis is stored with, so the
+    # copy reads and cites exactly as one: get_analysis_slice cites it.
+    observation = CreateAnalysis._observation_for(candidate, run_id)
+    observation = _replace(observation, provenance={
+        **observation.provenance,
+        "replayed_from": {
+            "record_sha256": record.get("content_sha256"),
+            "origin_analysis_id": frozen["origin_analysis_id"],
+        },
+    })
+    await uow.observations.add(observation, analysis_id=candidate.id)
+    return candidate
 
 
 def build_replay_store(settings) -> FrozenReplayStore | None:
@@ -144,6 +253,7 @@ def summary(record: Mapping[str, Any]) -> dict[str, Any]:
         "model_admitted": ((record.get("activity_estimate") or {}).get("model") or {}).get(
             "admitted"
         ),
+        "has_toxicity_snapshot": record.get("toxicity_snapshot") is not None,
         "record_sha256": record.get("content_sha256"),
     }
 

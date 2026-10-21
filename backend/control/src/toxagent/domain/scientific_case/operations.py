@@ -110,15 +110,50 @@ def parse_ref(ref: str) -> tuple[str, str]:
     return kind, identifier
 
 
+#: The EvidenceScope axes (domain/evidence_relation.py) and the two keys the
+#: ledger accepted before them. A relation's scope reaches the ledger axis for
+#: axis: collapsing target, assay or unit away is how "both say hERG" turns
+#: into a false contradiction one turn later.
+SCOPE_KEYS: frozenset[str] = frozenset({
+    "endpoint", "species", "dose", "use_context", "ligand_id", "target_id", "target_variant",
+    "target_sequence_sha256", "assay_type", "readout", "unit", "comparator",
+    "experimental_context", "assay", "compound",
+})
+
+
 def _scope(payload: Mapping[str, Any]) -> dict[str, str]:
     raw = payload.get("scope") or {}
     if not isinstance(raw, Mapping):
         raise InvalidCaseUpdate("scope must be an object")
-    allowed = {"endpoint", "species", "assay", "dose", "use_context", "compound"}
-    unknown = sorted(set(raw) - allowed)
+    unknown = sorted(set(raw) - SCOPE_KEYS)
     if unknown:
-        raise InvalidCaseUpdate(f"scope keys must be among {sorted(allowed)}; got {unknown}")
+        raise InvalidCaseUpdate(f"scope keys must be among {sorted(SCOPE_KEYS)}; got {unknown}")
     return {k: str(v)[:200] for k, v in raw.items() if v not in (None, "")}
+
+
+def _spans(payload: Mapping[str, Any]) -> tuple[str, ...]:
+    raw = payload.get("spans") or ()
+    if isinstance(raw, str) or not isinstance(raw, (list, tuple)):
+        raise InvalidCaseUpdate("spans must be a list of passage locators")
+    if len(raw) > 16:
+        raise InvalidCaseUpdate("an entry names at most 16 spans")
+    out: list[str] = []
+    for index, item in enumerate(raw):
+        if not isinstance(item, str) or not item.strip() or len(item) > 120:
+            raise InvalidCaseUpdate(f"spans[{index}] must be a passage locator")
+        if item.strip() not in out:
+            out.append(item.strip())
+    return tuple(out)
+
+
+def _provenance(payload: Mapping[str, Any], actor: str) -> dict[str, str]:
+    raw = payload.get("provenance") or {}
+    if not isinstance(raw, Mapping):
+        raise InvalidCaseUpdate("provenance must be an object")
+    if raw and actor != Actor.SERVER.value:
+        # Where a source came from is the server's record, not a claim.
+        raise InvalidCaseUpdate("only the server records an entry's provenance")
+    return {str(k)[:60]: str(v)[:200] for k, v in raw.items() if v not in (None, "")}
 
 
 def _open(case: ScientificCaseV1 | None, u: CaseUpdate) -> ScientificCaseV1:
@@ -132,6 +167,7 @@ def _open(case: ScientificCaseV1 | None, u: CaseUpdate) -> ScientificCaseV1:
         subject_refs=tuple(dict.fromkeys(p.get("subject_refs") or ())),
         requester=_text(p, "requester", required=False, limit=200),
         data_scope=DataScope(**p["data_scope"]) if p.get("data_scope") else DataScope(),
+        subject=dict(p.get("subject") or {}),
         created_at=u.at,
     )
 
@@ -228,7 +264,8 @@ def _record_evidence(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         source_class=source_class, source_ref=f"{kind}:{identifier}", stance=stance,
         directness=_choice(p, "directness", Directness, Directness.NOT_ASSESSED.value),
         hypothesis_ids=hypothesis_ids, locator=_text(p, "locator", required=False, limit=300) or None,
-        scope=_scope(p), actor=u.actor, run_id=u.run_id,
+        scope=_scope(p), actor=u.actor, run_id=u.run_id, spans=_spans(p),
+        provenance=_provenance(p, u.actor),
     )
     duplicate = next((
         e for e in case.evidence
@@ -340,7 +377,11 @@ def _attach_run(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     run_id = _run_id(u)
     if any(r.run_id == run_id for r in case.runs):
         return case
-    record = RunRecord(run_id=run_id, goal=_text(u.payload, "goal", required=False, limit=2000))
+    binding = u.payload.get("binding") or {}
+    if not isinstance(binding, Mapping):
+        raise InvalidCaseUpdate("binding must be an object")
+    record = RunRecord(run_id=run_id, goal=_text(u.payload, "goal", required=False, limit=2000),
+                       binding=dict(binding))
     return replace(case, runs=case.runs + (record,))
 
 

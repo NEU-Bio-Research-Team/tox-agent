@@ -476,8 +476,35 @@ class ScreeningSummary(_Response):
     has_activity_estimate: bool
     has_prioritisation_decision: bool
     model_admitted: bool | None
+    #: #44: whether the frozen record carries the toxicity analysis its
+    #: toxicity stage produced, readable on replay without the predictor.
+    has_toxicity_snapshot: bool = False
     record_sha256: str | None
     source: str
+    attached_at: str
+
+
+class ScreeningDetail(_Response):
+    """One attached screening as the research UI reads it (#44): its subject,
+    each stage's status, the artifacts it holds with their hashes, and that
+    it is a replay whose model has or has not passed admission. Numbers are
+    shown by the artifact card from the same canonical payloads the tools
+    cite; nothing here is a policy computed by the client."""
+
+    screening_id: str
+    subject: dict[str, Any]
+    subject_key: str
+    intended_target_role: str | None
+    status: str | None
+    stages: dict[str, Any]
+    activity_estimate: dict[str, Any] | None
+    prioritisation_decision: dict[str, Any] | None
+    artifact_refs: list[dict[str, Any]]
+    required_limitations: list[str]
+    mode: str
+    serving: bool
+    model_admitted: bool | None
+    record_sha256: str
     attached_at: str
 
 

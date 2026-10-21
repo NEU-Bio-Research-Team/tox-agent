@@ -99,6 +99,7 @@ class FixedWorkflowMixin:
             session_id=context.session_id, run_id=context.run_id, actor=context.actor,
             profile="decision_support", deadline_at=deadline, language=context.language,
             intent=context.intent.value, model_selection=context.model_selection,
+            subject=context.subject,
         )
         runner = self._workflow_runner()
         registered = set(self._registry.names())

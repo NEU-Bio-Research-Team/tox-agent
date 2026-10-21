@@ -305,6 +305,22 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "cases the corpus settles",
     ),
     _flag(
+        "subject_binding_v1",
+        "Issue #44: a decision_support message is bound to one subject when it is "
+        "accepted -- the analysis or activity screening the request names "
+        "(subject_ref), or the session's only one -- and the binding travels "
+        "frozen in a v2 run envelope to the gateway, the scientific case (keyed by "
+        "the subject's identity), the decision state and the dossier. Two subjects "
+        "and no selection is a subject_ambiguous clarification, never the first "
+        "one. Off, the gateway reads the session's active analysis at dispatch and "
+        "a screening-only case is keyed 'none'.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="every worker reads run envelope v2 and the four user stories "
+                          "pass through the product with the flag on",
+    ),
+    _flag(
         "fixed_workflow_v1",
         "Issue #50 arm B: decision_support runs as a fixed workflow. The server "
         "reads the subject's artifacts, decides by rule whether to search, "

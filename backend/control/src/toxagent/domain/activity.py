@@ -50,11 +50,20 @@ class ActivityIdentityMismatch(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class TargetIdentity:
-    """A resolved target, not an untraceable free-text protein name."""
+    """A resolved target, not an untraceable free-text protein name.
+
+    ``variant`` names a protein form other than the reference one (a mutant,
+    an isoform). It is optional and versioned with this type: left ``None``
+    it is not serialised at all, so every artifact hashed before the field
+    existed keeps its hash. Unlike ``uniprot_id``, a variant is compared even
+    when only one side states it -- a mutant and an unstated form are not
+    shown to be the same protein.
+    """
 
     target_id: str
     uniprot_id: str | None = None
     sequence_sha256: str | None = None
+    variant: str | None = None
 
     def __post_init__(self) -> None:
         if not self.target_id.strip():
@@ -64,13 +73,30 @@ class TargetIdentity:
             if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
                 raise ValueError("sequence_sha256 must be a 64-character hexadecimal digest")
             object.__setattr__(self, "sequence_sha256", digest)
+        if self.variant is not None:
+            variant = self.variant.strip()
+            if not variant:
+                raise ValueError("variant, when given, must not be blank")
+            object.__setattr__(self, "variant", variant)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "target_id": self.target_id,
             "uniprot_id": self.uniprot_id,
             "sequence_sha256": self.sequence_sha256,
         }
+        if self.variant is not None:
+            data["variant"] = self.variant
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "TargetIdentity":
+        return cls(
+            target_id=str(data["target_id"]),
+            uniprot_id=data.get("uniprot_id"),
+            sequence_sha256=data.get("sequence_sha256"),
+            variant=data.get("variant"),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,6 +142,8 @@ class ActivitySubject:
             and self.target.sequence_sha256 != other.target.sequence_sha256
         ):
             found.append("sequence_sha256")
+        if self.target.variant != other.target.variant:
+            found.append("variant")
         if self.assay_context != other.assay_context:
             found.append("assay_context")
         return tuple(found)
