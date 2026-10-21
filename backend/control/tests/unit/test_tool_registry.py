@@ -78,9 +78,9 @@ def test_every_conversational_profile_is_a_small_closed_set():
     """Plan section 21: a large tool roster costs money and misroutes."""
     for name, tools in PROFILES.items():
         # None is conversational: report_build is the model-driven builder's
-        # enumerated roster, and report_synthesis and claim_review (W9-12) are
-        # one submission boundary each.
-        if name in ("report_build", "report_synthesis", "claim_review"):
+        # enumerated roster, and report_synthesis, claim_review (W9-12) and
+        # workflow_synthesis (#50 arm B) are one submission boundary each.
+        if name in ("report_build", "report_synthesis", "claim_review", "workflow_synthesis"):
             continue
         # decision_support is deliberately the adaptive superset of
         # report_qa + evidence_research (ADR 0010, ADS plan section 7.2) plus

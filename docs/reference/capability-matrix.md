@@ -57,6 +57,7 @@ Any other target, or any other method, is `not_measured`.
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
 | `report_qa` | `get_analysis_slice`, `get_attribution`, `submit_grounded_answer` | — |
 | `report_synthesis` | `submit_report_synthesis` | — |
+| `workflow_synthesis` | `submit_grounded_answer` | — |
 
 ## Rollout flags
 
@@ -69,6 +70,7 @@ Any other target, or any other method, is `not_measured`.
 | `evidence_full_text_v1` | no | backend-scientific | 2027-01-18 | `read_evidence_text` |
 | `evidence_pipeline_v2` | no | backend-scientific | 2026-12-12 | — |
 | `external_worker_mode` | no | platform | 2026-12-12 | — |
+| `fixed_workflow_v1` | no | backend-scientific | 2027-01-18 | — |
 | `normalized_usage_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `release_gate_v1` | no | backend-scientific | 2027-01-18 | — |
 | `report_orchestrator_v2` | no | backend-report | 2026-12-12 | — |

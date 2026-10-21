@@ -71,10 +71,17 @@ def release_gate_on() -> bool:
 class ReleaseGateMixin:
     """Review, at most one repair, and the release record, for a gated run."""
 
-    def _with_release_gate(self, commit, *, system_prompt: str):
+    def _with_release_gate(self, commit, *, system_prompt: str,
+                           repair_profile: str = "decision_support", prompt_for=None):
+        """``prompt_for(context)`` gives the repair turn's base prompt when it
+        is only known once the run has started (arm B's synthesis material)."""
         async def gated(context: RunContext) -> None:
             try:
-                await self._release_through_review(context, system_prompt=system_prompt)
+                await self._release_through_review(
+                    context,
+                    system_prompt=prompt_for(context) if prompt_for else system_prompt,
+                    repair_profile=repair_profile,
+                )
             except Exception:  # noqa: BLE001 - an answer is released, whatever the gate did
                 log.exception("the release gate failed", extra={"run_id": context.run_id})
                 await self._release_latest(
@@ -89,7 +96,10 @@ class ReleaseGateMixin:
         async with self._db.unit_of_work() as uow:
             return await uow.answers.get_for_run(context.run_id)
 
-    async def _release_through_review(self, context: RunContext, *, system_prompt: str) -> None:
+    async def _release_through_review(
+        self, context: RunContext, *, system_prompt: str,
+        repair_profile: str = "decision_support",
+    ) -> None:
         async with self._db.unit_of_work() as uow:
             if await uow.answer_releases.get_for_run(context.run_id) is not None:
                 return
@@ -110,7 +120,8 @@ class ReleaseGateMixin:
             return
 
         # A blocking verdict: one repair.
-        repaired = await self._repair(context, candidate, decision, system_prompt=system_prompt)
+        repaired = await self._repair(context, candidate, decision, system_prompt=system_prompt,
+                                      profile=repair_profile)
         if repaired is None or repaired.id == candidate.id:
             await self._release(
                 context, candidate, outcome=ReleaseOutcome.RELEASED_WITH_UNRESOLVED_REVIEW,
@@ -238,7 +249,8 @@ class ReleaseGateMixin:
             return review
         return {"status": "failed", "reason": "the reviewer submitted no verdicts"}
 
-    async def _repair(self, context: RunContext, candidate, decision, *, system_prompt: str):
+    async def _repair(self, context: RunContext, candidate, decision, *, system_prompt: str,
+                      profile: str = "decision_support"):
         """One more turn of the answering agent, told what the review blocked.
         Returns the run's latest answer afterwards (the candidate itself if
         nothing new was accepted), or ``None`` with no budget for the turn."""
@@ -282,7 +294,7 @@ class ReleaseGateMixin:
         try:
             await self._dispatch(
                 replace(context, text="Repair your answer as your instructions describe."),
-                system_prompt=prompt, profile="decision_support", deadline=run.deadline_at,
+                system_prompt=prompt, profile=profile, deadline=run.deadline_at,
                 instructions_hash=content_sha256(REPAIR_INSTRUCTIONS),
                 has_product=repaired, commit=_no_commit,
             )

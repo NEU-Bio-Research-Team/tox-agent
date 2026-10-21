@@ -163,6 +163,8 @@ class DecisionSupportStateV1:
     #: #46 (typed_stop_v1): the stop the answer declared, beside the one the
     #: server derives in ``stop_reason``; a grader reads both.
     declared_stop: Mapping[str, Any] = field(default_factory=dict)
+    #: #50 arm B: the fixed workflow's steps, each with a one-line reason.
+    workflow: Mapping[str, Any] = field(default_factory=dict)
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -197,6 +199,7 @@ class DecisionSupportStateV1:
             "claim_review": dict(self.claim_review),
             "answer_basis": dict(self.answer_basis),
             "declared_stop": dict(self.declared_stop),
+            "workflow": dict(self.workflow),
             "revision": self.revision,
         }
 
@@ -225,6 +228,7 @@ class DecisionSupportStateV1:
             claim_review=dict(data.get("claim_review") or {}),
             answer_basis=dict(data.get("answer_basis") or {}),
             declared_stop=dict(data.get("declared_stop") or {}),
+            workflow=dict(data.get("workflow") or {}),
             revision=int(data.get("revision", 0)),
         )
 
@@ -460,6 +464,15 @@ def record_claim_review(
         **({"repair_requested_for": current["repair_requested_for"]}
            if current.get("repair_requested_for") else {}),
     })
+
+
+def record_workflow(
+    state: DecisionSupportStateV1, workflow: Mapping[str, Any],
+) -> DecisionSupportStateV1:
+    """#50 arm B: what the fixed workflow read and decided, and why."""
+    if state.stop_reason is not None:
+        return state
+    return _next(state, workflow=dict(workflow))
 
 
 def request_repair(state: DecisionSupportStateV1, *, answer_id: str) -> DecisionSupportStateV1:

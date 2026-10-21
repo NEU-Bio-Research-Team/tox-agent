@@ -31,6 +31,7 @@ from ..provider import (
 from ..runtime_profiles import RuntimeProfileRegistry
 from ._common import _now, log
 from .case import ScientificCaseMixin
+from .fixed_workflow import FixedWorkflowMixin, fixed_workflow_on
 from .release import ReleaseGateMixin, release_gate_on
 from .completion import CompletionMixin
 from .context import ContextMixin
@@ -39,7 +40,8 @@ from .reports import ReportsMixin
 
 
 class AgentRuntimeGateway(
-    ReleaseGateMixin, ScientificCaseMixin, ContextMixin, ReportsMixin, CompletionMixin, HealthMixin,
+    FixedWorkflowMixin, ReleaseGateMixin, ScientificCaseMixin, ContextMixin, ReportsMixin,
+    CompletionMixin, HealthMixin,
 ):
     """Run one product turn through one pinned runtime provider.
 
@@ -63,8 +65,13 @@ class AgentRuntimeGateway(
         secrets: SecretStore | None = None,
         profiles_dir: Path | None = None,
         policy=None,
+        tool_runner=None,
     ) -> None:
         self._db = database
+        #: Arm B's fixed workflow reads through the same runner the MCP
+        #: server uses; built on first use when none was injected.
+        self._tool_runner = tool_runner
+        self._workflow_prompts: dict[str, str] = {}
         #: Read only to state a decision_support run's budget snapshot.
         self._policy = policy
         self._registry = registry
@@ -154,27 +161,46 @@ class AgentRuntimeGateway(
             )
         run_status = "failed"
         commit = self._commit_with_case if keeps_case else self._commit_product_and_complete
+        fixed = fixed_workflow_on()
         try:
-            await self._dispatch(
-                context,
-                system_prompt=system_prompt,
-                profile=profile,
-                deadline=deadline,
-                instructions_hash=instructions_hash,
-                has_product=self._has_answer,
-                # #47: with the release gate the reviewer decides what is
-                # released and may send the answer back once; without it the
-                # reviewer (if on) only observes.
-                commit=(
-                    self._with_release_gate(commit, system_prompt=system_prompt)
-                    if release_gate_on() else self._with_claim_review(commit)
-                ),
-            )
+            if fixed:
+                # #50 arm B: the server reads by rule, one synthesis turn
+                # writes; same tools, validator and gates as the agent.
+                await self._run_fixed_workflow(
+                    context, system_prompt=system_prompt, deadline=deadline,
+                    commit=(
+                        self._with_release_gate(
+                            commit, system_prompt=system_prompt,
+                            repair_profile="workflow_synthesis",
+                            prompt_for=lambda ctx: self._workflow_prompts.get(
+                                ctx.run_id, system_prompt
+                            ),
+                        )
+                        if release_gate_on() else self._with_claim_review(commit)
+                    ),
+                )
+            else:
+                await self._dispatch(
+                    context,
+                    system_prompt=system_prompt,
+                    profile=profile,
+                    deadline=deadline,
+                    instructions_hash=instructions_hash,
+                    has_product=self._has_answer,
+                    # #47: with the release gate the reviewer decides what is
+                    # released and may send the answer back once; without it
+                    # the reviewer (if on) only observes.
+                    commit=(
+                        self._with_release_gate(commit, system_prompt=system_prompt)
+                        if release_gate_on() else self._with_claim_review(commit)
+                    ),
+                )
             run_status = "completed"
         except asyncio.CancelledError:
             run_status = "cancelled"
             raise
         finally:
+            self._workflow_prompts.pop(context.run_id, None)
             await decision_state_service.advance(
                 self._db, context.run_id,
                 lambda state: decision_state.finalize(state, run_status=run_status),

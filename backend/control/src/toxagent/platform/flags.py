@@ -304,6 +304,20 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "needs_user_input declared where graders expect it and not on "
                           "cases the corpus settles",
     ),
+    _flag(
+        "fixed_workflow_v1",
+        "Issue #50 arm B: decision_support runs as a fixed workflow. The server "
+        "reads the subject's artifacts, decides by rule whether to search, "
+        "searches by fixed templates, reads the top records and their tables, "
+        "notes what only the researcher can supply, and hands the material to "
+        "one synthesis turn whose only tool is submit_grounded_answer -- the "
+        "same tools, validator and gates as the agent. A study arm, never a "
+        "product setting.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="the locked D-versus-B comparison has run on test",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

@@ -38,7 +38,7 @@ from evals.investigation.record import (
     STATUS_ERROR, STATUS_OK, STATUS_PENDING, MANIFEST_SCHEMA, RunRecord, StudyStore, environment,
     now_iso, summarise,
 )
-from evals.investigation.systems import SYSTEMS, SystemSpec, resolve
+from evals.investigation.systems import fairness_problems, SYSTEMS, SystemSpec, resolve
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_ROOT = HERE / "runs"
@@ -121,11 +121,17 @@ async def run_study(
     adapters = adapters or build_adapters(specs, toxagent_urls=toxagent_urls, token=token,
                                           claude_model=claude_model, transport=transport,
                                           **(google or {}))
-    for adapter in adapters.values():
+    products: dict[str, Any] = {}
+    for system_id, adapter in adapters.items():
         if hasattr(adapter, "prepare"):
             await adapter.prepare()
         if hasattr(adapter, "effective_product"):
-            await adapter.effective_product()
+            products[system_id] = await adapter.effective_product()
+    # #50: arms of one protocol run on the same backbone, budget and pinned
+    # sources, or their difference is not the variable under study.
+    unfair = fairness_problems(specs, products)
+    if unfair:
+        raise ValueError("the arms are not comparable: " + "; ".join(unfair))
 
     needs_snapshot = any(s.uses_snapshot or s.adapter == "predictor_template" for s in specs)
     snapshots = (
