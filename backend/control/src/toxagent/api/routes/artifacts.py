@@ -91,9 +91,19 @@ async def get_answer(
     await services.sessions.get(principal, session_id)
     async with services.database.unit_of_work() as uow:
         answer = await uow.answers.get(answer_id, session_id=session_id)
-    if answer is None:
+        release = await uow.answer_releases.get(answer_id) if answer is not None else None
+        held = answer is not None and release is None and any(
+            d.get("answer_id") == answer_id and d.get("outcome") == "candidate"
+            for d in await uow.answer_drafts.list_for_run(answer.run_id)
+        )
+    # #47: a candidate the release gate has not released is not the run's
+    # answer yet -- or ever, if a repair replaced it -- so it is not served.
+    if answer is None or held:
         raise NotFound("no such answer", answer_id=answer_id)
-    return answer.to_dict()
+    body = answer.to_dict()
+    if release is not None:
+        body["release"] = release.to_dict()
+    return body
 
 
 @router.get("/sessions/{session_id}/observations/{observation_id}", responses={200: {"model": ObservationResponse}})
@@ -133,6 +143,22 @@ async def get_observation(
     return body
 
 
+def _full_text_view(full_text) -> dict | None:
+    """#43: whether the record's text was read, so a run record shows
+    access_failed / full_text_retrieved rather than leaving it to inference."""
+    if full_text is None:
+        return None
+    return {
+        "state": full_text.state,
+        "reason": full_text.reason,
+        "full_text_id": full_text.full_text_id,
+        "passage_count": len(full_text.passages),
+        "omitted": dict(full_text.omitted),
+        "run_id": full_text.run_id,
+        "fetched_at": full_text.fetched_at.isoformat(),
+    }
+
+
 @router.get("/sessions/{session_id}/evidence", responses={200: {"model": EvidenceListResponse}})
 async def list_evidence(
     request: Request,
@@ -150,6 +176,10 @@ async def list_evidence(
             status=EvidenceStatus(status) if status != "all" else None,
             limit=limit, offset=offset,
         )
+        full_texts = {
+            record.id: await uow.evidence_text.get(record.id, session_id=session_id)
+            for record in records
+        }
     return {
         "evidence": [
             {
@@ -158,6 +188,7 @@ async def list_evidence(
                 "provider": record.provider,
                 "retrieved_at": record.retrieved_at.isoformat(),
                 "content_sha256": record.content_sha256,
+                "full_text": _full_text_view(full_texts[record.id]),
             }
             for record in records
         ],
@@ -182,6 +213,10 @@ async def get_evidence(
     await services.sessions.get(principal, session_id)
     async with services.database.unit_of_work() as uow:
         record = await uow.evidence.get(evidence_id, session_id=session_id)
+        full_text = (
+            await uow.evidence_text.get(evidence_id, session_id=session_id)
+            if record is not None else None
+        )
     if record is None:
         raise NotFound("no such evidence", evidence_id=evidence_id)
     return {
@@ -190,4 +225,5 @@ async def get_evidence(
         "provider": record.provider,
         "retrieved_at": record.retrieved_at.isoformat(),
         "content_sha256": record.content_sha256,
+        "full_text": _full_text_view(full_text),
     }

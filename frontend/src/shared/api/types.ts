@@ -310,7 +310,13 @@ export type LimitationCode =
   | 'attribution_not_causality'
   | 'endpoint_unavailable'
   | 'evidence_scope_limited'
-  | 'screening_not_safety_assessment';
+  | 'screening_not_safety_assessment'
+  | 'evidence_full_text_not_read'
+  | 'activity_interval_is_marginal_coverage'
+  | 'pic50_not_therapeutic_efficacy'
+  | 'activity_model_not_admitted'
+  | 'policy_decision_not_a_measurement'
+  | 'toxicity_not_run_not_negative';
 
 export type Limitation = Schemas['Limitation'];
 

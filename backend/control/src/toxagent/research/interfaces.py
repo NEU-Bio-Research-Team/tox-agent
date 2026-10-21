@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any, Protocol, Sequence, runtime_checkable
+from typing import Any, Mapping, Protocol, Sequence, runtime_checkable
 
 from ..domain.evidence import SourceIdentifier, SourceType
 
@@ -41,6 +41,33 @@ class SearchHit:
     raw: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class FullTextFetch:
+    """The outcome of asking a provider for a document's text.
+
+    Never an exception: "the text exists and we could not open it" is a fact
+    about the evidence, not a transport error to swallow, and a reader has to
+    be able to tell it from "we only ever saw the abstract". ``reason`` is set
+    whenever ``retrieved`` is false.
+    """
+
+    retrieved: bool
+    passages: tuple[Any, ...] = ()
+    section_titles: tuple[str, ...] = ()
+    reason: str | None = None
+    truncated: bool = False
+    #: What the parser's caps left out, by passage kind (``research/fulltext``).
+    omitted: Mapping[str, int] = field(default_factory=dict)
+    #: The provider could not be asked (outage, rate limit, open circuit).
+    #: That says nothing about the document, so it is not stored as an
+    #: access failure; a later call asks again.
+    transient: bool = False
+    #: The identifier the text was asked for under, which need not be the
+    #: record's own: Europe PMC serves text by PMCID, and a MEDLINE hit names
+    #: its PMCID separately. ``None`` when no request was made.
+    full_text_id: str | None = None
+
+
 @runtime_checkable
 class ResearchProvider(Protocol):
     """Plan section 8.1: schema and execution policy have one source of
@@ -56,3 +83,23 @@ class ResearchProvider(Protocol):
         date_from: date | None,
         limit: int,
     ) -> list[SearchHit]: ...
+
+
+@runtime_checkable
+class FullTextCapableProvider(Protocol):
+    """A provider that can also be asked for a document's text.
+
+    Separate from ``ResearchProvider`` on purpose: a deployment whose provider
+    cannot serve text must not look as though it can, so the capability is
+    something callers test for rather than assume (plan section 8.4's point
+    that whatever a search did not include cannot be shown later).
+    """
+
+    name: str
+
+    async def fetch_full_text(
+        self, *, provider_record_id: str, identifier: SourceIdentifier | None = None,
+    ) -> FullTextFetch:
+        """``identifier`` is the stored record's own, so the provider can find
+        the text under an id other than ``provider_record_id``."""
+        ...

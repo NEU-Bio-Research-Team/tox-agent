@@ -5,6 +5,49 @@ ToxAgent (the `POST /v1/predict` predictor, not the agent), ChatGPT and Gemini
 (web answers collected by hand). Runbook, caveats and the blind-export flow:
 [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md).
 
+## These 95 cases are a development set, not a final test set
+
+The systems under test were developed against these cases and their per-case
+results have been seen and acted on. That makes this a **dev and regression
+set**: it is the right instrument for catching a regression, and the wrong one
+for a headline claim. An independent locked test set is a separate artifact
+(issue #56). The dataset file states this in its own `intended_use` field.
+
+What the gold labels do and do not carry, from `provenance_audit` in the
+dataset file — recorded rather than repaired (issue #37):
+
+| | |
+|---|---|
+| Cases | 95 |
+| With a hERG label | 50 |
+| With Tox21 labels | 20 |
+| With a `source_id` | **0** |
+| Carrying `assay_id`, `readout`, `unit`, `comparator`, `label_rule`, `verified_by` | **none** |
+
+A metric restricted to labelled cases is reported on that subset, so the
+denominators differ per endpoint and have to be read off the
+`*_labelled_count` fields rather than assumed to be 95.
+
+## The scorer is tested before its numbers are used
+
+`positive_controls.py` runs deliberately wrong answers through the real scorer
+and reports the instrument's own error rates in both directions. Run it with:
+
+```bash
+python -m evals.benchmark_comparative.positive_controls
+```
+
+The deterministic layer currently catches every defect it claims to cover and
+flags none of the acceptable answers. Four classes of defect it **cannot**
+raise at all are named in `known_gaps`: fabricated citations, a real source
+that does not support the claim, a source measuring a different endpoint, and
+severity read off a count of active assays. Those need a source read against a
+claim, so no score in this directory covers them.
+
+One defect the controls found has been fixed: a response asserting the
+probability *is* perfectly calibrated used to be scored as having stated the
+`uncalibrated_probability` limitation, because the pattern looks for the word.
+
 ## This measures the predictor. The agent is measured elsewhere.
 
 `POST /v1/predict` returns structured numbers and runs none of the agent's

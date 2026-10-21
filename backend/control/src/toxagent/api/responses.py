@@ -370,7 +370,16 @@ ClaimKind = Literal[
 LimitationCode = Literal[
     "uncalibrated_probability", "applicability_is_rule_based", "attribution_not_causality",
     "endpoint_unavailable", "evidence_scope_limited", "screening_not_safety_assessment",
+    "evidence_full_text_not_read",
+    "activity_interval_is_marginal_coverage", "pic50_not_therapeutic_efficacy",
+    "activity_model_not_admitted", "policy_decision_not_a_measurement",
+    "toxicity_not_run_not_negative",
 ]
+
+
+class EvidenceSpan(_Response):
+    evidence_id: str
+    locator: str
 
 
 class Claim(_Response):
@@ -384,6 +393,10 @@ class Claim(_Response):
     source_value: float | int | str | bool = None
     rendered_value: str = None
     input_claim_ids: list[str] = None
+    #: The passages of cited records this claim quotes (#43); absent when none.
+    evidence_spans: list[EvidenceSpan] = None
+    #: The draft's own label (grounded-answer v2), stable across a repair (#47).
+    local_ref: str = None
 
 
 class Limitation(_Response):
@@ -394,6 +407,24 @@ class Limitation(_Response):
 class RecommendedNextStep(_Response):
     text: str
     basis_claim_ids: list[str]
+
+
+class AnswerReleaseView(_Response):
+    """How the answer was released under the release gate (#47). Only
+    ``reviewed`` and ``repaired_and_reviewed`` mean the review passed."""
+
+    answer_id: str
+    outcome: Literal[
+        "reviewed", "repaired_and_reviewed", "released_with_unresolved_review", "ungated",
+        "fallback",
+    ]
+    semantically_passed: bool
+    reviews: list[dict[str, Any]]
+    repair: dict[str, Any] | None
+    unresolved_claim_ids: list[str]
+    ungated_reason: str | None
+    replaced_answer_id: str | None
+    released_at: str
 
 
 class GroundedAnswer(_Response):
@@ -408,6 +439,65 @@ class GroundedAnswer(_Response):
     is_fallback: bool
     content_sha256: str
     created_at: str
+    #: Present when the answer went through the release gate.
+    release: AnswerReleaseView | None = None
+
+
+class AnswerDraft(_Response):
+    """One submission of a run as the model sent it (#47), with what the
+    server made of it. The first is the raw draft; the accepted one is the
+    candidate; the run's released answer is GET .../answers/{id}."""
+
+    generation: int
+    schema_version: str
+    payload: dict[str, Any]
+    #: ``candidate`` under the release gate (#47): accepted, awaiting review.
+    outcome: Literal["accepted", "rejected", "candidate"]
+    answer_id: str | None
+    violations: list[dict[str, Any]]
+    created_at: str
+
+
+class AnswerDraftList(_Response):
+    drafts: list[AnswerDraft]
+
+
+class ScreeningSummary(_Response):
+    """A frozen activity screening attached to a session (#44): its subject
+    and how far it got. The numbers are read through the activity tools."""
+
+    screening_id: str
+    status: str | None
+    canonical_smiles: str | None
+    target: dict[str, Any] | None
+    assay_context: str | None
+    intended_target_role: str | None
+    toxicity_run: bool | None
+    has_activity_estimate: bool
+    has_prioritisation_decision: bool
+    model_admitted: bool | None
+    record_sha256: str | None
+    source: str
+    attached_at: str
+
+
+class ScreeningList(_Response):
+    screenings: list[ScreeningSummary]
+    #: Always "replay" until an admitted model is served (#54).
+    mode: Literal["replay"]
+
+
+class EvidenceFullTextView(_Response):
+    """What was read of a record's full text (#43). Absent when nothing was
+    asked; ``normalized_facts.text_access`` then says what the search knew."""
+
+    state: Literal["full_text_retrieved", "access_failed"]
+    reason: str | None
+    full_text_id: str | None
+    passage_count: int
+    omitted: dict[str, int]
+    run_id: str
+    fetched_at: str
 
 
 class EvidenceRecordView(_Response):
@@ -430,6 +520,7 @@ class EvidenceRecordView(_Response):
     retrieved_at: str
     content_sha256: str
     untrusted_external_content: Literal[True]
+    full_text: EvidenceFullTextView | None = None
 
 
 class EvidenceListResponse(_Response):
@@ -1058,6 +1149,10 @@ class DecisionState(_Open):
     found_refs: list[str]
     stop_reason: str | None
     answer_outcome: str | None = None
+    #: #46: claims citing an observation / evidence in the accepted answer.
+    answer_basis: dict[str, int] = {}
+    #: #46 (typed_stop_v1): the stop the answer declared.
+    declared_stop: dict[str, Any] = {}
     revision: int
 
 

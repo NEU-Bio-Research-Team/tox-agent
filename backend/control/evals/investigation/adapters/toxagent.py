@@ -140,8 +140,15 @@ class ToxAgentAdapter:
                     answer = await api.answer_for_run(session_id, run["run_id"])
                     state = await api.get(f"/v1/sessions/{session_id}/runs/{run['run_id']}/decision-state")
                     dossier = await api.get(f"/v1/sessions/{session_id}/runs/{run['run_id']}/dossier")
+                    # #47: every draft as sent, so the raw draft can be graded
+                    # beside the released answer. None on a deployment that
+                    # predates the route.
+                    drafts = await api.get(
+                        f"/v1/sessions/{session_id}/runs/{run['run_id']}/answer-drafts"
+                    )
                     trace["runs"].append({"run": run, "answer": answer, "decision_state": state,
-                                          "dossier": dossier})
+                                          "dossier": dossier,
+                                          "answer_drafts": (drafts or {}).get("drafts")})
                     turns.append(TurnRecord(
                         index=index, user_text=turn["text"], sent_text=turn["text"],
                         started_at=started, ended_at=ended, duration_s=duration,

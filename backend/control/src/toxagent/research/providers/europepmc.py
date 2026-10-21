@@ -5,12 +5,14 @@ per-call cost — which is exactly why it is this deployment's first evidence
 provider: Phase 5 does not have to block on a provider contract or an API key
 before a citation can exist at all. Only ``resultType=core`` is used, because
 it is the one EuropePMC response shape that includes ``abstractText`` — the
-lite shape used for casual browsing omits it, and this provider has no second
-"detail" call (``research/interfaces.py``): whatever a search does not
-include, ``get_evidence_record`` can never show either.
+lite shape used for casual browsing omits it. The only second call is
+``fetch_full_text`` (issue #43), for a record whose text Europe PMC holds;
+anything else a search does not include, ``get_evidence_record`` can never
+show either.
 """
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from typing import Any, Sequence
 from urllib.parse import urlparse
@@ -21,8 +23,10 @@ from ...platform.config import ResearchSettings
 from ...domain.errors import EvidenceUnavailable, ProviderRateLimited
 from ...domain.evidence import SourceIdentifier, SourceType
 from ..circuit_breaker import CircuitBreaker, CircuitOpen
+from ..fulltext import parse_jats
 from ..transport import rebuild_decoded_response
-from ..interfaces import SearchHit
+from ..interfaces import FullTextFetch, SearchHit
+from ..text_access import access_facts
 
 #: EuropePMC's own source codes for a peer-reviewed-journal record space
 #: (MED = MEDLINE, PMC = PubMed Central full text); everything else this API
@@ -88,9 +92,42 @@ def hit_from_record(record: dict[str, Any]) -> SearchHit | None:
             "journal": _journal_title(record),
             "pub_type": _pub_type(record),
             "pub_year": record.get("pubYear"),
+            # Whether the text can be read at all, derived from what the
+            # provider declared rather than assumed (research/text_access.py).
+            # An abstract-only hit now says so, so a search that found
+            # abstracts is never reported as an absence of evidence.
+            **access_facts(record, has_abstract=bool(record.get("abstractText"))),
         },
         raw=record,
     )
+
+
+#: What a PMCID looks like. The value comes from provider content and goes
+#: into a request path, so anything else is refused rather than escaped.
+_PMCID = re.compile(r"^PMC[0-9]{1,10}$")
+
+
+def full_text_id(
+    provider_record_id: str, identifier: SourceIdentifier | None
+) -> str | None:
+    """The PMCID Europe PMC holds this record's text under, if it has one.
+
+    A ``PMC:`` record's own id is its PMCID. Any other record (``MED:``,
+    ``PPR:`` ...) can still have text deposited in PMC, and then names the
+    PMCID in its ``pmcid`` field -- which the stored record keeps as
+    ``identifier.pmcid``.
+    """
+    source, _, own_id = provider_record_id.partition(":")
+    candidates = [own_id] if source.upper() == "PMC" else []
+    if identifier is not None and identifier.pmcid:
+        candidates.append(identifier.pmcid)
+    for candidate in candidates:
+        normalised = candidate.strip().upper()
+        if normalised.isdigit():
+            normalised = f"PMC{normalised}"
+        if _PMCID.match(normalised):
+            return normalised
+    return None
 
 
 def _query_with_filters(query: str, date_from: date | None) -> str:
@@ -167,7 +204,82 @@ class EuropePmcProvider:
         hits = [hit_from_record(r) for r in records]
         return [h for h in hits if h is not None]
 
-    async def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+    async def fetch_full_text(
+        self, *, provider_record_id: str, identifier: SourceIdentifier | None = None,
+    ) -> FullTextFetch:
+        """Ask for this record's text, as located passages.
+
+        Europe PMC serves full text at ``/{PMCID}/fullTextXML`` and nowhere
+        else; ``/{source}/{id}/fullTextXML`` answers 404 for every record
+        (checked against the live API on 2026-10-21), so asking under the
+        record's own ``MED:<pmid>`` id reported every paper as having no text.
+        The PMCID comes from the record itself (:func:`full_text_id`), and a
+        record that names none is reported as such without a request.
+
+        A record with no full text in Europe PMC answers 404. That is an
+        ordinary, expected answer about one document, so it is reported as a
+        failed access rather than raised -- and it must not count against the
+        circuit breaker, which exists for a provider that is unwell.
+        """
+        source, _, own_id = provider_record_id.partition(":")
+        if not source or not own_id:
+            return FullTextFetch(
+                retrieved=False,
+                reason=f"{provider_record_id!r} is not a '<source>:<id>' record id",
+            )
+        pmcid = full_text_id(provider_record_id, identifier)
+        if pmcid is None:
+            return FullTextFetch(
+                retrieved=False,
+                reason=(
+                    "the record names no PMCID, and Europe PMC serves full text only "
+                    "by PMCID"
+                ),
+            )
+        try:
+            # The client asks for JSON by default (the search API), and this
+            # route answers that with 406 Not Acceptable: found by the first
+            # live run, 2026-10-21, after every mocked test had passed.
+            response = await self._request(
+                "GET", f"/{pmcid}/fullTextXML", not_found_ok=True,
+                headers={"accept": "application/xml"},
+            )
+        except (EvidenceUnavailable, ProviderRateLimited) as exc:
+            return FullTextFetch(
+                retrieved=False, reason=str(exc), full_text_id=pmcid, transient=True,
+            )
+        if response.status_code == 404:
+            return FullTextFetch(
+                retrieved=False,
+                reason=f"the provider holds no full text for {pmcid}",
+                full_text_id=pmcid,
+            )
+        media_type = (response.headers.get("content-type") or "").split(";")[0].strip().lower()
+        if media_type and media_type not in self._settings.allowed_full_text_content_types:
+            return FullTextFetch(
+                retrieved=False,
+                reason=f"the provider answered {media_type!r}, which is not XML",
+                full_text_id=pmcid,
+            )
+        document = parse_jats(response.text)
+        if not document.passages:
+            return FullTextFetch(
+                retrieved=False,
+                reason="the provider returned a document with no readable passages",
+                full_text_id=pmcid,
+            )
+        return FullTextFetch(
+            retrieved=True,
+            passages=document.passages,
+            section_titles=document.section_titles,
+            truncated=document.truncated,
+            omitted=dict(document.omitted),
+            full_text_id=pmcid,
+        )
+
+    async def _request(
+        self, method: str, path: str, *, not_found_ok: bool = False, **kwargs: Any
+    ) -> httpx.Response:
         # remaining-plan W3-06: fail fast, without even attempting the
         # network call, once the provider has failed enough consecutive
         # times in a row — never pummel a struggling provider with more
@@ -200,6 +312,12 @@ class EuropePmcProvider:
                 "the research provider rate-limited this request",
                 retry_after_ms=int(float(retry_after) * 1000) if retry_after else None,
             )
+        # A 404 for one record is the provider answering correctly about a
+        # document it does not hold, so the caller interprets it and the
+        # breaker counts it as a healthy call.
+        if response.status_code == 404 and not_found_ok:
+            self._circuit.record_success()
+            return response
         if not response.is_success:
             self._circuit.record_failure()
             raise EvidenceUnavailable(

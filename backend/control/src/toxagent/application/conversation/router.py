@@ -108,8 +108,9 @@ QUESTION_TERMS: Final[tuple[str, ...]] = (
 
 #: The router's own version, recorded on every decision and in the run
 #: configuration snapshot. A routing complaint six weeks old is unanswerable
-#: without knowing which rules were in force.
-ROUTER_VERSION: Final = "router-2"
+#: without knowing which rules were in force. router-3 (#44): an attached
+#: activity screening is a subject, so a question about it needs no molecule.
+ROUTER_VERSION: Final = "router-3"
 
 
 @dataclass(frozen=True)
@@ -136,6 +137,9 @@ class RouteRequest:
     #: Flag subjectless_research_v1, passed in so routing stays pure: a
     #: literature question without a molecule runs instead of asking for one.
     allow_subjectless_research: bool = False
+    #: #44 (flag activity_replay_v1): the session holds an attached screening,
+    #: which is a subject -- a ligand on a target -- even with no analysis.
+    has_attached_screening: bool = False
 
     @property
     def normalised_text(self) -> str:
@@ -218,7 +222,10 @@ class Route:
 
 def _subject_context(request: RouteRequest) -> tuple[str, ...]:
     """What a subject-bound intent still needs before it can run."""
-    if request.analysis_id or request.has_active_analysis or request.molecule_smiles:
+    if (
+        request.analysis_id or request.has_active_analysis or request.molecule_smiles
+        or request.has_attached_screening
+    ):
         return ()
     return ("analysis_id_or_smiles",)
 
@@ -490,6 +497,16 @@ def route(request: RouteRequest) -> Route:
                 Intent.DECISION_SUPPORT,
                 confidence="medium",
                 codes=("molecule_with_question",),
+            ),
+        )
+
+    if request.has_attached_screening and not request.analysis_id \
+            and not request.has_active_analysis and request.text.strip():
+        return Route(
+            Intent.DECISION_SUPPORT, Lane.AGENTIC, "a question about an attached screening",
+            decision=decide(
+                Intent.DECISION_SUPPORT, confidence="medium",
+                codes=("question_about_screening",),
             ),
         )
 

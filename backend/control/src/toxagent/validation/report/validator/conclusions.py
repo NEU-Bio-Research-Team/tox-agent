@@ -127,6 +127,9 @@ def _validate_limitations(
         required_for_answer(
             draft.claims,
             observation_limitations=observation_limitations,
+            observation_kinds={
+                obs_id: obs.kind.value for obs_id, obs in context.observations_by_id.items()
+            },
             cited_evidence=any(c.citation_ids for c in draft.claims),
             has_recommendation=bool(draft.recommendations),
         )

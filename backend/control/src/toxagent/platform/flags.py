@@ -241,6 +241,83 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "on the skill's positive cases with no rise in unsupported claims, "
                           "false reassurance or false triggers on its negative cases",
     ),
+    _flag(
+        "evidence_full_text_v1",
+        "Issue #43: register read_evidence_text in evidence_research and "
+        "decision_support when the research provider can serve full text. It "
+        "fetches an accepted record's text once per session, stores its located "
+        "passages and the access outcome, and returns a selected page of them. "
+        "A v2 claim may then cite a passage (evidence_spans) and quote numbers "
+        "from it, and an answer citing an article not read in full owes "
+        "evidence_full_text_not_read. Off, the tool is absent, claims cannot "
+        "cite spans and the limitation vocabulary in use is unchanged.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on cases whose answer is in a paper's body or tables, the paired "
+                          "run solves them with full text and states access_failed / "
+                          "abstract_only otherwise, with no rise in unsupported claims or "
+                          "first-draft refusals",
+    ),
+    _flag(
+        "activity_replay_v1",
+        "Issue #44: activity screenings in decision_support, replayed from the "
+        "pinned file of frozen screenings (TOXAGENT_ACTIVITY_REPLAY_PATH and "
+        "_SHA256). /v1/sessions/{id}/screenings attaches one to a session; "
+        "get_screening_state, get_activity_snapshot and "
+        "get_prioritisation_decision read it as citable observations. No "
+        "activity model is served: the effective product says replay. Off, "
+        "the tools and routes are absent.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="the four #46 user stories run on replay with typed stop reasons, "
+                          "and activity serving (#54) replaces replay behind an admitted model",
+    ),
+    _flag(
+        "release_gate_v1",
+        "Issue #47 (needs claim_reviewer_v1 and answer_draft_v2): an accepted "
+        "decision_support answer is a candidate until the independent reviewer "
+        "has judged it. A not_supported or partially_supported claim gets one "
+        "repair turn, the repaired candidate is validated and reviewed again, "
+        "and only then is an answer released -- answer.accepted, the answer "
+        "route and the assistant message all wait for release, and the release "
+        "records how it was reached. Off, the reviewer only observes.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on the paired pilot, gated answers have fewer unsupported claims "
+                          "than observed ones at no loss of required-information recall, and "
+                          "the repair turn does not raise deadline failures",
+    ),
+    _flag(
+        "typed_stop_v1",
+        "Issue #46 (with answer_draft_v2): a v2 draft may declare why it stops "
+        "(sufficient, needs_user_input with the inputs named, "
+        "sources_do_not_resolve, budget_reached). It is recorded beside the "
+        "stop reason the server derives, and needs_user_input becomes the run's "
+        "stop reason. Off, the answer schema has no stop field.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on cases that need the researcher's input, the pilot shows "
+                          "needs_user_input declared where graders expect it and not on "
+                          "cases the corpus settles",
+    ),
+    _flag(
+        "fixed_workflow_v1",
+        "Issue #50 arm B: decision_support runs as a fixed workflow. The server "
+        "reads the subject's artifacts, decides by rule whether to search, "
+        "searches by fixed templates, reads the top records and their tables, "
+        "notes what only the researcher can supply, and hands the material to "
+        "one synthesis turn whose only tool is submit_grounded_answer -- the "
+        "same tools, validator and gates as the agent. A study arm, never a "
+        "product setting.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="the locked D-versus-B comparison has run on test",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

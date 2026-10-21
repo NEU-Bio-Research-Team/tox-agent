@@ -30,6 +30,38 @@ def _env(name: str, default: str = "") -> str:
     return (os.getenv(name) or default).strip()
 
 
+#: Versioned run budgets (#46). A study runs every arm under one named preset
+#: so its budget is a recorded fact, not whatever the environment happened to
+#: say; an explicitly set variable still wins, and is visible in the
+#: effective product. ``investigator-pilot-v1`` is the pilot's starting point
+#: from the 20/10 proposal (360 s, 20 tool calls, 3 searches, 8 records, one
+#: repair), not a tuned configuration: it is to be revised on dev after the
+#: pilot and locked before test.
+RUN_BUDGET_PRESETS: dict[str, dict[str, int]] = {
+    "investigator-pilot-v1": {
+        "run_deadline_s": 360,
+        "turn_deadline_s": 360,
+        "max_tool_calls": 20,
+        "max_searches": 3,
+        "max_evidence_reads": 8,
+        "max_full_text_reads": 4,
+        "max_repairs": 1,
+    },
+}
+
+
+def run_budget_preset() -> tuple[str | None, dict[str, int]]:
+    """The preset this deployment runs under (TOXAGENT_RUN_BUDGET_PRESET), if any."""
+    name = _env("TOXAGENT_RUN_BUDGET_PRESET")
+    if not name:
+        return None, {}
+    if name not in RUN_BUDGET_PRESETS:
+        raise ValueError(
+            f"TOXAGENT_RUN_BUDGET_PRESET={name!r} is not one of {sorted(RUN_BUDGET_PRESETS)}"
+        )
+    return name, RUN_BUDGET_PRESETS[name]
+
+
 def _int(name: str, default: int) -> int:
     raw = _env(name)
     if not raw:
@@ -125,6 +157,11 @@ class PolicySettings:
     default_endpoints: tuple[str, ...] = ("herg", "tox21")
     allow_threshold_overrides: bool = False
     threshold_override_roles: tuple[str, ...] = ("expert",)
+    #: Who may run toxicity on a candidate the activity policy put in REVIEW or
+    #: LOW_PRIORITY. The gate exists to stop work the policy judged unwarranted,
+    #: so stepping past it is an authorisation decision about the authenticated
+    #: principal, not a reason string a caller or a model can fill in (ADR 0014).
+    screening_continuation_roles: tuple[str, ...] = ("expert",)
     max_message_bytes: int = 32_768
     max_batch_size: int = 64
     #: Bounds the upload itself, independent of whether an OCR service is even
@@ -199,6 +236,9 @@ class PolicySettings:
             threshold_override_roles=_list(
                 "TOXAGENT_THRESHOLD_OVERRIDE_ROLES", cls.threshold_override_roles
             ),
+            screening_continuation_roles=_list(
+                "TOXAGENT_SCREENING_CONTINUATION_ROLES", cls.screening_continuation_roles
+            ),
             max_message_bytes=_int("TOXAGENT_MAX_MESSAGE_BYTES", cls.max_message_bytes),
             max_batch_size=_int("TOXAGENT_MAX_BATCH_SIZE", cls.max_batch_size),
             max_image_bytes=_int("TOXAGENT_MAX_IMAGE_BYTES", cls.max_image_bytes),
@@ -208,14 +248,20 @@ class PolicySettings:
             admission_lock_timeout_ms=_int(
                 "TOXAGENT_ADMISSION_LOCK_TIMEOUT_MS", cls.admission_lock_timeout_ms
             ),
-            max_tool_calls_per_run=_int("TOXAGENT_MAX_TOOL_CALLS", cls.max_tool_calls_per_run),
+            max_tool_calls_per_run=_int(
+                "TOXAGENT_MAX_TOOL_CALLS",
+                run_budget_preset()[1].get("max_tool_calls", cls.max_tool_calls_per_run),
+            ),
             max_tool_calls_per_report_build=_int(
                 "TOXAGENT_MAX_TOOL_CALLS_REPORT", cls.max_tool_calls_per_report_build
             ),
             max_answer_candidates_per_run=_int(
                 "TOXAGENT_MAX_ANSWER_CANDIDATES", cls.max_answer_candidates_per_run
             ),
-            run_deadline_s=_int("TOXAGENT_RUN_DEADLINE_S", cls.run_deadline_s),
+            run_deadline_s=_int(
+                "TOXAGENT_RUN_DEADLINE_S",
+                run_budget_preset()[1].get("run_deadline_s", cls.run_deadline_s),
+            ),
             report_build_deadline_s=_int(
                 "TOXAGENT_REPORT_BUILD_DEADLINE_S", cls.report_build_deadline_s
             ),
@@ -360,7 +406,10 @@ class RuntimeSettings:
             model_id=_env("TOXAGENT_MODEL_ID", cls.model_id),
             agent_name=_env("TOXAGENT_AGENT_NAME", cls.agent_name),
             report_agent_name=_env("TOXAGENT_REPORT_AGENT_NAME", cls.report_agent_name),
-            turn_deadline_s=_int("TOXAGENT_TURN_DEADLINE_S", cls.turn_deadline_s),
+            turn_deadline_s=_int(
+                "TOXAGENT_TURN_DEADLINE_S",
+                run_budget_preset()[1].get("turn_deadline_s", cls.turn_deadline_s),
+            ),
             report_turn_deadline_s=_int(
                 "TOXAGENT_REPORT_TURN_DEADLINE_S", cls.report_turn_deadline_s
             ),
@@ -407,6 +456,9 @@ class ResearchSettings:
     #: Content types that may be parsed. `accept: application/json` is a
     #: request header — a wish, not a constraint on what comes back.
     allowed_content_types: tuple[str, ...] = ("application/json", "text/json")
+    #: Full text comes back as JATS XML, so it gets its own allowlist rather
+    #: than widening the JSON one every search response is checked against.
+    allowed_full_text_content_types: tuple[str, ...] = ("application/xml", "text/xml")
     #: provider=snapshot only: an eval-fixture-v1 file whose ``evidence``
     #: section is served instead of a network provider, and an optional
     #: injected fault (research/providers/snapshot.py). Benchmarks only.
@@ -442,6 +494,28 @@ class ResearchSettings:
             snapshot_fault=_env("TOXAGENT_RESEARCH_SNAPSHOT_FAULT"),
             corpus_path=_env("TOXAGENT_RESEARCH_CORPUS_PATH"),
             corpus_sha256=_env("TOXAGENT_RESEARCH_CORPUS_SHA256"),
+        )
+
+
+@dataclass(frozen=True)
+class ActivitySettings:
+    """Activity screenings replayed from frozen records (#44, flag
+    activity_replay_v1).
+
+    No activity model is served by this deployment: a screening reaches a
+    session only from this pinned file of ``frozen-screening-v1`` records, so a
+    recorded run can be tied to the exact artifacts it read. Empty ``replay_path``
+    means no screening can be attached.
+    """
+
+    replay_path: str = ""
+    replay_sha256: str = ""
+
+    @classmethod
+    def from_env(cls) -> "ActivitySettings":
+        return cls(
+            replay_path=_env("TOXAGENT_ACTIVITY_REPLAY_PATH"),
+            replay_sha256=_env("TOXAGENT_ACTIVITY_REPLAY_SHA256"),
         )
 
 
@@ -795,6 +869,7 @@ class Settings:
     database: "DatabaseSettings" = field(default_factory=lambda: DatabaseSettings())
     worker: WorkerSettings = field(default_factory=WorkerSettings)
     chembl: ChemblSettings = field(default_factory=ChemblSettings)
+    activity: ActivitySettings = field(default_factory=ActivitySettings)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -826,6 +901,7 @@ class Settings:
             log_level=_env("TOXAGENT_LOG_LEVEL", cls.log_level),
             database=DatabaseSettings.from_env(),
             worker=WorkerSettings.from_env(),
+            activity=ActivitySettings.from_env(),
         )
 
 

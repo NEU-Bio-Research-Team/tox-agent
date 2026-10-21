@@ -39,6 +39,9 @@ class EventType(str, Enum):
     ANALYSIS_CREATED = "analysis.created"
     EVIDENCE_CREATED = "evidence.created"
     ANSWER_ACCEPTED = "answer.accepted"
+    #: #47 (release_gate_v1): an answer passed validation and awaits review;
+    #: not shown as the run's answer until answer.accepted follows it.
+    ANSWER_CANDIDATE = "answer.candidate"
     ANSWER_REJECTED = "answer.rejected"
     RUNTIME_RECOVERY_STARTED = "runtime.recovery_started"
     RUNTIME_USAGE_REPORTED = "runtime.usage_reported"

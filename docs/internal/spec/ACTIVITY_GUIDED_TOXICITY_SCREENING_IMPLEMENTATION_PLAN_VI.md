@@ -54,7 +54,9 @@ activity-first.
 
 - thu thập và chuẩn hóa dữ liệu ChEMBL;
 - ECFP4 và descriptor featurization;
-- B0 median, B1 kNN, B2a Random Forest, B2b LightGBM;
+- B0 median, B1 kNN, B2a Random Forest, B2b LightGBM — **đây là tên của
+  dòng ChEMBL bioactivity sẵn có**, không phải các ID `ACT-*` của tournament
+  SAIR ở §7;
 - temporal, cluster, scaffold và random split;
 - MAE, RMSE, Pearson, Spearman, enrichment và activity-cliff metrics;
 - frozen split manifest và kiểm tra dataset SHA-256;
@@ -267,13 +269,23 @@ gần như giống nhau nằm ở train và test nhưng vẫn được gọi là
 
 Không bắt đầu bằng model sâu trước khi có baseline.
 
+> **Đổi sang ID cố định (issue #38).** Bảng này từng gọi `B0` là *median*,
+> trong khi code lại gọi `B0` là *descriptor + AAC + HGB*. "Tốt hơn B0" vì vậy
+> không xác định được nghĩa. Dùng các ID dưới đây và không tái sử dụng tên
+> `B*` cho hai mô hình khác nhau nữa.
+
 | ID | Model | Mục tiêu |
 |---|---|---|
-| B0 | Median pIC50 theo target/assay | Dummy floor |
-| B1 | ECFP4 ligand + target identity | Known-target classical baseline |
-| B2 | ECFP4 + frozen protein embedding + LightGBM/MLP | Cross-target baseline |
-| B3 | Ligand encoder + frozen protein encoder + regression head | Neural pair model |
-| B4 | Fine-tuned ligand/protein encoders | Chỉ sau khi B3 đạt gate |
+| `ACT-D0` | Global median; target/context median khi target đã có trong train | Dummy floor, cần quy tắc fallback cho target mới |
+| `ACT-D1` | Ligand-only ECFP + kNN/RF/boosting | Kiểm tra target conditioning có thêm giá trị không |
+| `ACT-D2` | Descriptor ligand + amino-acid composition + HGB | Implementation hiện có (`baseline.py`) |
+| `ACT-D3` | ECFP + frozen protein embedding + boosted trees/MLP | Baseline ligand–protein mạnh |
+| `ACT-M` | Ligand encoder + frozen protein encoder + regression head | Candidate model |
+| `ACT-M-FT` | Fine-tuned ligand/protein encoders | Chỉ sau khi `ACT-M` đạt gate |
+
+Mọi arm huấn luyện trên **cùng** frozen data/split và **cùng** tuning budget.
+`ACT-D1` là phép kiểm quan trọng: nếu ligand-only gần bằng các arm có target
+conditioning thì claim "ligand–target" chưa được chứng minh.
 
 Protein embedding cần precompute và cache theo sequence SHA-256. Không encode lại
 cùng một protein cho từng ligand row.
@@ -306,7 +318,9 @@ tùy product claim.
 Một activity checkpoint chỉ được serving khi có:
 
 - frozen dataset và split manifest;
-- performance tốt hơn B0/B1 trên primary view;
+- cải thiện **có khoảng tin cậy** so với baseline mạnh nhất (`ACT-D3` nếu
+  đã chạy), trên primary view của claim đã chọn — không phải chỉ hơn dummy
+  floor `ACT-D0`;
 - không suy giảm nghiêm trọng trên OOD view;
 - uncertainty được đánh giá;
 - model/config/tokenizer/encoder hashes;
@@ -645,7 +659,7 @@ SMILES + protein + 3D
 
 ### Milestone 2 — Baseline benchmark
 
-- B0/B1/B2;
+- `ACT-D0`/`ACT-D1`/`ACT-D2`/`ACT-D3`;
 - metric suite;
 - activity-cliff/OOD analysis;
 - per-target/per-family report;
@@ -858,7 +872,7 @@ Không bắt đầu bằng neural model hoặc frontend. Thứ tự đầu tiên
 3. Tạo dataset manifest với checksum và license metadata.
 4. Định nghĩa canonical activity row và target identity.
 5. Viết leakage-safe split contract cùng unit tests.
-6. Chạy B0 baseline trước khi triển khai ligand–protein model.
+6. Chạy `ACT-D0` và `ACT-D2` trước khi triển khai ligand–protein model.
 
 Chỉ sau khi các bước trên được review mới bắt đầu model serving và control-plane
 orchestration.
@@ -917,16 +931,21 @@ Phase-1 artifact hiện có:
 - không có protein sequence đi xuyên partition;
 - processed parquet khoảng 27,6 MB, có checksum và manifest.
 
-Baseline B0 dùng 100.000 train, 25.000 validation và 25.000 test rows. Kết quả
-test: MAE 1,024 pIC50, RMSE 1,250, R² 0,143, Pearson 0,406; prediction interval
-90% có coverage 0,902. Đây chỉ là descriptor benchmark để kiểm tra pipeline.
-Artifact được gắn `admitted=false` vì chất lượng chưa đủ để phục vụ production.
+Baseline `ACT-D2` (descriptor + AAC + HGB) dùng 100.000 train, 25.000
+validation và 25.000 test rows. Kết quả test được báo cáo: MAE 1,024 pIC50,
+RMSE 1,250, R² 0,143, Pearson 0,406; prediction interval 90% có coverage
+0,902 — half-width khoảng 2,04, tức full width khoảng 4,08 pIC50.
+
+**Các số này đã hết hạn:** chúng được tạo khi bộ lọc `training_eligible` áp
+cho cả split test, nên chúng đo trên phần SAIR có nhãn đồng thuận, không phải
+toàn phân phối (issue #36). Artifact luôn ở `admitted=false`.
 
 Các gate tiếp theo trước khi nối API production:
 
 - scientific owner phê duyệt aggregation và ngưỡng label disagreement;
 - thay exact-sequence hash bằng sequence-cluster/family holdout được đóng băng;
-- huấn luyện ligand–protein model mạnh hơn và so sánh với B0;
+- huấn luyện ligand–protein model mạnh hơn và so sánh với **toàn bộ** bảng
+  `ACT-D0`..`ACT-D3`, không chỉ với `ACT-D2`;
 - calibration/applicability theo từng miền target;
 - admission criteria được phê duyệt. Chỉ artifact vượt các gate này mới được
   đăng ký vào serving và control-plane orchestration.

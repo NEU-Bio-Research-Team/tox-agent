@@ -356,6 +356,80 @@ evidence_records = Table(
     UniqueConstraint("session_id", "dedupe_key", name="uq_evidence_dedupe"),
 )
 
+# 0025 (#47, release_gate_v1): how an answer was released. An answer with no
+# row here is a candidate, not yet the run's product.
+answer_releases = Table(
+    "answer_releases", metadata,
+    Column("answer_id", _ID, ForeignKey("answers.id", ondelete="CASCADE"), primary_key=True),
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), nullable=False),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("outcome", String(40), nullable=False),
+    Column("detail", Json, nullable=False),
+    Column("released_at", _TS, nullable=False),
+    UniqueConstraint("run_id", name="uq_answer_release_run"),
+)
+
+# 0024 (#47): every draft a run submitted, as the model sent it, with what the
+# server made of it. The first is the raw draft a grader compares the
+# released answer against; a repair is judged on what it changed.
+answer_drafts = Table(
+    "answer_drafts", metadata,
+    Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
+    Column("generation", Integer, primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("schema_version", String(32), nullable=False),
+    Column("payload", Json, nullable=False),
+    Column("outcome", String(16), nullable=False),
+    Column("answer_id", _ID),
+    Column("violations", Json, nullable=False),
+    Column("created_at", _TS, nullable=False),
+)
+
+# 0022 (#43): what was read of a record's full text. One row per record and
+# only a definitive outcome: read, or refused with a reason. A provider outage
+# is not stored, so a later call asks again.
+evidence_full_texts = Table(
+    "evidence_full_texts", metadata,
+    Column("evidence_id", _ID, ForeignKey("evidence_records.id", ondelete="CASCADE"),
+           primary_key=True),
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False),
+    Column("run_id", _ID, ForeignKey("runs.id"), nullable=False),
+    Column("state", String(32), nullable=False),
+    Column("full_text_id", String(64)),
+    Column("reason", Text),
+    Column("section_titles", Json, nullable=False),
+    Column("omitted", Json, nullable=False),
+    Column("truncated", Boolean, nullable=False),
+    Column("document_sha256", String(64), nullable=False),
+    Column("fetched_at", _TS, nullable=False),
+)
+
+evidence_passages = Table(
+    "evidence_passages", metadata,
+    Column("evidence_id", _ID, ForeignKey("evidence_full_texts.evidence_id", ondelete="CASCADE"),
+           primary_key=True),
+    Column("locator", String(80), primary_key=True),
+    Column("position", Integer, nullable=False),
+    Column("section", Text, nullable=False),
+    Column("kind", String(24), nullable=False),
+    Column("text", Text, nullable=False),
+    Column("truncated", Boolean, nullable=False),
+    Column("cells", Json, nullable=False),
+    Index("ix_evidence_passages_order", "evidence_id", "position"),
+)
+
+# 0023 (#44): a frozen activity screening attached to a session. The row holds
+# its own copy of the record, so what a run read stays readable.
+session_screenings = Table(
+    "session_screenings", metadata,
+    Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), primary_key=True),
+    Column("screening_id", _ID, primary_key=True),
+    Column("record", Json, nullable=False),
+    Column("record_sha256", String(64), nullable=False),
+    Column("source", String(16), nullable=False),
+    Column("attached_at", _TS, nullable=False),
+)
+
 answers = Table(
     "answers", metadata,
     Column("id", _ID, primary_key=True),
@@ -387,6 +461,8 @@ claims = Table(
     Column("transform", String(32), nullable=False),
     Column("input_claim_ids", Json, nullable=False),
     Column("position", Integer, nullable=False),
+    # 0024 (#47): the v2 draft's label, for lineage across a repair.
+    Column("local_ref", String(32)),
     CheckConstraint(
         "kind NOT IN ('numeric', 'classification') "
         "OR (observation_id IS NOT NULL AND field_path IS NOT NULL)",
@@ -399,6 +475,16 @@ claim_sources = Table(
     "claim_sources", metadata,
     Column("claim_id", _ID, ForeignKey("claims.id", ondelete="CASCADE"), primary_key=True),
     Column("evidence_id", _ID, ForeignKey("evidence_records.id"), primary_key=True),
+)
+
+# 0022 (#43): the passages a claim quotes, by locator. A span's record is also
+# one of the claim's claim_sources; the locator says where in it.
+claim_evidence_spans = Table(
+    "claim_evidence_spans", metadata,
+    Column("claim_id", _ID, ForeignKey("claims.id", ondelete="CASCADE"), primary_key=True),
+    Column("evidence_id", _ID, ForeignKey("evidence_records.id"), primary_key=True),
+    Column("locator", String(80), primary_key=True),
+    Column("position", Integer, nullable=False),
 )
 
 attachments = Table(
@@ -657,6 +743,10 @@ evidence_relation_assessments = Table(
     Column("input_refs", Json),
     Column("assessor", String(16)),
     Column("method_version", String(40)),
+    # 0025 (#47): the answer this relation was submitted with. A repaired run
+    # holds two candidates' relations; only the released one's are its own.
+    # NULL for rows written before 0025, when a run had one answer.
+    Column("answer_id", _ID),
     Index("ix_evidence_relation_run", "run_id"),
     Index("ix_evidence_relation_proposition", "session_id", "proposition_id"),
 )
@@ -783,6 +873,11 @@ event_outbox = Table(
 #: Written once, never updated. Repositories expose no update path for these.
 IMMUTABLE_TABLES = frozenset(
     {"analysis_snapshots", "observations", "answers", "claims", "claim_sources", "event_outbox",
+     # What a document said when it was read, and what a claim quoted from it.
+     "evidence_full_texts", "evidence_passages", "claim_evidence_spans", "answer_drafts",
+     "answer_releases",
+     # A frozen screening is a record of what was produced; never edited.
+     "session_screenings",
      "case_revisions", "investigation_plans", "kernel_transitions",
      # A report is immutable for the same reason an answer is: it is cited,
      # downloaded and audited. A changed report needs a new version row, not an

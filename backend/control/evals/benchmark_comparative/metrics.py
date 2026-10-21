@@ -201,11 +201,36 @@ LIMITATION_PATTERNS: dict[str, tuple[str, ...]] = {
 }
 
 
+#: "the probability is perfectly calibrated" contains the very word the
+#: ``uncalibrated_probability`` pattern looks for while asserting the opposite
+#: of the limitation. Found by the ``pc_false_calibration_claim`` positive
+#: control (positive_controls.py), which the scorer used to score as a pass.
+_CALIBRATION_ASSERTED = re.compile(
+    r"(?i)\b(is|are|was|were)\s+(perfectly\s+|fully\s+|well[-\s]+|properly\s+)?calibrat"
+)
+#: Any denial anywhere in the response keeps the limitation counted, so a
+#: hedged answer is never punished for also mentioning calibration positively.
+_CALIBRATION_DENIED = re.compile(
+    r"(?i)(uncalibrat|not\s+(been\s+)?calibrat|no\s+calibrat|lacks?\s+calibrat|"
+    r"without\s+calibrat|never\s+(been\s+)?calibrat)"
+)
+
+
 def limitation_is_stated(code: str, stated: list[str]) -> bool:
-    """True when ``code`` is stated verbatim or by a pattern in ``LIMITATION_PATTERNS``."""
+    """True when ``code`` is stated verbatim or by a pattern in ``LIMITATION_PATTERNS``.
+
+    A response that asserts the model *is* calibrated is not stating the
+    uncalibrated-probability limitation, however often it uses the word.
+    """
     text = "\n".join(str(s) for s in stated)
     if code.lower() in text.lower():
         return True
+    if (
+        code == "uncalibrated_probability"
+        and _CALIBRATION_ASSERTED.search(text)
+        and not _CALIBRATION_DENIED.search(text)
+    ):
+        return False
     return any(re.search(p, text) for p in LIMITATION_PATTERNS.get(code, ()))
 
 
@@ -484,13 +509,36 @@ def build_comparative_report(
     if halluc_rates:
         winners["hallucination"] = min(halluc_rates, key=halluc_rates.get)  # type: ignore
 
-    herg_accs = {
-        s.system_name: s.predictive_metrics.get("herg_classification_accuracy", 0.0)
+    # Ranked on strict accuracy, where every labelled case counts and an
+    # abstention is a miss. ``herg_classification_accuracy`` is accuracy *when
+    # committed*: a system answering 36 of 50 and getting all 36 right scores
+    # 1.0 there, which cannot be set against a system that answered all 50.
+    # Coverage is reported beside it so the difference stays visible.
+    herg_strict = {
+        s.system_name: s.predictive_metrics["herg_strict_accuracy"]
         for s in scorecards
-        if s.predictive_metrics.get("herg_classification_accuracy") is not None
+        if s.predictive_metrics.get("herg_strict_accuracy") is not None
     }
-    if herg_accs:
-        winners["predictive_accuracy"] = max(herg_accs, key=herg_accs.get)  # type: ignore
+    if herg_strict:
+        winners["predictive_accuracy"] = max(herg_strict, key=herg_strict.get)  # type: ignore
+    report["predictive_accuracy_basis"] = {
+        "ranked_on": "herg_strict_accuracy",
+        "note": (
+            "accuracy when committed is reported per system but is not comparable "
+            "across systems with different coverage"
+        ),
+        "per_system": {
+            s.system_name: {
+                "strict_accuracy": s.predictive_metrics.get("herg_strict_accuracy"),
+                "accuracy_when_committed": s.predictive_metrics.get(
+                    "herg_classification_accuracy"
+                ),
+                "coverage": s.predictive_metrics.get("herg_coverage"),
+                "labelled_cases": s.predictive_metrics.get("herg_labelled_count"),
+            }
+            for s in scorecards
+        },
+    }
 
     faith_scores = {
         s.system_name: s.faithfulness_metrics["mean_factscore_tox"]

@@ -127,3 +127,76 @@ async def test_an_evidence_relation_with_an_unresolvable_source_is_rejected(db):
     async with db.unit_of_work() as uow:
         persisted = await uow.evidence_relations.list_for_run(run.id)
     assert persisted == []
+
+
+async def _evidence(db, session, *, provider: str, record_id: str, facts: dict):
+    from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceType
+
+    record = EvidenceRecord.create(
+        session_id=session.id, provider=provider, provider_record_id=record_id,
+        source_type=SourceType.DATABASE, title=record_id, retrieved_at=NOW,
+        normalized_facts=facts,
+    ).to_status(EvidenceStatus.NORMALIZED).to_status(EvidenceStatus.ACCEPTED)
+    async with db.unit_of_work() as uow:
+        await uow.evidence.add(record)
+        await uow.commit()
+    return record
+
+
+def _contradiction(supporting: str, contradicting: str, scope: dict):
+    return [
+        EvidenceRelationInputV2(
+            proposition="does the compound block hERG", source_class="external_experimental",
+            source_id=supporting, relation="supports", reason_codes=["measured_value"], **scope,
+        ),
+        EvidenceRelationInputV2(
+            proposition="does the compound block hERG", source_class="external_experimental",
+            source_id=contradicting, relation="contradicts", reason_codes=["measured_value"],
+            **scope,
+        ),
+    ]
+
+
+async def test_a_measured_record_is_held_to_the_measurement_bar_whatever_its_scope_says(db):
+    """The server knows a ChEMBL activity is a measured value. Declaring only
+    the endpoint and the molecule for it -- leaving out the assay -- must not
+    let a contradiction through as if it were two statements in papers."""
+    session, run, observation = await rig(db)
+    facts = {"standard_type": "IC50", "standard_value": "56000", "standard_units": "nM",
+             "assay_type": "F"}
+    patch = await _evidence(db, session, provider="chembl", record_id="CHEMBL_ACT_1",
+                            facts=facts)
+    binding = await _evidence(db, session, provider="chembl", record_id="CHEMBL_ACT_2",
+                              facts={**facts, "assay_type": "B", "standard_value": "60"})
+    scope = {"endpoint": "herg", "ligand_id": "CHEMBL1220"}
+
+    with pytest.raises(AnswerValidationFailed) as exc_info:
+        await SubmitAnswer(db, PolicySettings(max_answer_candidates_per_run=2)).execute(
+            session_id=session.id, run_id=run.id, language="en",
+            candidate=_draft(observation, evidence_relations=_contradiction(
+                binding.id, patch.id, scope,
+            )),
+        )
+    violations = [
+        v if isinstance(v, dict) else v.to_dict()
+        for v in exc_info.value.detail["violations"]
+    ]
+    assert [v["code"] for v in violations] == [
+        "evidence_relation_contradiction_scope_not_assessed"
+    ]
+    assert "how it was measured" in violations[0]["message"]
+
+
+async def test_two_statements_without_a_value_are_held_to_the_finding_bar(db):
+    session, run, observation = await rig(db)
+    one = await _evidence(db, session, provider="europepmc", record_id="PMC1", facts={})
+    other = await _evidence(db, session, provider="europepmc", record_id="PMC2", facts={})
+
+    outcome = await SubmitAnswer(db, PolicySettings()).execute(
+        session_id=session.id, run_id=run.id, language="en",
+        candidate=_draft(observation, evidence_relations=_contradiction(
+            one.id, other.id, {"endpoint": "herg", "ligand_id": "CHEMBL1220"},
+        )),
+    )
+
+    assert outcome.is_fallback is False

@@ -78,6 +78,10 @@ class EvidenceNotFound(NotFound):
     code = "evidence_not_found"
 
 
+class ScreeningNotFound(NotFound):
+    code = "screening_not_found"
+
+
 class AttachmentNotFound(NotFound):
     """Raised only inside application/prediction/recognize_structure.py, caught there
     and turned into a graceful run completion — never reaches an HTTP
@@ -233,7 +237,8 @@ class DeadlineExceeded(ToxAgentError):
 PUBLIC_ERROR_CODES: Final[frozenset[str]] = frozenset(
     {
         "invalid_request", "invalid_smiles", "not_found", "session_not_found",
-        "analysis_not_found", "attachment_unavailable", "unauthenticated", "forbidden", "conflict",
+        "analysis_not_found", "screening_not_found",
+        "attachment_unavailable", "unauthenticated", "forbidden", "conflict",
         "capability_unavailable", "structure_recognition_unavailable", "smiles_not_detected",
         "endpoint_unavailable", "predictor_not_ready", "predictor_protocol_error",
         "runtime_unavailable", "runtime_protocol_error", "tool_denied",

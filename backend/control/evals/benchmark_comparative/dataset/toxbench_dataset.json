@@ -1,6 +1,6 @@
 {
   "schema_version": "toxbench-dataset-v1",
-  "description": "ToxBench: Comparative benchmark dataset for evaluating hallucination and predictive accuracy of toxicology decision-support agents. Grounded in MedHallu (ACL 2025), RAGTruth (ACL 2024), AgentHallu (2026), and FActScore (EMNLP 2023) methodologies.",
+  "description": "ToxBench: comparative DEVELOPMENT AND REGRESSION set for evaluating hallucination and predictive accuracy of toxicology decision-support agents. These 95 cases were used while developing the systems under test and their per-case results have been seen, so this is a dev/regression set and not an independent final test set; a locked test set is a separate artifact. Grounded in MedHallu (ACL 2025), RAGTruth (ACL 2024), AgentHallu (2026) and FActScore (EMNLP 2023) methodologies.",
   "total_cases": 95,
   "group_counts": {
     "herg_positive": 20,
@@ -3887,5 +3887,21 @@
       ],
       "difficulty": "medium"
     }
-  ]
+  ],
+  "intended_use": "development_and_regression",
+  "provenance_audit": {
+    "note": "Recorded, not repaired. A gold label needs a molecule identifier, a source id, an assay id, the original readout, its unit, its comparator, the rule that turned it into a label, and who verified it. The gaps below are stated rather than guessed at; closing them is issue #37.",
+    "cases_total": 95,
+    "cases_without_source_id": 95,
+    "cases_without_herg_label": 45,
+    "cases_without_tox21_labels": 75,
+    "fields_absent_from_every_case": [
+      "assay_id",
+      "readout",
+      "unit",
+      "comparator",
+      "label_rule",
+      "verified_by"
+    ]
+  }
 }

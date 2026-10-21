@@ -110,6 +110,29 @@ def cited_fact_values(
     return tuple(values)
 
 
+#: Every number in a passage, integers included: a table cell is often a bare
+#: integer ("14"), and the prose check above decides which prose tokens need
+#: grounding at all.
+_PASSAGE_NUMBER = re.compile(r"(?<![\w.,])-?\d+(?:[.,]\d+)?%?")
+
+
+def passage_values(text: str) -> tuple[float, ...]:
+    """The numbers a quoted passage contains, as values a prose token may
+    faithfully render. "65%" is 0.65, which is what ``faithful_rendering``
+    compares a percentage token against."""
+    values: list[float] = []
+    for match in _PASSAGE_NUMBER.finditer(text or ""):
+        token = match.group(0)
+        percent = token.endswith("%")
+        body = (token[:-1] if percent else token).replace(",", ".")
+        try:
+            number = float(body)
+        except ValueError:
+            continue
+        values.append(number / 100 if percent else number)
+    return tuple(values)
+
+
 def validate_markdown_numeric_coverage(
     answer_markdown: str, claims: tuple[ClaimCandidate, ...], *,
     claimed_values: Iterable[float] = (),

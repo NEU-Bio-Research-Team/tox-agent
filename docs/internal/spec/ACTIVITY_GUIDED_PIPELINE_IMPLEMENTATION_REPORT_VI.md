@@ -98,8 +98,14 @@ ETL thực hiện:
 - nhãn học máy: median pIC50 sau khi loại exact duplicate;
 - cặp có `pIC50 span > 1.0` được gắn
   `high_measurement_disagreement`;
-- các cặp này không được đưa vào training;
-- policy được ghi trong manifest và vẫn cần scientific owner phê duyệt.
+- các cặp này không được đưa vào training **và không được đưa vào calibration**;
+  chúng **vẫn nằm trong test**, vì bỏ chúng khỏi test sẽ biến kết quả thành số
+  trên phần dễ của SAIR (xem `LABEL_FILTER_SPLITS`, issue #36);
+- ETL hiện group theo `entry_id` và lưu `assay_primary=first`; nghĩa là
+  **chưa** group theo assay context, nên median có thể gộp hai phép đo khác
+  nhau. Đây là blocker khoa học, chưa được giải quyết (issue #39);
+- policy được ghi trong manifest và vẫn cần scientific owner phê duyệt. Ngưỡng
+  `1.0` là policy tạm, không phải một hằng số khoa học.
 
 Kết quả:
 
@@ -144,7 +150,25 @@ Giới hạn: đây là exact-sequence holdout, chưa phải sequence-cluster ho
 protein-family holdout. Các protein tương đồng cao vẫn có thể nằm ở nhiều
 partition khác nhau.
 
-## 6. Baseline B0 đã huấn luyện
+## 6. Baseline `ACT-D2` đã huấn luyện
+
+> **Tên gọi.** Tên `B0` từng được dùng cho hai thứ khác nhau: bảng roadmap
+> trong plan gọi `B0` là *global/target median*, còn code lại gọi `B0` là
+> *descriptor + amino-acid composition + HGB*. Hai mô hình này khác hẳn nhau
+> về sức mạnh, nên câu "tốt hơn B0" trước đây không xác định được nghĩa. Từ
+> nay dùng ID cố định (issue #38):
+>
+> | ID | Model |
+> |---|---|
+> | `ACT-D0` | Global median; target/context median khi target đã có trong train |
+> | `ACT-D1` | Ligand-only ECFP + kNN/RF/boosting |
+> | `ACT-D2` | Descriptor ligand + amino-acid composition + HGB — **chính là phần dưới đây** |
+> | `ACT-D3` | ECFP + frozen protein embedding + boosted trees/MLP |
+> | `ACT-M` | Ligand encoder + frozen protein encoder + regression head |
+>
+> `model_id` trong artifact vẫn là `sair-descriptor-hgb-b0` vì nó đã được ghi
+> vào artifact/report; đổi nó là một thay đổi artifact riêng, không phải việc
+> sửa tài liệu.
 
 File triển khai:
 
@@ -167,16 +191,29 @@ Tập benchmark:
 
 ### Metric
 
+> **Các số dưới đây đã hết hạn — chờ chạy lại.** Chúng được tạo khi
+> `baseline.py` áp bộ lọc `training_eligible` cho **cả ba** split, nên hàng
+> `Test` đo trên phần SAIR đã bỏ các pair có measurement bất đồng
+> (`pic50_span > max_label_span`), không phải trên phân phối test đầy đủ.
+> Bộ lọc giờ chỉ áp cho train/validation (xem `LABEL_FILTER_SPLITS`), và
+> `train_baseline` báo hai view cạnh nhau: `metrics.test` trên toàn bộ test
+> và `metrics.test_training_eligible_only` tương ứng với các số cũ. Cần chạy
+> lại B0 rồi thay bảng này bằng cả hai view. Issue #36.
+
 | Partition | MAE | RMSE | R² | Pearson |
 |---|---:|---:|---:|---:|
 | Train | 0,802 | 1,004 | 0,446 | 0,676 |
 | Validation | 1,043 | 1,273 | 0,081 | 0,321 |
-| Test | 1,024 | 1,250 | 0,143 | 0,406 |
+| Test (đã lọc span) | 1,024 | 1,250 | 0,143 | 0,406 |
 
 Prediction interval 90%:
 
-- half-width: khoảng 2,040 pIC50;
-- test coverage: 0,902.
+- half-width: khoảng 2,040 pIC50 — tức full width khoảng 4,08 pIC50;
+- test coverage: 0,902, trên tập test **đã lọc** nói trên.
+
+Half-width là **một** quantile của absolute residual trên validation, dùng
+chung cho mọi cặp, nên coverage 0,902 không chứng minh uncertainty thích ứng
+theo từng target hay candidate (issue #41).
 
 Artifact:
 
@@ -201,6 +238,9 @@ Request gồm:
 - ligand SMILES;
 - target ID;
 - optional UniProt ID;
+- **assay context (bắt buộc)** — response luôn có trường này, nên request
+  không có nó đồng nghĩa server tự chọn một context mà caller không thấy và
+  không kiểm được (issue #34, ADR 0014);
 - optional model selection.
 
 Response gồm:
@@ -237,11 +277,15 @@ Các file domain được tách theo trách nhiệm:
 Các domain object:
 
 - `TargetIdentity`;
+- `ActivitySubject` — ligand chuẩn hóa + target identity + assay context; là
+  identity mà **mọi** artifact của screening phải khớp (ADR 0014);
+- `TargetRole` — vì sao target này được sàng lọc;
 - `ActivityEstimate`;
 - `ActivityModelProvenance`;
 - `ActivitySnapshot`;
 - `PrioritisationDecision`;
-- `TargetPriorityPolicy`;
+- `TargetPriorityPolicy` — khóa theo `(target_id, assay_context)`;
+- `ContinuationAuthorisation` — quyền đi qua gate, do server cấp;
 - `ActivityGuidedScreening`.
 
 State machine:
@@ -271,9 +315,16 @@ Quy tắc prioritisation hiện có:
 - toàn bộ interval dưới threshold: `LOW_PRIORITY`;
 - interval cắt threshold: `REVIEW`.
 
-Nếu `REVIEW` hoặc `LOW_PRIORITY` vẫn tiếp tục toxicity thì bắt buộc lưu người
-phê duyệt và lý do. Việc không chạy toxicity có trạng thái riêng và không bao
-giờ được biểu diễn như kết quả “negative” hoặc “safe”.
+Nếu `REVIEW` hoặc `LOW_PRIORITY` vẫn tiếp tục toxicity thì `start_toxicity`
+đòi một `ContinuationAuthorisation` do server cấp, **không** phải hai chuỗi
+actor/reason. Người phê duyệt lấy từ authenticated principal
+(`application.policy.authorise_toxicity_continuation` kiểm role theo
+`PolicySettings.screening_continuation_roles`); lý do được lưu làm dữ liệu
+audit và tự nó không tạo ra quyền. Nghĩa là không có tham số nào để caller
+hay một model tự khai người phê duyệt của chính nó (issue #35, ADR 0014).
+
+Việc không chạy toxicity có trạng thái riêng và không bao giờ được biểu diễn
+như kết quả “negative” hoặc “safe”.
 
 ID prefix mới:
 
@@ -346,7 +397,9 @@ Các trường hợp được kiểm thử:
 - invalid SMILES/protein sequence;
 - baseline inference interval và non-admission.
 
-Kết quả verification:
+Kết quả verification **do tác giả báo cáo tại commit `681a1c1`**, trong môi
+trường nghiên cứu nêu ở §10. Đây không phải số được một lần rà soát độc lập
+xác nhận lại:
 
 - control unit suite: `1901 passed`;
 - predictor unit suite: `233 passed, 5 skipped`;
@@ -354,6 +407,9 @@ Kết quả verification:
 - Ruff: `All checks passed`;
 - documentation check: `documentation OK`;
 - `git diff --check`: đạt.
+
+Các số này đã thay đổi từ khi sửa #33/#34/#35/#36 — xem CHANGELOG hoặc chạy
+lại suite. Khi cập nhật, ghi rõ đó là số đã chạy hay số được báo lại.
 
 `pip check` trên môi trường dùng chung vẫn báo một số package ảnh y tế bên
 ngoài ToxAgent thiếu optional dependencies. Các lỗi này không thuộc dependency
@@ -399,8 +455,12 @@ học, đạt admission criteria rồi mới nối persistence, API và UI.
 
 ## 14. Trạng thái Git
 
-Toàn bộ thay đổi hiện nằm trên nhánh
-`feat/bioactivity-first-pipeline-redesign` và chưa được commit. Dataset,
-processed parquet, model artifact và metadata runtime nằm dưới `data/`, được
-Git ignore; source code, tests, ADR và tài liệu được giữ trong worktree để
-review và commit.
+Thay đổi được mô tả trong báo cáo này đã commit tại
+`681a1c1b92377071411a832762db4203294931f2` trên nhánh
+`feat/bioactivity-first-pipeline-redesign`. Các sửa chữa sau rà soát
+(#33/#34/#35/#36) nằm trên nhánh `fix/activity-identity-guards` dựng từ commit
+đó.
+
+Dataset, processed parquet, model artifact và metadata runtime nằm dưới
+`data/` và được Git ignore. Vì vậy các số trong §6 **chưa tái lập được** từ
+riêng repo: cần tải lại SAIR và chạy lại pipeline.

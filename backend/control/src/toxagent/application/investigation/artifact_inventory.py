@@ -16,6 +16,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from ...platform.flags import is_enabled
+from ..activity import replay
+
 from ...domain.evidence import EvidenceStatus
 from ...domain.observation import ObservationKind
 
@@ -87,7 +90,7 @@ async def build_artifact_inventory(
         for record in accepted_evidence_records
     ]
 
-    return {
+    inventory: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "analysis": analysis_view,
         "latest_report": latest_report_view,
@@ -99,3 +102,11 @@ async def build_artifact_inventory(
             "regulatory_search": False,
         },
     }
+    if is_enabled("activity_replay_v1"):
+        # #44: what screenings this session holds, and that they are replayed
+        # frozen records -- no activity model is served here. Off, the
+        # inventory is unchanged.
+        attachments = await uow.screenings.list_for_session(session_id)
+        inventory["screenings"] = [replay.summary(a.record) for a in attachments]
+        inventory["activity"] = {"mode": "replay", "serving": False}
+    return inventory

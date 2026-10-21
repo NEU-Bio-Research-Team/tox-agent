@@ -78,9 +78,9 @@ def test_every_conversational_profile_is_a_small_closed_set():
     """Plan section 21: a large tool roster costs money and misroutes."""
     for name, tools in PROFILES.items():
         # None is conversational: report_build is the model-driven builder's
-        # enumerated roster, and report_synthesis and claim_review (W9-12) are
-        # one submission boundary each.
-        if name in ("report_build", "report_synthesis", "claim_review"):
+        # enumerated roster, and report_synthesis, claim_review (W9-12) and
+        # workflow_synthesis (#50 arm B) are one submission boundary each.
+        if name in ("report_build", "report_synthesis", "claim_review", "workflow_synthesis"):
             continue
         # decision_support is deliberately the adaptive superset of
         # report_qa + evidence_research (ADR 0010, ADS plan section 7.2) plus
@@ -93,8 +93,12 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # way around this one. It is wider than the default ceiling because
         # the flag-gated tools are separate experiments, each measured on its
         # own arm (ADR 0012 case and skill tools, W9-11 drafts, W9-13
-        # primitives), never meant to ship all at once.
-        assert len(tools) <= ceiling + 8, f"{name} has {len(tools)} tools with every flag on"
+        # primitives), never meant to ship all at once. Raised from +8 to
+        # +11 for #44's three activity reads, which #44 names one per
+        # artifact so each states its own invariant (not-run is not negative,
+        # pIC50 is not efficacy, a policy is a rule); they are useful only
+        # with a screening attached.
+        assert len(tools) <= ceiling + 11, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

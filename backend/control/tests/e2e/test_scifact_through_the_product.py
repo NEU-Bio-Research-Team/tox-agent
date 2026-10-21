@@ -54,9 +54,44 @@ def _corpus_provider(tmp_path):
     return CorpusResearchProvider(tmp_path / "corpus.jsonl", sha256=digest), digest
 
 
-async def test_a_claim_becomes_abstract_labels_the_study_can_score(db, flags_on, tmp_path):
-    provider, digest = _corpus_provider(tmp_path)
-    seen: dict = {"prompt": "", "results": []}
+#: What each source itself states, and nothing more. Doc 11 names its
+#: population; doc 12 says only "this cohort", so its relation leaves the
+#: population out rather than borrowing doc 11's (a scope filled in to match
+#: is how a false contradiction gets through).
+SUPPORTING_SCOPE = {"endpoint": "platelet aggregation", "ligand_id": "aspirin",
+                    "experimental_context": "healthy volunteers"}
+CONTRADICTING_SCOPE = {"endpoint": "platelet aggregation", "ligand_id": "aspirin"}
+
+
+def _draft(supporting: str, contradicting: str, *, supporting_scope: dict,
+           contradicting_scope: dict) -> dict:
+    return {
+        "schema_version": "grounded-answer-v2",
+        "answer_markdown": (
+            "One retrieved study reports reduced platelet aggregation; another reports "
+            "no reduction in its cohort."
+        ),
+        "claims": [{
+            "local_ref": "lit", "kind": "scientific",
+            "text": "Retrieved studies disagree on whether aspirin reduced platelet "
+                    "aggregation.",
+            "citation_ids": [supporting, contradicting],
+        }],
+        "limitations": [{"code": "evidence_scope_limited", "text": ""}],
+        "evidence_relations": [
+            {"proposition": CLAIM, "source_class": "external_experimental",
+             "source_id": supporting, "relation": "supports",
+             "reason_codes": ["same_population"], **supporting_scope},
+            {"proposition": CLAIM, "source_class": "external_experimental",
+             "source_id": contradicting, "relation": "contradicts",
+             "reason_codes": ["opposite_finding"], **contradicting_scope},
+        ],
+    }
+
+
+def _script(seen: dict, attempts: list[tuple[dict, dict]]):
+    """Search, read every hit, then submit one draft per (supporting scope,
+    contradicting scope) in ``attempts``, keeping each submission's result."""
 
     async def script(turn) -> None:
         seen["prompt"] = turn.system_prompt
@@ -73,48 +108,45 @@ async def test_a_claim_becomes_abstract_labels_the_study_can_score(db, flags_on,
             by_record[record["model_view"]["normalized_facts"]["corpus_record_id"]] = (
                 result["evidence_id"]
             )
-        supporting, contradicting = by_record["11"], by_record["12"]
         seen["by_record"] = by_record
-        submitted = await turn.call_tool("submit_grounded_answer", {
-            "schema_version": "grounded-answer-v2",
-            "answer_markdown": (
-                "One retrieved study reports reduced platelet aggregation; another reports "
-                "no reduction in its cohort."
-            ),
-            "claims": [{
-                "local_ref": "lit", "kind": "scientific",
-                "text": "Retrieved studies disagree on whether aspirin reduced platelet "
-                        "aggregation.",
-                "citation_ids": [supporting, contradicting],
-            }],
-            "limitations": [{"code": "evidence_scope_limited", "text": ""}],
-            "evidence_relations": [
-                {"proposition": CLAIM, "source_class": "external_experimental",
-                 "source_id": supporting, "relation": "supports",
-                 "reason_codes": ["same_population"]},
-                {"proposition": CLAIM, "source_class": "external_experimental",
-                 "source_id": contradicting, "relation": "contradicts",
-                 "reason_codes": ["opposite_finding"]},
-            ],
-        })
-        seen["results"].append(submitted)
+        for supporting_scope, contradicting_scope in attempts:
+            submitted = await turn.call_tool("submit_grounded_answer", _draft(
+                by_record["11"], by_record["12"],
+                supporting_scope=supporting_scope, contradicting_scope=contradicting_scope,
+            ))
+            seen["results"].append(submitted)
 
-    config = settings(research=ResearchSettings(
+    return script
+
+
+async def _ask(client, db, script) -> tuple[str, dict]:
+    await _install_scripted_runtime(client, script)
+    session_id = await _new_session(client)
+    submitted = await client.post(
+        f"/v1/sessions/{session_id}/messages",
+        json={"intent_hint": "auto",
+              "content": [{"type": "text", "text": question_for(CLAIM)}]},
+        headers=AUTH,
+    )
+    assert submitted.status_code == 202, submitted.text
+    run = await wait_for_run(client, session_id, submitted.json()["run_id"])
+    return session_id, run
+
+
+def _config(tmp_path, digest):
+    return settings(research=ResearchSettings(
         provider="corpus", corpus_path=str(tmp_path / "corpus.jsonl"), corpus_sha256=digest,
     ))
-    async with api_client(db, StubPredictor(), config=config,
-                          research_provider=provider) as client:
-        await _install_scripted_runtime(client, script)
-        session_id = await _new_session(client)
 
-        submitted = await client.post(
-            f"/v1/sessions/{session_id}/messages",
-            json={"intent_hint": "auto",
-                  "content": [{"type": "text", "text": question_for(CLAIM)}]},
-            headers=AUTH,
-        )
-        assert submitted.status_code == 202, submitted.text
-        run = await wait_for_run(client, session_id, submitted.json()["run_id"])
+
+async def test_a_claim_becomes_abstract_labels_the_study_can_score(db, flags_on, tmp_path):
+    provider, digest = _corpus_provider(tmp_path)
+    seen: dict = {"prompt": "", "results": []}
+    script = _script(seen, [(SUPPORTING_SCOPE, CONTRADICTING_SCOPE)])
+
+    async with api_client(db, StubPredictor(), config=_config(tmp_path, digest),
+                          research_provider=provider) as client:
+        session_id, run = await _ask(client, db, script)
         assert run["status"] == "completed", run
         # The claim named no molecule and was still answered from the literature.
         assert run["intent"] == "decision_support"
@@ -129,6 +161,10 @@ async def test_a_claim_becomes_abstract_labels_the_study_can_score(db, flags_on,
         assert len(payload) == 2
         # One proposition text, one server-minted proposition id.
         assert len({r["proposition_id"] for r in payload}) == 1
+        # Each scope is what its source stated: doc 12's population stays unstated.
+        scopes = {r["relation"]: r["scope"] for r in payload}
+        assert scopes["supports"]["experimental_context"] == "healthy volunteers"
+        assert scopes["contradicts"]["experimental_context"] is None
 
         evidence = await client.get(f"/v1/sessions/{session_id}/evidence",
                                     params={"status": "all", "limit": 200}, headers=AUTH)
@@ -146,6 +182,44 @@ async def test_a_claim_becomes_abstract_labels_the_study_can_score(db, flags_on,
         product = await client.get("/v1/system/effective-product", headers=AUTH)
         corpus = (product.json()["providers"])["research_corpus"]
         assert corpus == {"path_name": "corpus.jsonl", "sha256": digest}
+
+
+async def test_a_contradiction_with_no_scope_is_refused_until_the_sources_scope_is_stated(
+    db, flags_on, tmp_path,
+):
+    """The scope guard through the product: a supports and a contradicts with
+    nothing stated about either source is not yet a disagreement, so it is a
+    typed, correctable violation naming what to state -- not a failed run, and
+    not a silent downgrade. Stating what the sources say gets it accepted."""
+    provider, digest = _corpus_provider(tmp_path)
+    seen: dict = {"prompt": "", "results": []}
+    script = _script(seen, [({}, {}), (SUPPORTING_SCOPE, CONTRADICTING_SCOPE)])
+
+    async with api_client(db, StubPredictor(), config=_config(tmp_path, digest),
+                          research_provider=provider) as client:
+        session_id, run = await _ask(client, db, script)
+
+        first, retried = seen["results"][-2:]
+        assert first["status"] == "error", first
+        assert first["error"]["code"] == "answer_validation_failed"
+        violations = first["error"]["details"]["violations"]
+        assert [v["code"] for v in violations] == [
+            "evidence_relation_contradiction_scope_not_assessed"
+        ]
+        assert violations[0]["path"] == "evidence_relations[1].relation"
+        assert "in which molecule or system" in violations[0]["message"]
+        assert "do not fill a scope in" in violations[0]["message"]
+
+        assert retried["status"] == "completed", retried
+        assert retried["model_view"]["is_fallback"] is False
+        assert run["status"] == "completed", run
+
+        relations = await client.get(
+            f"/v1/sessions/{session_id}/runs/{run['run_id']}/evidence-relations", headers=AUTH
+        )
+        assert sorted(r["relation"] for r in relations.json()["evidence_relations"]) == [
+            "contradicts", "supports",
+        ]
 
 
 async def test_the_corpus_the_deployment_serves_is_the_file_it_is_pinned_to(tmp_path):
