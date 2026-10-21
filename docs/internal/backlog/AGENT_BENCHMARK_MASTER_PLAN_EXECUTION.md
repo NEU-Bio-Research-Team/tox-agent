@@ -379,6 +379,18 @@ Still needed from people, not code:
 - **The live ChEMBL mappings** for EGFR and ABL1 in the target catalog are
   still recorded as unverified.
 
+## Cancel through the product (#47/§9.4)
+
+Cancellation was covered at the integration level but not under a declared
+release policy, where the rule is that a cancellation must not publish a
+candidate still under review. `test_strict_release.py::
+test_cancelling_a_run_in_review_never_releases_its_candidate` now holds that:
+the result is withheld (`review_status` not_completed, `execution_outcome`
+cancelled), the candidate is not the public answer and is 404 on the answer
+route, its text is nowhere in the transcript, and the draft, tool calls and
+phases the run spent are all still recorded. That was M1's last partial
+engineering row.
+
 ## Suite after P07-P12
 
 Control suite: **2831 passed, 19 skipped** (746 s), from the 2686 of the
