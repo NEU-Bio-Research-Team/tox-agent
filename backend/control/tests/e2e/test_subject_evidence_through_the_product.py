@@ -270,7 +270,7 @@ async def test_arm_b_searches_a_screening_from_its_binding(db, flags_on, tmp_pat
 
     assert run["status"] == "completed", run
     steps = decision_state["workflow"]["steps"]
-    assert decision_state["workflow"]["version"] == "fixed-workflow-b-v2"
+    assert decision_state["workflow"]["version"] == "fixed-workflow-b-v3"
     searches = [s for s in steps if s.get("tool") == "search_toxicology_evidence"]
     assert searches and all("EGFR" in s["reason"] for s in searches)
     assert not any("hERG" in s["reason"] for s in searches)

@@ -114,13 +114,16 @@ provider count.
 
 off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.
 
-Dynamic index ≈ 676 tokens; static composition of every active skill ≈ 12160 tokens.
+Dynamic index ≈ 1012 tokens; static composition of every active skill ≈ 14671 tokens.
 
 | Skill | Version | Status | Risk | Requires | Tokens (body / with references) |
 |---|---|---|---|---|---|
 | `assess-conflicting-evidence` | 1.2.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 1066 / 1878 |
 | `critique-case` | 1.1.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 769 / 782 |
+| `estimate-exposure-margin` | 1.0.0 | active | medium | `compute_exposure_margin`, `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 785 / 801 |
 | `interpret-model-attribution` | 1.1.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 780 / 1300 |
+| `read-activity-screening` | 1.0.0 | active | medium | `get_activity_snapshot`, `get_prioritisation_decision`, `get_scientific_case`, `get_screening_state`, `update_scientific_case` | 981 / 997 |
+| `update-case-across-turns` | 1.0.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 688 / 705 |
 | `assemble-report-context` | 1.0.0 | active | low | `get_analysis_bundle`, `get_analysis_slice`, `get_report_context` | 714 / 1570 |
 | `compose-scientific-report` | 1.0.0 | active | medium | `save_report_draft` | 774 / 2019 |
 | `explain-predictor-results` | 1.0.0 | active | medium | `get_explanation_package`, `get_or_create_explanation` | 545 / 1040 |

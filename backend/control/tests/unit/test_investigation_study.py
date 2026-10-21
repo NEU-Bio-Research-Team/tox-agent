@@ -65,7 +65,15 @@ def test_building_refuses_a_turn_that_leaks_a_withheld_name():
 
 
 def test_every_skill_has_positive_and_negative_cases_to_be_measured_on():
+    # Both measured sets: the v1 cases, and protocol v2's (#51), whose task
+    # groups and workflow contexts are the situations the activity skills are
+    # for. A skill must name cases that exist in one of them.
+    from evals.investigation.case_inputs import load_set
+
+    v2 = Path(__file__).resolve().parents[2] / "evals" / "investigation" \
+        / "cases_protocol_v2_technical" / "cases"
     tags = {tag for case in CASES for tag in case["tags"]}
+    tags |= {tag for loaded in load_set(v2) for tag in loaded.case.get("tags") or ()}
     for skill in load_catalog(PACKAGE_ROOT / "agent_profiles").skills:
         # The investigation study measures decision_support skills; the report
         # builder's skills (W9-10) are measured by the TAB-Suite report packs.

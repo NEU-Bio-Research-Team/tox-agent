@@ -25,7 +25,9 @@ CASE_TOOLS = ["get_scientific_case", "update_scientific_case"]
 def test_the_shipped_catalog_loads_and_every_skill_is_active():
     catalog = load_catalog(SHIPPED)
     assert [s.skill_id for s in catalog.skills] == [
-        "assess-conflicting-evidence", "critique-case", "interpret-model-attribution",
+        "assess-conflicting-evidence", "critique-case", "estimate-exposure-margin",
+        "interpret-model-attribution", "read-activity-screening",
+        "update-case-across-turns",
         # W9-10: the report builder's skills, pinned like the scientific ones.
         "assemble-report-context", "compose-scientific-report", "explain-predictor-results",
         "preflight-report-draft", "research-toxicology-evidence",
@@ -51,12 +53,21 @@ def test_loading_twice_gives_the_same_hashes():
 
 def test_a_skill_is_offered_only_with_every_tool_it_requires():
     catalog = load_catalog(SHIPPED)
-    everything = CASE_TOOLS + ["get_attribution", "get_evidence_record"]
-    assert len(catalog.available("decision_support", everything)) == 3
+    everything = CASE_TOOLS + ["get_attribution", "get_evidence_record",
+                               "compute_exposure_margin", "get_screening_state",
+                               "get_activity_snapshot", "get_prioritisation_decision"]
+    offered = {s.skill_id for s in catalog.available("decision_support", everything)}
+    assert offered == {"assess-conflicting-evidence", "critique-case",
+                       "estimate-exposure-margin", "interpret-model-attribution",
+                       "read-activity-screening", "update-case-across-turns"}
     # Without the case tools nothing is offered: each skill writes to the case.
     assert catalog.available("decision_support", ["get_attribution", "get_evidence_record"]) == ()
     without_attribution = catalog.available("decision_support", CASE_TOOLS + ["get_evidence_record"])
     assert "interpret-model-attribution" not in {s.skill_id for s in without_attribution}
+    # A skill whose tools are not all visible is not offered: the margin skill
+    # needs the calculator, the screening skill the three read tools.
+    assert {s.skill_id for s in without_attribution} == {
+        "assess-conflicting-evidence", "critique-case", "update-case-across-turns"}
     # And only to the profiles it names.
     assert catalog.available("report_build", everything) == ()
 

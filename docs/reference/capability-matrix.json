@@ -365,9 +365,9 @@
   ],
   "schema_version": "capability-matrix-v1",
   "scientific_skills": {
-    "catalog_sha256": "d557c97ea1e68356a01fccba673512deea9ab317d241ea4bd708df737ae85c35",
-    "estimated_tokens_dynamic_index": 676,
-    "estimated_tokens_static_all": 12160,
+    "catalog_sha256": "6a91776a8d2055c157d9eb0b37544a3cbfbefc1ef4dbac17c37d436ab46918cf",
+    "estimated_tokens_dynamic_index": 1012,
+    "estimated_tokens_static_all": 14671,
     "loading": "off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.",
     "skills": [
       {
@@ -402,6 +402,22 @@
         "version": "1.1.0"
       },
       {
+        "content_sha256": "ff12b679ea0a503dced3f50115a29d401f4499f9001f264e2541894811d84850",
+        "estimated_tokens_body": 785,
+        "estimated_tokens_with_references": 801,
+        "references": [],
+        "required_capabilities": [
+          "compute_exposure_margin",
+          "get_evidence_record",
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "estimate-exposure-margin",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
         "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb",
         "estimated_tokens_body": 780,
         "estimated_tokens_with_references": 1300,
@@ -417,6 +433,37 @@
         "skill_id": "interpret-model-attribution",
         "status": "active",
         "version": "1.1.0"
+      },
+      {
+        "content_sha256": "562e5ab5c7c5d0c65280f4875ff5cd0c60f915fbc1ed8d7d5686972954074cc1",
+        "estimated_tokens_body": 981,
+        "estimated_tokens_with_references": 997,
+        "references": [],
+        "required_capabilities": [
+          "get_activity_snapshot",
+          "get_prioritisation_decision",
+          "get_scientific_case",
+          "get_screening_state",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "read-activity-screening",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "6c5896a479a8b6401a3bda87277a60a38fa7fb3e2af2ffd232e75764449bf40f",
+        "estimated_tokens_body": 688,
+        "estimated_tokens_with_references": 705,
+        "references": [],
+        "required_capabilities": [
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "update-case-across-turns",
+        "status": "active",
+        "version": "1.0.0"
       },
       {
         "content_sha256": "7e102fbd2fec637288f3559385a4f0d90d8390173e5a71e187785f6744674457",

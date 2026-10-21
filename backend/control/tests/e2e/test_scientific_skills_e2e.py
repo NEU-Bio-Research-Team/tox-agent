@@ -112,7 +112,12 @@ async def test_the_dynamic_arm_indexes_then_records_what_was_read(db, base_flags
     assert "no scientific skill 'no-such-skill'" in seen["missing"]["error"]["message"]
     skills = result["state"]["skills"]
     assert skills["mode"] == "dynamic"
-    assert len(skills["offered"]) == 3
+    # The index holds every skill this run's tools allow, and only those: the
+    # activity skills need read tools this deployment does not register, so
+    # they are not offered -- a skill never implies a capability.
+    assert {item["skill_id"] for item in skills["offered"]} == {
+        "assess-conflicting-evidence", "critique-case", "interpret-model-attribution",
+        "update-case-across-turns"}
     assert skills["loaded"] == [CONFLICT.pin()]
     assert skills["references_loaded"] == [
         {**CONFLICT.pin(), "reference": "scope-comparison-checklist.md"}
