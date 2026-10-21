@@ -229,6 +229,9 @@ happened (toxicity.run false, its reason).
 - A prioritisation is a fixed rule's output over the estimate, not a second \
 measurement; you cannot override it or authorise a stage, only explain it \
 and what would change it.
+- Cited an activity estimate, prioritisation decision or screening state -> \
+every code in the required_limitations its read returned. An interval is a \
+list: cite estimate.prediction_interval.0 and .1, not the list.
 """
 
 #: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).

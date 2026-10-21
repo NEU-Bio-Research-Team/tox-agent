@@ -14,6 +14,8 @@ snapshot without any activity serving. On the scripted runtime:
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from tests.e2e.test_scripted_runtime import _install_scripted_runtime, _new_session
@@ -249,3 +251,41 @@ async def test_without_the_flag_there_are_no_screenings(db, tmp_path, monkeypatc
     assert response.status_code == 404
     assert not names & {"get_screening_state", "get_activity_snapshot",
                         "get_prioritisation_decision"}
+
+
+async def test_a_draft_refused_for_a_field_path_is_told_its_limitations_too(
+    db, flags_on, tmp_path,
+):
+    """Live run 2026-10-21: the first draft cited the interval list, the second
+    fixed it and was refused for two missing limitations, and the run fell
+    back. Both are reported on the first refusal now, and the fallback of a
+    screening session does not tell the researcher to run an analysis."""
+    record = frozen_screening()
+    seen: dict = {}
+
+    async def script(turn) -> None:
+        sid = screening_id(record)
+        estimate = await turn.call_tool("get_activity_snapshot", {"screening_id": sid})
+        draft = {"schema_version": "grounded-answer-v2",
+                 "answer_markdown": "The interval is {{interval}}.",
+                 "claims": [{"local_ref": "interval", "kind": "numeric", "text": "Interval.",
+                             "observation_id": estimate["observation_ids"][0],
+                             "field_path": "estimate.prediction_interval"}],
+                 "limitations": []}
+        seen["first"] = await turn.call_tool("submit_grounded_answer", draft)
+        seen["second"] = await turn.call_tool("submit_grounded_answer", draft)
+
+    async with api_client(db, StubPredictor(), config=_config(tmp_path, record)) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        await _attach(client, session_id, record)
+        await _ask(client, session_id, "What is the estimate's interval?")
+        messages = (await client.get(f"/v1/sessions/{session_id}/messages",
+                                     headers=AUTH)).json()["messages"]
+
+    codes = [v["code"] for v in seen["first"]["error"]["details"]["violations"]]
+    assert codes == ["claim_field_not_numeric", "missing_required_limitation"]
+    assert seen["second"]["model_view"]["is_fallback"] is True
+    reply = json.dumps(messages[-1])
+    assert "run an analysis" not in reply.lower()
+    assert "passed validation" in reply

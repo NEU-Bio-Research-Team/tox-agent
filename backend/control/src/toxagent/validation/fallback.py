@@ -50,6 +50,21 @@ _NO_DATA_MESSAGE = {
 }
 
 
+#: No prediction, but the session has another subject (an attached activity
+#: screening, #44): "run an analysis first" would send the researcher the wrong
+#: way. Nothing of the refused draft is shown, and nothing is invented.
+_NOT_VALIDATED_MESSAGE = {
+    "en": (
+        "I could not produce an answer to that question that passed validation, so none "
+        "of this run's draft is shown. Please ask again, or ask about one figure at a time."
+    ),
+    "vi": (
+        "Tôi chưa tạo được câu trả lời vượt qua bước kiểm tra cho câu hỏi này, nên không "
+        "hiển thị bản nháp của lượt này. Vui lòng hỏi lại, hoặc hỏi lần lượt từng số liệu."
+    ),
+}
+
+
 def build_fallback_answer(
     *,
     session_id: str,
@@ -57,14 +72,16 @@ def build_fallback_answer(
     observations: Sequence[Observation],
     language: str,
     now: datetime,
+    has_other_subject: bool = False,
 ) -> GroundedAnswer:
     prediction = next(
         (o for o in observations if o.kind is ObservationKind.PREDICTION), None
     )
     if prediction is None:
+        messages = _NOT_VALIDATED_MESSAGE if has_other_subject else _NO_DATA_MESSAGE
         return GroundedAnswer.create(
             session_id=session_id, run_id=run_id,
-            answer_markdown=_NO_DATA_MESSAGE.get(language, _NO_DATA_MESSAGE["en"]),
+            answer_markdown=messages.get(language, messages["en"]),
             claims=(), now=now, is_fallback=True,
         )
 

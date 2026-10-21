@@ -171,6 +171,19 @@ def validate_candidate(
     return AnswerValidationResult(violations=(), answer=answer)
 
 
+def limitation_violations(
+    candidate, *, observations_by_id: Mapping[str, Observation],
+    unread_article_ids: frozenset[str] = frozenset(),
+) -> list[Violation]:
+    """The limitation check alone, for a draft whose claims did not all
+    resolve: what a claim owes depends on the observation and field it names,
+    not on whether its value could be read, so it can be reported at once."""
+    return _validate_limitations(
+        candidate, observations_by_id=observations_by_id,
+        unread_article_ids=unread_article_ids,
+    )
+
+
 def _validate_limitations(
     candidate: GroundedAnswerCandidate, *, observations_by_id: Mapping[str, Observation],
     unread_article_ids: frozenset[str] = frozenset(),

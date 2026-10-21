@@ -33,7 +33,11 @@ from ...domain.observation import Observation
 from ...platform.flags import is_enabled
 from ...research.measurement import is_measured_value
 from ..investigation import evidence_text
-from ...validation.answer.validator import AnswerValidationResult, validate_candidate
+from ...validation.answer.validator import (
+    AnswerValidationResult,
+    limitation_violations,
+    validate_candidate,
+)
 from ...validation.fallback import build_fallback_answer
 from ...validation.prohibited_claims import validate_posture_wording
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
@@ -200,9 +204,17 @@ class SubmitAnswer:
                     language=language,
                 )
                 if resolved.candidate is None:
+                    # Report what the limitations owe now as well: they follow
+                    # from which observations the claims cite, not from their
+                    # values, and a draft refused first for a field path and
+                    # then for a limitation spends both of its attempts on
+                    # what one message could have said (live run 2026-10-21).
                     return await self._reject(
                         uow, session, session_id, run_id, generation,
-                        list(resolved.violations), language, raw_draft=raw_draft, cap=cap,
+                        [*resolved.violations, *limitation_violations(
+                            candidate, observations_by_id=observations_by_id,
+                        )],
+                        language, raw_draft=raw_draft, cap=cap,
                     )
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
@@ -745,9 +757,12 @@ class SubmitAnswer:
         observations: list[Observation] = []
         if session.active_analysis_id:
             observations = list(await uow.observations.list_for_analysis(session.active_analysis_id))
+        has_screening = is_enabled("activity_replay_v1") and bool(
+            await uow.screenings.list_for_session(session_id)
+        )
         answer = build_fallback_answer(
             session_id=session_id, run_id=run_id, observations=observations,
-            language=language, now=_now(),
+            language=language, now=_now(), has_other_subject=has_screening,
         )
         # candidate_generation belongs to the run's attempt sequence, same as a
         # model-authored candidate would have used.
