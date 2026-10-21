@@ -302,7 +302,14 @@ class NextTest:
 
 @dataclass(frozen=True, slots=True)
 class ContextItem:
-    """Something the researcher told the case: an assay result, an exposure."""
+    """Something the researcher told the case: an assay result, an exposure.
+
+    ``unit``, ``source`` and ``scope`` (#46/US4) say what the value is in,
+    who stated it and what it is about (a target, an assay context): a
+    measured pIC50 on EGFR is not a measurement on hERG. Left out of the
+    serialised form when unset, so a case written before them reads and
+    hashes as it did. A value the researcher supplied is context, never an
+    SME-verified assay."""
 
     id: str
     key: str
@@ -310,10 +317,28 @@ class ContextItem:
     note: str = ""
     actor: str = Actor.USER.value
     run_id: str | None = None
+    unit: str | None = None
+    source: str | None = None
+    scope: Mapping[str, str] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {"id": self.id, "key": self.key, "value": self.value, "note": self.note,
-                "actor": self.actor, "run_id": self.run_id}
+        data: dict[str, Any] = {"id": self.id, "key": self.key, "value": self.value,
+                                "note": self.note, "actor": self.actor, "run_id": self.run_id}
+        if self.unit:
+            data["unit"] = self.unit
+        if self.source:
+            data["source"] = self.source
+        if self.scope:
+            data["scope"] = dict(self.scope)
+        return data
+
+    def describe(self) -> str:
+        """``key = value unit (source; scope)``: one line, for a checkpoint."""
+        text = f"{self.key} = {self.value[:160]}" + (f" {self.unit}" if self.unit else "")
+        qualifiers = [f"source: {self.source}"] if self.source else []
+        if self.scope:
+            qualifiers.append("scope: " + ", ".join(f"{k} {v}" for k, v in sorted(self.scope.items())))
+        return text + (f" ({'; '.join(qualifiers)})" if qualifiers else "")
 
 
 @dataclass(frozen=True, slots=True)

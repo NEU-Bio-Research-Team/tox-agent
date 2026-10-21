@@ -303,6 +303,7 @@ def create_app(
             structure_recognition_available=ocr is not None,
             object_store=objects,
             runtime_settings=settings.runtime,
+            activity_replay_getter=lambda: app.state.activity_replay,
         )
         app.state.create_analysis = analysis
         app.state.create_analysis_batch = batch

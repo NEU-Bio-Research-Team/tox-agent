@@ -1552,6 +1552,14 @@ export interface components {
             note: string;
             /** Run Id */
             run_id: string | null;
+            /** Scope */
+            scope?: {
+                [key: string]: string;
+            } | null;
+            /** Source */
+            source?: string | null;
+            /** Unit */
+            unit?: string | null;
             /** Value */
             value: string;
         } & {
@@ -1568,6 +1576,14 @@ export interface components {
             key: string;
             /** Note */
             note?: string | null;
+            /** Scope */
+            scope?: {
+                [key: string]: string;
+            } | null;
+            /** Source */
+            source?: string | null;
+            /** Unit */
+            unit?: string | null;
             /** Value */
             value: string;
         };
@@ -3843,11 +3859,13 @@ export interface components {
         SubjectRefInput: {
             /** Analysis Id */
             analysis_id?: string | null;
+            /** Analysis Ref */
+            analysis_ref?: string | null;
             /**
              * Kind
              * @enum {string}
              */
-            kind: "analysis" | "activity_screening";
+            kind: "analysis" | "activity_screening" | "frozen_analysis";
             /** Screening Id */
             screening_id?: string | null;
         };

@@ -93,6 +93,28 @@ def test_a_span_the_frozen_text_does_not_hold_is_caught(seed):
     assert "span_locator_not_in_text" in _codes(seed)
 
 
+def test_a_span_reference_no_run_could_retrieve_is_caught(seed):
+    """A gold span names its source the way a run retrieves one (`pmid:…`).
+    A case-local name is dropped from every retrieval denominator, so a set
+    that ships one would measure nothing and say nothing about it."""
+    case_id = "inv-a02-egfr-ic50-from-table"
+    _rewrite(seed / "gold" / f"{case_id}.json",
+             lambda d: d["evidence_spans"][0].update(evidence_ref="MED:90001"))
+    _repin(seed, case_id)
+    codes = _codes(seed)
+    assert "span_ref_not_retrievable" in codes
+    # It still resolves to the record, so the text check is not confused by it.
+    assert "span_text_not_frozen" not in codes and "span_locator_not_in_text" not in codes
+
+
+def test_a_span_reference_outside_the_corpus_is_caught(seed):
+    case_id = "inv-a02-egfr-ic50-from-table"
+    _rewrite(seed / "gold" / f"{case_id}.json",
+             lambda d: d["evidence_spans"][0].update(evidence_ref="pmid:99999"))
+    _repin(seed, case_id)
+    assert "span_ref_not_in_corpus" in _codes(seed)
+
+
 def test_switching_to_a_subject_the_inputs_never_gave_is_caught(seed):
     case_id = "inv-a05-update-then-switch-target"
     _rewrite(seed / "inputs" / f"{case_id}.json",

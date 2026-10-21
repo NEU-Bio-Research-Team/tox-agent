@@ -933,6 +933,9 @@ class CaseContextItem(_Open):
     note: str
     actor: Actor
     run_id: str | None
+    unit: str | None = None
+    source: str | None = None
+    scope: dict[str, str] | None = None
 
 
 class CaseHypothesis(_Open):

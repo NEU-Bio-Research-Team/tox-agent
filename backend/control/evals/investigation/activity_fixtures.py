@@ -176,9 +176,25 @@ def screening_id(record: dict) -> str:
     return record["screening_state"]["screening_id"]
 
 
-def replay_file(tmp_path: Path, *records: dict) -> tuple[Path, str]:
+def frozen_analysis(smiles: str = LIGAND, *, herg_probability: float = 0.81) -> dict:
+    """A frozen toxicity analysis that belongs to no screening -- the subject
+    of a toxicity-only case (#50/#51). Synthetic, like the screenings."""
+    from toxagent.application.activity.projections import toxicity_snapshot_payload
+
+    analysis = snapshot_from_prediction(
+        session_id=new_id(SESSION), run_id=new_id(RUN), input_smiles=smiles,
+        requested_endpoints=("herg", "tox21"),
+        predictor_response=toxicity_prediction(smiles, herg_probability=herg_probability),
+        provenance=PredictorProvenance(base_url_id="synthetic-fixture"),
+        policy_snapshot={"policy_version": "tox-policy-v1"}, now=NOW,
+    )
+    return toxicity_snapshot_payload(analysis)
+
+
+def replay_file(tmp_path: Path, *records: dict,
+                analyses: dict[str, dict] | None = None) -> tuple[Path, str]:
     path = tmp_path / "screenings.json"
-    return path, write_replay_file(records, path)
+    return path, write_replay_file(records, path, analyses=analyses)
 
 
 def synthetic_set() -> list[dict]:

@@ -1132,6 +1132,42 @@
             ],
             "title": "Run Id"
           },
+          "scope": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
           "value": {
             "title": "Value",
             "type": "string"
@@ -1169,6 +1205,54 @@
               }
             ],
             "title": "Note"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "target_id",
+                    "variant",
+                    "experimental_context",
+                    "assay",
+                    "species",
+                    "endpoint"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           },
           "value": {
             "maxLength": 1000,
@@ -7746,10 +7830,23 @@
             ],
             "title": "Analysis Id"
           },
+          "analysis_ref": {
+            "anyOf": [
+              {
+                "pattern": "^ana_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Ref"
+          },
           "kind": {
             "enum": [
               "analysis",
-              "activity_screening"
+              "activity_screening",
+              "frozen_analysis"
             ],
             "title": "Kind",
             "type": "string"

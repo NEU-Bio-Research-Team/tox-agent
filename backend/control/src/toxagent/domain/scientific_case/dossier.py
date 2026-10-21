@@ -120,7 +120,7 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
             "existing records and what the researcher supplies."
         )
     for item in case.context[:limit]:
-        lines.append(f"- context {item.id} ({item.actor}): {item.key} = {item.value[:160]}")
+        lines.append(f"- context {item.id} ({item.actor}): {item.describe()}")
     unpublished = {r.run_id for r in case.runs if r.disposition not in (None, "publish")}
     for h in case.hypotheses[:limit]:
         n_for = len(case.evidence_for(h.id, Stance.SUPPORTS.value))

@@ -6,6 +6,13 @@ the server reads what it is from what the session holds. Nothing here takes
 an identity from the request: a client can choose among the session's
 subjects, never describe one.
 
+``{"kind": "frozen_analysis", "analysis_ref": ...}`` (#50) names a frozen
+toxicity analysis the deployment's pinned replay file holds -- the subject of
+a toxicity-only study case. The run gets a session-local copy, hash-checked
+and made without calling the predictor, exactly as a replayed screening's
+toxicity snapshot is; the binding keeps the origin ref and hash beside the
+local id, so arms compare what they were given, not the id minted for them.
+
 When the request names none, the session's subjects are its active analysis
 and its attached screenings. Exactly one is the subject. None means the run
 is subjectless, as before. More than one is ambiguous, and the caller asks
@@ -36,6 +43,9 @@ from ...domain.subject import (
 from ...platform.flags import is_enabled
 from ..activity import replay
 
+#: The wire kind naming a frozen toxicity analysis by its origin id (#50).
+FROZEN_ANALYSIS = "frozen_analysis"
+
 
 @dataclass(frozen=True)
 class SubjectRequest:
@@ -53,8 +63,13 @@ class SubjectRequest:
             identifier = value.get("analysis_id")
         elif kind == SubjectKind.ACTIVITY_SCREENING.value:
             identifier = value.get("screening_id")
+        elif kind == FROZEN_ANALYSIS:
+            identifier = value.get("analysis_ref")
         else:
-            raise InvalidRequest(f"subject_ref.kind must be analysis or activity_screening, got {kind!r}")
+            raise InvalidRequest(
+                "subject_ref.kind must be analysis, activity_screening or frozen_analysis, "
+                f"got {kind!r}"
+            )
         if not identifier:
             raise InvalidRequest("subject_ref names no id for its kind")
         return cls(kind=str(kind), subject_id=str(identifier))
@@ -70,6 +85,10 @@ class SubjectChoice:
     #: Set when the request named no subject and the session holds several.
     ambiguous_options: tuple[str, ...] = ()
     new_molecule_smiles: str | None = None
+    #: A frozen analysis from the replay file, copied into the session when
+    #: the run is bound (#50): its origin id, and the replay file's sha256.
+    frozen_analysis_ref: str | None = None
+    replay_sha256: str | None = None
 
     @property
     def is_ambiguous(self) -> bool:
@@ -79,13 +98,17 @@ class SubjectChoice:
     def is_screening(self) -> bool:
         return self.kind is SubjectKind.ACTIVITY_SCREENING
 
+    @property
+    def is_frozen_analysis(self) -> bool:
+        return self.frozen_analysis_ref is not None
+
 
 NO_SUBJECT = SubjectChoice(kind=None, subject_id=None, resolved_by="none")
 
 
 async def choose_subject(
     uow, *, session, requested: SubjectRequest | None, analysis_id: str | None,
-    new_molecule_smiles: str | None,
+    new_molecule_smiles: str | None, replay_store=None,
 ) -> SubjectChoice:
     """Which subject this message is about. Raises a 404 for a subject the
     session does not hold -- including another session's -- and asks rather
@@ -101,6 +124,20 @@ async def choose_subject(
             requested.kind == SubjectKind.ANALYSIS.value and requested.subject_id == analysis_id
         ):
             raise InvalidRequest("subject_ref and analysis_id name different subjects")
+        if requested.kind == FROZEN_ANALYSIS:
+            frozen = (
+                replay_store.get_analysis(requested.subject_id)
+                if screenings_on and replay_store is not None else None
+            )
+            if frozen is None:
+                raise AnalysisNotFound(
+                    "no such frozen analysis in this deployment's replay file",
+                    analysis_ref=requested.subject_id,
+                )
+            return SubjectChoice(
+                SubjectKind.ANALYSIS, None, "explicit", artifact=frozen,
+                frozen_analysis_ref=requested.subject_id, replay_sha256=replay_store.sha256,
+            )
         if requested.kind == SubjectKind.ANALYSIS.value:
             snapshot = await uow.analyses.get(requested.subject_id, session_id=session.id)
             if snapshot is None:
@@ -169,6 +206,20 @@ async def bind_subject(uow, choice: SubjectChoice, *, session_id: str, run_id: s
     """The frozen binding for ``choice``, built inside the run's transaction."""
     if choice.kind is None:
         return None
+    if choice.is_frozen_analysis:
+        frozen = choice.artifact
+        local = await replay.materialise_frozen_analysis(
+            uow, frozen, session_id=session_id, run_id=run_id, now=now,
+            replayed_from={"replay_sha256": choice.replay_sha256},
+        )
+        return analysis_binding(
+            local.id, canonical_smiles=local.canonical_smiles,
+            content_sha256_=local.content_sha256, resolved_by=choice.resolved_by,
+            extra_refs=(ArtifactRef(
+                kind="frozen_analysis", source_id=str(choice.frozen_analysis_ref),
+                content_sha256=str(frozen.get("content_sha256")), local_id=local.id,
+            ),),
+        )
     if choice.kind is SubjectKind.ANALYSIS:
         if choice.subject_id is None:
             return pending_analysis_binding(choice.new_molecule_smiles or "")

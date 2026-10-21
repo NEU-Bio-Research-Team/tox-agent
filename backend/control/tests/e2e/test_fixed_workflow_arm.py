@@ -17,9 +17,14 @@ from tests.e2e.test_activity_replay_through_the_product import _attach, _config
 from tests.e2e.test_scientific_case_e2e import _post
 from tests.e2e.test_scripted_runtime import _analyse, _install_scripted_runtime, _new_session
 from tests.support.activity import frozen_screening
-from tests.support.api import AUTH, api_client
+from tests.support.api import AUTH, api_client, wait_for_run
 from tests.support.predictor import ASPIRIN, StubPredictor
-from tests.support.research import ACCEPTED_HIT, POTENCY_JATS, FullTextStubProvider
+from tests.support.research import (
+    ACCEPTED_HIT,
+    POTENCY_JATS,
+    FullTextStubProvider,
+    StubResearchProvider,
+)
 
 pytestmark = pytest.mark.anyio
 
@@ -158,6 +163,107 @@ async def test_an_exposure_question_asks_the_researcher_instead_of_guessing(db, 
         "the free plasma Cmax (or exposure) at the intended dose"
     ]
     assert any(s.get("decision") == "ask_researcher" for s in decision["workflow"]["steps"])
+
+
+async def test_an_exposure_the_researcher_already_gave_is_used_not_asked_again(
+    db, arm_b, tmp_path,
+):
+    record = frozen_screening()
+    state: dict = {}
+    async with api_client(db, StubPredictor(), config=_config(tmp_path, record)) as client:
+        await _install_scripted_runtime(client, _synthesis(state, answer=_screening_answer))
+        session_id = await _new_session(client)
+        await _attach(client, session_id, record)
+        await _post(client, session_id, "Our free Cmax is 0.01 uM at the intended dose.")
+        run = await _post(client, session_id, "At what exposure would this matter?")
+        decision = await _decision_state(client, session_id, run["run_id"])
+
+    material = state["materials"][-1]
+    assert material["needs_from_researcher"] == []
+    assert [v["text"] for v in material["researcher_context"]] == ["Our free Cmax is 0.01 uM"]
+    assert any(s.get("decision") == "use_researcher_context"
+               for s in decision["workflow"]["steps"])
+
+
+async def test_b_reads_only_the_bound_subject_not_the_same_ligand_on_another_target(
+    db, arm_b, tmp_path, monkeypatch,
+):
+    monkeypatch.setenv("TOXAGENT_FLAG_SUBJECT_BINDING_V1", "1")
+    egfr = frozen_screening()
+    herg = frozen_screening(target_id="KCNH2", uniprot_id="Q12809", predicted=5.2,
+                            interval=(4.9, 5.5))
+    state: dict = {}
+    async with api_client(db, StubPredictor(), config=_config(tmp_path, egfr, herg)) as client:
+        await _install_scripted_runtime(client, _synthesis(state, answer=_screening_answer))
+        session_id = await _new_session(client)
+        await _attach(client, session_id, egfr)
+        await _attach(client, session_id, herg)
+        response = await client.post(
+            f"/v1/sessions/{session_id}/messages", headers=AUTH,
+            json={"content": [{"type": "text", "text": "What is the estimated pIC50 here?"}],
+                  "subject_ref": {"kind": "activity_screening",
+                                  "screening_id": herg["screening_state"]["screening_id"]}},
+        )
+        assert response.status_code == 202, response.text
+        await wait_for_run(client, session_id, response.json()["run_id"])
+
+    material = state["materials"][-1]
+    assert list(material["screenings"]) == [herg["screening_state"]["screening_id"]]
+    assert material["other_subjects_not_read"] == [egfr["screening_state"]["screening_id"]]
+
+
+class _FailingProvider(StubResearchProvider):
+    """A provider that cannot be reached: not a corpus that holds nothing."""
+
+    name = "failing-stub"
+
+    async def search(self, **kwargs):  # noqa: D102 - the stub's whole behaviour
+        from toxagent.domain.errors import EvidenceUnavailable
+
+        self.calls.append(kwargs)
+        raise EvidenceUnavailable("the literature provider could not be reached")
+
+
+async def test_a_provider_failure_is_reported_as_a_failure_not_as_no_evidence(db, arm_b):
+    """B's failure branch: a search that failed at the provider is handed to
+    the synthesis as a failure, and an empty corpus is handed over as an
+    empty result -- a reader must be able to tell them apart."""
+    failing = _FailingProvider()
+    state: dict = {}
+
+    def answer(material: dict) -> dict:
+        return {"schema_version": "grounded-answer-v2",
+                "answer_markdown": "The literature could not be reached.",
+                "claims": [], "limitations": [{"code": "evidence_scope_limited", "text": ""}]}
+
+    async with api_client(db, StubPredictor(), research_provider=failing) as client:
+        await _install_scripted_runtime(client, _synthesis(state, answer=answer))
+        session_id = await _new_session(client)
+        await _analyse(client, session_id)
+        run = await _post(client, session_id, "Should hERG stop us developing this compound?")
+        decision = await _decision_state(client, session_id, run["run_id"])
+
+    assert run["status"] == "completed", run
+    material = state["materials"][-1]
+    assert material["provider_failure"]["searches_failed"] >= 1
+    assert "not an absence of evidence" in material["provider_failure"]["note"]
+    assert material.get("evidence", []) == []
+    assert any(s.get("decision") == "report_provider_failure"
+               for s in decision["workflow"]["steps"])
+
+    # The same question against a corpus that simply holds nothing: an empty
+    # result, with no provider_failure anywhere in the material.
+    empty = StubResearchProvider(hits=[])
+    state_empty: dict = {}
+    async with api_client(db, StubPredictor(), research_provider=empty) as client:
+        await _install_scripted_runtime(client, _synthesis(state_empty, answer=answer))
+        session_id = await _new_session(client)
+        await _analyse(client, session_id)
+        await _post(client, session_id, "Should hERG stop us developing this compound?")
+
+    material = state_empty["materials"][-1]
+    assert "provider_failure" not in material
+    assert material.get("evidence", []) == [] and material["_found"] == []
 
 
 async def test_b_goes_through_the_same_release_gate_and_repairs_in_its_synthesis_step(

@@ -17,7 +17,9 @@ reads. Here the server does, by rule:
 3. search by fixed query templates, read the top accepted records, and read
    their results tables when the text can be read;
 4. note what only the researcher can supply (exposure, for a margin
-   question), so the answer asks for it instead of guessing it;
+   question), so the answer asks for it instead of guessing it -- unless the
+   researcher already gave it in this conversation, which is then handed to
+   the synthesis as their context;
 5. hand everything to one synthesis turn whose only tool is
    submit_grounded_answer.
 
@@ -45,7 +47,11 @@ from ...platform.flags import is_enabled
 #: screening's ligand, target and assay context, a toxicity branch whose
 #: endpoint comes from the question, and a provider-failure branch -- v1 only
 #: searched with an analysis and always for hERG.
-FIXED_WORKFLOW_VERSION = "fixed-workflow-b-v2"
+#: v3 (#50, P07b): reads only the bound subject's screening -- another
+#: screening of the same ligand is another subject, named but not read -- and
+#: takes an exposure or measurement the researcher already stated in the
+#: conversation instead of asking for it again.
+FIXED_WORKFLOW_VERSION = "fixed-workflow-b-v3"
 
 #: Records read in full per search, and records whose text is read.
 _READS_PER_SEARCH = 3
@@ -131,8 +137,19 @@ class FixedWorkflowMixin:
             )
             if bundle:
                 material["analysis"] = bundle["model_view"]
+        bound = view.get("subject") or {}
+        others = [s["screening_id"] for s in view.get("screenings") or ()
+                  if bound.get("kind") == "activity_screening" and not s.get("is_subject")]
+        if others:
+            # One ligand on two targets is two subjects: the other screening
+            # is named, never read into this run's material.
+            material["other_subjects_not_read"] = others
+            steps.append({"tool": None, "status": "decided", "decision": "skip_other_subjects",
+                          "reason": "another screening is another subject; not this run's"})
         for screening in view.get("screenings") or ():
             sid = screening["screening_id"]
+            if sid in others:
+                continue
             for tool, key in (("get_screening_state", "state"),
                               ("get_activity_snapshot", "estimate"),
                               ("get_prioritisation_decision", "decision")):
@@ -186,8 +203,17 @@ class FixedWorkflowMixin:
             steps.append({"tool": None, "status": "decided", "decision": "report_provider_failure",
                           "reason": "a search failed at the provider, not for lack of sources"})
 
+        conversation = await self._researcher_texts(context)
+        supplied = researcher_values(conversation)
+        if supplied:
+            material["researcher_context"] = supplied
+            steps.append({"tool": None, "status": "decided", "decision": "use_researcher_context",
+                          "reason": "the researcher stated values in this conversation"})
         needs = []
-        if _EXPOSURE.search(question) and "exposure" not in json.dumps(material).lower():
+        exposure_given = any(_EXPOSURE.search(item["line"].replace("_", " "))
+                             for item in supplied)
+        if _EXPOSURE.search(question) and not exposure_given \
+                and "exposure" not in json.dumps(material).lower():
             needs.append("the free plasma Cmax (or exposure) at the intended dose")
             steps.append({"tool": None, "status": "decided", "decision": "ask_researcher",
                           "reason": "an exposure question, and no exposure in the session"})
@@ -215,6 +241,15 @@ class FixedWorkflowMixin:
             instructions_hash=content_sha256(WORKFLOW_SYNTHESIS_INSTRUCTIONS),
             has_product=self._has_answer, commit=commit, phase="workflow_synthesis",
         )
+
+    async def _researcher_texts(self, context: RunContext) -> list[str]:
+        """What the researcher has written in this session, this turn last."""
+        async with self._db.unit_of_work() as uow:
+            messages = list(await uow.messages.list_for_session(context.session_id, limit=100))
+        texts = [m.text() for m in messages if m.role.value == "user" and m.text()]
+        if context.text and (not texts or texts[-1] != context.text):
+            texts.append(context.text)
+        return texts
 
     async def _activity_retrieval(self, call, material: dict[str, Any], *,
                                   screening: dict[str, Any]) -> None:
@@ -287,6 +322,29 @@ class FixedWorkflowMixin:
                 texts.append(read["model_view"])
         if texts:
             material["full_text"] = texts
+
+
+#: A value with a unit, as a researcher states one: ``free_cmax = 0.01 uM``,
+#: ``Cmax 30 nM``, ``measured pIC50 6.2``.
+_VALUE = re.compile(
+    r"(?P<what>[A-Za-z][\w ./()-]{1,60}?)\s*(?:=|:|of|is|was)?\s*"
+    r"(?P<value>\d+(?:\.\d+)?)\s*(?P<unit>pIC50|nM|uM|µM|μM|mM|ng/mL|mg/L|mg/kg|%)",
+    re.I)
+
+
+def researcher_values(texts: list[str]) -> list[dict[str, str]]:
+    """Values with units the researcher stated, newest last, as text the
+    synthesis cites as user-supplied context -- never as a measurement the
+    server verified."""
+    found: list[dict[str, str]] = []
+    for text in texts:
+        for line in text.splitlines():
+            for match in _VALUE.finditer(line):
+                item = {"text": match.group(0).strip(" -"), "value": match.group("value"),
+                        "unit": match.group("unit"), "line": line.strip(" -")[:300]}
+                if item not in found:
+                    found.append(item)
+    return found[-12:]
 
 
 _TOXICITY = re.compile(

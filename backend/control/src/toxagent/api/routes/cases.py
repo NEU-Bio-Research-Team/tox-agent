@@ -130,9 +130,11 @@ async def add_scientific_case_context(
     principal: Actor = Depends(actor),
 ):
     """Add researcher-supplied context; the next turn sees it in the case."""
+    typed = {k: v for k, v in (("unit", body.unit), ("source", body.source),
+                                ("scope", body.scope)) if v}
     return await _user_case_update(
         request, principal, session_id, case_id, "add_context",
-        key=body.key, value=body.value, note=body.note or "",
+        key=body.key, value=body.value, note=body.note or "", **typed,
     )
 
 

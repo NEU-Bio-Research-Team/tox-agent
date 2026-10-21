@@ -193,6 +193,25 @@ def _set_scope(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     return replace(case, data_scope=scope)
 
 
+#: What a context item may be scoped to (#46/US4): the axes an activity or
+#: toxicity measurement is compared on. Anything else is refused, not kept
+#: as a free-form tag nobody checks.
+CONTEXT_SCOPE_AXES = ("target_id", "variant", "experimental_context", "assay", "species",
+                      "endpoint")
+
+
+def _context_scope(payload: Mapping[str, Any]) -> dict[str, str] | None:
+    scope = payload.get("scope")
+    if scope in (None, {}):
+        return None
+    if not isinstance(scope, Mapping):
+        raise InvalidCaseUpdate("scope must be an object")
+    unknown = sorted(set(scope) - set(CONTEXT_SCOPE_AXES))
+    if unknown:
+        raise InvalidCaseUpdate(f"scope axes {unknown} are not among {list(CONTEXT_SCOPE_AXES)}")
+    return {axis: _text(scope, axis, limit=120) for axis in sorted(scope)}
+
+
 def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     if len(case.context) >= MAX_CONTEXT:
         raise InvalidCaseUpdate(f"a case holds at most {MAX_CONTEXT} context items")
@@ -200,6 +219,9 @@ def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         id=_next_local_id("c", (c.id for c in case.context)),
         key=_text(u.payload, "key", limit=120), value=_text(u.payload, "value"),
         note=_text(u.payload, "note", required=False), actor=u.actor, run_id=u.run_id,
+        unit=_text(u.payload, "unit", required=False, limit=40) or None,
+        source=_text(u.payload, "source", required=False, limit=120) or None,
+        scope=_context_scope(u.payload),
     )
     return replace(case, context=case.context + (item,))
 

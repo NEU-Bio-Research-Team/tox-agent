@@ -10,6 +10,14 @@ full product trace (runs, tool calls, answers, decision states, case, dossiers).
 Records are appended, never rewritten; a later record for the same key
 supersedes an earlier one, and ``latest_records`` applies that rule, so a
 failed trial that was re-run leaves both attempts on disk.
+
+Protocol v2 (#50, master plan §13.6) changes the rule for what is scored: a
+(case, system, trial) has one **primary** attempt -- the first one recorded --
+and that is what the packet and the scorer read (``primary_records``). A
+rerun is a ``diagnostic_rerun``: kept, costed, reported, and never a
+replacement for the primary outcome, so a failure cannot be rerun into a
+success. Each attempt writes its raw artifacts under its own attempt id, and
+a raw file is never overwritten.
 """
 from __future__ import annotations
 
@@ -28,6 +36,10 @@ from typing import Any, Iterable
 
 RECORD_SCHEMA = "investigation-run-v1"
 MANIFEST_SCHEMA = "investigation-study-manifest-v1"
+
+#: Protocol v2: which attempt of a (case, system, trial) a record is.
+ATTEMPT_PRIMARY = "primary"
+ATTEMPT_DIAGNOSTIC = "diagnostic_rerun"
 
 STATUS_OK = "ok"
 STATUS_ERROR = "error"
@@ -74,6 +86,12 @@ class RunRecord:
     error: str | None = None
     record_id: str = field(default_factory=lambda: uuid.uuid4().hex)
     schema_version: str = RECORD_SCHEMA
+    #: Protocol v2: the attempt's id (its raw directory), and whether it is
+    #: the primary attempt or a diagnostic rerun. ``None`` on a v1 record.
+    attempt_id: str | None = None
+    attempt_kind: str | None = None
+    #: Protocol v2: the sha256 of the inputs file every arm was given.
+    inputs_sha256: str | None = None
 
     def key(self) -> tuple[str, str, int]:
         return (self.case_id, self.system_id, self.trial)
@@ -95,13 +113,21 @@ class StudyStore:
         self.records_path = self.root / "records.jsonl"
         self.manifest_path = self.root / "study-manifest.json"
 
-    def raw_dir(self, system_id: str, case_id: str, trial: int) -> Path:
+    def raw_dir(self, system_id: str, case_id: str, trial: int,
+                attempt_id: str | None = None) -> Path:
         path = self.root / "raw" / system_id / case_id / f"t{trial}"
+        if attempt_id is not None:
+            path = path / attempt_id
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def write_raw(self, system_id: str, case_id: str, trial: int, name: str, content: Any) -> str:
-        path = self.raw_dir(system_id, case_id, trial) / name
+    def write_raw(self, system_id: str, case_id: str, trial: int, name: str, content: Any,
+                  *, attempt_id: str | None = None) -> str:
+        path = self.raw_dir(system_id, case_id, trial, attempt_id) / name
+        if attempt_id is not None and path.exists():
+            # An attempt's raw record is evidence; a second write to it would
+            # replace what the first attempt saw.
+            raise FileExistsError(f"{path} exists; raw attempt files are never overwritten")
         if isinstance(content, (bytes, bytearray)):
             path.write_bytes(content)
         elif isinstance(content, str):
@@ -140,6 +166,16 @@ class StudyStore:
         for record in self.records():
             latest[record.key()] = record
         return latest
+
+    def primary_records(self) -> dict[tuple[str, str, int], RunRecord]:
+        """Protocol v2: the first non-diagnostic attempt per key -- the one
+        scored, whatever a later rerun did."""
+        primary: dict[tuple[str, str, int], RunRecord] = {}
+        for record in self.records():
+            if record.attempt_kind == ATTEMPT_DIAGNOSTIC:
+                continue
+            primary.setdefault(record.key(), record)
+        return primary
 
     def write_manifest(self, manifest: dict[str, Any]) -> None:
         self.root.mkdir(parents=True, exist_ok=True)

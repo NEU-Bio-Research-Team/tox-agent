@@ -1,9 +1,9 @@
 {
-  "about": "What B, C and D share under protocol v2 (#50): one output schema, one hard validator, one bounded semantic review, one budget, and the same snapshots, screenings, corpus and backbone. Each arm file adds only what it is testing.",
+  "about": "What B, C and D share under protocol v2 (#50): one output schema, one hard validator, one bounded semantic review under the strict release policy, one effective budget (compared whole, not by its label), the same frozen screenings, analyses, evidence and full text, and the same backbone. Each arm file adds only what it is testing; a flag that differs between arms and is not a declared treatment is refused.",
   "protocol": "investigation-protocol-v2",
   "family": "toxagent",
   "adapter": "toxagent",
-  "budget_preset": "investigator-pilot-v1",
+  "budget_preset": "investigator-pilot-v2",
   "required_flags": {
     "answer_draft_v2": true,
     "evidence_full_text_v1": true,
@@ -13,16 +13,44 @@
     "typed_stop_v1": true,
     "scientific_case_v1": false,
     "scientific_skills_v1": false,
-    "fixed_workflow_v1": false
+    "fixed_workflow_v1": false,
+    "subject_binding_v1": true
+  },
+  "required_product": {
+    "contracts.release_policy": "strict-reviewed-v1"
   },
   "skills_mode": "off",
   "same_across_arms": [
+    "runtime.kind",
     "runtime.provider_id",
     "runtime.model_id",
-    "budget.preset",
+    "runtime.runtime_version",
+    "runtime.agent_name",
+    "budget",
+    "contracts",
     "providers.research_provider",
     "providers.research_snapshot",
     "providers.research_corpus",
-    "providers.activity_replay"
+    "providers.research_full_text",
+    "providers.activity_replay",
+    "providers.predictor_host",
+    "hashes.static_policy_text",
+    "hashes.agent_profiles"
+  ],
+  "mandatory_pins": [
+    "runtime.provider_id",
+    "runtime.model_id",
+    "budget",
+    "contracts.release_policy",
+    "contracts.release_policy_sha256",
+    "contracts.run_subject_binding",
+    "providers.research_provider",
+    "providers.activity_replay",
+    "hashes.static_policy_text"
+  ],
+  "treatment_fields": [
+    "flags.scientific_case_v1",
+    "flags.scientific_skills_v1",
+    "flags.fixed_workflow_v1"
   ]
 }

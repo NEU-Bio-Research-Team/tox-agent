@@ -157,8 +157,13 @@ class SubmitMessage:
         structure_recognition_available: bool = False,
         object_store: ObjectStore | None = None,
         runtime_settings=None,
+        activity_replay_getter=None,
     ) -> None:
         self._db = database
+        # #50: the deployment's pinned replay file, read through a getter
+        # because the app loads it after this object exists. A message may
+        # name a frozen analysis it holds as its subject.
+        self._activity_replay_getter = activity_replay_getter or (lambda: None)
         self._settings = settings
         #: Only read to state the run's EffectiveRunBudgetV1 (step caps, turn
         #: deadlines); None falls back to the defaults the gateway would use.
@@ -269,6 +274,7 @@ class SubmitMessage:
                         submission.smiles if submission.smiles and not submission.batch_smiles
                         else None
                     ),
+                    replay_store=self._activity_replay_getter(),
                 )
                 if binding_on else NO_SUBJECT
             )
@@ -295,6 +301,11 @@ class SubmitMessage:
                 )
             elif choice.kind is SubjectKind.ANALYSIS and choice.subject_id:
                 route_request = replace(route_request, analysis_id=choice.subject_id)
+            elif choice.is_frozen_analysis:
+                # #50: the analysis exists once the run is bound; it is routed
+                # as a question about an analysis, never as a new molecule.
+                route_request = replace(route_request, has_active_analysis=True,
+                                        has_attached_screening=False, analysis_id=None)
             decision = route(route_request)
             if choice.is_ambiguous and decision.intent is Intent.DECISION_SUPPORT:
                 decision = clarify_subject(choice.ambiguous_options,

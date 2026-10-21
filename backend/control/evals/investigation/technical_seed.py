@@ -25,15 +25,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from toxagent.application.activity.projections import toxicity_snapshot_payload
-from toxagent.domain.analysis import PredictorProvenance, snapshot_from_prediction
-from toxagent.domain.ids import RUN, SESSION, new_id
 from toxagent.domain.provenance import content_sha256
 from toxagent.research.fulltext import parse_jats
 from toxagent.research.fulltext_store import build_store, freeze_document
 from toxagent.research.interfaces import FullTextFetch
 
-from .activity_fixtures import NOW, frozen_screening, toxicity_prediction
+from .activity_fixtures import NOW, frozen_analysis, frozen_screening
 from .case_inputs import canonical_sha256, file_sha256
 
 SET_ID = "protocol-v2-technical-seed-1"
@@ -134,17 +131,6 @@ def _evidence_fixture() -> dict[str, Any]:
     return body
 
 
-def _frozen_analysis(smiles: str, *, herg_probability: float) -> dict[str, Any]:
-    analysis = snapshot_from_prediction(
-        session_id=new_id(SESSION), run_id=new_id(RUN), input_smiles=smiles,
-        requested_endpoints=("herg", "tox21"),
-        predictor_response=toxicity_prediction(smiles, herg_probability=herg_probability),
-        provenance=PredictorProvenance(base_url_id="synthetic-fixture"),
-        policy_snapshot={"policy_version": "tox-policy-v1"}, now=NOW,
-    )
-    return toxicity_snapshot_payload(analysis)
-
-
 def _case_specs(screen: dict[str, dict], analyses: dict[str, dict]) -> list[dict[str, Any]]:
     """The twelve cases. Each names what it measures; the gold is synthetic."""
     def sref(record):
@@ -178,7 +164,7 @@ def _case_specs(screen: dict[str, dict], analyses: dict[str, dict]) -> list[dict
              conclusions=[("committed", f"A synthetic record reports an EGFR IC50 of 12 nM "
                                         f"for {NAME_A} in its Table 1.")],
              facts=[("ic50", "EGFR IC50", 12, "nM")], required=["L6"],
-             spans=[("MED:90001", "table-wrap:1/row:2")],
+             spans=[("pmid:90001", "table-wrap:1/row:2")],
              forbidden=["fabricated_value_or_assay"], documents=["MED:90001"]),
         dict(case_id="inv-a03-other-target-is-not-a-conflict", task_group="T3",
              workflow_context="activity_guided", answerability="answerable_from_corpus",
@@ -249,7 +235,7 @@ def _case_specs(screen: dict[str, dict], analyses: dict[str, dict]) -> list[dict
              conclusions=[("committed", f"A synthetic record reports a hERG patch clamp IC50 "
                                         f"of 0.3 uM for {NAME_T} in its Table 1.")],
              facts=[("ic50", "hERG IC50", 0.3, "uM")], required=["L6"],
-             spans=[("MED:90011", "table-wrap:1/row:1")], forbidden=["fabricated_value_or_assay"],
+             spans=[("pmid:90011", "table-wrap:1/row:1")], forbidden=["fabricated_value_or_assay"],
              documents=["MED:90011"]),
         dict(case_id="inv-t03-predictor-missed-a-blocker", task_group="T3",
              workflow_context="toxicity_only", answerability="answerable_from_corpus",
@@ -260,7 +246,7 @@ def _case_specs(screen: dict[str, dict], analyses: dict[str, dict]) -> list[dict
                                         "with the low model score; the measurement should weigh "
                                         "more than the uncalibrated prediction.")],
              facts=[("ic50", "hERG IC50", 0.3, "uM")], required=["L1", "L6"],
-             spans=[("MED:90011", "table-wrap:1/row:1")],
+             spans=[("pmid:90011", "table-wrap:1/row:1")],
              predictor_error={"actually_wrong": True,
                               "verified_label_source": "synthetic fixture table (MED:90011)",
                               "note": "engineering fixture, not a verified label"},
@@ -311,8 +297,8 @@ def build(out: Path) -> dict[str, Any]:
         "failed": frozen_screening(target_id="ABL1", uniprot_id="P00519", activity_fails=True,
                                    ligand=LIGAND_A, ligand_names=(NAME_A,)),
     }
-    analyses = {"blocker": _frozen_analysis(LIGAND_T, herg_probability=0.81),
-                "nonblocker": _frozen_analysis(LIGAND_T, herg_probability=0.21)}
+    analyses = {"blocker": frozen_analysis(LIGAND_T, herg_probability=0.81),
+                "nonblocker": frozen_analysis(LIGAND_T, herg_probability=0.21)}
     from toxagent.application.activity.replay import write_replay_file
 
     replay_sha = write_replay_file(

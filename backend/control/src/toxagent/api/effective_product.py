@@ -57,6 +57,14 @@ def _host(url: str) -> str | None:
     return parts.hostname or None
 
 
+def _file_sha256(path: str) -> str | None:
+    """The sha256 of a pinned file's bytes, or ``None`` when it cannot be read."""
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest() if path else None
+    except OSError:
+        return None
+
+
 def flag_snapshot(today: date | None = None) -> dict[str, dict[str, Any]]:
     today = today or date.today()
     return {
@@ -223,7 +231,9 @@ def describe_effective_product(
             # A benchmark on frozen evidence says so, and says which snapshot.
             "research_snapshot": (
                 {"path_name": Path(settings.research.snapshot_path).name,
-                 "fault": settings.research.snapshot_fault or None}
+                 "fault": settings.research.snapshot_fault or None,
+                 # #50: the bytes, so two arms on files of one name are told apart.
+                 "sha256": _file_sha256(settings.research.snapshot_path)}
                 if settings.research.provider == "snapshot" else None
             ),
             # A benchmark over a local corpus says so, and says which corpus:

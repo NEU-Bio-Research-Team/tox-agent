@@ -320,12 +320,16 @@ class RunSubjectBinding:
 
 
 def analysis_binding(analysis_id: str, *, canonical_smiles: str, content_sha256_: str,
-                     resolved_by: str) -> RunSubjectBinding:
+                     resolved_by: str,
+                     extra_refs: tuple[ArtifactRef, ...] = ()) -> RunSubjectBinding:
+    """``extra_refs``: for a replayed analysis, the frozen origin it was
+    copied from (#50) -- the ref study arms compare, since the local id is
+    minted per session."""
     return RunSubjectBinding(
         kind=SubjectKind.ANALYSIS, subject_ref={"analysis_id": analysis_id},
         identity=SubjectIdentity(canonical_smiles=canonical_smiles),
         artifact_refs=(ArtifactRef(kind="analysis", source_id=analysis_id,
-                                   content_sha256=content_sha256_),),
+                                   content_sha256=content_sha256_), *extra_refs),
         resolved_by=resolved_by,
     )
 

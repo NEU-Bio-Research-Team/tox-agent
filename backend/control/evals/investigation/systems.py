@@ -42,6 +42,15 @@ class SystemSpec:
     budget_preset: str | None = None
     #: Effective-product fields every arm of the protocol must share.
     same_across_arms: tuple[str, ...] = ()
+    #: Of those, the ones that must also be *set*: a pin no arm reports is a
+    #: missing pin, never agreement (#50).
+    mandatory_pins: tuple[str, ...] = ()
+    #: Effective-product values the deployment must report exactly, e.g. the
+    #: release policy the protocol publishes under.
+    required_product: Mapping[str, Any] = field(default_factory=dict)
+    #: Flags (and product fields) allowed to differ between the protocol's
+    #: arms: the treatments under study. Every other flag must agree.
+    treatment_fields: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -51,6 +60,9 @@ class SystemSpec:
             "skills_mode": self.skills_mode, "protocol": self.protocol,
             "budget_preset": self.budget_preset,
             "same_across_arms": list(self.same_across_arms),
+            "mandatory_pins": list(self.mandatory_pins),
+            "required_product": dict(self.required_product),
+            "treatment_fields": list(self.treatment_fields),
         }
 
 
@@ -130,6 +142,9 @@ def protocol_arms(directory: Path = PROTOCOL_V2_DIR) -> dict[str, SystemSpec]:
             skills_mode=config.get("skills_mode") if config["family"] == "toxagent" else None,
             protocol=config["protocol"], budget_preset=config.get("budget_preset"),
             same_across_arms=tuple(config.get("same_across_arms") or ()),
+            mandatory_pins=tuple(config.get("mandatory_pins") or ()),
+            required_product=dict(config.get("required_product") or {}),
+            treatment_fields=tuple(config.get("treatment_fields") or ()),
         )
         arms[spec.system_id] = spec
     return arms
@@ -154,27 +169,62 @@ def _field(product: Mapping[str, Any], path: str) -> Any:
     if path == "budget.preset":
         return (((product.get("intents") or {}).get("decision_support") or {})
                 .get("budget") or {}).get("preset")
+    if path == "budget":
+        # The whole effective budget, not its label: two deployments under
+        # one preset name with different limits are two budgets (#50).
+        return ((product.get("intents") or {}).get("decision_support") or {}).get("budget")
     value: Any = product
     for part in path.split("."):
         value = (value or {}).get(part) if isinstance(value, Mapping) else None
     return value
 
 
+def _canonical(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, default=str)
+
+
 def fairness_problems(specs: list[SystemSpec],
                       products: Mapping[str, Mapping[str, Any]]) -> list[str]:
-    """Why arms of one protocol are not comparable: a shared field -- the
-    backbone, the budget, a pinned corpus or replay file -- that two of their
-    deployments report differently. Empty when they agree."""
+    """Why arms of one protocol are not comparable. Empty when they agree.
+
+    * a shared field -- the backbone, the whole effective budget, the release
+      policy, a pinned corpus, full-text store or replay file -- that two of
+      their deployments report differently;
+    * a mandatory pin that an arm does not report at all: agreement on
+      ``None`` is a missing pin, not fairness;
+    * a flag that differs between two arms and is not one of the protocol's
+      declared treatments: an undeclared variable is a confound.
+    """
     problems: list[str] = []
     by_protocol: dict[str, list[SystemSpec]] = {}
     for spec in specs:
         if spec.same_across_arms and spec.system_id in products:
             by_protocol.setdefault(spec.protocol, []).append(spec)
     for protocol, group in by_protocol.items():
-        for path in sorted({p for spec in group for p in spec.same_across_arms}):
+        mandatory = {p for spec in group for p in spec.mandatory_pins}
+        for path in sorted({p for spec in group for p in spec.same_across_arms} | mandatory):
             seen = {spec.system_id: _field(products[spec.system_id], path) for spec in group}
-            if len({json.dumps(v, sort_keys=True, default=str) for v in seen.values()}) > 1:
+            missing = sorted(k for k, v in seen.items() if v in (None, "", {}, []))
+            if path in mandatory and missing:
+                problems.append(f"{protocol}: mandatory pin {path} is not reported by {missing}")
+                continue
+            if len({_canonical(v) for v in seen.values()}) > 1:
                 problems.append(f"{protocol}: {path} differs across arms: {seen}")
+        treatments = {t for spec in group for t in spec.treatment_fields}
+        if len(group) > 1 and treatments:
+            flags = sorted({name for spec in group
+                            for name in (products[spec.system_id].get("flags") or {})})
+            for name in flags:
+                if f"flags.{name}" in treatments:
+                    continue
+                seen = {spec.system_id: ((products[spec.system_id].get("flags") or {})
+                                         .get(name) or {}).get("enabled")
+                        for spec in group}
+                if len(set(seen.values())) > 1:
+                    problems.append(
+                        f"{protocol}: flag {name} differs across arms and is not a declared "
+                        f"treatment: {seen}"
+                    )
     return problems
 
 
@@ -208,4 +258,8 @@ def product_mismatch(spec: SystemSpec, effective_product: Mapping) -> list[str]:
             problems.append(
                 f"budget preset is {actual_preset}, the arm needs {spec.budget_preset}"
             )
+    for path, wanted in spec.required_product.items():
+        actual = _field(effective_product, path)
+        if actual != wanted:
+            problems.append(f"{path} is {actual!r}, the arm needs {wanted!r}")
     return problems

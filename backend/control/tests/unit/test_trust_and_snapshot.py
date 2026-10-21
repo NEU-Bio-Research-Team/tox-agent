@@ -93,4 +93,9 @@ def test_the_snapshot_is_recorded_in_the_effective_product():
     )
     providers = describe_effective_product(settings)["providers"]
     assert providers["research_provider"] == "snapshot"
-    assert providers["research_snapshot"] == {"path_name": SNAPSHOT.name, "fault": "empty"}
+    import hashlib
+
+    assert providers["research_snapshot"] == {
+        "path_name": SNAPSHOT.name, "fault": "empty",
+        "sha256": hashlib.sha256(SNAPSHOT.read_bytes()).hexdigest(),
+    }

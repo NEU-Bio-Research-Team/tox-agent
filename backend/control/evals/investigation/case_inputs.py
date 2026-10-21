@@ -136,6 +136,18 @@ def as_v2_view(loaded: LoadedCase) -> dict[str, Any]:
     return view
 
 
+def _corpus_index(records: Mapping[str, Mapping[str, Any]] | None) -> dict[str, str]:
+    """Every key a gold span may name one corpus record by: its identifiers
+    (``pmid:…``, ``doi:…``) and the record's own id."""
+    index: dict[str, str] = {}
+    for record_id, record in (records or {}).items():
+        index[str(record_id)] = str(record_id)
+        for scheme, value in ((record.get("identifier") or {}).items()):
+            if value and scheme in ("doi", "pmid", "pmcid", "cid"):
+                index[f"{scheme}:{str(value).strip().lower()}"] = str(record_id)
+    return index
+
+
 def _model_facing_text(inputs: Mapping[str, Any]) -> str:
     return json.dumps(inputs, sort_keys=True, ensure_ascii=False).casefold()
 
@@ -206,9 +218,25 @@ def audit_case(
         if identifier and identifier not in known:
             fail("subject_not_an_input_artifact", f"{identifier} is not among the inputs")
 
-    # Spans: the frozen full text holds them, or the gold says it could not.
+    # Spans: the gold names its source the way a run could retrieve it, and
+    # the frozen full text holds the locator (or the gold says the capture
+    # failed). A reference no run could resolve measures the gold, not the
+    # run, so the scorer drops it -- which is why it is caught here instead.
+    from .retrieval import _ref_key
+
+    index = _corpus_index(snapshot_records)
     for span in gold.get("evidence_spans") or ():
-        record_id = str(span.get("evidence_ref"))
+        ref = str(span.get("evidence_ref"))
+        key = _ref_key(ref)
+        if key is None:
+            fail("span_ref_not_retrievable",
+                 f"{ref} is not a doi:/pmid:/pmcid:/cid:/evidence: reference, so no run's "
+                 "retrieval can be measured against it")
+        record_id = index.get(key or ref)
+        if record_id is None and snapshot_records is not None:
+            fail("span_ref_not_in_corpus", f"{ref} names no record of the corpus")
+            continue
+        record_id = record_id or ref
         document = (full_text_documents or {}).get(record_id)
         if span.get("access") == "access_failed":
             if document is not None and document.get("outcome") == "retrieved":
@@ -331,6 +359,82 @@ def dependency_split(cases: Iterable[Mapping[str, Any]], *, test_fraction: float
         for case_id in component:
             split[case_id] = target
     return split
+
+
+#: The file a v3 case set states its shared pins in: the replay file of frozen
+#: screenings and analyses, and the frozen evidence (search, records, text).
+SET_MANIFESTS = ("set-manifest.json", "seed-manifest.json")
+
+
+@dataclass
+class CaseSet:
+    """A v3 case set as a study runs it: the cases with their inputs (never
+    their gold), and the frozen files every arm and deployment must pin."""
+
+    root: Path
+    manifest: dict[str, Any]
+    cases: list[LoadedCase]
+    replay_path: Path | None
+    replay_sha256: str | None
+    evidence_path: Path | None
+    evidence_sha256: str | None
+
+    @property
+    def set_id(self) -> str | None:
+        return self.manifest.get("set_id") or (
+            self.cases[0].case.get("set_id") if self.cases else None)
+
+    def pins(self) -> dict[str, Any]:
+        """What the study manifest records, and what a deployment must report."""
+        return {
+            "set_id": self.set_id, "root": self.root.name,
+            "replay": {"path_name": self.replay_path.name if self.replay_path else None,
+                       "sha256": self.replay_sha256},
+            "evidence": {"path_name": self.evidence_path.name if self.evidence_path else None,
+                         "file_sha256": self.evidence_sha256,
+                         "content_sha256": (self.manifest.get("evidence") or {})
+                         .get("content_sha256")},
+            "provenance": self.manifest.get("provenance"),
+        }
+
+
+def load_case_set(root: Path, *, only: Sequence[str] | None = None) -> CaseSet:
+    """The set under ``root`` (``cases/``, ``inputs/``, ``gold/`` and a set
+    manifest). Gold is not read: a study run never needs it. A pinned file
+    whose bytes differ from its pin is refused here, before any arm runs."""
+    root = Path(root)
+    manifest: dict[str, Any] = {}
+    for name in SET_MANIFESTS:
+        if (root / name).is_file():
+            manifest = json.loads((root / name).read_text())
+            break
+    cases = load_set(root / "cases")
+    if only:
+        wanted = set(only)
+        unknown = wanted - {c.case_id for c in cases}
+        if unknown:
+            raise ValueError(f"cases {sorted(unknown)} are not in {root}")
+        cases = [c for c in cases if c.case_id in wanted]
+    broken = [f for c in cases for f in c.findings]
+    if broken:
+        raise ValueError("the case set does not load cleanly: "
+                         + "; ".join(str(f) for f in broken[:5]))
+
+    def pinned(section: str, sha_key: str) -> tuple[Path | None, str | None]:
+        entry = manifest.get(section) or {}
+        if not entry.get("path_name"):
+            return None, None
+        path = root / entry["path_name"]
+        actual = file_sha256(path)
+        if entry.get(sha_key) and actual != entry[sha_key]:
+            raise ValueError(f"{path.name} is not the file the set pins ({sha_key})")
+        return path, actual
+
+    replay_path, replay_sha = pinned("replay", "sha256")
+    evidence_path, evidence_sha = pinned("evidence", "file_sha256")
+    return CaseSet(root=root, manifest=manifest, cases=cases, replay_path=replay_path,
+                   replay_sha256=replay_sha, evidence_path=evidence_path,
+                   evidence_sha256=evidence_sha)
 
 
 def stores_from_files(*, replay_path: Path | None = None, full_text_path: Path | None = None,

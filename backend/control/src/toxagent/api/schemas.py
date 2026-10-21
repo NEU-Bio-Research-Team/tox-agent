@@ -41,6 +41,13 @@ class CaseContextRequest(_Request):
     key: str = Field(min_length=1, max_length=120)
     value: str = Field(min_length=1, max_length=1000)
     note: str | None = Field(default=None, max_length=1000)
+    #: #46/US4: the value's unit, who stated it, and what it is about.
+    unit: str | None = Field(default=None, max_length=40)
+    source: str | None = Field(default=None, max_length=120)
+    scope: dict[
+        Literal["target_id", "variant", "experimental_context", "assay", "species", "endpoint"],
+        str,
+    ] | None = None
 
 
 class CaseQuestionRequest(_Request):
@@ -148,16 +155,20 @@ class SubjectRefInput(_Request):
     what it is; a client names one of the session's subjects, never describes
     one."""
 
-    kind: Literal["analysis", "activity_screening"]
+    kind: Literal["analysis", "activity_screening", "frozen_analysis"]
     analysis_id: str | None = Field(default=None, pattern=r"^ana_[0-9a-f]{32}$")
     screening_id: str | None = Field(default=None, pattern=r"^scr_[0-9a-f]{32}$")
+    #: #50: a frozen toxicity analysis the deployment's replay file holds, by
+    #: its origin id; the run is given a session-local copy of it.
+    analysis_ref: str | None = Field(default=None, pattern=r"^ana_[0-9a-f]{32}$")
 
     @model_validator(mode="after")
     def _one_id_for_its_kind(self) -> "SubjectRefInput":
-        if self.kind == "analysis" and (not self.analysis_id or self.screening_id):
-            raise ValueError("an analysis subject_ref names analysis_id and nothing else")
-        if self.kind == "activity_screening" and (not self.screening_id or self.analysis_id):
-            raise ValueError("an activity_screening subject_ref names screening_id and nothing else")
+        named = {k for k in ("analysis_id", "screening_id", "analysis_ref") if getattr(self, k)}
+        wanted = {"analysis": "analysis_id", "activity_screening": "screening_id",
+                  "frozen_analysis": "analysis_ref"}[self.kind]
+        if named != {wanted}:
+            raise ValueError(f"a {self.kind} subject_ref names {wanted} and nothing else")
         return self
 
 
