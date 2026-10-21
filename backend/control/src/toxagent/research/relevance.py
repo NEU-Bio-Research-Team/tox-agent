@@ -40,6 +40,9 @@ from typing import Any, Iterable, Mapping, Sequence
 #: Bumped when a rule or a vocabulary changes, and recorded on every
 #: assessment.
 RELEVANCE_POLICY_VERSION = "evidence-relevance-1"
+#: AG-EVIDENCE: the same rules over a *target* (a screening's), with the
+#: target vocabulary from research/target_catalog.py.
+TARGET_RELEVANCE_POLICY_VERSION = "evidence-relevance-target-1"
 
 
 class Relevance(str, Enum):
@@ -135,18 +138,38 @@ class CompoundIdentity:
 
 @dataclass(frozen=True, slots=True)
 class RelevanceTarget:
-    """The endpoint/assay and the proposition the search is for."""
+    """The endpoint/assay, or the target, and the proposition the search is for.
 
-    endpoint: str
+    A toxicity question names an ``endpoint``. A screening question names a
+    target (``target_id``, with ``target_terms`` from the target catalog); a
+    target the catalog does not hold has no terms and ``uncataloged`` set,
+    and nothing about it is judged a match by default.
+    """
+
+    endpoint: str | None = None
     task: str | None = None
     proposition: str = ""
+    target_id: str | None = None
+    target_terms: tuple[str, ...] = ()
+    uncataloged: bool = False
+
+    @property
+    def by_target(self) -> bool:
+        return self.target_id is not None and self.endpoint is None
 
     @property
     def vocabulary(self) -> tuple[str, ...]:
-        terms = list(ENDPOINT_VOCABULARY.get(self.endpoint, ()))
+        if self.by_target:
+            return tuple(self.target_terms)
+        terms = list(ENDPOINT_VOCABULARY.get(self.endpoint or "", ()))
         if self.task:
             terms.append(self.task.replace("_", " "))
         return tuple(terms)
+
+    @property
+    def axis(self) -> str:
+        """What a match is a match of, in the reason codes."""
+        return "target" if self.by_target else "endpoint"
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,13 +184,17 @@ class RelevanceAssessment:
     #: ``rule`` here; a model- or SME-sourced assessment records itself as
     #: such, because a judgement's provenance changes what it is worth.
     assessor: str = "rule"
+    #: AG-EVIDENCE: the subject axes this assessment established -- the
+    #: ligand and target it found the record to be about. Only what was
+    #: matched is stated; an axis left out was not established.
+    assessed_scope: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def is_citable(self) -> bool:
         return self.relevance.is_citable
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "relevance": self.relevance.value,
             "reason_codes": list(self.reason_codes),
             "matched_compound_terms": list(self.matched_compound_terms),
@@ -175,6 +202,9 @@ class RelevanceAssessment:
             "policy_version": self.policy_version,
             "assessor": self.assessor,
         }
+        if self.assessed_scope:
+            data["assessed_scope"] = dict(self.assessed_scope)
+        return data
 
 
 def _searchable_text(hit: Any) -> str:
@@ -222,6 +252,8 @@ def assess(
     the endpoint match. The audit's five false matches were all endpoint-ish and
     none of them was about ethanol.
     """
+    if target.by_target:
+        return _assess_target(hit, compound=compound, target=target)
     text = _searchable_text(hit)
     tokens = _tokens(text)
     if not tokens:
@@ -283,6 +315,54 @@ def assess(
         )
     return RelevanceAssessment(
         Relevance.IRRELEVANT, ("compound_mismatch", "endpoint_mismatch")
+    )
+
+
+def _assess_target(
+    hit: Any, *, compound: CompoundIdentity | None, target: RelevanceTarget,
+) -> RelevanceAssessment:
+    """The same judgement over a screening's target. A paper about the ligand
+    on another target is contextual, never direct; a paper about the target
+    and another ligand is not about the subject; a target the catalog does not
+    hold leaves even a ligand match uncertain."""
+    version = TARGET_RELEVANCE_POLICY_VERSION
+    tokens = _tokens(_searchable_text(hit))
+    if not tokens:
+        return RelevanceAssessment(Relevance.UNCERTAIN, ("metadata_too_thin",),
+                                   policy_version=version)
+    matched_names: tuple[str, ...] = ()
+    identifier = None
+    if compound is not None:
+        matched_names = tuple(n for n in compound.names if _contains_phrase(tokens, n))
+        identifier = _identifier_match(hit, compound)
+    compound_terms = matched_names + ((identifier,) if identifier else ())
+    compound_matched = bool(compound_terms)
+    if target.uncataloged:
+        return RelevanceAssessment(
+            Relevance.UNCERTAIN if compound_matched else Relevance.IRRELEVANT,
+            ("target_not_in_catalog",
+             "compound_match" if compound_matched else "compound_mismatch"),
+            matched_compound_terms=compound_terms, policy_version=version,
+        )
+    matched_target = tuple(t for t in target.vocabulary if _contains_phrase(tokens, t))
+    ligand = {"ligand_id": compound.canonical_smiles} if compound and compound_matched else {}
+    if compound_matched and matched_target:
+        return RelevanceAssessment(
+            Relevance.DIRECT, ("compound_match", "target_match"),
+            matched_compound_terms=compound_terms, matched_endpoint_terms=matched_target,
+            policy_version=version,
+            assessed_scope={**ligand, "target_id": str(target.target_id)},
+        )
+    if compound_matched:
+        return RelevanceAssessment(
+            Relevance.CONTEXTUAL, ("compound_match", "target_mismatch"),
+            matched_compound_terms=compound_terms, policy_version=version,
+            assessed_scope=ligand,
+        )
+    return RelevanceAssessment(
+        Relevance.IRRELEVANT,
+        ("compound_mismatch",) + (("target_match",) if matched_target else ("target_mismatch",)),
+        matched_endpoint_terms=matched_target, policy_version=version,
     )
 
 

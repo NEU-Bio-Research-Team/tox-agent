@@ -613,6 +613,12 @@ class SubmitAnswer:
                 record = await uow.evidence.get(item.source_id, session_id=session_id)
                 if record is not None and is_measured_value(record.normalized_facts):
                     measured.add(item.source_id)
+            subject_violation = await self._subject_scope_violation(
+                uow, session_id=session_id, item=item, index=index,
+            )
+            if subject_violation is not None:
+                violations.append(subject_violation)
+                continue
             proposition_id = proposition_ids.setdefault(item.proposition, new_proposition_id())
             assessments.append(
                 EvidenceRelationAssessment.create(
@@ -702,6 +708,57 @@ class SubmitAnswer:
             return None, [
                 Violation("development_posture_invalid", str(exc), path="development_posture")
             ]
+
+    async def _subject_scope_violation(
+        self, uow, *, session_id: str, item: EvidenceRelationInputV2, index: int,
+    ) -> Violation | None:
+        """AG-EVIDENCE: what the server knows a source is about, against what
+        the relation says it is about.
+
+        An activity artifact states its own target; a literature record a
+        subject-bound search assessed states the target it was found to be
+        about, or that it is about the ligand on another target. A relation
+        may not restate either (a KCNH2 estimate scoped as EGFR), and a record
+        about another target cannot be *direct* support for or contradiction
+        of this one -- it is contextual, which is what the record already says.
+        """
+        from ...domain.observation import ObservationKind
+
+        known_target: str | None = None
+        out_of_subject = False
+        if item.source_class in ("predictor_fact", "explanation_fact"):
+            observation = await uow.observations.get(item.source_id, session_id=session_id)
+            if observation is not None and observation.kind in (
+                ObservationKind.ACTIVITY_ESTIMATE, ObservationKind.PRIORITISATION_DECISION,
+                ObservationKind.SCREENING_STATE,
+            ):
+                subject = (observation.canonical_payload or {}).get("subject") or {}
+                known_target = ((subject.get("target") or {}).get("target_id")
+                                or ((observation.canonical_payload or {}).get("policy") or {})
+                                .get("target_id"))
+        elif item.source_class in ("external_experimental", "external_regulatory"):
+            record = await uow.evidence.get(item.source_id, session_id=session_id)
+            assessment = (record.relevance_assessment or {}) if record is not None else {}
+            known_target = (assessment.get("assessed_scope") or {}).get("target_id")
+            out_of_subject = "target_mismatch" in (assessment.get("reason_codes") or ())
+        if known_target and item.target_id and \
+                item.target_id.strip().casefold() != str(known_target).casefold():
+            return Violation(
+                "evidence_relation_scope_contradicts_source",
+                f"source {item.source_id} is about target {known_target}, not "
+                f"{item.target_id}; state the scope the source itself has",
+                path=f"evidence_relations[{index}].target_id",
+            )
+        if out_of_subject and item.directness == "direct" \
+                and item.relation in ("supports", "contradicts"):
+            return Violation(
+                "evidence_relation_direct_out_of_subject",
+                f"source {item.source_id} was assessed as about this ligand on another "
+                "target, so it cannot be direct evidence about this subject; state it as "
+                "'contextual' (or 'indirect') and name the target it is about",
+                path=f"evidence_relations[{index}].directness",
+            )
+        return None
 
     async def _source_exists(
         self, uow, *, session_id: str, source_class: str, source_id: str,

@@ -11,9 +11,9 @@ come from the capability token, same as the analysis tools.
 """
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timezone
-from typing import Literal
+from typing import Any, Literal, Mapping
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,8 +35,11 @@ from ...domain.evidence import EvidenceStatus
 from ...research.interfaces import FullTextCapableProvider, ResearchProvider
 from ...research.normalization import hit_to_evidence
 from ...research.policy import decide_acceptance, filter_source_types
+from ...application.conversation.subject_resolution import binding_of
+from ...research import target_catalog
 from ...research.relevance import (
     RELEVANCE_POLICY_VERSION,
+    TARGET_RELEVANCE_POLICY_VERSION,
     CompoundIdentity,
     RelevanceTarget,
     RetrievalBudget,
@@ -116,6 +119,112 @@ class SubjectlessSearchEvidenceInput(SearchEvidenceInput):
     )
 
 
+class SubjectSearchEvidenceInput(SubjectlessSearchEvidenceInput):
+    """The search input while ``subject_binding_v1`` is on (AG-EVIDENCE): a
+    search is about the run's bound subject -- an analysis or an activity
+    screening -- and defaults to it. Naming another subject is refused."""
+
+    screening_id: str | None = Field(
+        default=None,
+        description="The screening this search is about. Omit it to search about the run's "
+                    "subject; results are then judged against that ligand on that target.",
+    )
+
+
+@dataclass(frozen=True)
+class _SearchSubject:
+    analysis_id: str | None = None
+    screening: Any = None
+    target_entry: target_catalog.CatalogTarget | None = None
+
+    @property
+    def screening_id(self) -> str | None:
+        return self.screening.screening_id if self.screening is not None else None
+
+    @property
+    def _subject(self) -> Mapping[str, Any]:
+        return ((self.screening.record.get("screening_state") or {}).get("subject") or {}
+                if self.screening is not None else {})
+
+    @property
+    def canonical_smiles(self) -> str:
+        return str(self._subject.get("canonical_smiles") or "")
+
+    @property
+    def target(self) -> Mapping[str, Any]:
+        return self._subject.get("target") or {}
+
+    @property
+    def ligand_names(self) -> tuple[str, ...]:
+        names = (self.screening.record.get("subject_names") or ()) if self.screening else ()
+        return tuple(str(n) for n in names if str(n).strip())
+
+    def relevance_target(self) -> RelevanceTarget:
+        target_id = str(self.target.get("target_id") or "")
+        if self.target_entry is None:
+            return RelevanceTarget(target_id=target_id, uncataloged=True)
+        return RelevanceTarget(target_id=self.target_entry.target_id,
+                               target_terms=self.target_entry.vocabulary)
+
+    def view(self) -> dict[str, Any]:
+        return {
+            "kind": "activity_screening", "screening_id": self.screening_id,
+            "target_id": self.target.get("target_id"),
+            "assay_context": self._subject.get("assay_context"),
+            "target_capability": (
+                "in_catalog" if self.target_entry is not None else "not_in_catalog"
+            ),
+            "target_catalog": target_catalog.CATALOG_VERSION,
+        }
+
+
+async def _search_subject(database, context: ToolContext, payload, binding) -> _SearchSubject:
+    """What a search is about. With a bound run it is the run's subject (or
+    the toxicity analysis linked to it); a model naming another one is refused,
+    because the query's words never change the subject."""
+    from ...domain.errors import InvalidRequest, ScreeningNotFound
+    from ...domain.subject import SubjectKind
+
+    screening_id = getattr(payload, "screening_id", None)
+    analysis_id = payload.analysis_id
+    if screening_id and analysis_id:
+        raise InvalidRequest("a search is about one subject: give analysis_id or screening_id")
+    if binding is not None:
+        allowed_analyses = {binding.analysis_id} - {None}
+        toxicity = binding.artifact("toxicity_snapshot")
+        if toxicity is not None and toxicity.local_id:
+            allowed_analyses.add(toxicity.local_id)
+        if analysis_id and analysis_id not in allowed_analyses:
+            raise ToolDenied(
+                "this run is about another subject; a search is about the run's own subject",
+                reason="subject_mismatch", subject_ref=dict(binding.subject_ref),
+            )
+        if screening_id and screening_id != binding.screening_id:
+            raise ToolDenied(
+                "this run is about another subject; a search is about the run's own subject",
+                reason="subject_mismatch", subject_ref=dict(binding.subject_ref),
+            )
+        if not analysis_id and not screening_id:
+            if binding.kind is SubjectKind.ANALYSIS:
+                analysis_id = binding.analysis_id
+            else:
+                screening_id = binding.screening_id
+    if screening_id:
+        async with database.unit_of_work() as uow:
+            attachment = await uow.screenings.get(screening_id, session_id=context.session_id)
+        if attachment is None:
+            raise ScreeningNotFound("no such screening attached to this session",
+                                    screening_id=screening_id)
+        target = ((attachment.record.get("screening_state") or {}).get("subject") or {}).get(
+            "target") or {}
+        return _SearchSubject(
+            screening=attachment,
+            target_entry=target_catalog.lookup(target.get("target_id"),
+                                               uniprot_id=target.get("uniprot_id")),
+        )
+    return _SearchSubject(analysis_id=analysis_id)
+
+
 class GetEvidenceInput(_Input):
     evidence_id: str
     fields: list[str] | None = Field(
@@ -175,11 +284,17 @@ def build(
     database, provider: ResearchProvider, settings: ResearchSettings
 ) -> list[ToolDefinition]:
     async def search_evidence(context: ToolContext, payload: SearchEvidenceInput) -> ToolOutput:
-        subjectless = payload.analysis_id is None
+        binding = binding_of(context)
+        subject = await _search_subject(database, context, payload, binding)
+        if subject.analysis_id is None and subject.screening is None \
+                and not is_enabled("subjectless_research_v1"):
+            from ...domain.errors import InvalidRequest
+
+            raise InvalidRequest("a search names the analysis or screening it is about")
         async with database.unit_of_work() as uow:
             snapshot = (
-                None if subjectless
-                else await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
+                await uow.analyses.get(subject.analysis_id, session_id=context.session_id)
+                if subject.analysis_id else None
             )
             if context.profile == "decision_support":
                 # Counted *including* this call: ToolRunner._reserve already
@@ -190,16 +305,23 @@ def build(
                 used = await uow.tool_calls.count_for_run_and_tool(
                     context.run_id, "search_toxicology_evidence"
                 )
-        if snapshot is None and not subjectless:
-            raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
+        if snapshot is None and subject.analysis_id:
+            raise AnalysisNotFound("no such analysis in this session",
+                                   analysis_id=subject.analysis_id)
         if is_enabled("scientific_case_v1"):
             # W9-07: the researcher's data scope is a permission. A compound
             # restricted to internal data is never sent to a provider — from a
-            # chat turn or from either report path.
+            # chat turn or from either report path. AG-EVIDENCE: keyed by the
+            # run's bound subject when it has one, so every arm and provider
+            # passes the same guard.
             async with database.unit_of_work() as uow:
                 refusal = await scientific_case_service.external_search_refusal(
                     uow, session_id=context.session_id,
-                    analysis_id=snapshot.id if snapshot is not None else None,
+                    analysis_id=(
+                        binding.analysis_id if binding is not None
+                        else snapshot.id if snapshot is not None else None
+                    ),
+                    binding=binding,
                 )
             if refusal is not None:
                 raise ToolDenied(
@@ -225,7 +347,10 @@ def build(
 
         budget = RetrievalBudget.from_request(payload.limit)
         assessment_target = (
-            RelevanceTarget(endpoint=payload.endpoint) if payload.endpoint else None
+            RelevanceTarget(endpoint=payload.endpoint) if payload.endpoint
+            # A screening's search is always judged against its target: there
+            # is no unassessed path for a subject-bound activity question.
+            else subject.relevance_target() if subject.screening is not None else None
         )
         hits = await provider.search(
             query=payload.query,
@@ -251,6 +376,15 @@ def build(
             identity = CompoundIdentity(
                 canonical_smiles=snapshot.canonical_smiles,
                 preferred_name=held[0] if held else snapshot.canonical_smiles,
+                synonyms=(*held[1:], *(payload.compound_names or ())),
+            )
+        elif subject.screening is not None:
+            # AG-EVIDENCE: the ligand as the frozen screening states it, and
+            # the names the server holds for it -- never a name the query used.
+            held = list(subject.ligand_names)
+            identity = CompoundIdentity(
+                canonical_smiles=subject.canonical_smiles,
+                preferred_name=held[0] if held else subject.canonical_smiles,
                 synonyms=(*held[1:], *(payload.compound_names or ())),
             )
         retrieved_at = _now()
@@ -342,18 +476,27 @@ def build(
             "reused_from_this_session": reused,
             "results": result_views,
         }
+        if subject.screening is not None:
+            model_view["subject"] = subject.view()
         if assessment_target is not None:
-            model_view["relevance_policy"] = RELEVANCE_POLICY_VERSION
+            model_view["relevance_policy"] = (
+                TARGET_RELEVANCE_POLICY_VERSION if assessment_target.by_target
+                else RELEVANCE_POLICY_VERSION
+            )
             model_view["promotion_budget"] = budget.max_promotions
             model_view["promoted"] = promoted
             if promoted == 0:
                 model_view["note"] = (
                     "No result was about this compound and endpoint. That is a valid "
                     "outcome; do not cite a rejected record."
+                    if not assessment_target.by_target else
+                    "No result was about this ligand on this target. That is a valid "
+                    "outcome; do not cite a rejected record."
                 )
         provenance = {
-            "analysis_id": payload.analysis_id, "provider": provider.name,
+            "analysis_id": subject.analysis_id, "provider": provider.name,
             "query": payload.query,
+            **({"screening_id": subject.screening_id} if subject.screening is not None else {}),
         }
         if envelope_on:
             provenance["trust_signals"] = trust.signal_summary(model_results)
@@ -533,7 +676,8 @@ def build(
                 "result alone is not enough detail to support a claim."
             ),
             input_model=(
-                SubjectlessSearchEvidenceInput if is_enabled("subjectless_research_v1")
+                SubjectSearchEvidenceInput if is_enabled("subject_binding_v1")
+                else SubjectlessSearchEvidenceInput if is_enabled("subjectless_research_v1")
                 else SearchEvidenceInput
             ),
             handler=search_evidence,

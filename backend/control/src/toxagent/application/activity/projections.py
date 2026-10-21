@@ -105,6 +105,7 @@ def freeze_screening(
     run_id: str,
     now: datetime,
     toxicity: AnalysisSnapshot | None = None,
+    ligand_names: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     """One screening as the citable artifacts a frozen eval run replays from.
 
@@ -153,6 +154,11 @@ def freeze_screening(
     }
     if toxicity is not None:
         record["toxicity_snapshot"] = toxicity_snapshot_payload(toxicity)
+    if ligand_names:
+        # AG-EVIDENCE: what the ligand is called, as the screening's owner
+        # recorded it -- the server-held names a literature search about this
+        # subject is judged against. Absent, only identifiers can match.
+        record["subject_names"] = [n.strip() for n in ligand_names if n.strip()]
     record["content_sha256"] = content_sha256(
         {k: v for k, v in record.items() if k != "frozen_at"}
     )

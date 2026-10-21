@@ -479,6 +479,8 @@ class ScreeningSummary(_Response):
     #: #44: whether the frozen record carries the toxicity analysis its
     #: toxicity stage produced, readable on replay without the predictor.
     has_toxicity_snapshot: bool = False
+    #: AG-EVIDENCE: what the ligand is called, as the frozen record states it.
+    ligand_names: list[str] = []
     record_sha256: str | None
     source: str
     attached_at: str
@@ -551,6 +553,10 @@ class EvidenceRecordView(_Response):
     content_sha256: str
     untrusted_external_content: Literal[True]
     full_text: EvidenceFullTextView | None = None
+    #: Whether the record is about the subject it was searched for, and by
+    #: which rule: relevance, reason codes, and (AG-EVIDENCE) the ligand and
+    #: target the assessment established. Empty when no assessment ran.
+    relevance_assessment: dict[str, Any] = Field(default_factory=dict)
 
 
 class EvidenceListResponse(_Response):

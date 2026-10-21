@@ -2116,6 +2116,10 @@ export interface components {
             published_at: string | null;
             /** Rejection Reason */
             rejection_reason: string | null;
+            /** Relevance Assessment */
+            relevance_assessment?: {
+                [key: string]: unknown;
+            };
             /** Retrieved At */
             retrieved_at: string;
             /** Source Quality Tier */
@@ -3490,6 +3494,11 @@ export interface components {
             has_toxicity_snapshot: boolean;
             /** Intended Target Role */
             intended_target_role: string | null;
+            /**
+             * Ligand Names
+             * @default []
+             */
+            ligand_names: string[];
             /** Model Admitted */
             model_admitted: boolean | null;
             /** Record Sha256 */

@@ -254,6 +254,7 @@ def summary(record: Mapping[str, Any]) -> dict[str, Any]:
             "admitted"
         ),
         "has_toxicity_snapshot": record.get("toxicity_snapshot") is not None,
+        "ligand_names": list(record.get("subject_names") or ()),
         "record_sha256": record.get("content_sha256"),
     }
 

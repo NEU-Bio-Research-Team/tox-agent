@@ -41,7 +41,11 @@ from ...domain import decision_state
 from ...domain.provenance import content_sha256
 from ...platform.flags import is_enabled
 
-FIXED_WORKFLOW_VERSION = "fixed-workflow-b-v1"
+#: v2 (AG-EVIDENCE): an activity branch whose queries come from the bound
+#: screening's ligand, target and assay context, a toxicity branch whose
+#: endpoint comes from the question, and a provider-failure branch -- v1 only
+#: searched with an analysis and always for hERG.
+FIXED_WORKFLOW_VERSION = "fixed-workflow-b-v2"
 
 #: Records read in full per search, and records whose text is read.
 _READS_PER_SEARCH = 3
@@ -139,12 +143,48 @@ class FixedWorkflowMixin:
                     )
 
         question = context.text or ""
-        applicability = json.dumps(material.get("analysis") or {})
-        search, why = _should_search(question, applicability)
-        steps.append({"tool": None, "reason": why, "status": "decided",
-                      "decision": "search" if search else "no_search"})
-        if search and analysis.get("analysis_id"):
-            await self._fixed_retrieval(call, material, analysis_id=analysis["analysis_id"])
+        subject = view.get("subject") or {}
+        screening = next(
+            (s for s in view.get("screenings") or () if s.get("is_subject")), None,
+        ) if subject.get("kind") == "activity_screening" else None
+        if screening is not None:
+            # The activity branch: the subject is a ligand on a target.
+            decision = ((material.get("screenings") or {}).get(screening["screening_id"]) or {})
+            search, why = _should_search_activity(question, decision)
+            steps.append({"tool": None, "reason": why, "status": "decided",
+                          "decision": "search" if search else "no_search"})
+            if search:
+                await self._activity_retrieval(call, material, screening=screening)
+            toxicity_id = subject.get("linked_toxicity_analysis_id")
+            if toxicity_id and _TOXICITY.search(question):
+                bundle = await call("get_analysis_bundle", {"analysis_id": toxicity_id},
+                                    "the toxicity analysis the screening's toxicity stage made")
+                if bundle:
+                    material["toxicity_analysis"] = bundle["model_view"]
+                if _DECISION.search(question) or _SOURCES.search(question):
+                    await self._fixed_retrieval(call, material, analysis_id=toxicity_id,
+                                                question=question)
+        else:
+            applicability = json.dumps(material.get("analysis") or {})
+            search, why = _should_search(question, applicability)
+            steps.append({"tool": None, "reason": why, "status": "decided",
+                          "decision": "search" if search else "no_search"})
+            if search and analysis.get("analysis_id"):
+                await self._fixed_retrieval(call, material, analysis_id=analysis["analysis_id"],
+                                            question=question)
+        failures = [step for step in steps
+                    if step.get("tool") == "search_toxicology_evidence"
+                    and step.get("status") == "error"
+                    and step.get("error_code") in _PROVIDER_FAILURES]
+        if failures:
+            # The provider-failure branch: said as such, never as "no evidence".
+            material["provider_failure"] = {
+                "searches_failed": len(failures),
+                "note": "the literature provider could not be reached; this is not an "
+                        "absence of evidence",
+            }
+            steps.append({"tool": None, "status": "decided", "decision": "report_provider_failure",
+                          "reason": "a search failed at the provider, not for lack of sources"})
 
         needs = []
         if _EXPOSURE.search(question) and "exposure" not in json.dumps(material).lower():
@@ -176,17 +216,48 @@ class FixedWorkflowMixin:
             has_product=self._has_answer, commit=commit,
         )
 
-    async def _fixed_retrieval(self, call, material: dict[str, Any], *, analysis_id: str) -> None:
-        """Step 3: fixed query templates, the top accepted records read, and
-        their tables read when the text can be."""
-        endpoint = "herg"
+    async def _activity_retrieval(self, call, material: dict[str, Any], *,
+                                  screening: dict[str, Any]) -> None:
+        """Step 3 for a screening: queries from the ligand, the target and the
+        assay readout the binding states -- never a hard-coded target."""
+        target = screening.get("target") or {}
+        target_id = str(target.get("target_id") or "")
+        names = [n for n in screening.get("ligand_names") or () if n]
+        ligand = names[0] if names else str(screening.get("canonical_smiles") or "")
+        readout = str(screening.get("assay_context") or "").split("|")[0]
+        templates = [f"{ligand} {target_id}", f"{ligand} {target_id} {readout}".strip(),
+                     f"{ligand} {target_id} inhibition"]
+        await self._search_and_read(
+            call, material, templates=templates,
+            arguments={"screening_id": screening["screening_id"]},
+        )
+
+    async def _fixed_retrieval(self, call, material: dict[str, Any], *, analysis_id: str,
+                               question: str = "") -> None:
+        """Step 3: fixed query templates for the endpoint the question names
+        (hERG when it names none), the top accepted records read, and their
+        tables read when the text can be."""
+        endpoint = _endpoint_of(question)
         name = _subject_name(material)
-        templates = [f"{name} hERG", f"{name} hERG IC50 patch clamp", f"{name} QT prolongation"]
-        found: list[str] = []
+        templates = {
+            "herg": [f"{name} hERG", f"{name} hERG IC50 patch clamp", f"{name} QT prolongation"],
+            "tox21": [f"{name} Tox21", f"{name} nuclear receptor assay",
+                      f"{name} stress response assay"],
+            "clintox": [f"{name} clinical toxicity", f"{name} adverse events",
+                        f"{name} clinical trial safety"],
+        }[endpoint]
+        await self._search_and_read(
+            call, material, templates=templates,
+            arguments={"analysis_id": analysis_id, "endpoint": endpoint},
+        )
+
+    async def _search_and_read(self, call, material: dict[str, Any], *, templates: list[str],
+                               arguments: dict[str, Any]) -> None:
+        found: list[str] = list(material.get("_found") or [])
         for query in templates[: decision_support_limit("max_searches")]:
             result = await call(
                 "search_toxicology_evidence",
-                {"analysis_id": analysis_id, "query": query, "endpoint": endpoint, "limit": 5},
+                {**arguments, "query": query, "limit": 5},
                 f"fixed query: {query}",
             )
             for item in ((result or {}).get("model_view") or {}).get("results") or ():
@@ -194,15 +265,21 @@ class FixedWorkflowMixin:
                     found.append(item["evidence_id"])
             if len(found) >= _READS_PER_SEARCH:
                 break
-        records = []
+        material["_found"] = found
+        records = list(material.get("evidence") or [])
+        already = {r.get("evidence_id") for r in records}
         for evidence_id in found[: decision_support_limit("max_evidence_reads")][:_READS_PER_SEARCH * 2]:
+            if evidence_id in already:
+                continue
             read = await call("get_evidence_record", {"evidence_id": evidence_id},
                               "read before citing")
             if read:
                 records.append(read["model_view"])
         material["evidence"] = records
-        texts = []
+        texts = list(material.get("full_text") or [])
         for evidence_id in found[:_TEXT_READS]:
+            if any(t.get("evidence_id") == evidence_id for t in texts):
+                continue
             read = await call("read_evidence_text",
                               {"evidence_id": evidence_id, "kinds": ["table_row"], "limit": 20},
                               "the results tables, for values the abstract does not give")
@@ -210,6 +287,34 @@ class FixedWorkflowMixin:
                 texts.append(read["model_view"])
         if texts:
             material["full_text"] = texts
+
+
+_TOXICITY = re.compile(
+    r"\b(toxicity|toxic|herg|qt|cardiac|tox21|clintox|safety|độc|an toàn)\b", re.I)
+_PROVIDER_FAILURES = frozenset({"evidence_unavailable", "provider_rate_limited", "tool_timeout"})
+
+
+def _endpoint_of(question: str) -> str:
+    if re.search(r"\btox21\b|nuclear receptor|stress response", question, re.I):
+        return "tox21"
+    if re.search(r"\bclintox\b|clinical (toxicity|trial)", question, re.I):
+        return "clintox"
+    return "herg"
+
+
+def _should_search_activity(question: str, read: dict[str, Any]) -> tuple[bool, str]:
+    """Step 2 for a screening. A REVIEW decision is the question the
+    literature can settle -- the estimate's interval crosses the threshold --
+    so it is searched; so is a recommendation or a request for sources. A
+    lookup of the screening's own values is not."""
+    decision = (read.get("decision") or {}).get("status")
+    if decision == "review":
+        return True, "the policy sent it to review: measured activity on this target can settle it"
+    if _DECISION.search(question):
+        return True, "a recommendation question: the estimate alone does not settle it"
+    if _SOURCES.search(question):
+        return True, "the question asks for sources or measurements"
+    return False, "a lookup: the screening's own artifacts answer it, so no search"
 
 
 def _should_search(question: str, applicability: str) -> tuple[bool, str]:

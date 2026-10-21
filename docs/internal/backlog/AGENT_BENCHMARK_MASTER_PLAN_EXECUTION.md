@@ -16,8 +16,8 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 |---|---|---|---|
 | P01 subject-binding | #44 | done | see below |
 | P02 frozen-full-text | #43 | done | see below |
-| P03 subject-evidence | AG-EVIDENCE | in progress | |
-| P04 strict-release | #47 | todo | |
+| P03 subject-evidence | AG-EVIDENCE | done | see below |
+| P04 strict-release | #47 | in progress | |
 | P05 budget-phases | #46/#53 | todo | |
 | P06 case-inputs | #51 | todo | |
 | P07a shared-replay-A | #50 | todo | |
@@ -91,3 +91,36 @@ Tests: `tests/unit/test_frozen_full_text.py`,
 `tests/e2e/test_frozen_full_text_through_the_product.py` (offline table-row
 quote validated; captured access failure owes `evidence_full_text_not_read`;
 unknown locator refused). Suite: 2732 passed, 19 skipped.
+
+## P03 — subject-aware evidence retrieval (AG-EVIDENCE)
+
+- `research/target_catalog.py` (`benchmark-targets-v1`): KCNH2 (hERG,
+  CHEMBL240, live mapping verified), EGFR (CHEMBL203), ABL1 (CHEMBL1862),
+  each with the vocabulary a relevance check looks for. An entry whose UniProt
+  disagrees is not the target. EGFR/ABL1 live ChEMBL mappings are recorded as
+  unverified.
+- Relevance over a target (`evidence-relevance-target-1`): ligand on the
+  target → direct (with `assessed_scope` ligand + target); ligand on another
+  target → contextual; target with another ligand → irrelevant; target not
+  in the catalog → uncertain at best; thin metadata → uncertain.
+- `search_toxicology_evidence` under `subject_binding_v1` takes
+  `screening_id`, defaults to the run's subject, refuses another subject
+  (`subject_mismatch`), and passes the same data-scope guard keyed by the
+  bound subject. The ligand's identity is the frozen record's
+  (`subject_names`, server-held), never the query's words.
+- `get_chembl_activities` follows the binding; a screening whose target is
+  not hERG is `capability_unavailable`, never a string passed to the hERG
+  lookup.
+- Answer validation: a relation may not restate the target an activity
+  artifact or an assessed record states
+  (`evidence_relation_scope_contradicts_source`), and a record about the
+  ligand on another target cannot be direct support/contradiction
+  (`evidence_relation_direct_out_of_subject`).
+- Arm B (`fixed-workflow-b-v2`): activity branch with queries from the
+  binding (ligand name, target, readout); REVIEW triggers a search; toxicity
+  branch whose endpoint comes from the question and reads the linked
+  toxicity analysis; provider-failure branch said as such.
+- Evidence API exposes `relevance_assessment`.
+
+Tests: `tests/unit/test_subject_relevance.py`,
+`tests/e2e/test_subject_evidence_through_the_product.py`. Suite: 2745 passed.

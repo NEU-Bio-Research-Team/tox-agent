@@ -30,6 +30,7 @@ from ...domain.observation import Observation, ObservationKind, Producer
 from ...research.normalization import hit_to_evidence
 from ...research.policy import decide_acceptance
 from ...research.relevance import RELEVANCE_POLICY_VERSION
+from ...application.conversation.subject_resolution import binding_of
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 MARGIN_TOOL: Final[str] = "compute_exposure_margin"
@@ -81,7 +82,11 @@ class ChemblActivitiesInput(_Input):
     though it were one measurement.
     """
 
-    analysis_id: str
+    analysis_id: str | None = Field(
+        default=None,
+        description="The analysis whose structure to look up. Omit it to look up the run's "
+                    "subject (an analysis, or a screening whose target this tool serves).",
+    )
     target: Literal["herg"] = "herg"
     limit: int = Field(default=10, ge=1, le=20)
     assay_type: Literal["B", "F", "A", "T", "P", "U"] | None = Field(
@@ -157,6 +162,42 @@ async def _source_text(uow, context: ToolContext, ref: str) -> str:
     raise InvalidRequest(f"{ref}: a concentration cites 'context:' or 'evidence:', not {kind!r}")
 
 
+async def _chembl_subject(database, context, payload, binding) -> tuple[str | None, str]:
+    """The structure a ChEMBL lookup is about, and the analysis it belongs to.
+
+    AG-EVIDENCE: a screening subject is looked up by its own ligand -- but only
+    when its target is the one this tool serves (the catalog maps KCNH2 to
+    hERG). Any other target is a capability the deployment does not have; it
+    is never a string handed to the hERG lookup.
+    """
+    from ...domain.errors import CapabilityUnavailable, InvalidRequest
+    from ...domain.subject import SubjectKind
+    from ...research import target_catalog
+
+    if binding is not None and binding.kind is SubjectKind.ACTIVITY_SCREENING:
+        toxicity = binding.artifact("toxicity_snapshot")
+        local = toxicity.local_id if toxicity is not None else None
+        if payload.analysis_id and payload.analysis_id != local:
+            raise ToolDenied("this run is about another subject", reason="subject_mismatch")
+        target = binding.identity.target
+        entry = target_catalog.lookup(target.target_id if target else None,
+                                      uniprot_id=target.uniprot_id if target else None)
+        if entry is None or entry.toxicity_endpoint != payload.target:
+            raise CapabilityUnavailable(
+                f"ChEMBL activities are served for {payload.target} only; this screening's "
+                f"target is {target.target_id if target else 'unknown'}",
+                capability="chembl_activities_for_target",
+                target_catalog=target_catalog.CATALOG_VERSION,
+            )
+        return payload.analysis_id or local, binding.identity.canonical_smiles
+    if binding is not None and payload.analysis_id and payload.analysis_id != binding.analysis_id:
+        raise ToolDenied("this run is about another subject", reason="subject_mismatch")
+    analysis_id = payload.analysis_id or (binding.analysis_id if binding is not None else None)
+    if not analysis_id:
+        raise InvalidRequest("name the analysis to look up")
+    return analysis_id, ""
+
+
 def build(database, chembl_provider=None) -> list[ToolDefinition]:
     async def margin(context: ToolContext, payload: ExposureMarginInput) -> ToolOutput:
         inputs = [("ic50", payload.ic50.value, payload.ic50.source_ref),
@@ -202,29 +243,35 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
                           provenance=observation.provenance)
 
     async def chembl(context: ToolContext, payload: ChemblActivitiesInput) -> ToolOutput:
+        binding = binding_of(context)
+        analysis_id, smiles = await _chembl_subject(database, context, payload, binding)
         async with database.unit_of_work() as uow:
-            snapshot = await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
-            refusal = (
-                await scientific_case_service.external_search_refusal(
-                    uow, session_id=context.session_id, analysis_id=payload.analysis_id,
-                ) if snapshot is not None else None
+            snapshot = (
+                await uow.analyses.get(analysis_id, session_id=context.session_id)
+                if analysis_id else None
             )
-        if snapshot is None:
-            raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
+            refusal = await scientific_case_service.external_search_refusal(
+                uow, session_id=context.session_id,
+                analysis_id=binding.analysis_id if binding is not None else analysis_id,
+                binding=binding,
+            )
+        if analysis_id and snapshot is None:
+            raise AnalysisNotFound("no such analysis in this session", analysis_id=analysis_id)
         if refusal is not None:
             raise ToolDenied(
                 f"the researcher's data scope for this compound does not allow external lookups "
                 f"({refusal}); ChEMBL was not queried.", reason="case_data_scope",
             )
         lookup = await chembl_provider.activities(
-            canonical_smiles=snapshot.canonical_smiles, target=payload.target, limit=payload.limit,
+            canonical_smiles=snapshot.canonical_smiles if snapshot is not None else smiles,
+            target=payload.target, limit=payload.limit,
         )
         if lookup.molecule_chembl_id is None:
             view = {"found": False, "target_chembl_id": lookup.target_chembl_id, "records": [],
                     "note": "ChEMBL has no record matching this structure. That is a "
                             "coverage gap, not evidence that it is inactive."}
             return ToolOutput(canonical=view, model_view=view, ui_view=view,
-                              provenance={"analysis_id": snapshot.id, "provider": "chembl"})
+                              provenance={"analysis_id": analysis_id, "provider": "chembl"})
         retrieved_at = _now()
         records: list[dict] = []
         ids: list[str] = []
@@ -284,7 +331,7 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
             )
             # Tied to the analysis so a later literature search can take the
             # structure-matched name as the compound's identity.
-            await uow.observations.add(observation, analysis_id=snapshot.id)
+            await uow.observations.add(observation, analysis_id=analysis_id)
             await uow.commit()
         far = {item["evidence_id"]: (kind, item["fold_from_median"])
                for kind, group in summary["by_type"].items()
@@ -312,7 +359,7 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
                           # The records count as read (citation_not_read reads
                           # this list); the summary is the one observation made.
                           observation_ids=(observation.id, *ids),
-                          provenance={"analysis_id": snapshot.id, "provider": "chembl",
+                          provenance={"analysis_id": analysis_id, "provider": "chembl",
                                       "molecule_chembl_id": lookup.molecule_chembl_id,
                                       "evidence_ids": ids})
 

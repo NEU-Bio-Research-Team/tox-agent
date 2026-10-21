@@ -196,6 +196,7 @@ async def list_evidence(
                 "retrieved_at": record.retrieved_at.isoformat(),
                 "content_sha256": record.content_sha256,
                 "full_text": _full_text_view(full_texts[record.id]),
+                "relevance_assessment": dict(record.relevance_assessment or {}),
             }
             for record in records
         ],
@@ -233,4 +234,5 @@ async def get_evidence(
         "retrieved_at": record.retrieved_at.isoformat(),
         "content_sha256": record.content_sha256,
         "full_text": _full_text_view(full_text),
+        "relevance_assessment": dict(record.relevance_assessment or {}),
     }

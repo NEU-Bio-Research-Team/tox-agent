@@ -95,6 +95,7 @@ def frozen_screening(
     ligand: str = LIGAND,
     variant: str | None = None,
     context: str = CONTEXT,
+    ligand_names: tuple[str, ...] = (),
 ) -> dict:
     """One screening taken as far as its policy decision -- by default a
     REVIEW, because the interval crosses the threshold -- and, when
@@ -167,7 +168,7 @@ def frozen_screening(
         )
     return freeze_screening(
         screening=screening, snapshot=snapshot, decision=decision, model_admitted=False,
-        run_id=run_id, now=NOW, toxicity=analysis,
+        run_id=run_id, now=NOW, toxicity=analysis, ligand_names=ligand_names,
     )
 
 
