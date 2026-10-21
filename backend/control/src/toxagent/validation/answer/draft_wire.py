@@ -154,7 +154,23 @@ class EvidenceRelationInputV2(_Wire):
     applicability: Literal[_APPLICABILITY] = "ok"
     strength: Literal[_STRENGTH] = "not_assessed"
     reason_codes: list[str] = Field(default_factory=list, max_length=8)
-    endpoint: str | None = None
+    # The scope fields below are what this source itself states. They decide
+    # whether a `contradicts` is accepted (domain/evidence_relation.py): set
+    # against a `supports` on the same proposition, both must state what was
+    # observed and in which molecule or system, and, if either is a measured
+    # value, how it was measured -- with no field both state differently.
+    endpoint: str | None = Field(
+        default=None,
+        description=(
+            "What this source observed, as it states it. A 'contradicts' set against a "
+            "'supports' on the same proposition is accepted only when both state what "
+            "was observed (endpoint or target_id) and in which molecule or system "
+            "(ligand_id, species, experimental_context, use_context or "
+            "target_variant), plus assay_type or readout if either is a measured value, "
+            "and no field both state differs. Leave a field out when the source does "
+            "not say it; a scope filled in to match is a false contradiction."
+        ),
+    )
     species: str | None = None
     dose: str | None = None
     use_context: str | None = None
@@ -162,7 +178,13 @@ class EvidenceRelationInputV2(_Wire):
     # "hERG" and measure different things, so a `contradicts` whose scope
     # differs from the source it contradicts on any of these is rejected and
     # has to be restated as `contextual` (domain/evidence_relation.py).
-    ligand_id: str | None = Field(default=None, max_length=200)
+    ligand_id: str | None = Field(
+        default=None, max_length=200,
+        description=(
+            "Which molecule: an identifier a tool gave you, else the name the source "
+            "uses, spelled the same in every relation."
+        ),
+    )
     target_id: str | None = Field(default=None, max_length=200)
     target_variant: str | None = Field(default=None, max_length=200)
     target_sequence_sha256: str | None = Field(default=None, max_length=64)

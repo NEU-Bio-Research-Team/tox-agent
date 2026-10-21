@@ -83,14 +83,18 @@ class EvidenceScope:
     what assay read out in what unit against what comparator.
 
     A field left ``None`` is *not stated*, not "the same as yours". Comparison
-    therefore only looks at axes both sides declare.
+    therefore only looks at axes both sides declare, and a scope that states
+    too little to be compared is ``not_assessed`` rather than comparable.
     """
 
     endpoint: str | None = None
     species: str | None = None
     dose: str | None = None
     use_context: str | None = None
-    #: Which molecule. A canonical identifier, not a name a paper used.
+    #: Which molecule. A canonical identifier where a tool gave one; otherwise
+    #: the name the sources themselves use. Compared as written, so two
+    #: spellings of one molecule read as two molecules -- a false difference,
+    #: which is the cheaper error.
     ligand_id: str | None = None
     #: Which protein, and which form of it.
     target_id: str | None = None
@@ -141,15 +145,67 @@ class EvidenceScope:
             axis for axis in MEASUREMENT_AXES if axis in mine and axis in theirs
         )
 
-    def comparable_with(self, other: "EvidenceScope") -> bool:
-        """Whether these two can be set against each other at all.
+    def compare(
+        self, other: "EvidenceScope", *, measurement: bool = False
+    ) -> "ScopeComparison":
+        """Whether these two can be set against each other, and if not, why.
 
-        Agreeing on nothing is not agreement. Two scopes that declare no
-        common axis produce no differences, which must not read as "the same
-        measurement" -- that is exactly how "both say hERG" becomes a
-        contradiction between a binding affinity and a clinical outcome.
+        Agreeing on nothing is not agreement, and neither is agreeing on one
+        thing. Two scopes that share only ``endpoint="herg"`` produce no
+        differences, which must not read as "the same measurement" -- that is
+        exactly how "both say hERG" becomes a contradiction between a binding
+        affinity and a clinical outcome. So each group in
+        :data:`FINDING_GROUPS` (and, for two measurements,
+        :data:`MEASUREMENT_GROUPS`) needs an axis both sides declare.
+
+        ``measurement`` is for the caller that knows a side is a measured
+        value even though its scope does not say how it was measured; a scope
+        that does say (:data:`METHOD_AXES`) makes it one by itself.
         """
-        return bool(self.shared_axes(other)) and not self.differences(other)
+        differing = self.differences(other)
+        shared = self.shared_axes(other)
+        mine, theirs = self.declared(), other.declared()
+        measured = measurement or any(
+            axis in mine or axis in theirs for axis in METHOD_AXES
+        )
+        if differing:
+            return ScopeComparison(
+                Comparability.DIFFERENT, shared_axes=shared,
+                differing_axes=differing, measurement=measured,
+            )
+        groups = MEASUREMENT_GROUPS if measured else FINDING_GROUPS
+        missing = tuple(
+            name for name, axes in groups if not any(axis in shared for axis in axes)
+        )
+        state = Comparability.NOT_ASSESSED if missing else Comparability.COMPARABLE
+        return ScopeComparison(
+            state, shared_axes=shared, missing_groups=missing, measurement=measured,
+        )
+
+    def comparable_with(
+        self, other: "EvidenceScope", *, measurement: bool = False
+    ) -> bool:
+        return self.compare(other, measurement=measurement).state is Comparability.COMPARABLE
+
+
+class Comparability(str, Enum):
+    """Three answers, not two: "not shown to be the same" is neither "the
+    same" nor "different", and only the first licenses a contradiction."""
+
+    COMPARABLE = "comparable"
+    DIFFERENT = "different"
+    NOT_ASSESSED = "not_assessed"
+
+
+@dataclass(frozen=True, slots=True)
+class ScopeComparison:
+    state: Comparability
+    shared_axes: tuple[str, ...] = ()
+    #: Set when ``state`` is ``different``: axes both declare and disagree on.
+    differing_axes: tuple[str, ...] = ()
+    #: Set when ``state`` is ``not_assessed``: groups no shared axis covers.
+    missing_groups: tuple[str, ...] = ()
+    measurement: bool = False
 
 
 #: The axes that decide whether two sources measured the same thing. A
@@ -174,6 +230,29 @@ MEASUREMENT_AXES: tuple[str, ...] = (
     "comparator",
     "experimental_context",
 )
+
+#: What a comparison has to pin down before a disagreement counts as one.
+#: Each group needs at least one axis both sides declare: ``outcome`` is what
+#: was observed, ``subject`` is in which molecule or system. These are what a
+#: statement in a paper can be expected to say; assay fields are not, so a
+#: finding is not held to them.
+FINDING_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("outcome", ("endpoint", "target_id")),
+    ("subject", (
+        "ligand_id", "species", "experimental_context", "use_context", "target_variant",
+    )),
+)
+
+#: Two measured values also need to share how they were measured: a binding
+#: IC50 and a patch-clamp IC50 are different numbers about the same channel.
+MEASUREMENT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = FINDING_GROUPS + (
+    ("method", ("assay_type", "readout")),
+)
+
+#: A scope that states any of these describes a measurement, so it is held to
+#: the measurement groups. The reverse escape -- a measured record described
+#: without these -- is closed by the caller's ``measurement`` flag.
+METHOD_AXES: tuple[str, ...] = ("assay_type", "readout", "unit", "comparator")
 
 
 @dataclass(frozen=True, slots=True)
@@ -292,52 +371,90 @@ class EvidenceRelationAssessment:
         }
 
 
+_GROUP_HINTS = {
+    "outcome": "what was observed (endpoint or target_id)",
+    "subject": (
+        "in which molecule or system (ligand_id, species, experimental_context, "
+        "use_context or target_variant)"
+    ),
+    "method": "how it was measured (assay_type or readout)",
+}
+
+
 @dataclass(frozen=True, slots=True)
 class ScopeConflict:
-    """A ``contradicts`` that rests on a scope difference, not a disagreement.
+    """A ``contradicts`` whose scope does not show a disagreement.
 
-    ``differing_axes`` names what makes the two sources incommensurable, so the
+    Either the two sources differ on a declared axis (``scope_differs``: the
     relation can be restated as ``contextual`` on that axis instead of being
-    argued about in prose.
+    argued about in prose), or they have not been shown to be about the same
+    thing (``scope_undeclared`` when they share no declared axis at all,
+    ``scope_incomplete`` when what they share leaves a group open).
     """
 
     proposition_id: str
     contradicting_relation_id: str
     other_relation_id: str
     differing_axes: tuple[str, ...]
-    #: ``scope_differs`` when a declared axis disagrees; ``scope_undeclared``
-    #: when the two share no declared axis at all, so comparability was never
-    #: established either way.
+    #: ``scope_differs``, ``scope_undeclared`` or ``scope_incomplete``.
     reason: str = "scope_differs"
+    #: For ``scope_incomplete``/``scope_undeclared``: the groups no shared axis
+    #: covers, from :data:`FINDING_GROUPS`/:data:`MEASUREMENT_GROUPS`.
+    missing_groups: tuple[str, ...] = ()
+    shared_axes: tuple[str, ...] = ()
+
+    @property
+    def comparability(self) -> Comparability:
+        if self.reason == "scope_differs":
+            return Comparability.DIFFERENT
+        return Comparability.NOT_ASSESSED
 
     def describe(self) -> str:
+        if self.reason == "scope_differs":
+            axes = ", ".join(self.differing_axes)
+            return (
+                f"relation {self.contradicting_relation_id} contradicts a source whose "
+                f"scope differs on {axes}; two sources that did not measure the same "
+                "thing are not in disagreement"
+            )
+        needed = "; ".join(_GROUP_HINTS[group] for group in self.missing_groups)
         if self.reason == "scope_undeclared":
             return (
                 f"relation {self.contradicting_relation_id} contradicts a source it "
-                "shares no declared measurement axis with; state the endpoint, assay "
-                "and unit the two have in common before calling them contradictory"
+                "shares no declared measurement axis with, so whether they observed "
+                f"the same thing was not assessed; state, for both, {needed}"
             )
-        axes = ", ".join(self.differing_axes)
+        shared = ", ".join(self.shared_axes)
         return (
-            f"relation {self.contradicting_relation_id} contradicts a source whose "
-            f"scope differs on {axes}; two sources that did not measure the same "
-            "thing are not in disagreement"
+            f"relation {self.contradicting_relation_id} contradicts a source it shares "
+            f"only {shared} with, which does not show they observed the same thing; "
+            f"state, for both, {needed}"
         )
 
 
 def scope_conflicts(
     assessments: Sequence[EvidenceRelationAssessment],
+    *,
+    measured_source_ids: frozenset[str] = frozenset(),
 ) -> tuple[ScopeConflict, ...]:
-    """Find contradictions that only a scope difference makes look like one.
+    """Find contradictions that the scopes do not show to be one.
 
-    Within one proposition, a ``contradicts`` is a claim that this source and
-    another source of the same proposition cannot both hold. That claim needs
-    the two to be commensurable. Where they differ on a measurement axis, the
-    honest label is ``contextual``, and this returns the axes that say so.
+    Within one proposition, a ``contradicts`` set against a ``supports`` is a
+    claim that the two sources cannot both hold. That claim needs the two to
+    be commensurable: where they differ on a measurement axis, the honest
+    label is ``contextual``; where their scopes say too little to tell, it has
+    not been assessed. Only the opposite side is compared -- two contradicting
+    sources do not disagree with each other, and a ``contextual``,
+    ``insufficient`` or ``not_applicable`` source takes no side to disagree
+    with.
+
+    ``measured_source_ids`` names sources the caller knows are measured values
+    (a record with a value), which are compared as measurements whatever
+    their declared scope says.
 
     Four outcomes are kept apart this way: a real contradiction (comparable
-    scope), different measurement conditions (this function's findings),
-    indirect evidence (``directness``) and not enough data
+    scope), different measurement conditions (``scope_differs``), indirect
+    evidence (``directness``) and not enough data
     (``RelationLabel.INSUFFICIENT``).
     """
     by_proposition: dict[str, list[EvidenceRelationAssessment]] = {}
@@ -350,31 +467,35 @@ def scope_conflicts(
             if assessment.relation is not RelationLabel.CONTRADICTS:
                 continue
             for other in group:
-                if other.id == assessment.id:
+                if other.relation is not RelationLabel.SUPPORTS:
                     continue
-                axes = assessment.scope.differences(other.scope)
-                if axes:
-                    conflicts.append(
-                        ScopeConflict(
-                            proposition_id=proposition_id,
-                            contradicting_relation_id=assessment.id,
-                            other_relation_id=other.id,
-                            differing_axes=axes,
-                            reason="scope_differs",
-                        )
+                comparison = assessment.scope.compare(
+                    other.scope,
+                    measurement=bool(
+                        {assessment.source_ref.source_id, other.source_ref.source_id}
+                        & measured_source_ids
+                    ),
+                )
+                if comparison.state is Comparability.COMPARABLE:
+                    continue
+                if comparison.state is Comparability.DIFFERENT:
+                    reason = "scope_differs"
+                elif not comparison.shared_axes:
+                    # Agreeing on nothing is not agreement.
+                    reason = "scope_undeclared"
+                else:
+                    reason = "scope_incomplete"
+                conflicts.append(
+                    ScopeConflict(
+                        proposition_id=proposition_id,
+                        contradicting_relation_id=assessment.id,
+                        other_relation_id=other.id,
+                        differing_axes=comparison.differing_axes,
+                        reason=reason,
+                        missing_groups=comparison.missing_groups,
+                        shared_axes=comparison.shared_axes,
                     )
-                elif not assessment.scope.shared_axes(other.scope):
-                    # No declared axis in common. Agreeing on nothing is not
-                    # agreement, so comparability has not been shown.
-                    conflicts.append(
-                        ScopeConflict(
-                            proposition_id=proposition_id,
-                            contradicting_relation_id=assessment.id,
-                            other_relation_id=other.id,
-                            differing_axes=(),
-                            reason="scope_undeclared",
-                        )
-                    )
+                )
     return tuple(conflicts)
 
 

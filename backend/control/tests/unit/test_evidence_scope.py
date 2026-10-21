@@ -12,6 +12,7 @@ from toxagent.domain import activity_summary
 from toxagent.domain.evidence_relation import (
     MEASUREMENT_AXES,
     Applicability,
+    Comparability,
     Directness,
     EvidenceRelationAssessment,
     EvidenceScope,
@@ -94,7 +95,9 @@ def test_two_hERG_sources_from_different_assays_cannot_contradict_each_other():
 
 def test_a_contradiction_within_one_assay_is_left_alone():
     proposition = new_proposition_id()
-    scope = EvidenceScope(endpoint="herg", assay_type="F", unit="nM")
+    scope = EvidenceScope(
+        endpoint="herg", ligand_id="CHEMBL1220", assay_type="F", unit="nM"
+    )
     relations = [
         _relation(
             proposition_id=proposition,
@@ -223,25 +226,122 @@ def test_a_contradiction_between_two_scopeless_sources_is_refused():
     assert len(conflicts) == 1
     assert conflicts[0].reason == "scope_undeclared"
     assert conflicts[0].differing_axes == ()
+    assert conflicts[0].missing_groups == ("outcome", "subject")
     assert "shares no declared measurement axis" in conflicts[0].describe()
 
 
-def test_one_shared_declared_axis_is_enough_to_be_comparable():
+def _pair(supports: EvidenceScope, contradicts: EvidenceScope, **kwargs):
+    proposition = new_proposition_id()
+    return scope_conflicts(
+        [
+            _relation(
+                proposition_id=proposition,
+                relation=RelationLabel.SUPPORTS,
+                scope=supports,
+                source_id="evi_a",
+            ),
+            _relation(
+                proposition_id=proposition,
+                relation=RelationLabel.CONTRADICTS,
+                scope=contradicts,
+                source_id="evi_b",
+            ),
+        ],
+        **kwargs,
+    )
+
+
+def test_sharing_only_the_endpoint_is_not_assessed_rather_than_comparable():
+    """#43: "both say hERG" does not make two sources about the same thing.
+    This test used to assert the opposite."""
     both_herg = EvidenceScope(endpoint="herg")
-    assert both_herg.comparable_with(EvidenceScope(endpoint="herg", assay_type="F"))
+    comparison = both_herg.compare(EvidenceScope(endpoint="herg"))
+    assert comparison.state is Comparability.NOT_ASSESSED
+    assert comparison.missing_groups == ("subject",)
+    assert not both_herg.comparable_with(EvidenceScope(endpoint="herg"))
+
+    conflicts = _pair(EvidenceScope(endpoint="herg"), EvidenceScope(endpoint="herg"))
+
+    assert len(conflicts) == 1
+    assert conflicts[0].reason == "scope_incomplete"
+    assert conflicts[0].comparability is Comparability.NOT_ASSESSED
+    assert conflicts[0].shared_axes == ("endpoint",)
+    assert "in which molecule or system" in conflicts[0].describe()
+
+
+def test_a_finding_needs_what_was_observed_and_in_what():
+    """A statement in a paper is not held to assay fields it cannot state."""
+    finding = EvidenceScope(endpoint="platelet aggregation", ligand_id="aspirin")
+    assert finding.compare(finding).state is Comparability.COMPARABLE
+    assert _pair(finding, finding) == ()
+    # the subject alone, without the outcome, is not enough either
+    subject_only = EvidenceScope(ligand_id="aspirin", species="human")
+    assert subject_only.compare(subject_only).missing_groups == ("outcome",)
+
+
+def test_stating_how_one_side_was_measured_makes_it_a_measurement():
+    """The other half of the old test: one side says patch clamp, the other
+    only hERG. That is not two measurements of the same thing."""
+    stated = EvidenceScope(endpoint="herg", ligand_id="CHEMBL1220", assay_type="F")
+    silent = EvidenceScope(endpoint="herg", ligand_id="CHEMBL1220")
+    comparison = stated.compare(silent)
+    assert comparison.measurement
+    assert comparison.state is Comparability.NOT_ASSESSED
+    assert comparison.missing_groups == ("method",)
+    assert "how it was measured" in _pair(silent, stated)[0].describe()
+
+
+def test_a_source_known_to_be_measured_cannot_escape_the_bar_by_saying_less():
+    scope = EvidenceScope(endpoint="herg", ligand_id="CHEMBL1220")
+    assert _pair(scope, scope) == ()
+
+    conflicts = _pair(scope, scope, measured_source_ids=frozenset({"evi_b"}))
+
+    assert [c.missing_groups for c in conflicts] == [("method",)]
+
+
+def test_two_measurements_of_one_thing_by_one_method_are_comparable():
+    scope = EvidenceScope(
+        endpoint="herg", ligand_id="CHEMBL1220", assay_type="F", readout="IC50"
+    )
+    assert scope.compare(scope, measurement=True).state is Comparability.COMPARABLE
+
+
+def test_a_difference_is_reported_before_anything_missing():
+    one = EvidenceScope(endpoint="herg", assay_type="B")
+    other = EvidenceScope(endpoint="herg", assay_type="F")
+    comparison = one.compare(other)
+    assert comparison.state is Comparability.DIFFERENT
+    assert comparison.differing_axes == ("assay_type",)
+
+
+def test_only_the_supporting_side_is_compared():
+    """Two contradicting sources do not disagree with each other, and a
+    contextual, insufficient or not_applicable source takes no side. A
+    scopeless one of those must not get a sound contradiction refused."""
+    proposition = new_proposition_id()
+    sound = EvidenceScope(endpoint="platelet aggregation", ligand_id="aspirin")
+    relations = [
+        _relation(proposition_id=proposition, relation=RelationLabel.SUPPORTS,
+                  scope=sound, source_id="evi_a"),
+        _relation(proposition_id=proposition, relation=RelationLabel.CONTRADICTS,
+                  scope=sound, source_id="evi_b"),
+        _relation(proposition_id=proposition, relation=RelationLabel.CONTRADICTS,
+                  scope=sound, source_id="evi_c"),
+    ]
+    for label in (RelationLabel.CONTEXTUAL, RelationLabel.INSUFFICIENT,
+                  RelationLabel.NOT_APPLICABLE):
+        relations.append(
+            _relation(proposition_id=proposition, relation=label,
+                      scope=EvidenceScope(), source_id=f"evi_{label.value}")
+        )
+    assert scope_conflicts(relations) == ()
+
+
+def test_a_contradiction_with_no_supporting_source_is_not_compared():
     proposition = new_proposition_id()
     relations = [
-        _relation(
-            proposition_id=proposition,
-            relation=RelationLabel.SUPPORTS,
-            scope=EvidenceScope(endpoint="herg"),
-            source_id="evi_a",
-        ),
-        _relation(
-            proposition_id=proposition,
-            relation=RelationLabel.CONTRADICTS,
-            scope=EvidenceScope(endpoint="herg"),
-            source_id="evi_b",
-        ),
+        _relation(proposition_id=proposition, relation=RelationLabel.CONTRADICTS,
+                  scope=EvidenceScope(), source_id="evi_a"),
     ]
     assert scope_conflicts(relations) == ()

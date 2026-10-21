@@ -85,6 +85,12 @@ def measured_value(facts: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def is_measured_value(facts: Mapping[str, Any]) -> bool:
+    """Whether a record states a value, which makes it a measurement to
+    compare as one, rather than a statement about a finding."""
+    return _first(facts, VALUE_KEYS) is not None
+
+
 def normalised_record(
     facts: Mapping[str, Any], *, endpoint: str | None = None
 ) -> dict[str, Any]:

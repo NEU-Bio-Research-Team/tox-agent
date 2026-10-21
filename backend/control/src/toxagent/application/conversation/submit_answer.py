@@ -30,6 +30,7 @@ from ...domain.evidence_relation import (
 )
 from ...domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ...domain.observation import Observation
+from ...research.measurement import is_measured_value
 from ...validation.answer.validator import AnswerValidationResult, validate_candidate
 from ...validation.fallback import build_fallback_answer
 from ...validation.prohibited_claims import validate_posture_wording
@@ -388,6 +389,10 @@ class SubmitAnswer:
         proposition_ids: dict[str, str] = {}
         assessments: list[EvidenceRelationAssessment] = []
         violations: list[Violation] = []
+        # Sources that are measured values, whatever scope the model declared
+        # for them: a contradiction involving one is held to the measurement
+        # bar, so leaving the assay out of the scope cannot lower it.
+        measured: set[str] = set()
         now = _now()
         for index, item in enumerate(proposed):
             if item.source_class == "agent_synthesis":
@@ -423,6 +428,10 @@ class SubmitAnswer:
                     )
                 )
                 continue
+            if item.source_class in ("external_experimental", "external_regulatory"):
+                record = await uow.evidence.get(item.source_id, session_id=session_id)
+                if record is not None and is_measured_value(record.normalized_facts):
+                    measured.add(item.source_id)
             proposition_id = proposition_ids.setdefault(item.proposition, new_proposition_id())
             assessments.append(
                 EvidenceRelationAssessment.create(
@@ -453,10 +462,11 @@ class SubmitAnswer:
             )
         # A `contradicts` claims two sources cannot both hold, which requires
         # them to have measured the same thing. Where the scopes differ, the
-        # model is told which axis differs and asked for `contextual` instead —
-        # a false contradiction is on the critical-error list, so this is a
+        # model is told which axis differs and asked for `contextual` instead;
+        # where they say too little to tell, it is told what to state. A false
+        # contradiction is on the critical-error list, so either is a
         # violation rather than a silent downgrade.
-        for conflict in scope_conflicts(assessments):
+        for conflict in scope_conflicts(assessments, measured_source_ids=frozenset(measured)):
             position = next(
                 (
                     index
@@ -465,14 +475,25 @@ class SubmitAnswer:
                 ),
                 0,
             )
-            violations.append(
-                Violation(
-                    "evidence_relation_contradiction_out_of_scope",
-                    f"{conflict.describe()}; state it as 'contextual' and name the "
-                    "differing scope, or correct the scope if they do match",
-                    path=f"evidence_relations[{position}].relation",
+            if conflict.reason == "scope_differs":
+                violations.append(
+                    Violation(
+                        "evidence_relation_contradiction_out_of_scope",
+                        f"{conflict.describe()}; state it as 'contextual' and name the "
+                        "differing scope, or correct the scope if they do match",
+                        path=f"evidence_relations[{position}].relation",
+                    )
                 )
-            )
+            else:
+                violations.append(
+                    Violation(
+                        "evidence_relation_contradiction_scope_not_assessed",
+                        f"{conflict.describe()}, as each source states them; if a source "
+                        "does not say, leave that field out and state the relation as "
+                        "'contextual' instead -- do not fill a scope in to make it match",
+                        path=f"evidence_relations[{position}].relation",
+                    )
+                )
         if violations:
             return [], violations
         return assessments, []
