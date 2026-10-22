@@ -1,0 +1,46 @@
+{
+  "schema_version": "investigation-case-v3",
+  "set_id": "protocol-v2-adjudication-seed-1",
+  "case_id": "inv-pt01-herg-blocker-confirmed",
+  "tags": [
+    "t3",
+    "toxicity_only",
+    "synthetic",
+    "predictor_adjudication",
+    "corroborate"
+  ],
+  "task_group": "T3",
+  "workflow_context": "toxicity_only",
+  "answerability": "answerable_from_corpus",
+  "evidence_mode": "frozen",
+  "cohort": "synthetic_engineering",
+  "stress_set": false,
+  "inputs_ref": {
+    "path": "../inputs/inv-pt01-herg-blocker-confirmed.json",
+    "sha256": "5551a9dc1414e1a889deace3e0f07000f73e7592e494e04ea0f4423f325fdc2f"
+  },
+  "gold_ref": {
+    "path": "../gold/inv-pt01-herg-blocker-confirmed.json",
+    "sha256": "b2141b3cf5c9bcf1ba0287d772dd1fb1986a8ed58f63dde923de1479a5c2e440"
+  },
+  "provenance": {
+    "kind": "synthetic_engineering_fixture"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1"
+    ],
+    "documents": [
+      "MED:93011"
+    ],
+    "measurements": [
+      "inv-pt01-herg-blocker-confirmed:p",
+      "inv-pt01-herg-blocker-confirmed:ic50"
+    ],
+    "sources": [
+      "MED:93011"
+    ]
+  },
+  "split": "dev",
+  "spec_sha256": "05f81aa7ffcda861fc11555d7502a43e1ba195d68f2224579264d7613533e170"
+}

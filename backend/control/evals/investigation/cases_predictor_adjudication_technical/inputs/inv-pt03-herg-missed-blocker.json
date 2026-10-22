@@ -1,0 +1,65 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pt03-herg-missed-blocker",
+  "workflow_context": "toxicity_only",
+  "subject": {
+    "subject_ref": {
+      "kind": "analysis",
+      "analysis_ref": "ana_8907778a0a094ee5bbbc2abd3dbb1a19"
+    },
+    "identity": {
+      "canonical_smiles": "CCN(CC)CCOC(=O)c1ccccc1N",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "frozen_analysis",
+      "ref": "ana_8907778a0a094ee5bbbc2abd3dbb1a19",
+      "content_sha256": "57835fac6cdc26c738521d0b27cd13beea6a303f803ee9e1fbe78505f177f0f6"
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the predictor say about hERG for TX-303, and does the available evidence support or contradict that call?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CCN(CC)CCOC(=O)c1ccccc1N"
+    ],
+    "documents": [
+      "MED:93031"
+    ],
+    "measurements": [
+      "inv-pt03-herg-missed-blocker:p",
+      "inv-pt03-herg-missed-blocker:ic50"
+    ],
+    "sources": [
+      "MED:93031"
+    ]
+  }
+}

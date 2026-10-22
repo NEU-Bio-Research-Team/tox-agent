@@ -85,6 +85,9 @@ def read_grades_v2(paths: Sequence[Path], *, criticals: Sequence[str]) -> list[d
                 for column in _LIST_COLUMNS:
                     grade[column] = [v.strip() for v in (row.get(column) or "").split(";")
                                      if v.strip()]
+                # Predictor adjudication marks (adjudication.py), on cases that have them.
+                for column in ("agent_stance", "agent_label", "evidence_grounded"):
+                    grade[column] = (row.get(column) or "").strip()
                 rows.append(grade)
     return rows
 
@@ -446,7 +449,11 @@ def build_scorecard_v2(
     criticals: Sequence[str], compare: Sequence[tuple[str, str]] = (),
     reps: int = 2000, seed: int = 20261022, cost: Mapping[str, Any] | None = None,
     retrieval: Mapping[str, Any] | None = None,
+    claims: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
+    from evals.investigation import adjudication as adjudication_module
+    from evals.investigation import claims as claims_module
+
     rows = outcome_rows(key=key, grades=grades, cases=cases)
     return {
         "schema_version": SCHEMA_VERSION, "study_id": key.get("study_id"),
@@ -461,6 +468,9 @@ def build_scorecard_v2(
         "agreement": agreement(grades),
         "completeness": completeness(key=key, grades=grades, rows=rows),
         "retrieval": dict(retrieval or {}),
+        "hallucination": (claims_module.hallucination(key=key, claims=claims)
+                          if claims else {}),
+        "adjudication": adjudication_module.adjudication(key=key, grades=grades, gold=gold),
         "cost": dict(cost or {}),
         "note": "Dimensions are separate measurements; there is no total score. Engineering "
                 "conformance on synthetic fixtures is not scientific performance.",
@@ -548,6 +558,12 @@ def render_markdown(card: Mapping[str, Any]) -> str:
             lines.append(f"| `{system_id}` | {row.get('attempts')} | {row.get('turns')} | "
                          f"{row.get('median_turn_seconds') or '—'} | {tokens} | {money} | "
                          f"{row.get('records_with_unknown_usage')} |")
+    from evals.investigation import adjudication as adjudication_module
+    from evals.investigation import claims as claims_module
+
+    if card.get("hallucination"):
+        lines += claims_module.render_markdown(card["hallucination"])
+    lines += adjudication_module.render_markdown(card.get("adjudication") or {})
     agree = card["agreement"]
     lines += ["", "## Grading", "",
               f"- graders: {', '.join(agree['graders']) or 'none'}",
@@ -642,7 +658,7 @@ def write_card(card: Mapping[str, Any], directory: Path) -> dict[str, str]:
 
 def score_study(*, study_dir: Path, case_set_dir: Path, packet_id: str, grades: Sequence[Path],
                 compare: Sequence[tuple[str, str]] = (), reps: int = 2000,
-                seed: int = 20261022) -> dict[str, Any]:
+                seed: int = 20261022, claims: Sequence[Path] = ()) -> dict[str, Any]:
     """The card of one packet: its grades, the study's traces, its case set."""
     from evals.investigation.case_inputs import load_case, load_case_set
     from evals.investigation.packet import RUBRIC_PATH
@@ -671,7 +687,14 @@ def score_study(*, study_dir: Path, case_set_dir: Path, packet_id: str, grades: 
         criticals=criticals, compare=compare, reps=reps, seed=seed,
         cost=usage_summary(records),
         retrieval=retrieval_summary(key=key, gold=gold, traces=traces),
+        claims=_claim_rows(claims),
     )
+
+
+def _claim_rows(paths: Sequence[Path]) -> list[dict[str, Any]]:
+    from evals.investigation.claims import read_claim_sheets
+
+    return read_claim_sheets(paths) if paths else []
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -688,11 +711,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--grades", type=Path, nargs="+", required=True)
     parser.add_argument("--compare", action="append", default=[], metavar="SYSTEM:BASELINE")
     parser.add_argument("--reps", type=int, default=2000)
+    parser.add_argument("--claims", type=Path, nargs="*", default=[],
+                        help="atomic-claim sheets (claims.py) for the hallucination section")
     args = parser.parse_args(argv)
     study_dir = args.root / args.study
     card = score_study(
         study_dir=study_dir, case_set_dir=args.case_set, packet_id=args.packet_id,
-        grades=args.grades, reps=args.reps,
+        grades=args.grades, reps=args.reps, claims=args.claims,
         compare=[tuple(item.split(":", 1)) for item in args.compare],
     )
     written = write_card(card, study_dir / "scorecards" / args.packet_id)

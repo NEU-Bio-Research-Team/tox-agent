@@ -41,6 +41,8 @@ from evals.investigation import turn_actions
 from evals.investigation.case_inputs import load_case_set
 from evals.investigation.packet import RUBRIC_PATH, scrub
 from evals.investigation.record import STATUS_OK, StudyStore, now_iso
+from evals.investigation import adjudication as adjudication_module
+from evals.investigation import claims as claims_module
 from evals.investigation.task_groups import FORBIDDEN_INFERENCES, LIMITATION_GUIDE
 from evals.investigation.run import DEFAULT_ROOT
 
@@ -179,6 +181,21 @@ def reference_markdown(loaded, gold: Mapping[str, Any]) -> str:
             access = span.get("access") or "full_text_retrieved"
             quote = f" — “{span['quote']}”" if span.get("quote") else ""
             lines.append(f"- {span['evidence_ref']} at `{span['locator']}` ({access}){quote}")
+    adjudication = gold.get("adjudication")
+    if adjudication:
+        lines += ["", "## Predictor adjudication", "",
+                  f"- endpoint: {adjudication.get('endpoint')} "
+                  f"(rule: {adjudication.get('rule') or 'as stated by the case'})",
+                  f"- the predictor called: **{adjudication.get('predictor_call')}**; "
+                  f"verified: **{adjudication.get('verified')}** "
+                  f"(from {adjudication.get('verified_by') or 'the case'}) -- the predictor is "
+                  f"**{'right' if adjudication.get('predictor_call') == adjudication.get('verified') else 'wrong'}**",
+                  f"- decidable from the corpus the system can search: "
+                  f"**{'yes' if adjudication.get('decidable_from_corpus') else 'no'}**",
+                  f"- expected stance: **{adjudication.get('expected_stance')}**",
+                  f"- deciding source(s): {', '.join(adjudication.get('deciding_sources') or ()) or 'none in the corpus'}",
+                  "- fill `agent_stance`, `agent_label` and `evidence_grounded` for this case "
+                  "(README_FOR_GRADERS.md)."]
     error = gold.get("predictor_error")
     if error:
         lines += ["", "## The predictor's own output", ""]
@@ -293,6 +310,9 @@ def build_packet_v2(*, study_dir: Path, case_set_dir: Path, packet_id: str, seed
                                            encoding="utf-8")
         (directory / "grader_reference.md").write_text(
             reference_markdown(loaded, gold_by_case[case_id]), encoding="utf-8")
+        # What the systems were given, for labelling atomic claims (claims.py).
+        (directory / "sources.md").write_text(
+            claims_module.sources_markdown(case_set, loaded.inputs), encoding="utf-8")
         present, missing = [], 0
         for system_id in chosen:
             for trial in range(1, trials + 1):
@@ -330,7 +350,8 @@ def build_packet_v2(*, study_dir: Path, case_set_dir: Path, packet_id: str, seed
                            "missing": missing}
 
     columns = (["grader_id", "case_id", "response_id", "task_success", *LIST_COLUMNS]
-               + criticals + [d["id"] for d in rubric["dimensions"]] + ["comments"])
+               + criticals + [d["id"] for d in rubric["dimensions"]]
+               + list(adjudication_module.COLUMNS) + ["comments"])
     with (packet_dir / "grading_sheet.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=columns)
         writer.writeheader()
@@ -338,7 +359,11 @@ def build_packet_v2(*, study_dir: Path, case_set_dir: Path, packet_id: str, seed
             writer.writerow({**{c: "" for c in columns}, **row})
     (packet_dir / "rubric.json").write_text(json.dumps(rubric, indent=2) + "\n",
                                             encoding="utf-8")
-    (packet_dir / "README_FOR_GRADERS.md").write_text(GRADER_README, encoding="utf-8")
+    (packet_dir / "README_FOR_GRADERS.md").write_text(
+        GRADER_README + "\n" + adjudication_module.INSTRUCTIONS, encoding="utf-8")
+    with (packet_dir / "claims_sheet.csv").open("w", newline="", encoding="utf-8") as handle:
+        csv.writer(handle).writerow(claims_module.COLUMNS)
+    (packet_dir / "README_CLAIMS.md").write_text(claims_module.INSTRUCTIONS, encoding="utf-8")
     packet_manifest = {
         "schema_version": PACKET_SCHEMA, "packet_id": packet_id, "created_at": now_iso(),
         "study_id": manifest.get("study_id"), "case_set": case_set.pins(),

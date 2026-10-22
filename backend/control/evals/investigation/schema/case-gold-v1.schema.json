@@ -231,6 +231,59 @@
     },
     "note": {
       "type": "string"
+    },
+    "adjudication": {
+      "description": "Predictor adjudication (adjudication.py): what the predictor called, the verified answer and the stance an agent should take given the corpus it can search.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpoint",
+        "predictor_call",
+        "verified",
+        "decidable_from_corpus",
+        "expected_stance",
+        "deciding_sources"
+      ],
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string"
+        },
+        "predictor_call": {
+          "enum": [
+            "positive",
+            "negative"
+          ]
+        },
+        "verified": {
+          "enum": [
+            "positive",
+            "negative"
+          ]
+        },
+        "verified_by": {
+          "type": "string"
+        },
+        "decidable_from_corpus": {
+          "type": "boolean"
+        },
+        "expected_stance": {
+          "enum": [
+            "corroborate",
+            "challenge",
+            "insufficient"
+          ]
+        },
+        "deciding_sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

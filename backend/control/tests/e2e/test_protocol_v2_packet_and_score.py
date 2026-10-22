@@ -98,6 +98,12 @@ async def test_a_study_becomes_a_blinded_packet_and_a_scorecard(db, monkeypatch,
     reference = (packet_dir / "cases" / cases[0] / "grader_reference.md").read_text()
     assert gold["reference_outcome"] in reference
     assert "synthetic engineering fixture" in reference
+    # Hallucination grading needs what the systems were given, never the gold.
+    sources = (packet_dir / "cases" / cases[0] / "sources.md").read_text()
+    assert "## Frozen artifacts" in sources and "## Evidence corpus" in sources
+    assert gold["reference_outcome"] not in sources
+    assert (packet_dir / "claims_sheet.csv").read_text().startswith("grader_id,case_id")
+    assert "agent_stance" in (packet_dir / "grading_sheet.csv").read_text().splitlines()[0]
     assert result["responses_per_case"][cases[0]] == {"expected": 2, "included": 2, "missing": 0}
     assert result["gold_status"] == ["synthetic_engineering_gold"]
 

@@ -212,6 +212,8 @@ def main(argv: list[str] | None = None) -> int:
     card.add_argument("--grades", type=Path, nargs="+", required=True)
     card.add_argument("--compare", action="append", default=[], metavar="SYSTEM:BASELINE")
     card.add_argument("--reps", type=int, default=2000)
+    card.add_argument("--claims", type=Path, nargs="*", default=[],
+                      help="atomic-claim sheets: adds the hallucination section")
 
     bundle = sub.add_parser("freeze", help="write the repro bundle")
     common(bundle)
@@ -256,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         study_dir = args.root / args.study
         result = score_study(
             study_dir=study_dir, case_set_dir=args.case_set, packet_id=args.packet_id,
-            grades=args.grades, reps=args.reps,
+            grades=args.grades, reps=args.reps, claims=args.claims,
             compare=[tuple(item.split(":", 1)) for item in args.compare])
         written = write_card(result, study_dir / "scorecards" / args.packet_id)
         print(render_markdown(result))

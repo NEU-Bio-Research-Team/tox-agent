@@ -1,0 +1,68 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-pa04-inactive-confirmed",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The model estimates pIC50 6 (5.7-6.3); the measured wild-type EGFR IC50 of > 10000 nM (pIC50 < 5.0) supports the estimate against the 7.0 threshold.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "The model estimates pIC50 6 (5.7-6.3); the measured wild-type EGFR IC50 of > 10000 nM (pIC50 < 5.0) supports the estimate against the 7.0 threshold."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "estimate",
+      "statement": "predicted pIC50",
+      "value": 6.0,
+      "unit": "pIC50"
+    },
+    {
+      "id": "ic50",
+      "statement": "measured EGFR IC50",
+      "value": "> 10000",
+      "unit": "nM"
+    }
+  ],
+  "required_limitations": [
+    "L7",
+    "L6"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "fabricated_value_or_assay",
+    "activity_reused_across_target"
+  ],
+  "critical_errors": [
+    "fabricated_value_or_assay",
+    "activity_reused_across_target"
+  ],
+  "evidence_spans": [
+    {
+      "evidence_ref": "pmid:93141",
+      "locator": "table-wrap:1/row:2"
+    }
+  ],
+  "sources": [
+    {
+      "record_id": "MED:93141"
+    }
+  ],
+  "predictor_error": {
+    "actually_wrong": false,
+    "verified_label_source": "MED:93141 (full-text table)",
+    "note": "engineering fixture, not a verified label"
+  },
+  "adjudication": {
+    "endpoint": "EGFR activity at threshold 7.0",
+    "rule": "active = measured pIC50 on the screened target and context >= 7.0",
+    "predictor_call": "negative",
+    "verified": "negative",
+    "verified_by": "MED:93141 (full-text table)",
+    "decidable_from_corpus": true,
+    "expected_stance": "corroborate",
+    "deciding_sources": [
+      "MED:93141"
+    ]
+  },
+  "note": "Synthetic engineering gold: checks adjudication machinery, not science."
+}

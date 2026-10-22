@@ -1,0 +1,68 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pa02-estimate-overcalled",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_0578bcfcda014579b2b19e4c13b59d88"
+    },
+    "identity": {
+      "canonical_smiles": "Cc1ccc(NC(=O)c2ccccc2)cc1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_0578bcfcda014579b2b19e4c13b59d88",
+      "content_sha256": "1f2c2b0525827a6480dfe7cbd4e8d676e7b09f121f1582790a28089fdc38c74b",
+      "stage_status": {
+        "screening": "completed"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the activity model estimate for TX-312 on EGFR, and does measured evidence support or contradict it?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "Cc1ccc(NC(=O)c2ccccc2)cc1"
+    ],
+    "documents": [
+      "MED:93121"
+    ],
+    "measurements": [
+      "inv-pa02-estimate-overcalled:estimate",
+      "inv-pa02-estimate-overcalled:ic50"
+    ],
+    "sources": [
+      "MED:93121"
+    ]
+  }
+}
