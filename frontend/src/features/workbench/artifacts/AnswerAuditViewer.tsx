@@ -140,12 +140,17 @@ export function AnswerAuditViewer({ sessionId, answerId }: { sessionId: string; 
                       evidence {evidenceId.slice(0, 12)}… →
                     </Link>
                   ))}
-                  {/* The passages the claim quotes: each opens on its row or cell. */}
+                </div>
+              )}
+              {/* The passages the claim quotes, one per line (a locator is long
+                  and the panel is narrow): each opens on its row or cell. */}
+              {(claim.evidence_spans ?? []).length > 0 && (
+                <div className="mt-1 space-y-0.5">
                   {(claim.evidence_spans ?? []).map((span) => (
                     <Link
                       key={`${span.evidence_id}:${span.locator}`}
                       to={artifactPath(sessionId, { kind: 'evidence', entityId: span.evidence_id, locator: span.locator })}
-                      className="font-mono underline"
+                      className="block break-all font-mono underline"
                       style={{ color: 'var(--accent-blue)' }}
                     >
                       đoạn {span.locator} →

@@ -63,7 +63,7 @@ export function ClaimChip({ claim, sessionId, index }: { claim: Claim; sessionId
                 <Link
                   key={`${span.evidence_id}:${span.locator}`}
                   to={artifactPath(sessionId, { kind: 'evidence', entityId: span.evidence_id, locator: span.locator })}
-                  className="block font-mono underline"
+                  className="block break-all font-mono underline"
                   style={{ color: 'var(--accent-blue)' }}
                 >
                   mở đoạn {span.locator} →

@@ -48,8 +48,10 @@ export function AnswerBlock({
     queryFn: () => getAnswer(sessionId, answerId),
   });
   // Cùng một câu trả lời có thể là bản đã review, bản đã sửa rồi review, hoặc
-  // chỉ là dữ kiện của một kết quả bị giữ lại.
-  const result = useRunResult(sessionId, runId);
+  // chỉ là dữ kiện của một kết quả bị giữ lại. Một message đời cũ không có
+  // result_ref: hỏi theo run của chính answer, để server trả "không biết đã
+  // review hay chưa" thay vì không hiện gì (§10.3).
+  const result = useRunResult(sessionId, runId ?? query.data?.run_id);
 
   if (query.isLoading) {
     return (
