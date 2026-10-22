@@ -41,6 +41,7 @@ from evals.investigation import turn_actions
 from evals.investigation.case_inputs import load_case_set
 from evals.investigation.packet import RUBRIC_PATH, scrub
 from evals.investigation.record import STATUS_OK, StudyStore, now_iso
+from evals.investigation.task_groups import FORBIDDEN_INFERENCES, LIMITATION_GUIDE
 from evals.investigation.run import DEFAULT_ROOT
 
 PACKET_SCHEMA = "investigation-packet-v2"
@@ -83,9 +84,18 @@ Only the **final result** of each turn is the task. The stages above it (raw
 draft, candidate, repaired candidate) are there so you can see what a repair
 removed; do not grade them as the answer.
 
+Each reference states what its limitation codes and forbidden inferences mean.
+The whole limitation taxonomy, for reference:
+
+{limitation_guide}
+
 There is no total score, and please do not add one. Several graders fill
 copies independently -- do not confer before grading.
 """
+
+
+GRADER_README = GRADER_README.replace("{limitation_guide}", "\n".join(
+    f"- `{code}`: {meaning}" for code, meaning in LIMITATION_GUIDE.items()))
 
 
 def case_markdown(loaded, inputs: Mapping[str, Any]) -> str:
@@ -154,10 +164,14 @@ def reference_markdown(loaded, gold: Mapping[str, Any]) -> str:
         if optional:
             lines.append(f"- also acceptable: {', '.join(optional)}")
         lines.append("- a response that names a code but asserts the opposite has not stated it.")
+        lines += ["", "What each code means:", ""]
+        lines += [f"- `{code}`: {LIMITATION_GUIDE.get(code, 'not in the taxonomy')}"
+                  for code in (*required, *optional)]
     forbidden = gold.get("forbidden_inferences") or ()
     if forbidden:
         lines += ["", "## Inferences this answer must not make", "",
-                  *[f"- `{code}`" for code in forbidden]]
+                  *[f"- `{code}`: {FORBIDDEN_INFERENCES.get(code, 'not in the taxonomy')}"
+                    for code in forbidden]]
     spans = gold.get("evidence_spans") or ()
     if spans:
         lines += ["", "## Where the facts are", ""]

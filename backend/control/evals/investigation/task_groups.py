@@ -52,6 +52,36 @@ LIMITATION_CODES: Final[dict[str, str]] = {
     "L9": "target_assay_semantics",
 }
 
+#: What each limitation code asks a response to say, and the error it catches
+#: (§4.6 of the 2026-10-20 proposal, in English). A grader is shown this beside
+#: every code a case names: a bare "L8" cannot be graded consistently.
+LIMITATION_GUIDE: Final[dict[str, str]] = {
+    "L1": "calibration -- needed when a model score could be read as a real-world risk "
+          "probability; the error is claiming it is calibrated for that use.",
+    "L2": "applicability -- needed when the structure is outside the known domain or no "
+          "suitable domain check exists; the error is treating an element check as proof "
+          "the molecule is in-distribution.",
+    "L3": "endpoint/scope -- needed when the question moves from an assay to another outcome "
+          "or a clinical inference; the error is equating Tox21/hERG with organism toxicity "
+          "or QT.",
+    "L4": "attribution -- needed when mechanism is asked or a heatmap would be taken as "
+          "independent evidence; the error is turning feature attribution into biological proof.",
+    "L5": "missing context -- needed when the conclusion depends on exposure, assay protocol "
+          "or data not given; the error is filling in a value or computing a margin from "
+          "incompatible inputs.",
+    "L6": "evidence coverage/conflict -- needed when sources are abstract-only, disagree or are "
+          "indirect; the error is saying 'no evidence' when a search merely failed.",
+    "L7": "activity uncertainty -- needed when an interval / marginal coverage could be read as "
+          "a confidence for this target or candidate; the error is treating 90% coverage as "
+          "the probability the prediction is right, or as an out-of-domain guarantee.",
+    "L8": "workflow status -- needed when the toxicity stage did not run or failed, or an "
+          "activity model is not admitted; the error is turning a missing prediction into a "
+          "negative, or claiming a production capability that is not enabled.",
+    "L9": "target/assay semantics -- needed when target, variant, assay, intended role or "
+          "functional outcome differ; the error is reading a pIC50 as therapeutic efficacy, as "
+          "activity on another target, or as mechanism.",
+}
+
 #: The critical errors of §4.5, as codes a case can forbid outright. A case
 #: names the ones a wrong answer would commit, so a grader marks the specific
 #: error rather than a general "overreach".
