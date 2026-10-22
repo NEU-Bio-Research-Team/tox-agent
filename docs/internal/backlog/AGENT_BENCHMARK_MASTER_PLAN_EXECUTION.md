@@ -23,7 +23,7 @@ Baseline before any change: control suite 2686 passed, 19 skipped.
 | P07a shared-replay-A | #50 | done | four arms on one case set's frozen inputs |
 | P07b strong-B-fairness | #50 | done | effective fairness, attempt isolation, B v3 |
 | P08 stories-skills | #46 | done (engineering part) | live-LLM level of two variants is declared, not run |
-| P09 research-UI | AG-UI | partly done | subject panel, screening card, release banner; passage viewer and case diff not done |
+| P09 research-UI | AG-UI | done | subject panel, screening card, release banner, passage viewer, case diff, audit lineage, browser stories |
 | P10 scoring-packets | #53 | done | packet v2, scorer v2, cluster-paired D-B |
 | P11 pilot-24 | #52 | engineering done | the CLI runs a pilot; the 24 cases need SME gold |
 | P12 freeze-agent | #56 | engineering done | `agent_benchmark.py freeze`; the report needs the pilot |
@@ -324,9 +324,38 @@ answer and on a withheld result (reviewed / repaired-and-reviewed /
 partial-facts / withheld / no-review-by-design / legacy unknown, never
 "scientifically correct").
 
-Not done: the evidence passage viewer's table/locator extension, the case
-board's "what changed / what was kept" diff, the audit view's stage lineage,
-and the browser-level e2e of the four stories.
+Completed later (`b4538cd`, `7fad75f`), each backed by a read model the server
+computes and the UI only renders:
+
+- **Passage viewer** -- `GET /evidence/{id}/passages` (`evidence-passages-v1`):
+  access state (read / refused with the provider's reason / never read), the
+  replayed capture, the record's stated value with relation and unit, and for
+  a `?locator=` the passage and, for a table, caption, header, cells and cited
+  cell, paired by column only when they line up. Claims link to each span;
+  the deep link survives a reload.
+- **Case diff** -- `GET /cases/{id}/runs/{rid}/changes` (`case-changes-v1`,
+  `domain/scientific_case/changes.py`): the case's log replayed to where the
+  previous run left it and to this run's last update; per section added /
+  changed (field by field) / kept, and the run's frozen artifacts compared by
+  content hash, so "the estimate, interval and decision did not change" is
+  stated, not implied.
+- **Audit lineage** -- `GET /runs/{rid}/lineage` (`stage-lineage-v1`,
+  `application/investigation/stage_lineage.py`): every draft, the review rounds
+  with each verdict read against its claim, each claim from candidate to what
+  the reader got (kept / reworded / removed / added), the repair's effect and
+  what the reader did not get. In the answer audit and in the run inspector's
+  new "Phát hành" tab, where a withheld banner now links.
+- **Browser stories** -- `frontend/e2e/stories.spec.ts`: US1-US4 plus a
+  phone-width/keyboard check, on fixtures typed by the generated OpenAPI types
+  (`tsconfig.e2e.json` puts them under `npm run typecheck`). They found two
+  bugs, both fixed: a pre-policy answer showed no release banner at all, and a
+  long span locator had no line of its own in the audit.
+
+Environment note for anyone running the browser tests on this laptop: the
+Playwright headless shell in `~/.cache/ms-playwright` was a truncated download
+(no `INSTALLATION_COMPLETE`) and Chromium rendered generic font families at
+zero width until `fc-cache -f` rebuilt the user font cache. Neither is a
+product issue; both looked like one (a "not visible" link).
 
 ## P10 — packet v2 and scorer v2 (#53)
 
@@ -459,3 +488,25 @@ pins, `TOXAGENT_RUN_BUDGET_PRESET=investigator-pilot-v2`,
 `TOXAGENT_RELEASE_POLICY=strict-reviewed-v1`, the common flags, and only its
 own treatment flags (`fixed_workflow_v1` for B; `scientific_case_v1` +
 `scientific_skills_v1` for D).
+
+## Live four-arm run on openai/gpt-6-luna (2026-10-22)
+
+§17.4 step 4 on the technical set: all four arms, 12 cases, one trial, plus a
+four-case stability repeat declared in advance. Full report:
+`docs/results/agent-protocol-v2-technical-live-2026-10-22.md`.
+
+- Task Success (two LLM graders, range): A2 3/12, B2 1–3/12, C2 7–9/12, D2 6/12;
+  D2 − B2 +0.25 to +0.42 over only two dependency clusters. Synthetic gold, LLM
+  graders: machinery evidence, not a scientific result.
+- Two measurement defects found by running it, fixed before scoring: grader
+  references now define their limitation and inference codes (`f776bbd`), and
+  the replay adapter records what a withheld run showed the reader (`6edddd0`,
+  with `evals.investigation.recapture` for studies recorded with adapter v1).
+- Four product/arm defects explain most failures: the reviewer blocks correct
+  inferential claims; researcher-supplied values cannot be cited (T5 0/2 for
+  every arm); the fallback ignores the run's bound subject; arm B cannot
+  retrieve for a toxicity-only subject (frozen analysis has no ligand names).
+- Laptop lessons: `--parallel 1` on SQLite deployments, and restart the
+  benchmark's OpenCode server between cases (it grows ~200 MB per run). The
+  first attempt at this study ran out of memory and is kept as an aborted
+  diagnostic.
