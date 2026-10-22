@@ -52,7 +52,9 @@ given. It is separate from `grading_sheet.csv` and graded independently.
 For every response file, take the **final result of each turn** (not the earlier
 stages in `<details>`) and split it into atomic factual claims: one checkable
 statement each. "The model predicts 0.21, labelled non_blocker at 0.5" is three
-claims (the probability, the label, the threshold). Then label each claim against
+claims (the probability, the label, the threshold). A list of values copied from
+one artifact (twelve Tox21 assays, say) is one claim when every value in it is
+as stated; split out any value that is not. Then label each claim against
 `sources.md` of that case -- the frozen artifacts and every record in the corpus
 the system could search. Not against the reference, and not against what you
 know about the world:
