@@ -17,4 +17,12 @@ describe('artifactPath', () => {
       fieldPath: 'not-applicable',
     })).toBe('/s/ses_1/evidence/evd_1');
   });
+
+  it('keeps the quoted passage in an evidence deep link', () => {
+    expect(artifactPath('ses_1', {
+      kind: 'evidence',
+      entityId: 'evd_1',
+      locator: 'table-wrap:1/row:3/cell:2',
+    })).toBe('/s/ses_1/evidence/evd_1?locator=table-wrap%3A1%2Frow%3A3%2Fcell%3A2');
+  });
 });

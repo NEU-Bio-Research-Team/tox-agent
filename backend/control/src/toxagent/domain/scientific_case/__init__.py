@@ -32,8 +32,8 @@ so a case can be rebuilt and tested without a database.
 
 Split by role: ``model`` (the case and its entries), ``operations`` (the
 closed set of updates and ``apply``/``replay``), ``updates`` (updates derived
-from an accepted answer or its citations), ``dossier`` (read models). Every
-name is re-exported here.
+from an accepted answer or its citations), ``dossier`` and ``changes`` (read
+models). Every name is re-exported here.
 """
 from __future__ import annotations
 
@@ -118,4 +118,9 @@ from .updates import (  # noqa: F401
 from .dossier import (  # noqa: F401
     compile_dossier,
     checkpoint_summary,
+)
+from .changes import (  # noqa: F401
+    CHANGES_SCHEMA_VERSION,
+    RunNotInCase,
+    run_changes,
 )

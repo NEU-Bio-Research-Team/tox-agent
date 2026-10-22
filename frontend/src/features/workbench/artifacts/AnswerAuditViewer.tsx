@@ -6,6 +6,7 @@ import { FallbackBadge } from '../answer/FallbackBadge';
 import { scrollToRun } from '../lib/scrollToRun';
 import { artifactPath } from '../hooks/useArtifactSelection';
 import { ArtifactUnavailable } from './ArtifactUnavailable';
+import { StageLineage } from './StageLineage';
 
 /**
  * "Kiểm chứng answer" viewer (plan section 8.2.1): claims, observation
@@ -139,6 +140,17 @@ export function AnswerAuditViewer({ sessionId, answerId }: { sessionId: string; 
                       evidence {evidenceId.slice(0, 12)}… →
                     </Link>
                   ))}
+                  {/* The passages the claim quotes: each opens on its row or cell. */}
+                  {(claim.evidence_spans ?? []).map((span) => (
+                    <Link
+                      key={`${span.evidence_id}:${span.locator}`}
+                      to={artifactPath(sessionId, { kind: 'evidence', entityId: span.evidence_id, locator: span.locator })}
+                      className="font-mono underline"
+                      style={{ color: 'var(--accent-blue)' }}
+                    >
+                      đoạn {span.locator} →
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>
@@ -152,6 +164,11 @@ export function AnswerAuditViewer({ sessionId, answerId }: { sessionId: string; 
       </div>
 
       <LimitationBlock limitations={answer.limitations} />
+
+      <div>
+        <p className="mb-2 text-xs font-semibold" style={{ color: 'var(--text)' }}>Các giai đoạn trước khi phát hành</p>
+        <StageLineage sessionId={sessionId} runId={answer.run_id} />
+      </div>
 
       {answer.recommended_next_steps.length > 0 && (
         <div>

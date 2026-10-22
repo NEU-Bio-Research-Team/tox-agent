@@ -512,6 +512,84 @@ class RunResult(_Response):
     note: str | None = None
 
 
+class LineageStage(_Response):
+    index: int
+    phase: str
+    generation: int | None
+    outcome: str | None
+    answer_id: str | None
+    #: The server accepted the draft as an answer (the hard validator passed).
+    hard_valid: bool
+    #: The stage the answer route serves; at most one, none when withheld.
+    is_public: bool
+    violation_codes: list[str]
+    claim_count: int
+    limitation_codes: list[str]
+    #: A candidate's prose: audit material, never the answer.
+    answer_markdown: str
+    created_at: str | None
+
+
+class LineageVerdict(_Response):
+    claim_id: str | None
+    key: str | None
+    text: str | None
+    verdict: str | None
+    reason: str | None
+
+
+class LineageReview(_Response):
+    round: int
+    phase: str
+    status: str | None
+    reason: str | None
+    answer_id: str | None
+    counts: dict[str, int]
+    blocking_claim_ids: list[str]
+    verdicts: list[LineageVerdict]
+
+
+class LineageClaim(_Response):
+    """One claim from the first hard-valid candidate to what the reader got,
+    keyed by the draft's own label so a repair can be read claim by claim."""
+
+    key: str
+    kind: str | None
+    candidate_text: str | None
+    final_text: str | None
+    change: Literal["kept", "reworded", "removed", "added"]
+    verdicts: list[dict[str, Any]]
+
+
+class LineageMissing(_Response):
+    needed_inputs: list[str]
+    unresolved_claim_ids: list[str]
+    lost_limitation_codes: list[str]
+    confirmed_fact_count: int
+    reason: str | None
+    failure_code: str | None
+
+
+class RunStageLineage(_Response):
+    """How the run's answer came to be what the researcher saw (AG-UI audit):
+    drafts, review rounds, the repair's effect and what went missing."""
+
+    schema_version: Literal["stage-lineage-v1"]
+    run_id: str
+    recorded: bool
+    release_policy: str
+    disposition: str | None
+    review_status: str | None
+    execution_outcome: str | None
+    public_answer_id: str | None
+    candidate_answer_id: str | None
+    stages: list[LineageStage]
+    reviews: list[LineageReview]
+    claims: list[LineageClaim]
+    repair: dict[str, Any] | None
+    missing: LineageMissing
+
+
 class ScreeningDetail(_Response):
     """One attached screening as the research UI reads it (#44): its subject,
     each stage's status, the artifacts it holds with their hashes, and that
@@ -588,6 +666,74 @@ class EvidenceRecordView(_Response):
 class EvidenceListResponse(_Response):
     evidence: list[EvidenceRecordView]
     count: int
+
+
+class EvidenceTextAccess(_Response):
+    """Whether the record's text was read (AG-UI passage viewer). ``not_read``
+    when nothing was asked or the record is not an article; a provider outage
+    is never stored, so it never appears here."""
+
+    state: Literal["full_text_retrieved", "access_failed", "not_read"]
+    reason: str | None
+    full_text_id: str | None
+    passage_count: int
+    omitted: dict[str, int]
+    truncated: bool
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
+class PassageOutlineItem(_Response):
+    locator: str
+    section: str
+    kind: str
+    preview: str
+    truncated: bool
+
+
+class PassageColumn(_Response):
+    header: str
+    value: str
+    cited: bool
+
+
+class PassageTable(_Response):
+    """The table around a cited row or cell, as written: units in a header
+    and comparators in a cell are part of the text, never parsed here."""
+
+    locator: str
+    label: str | None
+    caption: str | None
+    header_locator: str | None
+    header: list[str]
+    row_locator: str | None
+    row_kind: str | None
+    cells: list[str]
+    cited_cell: int | None
+    columns: list[PassageColumn]
+
+
+class PassageFocus(_Response):
+    locator: str
+    found: bool
+    passage: dict[str, Any] | None = None
+    table: PassageTable | None = None
+
+
+class EvidencePassagesView(_Response):
+    """What a reader checks a quote against: the access state, the passage a
+    claim cites (with its table), or an outline of every passage read. All of
+    it is external content, never instructions."""
+
+    schema_version: Literal["evidence-passages-v1"]
+    evidence_id: str
+    access: EvidenceTextAccess
+    #: The record's own value with its relation and unit, as the provider
+    #: stated it (a structured record such as a ChEMBL activity); None when
+    #: the record states no value.
+    measurement: dict[str, Any] | None
+    focus: PassageFocus | None
+    passages: list[PassageOutlineItem]
+    untrusted_external_content: Literal[True]
 
 
 # -- events ----------------------------------------------------------------------
@@ -1075,6 +1221,53 @@ class ScientificCaseEvent(_Response):
 class ScientificCaseEventsResponse(_Response):
     case_id: str
     events: list[ScientificCaseEvent]
+
+
+class CaseSectionChanges(_Response):
+    """One section of a case before and after a turn, by entry id."""
+
+    added: list[dict[str, Any]]
+    #: Each with ``changes``: [{field, before, after}].
+    changed: list[dict[str, Any]]
+    kept: list[str]
+    #: Always empty for an append-only case; reported if it ever is not.
+    removed: list[str]
+
+
+class CaseArtifactChanges(_Response):
+    """The frozen artifacts the run was given against the previous run's, by
+    kind and origin id, compared by content hash."""
+
+    compared: bool
+    reason: str | None
+    added: list[dict[str, Any]]
+    changed: list[dict[str, Any]]
+    kept: list[dict[str, Any]]
+    removed: list[dict[str, Any]]
+
+
+class CaseRunChanges(_Response):
+    """What one turn changed in the case, and what it kept (AG-UI, US4). The
+    before and after are the case's own log replayed to two revisions."""
+
+    schema_version: Literal["case-changes-v1"]
+    case_id: str
+    run_id: str
+    previous_run_id: str | None
+    from_revision: int
+    to_revision: int
+    subject: dict[str, Any]
+    updates_by_actor: dict[str, int]
+    operations: list[dict[str, Any]]
+    context: CaseSectionChanges
+    hypotheses: CaseSectionChanges
+    evidence: CaseSectionChanges
+    uncertainties: CaseSectionChanges
+    next_tests: CaseSectionChanges
+    conclusion: dict[str, Any]
+    data_scope: dict[str, Any]
+    run: dict[str, Any]
+    artifacts: CaseArtifactChanges
 
 
 class DossierHypothesis(CaseHypothesis):

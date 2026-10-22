@@ -55,7 +55,9 @@ def _draft(evidence_id: str, *, markdown: str, spans: list[str], limitations: li
     }
 
 
-async def _run(db, provider, script) -> tuple[object, str, dict]:
+async def _run(db, provider, script, *, inspect=None) -> tuple[object, str, dict]:
+    """``inspect(client, session_id)``, when given, runs before the client
+    closes, for a test that reads more of the product than these three."""
     async with api_client(db, StubPredictor(), research_provider=provider) as client:
         await _install_scripted_runtime(client, script)
         session_id = await _new_session(client)
@@ -84,6 +86,8 @@ async def _run(db, provider, script) -> tuple[object, str, dict]:
             )
             assert fetched.status_code == 200, fetched.text
             answer = fetched.json()
+        if inspect is not None:
+            await inspect(client, session_id)
         return run, evidence.json()["evidence"], answer
 
 

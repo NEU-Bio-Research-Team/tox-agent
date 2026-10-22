@@ -64,7 +64,7 @@ export function ArtifactViewer({
     case 'observation':
       return <ObservationArtifact sessionId={sessionId} observationId={selection.entityId} fieldPath={selection.fieldPath} />;
     case 'evidence':
-      return <EvidenceArtifact sessionId={sessionId} evidenceId={selection.entityId} />;
+      return <EvidenceArtifact sessionId={sessionId} evidenceId={selection.entityId} locator={selection.locator} />;
     default:
       return null;
   }

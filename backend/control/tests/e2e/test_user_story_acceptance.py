@@ -22,6 +22,7 @@ import pytest
 from tests.e2e.test_scripted_runtime import _install_scripted_runtime, _new_session
 from tests.support.activity import frozen_screening, replay_file, screening_id
 from tests.support.api import AUTH, api_client, settings, wait_for_run
+from toxagent.api.responses import CaseRunChanges
 from tests.support.predictor import StubPredictor
 from toxagent.platform.config import ActivitySettings
 
@@ -375,6 +376,18 @@ async def test_us4_a_measured_value_changes_the_assessment_and_nothing_else(
         dossier = (await client.get(
             f"/v1/sessions/{session_id}/runs/{after['runs'][-1]['run_id']}/dossier",
             headers=AUTH)).json()
+        # AG-UI: the case board's "what changed / what was kept" for each turn.
+        changes = []
+        for run in after["runs"]:
+            response = await client.get(
+                f"/v1/sessions/{session_id}/cases/{case_id}/runs/{run['run_id']}/changes",
+                headers=AUTH)
+            assert response.status_code == 200, response.text
+            CaseRunChanges.model_validate(response.json())
+            changes.append(response.json())
+        missing = await client.get(
+            f"/v1/sessions/{session_id}/cases/{case_id}/runs/run_{'0' * 32}/changes",
+            headers=AUTH)
 
     # What changed: the case gained the researcher's value, typed, and a
     # revision; the second turn saw it.
@@ -394,3 +407,27 @@ async def test_us4_a_measured_value_changes_the_assessment_and_nothing_else(
     assert detail["prioritisation_decision"]["status"] == "review"
     assert detail["stages"]["toxicity"]["status"] == "not_run"
     assert len(after["runs"]) == 2 and after["case_id"] == before["case_id"]
+
+    # The board's diff says the same, from the case's own log: the second turn
+    # is where the researcher's value is new, the subject is the case's, and
+    # every artifact the second run was given has the first run's hash.
+    first_turn, second_turn = changes
+    assert first_turn["previous_run_id"] is None
+    assert first_turn["artifacts"]["compared"] is False
+    assert second_turn["previous_run_id"] == after["runs"][0]["run_id"]
+    assert second_turn["from_revision"] < second_turn["to_revision"] == after["revision"]
+    assert [c["key"] for c in second_turn["context"]["added"]] == ["measured_pIC50"]
+    assert second_turn["context"]["added"][0]["actor"] == "user"
+    assert second_turn["updates_by_actor"]["user"] >= 1
+    assert second_turn["subject"] == {"subject_key": after["subject_key"], "kept": True}
+    artifacts = second_turn["artifacts"]
+    assert artifacts["compared"] is True
+    assert artifacts["changed"] == [] and artifacts["added"] == [] and artifacts["removed"] == []
+    # The frozen screening record -- estimate, interval, decision, stages --
+    # by its content hash.
+    assert [a["kind"] for a in artifacts["kept"]] == ["screening"]
+    assert artifacts["kept"][0]["content_sha256"]
+    assert all(not section["removed"] for section in (
+        second_turn[name] for name in ("context", "hypotheses", "evidence", "uncertainties",
+                                       "next_tests")))
+    assert missing.status_code == 404

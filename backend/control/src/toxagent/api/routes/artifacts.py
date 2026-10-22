@@ -16,6 +16,7 @@ from ..responses import (
     AnalysisProjection,
     AttributionListResponse,
     EvidenceListResponse,
+    EvidencePassagesView,
     EvidenceRecordView,
     GroundedAnswer,
     ObservationResponse,
@@ -244,4 +245,66 @@ async def get_evidence(
         "content_sha256": record.content_sha256,
         "full_text": _full_text_view(full_text),
         "relevance_assessment": dict(record.relevance_assessment or {}),
+    }
+
+
+@router.get(
+    "/sessions/{session_id}/evidence/{evidence_id}/passages",
+    responses={200: {"model": EvidencePassagesView}},
+)
+async def get_evidence_passages(
+    request: Request,
+    session_id: str,
+    evidence_id: str,
+    locator: str | None = Query(None, max_length=200),
+    principal: Actor = Depends(actor),
+):
+    """What a claim's quote can be checked against (AG-UI passage viewer).
+
+    With ``locator``: that passage, and for a table row or cell the table
+    around it -- caption, header row, cells, the cited cell. Without: an
+    outline of every passage read. Either way the access state (read,
+    refused with the provider's reason, or never read) and, for a structured
+    record, its stated value with relation and unit.
+    """
+    from ...application.investigation.evidence_text import (
+        passage_focus,
+        passage_not_found,
+        passage_outline,
+    )
+    from ...research.measurement import is_measured_value, normalised_record
+
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        record = await uow.evidence.get(evidence_id, session_id=session_id)
+        full_text = (
+            await uow.evidence_text.get(evidence_id, session_id=session_id)
+            if record is not None else None
+        )
+    if record is None:
+        raise NotFound("no such evidence", evidence_id=evidence_id)
+    read = full_text is not None and full_text.was_read
+    view = _full_text_view(full_text) or {}
+    return {
+        "schema_version": "evidence-passages-v1",
+        "evidence_id": evidence_id,
+        "access": {
+            "state": full_text.state if full_text is not None else "not_read",
+            "reason": full_text.reason if full_text is not None else None,
+            "full_text_id": full_text.full_text_id if full_text is not None else None,
+            "passage_count": len(full_text.passages) if full_text is not None else 0,
+            "omitted": dict(full_text.omitted) if full_text is not None else {},
+            "truncated": bool(full_text.truncated) if full_text is not None else False,
+            "provenance": view.get("provenance") or {},
+        },
+        "measurement": (
+            normalised_record(record.normalized_facts)
+            if is_measured_value(record.normalized_facts) else None
+        ),
+        "focus": passage_focus(full_text, locator) if (read and locator) else (
+            passage_not_found(locator) if locator else None
+        ),
+        "passages": passage_outline(full_text) if (read and not locator) else [],
+        "untrusted_external_content": True,
     }

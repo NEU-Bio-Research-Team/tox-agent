@@ -171,3 +171,88 @@ def text_not_read(record: EvidenceRecord, full_text: EvidenceFullText | None) ->
     if not is_article(record):
         return False
     return full_text is None or full_text.state == ACCESS_FAILED
+
+
+#: How much of each passage an outline shows; the focus shows it whole.
+OUTLINE_PREVIEW = 160
+#: An outline is for finding a passage, not for reading the paper.
+OUTLINE_LIMIT = 400
+
+
+def passage_outline(full_text: EvidenceFullText, *, limit: int = OUTLINE_LIMIT) -> list[dict]:
+    """Every passage's locator, section and kind, with the start of its text,
+    in document order -- what a reader browses to find the one a claim cites."""
+    return [
+        {
+            "locator": p.locator, "section": p.section, "kind": p.kind,
+            "preview": p.text[:OUTLINE_PREVIEW],
+            "truncated": p.truncated or len(p.text) > OUTLINE_PREVIEW,
+        }
+        for p in full_text.passages[:limit]
+    ]
+
+
+def _row_of(locator: str) -> tuple[str, int | None]:
+    """``table-wrap:1/row:3/cell:2`` -> (``table-wrap:1/row:3``, 2)."""
+    row, marker, index = locator.rpartition("/cell:")
+    if marker and index.isdigit():
+        return row, int(index)
+    return locator, None
+
+
+def passage_not_found(locator: str) -> dict:
+    """A locator the read text does not hold -- or a text that was never
+    read. Shown as not found, never matched to the nearest passage."""
+    return {"locator": locator, "found": False, "passage": None, "table": None}
+
+
+def passage_focus(full_text: EvidenceFullText, locator: str) -> dict:
+    """The passage at ``locator`` as a reader checks a quote against it.
+
+    For a table row or cell that means the table around it: the table's own
+    passage (label, caption, footnotes -- where units and conditions are often
+    stated), the header row it sits under, the row's cells, which cell the
+    claim names, and the header and cell paired column by column when they
+    line up. Values are shown as written: a ``<`` or ``>`` in a cell is part of
+    the value, and so is a unit in a header, so nothing here parses them.
+    """
+    passage = full_text.passage(locator)
+    if passage is None:
+        return passage_not_found(locator)
+    focus: dict = {"locator": locator, "found": True, "passage": passage.to_dict(), "table": None}
+    row_locator, cell = _row_of(locator)
+    table_locator = row_locator.split("/row:", 1)[0]
+    if not table_locator.startswith("table-wrap:"):
+        return focus
+    row = full_text.passage(row_locator)
+    table = full_text.passage(table_locator)
+    header = None
+    if row is not None and row.kind == "table_row":
+        prefix = f"{table_locator}/row:"
+        position = full_text.passages.index(row)
+        header = next(
+            (p for p in reversed(full_text.passages[:position])
+             if p.kind == "table_header" and p.locator.startswith(prefix)),
+            None,
+        )
+    cells = list(row.cells) if row is not None else []
+    header_cells = list(header.cells) if header is not None else []
+    focus["table"] = {
+        "locator": table_locator,
+        "label": table.section if table is not None else None,
+        "caption": table.text if table is not None else None,
+        "header_locator": header.locator if header is not None else None,
+        "header": header_cells,
+        "row_locator": row_locator if row is not None and row.kind != "table" else None,
+        "row_kind": row.kind if row is not None else None,
+        "cells": cells,
+        "cited_cell": cell,
+        # Paired only when the header and the row have as many cells; a
+        # spanned or ragged row is shown as it is, never re-aligned.
+        "columns": (
+            [{"header": h, "value": v, "cited": cell == i}
+             for i, (h, v) in enumerate(zip(header_cells, cells), start=1)]
+            if header_cells and len(header_cells) == len(cells) else []
+        ),
+    }
+    return focus

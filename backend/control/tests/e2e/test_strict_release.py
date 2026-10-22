@@ -22,6 +22,7 @@ from tests.e2e.test_scripted_runtime import _analyse, _install_scripted_runtime,
 from tests.support.api import AUTH, api_client, wait_for_run
 from tests.support.predictor import StubPredictor
 from tests.support.research import ACCEPTED_HIT, StubResearchProvider
+from toxagent.api.responses import RunStageLineage
 
 pytestmark = pytest.mark.anyio
 
@@ -55,6 +56,10 @@ async def _run(db, state, script, *, case: bool = False, question: str | None = 
             response = await client.get(f"/v1/sessions/{session_id}/answers/{answer_id}",
                                         headers=AUTH)
             served[answer_id] = response.status_code
+        lineage = (await client.get(f"/v1/sessions/{session_id}/runs/{run['run_id']}/lineage",
+                                    headers=AUTH)).json()
+        # The audit view's types are generated from this model.
+        RunStageLineage.model_validate(lineage)
         cases = (await client.get(f"/v1/sessions/{session_id}/cases", headers=AUTH)).json()
         case_body = None
         if case and cases.get("cases"):
@@ -62,7 +67,7 @@ async def _run(db, state, script, *, case: bool = False, question: str | None = 
                 f"/v1/sessions/{session_id}/cases/{cases['cases'][0]['case_id']}", headers=AUTH,
             )).json()
     return {"run": run, "result": result, "reply": messages[-1], "events": events,
-            "served": served, "case": case_body}
+            "served": served, "case": case_body, "lineage": lineage}
 
 
 def _text(reply: dict) -> str:
@@ -103,6 +108,24 @@ async def test_a_repaired_and_supported_answer_is_published(db, strict):
     replaced = result["detail"]["replaced_answer_id"]
     assert out["served"][replaced] == 404 and out["served"][result["public_answer_id"]] == 200
 
+    # AG-UI audit: the chain behind the answer, claim by claim.
+    lineage = out["lineage"]
+    assert [(s["phase"], s["hard_valid"], s["is_public"]) for s in lineage["stages"]] == [
+        ("initial", True, False), ("semantic_repair", True, True),
+    ]
+    assert [r["phase"] for r in lineage["reviews"]] == ["review_initial", "review_final"]
+    first = {v["key"]: v["verdict"] for v in lineage["reviews"][0]["verdicts"]}
+    assert first == {"lit": "supported", "overreach": "not_supported"}
+    assert lineage["reviews"][0]["blocking_claim_ids"]
+    claims = {c["key"]: c for c in lineage["claims"]}
+    assert claims["overreach"]["change"] == "removed"
+    assert claims["overreach"]["candidate_text"] == OVERREACH
+    assert claims["overreach"]["final_text"] is None
+    assert [v["verdict"] for v in claims["overreach"]["verdicts"]] == ["not_supported"]
+    assert claims["lit"]["final_text"] == SUPPORTED
+    assert lineage["repair"]["removal_only"] is not None
+    assert lineage["public_answer_id"] == result["public_answer_id"]
+
 
 async def test_a_claim_still_unsupported_after_the_repair_is_withheld(db, strict):
     state: dict = {}
@@ -125,6 +148,15 @@ async def test_a_claim_still_unsupported_after_the_repair_is_withheld(db, strict
     assert not [e for e in out["events"] if e["type"] == "answer.accepted"]
     recorded = [e for e in out["events"] if e["type"] == "run.result_recorded"]
     assert [e["payload"]["disposition"] for e in recorded] == ["partial_facts"]
+
+    # The audit still shows both candidates and why neither was released --
+    # and none of its stages is the public answer.
+    lineage = out["lineage"]
+    assert lineage["disposition"] == "partial_facts" and lineage["public_answer_id"] is None
+    assert not any(s["is_public"] for s in lineage["stages"])
+    assert OVERREACH in lineage["stages"][-1]["answer_markdown"]
+    assert len(lineage["missing"]["unresolved_claim_ids"]) == 1
+    assert [r["counts"].get("not_supported") for r in lineage["reviews"]] == [1, 1]
 
 
 @pytest.mark.parametrize("rounds, repair, status", [

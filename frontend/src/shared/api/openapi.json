@@ -1047,6 +1047,69 @@
         "title": "CaseAction",
         "type": "object"
       },
+      "CaseArtifactChanges": {
+        "additionalProperties": false,
+        "description": "The frozen artifacts the run was given against the previous run's, by\nkind and origin id, compared by content hash.",
+        "properties": {
+          "added": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "changed": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Changed",
+            "type": "array"
+          },
+          "compared": {
+            "title": "Compared",
+            "type": "boolean"
+          },
+          "kept": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Kept",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "removed": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Removed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "compared",
+          "reason",
+          "added",
+          "changed",
+          "kept",
+          "removed"
+        ],
+        "title": "CaseArtifactChanges",
+        "type": "object"
+      },
       "CaseConclusion": {
         "additionalProperties": true,
         "properties": {
@@ -1619,6 +1682,119 @@
         "title": "CaseRun",
         "type": "object"
       },
+      "CaseRunChanges": {
+        "additionalProperties": false,
+        "description": "What one turn changed in the case, and what it kept (AG-UI, US4). The\nbefore and after are the case's own log replayed to two revisions.",
+        "properties": {
+          "artifacts": {
+            "$ref": "#/components/schemas/CaseArtifactChanges"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "string"
+          },
+          "conclusion": {
+            "additionalProperties": true,
+            "title": "Conclusion",
+            "type": "object"
+          },
+          "context": {
+            "$ref": "#/components/schemas/CaseSectionChanges"
+          },
+          "data_scope": {
+            "additionalProperties": true,
+            "title": "Data Scope",
+            "type": "object"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/CaseSectionChanges"
+          },
+          "from_revision": {
+            "title": "From Revision",
+            "type": "integer"
+          },
+          "hypotheses": {
+            "$ref": "#/components/schemas/CaseSectionChanges"
+          },
+          "next_tests": {
+            "$ref": "#/components/schemas/CaseSectionChanges"
+          },
+          "operations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
+          "previous_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Run Id"
+          },
+          "run": {
+            "additionalProperties": true,
+            "title": "Run",
+            "type": "object"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "case-changes-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "subject": {
+            "additionalProperties": true,
+            "title": "Subject",
+            "type": "object"
+          },
+          "to_revision": {
+            "title": "To Revision",
+            "type": "integer"
+          },
+          "uncertainties": {
+            "$ref": "#/components/schemas/CaseSectionChanges"
+          },
+          "updates_by_actor": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Updates By Actor",
+            "type": "object"
+          }
+        },
+        "required": [
+          "schema_version",
+          "case_id",
+          "run_id",
+          "previous_run_id",
+          "from_revision",
+          "to_revision",
+          "subject",
+          "updates_by_actor",
+          "operations",
+          "context",
+          "hypotheses",
+          "evidence",
+          "uncertainties",
+          "next_tests",
+          "conclusion",
+          "data_scope",
+          "run",
+          "artifacts"
+        ],
+        "title": "CaseRunChanges",
+        "type": "object"
+      },
       "CaseScopeRequest": {
         "additionalProperties": false,
         "description": "What the case may reach (W9-07). Turning external search off needs a\nreason, which the agent is shown and the dossier keeps.",
@@ -1644,6 +1820,50 @@
           "external_search"
         ],
         "title": "CaseScopeRequest",
+        "type": "object"
+      },
+      "CaseSectionChanges": {
+        "additionalProperties": false,
+        "description": "One section of a case before and after a turn, by entry id.",
+        "properties": {
+          "added": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "changed": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Changed",
+            "type": "array"
+          },
+          "kept": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Kept",
+            "type": "array"
+          },
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "added",
+          "changed",
+          "kept",
+          "removed"
+        ],
+        "title": "CaseSectionChanges",
         "type": "object"
       },
       "CaseUncertainty": {
@@ -2699,6 +2919,69 @@
         "title": "EvidenceListResponse",
         "type": "object"
       },
+      "EvidencePassagesView": {
+        "additionalProperties": false,
+        "description": "What a reader checks a quote against: the access state, the passage a\nclaim cites (with its table), or an outline of every passage read. All of\nit is external content, never instructions.",
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/EvidenceTextAccess"
+          },
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "focus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PassageFocus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "measurement": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measurement"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/PassageOutlineItem"
+            },
+            "title": "Passages",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "evidence-passages-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "untrusted_external_content": {
+            "const": true,
+            "title": "Untrusted External Content",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "schema_version",
+          "evidence_id",
+          "access",
+          "measurement",
+          "focus",
+          "passages",
+          "untrusted_external_content"
+        ],
+        "title": "EvidencePassagesView",
+        "type": "object"
+      },
       "EvidenceRecordView": {
         "additionalProperties": false,
         "description": "Bounded, normalised external material. ``abstract_or_excerpt`` is\nuntrusted content, never instructions.",
@@ -2961,6 +3244,73 @@
           "locator"
         ],
         "title": "EvidenceSpan",
+        "type": "object"
+      },
+      "EvidenceTextAccess": {
+        "additionalProperties": false,
+        "description": "Whether the record's text was read (AG-UI passage viewer). ``not_read``\nwhen nothing was asked or the record is not an article; a provider outage\nis never stored, so it never appears here.",
+        "properties": {
+          "full_text_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Text Id"
+          },
+          "omitted": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Omitted",
+            "type": "object"
+          },
+          "passage_count": {
+            "title": "Passage Count",
+            "type": "integer"
+          },
+          "provenance": {
+            "additionalProperties": true,
+            "title": "Provenance",
+            "type": "object"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "enum": [
+              "full_text_retrieved",
+              "access_failed",
+              "not_read"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "full_text_id",
+          "passage_count",
+          "omitted",
+          "truncated"
+        ],
+        "title": "EvidenceTextAccess",
         "type": "object"
       },
       "ExplainRequest": {
@@ -3406,6 +3756,390 @@
         "title": "Limitation",
         "type": "object"
       },
+      "LineageClaim": {
+        "additionalProperties": false,
+        "description": "One claim from the first hard-valid candidate to what the reader got,\nkeyed by the draft's own label so a repair can be read claim by claim.",
+        "properties": {
+          "candidate_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Text"
+          },
+          "change": {
+            "enum": [
+              "kept",
+              "reworded",
+              "removed",
+              "added"
+            ],
+            "title": "Change",
+            "type": "string"
+          },
+          "final_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Text"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "verdicts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Verdicts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "candidate_text",
+          "final_text",
+          "change",
+          "verdicts"
+        ],
+        "title": "LineageClaim",
+        "type": "object"
+      },
+      "LineageMissing": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed_fact_count": {
+            "title": "Confirmed Fact Count",
+            "type": "integer"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "lost_limitation_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Lost Limitation Codes",
+            "type": "array"
+          },
+          "needed_inputs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Needed Inputs",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "unresolved_claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved Claim Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "needed_inputs",
+          "unresolved_claim_ids",
+          "lost_limitation_codes",
+          "confirmed_fact_count",
+          "reason",
+          "failure_code"
+        ],
+        "title": "LineageMissing",
+        "type": "object"
+      },
+      "LineageReview": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Id"
+          },
+          "blocking_claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocking Claim Ids",
+            "type": "array"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "verdicts": {
+            "items": {
+              "$ref": "#/components/schemas/LineageVerdict"
+            },
+            "title": "Verdicts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "round",
+          "phase",
+          "status",
+          "reason",
+          "answer_id",
+          "counts",
+          "blocking_claim_ids",
+          "verdicts"
+        ],
+        "title": "LineageReview",
+        "type": "object"
+      },
+      "LineageStage": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Id"
+          },
+          "answer_markdown": {
+            "title": "Answer Markdown",
+            "type": "string"
+          },
+          "claim_count": {
+            "title": "Claim Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation"
+          },
+          "hard_valid": {
+            "title": "Hard Valid",
+            "type": "boolean"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "is_public": {
+            "title": "Is Public",
+            "type": "boolean"
+          },
+          "limitation_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitation Codes",
+            "type": "array"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "violation_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Violation Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "phase",
+          "generation",
+          "outcome",
+          "answer_id",
+          "hard_valid",
+          "is_public",
+          "violation_codes",
+          "claim_count",
+          "limitation_codes",
+          "answer_markdown",
+          "created_at"
+        ],
+        "title": "LineageStage",
+        "type": "object"
+      },
+      "LineageVerdict": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Id"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "claim_id",
+          "key",
+          "text",
+          "verdict",
+          "reason"
+        ],
+        "title": "LineageVerdict",
+        "type": "object"
+      },
       "LiveStatus": {
         "additionalProperties": false,
         "properties": {
@@ -3753,6 +4487,216 @@
           "created_at"
         ],
         "title": "ObservationResponse",
+        "type": "object"
+      },
+      "PassageColumn": {
+        "additionalProperties": false,
+        "properties": {
+          "cited": {
+            "title": "Cited",
+            "type": "boolean"
+          },
+          "header": {
+            "title": "Header",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "header",
+          "value",
+          "cited"
+        ],
+        "title": "PassageColumn",
+        "type": "object"
+      },
+      "PassageFocus": {
+        "additionalProperties": false,
+        "properties": {
+          "found": {
+            "title": "Found",
+            "type": "boolean"
+          },
+          "locator": {
+            "title": "Locator",
+            "type": "string"
+          },
+          "passage": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passage"
+          },
+          "table": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PassageTable"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "locator",
+          "found"
+        ],
+        "title": "PassageFocus",
+        "type": "object"
+      },
+      "PassageOutlineItem": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "locator": {
+            "title": "Locator",
+            "type": "string"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "string"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "locator",
+          "section",
+          "kind",
+          "preview",
+          "truncated"
+        ],
+        "title": "PassageOutlineItem",
+        "type": "object"
+      },
+      "PassageTable": {
+        "additionalProperties": false,
+        "description": "The table around a cited row or cell, as written: units in a header\nand comparators in a cell are part of the text, never parsed here.",
+        "properties": {
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "cells": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "cited_cell": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cited Cell"
+          },
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/PassageColumn"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "header": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Header",
+            "type": "array"
+          },
+          "header_locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Header Locator"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "locator": {
+            "title": "Locator",
+            "type": "string"
+          },
+          "row_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Kind"
+          },
+          "row_locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Locator"
+          }
+        },
+        "required": [
+          "locator",
+          "label",
+          "caption",
+          "header_locator",
+          "header",
+          "row_locator",
+          "row_kind",
+          "cells",
+          "cited_cell",
+          "columns"
+        ],
+        "title": "PassageTable",
         "type": "object"
       },
       "PredictBatchRequest": {
@@ -6246,6 +7190,138 @@
           "release_policy"
         ],
         "title": "RunResult",
+        "type": "object"
+      },
+      "RunStageLineage": {
+        "additionalProperties": false,
+        "description": "How the run's answer came to be what the researcher saw (AG-UI audit):\ndrafts, review rounds, the repair's effect and what went missing.",
+        "properties": {
+          "candidate_answer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Answer Id"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/LineageClaim"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "execution_outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Execution Outcome"
+          },
+          "missing": {
+            "$ref": "#/components/schemas/LineageMissing"
+          },
+          "public_answer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Answer Id"
+          },
+          "recorded": {
+            "title": "Recorded",
+            "type": "boolean"
+          },
+          "release_policy": {
+            "title": "Release Policy",
+            "type": "string"
+          },
+          "repair": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repair"
+          },
+          "review_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Status"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/LineageReview"
+            },
+            "title": "Reviews",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "stage-lineage-v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/LineageStage"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "run_id",
+          "recorded",
+          "release_policy",
+          "disposition",
+          "review_status",
+          "execution_outcome",
+          "public_answer_id",
+          "candidate_answer_id",
+          "stages",
+          "reviews",
+          "claims",
+          "repair",
+          "missing"
+        ],
+        "title": "RunStageLineage",
         "type": "object"
       },
       "RunSummary": {
@@ -9566,6 +10642,67 @@
         ]
       }
     },
+    "/v1/sessions/{session_id}/cases/{case_id}/runs/{run_id}/changes": {
+      "get": {
+        "description": "What one turn changed in the case and what it kept: the case's log\nreplayed to where the previous run left it and to this run's last update.\n404 for a run that never touched the case.",
+        "operationId": "get_scientific_case_run_changes_v1_sessions__session_id__cases__case_id__runs__run_id__changes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseRunChanges"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Scientific Case Run Changes",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
     "/v1/sessions/{session_id}/cases/{case_id}/scope": {
       "post": {
         "description": "Set what the case may reach. With external search off, the evidence\nsearch tool refuses for every later turn of this case.",
@@ -9935,6 +11072,75 @@
           }
         },
         "summary": "Get Evidence",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/evidence/{evidence_id}/passages": {
+      "get": {
+        "description": "What a claim's quote can be checked against (AG-UI passage viewer).\n\nWith ``locator``: that passage, and for a table row or cell the table\naround it -- caption, header row, cells, the cited cell. Without: an\noutline of every passage read. Either way the access state (read,\nrefused with the provider's reason, or never read) and, for a structured\nrecord, its stated value with relation and unit.",
+        "operationId": "get_evidence_passages_v1_sessions__session_id__evidence__evidence_id__passages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locator",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Locator"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePassagesView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Evidence Passages",
         "tags": [
           "toxagent"
         ]
@@ -10736,6 +11942,58 @@
           }
         },
         "summary": "List Evidence Relations",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/runs/{run_id}/lineage": {
+      "get": {
+        "description": "How the run's answer came to be what the researcher saw: each draft,\nthe review rounds with their verdicts, the repair's effect claim by claim,\nand what the reader did not get. Audit material: a candidate's prose\nappears here, never on the answer route.",
+        "operationId": "get_run_stage_lineage_v1_sessions__session_id__runs__run_id__lineage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStageLineage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Run Stage Lineage",
         "tags": [
           "toxagent"
         ]

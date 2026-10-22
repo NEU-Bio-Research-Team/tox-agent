@@ -14,6 +14,7 @@ from ..responses import (
     EvidenceRelationList,
     RunDetail,
     RunResult,
+    RunStageLineage,
 )
 from ..schemas import (
     CancelResponse,
@@ -162,6 +163,38 @@ async def get_run_result(
                 "note": "this run has no recorded result; whether its answer was "
                         "reviewed is not known"}
     return {**result.to_dict(), "recorded": True}
+
+
+@router.get("/sessions/{session_id}/runs/{run_id}/lineage", responses={200: {"model": RunStageLineage}})
+async def get_run_stage_lineage(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """How the run's answer came to be what the researcher saw: each draft,
+    the review rounds with their verdicts, the repair's effect claim by claim,
+    and what the reader did not get. Audit material: a candidate's prose
+    appears here, never on the answer route."""
+    from ...application.investigation.stage_lineage import stage_lineage
+
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        drafts = await uow.answer_drafts.list_for_run(run_id)
+        result = await uow.run_results.get(run_id)
+        answers = {}
+        for answer_id in {d.get("answer_id") for d in drafts} | {
+            getattr(result, "public_answer_id", None), getattr(result, "candidate_answer_id", None),
+        }:
+            if answer_id:
+                answer = await uow.answers.get(answer_id, session_id=session_id)
+                if answer is not None:
+                    answers[answer_id] = answer
+    return stage_lineage(
+        run_id=run_id, drafts=drafts, answers=answers,
+        result=result.to_dict() if result is not None else None,
+    )
 
 
 @router.post("/sessions/{session_id}/runs/{run_id}:cancel", response_model=CancelResponse)

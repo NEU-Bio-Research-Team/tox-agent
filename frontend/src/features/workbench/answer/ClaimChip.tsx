@@ -59,6 +59,16 @@ export function ClaimChip({ claim, sessionId, index }: { claim: Claim; sessionId
                   mở evidence {evidenceId.slice(0, 12)}… →
                 </Link>
               ))}
+              {(claim.evidence_spans ?? []).map((span) => (
+                <Link
+                  key={`${span.evidence_id}:${span.locator}`}
+                  to={artifactPath(sessionId, { kind: 'evidence', entityId: span.evidence_id, locator: span.locator })}
+                  className="block font-mono underline"
+                  style={{ color: 'var(--accent-blue)' }}
+                >
+                  mở đoạn {span.locator} →
+                </Link>
+              ))}
             </div>
           )}
           <p className="mt-3 border-t pt-2 text-xs" style={{ borderColor: 'var(--border)', color: 'var(--accent-green)' }}>

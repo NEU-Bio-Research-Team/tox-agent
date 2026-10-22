@@ -7,6 +7,8 @@ export interface ArtifactSelection {
   entityId: string;
   /** An exact claim field path when the artifact is opened as provenance. */
   fieldPath?: string;
+  /** The passage of an evidence record a claim quotes (`table-wrap:1/row:3`). */
+  locator?: string;
 }
 
 export function artifactPath(sessionId: string, selection: ArtifactSelection | null): string {
@@ -19,6 +21,9 @@ export function artifactPath(sessionId: string, selection: ArtifactSelection | n
     evidence: 'evidence',
   };
   const path = `/s/${sessionId}/${segment[selection.kind]}/${selection.entityId}`;
+  if (selection.kind === 'evidence' && selection.locator) {
+    return `${path}?${new URLSearchParams({ locator: selection.locator }).toString()}`;
+  }
   if (selection.kind !== 'observation' || !selection.fieldPath) return path;
   return `${path}?${new URLSearchParams({ field_path: selection.fieldPath }).toString()}`;
 }
@@ -48,6 +53,9 @@ export function useArtifactSelectionFromUrl(): ArtifactSelection | null {
     const fieldPath = searchParams.get('field_path');
     return { kind: 'observation', entityId: params.observationId, ...(fieldPath ? { fieldPath } : {}) };
   }
-  if (params.evidenceId) return { kind: 'evidence', entityId: params.evidenceId };
+  if (params.evidenceId) {
+    const locator = searchParams.get('locator');
+    return { kind: 'evidence', entityId: params.evidenceId, ...(locator ? { locator } : {}) };
+  }
   return null;
 }

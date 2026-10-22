@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { getAnswer, getRunResult } from '../../../shared/api/endpoints';
 import { AnswerRenderer } from '../answer/AnswerRenderer';
@@ -8,7 +9,20 @@ import { ApiError } from '../../../shared/api/types';
  * Dùng cho cả câu trả lời đã công bố và kết quả bị giữ lại (không có answer). */
 export function RunResultBanner({ sessionId, runId }: { sessionId: string; runId: string }) {
   const result = useRunResult(sessionId, runId);
-  return <ReleaseBanner result={result.data} />;
+  return (
+    <div className="space-y-1">
+      <ReleaseBanner result={result.data} />
+      {result.data?.recorded && result.data.disposition !== 'publish' && (
+        <Link
+          to={`/s/${sessionId}/runs/${runId}?tab=release`}
+          className="text-xs underline"
+          style={{ color: 'var(--accent-blue)' }}
+        >
+          xem các giai đoạn và lý do trong audit →
+        </Link>
+      )}
+    </div>
+  );
 }
 
 function useRunResult(sessionId: string, runId: string | null | undefined) {

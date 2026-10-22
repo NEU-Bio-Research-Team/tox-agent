@@ -144,6 +144,30 @@ export function getRunResult(sessionId: string, runId: string): Promise<RunResul
   return apiRequest(`/v1/sessions/${sessionId}/runs/${runId}/result`);
 }
 
+export type RunStageLineage = Schemas['RunStageLineage'];
+export type LineageStage = Schemas['LineageStage'];
+export type LineageReview = Schemas['LineageReview'];
+export type LineageClaim = Schemas['LineageClaim'];
+
+/** How the run's answer came to be what the researcher saw: drafts, review
+ * rounds, the repair claim by claim, and what went missing. Audit material --
+ * a candidate's prose appears here, never as the answer. */
+export function getRunLineage(sessionId: string, runId: string): Promise<RunStageLineage> {
+  return apiRequest(`/v1/sessions/${sessionId}/runs/${runId}/lineage`);
+}
+
+export type EvidencePassagesView = Schemas['EvidencePassagesView'];
+export type PassageTable = Schemas['PassageTable'];
+
+/** What a quote can be checked against: the access state, the passage at
+ * `locator` with its table, or (without a locator) an outline of the text. */
+export function getEvidencePassages(
+  sessionId: string, evidenceId: string, locator?: string | null,
+): Promise<EvidencePassagesView> {
+  const query = locator ? `?${new URLSearchParams({ locator }).toString()}` : '';
+  return apiRequest(`/v1/sessions/${sessionId}/evidence/${evidenceId}/passages${query}`);
+}
+
 export function getReport(sessionId: string, reportId: string): Promise<ReportArtifact> {
   return apiRequest(`/v1/sessions/${sessionId}/reports/${reportId}`);
 }
@@ -354,6 +378,16 @@ export function listScientificCases(sessionId: string): Promise<ScientificCaseLi
 
 export function getScientificCase(sessionId: string, caseId: string): Promise<ScientificCase> {
   return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}`);
+}
+
+export type CaseRunChanges = Schemas['CaseRunChanges'];
+export type CaseSectionChanges = Schemas['CaseSectionChanges'];
+
+/** What one turn changed in the case and what it kept, from the case's own log. */
+export function getCaseRunChanges(
+  sessionId: string, caseId: string, runId: string,
+): Promise<CaseRunChanges> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}/runs/${runId}/changes`);
 }
 
 /** The dossier one decision-support run compiled over its case. */
