@@ -44,7 +44,7 @@ from evals.investigation.adapters.toxagent import ToxAgentAdapter, _usage, rende
 from evals.investigation.record import STATUS_ERROR, STATUS_OK, StudyStore, TurnRecord, now_iso
 from evals.investigation.systems import SystemSpec, product_mismatch
 
-ADAPTER_VERSION = "toxagent-replay-adapter-v1"
+ADAPTER_VERSION = "toxagent-replay-adapter-v2"
 
 
 def _observed(binding: Mapping[str, Any] | None) -> dict[str, str]:
@@ -60,6 +60,30 @@ def _observed(binding: Mapping[str, Any] | None) -> dict[str, str]:
         elif kind == "toxicity_snapshot":
             out[f"toxicity_snapshot:{ref['source_id']}"] = str(ref.get("content_sha256"))
     return out
+
+
+def messages_for_run(messages: list[Mapping[str, Any]], run_id: str,
+                     answer_id: str | None = None) -> list[Mapping[str, Any]]:
+    """The assistant messages a run posted.
+
+    A message carries no ``run_id`` of its own (the API's ``Message`` has
+    none); it names its run through its parts -- ``result_ref`` and
+    ``dossier_ref`` carry the run id, ``answer_ref`` the run's answer. Matching
+    on a ``run_id`` field matched nothing, so a run whose answer was not
+    published was recorded as having said nothing, when the researcher had
+    been shown the server's confirmed facts and the reason.
+    """
+    def belongs(message: Mapping[str, Any]) -> bool:
+        for part in message.get("parts") or ():
+            content = part.get("content") or {}
+            if content.get("run_id") == run_id:
+                return True
+            if answer_id and part.get("type") == "answer_ref" \
+                    and content.get("answer_id") == answer_id:
+                return True
+        return False
+
+    return [m for m in messages if m.get("role") == "assistant" and belongs(m)]
 
 
 def visible_text(answer: Mapping[str, Any] | None, messages: list[Mapping[str, Any]],
@@ -181,11 +205,11 @@ class ToxAgentReplayAdapter(ToxAgentAdapter):
                         )
                     result = await api.get(f"{base}/result")
                     answer = await api.answer_for_run(session_id, run_id)
-                    messages = [
-                        m for m in (await api.get(f"/v1/sessions/{session_id}/messages")
-                                    or {}).get("messages", [])
-                        if m.get("run_id") == run_id and m.get("role") == "assistant"
-                    ]
+                    messages = messages_for_run(
+                        (await api.get(f"/v1/sessions/{session_id}/messages")
+                         or {}).get("messages", []),
+                        run_id, (answer or {}).get("answer_id"),
+                    )
                     trace["runs"].append({
                         "turn": index, "subject": key, "sent_text": text, "run": run,
                         "result": result, "answer": answer, "assistant_messages": messages,
