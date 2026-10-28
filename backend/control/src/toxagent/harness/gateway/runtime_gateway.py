@@ -78,6 +78,11 @@ class AgentRuntimeGateway(
         #: server uses; built on first use when none was injected.
         self._tool_runner = tool_runner
         self._workflow_prompts: dict[str, str] = {}
+        #: #69/#68: the contract and the route decision of each in-flight run,
+        #: stashed by _prepare_context so _begin_decision_state records the
+        #: ones the turn actually read rather than rebuilding them.
+        self._contracts: dict[str, dict] = {}
+        self._routes: dict[str, object] = {}
         #: Read only to state a decision_support run's budget snapshot.
         self._policy = policy
         self._registry = registry
@@ -243,6 +248,8 @@ class AgentRuntimeGateway(
                     context, policy=policy, run_status=run_status, failure=failure,
                 )
             self._workflow_prompts.pop(context.run_id, None)
+            self._contracts.pop(context.run_id, None)
+            self._routes.pop(context.run_id, None)
             await decision_state_service.advance(
                 self._db, context.run_id,
                 lambda state: decision_state.finalize(state, run_status=run_status),

@@ -71,6 +71,7 @@ Any other target, or any other method, is `not_measured`.
 | `evidence_pipeline_v2` | no | backend-scientific | 2026-12-12 | — |
 | `external_worker_mode` | no | platform | 2026-12-12 | — |
 | `fixed_workflow_v1` | no | backend-scientific | 2027-01-18 | — |
+| `investigator_contract_v1` | no | backend-agent | 2026-12-12 | — |
 | `normalized_usage_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `release_gate_v1` | no | backend-scientific | 2027-01-18 | — |
 | `report_orchestrator_v2` | no | backend-report | 2026-12-12 | — |

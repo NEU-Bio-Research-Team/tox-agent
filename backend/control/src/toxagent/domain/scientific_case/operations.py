@@ -42,6 +42,7 @@ from .model import (
     UncertaintyKind,
     _values,
 )
+from ..investigation_gap import Gap
 from .dependencies import CLAIM_PROPOSED, DerivedClaim, Justification, apply_change
 from .values import VALUE_REF_SCHEME, VerificationStatus
 
@@ -431,6 +432,19 @@ def _resolve_uncertainty(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCas
     return replace(case, uncertainties=items)
 
 
+def _gap_for(payload: Mapping[str, Any]) -> str:
+    """The gap an action says it addresses (#70, §6.2).
+
+    Refused rather than coerced when it is not one of the seven: a run that
+    invents a gap name has not said which gap it is closing, and letting the
+    string through would put free text in a field a benchmark groups by.
+    """
+    stated = payload.get("gap")
+    if stated in (None, ""):
+        return ""
+    return _choice(payload, "gap", Gap)
+
+
 def _record_action(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     if len(case.actions) >= MAX_ACTIONS:
         return case  # the log is bounded; the run's tool calls remain the full record
@@ -443,6 +457,7 @@ def _record_action(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         hypothesis_ids=_known_ids(case, p.get("hypothesis_ids"), kind="hypothesis",
                                   key="hypothesis_ids"),
         actor=u.actor, run_id=u.run_id,
+        gap=_gap_for(p),
     )
     return replace(case, actions=case.actions + (action,))
 

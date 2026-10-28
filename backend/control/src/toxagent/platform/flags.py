@@ -321,6 +321,33 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "pass through the product with the flag on",
     ),
     _flag(
+        "scientific_procedures_v1",
+        "Register run_scientific_procedure in decision_support and "
+        "evidence_research (#66, §7.1/§7.2): normalise_measurements, "
+        "deduplicate_by_origin, compare_measurements and check_dependencies, "
+        "each returning the criteria it applied, the records it excluded with "
+        "the reason, the fields the inputs did not state and its own "
+        "sub-operation count. Off, the tool does not exist and the model does "
+        "this arithmetic in prose.",
+        owner="backend-agent",
+        removal_condition="a pilot shows procedure runs quote fewer unconverted values and "
+                          "no more false contradictions than prose runs",
+        added_on=date(2026, 10, 28),
+    ),
+    _flag(
+        "investigator_contract_v1",
+        "Send the investigator a goal contract and the six-group case view "
+        "(#69/#63/#68 of the 2026-10-28 architecture proposal): the route, the "
+        "subject, what must be answered, the actions available, the budget and "
+        "the typed stop conditions, with the case's observations, evidence, "
+        "counter-evidence, missing metadata, open gaps and prior searches as "
+        "refs. Off, the turn gets the case checkpoint summary as before.",
+        owner="backend-agent",
+        removal_condition="a pilot shows contract-and-view runs stop for a declared reason "
+                          "at least as often as checkpoint runs, with no loss in task success",
+        added_on=date(2026, 10, 28),
+    ),
+    _flag(
         "fixed_workflow_v1",
         "Issue #50 arm B: decision_support runs as a fixed workflow. The server "
         "reads the subject's artifacts, decides by rule whether to search, "

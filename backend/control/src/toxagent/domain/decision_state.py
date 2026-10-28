@@ -180,6 +180,11 @@ class DecisionSupportStateV1:
     #: provider, what was asked and why it failed. Empty is the common case
     #: and means nothing failed -- not that nothing was checked.
     access_failures: tuple[Mapping[str, Any], ...] = ()
+    #: #69: the GoalContractV1 this run was admitted under -- route, subject,
+    #: what must be answered, the actions allowed, the budget and the stop
+    #: conditions. Recorded so a grader can read what the run was *asked* to
+    #: do without reconstructing it from four places and a prompt.
+    goal_contract: Mapping[str, Any] = field(default_factory=dict)
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -215,6 +220,7 @@ class DecisionSupportStateV1:
             "answer_basis": dict(self.answer_basis),
             **({"access_failures": [dict(f) for f in self.access_failures]}
                if self.access_failures else {}),
+            **({"goal_contract": dict(self.goal_contract)} if self.goal_contract else {}),
             "declared_stop": dict(self.declared_stop),
             "workflow": dict(self.workflow),
             "revision": self.revision,
@@ -247,6 +253,7 @@ class DecisionSupportStateV1:
             declared_stop=dict(data.get("declared_stop") or {}),
             workflow=dict(data.get("workflow") or {}),
             access_failures=tuple(dict(f) for f in data.get("access_failures") or ()),
+            goal_contract=dict(data.get("goal_contract") or {}),
             revision=int(data.get("revision", 0)),
         )
 
@@ -491,6 +498,19 @@ def record_workflow(
     if state.stop_reason is not None:
         return state
     return _next(state, workflow=dict(workflow))
+
+
+def record_goal_contract(
+    state: DecisionSupportStateV1, contract: Mapping[str, Any],
+) -> DecisionSupportStateV1:
+    """#69: fix what this run was asked to do, before it is dispatched.
+
+    Written once. A contract that could be edited mid-run would let a run
+    that answered a different question look like one that answered this one.
+    """
+    if state.stop_reason is not None or state.goal_contract:
+        return state
+    return _next(state, goal_contract=dict(contract))
 
 
 def record_access_failure(

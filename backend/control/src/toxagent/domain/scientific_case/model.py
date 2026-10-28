@@ -276,14 +276,22 @@ class Action:
     hypothesis_ids: tuple[str, ...] = ()
     actor: str = Actor.MODEL.value
     run_id: str | None = None
+    #: #70 (§6.2): which of the seven gaps this action was meant to close.
+    #: The vocabulary is ``domain.investigation_gap.Gap``. Empty for an action
+    #: recorded before #70 and for one whose run did not say -- which is
+    #: itself worth seeing, so it is not defaulted to a plausible gap.
+    gap: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id, "action": self.action, "purpose": self.purpose,
             "decision": self.decision, "outcome": self.outcome,
             "hypothesis_ids": list(self.hypothesis_ids), "actor": self.actor,
             "run_id": self.run_id,
         }
+        if self.gap:
+            data["gap"] = self.gap
+        return data
 
 
 @dataclass(frozen=True, slots=True)

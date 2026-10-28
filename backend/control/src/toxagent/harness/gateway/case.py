@@ -240,5 +240,15 @@ class ScientificCaseMixin:
                     ).to_dict(),
                 )
                 await uow.commit()
+            contract = self._contracts.get(context.run_id)
+            if contract:
+                # #69: what the run was asked to do, fixed before dispatch.
+                route = self._routes.get(context.run_id)
+                if route is not None:
+                    contract = {**contract, "route_decision": route.to_dict()}
+                await decision_state_service.advance(
+                    self._db, context.run_id,
+                    lambda state: decision_state.record_goal_contract(state, contract),
+                )
         except Exception:  # noqa: BLE001 - bookkeeping must not stop the run
             log.exception("could not open decision-support state", extra={"run_id": context.run_id})

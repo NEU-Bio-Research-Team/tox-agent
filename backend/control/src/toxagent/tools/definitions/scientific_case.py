@@ -124,6 +124,16 @@ class CaseOperation(_Input):
                                 description="record_action: why — which hypothesis it could move.")
     decision: Literal["continue", "redirect", "ask_user", "answer", "stop"] | None = None
     outcome: str | None = Field(default=None, max_length=500)
+    gap: Literal[
+        "identity_or_scope", "no_relevant_evidence", "span_not_read",
+        "measurement_unresolved", "disagreement_unexplained",
+        "only_researcher_has_it", "provider_or_corpus",
+    ] | None = Field(
+        default=None,
+        description="record_action: which unresolved gap this action is meant to close "
+                    "(§6.2). One of the seven, or leave it out -- do not pick the "
+                    "nearest-sounding one.",
+    )
     # propose_next_test
     test: str | None = Field(default=None, max_length=500)
     rationale: str | None = Field(default=None, max_length=1000)

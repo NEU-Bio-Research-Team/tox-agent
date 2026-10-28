@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from ...application.investigation import scientific_case_service
+from ...application.investigation import case_view, goal_contract, router, scientific_case_service
 from ...application.investigation.skill_catalog import render_index, render_static
 from ...application.runs.scheduler import RunContext
 from ...connections.model import ConnectionStatus
@@ -28,6 +28,59 @@ from ._common import ResolvedProfile, _now
 
 class ContextMixin:
     """Everything assembled before the runtime is dispatched."""
+
+    def _contract_and_view(
+        self, context: RunContext, *, case, profile: str, pinned, carried_over,
+    ):
+        """#69/#63/#68: the route, the contract and the six-group view.
+
+        Built here because this is where the subject, the case, the carried
+        propositions and the registered tools are all in scope. Stashed for
+        ``_begin_decision_state`` to record, because the state is opened after
+        the prompt -- the contract has to be the one the turn actually read,
+        not one rebuilt later from the same inputs.
+        """
+        from ...application.runs.budget import effective_run_budget
+        from ...domain.scientific_case import needs_reassessment
+        from ...platform.config import PolicySettings
+
+        stale = [c.id for c in needs_reassessment(case.derived_claims)] if case else []
+        artifact_refs = [f"{p.kind}:{p.id}" for p in pinned if p.kind != "report_build"]
+        decision = router.classify(
+            question=context.text or "",
+            has_subject=any(p.kind in ("analysis", "screening") for p in pinned),
+            artifact_refs=artifact_refs,
+            stale_claims=stale,
+        )
+        budget = effective_run_budget(
+            context.intent.value, self._policy or PolicySettings(), self._settings
+        ).to_dict()
+        contract = goal_contract.build(
+            route=decision.route,
+            question=context.text or "",
+            subject=dict(case.subject) if case is not None else {},
+            admissible_actions=[t["name"] for t in self._registry.descriptors(profile)],
+            budget=budget,
+            open_questions=carried_over,
+            stale_claims=stale,
+        )
+        searched = [
+            action.action for action in (case.actions if case else ())
+            if action.action.startswith("search")
+        ]
+        view = case_view.build(
+            case, contract=contract,
+            open_gaps=[
+                {"gap": q.gap, "question": q.question}
+                for q in contract.must_answer if q.gap
+            ],
+            searched=searched,
+            budget_left={k: v for k, v in budget.items()
+                         if k in ("deadline_s", "max_tool_calls", "max_searches",
+                                  "max_evidence_reads") and v is not None},
+        )
+        self._contracts[context.run_id] = contract.to_dict()
+        return view.render(), decision
 
     async def snapshot_before_runtime(self, context: RunContext) -> None:
         """The mixed-run snapshot, for a caller that drives its own workflow."""
@@ -215,12 +268,14 @@ class ContextMixin:
             )
             checkpoint = SessionCheckpoint()
             case_summary = ""
+            run_case = None
+            carried_over: list = []
             if context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1"):
-                case = await scientific_case_service.case_for_run(
+                run_case = await scientific_case_service.case_for_run(
                     uow, session_id=context.session_id, run_id=context.run_id
                 )
-                if case is not None:
-                    case_summary = scientific_case.checkpoint_summary(case)
+                if run_case is not None:
+                    case_summary = scientific_case.checkpoint_summary(run_case)
             if context.intent is Intent.DECISION_SUPPORT:
                 # P1-05: memory is scoped to the subject, not the transcript.
                 # Prior decision states for *this* analysis contribute their
@@ -257,6 +312,10 @@ class ContextMixin:
                             p.question[:120] for p in same_subject[0].unresolved[:3]
                         ),
                     )
+                    carried_over = [
+                        {"question": p.question, "required_sources": list(p.required_sources)}
+                        for p in same_subject[0].unresolved[:4]
+                    ]
             for record in accepted_evidence:
                 pinned.append(
                     PinnedReference(
@@ -329,6 +388,13 @@ class ContextMixin:
                 ))
 
         profile = self._registry.profile_for_intent(context.intent.value)
+        route_decision = None
+        if context.intent is Intent.DECISION_SUPPORT and is_enabled("investigator_contract_v1"):
+            case_summary, route_decision = self._contract_and_view(
+                context, case=run_case, profile=profile, pinned=pinned,
+                carried_over=carried_over,
+            )
+        self._routes[context.run_id] = route_decision
         deadline = min(
             run.deadline_at,
             _now() + timedelta(seconds=(
