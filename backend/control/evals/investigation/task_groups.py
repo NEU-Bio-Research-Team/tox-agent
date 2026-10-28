@@ -124,6 +124,17 @@ PAIRED_AXES: Final[dict[str, str]] = {
     "toxicity_stage_status": "same prediction, toxicity completed / not_run / failed",
     "interval_crosses_threshold": "same point estimate, interval crossing the threshold",
     "evidence_relevance": "new evidence that does or does not bear on the target",
+    # H1 (§13 of the 2026-10-28 proposal, #64). The four below vary how a
+    # measurement is *written* or *bounded* while holding what was measured
+    # fixed, which is what the three-layer representation of §5.2 is for. Each
+    # one is a way the old string comparison got the science wrong, so each
+    # one needs a pair where the right answer is known.
+    "unit_equivalence": "the same value in nM and in µM",
+    "exact_or_censored": "an exact value against a censored bound on the same quantity",
+    "assay_context_missing": "the same records with and without the assay context",
+    "duplicate_experimental_origin": (
+        "two records of one experiment against two independent experiments"
+    ),
 }
 
 #: Where a case's measurement disagreement came from.

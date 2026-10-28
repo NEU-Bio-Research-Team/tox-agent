@@ -387,3 +387,53 @@ def test_the_loader_runs_the_semantic_rules_on_v2_cases():
     case["required_limitations"] = []
     with pytest.raises(ValueError, match="limitation_scoring_unset"):
         validate([case])
+
+
+# ── #64: the H1 paired axes ───────────────────────────────────────────────
+
+def test_the_schemas_and_the_vocabulary_agree_about_the_paired_axes():
+    """Three places name the axes -- the vocabulary, the v2 schema and the v3
+    schema -- and a case is only checked by the two that see it. #64 added
+    four axes; this is what stops the next four from landing in one of them."""
+    import json
+
+    from evals.investigation.cases import SCHEMA_PATHS, SCHEMA_VERSION_V2
+    from evals.investigation.task_groups import PAIRED_AXES
+
+    for path in (SCHEMA_PATHS[SCHEMA_VERSION_V2],
+                 SCHEMA_PATHS[SCHEMA_VERSION_V2].parent / "investigation-case-v3.schema.json"):
+        schema = json.loads(path.read_text())
+        enum = schema["properties"]["paired_with"]["properties"]["varies"]["enum"]
+        assert sorted(enum) == sorted(PAIRED_AXES), path.name
+
+
+def test_the_four_h1_axes_vary_how_a_value_is_written_not_what_was_measured():
+    """§13 H1: each one is a way the old string comparison got the science
+    wrong, so each needs a pair whose right answer is known."""
+    from evals.investigation.task_groups import PAIRED_AXES
+
+    for axis in ("unit_equivalence", "exact_or_censored", "assay_context_missing",
+                 "duplicate_experimental_origin"):
+        assert axis in PAIRED_AXES, axis
+
+
+def test_a_case_pair_on_an_h1_axis_validates():
+    import json
+
+    import jsonschema
+
+    from evals.investigation.cases import SCHEMA_PATHS, SCHEMA_VERSION_V2
+
+    schema = json.loads(SCHEMA_PATHS[SCHEMA_VERSION_V2].read_text())
+    first, second = _v2_case(), _v2_case()
+    first["case_id"], second["case_id"] = "inv-91-herg-nm", "inv-92-herg-um"
+    first["paired_with"] = {"case_id": "inv-92-herg-um", "varies": "unit_equivalence"}
+    second["paired_with"] = {"case_id": "inv-91-herg-nm", "varies": "unit_equivalence"}
+
+    for case in (first, second):
+        assert list(jsonschema.Draft202012Validator(schema).iter_errors(case)) == []
+    # both halves present, naming the same axis: a real control, not a half
+    # pair. The set's own T3 polarity rule is a separate matter and still
+    # fires for a two-case set, which is correct.
+    codes = _codes(validate_set([first, second]))
+    assert not [c for c in codes if c.startswith("paired")], codes
