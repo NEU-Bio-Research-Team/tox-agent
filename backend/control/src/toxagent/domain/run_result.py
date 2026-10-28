@@ -259,6 +259,13 @@ def knowledge_outcome_of(stop_reason: str | None, *, published: bool) -> Knowled
             KnowledgeOutcome.EVIDENCE_INSUFFICIENT
     if stop_reason in ("insufficient_evidence", "budget_exhausted"):
         return KnowledgeOutcome.EVIDENCE_INSUFFICIENT
+    if stop_reason == "provider_failure":
+        # #70 (§6.3). Explicitly NOT evidence_insufficient: that says the
+        # science is unsettled, and this says the product could not look. The
+        # execution axis already carries the failure itself
+        # (ExecutionOutcome.PROVIDER_FAILED), so the knowledge axis says what
+        # is true -- the run learned nothing either way.
+        return KnowledgeOutcome.NONE
     return KnowledgeOutcome.NONE
 
 

@@ -27,6 +27,8 @@ from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
+from .investigation_gap import Gap
+
 SCHEMA_VERSION = "decision-support-state-v1"
 
 #: Upper bound on a plan. More than this is not a plan, it is a transcript.
@@ -65,6 +67,15 @@ class StopReason(str, Enum):
     #: #46 (typed_stop_v1): the answer says what only the researcher can
     #: supply and stops there, naming it.
     NEEDS_USER_INPUT = "needs_user_input"
+    #: #70 (§6.3): the run answered, and what it could not settle it could
+    #: not settle because a provider or corpus would not supply the data --
+    #: an access failure, an open breaker, a record the corpus does not
+    #: carry. Deliberately not insufficient_evidence: "Provider failure và
+    #: thiếu bằng chứng khoa học là hai kết quả khác nhau". One says the
+    #: science is unsettled; this one says the product could not look. A run
+    #: that produced no answer at all is ``blocked``, which is the runtime
+    #: axis and unchanged.
+    PROVIDER_FAILURE = "provider_failure"
 
 
 class RequiredSource(str, Enum):
@@ -165,6 +176,10 @@ class DecisionSupportStateV1:
     declared_stop: Mapping[str, Any] = field(default_factory=dict)
     #: #50 arm B: the fixed workflow's steps, each with a one-line reason.
     workflow: Mapping[str, Any] = field(default_factory=dict)
+    #: #70: times a provider or corpus could not supply data, each with the
+    #: provider, what was asked and why it failed. Empty is the common case
+    #: and means nothing failed -- not that nothing was checked.
+    access_failures: tuple[Mapping[str, Any], ...] = ()
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -198,6 +213,8 @@ class DecisionSupportStateV1:
             "skills": dict(self.skills),
             "claim_review": dict(self.claim_review),
             "answer_basis": dict(self.answer_basis),
+            **({"access_failures": [dict(f) for f in self.access_failures]}
+               if self.access_failures else {}),
             "declared_stop": dict(self.declared_stop),
             "workflow": dict(self.workflow),
             "revision": self.revision,
@@ -229,6 +246,7 @@ class DecisionSupportStateV1:
             answer_basis=dict(data.get("answer_basis") or {}),
             declared_stop=dict(data.get("declared_stop") or {}),
             workflow=dict(data.get("workflow") or {}),
+            access_failures=tuple(dict(f) for f in data.get("access_failures") or ()),
             revision=int(data.get("revision", 0)),
         )
 
@@ -475,6 +493,26 @@ def record_workflow(
     return _next(state, workflow=dict(workflow))
 
 
+def record_access_failure(
+    state: DecisionSupportStateV1, *, provider: str, asked_for: str, reason: str,
+    gap: Gap | str = Gap.PROVIDER_OR_CORPUS,
+) -> DecisionSupportStateV1:
+    """#70: a provider or corpus could not supply data this run asked for.
+
+    Recorded rather than inferred from an empty result, because an empty
+    result and a refused request look identical afterwards and mean opposite
+    things: one is a finding about the science, the other is a finding about
+    the product. §6.3 keeps them apart, and the stop reason below reads this.
+    """
+    if state.stop_reason is not None:
+        return state
+    entry = {"provider": provider, "asked_for": asked_for, "reason": reason,
+             "gap": Gap(gap).value}
+    if entry in [dict(f) for f in state.access_failures]:
+        return state  # an idempotent repeat of the same refusal
+    return _next(state, access_failures=state.access_failures + (entry,))
+
+
 def request_repair(state: DecisionSupportStateV1, *, answer_id: str) -> DecisionSupportStateV1:
     """#47: the review blocked this candidate and its one repair is open.
     submit_grounded_answer accepts one more answer for the run while this
@@ -524,6 +562,11 @@ def finalize(
             reason = StopReason.INSUFFICIENT_EVIDENCE
     elif _budget_reached(state):
         reason = StopReason.BUDGET_EXHAUSTED
+    elif state.access_failures:
+        # §6.3: the run could not look, which is not the same finding as
+        # having looked and found the question unsettled. Budget comes first:
+        # a run that also ran out of budget stopped for that.
+        reason = StopReason.PROVIDER_FAILURE
     else:
         reason = StopReason.INSUFFICIENT_EVIDENCE
     return _next(state, stop_reason=reason.value)
