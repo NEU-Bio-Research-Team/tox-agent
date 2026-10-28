@@ -19,6 +19,7 @@ from enum import Enum
 from typing import Any
 
 from .ids import EVIDENCE_RELATION, PROPOSITION, RUN, SESSION, new_id, require_id
+from .measurement_value import units_equivalent
 
 
 class SourceClass(str, Enum):
@@ -131,12 +132,34 @@ class EvidenceScope:
         return {k: v for k, v in self.to_dict().items() if v is not None}
 
     def differences(self, other: "EvidenceScope") -> tuple[str, ...]:
-        """Axes both sides declare and disagree on."""
+        """Axes both sides declare and disagree on *about what was measured*.
+
+        Two of the axes are deliberately not identity differences (#59, §5.2).
+        ``unit`` is how a value was written: ``nM`` and ``µM`` convert into each
+        other, and treating the pair as two measurements is the false
+        difference §5.2 opens with. ``comparator`` belongs to the numeric
+        layer: ``< 30 µM`` and ``0,3 µM`` are two statements about one
+        quantity, and what follows from them is
+        :class:`~toxagent.domain.measurement_value.NumericConstraint`'s answer,
+        not a reason to refuse the comparison. Neither is dropped silently --
+        :meth:`compare` reports both on the result.
+        """
         mine, theirs = self.declared(), other.declared()
         return tuple(
             axis
             for axis in MEASUREMENT_AXES
+            if axis in mine and axis in theirs
+            and not _axis_equivalent(axis, mine[axis], theirs[axis])
+        )
+
+    def written_differences(self, other: "EvidenceScope") -> tuple[str, ...]:
+        """Axes that differ as written but resolve after normalisation."""
+        mine, theirs = self.declared(), other.declared()
+        return tuple(
+            axis
+            for axis in REPRESENTATION_AXES + CONSTRAINT_AXES
             if axis in mine and axis in theirs and mine[axis] != theirs[axis]
+            and _axis_equivalent(axis, mine[axis], theirs[axis])
         )
 
     def shared_axes(self, other: "EvidenceScope") -> tuple[str, ...]:
@@ -164,6 +187,7 @@ class EvidenceScope:
         """
         differing = self.differences(other)
         shared = self.shared_axes(other)
+        written = self.written_differences(other)
         mine, theirs = self.declared(), other.declared()
         measured = measurement or any(
             axis in mine or axis in theirs for axis in METHOD_AXES
@@ -171,7 +195,8 @@ class EvidenceScope:
         if differing:
             return ScopeComparison(
                 Comparability.DIFFERENT, shared_axes=shared,
-                differing_axes=differing, measurement=measured,
+                differing_axes=differing, written_differences=written,
+                measurement=measured,
             )
         groups = MEASUREMENT_GROUPS if measured else FINDING_GROUPS
         missing = tuple(
@@ -179,7 +204,8 @@ class EvidenceScope:
         )
         state = Comparability.NOT_ASSESSED if missing else Comparability.COMPARABLE
         return ScopeComparison(
-            state, shared_axes=shared, missing_groups=missing, measurement=measured,
+            state, shared_axes=shared, missing_groups=missing,
+            written_differences=written, measurement=measured,
         )
 
     def comparable_with(
@@ -205,6 +231,10 @@ class ScopeComparison:
     differing_axes: tuple[str, ...] = ()
     #: Set when ``state`` is ``not_assessed``: groups no shared axis covers.
     missing_groups: tuple[str, ...] = ()
+    #: Axes that differ as written but not in what was measured: a unit that
+    #: converts, a comparator the numeric layer owns (#59). Reported rather
+    #: than dropped, so a reader can see the comparison crossed them.
+    written_differences: tuple[str, ...] = ()
     measurement: bool = False
 
 
@@ -253,6 +283,28 @@ MEASUREMENT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = FINDING_GROUPS + (
 #: the measurement groups. The reverse escape -- a measured record described
 #: without these -- is closed by the caller's ``measurement`` flag.
 METHOD_AXES: tuple[str, ...] = ("assay_type", "readout", "unit", "comparator")
+
+#: Axes whose difference is about how a value was written, not about what was
+#: measured. Two units of one dimension convert into each other (#59, §5.2
+#: "representation"), so a pair differing only here is one measurement in two
+#: spellings. A unit this domain cannot place stays a real difference: unknown
+#: is unknown, not a wildcard.
+REPRESENTATION_AXES: tuple[str, ...] = ("unit",)
+
+#: Axes the numeric-constraint layer owns (§5.2 layer 3). A censored value and
+#: a point value are two statements about one quantity; which conclusions the
+#: pair licenses is ``NumericConstraint.permits_threshold``/``compare``, so a
+#: difference here must not pre-empt that answer by refusing the comparison.
+CONSTRAINT_AXES: tuple[str, ...] = ("comparator",)
+
+
+def _axis_equivalent(axis: str, mine: str, theirs: str) -> bool:
+    """Whether two declared values of one axis mean the same measurement."""
+    if axis in CONSTRAINT_AXES:
+        return True
+    if axis in REPRESENTATION_AXES:
+        return units_equivalent(mine, theirs)
+    return mine == theirs
 
 
 @dataclass(frozen=True, slots=True)

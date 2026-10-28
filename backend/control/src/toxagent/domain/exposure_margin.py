@@ -26,11 +26,15 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
+from .measurement_value import concentration_factors
+
 METHOD_VERSION = "exposure-margin-v1"
 
-#: To nanomolar. ``uM`` is accepted for keyboards without µ.
-_TO_NM = {"pM": Decimal("0.001"), "nM": Decimal(1), "µM": Decimal(1000), "uM": Decimal(1000),
-          "mM": Decimal(1_000_000), "M": Decimal(1_000_000_000)}
+#: To nanomolar. ``uM`` is accepted for keyboards without µ. Taken from
+#: ``domain/measurement_value.py`` (#59) so the units this module divides and
+#: the units evidence comparison canonicalises cannot drift apart; the molar
+#: subset, because the refusal above still stands for mass concentrations.
+_TO_NM = concentration_factors()
 UNITS = tuple(_TO_NM)
 
 

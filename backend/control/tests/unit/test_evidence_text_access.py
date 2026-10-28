@@ -352,3 +352,63 @@ def test_the_normalised_record_lists_the_axes_it_actually_declared():
 def test_relation_labels_still_offer_insufficient_as_a_real_outcome():
     """"We looked and the record does not settle it" has to stay sayable."""
     assert RelationLabel.INSUFFICIENT.value == "insufficient"
+
+
+# ── #59: the representation and constraint layers reach the record ─────────
+
+def test_two_records_differing_only_in_unit_are_one_measurement():
+    """§5.2 opens on this false difference: before #59 a µM record and a nM
+    record declared different `unit` axes, so they were never comparable and
+    an equivalent pair read as two measurements."""
+    micro = measurement_scope({**_CHEMBL_FACTS, "standard_units": "uM",
+                               "standard_value": "0.3"}, endpoint="herg")
+    nano = measurement_scope(_CHEMBL_FACTS, endpoint="herg")
+
+    assert micro.differences(nano) == ()
+    assert micro.comparable_with(nano)
+    # and the crossing is reported, not hidden
+    assert "unit" in micro.compare(nano).written_differences
+
+
+def test_a_unit_this_domain_cannot_place_stays_a_real_difference():
+    """Unknown is unknown: nothing is converted by guessing."""
+    odd = measurement_scope({**_CHEMBL_FACTS, "standard_units": "fold-change"},
+                            endpoint="herg")
+    nano = measurement_scope(_CHEMBL_FACTS, endpoint="herg")
+
+    assert odd.differences(nano) == ("unit",)
+    assert not odd.comparable_with(nano)
+
+
+def test_a_censored_record_is_still_about_the_same_quantity():
+    """The comparator is the numeric layer's business (§5.2 layer 3), so a
+    bound and a point value are compared rather than refused."""
+    bound = measurement_scope({**_CHEMBL_FACTS, "standard_relation": ">"}, endpoint="herg")
+    exact = measurement_scope(_CHEMBL_FACTS, endpoint="herg")
+
+    assert bound.differences(exact) == ()
+    assert "comparator" in bound.compare(exact).written_differences
+
+
+def test_the_record_carries_the_canonical_value_and_its_conversion():
+    record = normalised_record({**_CHEMBL_FACTS, "standard_units": "uM",
+                               "standard_value": "0.3"}, endpoint="herg")
+
+    assert record["constraint"]["kind"] == "exact"
+    assert record["constraint"]["canonical"] == {
+        "low": "300", "high": "300", "low_inclusive": True, "high_inclusive": True,
+        "unit": "nM", "dimension": "concentration",
+    }
+    assert record["constraint"]["conversion"]["factor"] == "1000"
+    # the raw form a claim quotes is untouched
+    assert record["measurement"]["value"] == pytest.approx(0.3)
+    assert record["measurement"]["unit"] == "uM"
+
+
+def test_a_bound_record_reports_its_constraint_kind():
+    record = normalised_record({**_CHEMBL_FACTS, "standard_relation": ">",
+                                "standard_value": "30000"}, endpoint="herg")
+
+    assert record["constraint"]["kind"] == "censored"
+    assert record["constraint"]["canonical"]["high"] is None
+    assert record["measurement"]["constraint_kind"] == "censored"

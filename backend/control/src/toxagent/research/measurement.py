@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from ..domain.evidence_relation import EvidenceScope
+from ..domain.measurement_value import NumericConstraint
 
 #: Provider fact keys, in the order they are tried, per scope axis. ChEMBL's
 #: own names come first because they are the ones this deployment has; a
@@ -63,12 +64,31 @@ def measurement_scope(
     return EvidenceScope(endpoint=endpoint, **axes)
 
 
+def measurement_constraint(facts: Mapping[str, Any]) -> NumericConstraint:
+    """What the record's number permits, in canonical units (#59, §5.2).
+
+    The identity layer above says whether two records are about the same
+    measurement; this says what each one's value establishes. A record whose
+    unit this domain cannot place comes back ``unknown_unit`` -- the record is
+    kept, the comparison is refused.
+    """
+    return NumericConstraint.parse(
+        _first(facts, VALUE_KEYS),
+        _first(facts, ("standard_units", "unit")),
+        comparator=_first(facts, ("standard_relation", "comparator")),
+    )
+
+
 def measured_value(facts: Mapping[str, Any]) -> dict[str, Any]:
     """The value a claim would quote, with the relation and unit it needs.
 
     ``"> 30 µM"`` is a bound and ``"= 30 µM"`` is a measurement; dropping the
     relation turns one into the other, so it travels with the number or the
     value is reported as not assessed.
+
+    Since #59 the canonical form travels beside the raw one, with the
+    conversion that produced it: comparison uses the canonical number, an
+    answer quotes the raw one, and the researcher can check the step between.
     """
     raw = _first(facts, VALUE_KEYS)
     if raw is None:
@@ -77,11 +97,15 @@ def measured_value(facts: Mapping[str, Any]) -> dict[str, Any]:
         value: float | str = float(raw)
     except ValueError:
         value = raw
+    constraint = measurement_constraint(facts)
     return {
         "value": value,
         "relation": _first(facts, ("standard_relation", "comparator")) or "=",
         "unit": _first(facts, ("standard_units", "unit")),
         "state": "measured",
+        "constraint_kind": constraint.kind.value,
+        "canonical": constraint.to_dict()["canonical"],
+        "conversion": None if constraint.conversion is None else constraint.conversion.to_dict(),
     }
 
 
@@ -100,4 +124,5 @@ def normalised_record(
         "scope": scope.to_dict(),
         "declared_axes": sorted(scope.declared()),
         "measurement": measured_value(facts),
+        "constraint": measurement_constraint(facts).to_dict(),
     }
