@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Mapping
 
+from .dependencies import needs_reassessment
 from .model import (
     CONCLUSION_PROPOSED,
     CONCLUSION_RELEASED,
@@ -89,6 +90,14 @@ def compile_dossier(
         "released_conclusion": (
             case.released_conclusion.to_dict() if case.released_conclusion is not None else None
         ),
+        # #60: what the case derived, from what, and what a changed premise
+        # has left waiting. §16 item 5 -- "thay đổi so với assessment trước" --
+        # is read from here: a claim marked needs_reassessment is exactly the
+        # part of the last assessment a new premise moved.
+        "derived_claims": [c.to_dict() for c in case.derived_claims],
+        "claims_needing_reassessment": [
+            c.id for c in needs_reassessment(case.derived_claims)
+        ],
         "coverage": case.coverage,
         "stop_reason": stop_reason,
     }
@@ -143,6 +152,15 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
             lines.append(f"- {e.id} {e.stance}{bears} [{e.source_class} {e.source_ref}] {e.claim[:140]}")
     if case.next_tests:
         lines.append("Proposed tests: " + "; ".join(t.test[:120] for t in case.next_tests[:3]))
+    # #60: a premise moved under these, so they are the work this turn starts
+    # from. Said before the conclusion, because a conclusion that rests on one
+    # of them is not what the case can say any more.
+    stale = needs_reassessment(case.derived_claims)[:limit]
+    if stale:
+        lines.append(
+            "Derived claims a changed premise left waiting (recompute or reassess before "
+            "relying on them): " + "; ".join(f"{c.id} {c.statement[:120]} — {c.note[:160]}"
+                                             for c in stale))
     def said(conclusion) -> str:
         return "; ".join(
             [f"can say: {line.text[:120]} ({','.join(line.evidence_ids)})"

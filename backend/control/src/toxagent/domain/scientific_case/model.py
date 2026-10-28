@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
+from .dependencies import DerivedClaim
+
 SCHEMA_VERSION = "scientific-case-v1"
 
 
@@ -27,6 +29,12 @@ MAX_NEXT_TESTS = 12
 
 
 MAX_CONTEXT = 32
+
+
+#: #60. A case derives a handful of quantities, not a spreadsheet: the margin,
+#: a comparison, a recommendation that rests on them. A cap keeps the
+#: dependency graph something a researcher can read.
+MAX_DERIVED_CLAIMS = 24
 
 
 MAX_TEXT = 1000
@@ -485,6 +493,10 @@ class ScientificCaseV1:
     uncertainties: tuple[Uncertainty, ...] = ()
     actions: tuple[Action, ...] = ()
     next_tests: tuple[NextTest, ...] = ()
+    #: #60: claims the case derived, each with the inputs, rule and
+    #: assumptions it was reached by. Empty for a case written before #60,
+    #: which therefore serialises and hashes exactly as it did.
+    derived_claims: tuple[DerivedClaim, ...] = ()
     conclusion: Conclusion = field(default_factory=Conclusion)
     #: #47: the last released conclusion while a newer one is only proposed.
     released_conclusion: Conclusion | None = None
@@ -551,6 +563,8 @@ class ScientificCaseV1:
             "uncertainties": [u.to_dict() for u in self.uncertainties],
             "actions": [a.to_dict() for a in self.actions],
             "next_tests": [t.to_dict() for t in self.next_tests],
+            **({"derived_claims": [c.to_dict() for c in self.derived_claims]}
+               if self.derived_claims else {}),
             "conclusion": self.conclusion.to_dict(),
             **({"released_conclusion": self.released_conclusion.to_dict()}
                if self.released_conclusion is not None else {}),
@@ -609,6 +623,8 @@ class ScientificCaseV1:
                             "expected_readouts": tuple(t.get("expected_readouts") or ())})
                 for t in data.get("next_tests") or ()
             ),
+            derived_claims=tuple(DerivedClaim.from_dict(c)
+                                 for c in data.get("derived_claims") or ()),
             conclusion=_conclusion(conclusion),
             released_conclusion=_conclusion(released) if released else None,
             runs=tuple(

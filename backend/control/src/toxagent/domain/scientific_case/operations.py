@@ -38,10 +38,12 @@ from .model import (
     SourceClass,
     Stance,
     Uncertainty,
+    MAX_DERIVED_CLAIMS,
     UncertaintyKind,
     _values,
 )
-from .values import VerificationStatus
+from .dependencies import CLAIM_PROPOSED, DerivedClaim, Justification, apply_change
+from .values import VALUE_REF_SCHEME, VerificationStatus
 
 
 def _text(payload: Mapping[str, Any], key: str, *, required: bool = True,
@@ -242,16 +244,84 @@ def verification_for(u: CaseUpdate) -> str | None:
 def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     if len(case.context) >= MAX_CONTEXT:
         raise InvalidCaseUpdate(f"a case holds at most {MAX_CONTEXT} context items")
+    key = _text(u.payload, "key", limit=120)
     item = ContextItem(
         id=_next_local_id("c", (c.id for c in case.context)),
-        key=_text(u.payload, "key", limit=120), value=_text(u.payload, "value"),
+        key=key, value=_text(u.payload, "value"),
         note=_text(u.payload, "note", required=False), actor=u.actor, run_id=u.run_id,
         unit=_text(u.payload, "unit", required=False, limit=40) or None,
         source=_text(u.payload, "source", required=False, limit=120) or None,
         scope=_context_scope(u.payload),
         verification=verification_for(u),
     )
-    return replace(case, context=case.context + (item,))
+    superseded = tuple(c for c in case.context if c.key == key)
+    case = replace(case, context=case.context + (item,))
+    if not superseded or not case.derived_claims:
+        return case
+    # §5.3: correcting a value marks what was computed from it, here, rather
+    # than in a caller that might forget. The ref of the version just
+    # superseded is what the claims cite -- the new version is cited by
+    # nothing yet.
+    stale = f"{VALUE_REF_SCHEME}:{key}@v{len(superseded)}"
+    return replace(case, derived_claims=apply_change(case.derived_claims, (stale,)))
+
+
+def _record_derived_claim(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    """Record a derived claim, or add a justification to one that exists (#60).
+
+    Adding a second justification to a claim is how §5.3's "claim còn một
+    justification khác hợp lệ" case comes about, so it is the same operation
+    rather than a second one: a run that reaches an existing claim another way
+    says so, and the claim stops depending on one premise alone.
+    """
+    statement = _text(u.payload, "statement", limit=MAX_TEXT)
+    rule = _text(u.payload, "rule", limit=120)
+    inputs = _texts(u.payload, "inputs", limit=16)
+    if not inputs:
+        raise InvalidCaseUpdate(
+            "a derived claim needs its inputs: the refs it was computed from, so a change "
+            "to one of them can find it"
+        )
+    assumptions = _texts(u.payload, "assumptions", limit=8)
+    existing = next((c for c in case.derived_claims
+                     if c.statement.casefold() == statement.casefold()), None)
+    if existing is None and len(case.derived_claims) >= MAX_DERIVED_CLAIMS:
+        raise InvalidCaseUpdate(f"a case holds at most {MAX_DERIVED_CLAIMS} derived claims")
+
+    def _justification(owner: DerivedClaim | None) -> Justification:
+        return Justification(
+            id=_next_local_id("j", (j.id for j in (owner.justifications if owner else ()))),
+            rule=rule, inputs=inputs, assumptions=assumptions,
+        )
+
+    if existing is not None:
+        if any(j.rule == rule and j.inputs == inputs for j in existing.justifications):
+            return case  # an idempotent repeat
+        updated = replace(existing,
+                          justifications=existing.justifications + (_justification(existing),))
+        return replace(case, derived_claims=tuple(
+            updated if c.id == existing.id else c for c in case.derived_claims))
+
+    claim = DerivedClaim(
+        id=_next_local_id("dc", (c.id for c in case.derived_claims)),
+        statement=statement, justifications=(_justification(None),),
+        status=CLAIM_PROPOSED, actor=u.actor, run_id=u.run_id,
+    )
+    return replace(case, derived_claims=case.derived_claims + (claim,))
+
+
+def _reassess_claims(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    """Mark what a change outside the case's own values reaches (#60).
+
+    A corrected researcher value marks its own downstream in ``_add_context``.
+    This is for the other premises: a re-run predictor snapshot, an evidence
+    record withdrawn, an assumption the researcher no longer accepts.
+    """
+    changed = _texts(u.payload, "changed", limit=16)
+    if not changed:
+        raise InvalidCaseUpdate("reassess_claims needs the refs that changed")
+    note = _text(u.payload, "note", required=False, limit=MAX_TEXT)
+    return replace(case, derived_claims=apply_change(case.derived_claims, changed, note=note))
 
 
 def _add_hypothesis(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
@@ -487,6 +557,16 @@ _OPS = {
     #: Only the researcher widens or narrows what the case may reach.
     "set_scope": (_set_scope, {Actor.USER}),
     "add_context": (_add_context, {Actor.USER}),
+    #: #60. The server's, like the calculation itself: §9.1 has a derived
+    #: numeric claim checked by an approved calculation over cited inputs, so
+    #: the component that performed the calculation is the one that records
+    #: what it was computed from. Opening this to the investigator means
+    #: giving `update_scientific_case` the op and the prompt guidance for it,
+    #: which is #69/#70's work, not a wider actor set here.
+    "record_derived_claim": (_record_derived_claim, {Actor.SERVER}),
+    #: Marking what a change reaches is the server's: it is a consequence of
+    #: a premise moving, not a judgement a run gets to make about its own work.
+    "reassess_claims": (_reassess_claims, {Actor.SERVER}),
     "add_hypothesis": (_add_hypothesis, {Actor.MODEL, Actor.USER}),
     "revise_hypothesis": (_revise_hypothesis, {Actor.MODEL, Actor.USER}),
     "record_evidence": (_record_evidence, {Actor.MODEL, Actor.USER, Actor.SERVER}),
