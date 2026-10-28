@@ -320,6 +320,12 @@ class ContextItem:
     unit: str | None = None
     source: str | None = None
     scope: Mapping[str, str] | None = None
+    #: How much standing the value has (#61). Unset reads as ``user_asserted``
+    #: -- the weakest of the three -- because that is what an item written
+    #: before this field was, and because assuming the strongest is the error
+    #: that turns something the researcher typed into a verified measurement.
+    #: The vocabulary is ``scientific_case.values.VerificationStatus``.
+    verification: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {"id": self.id, "key": self.key, "value": self.value,
@@ -330,6 +336,8 @@ class ContextItem:
             data["source"] = self.source
         if self.scope:
             data["scope"] = dict(self.scope)
+        if self.verification:
+            data["verification"] = self.verification
         return data
 
     def describe(self) -> str:

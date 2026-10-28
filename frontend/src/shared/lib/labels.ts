@@ -31,8 +31,9 @@ export const INTENT_LABEL_VI: Record<string, string> = {
 };
 
 /** Plan section 9.4 — each code a fixed, non-optional sentence. A
- * limitation is content, not a disclaimer to summarize or shorten. The last
- * five belong to the activity workflow's artifacts. */
+ * limitation is content, not a disclaimer to summarize or shorten. Five of
+ * them belong to the activity workflow's artifacts, and the last to a value
+ * the researcher supplied (#61). */
 export const LIMITATION_LABEL_VI: Record<LimitationCode, string> = {
   uncalibrated_probability:
     'Xác suất từ mô hình chưa được hiệu chỉnh (uncalibrated) — không phải nguy cơ lâm sàng đã được định cỡ.',
@@ -57,6 +58,8 @@ export const LIMITATION_LABEL_VI: Record<LimitationCode, string> = {
     'Mức ưu tiên là đầu ra của một quy tắc cố định áp lên ước lượng, không phải một phép đo thứ hai.',
   toxicity_not_run_not_negative:
     'Bước đánh giá độc tính chưa chạy cho ứng viên này — đó là chưa có kết quả, không phải kết quả âm tính.',
+  user_supplied_value_not_verified:
+    'Con số này do nhà nghiên cứu cung cấp — là đầu vào của phép tính, không phải phép đo do sản phẩm này thực hiện hay xác minh.',
 };
 
 export const ERROR_CODE_LABEL_VI: Record<string, string> = {

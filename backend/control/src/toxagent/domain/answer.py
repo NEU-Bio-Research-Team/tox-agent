@@ -55,6 +55,9 @@ class LimitationCode(str, Enum):
     ACTIVITY_MODEL_NOT_ADMITTED = "activity_model_not_admitted"
     POLICY_DECISION_NOT_A_MEASUREMENT = "policy_decision_not_a_measurement"
     TOXICITY_NOT_RUN_NOT_NEGATIVE = "toxicity_not_run_not_negative"
+    #: #61: the answer quoted a number the researcher supplied. It is an
+    #: input, not a measurement this product made or verified.
+    USER_SUPPLIED_VALUE_NOT_VERIFIED = "user_supplied_value_not_verified"
 
 
 # identity | round:0..6 | percent:0..6 | difference | ratio

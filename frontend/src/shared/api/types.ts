@@ -316,7 +316,8 @@ export type LimitationCode =
   | 'pic50_not_therapeutic_efficacy'
   | 'activity_model_not_admitted'
   | 'policy_decision_not_a_measurement'
-  | 'toxicity_not_run_not_negative';
+  | 'toxicity_not_run_not_negative'
+  | 'user_supplied_value_not_verified';
 
 export type Limitation = Schemas['Limitation'];
 

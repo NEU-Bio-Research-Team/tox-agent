@@ -105,6 +105,7 @@ from .operations import (  # noqa: F401
     _close,
     _OPS,
     MODEL_OPS,
+    verification_for,
     apply,
     replay,
 )
@@ -123,4 +124,15 @@ from .changes import (  # noqa: F401
     CHANGES_SCHEMA_VERSION,
     RunNotInCase,
     run_changes,
+)
+from .values import (  # noqa: F401
+    VALUE_REF_SCHEME,
+    DEFAULT_VERIFICATION,
+    VerificationStatus,
+    ValueVersion,
+    value_versions,
+    current_values,
+    resolve_value_ref,
+    is_value_ref,
+    iter_history,
 )

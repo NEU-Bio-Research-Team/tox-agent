@@ -139,6 +139,16 @@ TEXT: Final[Mapping[LimitationCode, Mapping[str, str]]] = {
             "quả, không phải kết quả độc tính âm tính."
         ),
     },
+    CODE.USER_SUPPLIED_VALUE_NOT_VERIFIED: {
+        "en": (
+            "This number was supplied by the researcher. It is an input to the "
+            "calculation, not a measurement this product made or verified."
+        ),
+        "vi": (
+            "Con số này do nhà nghiên cứu cung cấp. Nó là đầu vào của phép tính, không "
+            "phải một phép đo do sản phẩm này thực hiện hay xác minh."
+        ),
+    },
 }
 
 
@@ -195,6 +205,7 @@ OBSERVATION_WIDE: Final[frozenset[str]] = frozenset({
     CODE.ACTIVITY_MODEL_NOT_ADMITTED.value,
     CODE.POLICY_DECISION_NOT_A_MEASUREMENT.value,
     CODE.TOXICITY_NOT_RUN_NOT_NEGATIVE.value,
+    CODE.USER_SUPPLIED_VALUE_NOT_VERIFIED.value,
 })
 
 #: Carried by an observation but about one part of it: required of a claim

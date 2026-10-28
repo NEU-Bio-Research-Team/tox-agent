@@ -34,6 +34,11 @@ class Producer(str, Enum):
     #: The workflow itself, for stage status: which stages ran, which were
     #: skipped and why.
     WORKFLOW = "workflow"
+    #: The researcher, for a value they supplied: an exposure, an assay result
+    #: they hold (#61). Deliberately not RESEARCH, which is literature this
+    #: product retrieved: reading a number the researcher typed as something a
+    #: source says is the confusion this producer exists to prevent.
+    RESEARCHER = "researcher"
 
 
 class ObservationKind(str, Enum):
@@ -52,6 +57,10 @@ class ObservationKind(str, Enum):
     PRIORITISATION_DECISION = "prioritisation_decision"
     #: Which workflow stages ran, and why a stage did not.
     SCREENING_STATE = "screening_state"
+    #: One version of a value the researcher supplied (#61). Carries its own
+    #: verification status, because a citable value is not thereby a verified
+    #: measurement.
+    RESEARCHER_VALUE = "researcher_value"
 
 
 # A model projection that outgrows this is a prompt-budget bug, not a reason to

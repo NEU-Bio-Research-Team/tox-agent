@@ -41,6 +41,7 @@ from .model import (
     UncertaintyKind,
     _values,
 )
+from .values import VerificationStatus
 
 
 def _text(payload: Mapping[str, Any], key: str, *, required: bool = True,
@@ -212,6 +213,32 @@ def _context_scope(payload: Mapping[str, Any]) -> dict[str, str] | None:
     return {axis: _text(scope, axis, limit=120) for axis in sorted(scope)}
 
 
+def verification_for(u: CaseUpdate) -> str | None:
+    """The stated verification status, if the actor may state it (#61).
+
+    ``sme_verified`` is the status the study's gold is built on, so a run
+    cannot award it to its own input: only an update the researcher made may
+    carry it. A caller that asks for it is refused with the reason, rather
+    than silently downgraded, so the refusal is visible in the run.
+
+    Today ``add_context`` is the researcher's operation alone (``_OPS``), so
+    this is the second lock rather than the first. It is here because the
+    first one is an allowlist about *who may add context*, and this is a rule
+    about *what standing a value may claim* -- if that allowlist ever widens
+    to the server, the rule still holds.
+    """
+    stated = u.payload.get("verification")
+    if stated in (None, ""):
+        return None
+    status = _choice(u.payload, "verification", VerificationStatus)
+    if status == VerificationStatus.SME_VERIFIED.value and u.actor != Actor.USER.value:
+        raise InvalidCaseUpdate(
+            "verification 'sme_verified' may only be set by the researcher; a value this "
+            "run supplied is 'user_asserted' or 'source_backed'"
+        )
+    return status
+
+
 def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     if len(case.context) >= MAX_CONTEXT:
         raise InvalidCaseUpdate(f"a case holds at most {MAX_CONTEXT} context items")
@@ -222,6 +249,7 @@ def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         unit=_text(u.payload, "unit", required=False, limit=40) or None,
         source=_text(u.payload, "source", required=False, limit=120) or None,
         scope=_context_scope(u.payload),
+        verification=verification_for(u),
     )
     return replace(case, context=case.context + (item,))
 
