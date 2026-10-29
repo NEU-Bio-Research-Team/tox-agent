@@ -3,7 +3,7 @@
 
 A local checkout accumulates roots the repository no longer tracks — earlier
 `agents/`, `services/`, `model_server/`, `src/`, `tools/`, `scripts/` layouts,
-mostly `.gitignore`d. They are not the product (docs/explanation/workspace-layout.md), but a
+mostly `.gitignore`d. They are not the product, but a
 person or an agent reading the workspace cannot tell that from the directory
 name, and an audit or an edit made against one of them describes code that
 never ships. This lists them.
@@ -57,7 +57,7 @@ def main(argv: list[str]) -> int:
     if not stray:
         print("workspace OK: no untracked source-like roots")
         return 0
-    print("untracked source-like roots (NOT the product; see docs/explanation/workspace-layout.md):")
+    print("untracked source-like roots (NOT the product; never tracked, never shipped):")
     for name in stray:
         print(f"  {name}/")
     return 1 if strict else 0

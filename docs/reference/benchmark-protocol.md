@@ -1,6 +1,6 @@
 # Benchmark protocol
 
-How the numbers in the [model card](model-card-generated.md) are produced, and the rules
+How the numbers in the [model card](model-card.md) are produced, and the rules
 that keep them meaningful.
 
 ## Two commands

@@ -7,7 +7,7 @@ own, narrower ``EvidenceRelation``/``EvidenceSynthesis`` (``domain/report.py``)
 and from ``research/relevance.py``'s ``Relevance`` (which answers "is this hit
 citable at all", not "what does this source say about this proposition") —
 reconciling those three into one type is future work (see ADR 0010 and
-``docs/glossary/ads-glossary.md``); this module is decision_support's own,
+the ADS glossary, removed 2026-10-30, in git history); this module is decision_support's own,
 introduced without touching either existing type's live wire contract.
 """
 from __future__ import annotations

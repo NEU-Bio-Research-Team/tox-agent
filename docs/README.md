@@ -1,103 +1,63 @@
-# Documentation index
+# ToxAgent documentation
 
-Every Markdown file under `docs/`, grouped by what a reader is trying to do
-([Diátaxis](https://diataxis.fr/)): learn the product, get a task done, look
-something up, or understand why it is built this way. Records of past work and
-measurements sit apart from all four.
+Start at the [root README](../README.md) to install and run the stack. This
+directory documents what is inside it.
 
-Three statuses, and they mean different things:
+## The agent layer
 
-- **Current** — describes the tree as it is now. Commands must run from a clean
-  clone. `devops/checks/check_docs.py` enforces that these name no retired
-  path and that every relative link resolves.
-- **Generated** — written by a script; regenerate rather than hand-edit. A unit
-  test fails when the checked-in copy drifts.
-- **Historical** — evidence of what was true when it was written: everything
-  under `results/` and `internal/`, and the ADRs. Not edited to match today's
-  tree; exempt from the retired-path check, never from the link check. A link
-  to a document that no longer exists is kept as text, marked `removed:`.
+How a toxicology question becomes a grounded answer, and how to work on it.
 
-File names are `kebab-case.md`; a Vietnamese document ends in `.vi.md`.
-
-## Tutorials — learning the product
-
-| Document | Status | What it is for |
-|---|---|---|
-| [`../README.md`](../README.md) | Current | Repository overview and the seven-step setup |
-| [`tutorials/getting-started.md`](tutorials/getting-started.md) | Current | First run via Docker Compose |
-
-## How-to guides — getting a task done
-
-| Document | Status | What it is for |
-|---|---|---|
-| [`how-to/operations.md`](how-to/operations.md) | Current | Running, stopping, backing up and restoring the stack |
-| [`how-to/development.md`](how-to/development.md) | Current | Per-service test commands |
-| [`how-to/tab-suite-benchmark-setup.md`](how-to/tab-suite-benchmark-setup.md) | Current | Running the TAB-Suite benchmark lanes |
-
-## Reference — looking something up
-
-| Document | Status | What it is for |
-|---|---|---|
-| [`reference/configuration.md`](reference/configuration.md) | Current | Environment variables |
-| [`reference/metrics.md`](reference/metrics.md) | Current | Metrics the control plane exports |
-| [`reference/model-card.md`](reference/model-card.md) | Current | Short customer-facing model card |
-| [`reference/model-card-generated.md`](reference/model-card-generated.md) | Generated | Full ToxPred model card, with split hash and benchmark commit |
-| [`reference/benchmark-protocol.md`](reference/benchmark-protocol.md) | Current | Frozen split and metric definitions |
-| [`reference/artifacts/herg-tox21-chemberta-v1.md`](reference/artifacts/herg-tox21-chemberta-v1.md) | Current | Admitted model card |
-| [`reference/artifacts/clintox-smilesgnn-v1.md`](reference/artifacts/clintox-smilesgnn-v1.md) | Current | **Blocked** artifact — records why v1 cannot be served (I07) |
-| [`reference/ads-glossary.md`](reference/ads-glossary.md) | Current | Adaptive decision support vocabulary |
-| [`reference/architecture-inventory.json`](reference/architecture-inventory.json) | Generated | Intents, lanes, flags, profiles, queues, providers, eval packs, graders, schema versions — `python -m evals.architecture_inventory --write` |
-| `reference/capability-matrix.md`, `reference/capability-matrix.json` | Generated | Served/blocked models, explainer validation, tool profiles, flags, instruction cost — `python -m evals.capability_matrix --write` |
-
-## Explanation — understanding why
-
-| Document | Status | Scope |
-|---|---|---|
-| [`explanation/architecture.md`](explanation/architecture.md) | Current | Service boundaries across the whole product |
-| [`explanation/workspace-layout.md`](explanation/workspace-layout.md) | Current | Where each service, script and document lives |
-| [`explanation/predictor-architecture.md`](explanation/predictor-architecture.md) | Current | **ToxPred only** — the predictor's internal layering |
-| [`adr/`](adr/) | Historical | Architecture decision records, ADR 0001–0012, for the whole product |
-| [`../backend/control/README.md`](../backend/control/README.md) | Current | Control plane: package layout and dependency order |
-| [`../backend/ocr/README.md`](../backend/ocr/README.md) | Current | Structure-recognition service |
-
-[`../frontend/README.md`](../frontend/README.md) covers the frontend: commands and feature layout. See also
-[`how-to/development.md`](how-to/development.md).
-
-## Results — dated measurements
-
-| Document | Status |
+| Document | Read it for |
 |---|---|
-| `results/tab-suite-live-2026-09-17.md` | Historical — TAB-Suite live results, 2026-09-17 |
-| `results/bm1-explainer-benchmark-analysis.md` | Historical — explainer analysis of the pre-refactor monolith |
+| [agent-layer/README.md](agent-layer/README.md) | The shape of the layer, and which document answers which question |
+| [agent-layer/architecture.md](agent-layer/architecture.md) | The components, the path a turn takes, and where state lives |
+| [agent-layer/running.md](agent-layer/running.md) | Running a turn locally, the rollout flags, the test suites |
+| [agent-layer/extending.md](agent-layer/extending.md) | Adding a tool, a case operation, a procedure, a stop reason or a flag |
+| [agent-layer/benchmark.md](agent-layer/benchmark.md) | Running the protocol v2 arms and reading what comes back |
 
-## Internal documents
+## The research design
 
-**These live in the development repository and are not part of a customer
-distribution** — `devops/handoff_allowlist.json` withholds `results/` and
-`internal/`, and the names above and below are deliberately not links so a
-handed-over clone has no dead ones.
+Why the layer is built this way, what is being claimed, and what has been
+measured so far.
 
-| Document | Status |
+| Document | Read it for |
 |---|---|
-| `internal/rethink-agentic-research-evaluation.vi.md` | Current — research and design proposal for the agent's scientific role, external benchmarks, and evaluation protocol; observed-state claims are pinned to commit `ad66022`. |
-| `internal/backlog/SCIENTIFIC_INVESTIGATION_BACKLOG.md` | Current — execution backlog and status for the RETHINK proposal, wave by wave |
-| `internal/external-benchmarks.md` | Current — which published benchmark runs, which is blocked and on what, and the label each result may carry |
-| `internal/spec/WORKSPACE_AND_UI_SIMPLIFICATION_PLAN.md` | Historical — the workspace cleanup and UI simplification plan, with its execution log |
-| `internal/spec/WORKSPACE_STRUCTURE_REVIEW.md` | Current — structure review of the code that stays and its phased plan, with an execution log |
-| `internal/audit/` | Historical — the 2026-09 system audit and the regression guards it produced (`regression_guards.json` is read by `devops/tests`) |
+| [research/README.md](research/README.md) | The claims, their status, and how to check them |
+| [research/hypotheses.md](research/hypotheses.md) | H1–H3: the mechanism each one needs and how it is varied |
+| [research/evaluation.md](research/evaluation.md) | Arms, case sets, metrics, and what the numbers may not be read as |
+| [research/status.md](research/status.md) | What is implemented, what is measured, what is open |
 
-**Removed 2026-09-27, at the product owner's request:** the process
-documentation — the plan, audit, progress, review, runbook, `unified-v2` and
-`refactor` documents (40 files). They recorded work that is finished; what they
-established lives in the commits that did it, in the ADRs and in the backlog.
-`git log --diff-filter=D -- docs/` names them, and `git show <commit>^:<path>`
-still reads any one of them. A citation to one of these paths in a code comment
-or a task fixture is provenance — what the author read at the time — and was
-left as written.
+## Reference and decisions
 
-## Test numbers cited anywhere in these documents
+| Path | What it is |
+|---|---|
+| [adr/](adr/) | Architecture decision records, in order |
+| [reference/configuration.md](reference/configuration.md) | Every environment variable the services read |
+| [reference/metrics.md](reference/metrics.md) | The metric names the control plane emits |
+| [reference/model-card.md](reference/model-card.md) | The predictor's model card |
+| [reference/benchmark-protocol.md](reference/benchmark-protocol.md) | How the predictor benchmark numbers are produced |
+| [reference/architecture-inventory.json](reference/architecture-inventory.json) | Generated: intents, profiles, flags, queues, schemas |
+| [reference/capability-matrix.md](reference/capability-matrix.md) | Generated: which capability each flag and profile turns on |
+| [how-to/operations.md](how-to/operations.md) | Backup, restore, upgrade, incident response |
 
-A count belongs to the commit, environment and configuration it was measured
-on. Do not add counts from different runs together, and do not treat a figure
-recorded in a progress log as a statement about a later HEAD. Baselines for a
-release carry commit, image digest, artifact hashes and skip reasons.
+The two generated files are written by `python -m evals.architecture_inventory
+--write` and `python -m evals.capability_matrix --write` from
+`backend/control`, and a unit test fails when either is stale.
+
+## Historical records
+
+These are evidence of what was true when written. They are not edited to match
+today's tree, and `devops/checks/check_docs.py` exempts them from its path
+checks.
+
+- `results/` — dated measurement reports, with the commit each ran on.
+- `internal/` — audits and the issue catalogue the regression guards index.
+
+Both stay in the development repository and are not part of a distribution.
+
+Documentation removed on 2026-10-30, available in git history: the tutorial,
+the workspace-layout and architecture explanations, the development how-to, the
+ADS glossary, the generated model card, and the plans and specs under
+`internal/spec/` and `internal/backlog/` — including the 2026-10-28 agent
+architecture proposal, which these documents replace as the description of what
+exists.

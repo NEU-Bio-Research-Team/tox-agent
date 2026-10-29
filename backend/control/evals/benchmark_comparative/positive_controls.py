@@ -11,7 +11,7 @@ know to be acceptable: if the scorer flags those, it has a false positive.
 review asked for -- not a pass rate, but the instrument's own error rates.
 
 The controls follow the table in §5.2 of
-``docs/internal/spec/TOXAGENT_AGENT_LAYER_AND_BENCHMARK_PROPOSAL_2026-10-20_VI.md``.
+the 2026-10-20 agent layer and benchmark proposal (removed 2026-10-30, in git history).
 
 What ``detectable_by`` means:
 
