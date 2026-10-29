@@ -57,6 +57,19 @@ _LOOKUP_MARKERS = (
     "là gì", "bao nhiêu", "đã chạy", "trạng thái", "cho tôi xem",
 )
 
+#: The shapes of a question that asks what an artifact says, rather than the
+#: literal phrases above. Live (2026-10-29, arm E) the literal list matched
+#: none of "What does the predictor say about hERG", "What did the activity
+#: model estimate" or "What does the screening say", and every read went
+#: down the full loop. Same rule as the markers: these only move a question
+#: whose subject and artifact are bound and that asks for no judgement.
+_LOOKUP_PATTERNS = tuple(re.compile(p) for p in (
+    r"\bwhat (?:does|did|do) (?:[\w-]+ ){0,5}?(?:say|says|estimate|predict|report|show|give)\b",
+    r"\bwhat (?:is|was|are|were) (?:[\w-]+ ){0,4}?(?:label|score|status|probability|"
+    r"estimate|value|decision|threshold|interval)s?\b",
+    r"\b(?:did|has|was) (?:[\w-]+ ){0,4}?(?:stage|step) (?:run|ran|fail|failed|complete|completed)\b",
+))
+
 #: Phrases that mean the researcher is asking for a judgement, not a field.
 #: Any of these outranks every lookup marker: a question that asks whether two
 #: things disagree is not answered by printing one of them.
@@ -112,6 +125,15 @@ def _has(text: str, markers: Sequence[str]) -> str | None:
     for marker in markers:
         if marker in lowered:
             return marker
+    return None
+
+
+def _matches(text: str, patterns: Sequence[re.Pattern]) -> str | None:
+    lowered = text.casefold()
+    for pattern in patterns:
+        found = pattern.search(lowered)
+        if found:
+            return found.group(0)
     return None
 
 
@@ -182,7 +204,7 @@ def classify(
         return RouteDecision(INVESTIGATE, confidence="low", reason_codes=tuple(codes),
                              detail={"marker": assessment})
 
-    lookup = _has(text, _LOOKUP_MARKERS)
+    lookup = _has(text, _LOOKUP_MARKERS) or _matches(text, _LOOKUP_PATTERNS)
     if lookup and has_subject and artifact_refs:
         # Only here: subject bound, artifact in hand, and nothing in the text
         # asking for a judgement.

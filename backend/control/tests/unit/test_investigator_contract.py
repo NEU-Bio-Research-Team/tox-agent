@@ -498,3 +498,37 @@ def test_the_compare_contract_lists_the_candidates_and_forbids_a_combined_score(
 def test_a_contract_written_before_these_fields_reads_back_unchanged():
     old = goal_contract.build(route="investigate", question="Why?").to_dict()
     assert "researcher_values_seen" not in old and "candidates" not in old
+
+
+@pytest.mark.parametrize("question", [
+    # Phrasings that are not in any case file: the patterns are for the shape
+    # of a read question, not for the dev set's wording.
+    "What does the predictor say about hERG for this compound?",
+    "What did the activity model estimate for it on ABL1?",
+    "What does the EGFR screening say?",
+    "What is the hERG label?",
+    "What was the prioritisation decision?",
+    "Did the toxicity stage run?",
+    "What does the model report for ClinTox?",
+])
+def test_a_question_shaped_as_a_read_takes_the_read_route(question):
+    decision = router.classify(question=question, has_subject=True,
+                               artifact_refs=["analysis:a"])
+    assert decision.route == router.READ_EXPLAIN, decision
+
+
+@pytest.mark.parametrize("question", [
+    "What does the literature say about its hERG risk?",   # assessment outranks
+    "What is the margin at our dose?",                     # a calculation is not a read
+    "Why was it sent to review?",
+    "What does it say, and does that contradict the paper?",
+])
+def test_a_read_shape_that_asks_for_a_judgement_is_investigated(question):
+    decision = router.classify(question=question, has_subject=True,
+                               artifact_refs=["analysis:a"])
+    assert decision.route == router.INVESTIGATE, decision
+
+
+def test_a_read_shape_without_a_bound_subject_is_not_a_read():
+    decision = router.classify(question="What does the predictor say?", has_subject=False)
+    assert decision.route == router.UNDETERMINED
