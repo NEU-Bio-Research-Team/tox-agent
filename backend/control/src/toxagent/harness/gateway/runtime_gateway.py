@@ -221,7 +221,11 @@ class AgentRuntimeGateway(
                         deadline=deadline,
                         instructions_hash=instructions_hash,
                         has_product=self._has_answer,
-                        commit=gated(commit),
+                        # The repair turn reuses the investigator's prompt,
+                        # so it runs under the same profile: a read route's
+                        # repair is told the read tools exist, and must not
+                        # be handed the full set (§4.1).
+                        commit=gated(commit, repair_profile=profile),
                         phase="investigator",
                     )
                 except DeadlineExceeded as exc:

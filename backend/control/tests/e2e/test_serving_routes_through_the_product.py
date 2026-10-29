@@ -138,3 +138,51 @@ async def test_asking_to_compare_one_candidate_asks_which_others(db, flags_on):
     assert seen["profile"] == "decision_support_read"
     assert contract["must_answer"][0]["gap"] == "only_researcher_has_it"
     assert "Which others" in contract["must_answer"][0]["question"]
+
+
+async def test_a_read_routes_repair_runs_under_the_read_profile(db, flags_on, monkeypatch):
+    """Live (2026-10-29, arm E, a05): the repair turn reuses the investigator's
+    prompt -- which listed the read tools and said no other tool exists -- and
+    was dispatched under the full profile. It now runs under the turn's own."""
+    import json
+    import re
+
+    from tests.e2e.test_release_gate import REPAIR_MARKER
+
+    monkeypatch.setenv("TOXAGENT_FLAG_CLAIM_REVIEWER_V1", "1")
+    monkeypatch.setenv("TOXAGENT_RELEASE_POLICY", "strict-reviewed-v1")
+    bundle_re = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
+    seen: dict = {"profiles": [], "reviews": 0}
+
+    async def script(turn) -> None:
+        profile = turn.tool_context.profile
+        if profile == "claim_review":
+            seen["reviews"] += 1
+            bundle = json.loads(bundle_re.search(turn.system_prompt).group(1))
+            verdict = "not_supported" if seen["reviews"] == 1 else "supported"
+            await turn.call_tool("submit_claim_review", {"reviews": [
+                {"claim_id": c["claim_id"], "verdict": verdict, "reason": "judged"}
+                for c in bundle["claims"]]})
+            return
+        seen["profiles"].append((REPAIR_MARKER in turn.system_prompt, profile))
+        read = await turn.call_tool("get_analysis_slice", {
+            "analysis_id": seen["analysis_id"], "section": "herg"})
+        await turn.call_tool("submit_grounded_answer", {
+            "answer_markdown": "The hERG label is {{label}}.",
+            "claims": [{"local_ref": "label", "kind": "classification",
+                        "text": "The model labels the compound a hERG blocker or not.",
+                        "observation_id": read["observation_ids"][0],
+                        "field_path": "predictions.herg.label"}],
+            "limitations": [{"code": "screening_not_safety_assessment", "text": ""}],
+        })
+
+    async with api_client(db, StubPredictor()) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        seen["analysis_id"] = await _analyse(client, session_id)
+        run = await _post(client, session_id, "What is the hERG label?")
+
+    assert run["status"] == "completed", run
+    assert seen["reviews"] == 2, seen
+    assert seen["profiles"] == [(False, "decision_support_read"),
+                                (True, "decision_support_read")]
