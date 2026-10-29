@@ -52,8 +52,13 @@ def summarize(records: Iterable[tuple[str, Mapping[str, Any]]]) -> dict[str, Any
     """
     groups: dict[str, list[tuple[str, float]]] = {}
     qualified: dict[str, int] = {}
+    #: The same statistics split by the assay the value came from, because an
+    #: IC50 from a binding assay and an IC50 from patch clamp are not the same
+    #: measurement — see this module's own terfenadine case.
+    by_assay: dict[tuple[str, str], list[tuple[str, float]]] = {}
     for evidence_id, facts in records:
         kind = str(facts.get("standard_type") or "").strip() or "unknown"
+        assay = str(facts.get("assay_type") or "").strip() or "not_stated"
         if (facts.get("standard_relation") or "=") != "=":
             qualified[kind] = qualified.get(kind, 0) + 1
             continue
@@ -62,6 +67,7 @@ def summarize(records: Iterable[tuple[str, Mapping[str, Any]]]) -> dict[str, Any
             qualified[kind] = qualified.get(kind, 0) + 1
             continue
         groups.setdefault(kind, []).append((evidence_id, value))
+        by_assay.setdefault((kind, assay), []).append((evidence_id, value))
 
     by_type: dict[str, Any] = {}
     for kind, members in sorted(groups.items()):
@@ -94,13 +100,46 @@ def summarize(records: Iterable[tuple[str, Mapping[str, Any]]]) -> dict[str, Any
         }
     for kind, count in qualified.items():
         by_type.setdefault(kind, {"n": 0})["qualified_or_unitless"] = count
+
+    by_type_and_assay: dict[str, Any] = {}
+    for (kind, assay), members in sorted(by_assay.items()):
+        values = [value for _, value in members]
+        by_type_and_assay[f"{kind}|{assay}"] = {
+            "standard_type": kind,
+            "assay_type": assay,
+            "n": len(values),
+            "min_nM": _round(min(values)),
+            "median_nM": _round(median(values)),
+            "max_nM": _round(max(values)),
+            "evidence_ids": [evidence_id for evidence_id, _ in members],
+        }
+    #: A measurement type whose values come from more than one assay type. A
+    #: spread across these is a difference in what was measured, so it is not
+    #: evidence that the sources disagree.
+    split_across_assays = sorted(
+        {
+            kind
+            for kind in groups
+            if len({assay for k, assay in by_assay if k == kind}) > 1
+        }
+    )
+
+    reading = (
+        "Lower IC50/Ki/Kd means more potent: 50 nM blocks more strongly than 200 nM. "
+        "Weigh the set, not one record. A record far from the median (over ~30-fold) is "
+        "worth checking for units, relation and assay before it is weighed; it is not, "
+        "on its own, evidence that the measurements disagree."
+    )
+    if split_across_assays:
+        reading += (
+            " " + ", ".join(split_across_assays) + " values here come from more than one "
+            "assay type; compare within an assay type before calling any of them "
+            "contradictory, and see by_type_and_assay."
+        )
     return {
         "method_version": METHOD_VERSION,
         "by_type": by_type,
-        "reading": (
-            "Lower IC50/Ki/Kd means more potent: 50 nM blocks more strongly than 200 nM. "
-            "Weigh the set, not one record. A record far from the median (over ~30-fold) is "
-            "worth checking for units, relation and assay before it is weighed; it is not, "
-            "on its own, evidence that the measurements disagree."
-        ),
+        "by_type_and_assay": by_type_and_assay,
+        "measurement_types_split_across_assays": split_across_assays,
+        "reading": reading,
     }

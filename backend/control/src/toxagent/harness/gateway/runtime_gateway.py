@@ -12,9 +12,15 @@ from ...application.prediction.create_analysis import CreateAnalysis
 from ...application.runs.scheduler import RunContext
 from ...connections.secrets import SecretStore
 from ...domain import decision_state
-from ...domain.errors import RuntimeProtocolError, RuntimeUnavailable
+from ...domain.errors import (
+    DeadlineExceeded,
+    PhaseBudgetExhausted,
+    RuntimeProtocolError,
+    RuntimeUnavailable,
+)
 from ...domain.provenance import content_sha256
 from ...domain.run import Intent
+from ...domain.run_result import ReleasePolicy
 from ...domain.runtime import BindingStatus, RuntimeBinding
 from ...platform.config import RuntimeSettings
 from ...platform.flags import is_enabled
@@ -31,13 +37,18 @@ from ..provider import (
 from ..runtime_profiles import RuntimeProfileRegistry
 from ._common import _now, log
 from .case import ScientificCaseMixin
+from .fixed_workflow import FixedWorkflowMixin, fixed_workflow_on
+from .release import ReleaseGateMixin, declared_policy, release_gate_on
 from .completion import CompletionMixin
 from .context import ContextMixin
 from .health import HealthMixin
 from .reports import ReportsMixin
 
 
-class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, CompletionMixin, HealthMixin):
+class AgentRuntimeGateway(
+    FixedWorkflowMixin, ReleaseGateMixin, ScientificCaseMixin, ContextMixin, ReportsMixin,
+    CompletionMixin, HealthMixin,
+):
     """Run one product turn through one pinned runtime provider.
 
     A provider is injected rather than selected by an import side effect.  The
@@ -60,8 +71,18 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
         secrets: SecretStore | None = None,
         profiles_dir: Path | None = None,
         policy=None,
+        tool_runner=None,
     ) -> None:
         self._db = database
+        #: Arm B's fixed workflow reads through the same runner the MCP
+        #: server uses; built on first use when none was injected.
+        self._tool_runner = tool_runner
+        self._workflow_prompts: dict[str, str] = {}
+        #: #69/#68: the contract and the route decision of each in-flight run,
+        #: stashed by _prepare_context so _begin_decision_state records the
+        #: ones the turn actually read rather than rebuilding them.
+        self._contracts: dict[str, dict] = {}
+        self._routes: dict[str, object] = {}
         #: Read only to state a decision_support run's budget snapshot.
         self._policy = policy
         self._registry = registry
@@ -114,6 +135,7 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
 
         if context.needs_snapshot_first:
             await self._snapshot_before_runtime(context)
+            context = await self._resolve_pending_subject(context)
 
         if context.intent is Intent.BUILD_REPORT:
             from dataclasses import replace
@@ -127,7 +149,19 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
         if keeps_case:
             # Before the prompt is built, so the turn sees its own case.
             await self._begin_scientific_case(context)
-        system_prompt, profile, deadline, instructions_hash = await self._prepare_context(context)
+        try:
+            system_prompt, profile, deadline, instructions_hash = await self._prepare_context(
+                context
+            )
+        except Exception as exc:
+            if context.intent is Intent.DECISION_SUPPORT \
+                    and declared_policy() is not ReleasePolicy.LEGACY:
+                # Failed before dispatch -- e.g. no time left before the
+                # review's reserve -- and still a run with a typed result.
+                await self._record_terminal_result(
+                    context, policy=declared_policy(), run_status="failed", failure=exc,
+                )
+            raise
         if context.intent is not Intent.DECISION_SUPPORT:
             await self._dispatch(
                 context,
@@ -150,23 +184,76 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
                 ),
             )
         run_status = "failed"
+        failure: BaseException | None = None
+        commit = self._commit_with_case if keeps_case else self._commit_product_and_complete
+        fixed = fixed_workflow_on()
+        policy = declared_policy()
+
+        def gated(base_commit, **repair):
+            # #47: a declared policy decides what is published and records a
+            # run result; the gate alone releases with a label; without
+            # either the reviewer (if on) only observes.
+            if policy is not ReleasePolicy.LEGACY:
+                return self._with_publication(base_commit, system_prompt=system_prompt, **repair)
+            if release_gate_on():
+                return self._with_release_gate(base_commit, system_prompt=system_prompt, **repair)
+            return self._with_claim_review(base_commit)
+
         try:
-            await self._dispatch(
-                context,
-                system_prompt=system_prompt,
-                profile=profile,
-                deadline=deadline,
-                instructions_hash=instructions_hash,
-                has_product=self._has_answer,
-                commit=self._with_claim_review(
-                    self._commit_with_case if keeps_case else self._commit_product_and_complete
-                ),
-            )
+            if fixed:
+                # #50 arm B: the server reads by rule, one synthesis turn
+                # writes; same tools, validator and gates as the agent.
+                await self._run_fixed_workflow(
+                    context, system_prompt=system_prompt, deadline=deadline,
+                    commit=gated(
+                        commit, repair_profile="workflow_synthesis",
+                        prompt_for=lambda ctx: self._workflow_prompts.get(
+                            ctx.run_id, system_prompt
+                        ),
+                    ),
+                )
+            else:
+                try:
+                    await self._dispatch(
+                        context,
+                        system_prompt=system_prompt,
+                        profile=profile,
+                        deadline=deadline,
+                        instructions_hash=instructions_hash,
+                        has_product=self._has_answer,
+                        # The repair turn reuses the investigator's prompt,
+                        # so it runs under the same profile: a read route's
+                        # repair is told the read tools exist, and must not
+                        # be handed the full set (§4.1).
+                        commit=gated(commit, repair_profile=profile),
+                        phase="investigator",
+                    )
+                except DeadlineExceeded as exc:
+                    if type(exc) is DeadlineExceeded and self._review_reserve_s(context):
+                        # #46: the investigator ran into the review's reserve.
+                        raise PhaseBudgetExhausted(
+                            "the investigation used its time; the rest was kept for the review",
+                            phase="investigator",
+                        ) from exc
+                    raise
             run_status = "completed"
         except asyncio.CancelledError:
             run_status = "cancelled"
             raise
+        except Exception as exc:
+            failure = exc
+            raise
         finally:
+            if policy is not ReleasePolicy.LEGACY and run_status != "completed":
+                # A run that ended without committing still has a result:
+                # nothing was published, and why is typed -- a candidate
+                # under review is never released by a cancellation.
+                await self._record_terminal_result(
+                    context, policy=policy, run_status=run_status, failure=failure,
+                )
+            self._workflow_prompts.pop(context.run_id, None)
+            self._contracts.pop(context.run_id, None)
+            self._routes.pop(context.run_id, None)
             await decision_state_service.advance(
                 self._db, context.run_id,
                 lambda state: decision_state.finalize(state, run_status=run_status),
@@ -189,8 +276,13 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
         instructions_hash: str | None,
         has_product: Callable[[RunContext], Awaitable[bool]],
         commit: Callable[[RunContext], Awaitable[None]],
+        phase: str = "",
     ) -> None:
-        """One runtime turn: bind, authorize, send, consume, commit, close."""
+        """One runtime turn: bind, authorize, send, consume, commit, close.
+
+        ``phase`` (#46/#53) names which part of the run this turn is -- the
+        investigator, B's synthesis, a review round, the repair -- and is
+        recorded on the binding and on every tool call the turn makes."""
         health = await self._probe_health_with_retries()
         if not health.healthy:
             raise RuntimeUnavailable("the selected runtime is not healthy", detail=health.detail)
@@ -265,6 +357,8 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
             # same reason: a tool must inherit the run's predictor binding
             # rather than let the model choose one (I10).
             model_selection=context.model_selection,
+            subject=context.subject,
+            phase=phase,
         )
         spec = RuntimeSessionSpec(
             session_id=context.session_id,
@@ -314,6 +408,7 @@ class AgentRuntimeGateway(ScientificCaseMixin, ContextMixin, ReportsMixin, Compl
                 runtime_manifest={
                     **runtime_profile.to_manifest(),
                     "prompt_budget": budget.to_manifest(),
+                    **({"phase": phase, "parent_run_id": context.run_id} if phase else {}),
                 },
             )
             await self._persist_started_run(context, binding)

@@ -27,6 +27,8 @@ from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
+from .investigation_gap import Gap
+
 SCHEMA_VERSION = "decision-support-state-v1"
 
 #: Upper bound on a plan. More than this is not a plan, it is a transcript.
@@ -58,6 +60,22 @@ class StopReason(str, Enum):
     #: deadline, or the deterministic fallback).
     BLOCKED = "blocked"
     CANCELLED = "cancelled"
+    #: #46: the answer read what the run already had -- a prediction, a
+    #: screening -- and cited no evidence; there was nothing to search for.
+    #: Recorded as "insufficient_evidence" before, which is what it is not.
+    ANSWERED_FROM_ARTIFACTS = "answered_from_artifacts"
+    #: #46 (typed_stop_v1): the answer says what only the researcher can
+    #: supply and stops there, naming it.
+    NEEDS_USER_INPUT = "needs_user_input"
+    #: #70 (§6.3): the run answered, and what it could not settle it could
+    #: not settle because a provider or corpus would not supply the data --
+    #: an access failure, an open breaker, a record the corpus does not
+    #: carry. Deliberately not insufficient_evidence: "Provider failure và
+    #: thiếu bằng chứng khoa học là hai kết quả khác nhau". One says the
+    #: science is unsettled; this one says the product could not look. A run
+    #: that produced no answer at all is ``blocked``, which is the runtime
+    #: axis and unchanged.
+    PROVIDER_FAILURE = "provider_failure"
 
 
 class RequiredSource(str, Enum):
@@ -74,7 +92,14 @@ _SOURCE_BY_TOOL: Mapping[str, RequiredSource] = {
     "get_explanation_slice": RequiredSource.EXPLANATION,
     "get_attribution": RequiredSource.EXPLANATION,
     "get_evidence_record": RequiredSource.EVIDENCE,
+    # #43: a record whose text was read has been read.
+    "read_evidence_text": RequiredSource.EVIDENCE,
     "get_report_summary": RequiredSource.REPORT,
+    # #44: a replayed screening's artifacts are model and workflow outputs,
+    # made available as observations like a prediction's.
+    "get_screening_state": RequiredSource.PREDICTION,
+    "get_activity_snapshot": RequiredSource.PREDICTION,
+    "get_prioritisation_decision": RequiredSource.PREDICTION,
 }
 
 _RESOLVED = frozenset(
@@ -83,7 +108,7 @@ _RESOLVED = frozenset(
 )
 
 _SEARCH_TOOLS = frozenset({"search_toxicology_evidence"})
-_READ_TOOLS = frozenset({"get_evidence_record"})
+_READ_TOOLS = frozenset({"get_evidence_record", "read_evidence_text"})
 
 #: Relation source classes -> the ref prefix and required-source kind.
 _REF_BY_SOURCE_CLASS: Mapping[str, tuple[str, RequiredSource | None]] = {
@@ -143,6 +168,23 @@ class DecisionSupportStateV1:
     #: it cites. Recorded, never applied to the answer: the role stays only if
     #: it measurably helps (RETHINK §4.4 step 5). Empty without the flag.
     claim_review: Mapping[str, Any] = field(default_factory=dict)
+    #: #46: what the accepted answer rests on -- how many claims cite an
+    #: observation, how many cite evidence -- for telling a lookup apart.
+    answer_basis: Mapping[str, int] = field(default_factory=dict)
+    #: #46 (typed_stop_v1): the stop the answer declared, beside the one the
+    #: server derives in ``stop_reason``; a grader reads both.
+    declared_stop: Mapping[str, Any] = field(default_factory=dict)
+    #: #50 arm B: the fixed workflow's steps, each with a one-line reason.
+    workflow: Mapping[str, Any] = field(default_factory=dict)
+    #: #70: times a provider or corpus could not supply data, each with the
+    #: provider, what was asked and why it failed. Empty is the common case
+    #: and means nothing failed -- not that nothing was checked.
+    access_failures: tuple[Mapping[str, Any], ...] = ()
+    #: #69: the GoalContractV1 this run was admitted under -- route, subject,
+    #: what must be answered, the actions allowed, the budget and the stop
+    #: conditions. Recorded so a grader can read what the run was *asked* to
+    #: do without reconstructing it from four places and a prompt.
+    goal_contract: Mapping[str, Any] = field(default_factory=dict)
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -175,6 +217,12 @@ class DecisionSupportStateV1:
             "answer_outcome": self.answer_outcome,
             "skills": dict(self.skills),
             "claim_review": dict(self.claim_review),
+            "answer_basis": dict(self.answer_basis),
+            **({"access_failures": [dict(f) for f in self.access_failures]}
+               if self.access_failures else {}),
+            **({"goal_contract": dict(self.goal_contract)} if self.goal_contract else {}),
+            "declared_stop": dict(self.declared_stop),
+            "workflow": dict(self.workflow),
             "revision": self.revision,
         }
 
@@ -201,6 +249,11 @@ class DecisionSupportStateV1:
             answer_outcome=data.get("answer_outcome"),
             skills=dict(data.get("skills") or {}),
             claim_review=dict(data.get("claim_review") or {}),
+            answer_basis=dict(data.get("answer_basis") or {}),
+            declared_stop=dict(data.get("declared_stop") or {}),
+            workflow=dict(data.get("workflow") or {}),
+            access_failures=tuple(dict(f) for f in data.get("access_failures") or ()),
+            goal_contract=dict(data.get("goal_contract") or {}),
             revision=int(data.get("revision", 0)),
         )
 
@@ -307,6 +360,7 @@ def apply_tool_result(
 def apply_answer(
     state: DecisionSupportStateV1, *, relations: Sequence[Mapping[str, Any]],
     is_fallback: bool, candidate_generation: int,
+    basis: Mapping[str, int] | None = None, declared_stop: Mapping[str, Any] | None = None,
 ) -> DecisionSupportStateV1:
     """Resolve propositions from the accepted answer's evidence relations.
 
@@ -322,7 +376,8 @@ def apply_answer(
     )
     if is_fallback:
         # A server-authored fallback resolves nothing the model investigated.
-        return _next(state, answer_outcome=outcome)
+        return _next(state, answer_outcome=outcome, answer_basis={}, declared_stop={})
+    state = _next(state, answer_basis=dict(basis or {}), declared_stop=dict(declared_stop or {}))
     by_question = {p.question.casefold(): p for p in state.propositions}
     order = [p.id for p in state.propositions]
     labels: dict[str, set[str]] = {}
@@ -416,10 +471,75 @@ CLAIM_VERDICTS = ("supported", "partially_supported", "not_supported", "cannot_j
 def record_claim_review(
     state: DecisionSupportStateV1, review: Mapping[str, Any],
 ) -> DecisionSupportStateV1:
-    """Store the reviewer's outcome (completed, skipped or failed). Once."""
-    if state.stop_reason is not None or state.claim_review.get("status") == "completed":
+    """Store the reviewer's outcome (completed, skipped or failed). Once per
+    answer: under the release gate (#47) a repaired answer is reviewed again,
+    and the earlier round is kept under ``previous``."""
+    if state.stop_reason is not None:
         return state
-    return _next(state, claim_review=dict(review))
+    current = state.claim_review
+    if current.get("status") == "completed":
+        if current.get("answer_id") == review.get("answer_id"):
+            return state
+        previous = [*current.get("previous", ()),
+                    {k: v for k, v in current.items() if k != "previous"}]
+        return _next(state, claim_review={**dict(review), "previous": previous})
+    return _next(state, claim_review={
+        **dict(review),
+        **({"previous": current["previous"]} if current.get("previous") else {}),
+        **({"repair_requested_for": current["repair_requested_for"]}
+           if current.get("repair_requested_for") else {}),
+    })
+
+
+def record_workflow(
+    state: DecisionSupportStateV1, workflow: Mapping[str, Any],
+) -> DecisionSupportStateV1:
+    """#50 arm B: what the fixed workflow read and decided, and why."""
+    if state.stop_reason is not None:
+        return state
+    return _next(state, workflow=dict(workflow))
+
+
+def record_goal_contract(
+    state: DecisionSupportStateV1, contract: Mapping[str, Any],
+) -> DecisionSupportStateV1:
+    """#69: fix what this run was asked to do, before it is dispatched.
+
+    Written once. A contract that could be edited mid-run would let a run
+    that answered a different question look like one that answered this one.
+    """
+    if state.stop_reason is not None or state.goal_contract:
+        return state
+    return _next(state, goal_contract=dict(contract))
+
+
+def record_access_failure(
+    state: DecisionSupportStateV1, *, provider: str, asked_for: str, reason: str,
+    gap: Gap | str = Gap.PROVIDER_OR_CORPUS,
+) -> DecisionSupportStateV1:
+    """#70: a provider or corpus could not supply data this run asked for.
+
+    Recorded rather than inferred from an empty result, because an empty
+    result and a refused request look identical afterwards and mean opposite
+    things: one is a finding about the science, the other is a finding about
+    the product. §6.3 keeps them apart, and the stop reason below reads this.
+    """
+    if state.stop_reason is not None:
+        return state
+    entry = {"provider": provider, "asked_for": asked_for, "reason": reason,
+             "gap": Gap(gap).value}
+    if entry in [dict(f) for f in state.access_failures]:
+        return state  # an idempotent repeat of the same refusal
+    return _next(state, access_failures=state.access_failures + (entry,))
+
+
+def request_repair(state: DecisionSupportStateV1, *, answer_id: str) -> DecisionSupportStateV1:
+    """#47: the review blocked this candidate and its one repair is open.
+    submit_grounded_answer accepts one more answer for the run while this
+    names the run's current candidate."""
+    if state.stop_reason is not None:
+        return state
+    return _next(state, claim_review={**state.claim_review, "repair_requested_for": answer_id})
 
 
 def _budget_reached(state: DecisionSupportStateV1) -> bool:
@@ -444,13 +564,29 @@ def finalize(
         reason = StopReason.CANCELLED
     elif run_status != "completed" or state.answer_outcome in (None, "fallback"):
         reason = StopReason.BLOCKED
+    elif state.declared_stop.get("reason") == "needs_user_input" \
+            and state.declared_stop.get("needed_inputs"):
+        # Only the answer can know it is waiting on the researcher; it named
+        # what for, and that is the stop.
+        reason = StopReason.NEEDS_USER_INPUT
     elif not state.unresolved:
         # No plan at all and an accepted answer with no relations is not
-        # "sufficient" — nothing was established. It is an answer that did not
-        # need evidence, recorded as such rather than as coverage.
-        reason = StopReason.SUFFICIENT if state.propositions else StopReason.INSUFFICIENT_EVIDENCE
+        # "sufficient" — nothing was established. If it read only what the
+        # run already had and cited no evidence, it was a lookup, recorded as
+        # one; otherwise nothing it cited was set against a question.
+        if state.propositions:
+            reason = StopReason.SUFFICIENT
+        elif state.answer_basis.get("observations", 0) and not state.answer_basis.get("evidence", 0):
+            reason = StopReason.ANSWERED_FROM_ARTIFACTS
+        else:
+            reason = StopReason.INSUFFICIENT_EVIDENCE
     elif _budget_reached(state):
         reason = StopReason.BUDGET_EXHAUSTED
+    elif state.access_failures:
+        # §6.3: the run could not look, which is not the same finding as
+        # having looked and found the question unsettled. Budget comes first:
+        # a run that also ran out of budget stopped for that.
+        reason = StopReason.PROVIDER_FAILURE
     else:
         reason = StopReason.INSUFFICIENT_EVIDENCE
     return _next(state, stop_reason=reason.value)

@@ -1,20 +1,21 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   listScientificCases, getScientificCase, addScientificCaseContext, getScientificCaseEvents,
-  setScientificCaseScope,
+  setScientificCaseScope, getCaseRunChanges,
 } = vi.hoisted(() => ({
   listScientificCases: vi.fn(),
   getScientificCase: vi.fn(),
   addScientificCaseContext: vi.fn(),
   getScientificCaseEvents: vi.fn(),
   setScientificCaseScope: vi.fn(),
+  getCaseRunChanges: vi.fn(),
 }));
 vi.mock('../../../shared/api/endpoints', () => ({
   listScientificCases, getScientificCase, addScientificCaseContext, getScientificCaseEvents,
-  setScientificCaseScope,
+  setScientificCaseScope, getCaseRunChanges,
 }));
 
 import { InvestigationBoard } from './InvestigationBoard';
@@ -64,6 +65,21 @@ const CASE: ScientificCase = {
   updated_at: '2026-09-25T00:00:00Z',
 };
 
+const SECTION = { added: [], changed: [], kept: [], removed: [] };
+const CHANGES = {
+  schema_version: 'case-changes-v1' as const, case_id: 'scase_1', run_id: 'run_2', previous_run_id: 'run_1',
+  from_revision: 5, to_revision: 9, subject: { subject_key: 'activity:abc', kept: true },
+  updates_by_actor: { model: 3, server: 1 }, operations: [],
+  context: SECTION,
+  hypotheses: { ...SECTION, changed: [{ id: 'h1', statement: 's', status: 'weakened', status_reason: 'weak block',
+    actor: 'model', changes: [{ field: 'status', before: 'open', after: 'weakened' }] }] },
+  evidence: SECTION, uncertainties: SECTION, next_tests: SECTION,
+  conclusion: { changed: false, before: null, after: {}, released_kept: null },
+  data_scope: { changed: false, before: null, after: {} }, run: {},
+  artifacts: { compared: true, reason: null, added: [], changed: [], removed: [],
+    kept: [{ kind: 'screening', source_id: 'scr_1', content_sha256: 'a'.repeat(64) }] },
+};
+
 function renderBoard() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -74,12 +90,17 @@ function renderBoard() {
 }
 
 describe('InvestigationBoard', () => {
+  beforeEach(() => {
+    getCaseRunChanges.mockResolvedValue(CHANGES);
+  });
+
   afterEach(() => {
     listScientificCases.mockReset();
     getScientificCase.mockReset();
     addScientificCaseContext.mockReset();
     getScientificCaseEvents.mockReset();
     setScientificCaseScope.mockReset();
+    getCaseRunChanges.mockReset();
   });
 
   const summary = { ...CASE, hypotheses: 1, evidence: 2, open_uncertainties: 1, runs: 1, external_search: true };
@@ -166,6 +187,28 @@ describe('InvestigationBoard', () => {
     await waitFor(() => expect(addScientificCaseContext).toHaveBeenCalledWith(
       'ses_1', 'scase_1', { key: 'free_cmax', value: '0.05 µM' },
     ));
+  });
+
+  it('shows the subject and what the latest turn changed and kept', async () => {
+    const twoRuns = {
+      ...CASE,
+      subject_key: 'activity:abc',
+      subject: { kind: 'activity_screening', identity: {
+        canonical_smiles: 'CCO', target: { target_id: 'EGFR', variant: 'T790M' }, assay_context: 'IC50|binding' } },
+      runs: [...CASE.runs, { run_id: 'run_2', goal: 'q2', stop_reason: 'sufficient', answer_id: 'ans_2' }],
+    };
+    listScientificCases.mockResolvedValue({ cases: [summary] });
+    getScientificCase.mockResolvedValue(twoRuns);
+    getCaseRunChanges.mockResolvedValue(CHANGES);
+    renderBoard();
+
+    expect(await screen.findByLabelText('Subject của hồ sơ')).toHaveTextContent('CCO · target EGFR (T790M) · IC50|binding');
+    const changed = await screen.findByRole('list', { name: 'Đã đổi' });
+    expect(getCaseRunChanges).toHaveBeenCalledWith('ses_1', 'scase_1', 'run_2');
+    expect(changed).toHaveTextContent('h1: đang mở → bị yếu đi');
+    expect(screen.getByRole('list', { name: 'Giữ nguyên' })).toHaveTextContent('cùng hash aaaaaaaaaaaa');
+    fireEvent.change(screen.getByLabelText('Chọn lượt'), { target: { value: 'run_1' } });
+    await waitFor(() => expect(getCaseRunChanges).toHaveBeenCalledWith('ses_1', 'scase_1', 'run_1'));
   });
 
   it('says plainly when the session has no case', async () => {

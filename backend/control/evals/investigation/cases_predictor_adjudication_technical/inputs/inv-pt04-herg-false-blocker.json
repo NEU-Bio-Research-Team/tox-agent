@@ -1,0 +1,65 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pt04-herg-false-blocker",
+  "workflow_context": "toxicity_only",
+  "subject": {
+    "subject_ref": {
+      "kind": "analysis",
+      "analysis_ref": "ana_8b1052d8fa854474afc22ac4008fd1ae"
+    },
+    "identity": {
+      "canonical_smiles": "Clc1ccc(cc1)C(N)=O",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "frozen_analysis",
+      "ref": "ana_8b1052d8fa854474afc22ac4008fd1ae",
+      "content_sha256": "a9033670eacf796e3424bd63388d699706f826ca5e72f63ae59f6e9ed7d3cc01"
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the predictor say about hERG for TX-304, and does the available evidence support or contradict that call?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "Clc1ccc(cc1)C(N)=O"
+    ],
+    "documents": [
+      "MED:93041"
+    ],
+    "measurements": [
+      "inv-pt04-herg-false-blocker:p",
+      "inv-pt04-herg-false-blocker:ic50"
+    ],
+    "sources": [
+      "MED:93041"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-t01-herg-score-explained",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The model scores hERG blockade at 0.81, labelled blocker at the 0.5 threshold; this is an uncalibrated screening score.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "The model scores hERG blockade at 0.81, labelled blocker at the 0.5 threshold; this is an uncalibrated screening score."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "p",
+      "statement": "hERG probability",
+      "value": 0.81,
+      "unit": null
+    }
+  ],
+  "required_limitations": [
+    "L1"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "relabelled_predictor_output",
+    "clinical_or_regulatory_overreach"
+  ],
+  "critical_errors": [
+    "relabelled_predictor_output",
+    "clinical_or_regulatory_overreach"
+  ],
+  "evidence_spans": [],
+  "sources": [],
+  "note": "Synthetic engineering gold: checks the machinery, not the science."
+}

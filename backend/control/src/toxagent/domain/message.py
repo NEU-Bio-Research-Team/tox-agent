@@ -36,6 +36,10 @@ class PartType(str, Enum):
     #: bytes live in ObjectStore, never in product message state; OCR reaches
     #: them through AttachmentStore + ObjectStore (W4-07).
     IMAGE_REF = "image_ref"
+    #: #47: the run's result under a declared release policy -- its
+    #: disposition and review status. Carries ``run_id``, ``disposition``,
+    #: ``review_status`` only; the result itself is read from its route.
+    RESULT_REF = "result_ref"
 
 
 @dataclass(frozen=True, slots=True)

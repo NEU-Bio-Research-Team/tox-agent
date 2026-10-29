@@ -1,0 +1,42 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-a01-screening-review-explained",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The policy decision is review because the prediction interval crosses the EGFR threshold; the toxicity stage did not run.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "The policy decision is review because the prediction interval crosses the EGFR threshold; the toxicity stage did not run."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "decision",
+      "statement": "policy decision",
+      "value": "review",
+      "unit": null
+    },
+    {
+      "id": "toxicity_run",
+      "statement": "toxicity stage ran",
+      "value": false,
+      "unit": null
+    }
+  ],
+  "required_limitations": [
+    "L7",
+    "L8"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "not_run_as_negative",
+    "pic50_as_efficacy"
+  ],
+  "critical_errors": [
+    "not_run_as_negative",
+    "pic50_as_efficacy"
+  ],
+  "evidence_spans": [],
+  "sources": [],
+  "note": "Synthetic engineering gold: checks the machinery, not the science."
+}

@@ -111,7 +111,7 @@ class ScientificCaseMixin:
                 replace(context, text="Review the claims listed in your instructions."),
                 system_prompt=prompt, profile="claim_review", deadline=deadline,
                 instructions_hash=content_sha256(claim_review.REVIEW_INSTRUCTIONS),
-                has_product=has_review, commit=_no_commit,
+                has_product=has_review, commit=_no_commit, phase="review_initial",
             )
             if not await has_review(context):
                 await record({"status": "failed", "reason": "the reviewer submitted no verdicts",
@@ -150,31 +150,56 @@ class ScientificCaseMixin:
     async def _begin_scientific_case(self, context: RunContext) -> None:
         """Open or continue the session's case for this subject (ADR 0012).
 
-        Bookkeeping: a failure is logged and the run proceeds without a case,
-        exactly as it would with the flag off.
+        Without a bound subject this is bookkeeping: a failure is logged and
+        the run proceeds without a case, exactly as with the flag off. With
+        one (#44, subject_binding_v1) the case is part of what the run is: a
+        subject mismatch or a case that cannot be opened fails the run with a
+        typed code, so a case arm can never quietly run as the no-case arm.
         """
+        from ...application.conversation.subject_resolution import binding_of
+        from ...domain.errors import CaseUnavailable, SubjectMismatch
+        from ...domain.subject import SubjectKind
+
+        binding = binding_of(context)
         try:
             async with self._db.unit_of_work() as uow:
                 session = await uow.sessions.get_unscoped(context.session_id)
-                analysis_id = context.analysis_id or (
-                    session.active_analysis_id if session else None
-                )
+                if binding is not None:
+                    analysis_id = binding.analysis_id
+                    refs = [binding.subject_ref_string]
+                    toxicity = binding.artifact("toxicity_snapshot")
+                    if toxicity is not None and toxicity.local_id:
+                        refs.append(f"analysis:{toxicity.local_id}")
+                else:
+                    analysis_id = context.analysis_id or (
+                        session.active_analysis_id if session else None
+                    )
+                    refs = [f"analysis:{analysis_id}"] if analysis_id else []
                 snapshot = (
                     await uow.analyses.get(analysis_id, session_id=context.session_id)
-                    if analysis_id else None
+                    if analysis_id and (binding is None or binding.kind is SubjectKind.ANALYSIS)
+                    else None
                 )
                 await scientific_case_service.open_or_continue(
                     uow, session_id=context.session_id, analysis_id=analysis_id,
                     run_id=context.run_id, goal=context.text or "",
-                    subject_refs=[f"analysis:{analysis_id}"] if analysis_id else [],
+                    subject_refs=refs,
                     extra_updates=scientific_case_service.analysis_uncertainties(
                         snapshot, run_id=context.run_id
                     ),
                     requester=session.owner_id if session else "",
+                    binding=binding,
                 )
                 await uow.commit()
-        except Exception:  # noqa: BLE001 - bookkeeping must not stop the run
+        except SubjectMismatch:
+            raise
+        except Exception as exc:  # noqa: BLE001 - typed below when the case is required
             log.exception("could not open the scientific case", extra={"run_id": context.run_id})
+            if binding is not None:
+                raise CaseUnavailable(
+                    "the run's scientific case could not be opened, and this run needs it",
+                    cause=type(exc).__name__,
+                ) from exc
 
     async def _begin_decision_state(self, context: RunContext) -> None:
         """Open the run's DecisionSupportStateV1 (TAB-Suite Wave 2)."""
@@ -182,11 +207,25 @@ class ScientificCaseMixin:
         from ...platform.config import PolicySettings
 
         try:
+            from ...application.conversation.subject_resolution import binding_of
+
+            binding = binding_of(context)
             async with self._db.unit_of_work() as uow:
                 session = await uow.sessions.get_unscoped(context.session_id)
                 subjects = []
-                analysis_id = context.analysis_id or (session.active_analysis_id if session else None)
+                if binding is not None:
+                    # #44: the bound subject, never the session's selection.
+                    analysis_id = binding.analysis_id
+                    subjects.append(binding.subject_ref_string)
+                    toxicity = binding.artifact("toxicity_snapshot")
+                    if toxicity is not None and toxicity.local_id:
+                        subjects.append(f"analysis:{toxicity.local_id}")
+                else:
+                    analysis_id = context.analysis_id or (
+                        session.active_analysis_id if session else None
+                    )
                 if analysis_id:
+                    # initial() keeps the first of a repeated ref.
                     subjects.append(f"analysis:{analysis_id}")
                     report = await uow.reports.get_latest_artifact_for_analysis(
                         analysis_id, session_id=context.session_id
@@ -201,5 +240,15 @@ class ScientificCaseMixin:
                     ).to_dict(),
                 )
                 await uow.commit()
+            contract = self._contracts.get(context.run_id)
+            if contract:
+                # #69: what the run was asked to do, fixed before dispatch.
+                route = self._routes.get(context.run_id)
+                if route is not None:
+                    contract = {**contract, "route_decision": route.to_dict()}
+                await decision_state_service.advance(
+                    self._db, context.run_id,
+                    lambda state: decision_state.record_goal_contract(state, contract),
+                )
         except Exception:  # noqa: BLE001 - bookkeeping must not stop the run
             log.exception("could not open decision-support state", extra={"run_id": context.run_id})

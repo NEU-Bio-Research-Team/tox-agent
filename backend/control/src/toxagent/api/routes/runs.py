@@ -8,10 +8,18 @@ from ...application.policy import Actor
 from ...domain.errors import (
     NotFound,
 )
-from ..responses import DecisionState, EvidenceRelationList, RunDetail
+from ..responses import (
+    AnswerDraftList,
+    DecisionState,
+    EvidenceRelationList,
+    RunDetail,
+    RunResult,
+    RunStageLineage,
+)
 from ..schemas import (
     CancelResponse,
 )
+from ...application.runs.phase_usage import phase_usage
 from ._common import _isoformat, _services, actor, router
 
 
@@ -32,6 +40,7 @@ async def get_run(
         tool_calls = await uow.tool_calls.list_for_run(run_id)
         usage_events = await uow.runtime_usage.list_for_run(run_id)
         configuration_snapshot = await uow.run_configuration_snapshots.get(run_id)
+        phase_bindings = await uow.runtime_bindings.list_for_run(session_id, run_id)
     projection = run_projection(run)
     projection["runtime"] = binding.manifest() if binding else None
     projection["configuration_snapshot"] = configuration_snapshot
@@ -51,9 +60,15 @@ async def get_run(
             "observation_ids": list(c.get("observation_ids") or ()),
             "started_at": _isoformat(c["started_at"]),
             "ended_at": _isoformat(c["ended_at"]),
+            "phase": c.get("phase"),
         }
         for c in tool_calls
     ]
+    # #46/#53: calls and usage per phase, over every dispatch of the run --
+    # failed attempts included, unknown usage kept unknown.
+    projection["phase_usage"] = phase_usage(
+        bindings=phase_bindings, usage_events=usage_events, tool_calls=tool_calls,
+    )
     return projection
 
 
@@ -76,6 +91,28 @@ async def get_decision_state(
     return state.to_dict()
 
 
+@router.get("/sessions/{session_id}/runs/{run_id}/answer-drafts", responses={200: {"model": AnswerDraftList}})
+async def list_answer_drafts(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """#47: every draft the run submitted, as sent, in order -- so the raw
+    draft, the accepted candidate and the released answer can be graded
+    apart."""
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        drafts = await uow.answer_drafts.list_for_run(run_id)
+    return {"drafts": [
+        {**{k: d[k] for k in ("generation", "schema_version", "payload", "outcome",
+                              "answer_id", "violations", "created_at")},
+         "phase": d.get("phase")}
+        for d in drafts
+    ]}
+
+
 @router.get("/sessions/{session_id}/runs/{run_id}/evidence-relations", responses={200: {"model": EvidenceRelationList}})
 async def list_evidence_relations(
     request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
@@ -95,8 +132,69 @@ async def list_evidence_relations(
         run = await uow.runs.get(run_id)
         if run is None or run.session_id != session_id:
             raise NotFound("no such run", run_id=run_id)
-        relations = await uow.evidence_relations.list_for_run(run_id)
+        # #47: a repaired run holds two candidates' relations; the run's are
+        # the released answer's, else its latest answer's.
+        release = await uow.answer_releases.get_for_run(run_id)
+        latest = await uow.answers.get_for_run(run_id)
+        relations = await uow.evidence_relations.list_for_run(
+            run_id,
+            answer_id=release.answer_id if release else (latest.id if latest else None),
+        )
     return {"evidence_relations": [relation.to_dict() for relation in relations]}
+
+
+@router.get("/sessions/{session_id}/runs/{run_id}/result", responses={200: {"model": RunResult}})
+async def get_run_result(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """What the run ended with (#47): its publication disposition, review
+    status, execution and knowledge outcomes, the public answer if one was
+    published -- never a candidate's text. A run admitted before a release
+    policy was declared has no recorded result, and says so."""
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        result = await uow.run_results.get(run_id)
+    if result is None:
+        return {"run_id": run_id, "recorded": False, "release_policy": "legacy",
+                "note": "this run has no recorded result; whether its answer was "
+                        "reviewed is not known"}
+    return {**result.to_dict(), "recorded": True}
+
+
+@router.get("/sessions/{session_id}/runs/{run_id}/lineage", responses={200: {"model": RunStageLineage}})
+async def get_run_stage_lineage(
+    request: Request, session_id: str, run_id: str, principal: Actor = Depends(actor)
+):
+    """How the run's answer came to be what the researcher saw: each draft,
+    the review rounds with their verdicts, the repair's effect claim by claim,
+    and what the reader did not get. Audit material: a candidate's prose
+    appears here, never on the answer route."""
+    from ...application.investigation.stage_lineage import stage_lineage
+
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        run = await uow.runs.get(run_id)
+        if run is None or run.session_id != session_id:
+            raise NotFound("no such run", run_id=run_id)
+        drafts = await uow.answer_drafts.list_for_run(run_id)
+        result = await uow.run_results.get(run_id)
+        answers = {}
+        for answer_id in {d.get("answer_id") for d in drafts} | {
+            getattr(result, "public_answer_id", None), getattr(result, "candidate_answer_id", None),
+        }:
+            if answer_id:
+                answer = await uow.answers.get(answer_id, session_id=session_id)
+                if answer is not None:
+                    answers[answer_id] = answer
+    return stage_lineage(
+        run_id=run_id, drafts=drafts, answers=answers,
+        result=result.to_dict() if result is not None else None,
+    )
 
 
 @router.post("/sessions/{session_id}/runs/{run_id}:cancel", response_model=CancelResponse)

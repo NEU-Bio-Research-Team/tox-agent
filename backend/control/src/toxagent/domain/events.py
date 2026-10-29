@@ -21,6 +21,9 @@ class EventType(str, Enum):
     SESSION_SETTINGS_UPDATED = "session.settings_updated"
     MESSAGE_CREATED = "message.created"
     RUN_QUEUED = "run.queued"
+    #: #44 (subject_binding_v1): the subject the run is about, fixed at
+    #: admission. A UI shows it on the run instead of the current selection.
+    RUN_SUBJECT_BOUND = "run.subject_bound"
     RUN_STARTED = "run.started"
     RUN_VALIDATING = "run.validating"
     RUN_COMPLETED = "run.completed"
@@ -39,7 +42,13 @@ class EventType(str, Enum):
     ANALYSIS_CREATED = "analysis.created"
     EVIDENCE_CREATED = "evidence.created"
     ANSWER_ACCEPTED = "answer.accepted"
+    #: #47 (release_gate_v1): an answer passed validation and awaits review;
+    #: not shown as the run's answer until answer.accepted follows it.
+    ANSWER_CANDIDATE = "answer.candidate"
     ANSWER_REJECTED = "answer.rejected"
+    #: #47 (declared release policy): what the run ended with -- published,
+    #: partial facts or withheld -- recorded once per run.
+    RUN_RESULT_RECORDED = "run.result_recorded"
     RUNTIME_RECOVERY_STARTED = "runtime.recovery_started"
     RUNTIME_USAGE_REPORTED = "runtime.usage_reported"
     # Report builder (spec section 12.2). A build emits its own progress rather

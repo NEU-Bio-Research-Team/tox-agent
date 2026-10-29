@@ -15,6 +15,7 @@ from ....domain.session import Session
 from ...schema import (
     answers,
     attachments,
+    claim_evidence_spans,
     claim_sources,
     claims,
     message_parts,
@@ -305,6 +306,14 @@ class SqlAnswerStore:
         ]
         if citations:
             await self._conn.execute(insert(claim_sources), citations)
+        spans = [
+            {"claim_id": c.claim_id, "evidence_id": evidence_id, "locator": locator,
+             "position": position}
+            for c in answer.claims
+            for position, (evidence_id, locator) in enumerate(c.evidence_spans)
+        ]
+        if spans:
+            await self._conn.execute(insert(claim_evidence_spans), spans)
 
     async def _load(self, row) -> GroundedAnswer:
         claim_rows = (
@@ -322,9 +331,27 @@ class SqlAnswerStore:
         by_claim: dict[str, list[str]] = {}
         for c in citation_rows:
             by_claim.setdefault(c["claim_id"], []).append(c["evidence_id"])
+        span_rows = (
+            await self._conn.execute(
+                select(claim_evidence_spans)
+                .where(claim_evidence_spans.c.claim_id.in_([c["id"] for c in claim_rows] or [""]))
+                .order_by(claim_evidence_spans.c.position)
+            )
+        ).mappings().all()
+        spans_by_claim: dict[str, list[tuple[str, str]]] = {}
+        for span in span_rows:
+            spans_by_claim.setdefault(span["claim_id"], []).append(
+                (span["evidence_id"], span["locator"])
+            )
         return m.row_to_answer(
             row,
-            tuple(m.row_to_claim(c, tuple(sorted(by_claim.get(c["id"], [])))) for c in claim_rows),
+            tuple(
+                m.row_to_claim(
+                    c, tuple(sorted(by_claim.get(c["id"], []))),
+                    evidence_spans=tuple(spans_by_claim.get(c["id"], [])),
+                )
+                for c in claim_rows
+            ),
         )
 
     async def get(self, answer_id: str, *, session_id: str) -> GroundedAnswer | None:

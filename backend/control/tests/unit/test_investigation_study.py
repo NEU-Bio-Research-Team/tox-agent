@@ -65,7 +65,15 @@ def test_building_refuses_a_turn_that_leaks_a_withheld_name():
 
 
 def test_every_skill_has_positive_and_negative_cases_to_be_measured_on():
+    # Both measured sets: the v1 cases, and protocol v2's (#51), whose task
+    # groups and workflow contexts are the situations the activity skills are
+    # for. A skill must name cases that exist in one of them.
+    from evals.investigation.case_inputs import load_set
+
+    v2 = Path(__file__).resolve().parents[2] / "evals" / "investigation" \
+        / "cases_protocol_v2_technical" / "cases"
     tags = {tag for case in CASES for tag in case["tags"]}
+    tags |= {tag for loaded in load_set(v2) for tag in loaded.case.get("tags") or ()}
     for skill in load_catalog(PACKAGE_ROOT / "agent_profiles").skills:
         # The investigation study measures decision_support skills; the report
         # builder's skills (W9-10) are measured by the TAB-Suite report packs.
@@ -427,3 +435,90 @@ def test_a_manifest_update_merges_instead_of_overwriting(tmp_path):
     store.update_manifest(lambda m: {**m, "systems": {**m.get("systems", {}), "A": {}}})
     store.update_manifest(lambda m: {**m, "systems": {**m.get("systems", {}), "B": {}}})
     assert set(store.manifest()["systems"]) == {"A", "B"}
+
+
+def test_every_attempt_is_paid_for_not_only_the_one_that_finished():
+    """Audit 2026-10-21: the report summed usage over the latest successful
+    record per case, so a failed or retried attempt cost nothing on paper."""
+    from evals.investigation.report import _usage_totals
+
+    failed = _record("inv-1", "D", "", status="error")
+    failed.usage = {"input_tokens": 900, "cost_usd": 0.02}
+    retried = _record("inv-1", "D", "answer")
+    retried.usage = {"input_tokens": 1000, "cost_usd": 0.03, "note": "text is ignored"}
+    other = _record("inv-2", "D", "answer")
+    other.usage = {"input_tokens": 500, "cost_usd": 0.01, "cached": True}
+
+    assert _usage_totals([failed, retried, other]) == {
+        "cost_usd": 0.06, "input_tokens": 2400,
+    }
+
+
+# ── task success over every assigned case (#53) ───────────────────────────
+
+def test_the_exact_interval_matches_the_figures_the_issue_quotes():
+    from evals.investigation.scorecard import clopper_pearson
+
+    assert clopper_pearson(8, 8) == (0.6306, 1.0)
+    assert clopper_pearson(0, 8) == (0.0, 0.3694)
+    assert clopper_pearson(0, 0) is None
+
+
+def test_a_response_that_never_came_is_in_the_denominator_and_says_why():
+    """A timeout is not left out of the rate: it is an assigned case that did
+    not succeed, and the cause is named."""
+    from evals.investigation.scorecard import task_success_table
+
+    key = {"responses": [
+        {"case_id": "c1", "response_id": "R01", "system_id": "D"},
+        {"case_id": "c2", "response_id": None, "system_id": "D", "missing_reason": "error"},
+        {"case_id": "c3", "response_id": "R02", "system_id": "D", "is_fallback": True},
+        {"case_id": "c4", "response_id": "R03", "system_id": "D"},
+        {"case_id": "c5", "response_id": "R04", "system_id": "D"},
+        {"case_id": "c6", "response_id": "R05", "system_id": "D"},
+    ]}
+
+    def grade(case, response, success, critical=False, grader="g1"):
+        return {"grader_id": grader, "case_id": case, "response_id": response,
+                "scores": {}, "critical": {"invented_value": critical},
+                "task_success": success}
+
+    grades = [
+        grade("c1", "R01", True), grade("c1", "R01", True, grader="g2"),
+        grade("c3", "R02", False),
+        grade("c4", "R03", True, critical=True),
+        grade("c5", "R04", True), grade("c5", "R04", False, grader="g2"),
+        # c6 was never judged for task success
+        {**grade("c6", "R05", None), "task_success": None},
+    ]
+    cases = {"c1": {"task_group": "T1"}, "c2": {"task_group": "T1"},
+             "c3": {"task_group": "T5"}}
+
+    table = task_success_table(key=key, grades=grades, cases=cases)["D"]
+
+    assert (table["successes"], table["assigned"]) == (1, 6)
+    assert table["failure_causes"] == {
+        "critical_error": 1, "fallback": 1, "graders_disagree": 1,
+        "no_response:error": 1, "not_graded": 1,
+    }
+    assert table["by_task_group"]["T1"]["successes"] == 1
+    assert table["by_task_group"]["T1"]["assigned"] == 2
+
+
+def test_a_sheet_without_the_task_success_column_still_reads(tmp_path):
+    import csv
+
+    from evals.investigation.scorecard import read_grades
+
+    rubric = json.loads(packet_module.RUBRIC_PATH.read_text())
+    columns = (["grader_id", "case_id", "response_id"]
+               + [d["id"] for d in rubric["dimensions"]]
+               + [c["id"] for c in rubric["critical_errors"]])
+    path = tmp_path / "old.csv"
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer.writeheader()
+        writer.writerow({c: "" for c in columns} | {"grader_id": "g", "case_id": "c",
+                                                    "response_id": "R01"})
+    (row,) = read_grades([path], rubric)
+    assert row["task_success"] is None

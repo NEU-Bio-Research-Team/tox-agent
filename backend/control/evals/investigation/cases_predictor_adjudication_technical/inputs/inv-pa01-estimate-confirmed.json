@@ -1,0 +1,68 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pa01-estimate-confirmed",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_a762584ae4cb4c4a9e240b6265fc28ac"
+    },
+    "identity": {
+      "canonical_smiles": "COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OC",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_a762584ae4cb4c4a9e240b6265fc28ac",
+      "content_sha256": "33adabd95d8188a76e49cea3acf010334b6be6a644fa5e97e708f1be2e0aa62b",
+      "stage_status": {
+        "screening": "completed"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the activity model estimate for TX-311 on EGFR, and does measured evidence support or contradict it?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OC"
+    ],
+    "documents": [
+      "MED:93111"
+    ],
+    "measurements": [
+      "inv-pa01-estimate-confirmed:estimate",
+      "inv-pa01-estimate-confirmed:ic50"
+    ],
+    "sources": [
+      "MED:93111"
+    ]
+  }
+}

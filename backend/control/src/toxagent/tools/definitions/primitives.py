@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from datetime import datetime, timezone
-from typing import Final, Literal
+from typing import Any, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,6 +30,7 @@ from ...domain.observation import Observation, ObservationKind, Producer
 from ...research.normalization import hit_to_evidence
 from ...research.policy import decide_acceptance
 from ...research.relevance import RELEVANCE_POLICY_VERSION
+from ...application.conversation.subject_resolution import binding_of
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 MARGIN_TOOL: Final[str] = "compute_exposure_margin"
@@ -68,9 +69,75 @@ class ExposureMarginInput(_Input):
 
 
 class ChemblActivitiesInput(_Input):
-    analysis_id: str
+    """``target`` is a closed literal on purpose.
+
+    This tool looks up hERG. It does not become a general activity tool for
+    any target by being handed a string: widening it means adding the target
+    to this literal, with the assay semantics for that target settled first.
+
+    ``assay_type`` and ``standard_type`` are typed filters over what comes
+    back. Two records can both be "hERG" and measure different things -- a
+    binding affinity and a patch-clamp functional block are not interchangeable
+    -- so the caller can ask for one kind rather than reading a pooled set as
+    though it were one measurement.
+    """
+
+    analysis_id: str | None = Field(
+        default=None,
+        description="The analysis whose structure to look up. Omit it to look up the run's "
+                    "subject (an analysis, or a screening whose target this tool serves).",
+    )
     target: Literal["herg"] = "herg"
     limit: int = Field(default=10, ge=1, le=20)
+    assay_type: Literal["B", "F", "A", "T", "P", "U"] | None = Field(
+        default=None,
+        description=(
+            "ChEMBL assay type to keep: B binding, F functional, A ADMET, "
+            "T toxicity, P physicochemical, U unclassified. Omit to keep all "
+            "and read the per-assay breakdown in the summary."
+        ),
+    )
+    standard_type: Literal["IC50", "Ki", "Kd", "EC50"] | None = Field(
+        default=None,
+        description="Measurement type to keep. Omit to keep all.",
+    )
+
+
+def _filter_hits(
+    hits, *, assay_type: str | None, standard_type: str | None
+) -> tuple[list, dict[str, Any]]:
+    """Keep the hits the caller asked for, and say what was left out.
+
+    A filter that silently shrinks a result set turns a coverage gap into
+    apparent absence, so the excluded counts are reported beside the records.
+    """
+    if assay_type is None and standard_type is None:
+        return list(hits), {"applied": False, "excluded": 0, "excluded_by_assay_type": {}}
+    kept: list = []
+    excluded_by_assay: dict[str, int] = {}
+    excluded = 0
+    for hit in hits:
+        facts = getattr(hit, "normalized_facts", None) or {}
+        hit_assay = str(facts.get("assay_type") or "").strip() or "not_stated"
+        hit_type = str(facts.get("standard_type") or "").strip()
+        if (assay_type is not None and hit_assay != assay_type) or (
+            standard_type is not None and hit_type != standard_type
+        ):
+            excluded += 1
+            excluded_by_assay[hit_assay] = excluded_by_assay.get(hit_assay, 0) + 1
+            continue
+        kept.append(hit)
+    return kept, {
+        "applied": True,
+        "assay_type": assay_type,
+        "standard_type": standard_type,
+        "excluded": excluded,
+        "excluded_by_assay_type": excluded_by_assay,
+        "note": (
+            "these records exist and were not read; the filter narrowed what was "
+            "returned, it did not establish that nothing else was measured"
+        ) if excluded else None,
+    }
 
 
 async def _source_text(uow, context: ToolContext, ref: str) -> str:
@@ -90,9 +157,106 @@ async def _source_text(uow, context: ToolContext, ref: str) -> str:
         record = await uow.evidence.get(identifier, session_id=context.session_id)
         if record is None or record.status is not EvidenceStatus.ACCEPTED:
             raise InvalidRequest(f"{ref}: not an accepted evidence record of this session")
+        # The full text this session captured counts as the source too: a
+        # potency read off a paper's table row is as written as one in its
+        # abstract. Found live on 2026-10-29 -- T5's IC50 is only in Table 1,
+        # and the margin was refused three times while the model quoted the row.
+        full_text = await uow.evidence_text.get(identifier, session_id=context.session_id)
+        passages = " ".join(
+            " ".join((passage.text, *passage.cells))
+            for passage in (full_text.passages if full_text is not None else ())
+        )
         return " ".join((record.title, record.abstract_or_excerpt or "",
-                         json.dumps(record.normalized_facts, ensure_ascii=False, default=str)))
+                         json.dumps(record.normalized_facts, ensure_ascii=False, default=str),
+                         passages))
     raise InvalidRequest(f"{ref}: a concentration cites 'context:' or 'evidence:', not {kind!r}")
+
+
+#: What a margin needs and this server does not check. Written on the claim
+#: because §5.3 asks for assumptions to be reviewable, not implied.
+_MARGIN_ASSUMPTIONS: Final[tuple[str, ...]] = (
+    "exposure_context_compatible",
+    "potency_and_exposure_of_the_same_compound",
+)
+
+
+def _claim_input(case: sc.ScientificCaseV1, ref: str) -> str | None:
+    """The ref a derived claim cites for one input of the calculation.
+
+    A researcher value is cited by its version, not its context item: when the
+    researcher corrects it, the case marks what cited the superseded version,
+    and an item id would not say which version that was."""
+    kind, identifier = sc.parse_ref(ref)
+    if kind == "context":
+        version = sc.version_for_item(case, identifier)
+        return version.ref if version is not None else None
+    return ref
+
+
+async def _record_margin_claim(database, context: ToolContext, result: dict[str, Any],
+                               refs: list[str]) -> str | None:
+    """§11 turn 2: the margin as a derived claim over the input versions.
+
+    The server records it, not the investigator, because the server did the
+    division (§9.1; ``record_derived_claim`` is the server's op). Without a
+    case there is nothing to record into, and the observation still stands.
+    """
+    statement = (f"exposure margin {result['margin']:g} = IC50 {result['ic50_nM']:g} nM / "
+                 f"free Cmax {result['free_cmax_nM']:g} nM")
+
+    def updates_for(case: sc.ScientificCaseV1) -> list[sc.CaseUpdate]:
+        claim_inputs = [_claim_input(case, ref) for ref in refs]
+        if None in claim_inputs:
+            return []
+        return [scientific_case_service.update(
+            "record_derived_claim", actor=sc.Actor.SERVER.value, run_id=context.run_id,
+            statement=statement, rule=em.METHOD_VERSION, inputs=claim_inputs,
+            assumptions=list(_MARGIN_ASSUMPTIONS),
+        )]
+
+    case = await scientific_case_service.advance(
+        database, session_id=context.session_id, run_id=context.run_id, updates_for=updates_for,
+    )
+    if case is None:
+        return None
+    return next((claim.id for claim in case.derived_claims
+                 if claim.statement.casefold() == statement.casefold()), None)
+
+
+async def _chembl_subject(database, context, payload, binding) -> tuple[str | None, str]:
+    """The structure a ChEMBL lookup is about, and the analysis it belongs to.
+
+    AG-EVIDENCE: a screening subject is looked up by its own ligand -- but only
+    when its target is the one this tool serves (the catalog maps KCNH2 to
+    hERG). Any other target is a capability the deployment does not have; it
+    is never a string handed to the hERG lookup.
+    """
+    from ...domain.errors import CapabilityUnavailable, InvalidRequest
+    from ...domain.subject import SubjectKind
+    from ...research import target_catalog
+
+    if binding is not None and binding.kind is SubjectKind.ACTIVITY_SCREENING:
+        toxicity = binding.artifact("toxicity_snapshot")
+        local = toxicity.local_id if toxicity is not None else None
+        if payload.analysis_id and payload.analysis_id != local:
+            raise ToolDenied("this run is about another subject", reason="subject_mismatch")
+        target = binding.identity.target
+        entry = target_catalog.lookup(target.target_id if target else None,
+                                      uniprot_id=target.uniprot_id if target else None)
+        if entry is None or entry.toxicity_endpoint != payload.target:
+            raise CapabilityUnavailable(
+                f"ChEMBL activities are served for {payload.target} only; this screening's "
+                f"target is {target.target_id if target else 'unknown'}",
+                capability="chembl_activities_for_target",
+                target_catalog=target_catalog.CATALOG_VERSION,
+            )
+        return payload.analysis_id or local, binding.identity.canonical_smiles
+    if binding is not None and payload.analysis_id and payload.analysis_id != binding.analysis_id:
+        raise ToolDenied("this run is about another subject", reason="subject_mismatch")
+    analysis_id = payload.analysis_id or (binding.analysis_id if binding is not None else None)
+    if not analysis_id:
+        raise InvalidRequest("name the analysis to look up")
+    return analysis_id, ""
 
 
 def build(database, chembl_provider=None) -> list[ToolDefinition]:
@@ -135,39 +299,53 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
         async with database.unit_of_work() as uow:
             await uow.observations.add(observation)
             await uow.commit()
-        return ToolOutput(canonical=result, model_view=observation.model_projection,
+        claim_id = await _record_margin_claim(database, context, result,
+                                              [ref for _, _, ref in inputs])
+        view = dict(observation.model_projection)
+        if claim_id is not None:
+            view["derived_claim"] = claim_id
+        return ToolOutput(canonical={**result, "derived_claim": claim_id}, model_view=view,
                           ui_view=result, observation_ids=(observation.id,),
                           provenance=observation.provenance)
 
     async def chembl(context: ToolContext, payload: ChemblActivitiesInput) -> ToolOutput:
+        binding = binding_of(context)
+        analysis_id, smiles = await _chembl_subject(database, context, payload, binding)
         async with database.unit_of_work() as uow:
-            snapshot = await uow.analyses.get(payload.analysis_id, session_id=context.session_id)
-            refusal = (
-                await scientific_case_service.external_search_refusal(
-                    uow, session_id=context.session_id, analysis_id=payload.analysis_id,
-                ) if snapshot is not None else None
+            snapshot = (
+                await uow.analyses.get(analysis_id, session_id=context.session_id)
+                if analysis_id else None
             )
-        if snapshot is None:
-            raise AnalysisNotFound("no such analysis in this session", analysis_id=payload.analysis_id)
+            refusal = await scientific_case_service.external_search_refusal(
+                uow, session_id=context.session_id,
+                analysis_id=binding.analysis_id if binding is not None else analysis_id,
+                binding=binding,
+            )
+        if analysis_id and snapshot is None:
+            raise AnalysisNotFound("no such analysis in this session", analysis_id=analysis_id)
         if refusal is not None:
             raise ToolDenied(
                 f"the researcher's data scope for this compound does not allow external lookups "
                 f"({refusal}); ChEMBL was not queried.", reason="case_data_scope",
             )
         lookup = await chembl_provider.activities(
-            canonical_smiles=snapshot.canonical_smiles, target=payload.target, limit=payload.limit,
+            canonical_smiles=snapshot.canonical_smiles if snapshot is not None else smiles,
+            target=payload.target, limit=payload.limit,
         )
         if lookup.molecule_chembl_id is None:
             view = {"found": False, "target_chembl_id": lookup.target_chembl_id, "records": [],
                     "note": "ChEMBL has no record matching this structure. That is a "
                             "coverage gap, not evidence that it is inactive."}
             return ToolOutput(canonical=view, model_view=view, ui_view=view,
-                              provenance={"analysis_id": snapshot.id, "provider": "chembl"})
+                              provenance={"analysis_id": analysis_id, "provider": "chembl"})
         retrieved_at = _now()
         records: list[dict] = []
         ids: list[str] = []
+        kept, excluded = _filter_hits(
+            lookup.hits, assay_type=payload.assay_type, standard_type=payload.standard_type
+        )
         async with database.unit_of_work() as uow:
-            for hit in lookup.hits:
+            for hit in kept:
                 candidate = hit_to_evidence(hit, provider="chembl", session_id=context.session_id,
                                             retrieved_at=retrieved_at)
                 existing = await uow.evidence.find_by_dedupe_key(context.session_id,
@@ -219,7 +397,7 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
             )
             # Tied to the analysis so a later literature search can take the
             # structure-matched name as the compound's identity.
-            await uow.observations.add(observation, analysis_id=snapshot.id)
+            await uow.observations.add(observation, analysis_id=analysis_id)
             await uow.commit()
         far = {item["evidence_id"]: (kind, item["fold_from_median"])
                for kind, group in summary["by_type"].items()
@@ -237,6 +415,7 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
             "target_chembl_id": lookup.target_chembl_id,
             "summary": {"observation_id": observation.id, **summary},
             "records": records,
+            "filter": excluded,
             "note": "Measured values from ChEMBL, each under its own assay conditions; compare "
                     "them only with their assay type and units. Read the summary before any "
                     "single record. Cite a record by evidence_id in citation_ids; cite the "
@@ -246,7 +425,7 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
                           # The records count as read (citation_not_read reads
                           # this list); the summary is the one observation made.
                           observation_ids=(observation.id, *ids),
-                          provenance={"analysis_id": snapshot.id, "provider": "chembl",
+                          provenance={"analysis_id": analysis_id, "provider": "chembl",
                                       "molecule_chembl_id": lookup.molecule_chembl_id,
                                       "evidence_ids": ids})
 

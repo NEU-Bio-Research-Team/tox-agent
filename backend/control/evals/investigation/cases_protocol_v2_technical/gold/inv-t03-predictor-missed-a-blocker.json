@@ -1,0 +1,48 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-t03-predictor-missed-a-blocker",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "No: a measured patch clamp IC50 of 0.3 uM disagrees with the low model score; the measurement should weigh more than the uncalibrated prediction.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "No: a measured patch clamp IC50 of 0.3 uM disagrees with the low model score; the measurement should weigh more than the uncalibrated prediction."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "ic50",
+      "statement": "hERG IC50",
+      "value": 0.3,
+      "unit": "uM"
+    }
+  ],
+  "required_limitations": [
+    "L1",
+    "L6"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "relabelled_predictor_output"
+  ],
+  "critical_errors": [
+    "relabelled_predictor_output"
+  ],
+  "evidence_spans": [
+    {
+      "evidence_ref": "pmid:90011",
+      "locator": "table-wrap:1/row:1"
+    }
+  ],
+  "sources": [
+    {
+      "record_id": "MED:90011"
+    }
+  ],
+  "predictor_error": {
+    "actually_wrong": true,
+    "verified_label_source": "synthetic fixture table (MED:90011)",
+    "note": "engineering fixture, not a verified label"
+  },
+  "note": "Synthetic engineering gold: checks the machinery, not the science."
+}

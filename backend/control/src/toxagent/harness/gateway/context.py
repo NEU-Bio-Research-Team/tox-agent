@@ -2,18 +2,26 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import Any, Mapping, Sequence
 
-from ...application.investigation import scientific_case_service
+from ...application.investigation import case_view, goal_contract, router, scientific_case_service
 from ...application.investigation.skill_catalog import render_index, render_static
 from ...application.runs.scheduler import RunContext
 from ...connections.model import ConnectionStatus
 from ...domain import decision_state, scientific_case
-from ...domain.errors import DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
+from ...domain.errors import (
+    DeadlineExceeded,
+    PhaseBudgetExhausted,
+    RuntimeProtocolError,
+    RuntimeUnavailable,
+)
 from ...domain.evidence import EvidenceStatus
 from ...domain.observation import ObservationKind
 from ...domain.run import Intent
 from ...domain.runtime import AuthMode
 from ...platform.flags import is_enabled
+from ...application.conversation.subject_resolution import binding_of, subject_summary
+from ...domain.subject import SubjectKind
 from ..context import PinnedReference, SessionCheckpoint, build_system_prompt
 from ..report_profile import compose_report_profile
 from ._common import ResolvedProfile, _now
@@ -21,6 +29,156 @@ from ._common import ResolvedProfile, _now
 
 class ContextMixin:
     """Everything assembled before the runtime is dispatched."""
+
+    #: Ledger entries that restate the run's own artifacts rather than a
+    #: source's measurement (the same split as the case view's groups).
+    _ARTIFACT_FACT_CLASSES = frozenset({"predictor_fact", "explanation_fact", "report_fact"})
+
+    async def _session_candidates(self, context: RunContext) -> list[dict[str, Any]]:
+        """The subjects a compare question could be about: each screening, and
+        each analysed structure that is not a screening's own ligand -- a
+        screening's toxicity analysis is that screening, not a second candidate."""
+        async with self._db.unit_of_work() as uow:
+            screenings = await uow.screenings.list_for_session(context.session_id)
+            analyses = await uow.analyses.list_for_session(context.session_id, limit=50)
+        ligands = {
+            ((a.record.get("screening_state") or {}).get("subject") or {}).get("canonical_smiles")
+            or ((a.record.get("activity_estimate") or {}).get("subject") or {})
+            .get("canonical_smiles")
+            for a in screenings
+        }
+        rows = [{"subject_key": f"screening:{a.screening_id}"} for a in screenings]
+        seen: set[str] = set()
+        for analysis in analyses:
+            if analysis.canonical_smiles in ligands or analysis.canonical_smiles in seen:
+                continue
+            seen.add(analysis.canonical_smiles)
+            rows.append({"subject_key": f"analysis:{analysis.id}"})
+        return rows
+
+    async def _researcher_observations(self, context: RunContext, case) -> dict[str, str]:
+        """The case's researcher values in force, as observations of this run (#61).
+
+        A claim can only cite an observation, and a value the researcher typed
+        into the case was not one -- which is why no arm could quote an
+        exposure the researcher supplied (live run 2026-10-22, T5 0/2). Each
+        current version is projected once per run; a context build that runs
+        again for the same run reuses what it projected.
+        """
+        from ...application.investigation.researcher_values import project_value
+        from ...domain.observation import ObservationKind
+        from ...domain.scientific_case import current_values
+
+        if case is None or not case.context:
+            return {}
+        async with self._db.unit_of_work() as uow:
+            existing = {
+                o.canonical_payload.get("ref"): o.id
+                for o in await uow.observations.list_for_run(context.run_id)
+                if o.kind is ObservationKind.RESEARCHER_VALUE
+            }
+            projected = dict(existing)
+            for version in current_values(case):
+                if version.ref in projected:
+                    continue
+                observation = project_value(
+                    version, case_id=case.id, session_id=context.session_id,
+                    run_id=context.run_id, now=_now(),
+                )
+                await uow.observations.add(observation)
+                projected[version.ref] = observation.id
+            if len(projected) != len(existing):
+                await uow.commit()
+        return projected
+
+    def _contract_and_view(
+        self, context: RunContext, *, case, profile: str, pinned, carried_over,
+        researcher_observations: dict[str, str] | None = None,
+        previous_contract: Mapping[str, Any] | None = None,
+        candidates: Sequence[Mapping[str, Any]] = (),
+    ):
+        """#69/#63/#68: the route, the contract and the six-group view.
+
+        Built here because this is where the subject, the case, the carried
+        propositions and the registered tools are all in scope. Stashed for
+        ``_begin_decision_state`` to record, because the state is opened after
+        the prompt -- the contract has to be the one the turn actually read,
+        not one rebuilt later from the same inputs.
+        """
+        from ...application.runs.budget import effective_run_budget
+        from ...domain.scientific_case import current_values, needs_reassessment
+        from ...platform.config import PolicySettings
+
+        stale = [c.id for c in needs_reassessment(case.derived_claims)] if case else []
+        artifact_refs = [f"{p.kind}:{p.id}" for p in pinned if p.kind != "report_build"]
+        in_force = list(current_values(case)) if case else []
+        # §4.1 update route: new is what the previous run of this subject did
+        # not see -- read off its contract, a recorded fact, not the wording.
+        # A subject with no earlier contract has seen nothing yet.
+        seen = set((previous_contract or {}).get("researcher_values_seen") or ())
+        new_values = [
+            {"ref": v.ref, "key": v.key, "value": v.value, "unit": v.unit}
+            for v in in_force if v.ref not in seen
+        ]
+        decision = router.classify(
+            question=context.text or "",
+            has_subject=any(p.kind in ("analysis", "screening") for p in pinned),
+            artifact_refs=artifact_refs,
+            stale_claims=stale,
+            new_researcher_input=bool(new_values),
+            candidate_count=len(candidates),
+        )
+        # §4.1 "Cách chạy": the route decides the capability profile, so a
+        # read is cheaper in fact -- fewer tools, no search, no skills.
+        profile = router.profile_for(decision.route)
+        budget = effective_run_budget(
+            context.intent.value, self._policy or PolicySettings(), self._settings
+        ).to_dict()
+        needs, gap = goal_contract.requirements(
+            context.text or "",
+            has_measurement=any(
+                entry.source_class not in self._ARTIFACT_FACT_CLASSES
+                for entry in (case.evidence if case else ())
+            ),
+            # A researcher value keyed as an exposure. Keys are the researcher's
+            # words, so this reads the two that name one, and only those.
+            has_exposure=any(
+                any(word in version.key.lower() for word in ("cmax", "exposure"))
+                for version in (current_values(case) if case else ())
+            ),
+        )
+        contract = goal_contract.build(
+            route=decision.route,
+            question=context.text or "",
+            question_needs=needs,
+            question_gap=gap,
+            subject=dict(case.subject) if case is not None else {},
+            admissible_actions=[t["name"] for t in self._registry.descriptors(profile)],
+            budget=budget,
+            open_questions=carried_over,
+            stale_claims=stale,
+            new_values=new_values if decision.route == router.UPDATE else (),
+            researcher_values_seen=[v.ref for v in in_force],
+            candidates=candidates if decision.route == router.COMPARE_BATCH else (),
+            clarification=decision.clarification,
+        )
+        searched = [
+            action.action for action in (case.actions if case else ())
+            if action.action.startswith("search")
+        ]
+        view = case_view.build(
+            case, contract=contract, researcher_observations=researcher_observations or {},
+            open_gaps=[
+                {"gap": q.gap, "question": q.question}
+                for q in contract.must_answer if q.gap
+            ],
+            searched=searched,
+            budget_left={k: v for k, v in budget.items()
+                         if k in ("deadline_s", "max_tool_calls", "max_searches",
+                                  "max_evidence_reads") and v is not None},
+        )
+        self._contracts[context.run_id] = contract.to_dict()
+        return view.render(), decision, profile
 
     async def snapshot_before_runtime(self, context: RunContext) -> None:
         """The mixed-run snapshot, for a caller that drives its own workflow."""
@@ -48,6 +206,44 @@ class ContextMixin:
             explanation_targets=context.explanation_targets,
             owns_run=False,
         )
+
+    def _review_reserve_s(self, context: RunContext) -> int:
+        """Seconds of the run deadline kept for review and repair, when the
+        preset keeps any and the run's answer will be reviewed."""
+        from ...platform.config import release_policy, run_budget_preset, total_call_accounting
+        from .release import release_gate_on
+
+        if context.intent is not Intent.DECISION_SUPPORT or not total_call_accounting():
+            return 0
+        reviewed = release_gate_on() or release_policy() == "strict-reviewed-v1"
+        return int(run_budget_preset()[1].get("review_reserve_s") or 0) if reviewed else 0
+
+    async def _resolve_pending_subject(self, context: RunContext) -> RunContext:
+        """#44: a new-molecule run's subject is the analysis its snapshot just
+        made. Bind it now, before the case and the prompt read the subject."""
+        from dataclasses import replace
+
+        binding = binding_of(context)
+        if binding is None or not binding.pending_snapshot:
+            return context
+        async with self._db.unit_of_work() as uow:
+            session = await uow.sessions.get_unscoped(context.session_id)
+            analysis = (
+                await uow.analyses.get(session.active_analysis_id, session_id=context.session_id)
+                if session is not None and session.active_analysis_id else None
+            )
+        if analysis is None:
+            raise RuntimeProtocolError("the run's snapshot did not produce an analysis to bind")
+        resolved = binding.resolved_with_analysis(
+            analysis.id, canonical_smiles=analysis.canonical_smiles,
+            content_sha256_=analysis.content_sha256,
+        )
+        async with self._db.unit_of_work() as uow:
+            await uow.run_configuration_snapshots.resolve_subject_binding(
+                context.run_id, resolved.to_dict(),
+            )
+            await uow.commit()
+        return replace(context, subject=resolved.to_dict(), analysis_id=analysis.id)
 
     async def _resolve_ai_profile(self, context: RunContext) -> ResolvedProfile:
         """Resolve the run-pinned AI profile immediately before dispatch.
@@ -122,12 +318,23 @@ class ContextMixin:
             # in §10.4), not part of the prefix transcript.
             recent = [message for message in messages if message.id != run.trigger_message_id]
             pinned: list[PinnedReference] = []
+            binding = binding_of(context)
             # The run's own resolved target wins over whatever the session
             # happens to have active right now; it falls back to the active
             # analysis only when the run never named one. A run that
             # named a specific analysis_id and can't find it is a protocol
             # error, not a silent fall-through to the wrong molecule.
-            target_analysis_id = context.analysis_id or session.active_analysis_id
+            # #44: a bound run never falls back -- a screening subject has no
+            # analysis of its own, and the session's active one is not it.
+            target_analysis_id = (
+                binding.analysis_id if binding is not None
+                else context.analysis_id or session.active_analysis_id
+            )
+            if binding is not None and binding.kind is SubjectKind.ACTIVITY_SCREENING:
+                pinned.append(PinnedReference(
+                    kind="screening", id=binding.screening_id or "",
+                    summary=subject_summary(binding),
+                ))
             if target_analysis_id:
                 analysis = await uow.analyses.get(
                     target_analysis_id, session_id=context.session_id
@@ -159,12 +366,15 @@ class ContextMixin:
             )
             checkpoint = SessionCheckpoint()
             case_summary = ""
+            run_case = None
+            carried_over: list = []
+            previous_contract: dict = {}
             if context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1"):
-                case = await scientific_case_service.case_for_run(
+                run_case = await scientific_case_service.case_for_run(
                     uow, session_id=context.session_id, run_id=context.run_id
                 )
-                if case is not None:
-                    case_summary = scientific_case.checkpoint_summary(case)
+                if run_case is not None:
+                    case_summary = scientific_case.checkpoint_summary(run_case)
             if context.intent is Intent.DECISION_SUPPORT:
                 # P1-05: memory is scoped to the subject, not the transcript.
                 # Prior decision states for *this* analysis contribute their
@@ -177,7 +387,10 @@ class ContextMixin:
                     )
                     if state.run_id != context.run_id and state.stop_reason is not None
                 ]
-                subject = f"analysis:{target_analysis_id}" if target_analysis_id else None
+                subject = (
+                    binding.subject_ref_string if binding is not None
+                    else f"analysis:{target_analysis_id}" if target_analysis_id else None
+                )
                 same_subject = [s for s in prior if subject and subject in s.subject_refs]
                 if prior:
                     scoped_ids = {
@@ -192,12 +405,17 @@ class ContextMixin:
                     }
                     accepted_evidence = [r for r in accepted_evidence if r.id in scoped_ids]
                 if same_subject:
+                    previous_contract = dict(same_subject[0].goal_contract or {})
                     checkpoint = SessionCheckpoint(
                         summary=decision_state.checkpoint_summary(same_subject[0]),
                         open_intent="; ".join(
                             p.question[:120] for p in same_subject[0].unresolved[:3]
                         ),
                     )
+                    carried_over = [
+                        {"question": p.question, "required_sources": list(p.required_sources)}
+                        for p in same_subject[0].unresolved[:4]
+                    ]
             for record in accepted_evidence:
                 pinned.append(
                     PinnedReference(
@@ -270,6 +488,16 @@ class ContextMixin:
                 ))
 
         profile = self._registry.profile_for_intent(context.intent.value)
+        route_decision = None
+        if context.intent is Intent.DECISION_SUPPORT and is_enabled("investigator_contract_v1"):
+            researcher_observations = await self._researcher_observations(context, run_case)
+            case_summary, route_decision, profile = self._contract_and_view(
+                context, case=run_case, profile=profile, pinned=pinned,
+                carried_over=carried_over, researcher_observations=researcher_observations,
+                previous_contract=previous_contract,
+                candidates=await self._session_candidates(context),
+            )
+        self._routes[context.run_id] = route_decision
         deadline = min(
             run.deadline_at,
             _now() + timedelta(seconds=(
@@ -278,6 +506,17 @@ class ContextMixin:
                 else self._settings.turn_deadline_s
             )),
         )
+        reserve = self._review_reserve_s(context)
+        if reserve:
+            # #46 (investigator-pilot-v2): one root deadline, and the review
+            # and the repair are guaranteed its last seconds; the investigator
+            # cannot spend them.
+            deadline = min(deadline, run.deadline_at - timedelta(seconds=reserve))
+            if deadline <= _now():
+                raise PhaseBudgetExhausted(
+                    "no time is left for the investigation before the review's reserve",
+                    phase="investigator", review_reserve_s=reserve,
+                )
         if deadline <= _now():
             raise DeadlineExceeded("the run deadline elapsed before runtime dispatch")
         skills_mode, offered_skills = self._skills_for(profile)
@@ -297,7 +536,7 @@ class ContextMixin:
             subjectless=(
                 context.intent is Intent.DECISION_SUPPORT
                 and is_enabled("subjectless_research_v1")
-                and not any(p.kind == "analysis" for p in pinned)
+                and not any(p.kind in ("analysis", "screening") for p in pinned)
             ),
         )
         instructions_hash = None

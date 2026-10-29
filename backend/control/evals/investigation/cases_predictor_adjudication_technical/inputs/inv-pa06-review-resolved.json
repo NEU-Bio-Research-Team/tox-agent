@@ -1,0 +1,68 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pa06-review-resolved",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_b9d7f51d1c0b48d9baa9ffb67ff15825"
+    },
+    "identity": {
+      "canonical_smiles": "C#Cc1cccc(Nc2ncnc3cc(OC)c(OC)cc23)c1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_b9d7f51d1c0b48d9baa9ffb67ff15825",
+      "content_sha256": "3f60452b71ac1a25a9fb0f29176116a4247a6d4697639716e98691a77f8cf98e",
+      "stage_status": {
+        "screening": "completed_with_toxicity_not_run"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the activity model estimate for TX-316 on EGFR, and does measured evidence support or contradict it?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "C#Cc1cccc(Nc2ncnc3cc(OC)c(OC)cc23)c1"
+    ],
+    "documents": [
+      "MED:93161"
+    ],
+    "measurements": [
+      "inv-pa06-review-resolved:estimate",
+      "inv-pa06-review-resolved:ic50"
+    ],
+    "sources": [
+      "MED:93161"
+    ]
+  }
+}

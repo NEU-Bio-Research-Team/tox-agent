@@ -10,7 +10,33 @@ published outcomes and turned into ToxAgent questions. The numbers this study
 produces are never an `external-native` benchmark score and are not compared
 with any leaderboard.
 
-## Two case sets
+## Protocol v2 (#50/#51/#53): the four arms on frozen inputs
+
+The study above is v1 and stays as it is. Protocol v2 is a different design --
+four arms (A template, B fixed workflow, C generic ReAct, D investigator) on
+**one case set's frozen inputs**, each arm a deployment of this control plane --
+and it is run through one entry point:
+
+```bash
+python scripts/agent_benchmark.py preflight --case-set <set> [--arm ID=URL ...]
+python scripts/agent_benchmark.py run     --study <id> --case-set <set> --arm ID=URL ...
+python scripts/agent_benchmark.py packet  --study <id> --case-set <set> --packet-id <id>
+python scripts/agent_benchmark.py score   --study <id> --case-set <set> --packet-id <id> --grades *.csv
+python scripts/agent_benchmark.py freeze  --study <id> --case-set <set>
+```
+
+Its parts: `case_inputs.py` (a v3 case is a case + frozen inputs + gold, and
+the audit that holds them apart), `turn_actions.py` (one rendering of a turn,
+the same for every arm), `adapters/template_v2.py` and
+`adapters/toxagent_replay.py`, `run.py::run_protocol_study` (arms may run one
+at a time; a changed study is refused), `systems.py` (what the arms must share
+and what they are allowed to differ in), `packet_v2.py` and `scorecard_v2.py`.
+`arms/protocol-v2/*.json` are the arm configs, and
+`cases_protocol_v2_technical/` is the synthetic engineering set -- machinery
+only, never evidence about a molecule. The pilot's 24 cases need SME-verified
+gold before any of its numbers mean anything.
+
+## Two case sets (v1)
 
 | Set | Directory | Question it asks |
 |---|---|---|
@@ -72,6 +98,33 @@ being studied, and it is recorded, not hidden.
 6. **Analysis** (`scorecard.py`): per system and dimension, the mean over
    cases with a case-bootstrap interval; critical-error rates; paired
    differences on shared cases; inter-rater agreement when two graders overlap.
+
+## Protocol v2 cases (v3 files)
+
+Protocol v2 keeps three files per case apart (`case_inputs.py`):
+
+- `cases/<id>.json` (`investigation-case-v3`): what the case measures -- task
+  group, `workflow_context` (`toxicity_only` / `activity_guided`, separate
+  from `cohort`), answerability, pairing, fault -- and the sha256 of the other
+  two files;
+- `inputs/<id>.json` (`frozen-case-inputs-v1`): everything a system is given,
+  identical for every arm -- the subject by reference, frozen artifacts with
+  their hashes, the evidence corpus and full-text store, contract versions,
+  the turns and their actions (`add_context`, `attach_evidence_ref`,
+  `switch_subject`), provenance and dependency groups;
+- `gold/<id>.json` (`case-gold-v1`): what graders check against. Never read
+  by an adapter.
+
+`python -m evals.investigation.case_inputs --cases-dir <set>/cases --replay
+<set>/replay.json --snapshot <set>/evidence.json` audits a set: shapes,
+hashes, artifacts against the replay file, spans against the frozen text,
+pairing, answerability, T3 polarity, T6 faults, gold isolation.
+`dependency_split` assigns dev/test by whole dependency components.
+
+`cases_protocol_v2_technical/` is the engineering conformance set: T1-T6 for
+both contexts, built by `technical_seed.py` from fictional compounds and
+invented numbers. It checks the machinery and says so on every file
+(`synthetic_engineering_fixture`); it is never evidence about science.
 
 ## Running
 

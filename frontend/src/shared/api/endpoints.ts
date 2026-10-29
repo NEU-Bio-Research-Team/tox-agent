@@ -110,10 +110,62 @@ export interface SendMessageInput {
     explanation_targets?: Array<{ endpoint: 'herg' | 'tox21'; task?: string }>;
   };
   analysis_id?: string;
+  /** #44: which of the session's subjects this message is about. The server
+   * reads what that subject is; the client only names one it already holds,
+   * and a run keeps the subject it was bound to even if the selection
+   * changes while it is queued. */
+  subject_ref?: SubjectRef;
 }
 
 export function sendMessage(sessionId: string, input: SendMessageInput): Promise<AcceptedResponse> {
   return apiRequest(`/v1/sessions/${sessionId}/messages`, { method: 'POST', body: input });
+}
+
+export type SubjectRef = Schemas['SubjectRefInput'];
+export type ScreeningSummary = Schemas['ScreeningSummary'];
+export type ScreeningDetail = Schemas['ScreeningDetail'];
+export type ScreeningListResponse = Schemas['ScreeningList'];
+export type RunResult = Schemas['RunResult'];
+
+/** The frozen activity screenings attached to this session (#44). 404 on a
+ * deployment where activity replay is off, which is not an error: that
+ * deployment simply has no screenings. */
+export function listScreenings(sessionId: string): Promise<ScreeningListResponse> {
+  return apiRequest(`/v1/sessions/${sessionId}/screenings`);
+}
+
+export function getScreening(sessionId: string, screeningId: string): Promise<ScreeningDetail> {
+  return apiRequest(`/v1/sessions/${sessionId}/screenings/${screeningId}`);
+}
+
+/** What a run ended with (#47): its publication disposition, review status and
+ * outcomes. Never a candidate's text. */
+export function getRunResult(sessionId: string, runId: string): Promise<RunResult> {
+  return apiRequest(`/v1/sessions/${sessionId}/runs/${runId}/result`);
+}
+
+export type RunStageLineage = Schemas['RunStageLineage'];
+export type LineageStage = Schemas['LineageStage'];
+export type LineageReview = Schemas['LineageReview'];
+export type LineageClaim = Schemas['LineageClaim'];
+
+/** How the run's answer came to be what the researcher saw: drafts, review
+ * rounds, the repair claim by claim, and what went missing. Audit material --
+ * a candidate's prose appears here, never as the answer. */
+export function getRunLineage(sessionId: string, runId: string): Promise<RunStageLineage> {
+  return apiRequest(`/v1/sessions/${sessionId}/runs/${runId}/lineage`);
+}
+
+export type EvidencePassagesView = Schemas['EvidencePassagesView'];
+export type PassageTable = Schemas['PassageTable'];
+
+/** What a quote can be checked against: the access state, the passage at
+ * `locator` with its table, or (without a locator) an outline of the text. */
+export function getEvidencePassages(
+  sessionId: string, evidenceId: string, locator?: string | null,
+): Promise<EvidencePassagesView> {
+  const query = locator ? `?${new URLSearchParams({ locator }).toString()}` : '';
+  return apiRequest(`/v1/sessions/${sessionId}/evidence/${evidenceId}/passages${query}`);
 }
 
 export function getReport(sessionId: string, reportId: string): Promise<ReportArtifact> {
@@ -326,6 +378,16 @@ export function listScientificCases(sessionId: string): Promise<ScientificCaseLi
 
 export function getScientificCase(sessionId: string, caseId: string): Promise<ScientificCase> {
   return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}`);
+}
+
+export type CaseRunChanges = Schemas['CaseRunChanges'];
+export type CaseSectionChanges = Schemas['CaseSectionChanges'];
+
+/** What one turn changed in the case and what it kept, from the case's own log. */
+export function getCaseRunChanges(
+  sessionId: string, caseId: string, runId: string,
+): Promise<CaseRunChanges> {
+  return apiRequest(`/v1/sessions/${sessionId}/cases/${caseId}/runs/${runId}/changes`);
 }
 
 /** The dossier one decision-support run compiled over its case. */

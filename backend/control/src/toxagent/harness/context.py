@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from ..domain.message import Message, PartType
+from ..platform.flags import is_enabled
 
 #: Plan section 2.2. Restated to every runtime turn because these are the
 #: invariants a model must not violate, not a policy the validator alone should
@@ -196,6 +197,43 @@ question is really about a specific compound's predicted toxicity, say that the 
 researcher can add the molecule for a prediction.
 """
 
+#: #43 (flag evidence_full_text_v1): reading a paper beyond its abstract, and
+#: the limitation an answer owes when it did not. Stated only with the tool, so
+#: the prompt of a deployment without it is unchanged.
+FULL_TEXT_POLICY = """\
+read_evidence_text reads an accepted paper's full text as located passages: \
+section paragraphs, and tables row by row. Use it when the question turns on a \
+value, a condition or a table the abstract does not give, and go to the part \
+you need (kinds=["table_row"], or a section such as "Results") rather than \
+paging through the whole paper. Quote a passage by naming it in the claim's \
+evidence_spans. If text_access is not full_text_retrieved, that paper was read \
+from its abstract only: say so, and do not report it as an absence of evidence.
+- Cited an article whose full text you did not read -> \
+evidence_full_text_not_read.
+"""
+
+#: #44 (flag activity_replay_v1): reading an activity-guided screening. The
+#: invariants are the critical errors the activity workflow can produce.
+ACTIVITY_REPLAY_POLICY = """\
+Activity-guided screenings attached to this session are listed by \
+get_artifact_inventory. They are replayed frozen records: no activity model is \
+served, and the estimates come from a model that has not passed admission \
+unless model.admitted says otherwise. Read them with get_screening_state, \
+get_activity_snapshot and get_prioritisation_decision, by screening_id; each \
+returns an observation_id to cite and the limitations it requires.
+- A screening is one ligand on one target in one assay context. Never carry an \
+estimate or decision over to another target or context.
+- A stage that did not run, or failed, is not a negative result: say what \
+happened (toxicity.run false, its reason).
+- A pIC50 is an in-vitro potency estimate for that target, not efficacy.
+- A prioritisation is a fixed rule's output over the estimate, not a second \
+measurement; you cannot override it or authorise a stage, only explain it \
+and what would change it.
+- Cited an activity estimate, prioritisation decision or screening state -> \
+every code in the required_limitations its read returned. An interval is a \
+list: cite estimate.prediction_interval.0 and .1, not the list.
+"""
+
 #: The grounded-answer v2 counterpart of ANSWER_FORMAT (flag answer_draft_v2).
 #: v2 has no source_value or rendered_value: the server reads and renders each
 #: value. Stating v1's rules under v2 told the model to write numbers it could
@@ -349,8 +387,16 @@ def build_system_prompt(
         ANSWER_FORMAT_V2 if answer_schema == "grounded-answer-v2" else ANSWER_FORMAT,
         REQUIRED_LIMITATIONS_GUIDE,
     ]
+    if (
+        capability_profile in ("decision_support", "evidence_research")
+        and answer_schema == "grounded-answer-v2"
+        and is_enabled("evidence_full_text_v1")
+    ):
+        sections.append(FULL_TEXT_POLICY)
     if capability_profile == "decision_support":
         sections.append(DECISION_SUPPORT_POLICY)
+        if is_enabled("activity_replay_v1"):
+            sections.append(ACTIVITY_REPLAY_POLICY)
         if subjectless:
             sections.append(SUBJECTLESS_RESEARCH_POLICY)
     if scientific_case:

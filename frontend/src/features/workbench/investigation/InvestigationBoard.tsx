@@ -5,6 +5,7 @@ import {
   setScientificCaseScope,
 } from '../../../shared/api/endpoints';
 import type { CaseEvidenceEntry, HypothesisStatus, ScientificCase, ScientificCaseEvent } from '../../../shared/api/types';
+import { CaseChanges } from './CaseChanges';
 
 /**
  * The investigation board (ADR 0012, RETHINK §4.4 step 4): the session's
@@ -116,6 +117,24 @@ function EvidenceLine({ entry }: { entry: CaseEvidenceEntry }) {
   );
 }
 
+/** The subject the case is about, as the server bound it (#44): one ligand on
+ * one target in one assay context. Another target is another case. */
+function CaseSubject({ data }: { data: ScientificCase }) {
+  const subject = ((data as Record<string, unknown>).subject ?? {}) as Record<string, unknown>;
+  const identity = (subject.identity ?? {}) as Record<string, unknown>;
+  const target = (identity.target ?? null) as Record<string, unknown> | null;
+  if (!identity.canonical_smiles && !target) {
+    return <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Subject: {data.subject_key}</p>;
+  }
+  return (
+    <p className="text-xs" style={{ color: 'var(--text-muted)' }} aria-label="Subject của hồ sơ">
+      Subject: <span className="font-mono" style={{ color: 'var(--text)' }}>{String(identity.canonical_smiles ?? '')}</span>
+      {target && ` · target ${String(target.target_id ?? 'không rõ')}${target.variant ? ` (${String(target.variant)})` : ''}`}
+      {identity.assay_context ? ` · ${String(identity.assay_context)}` : ''}
+    </p>
+  );
+}
+
 function CaseHistory({ sessionId, data }: { sessionId: string; data: ScientificCase }) {
   const [open, setOpen] = useState(false);
   const events = useQuery({
@@ -223,7 +242,10 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
       <Section title="Câu hỏi quyết định">
         <p className="text-sm" style={{ color: 'var(--text)' }}>{data.question || 'Chưa ghi câu hỏi.'}</p>
         {data.decision_context && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{data.decision_context}</p>}
+        <CaseSubject data={data} />
       </Section>
+
+      <CaseChanges sessionId={sessionId} data={data} />
 
       <CaseScope sessionId={sessionId} data={data} />
 

@@ -23,6 +23,7 @@
     ],
     "decision_support": [
       "compute_exposure_margin",
+      "get_activity_snapshot",
       "get_analysis_bundle",
       "get_analysis_slice",
       "get_artifact_inventory",
@@ -30,19 +31,40 @@
       "get_chembl_activities",
       "get_evidence_record",
       "get_explanation_slice",
+      "get_prioritisation_decision",
       "get_report_summary",
       "get_scientific_case",
+      "get_screening_state",
       "propose_skill_draft",
+      "read_evidence_text",
       "read_scientific_skill",
       "read_skill_reference",
       "record_decision_plan",
+      "run_scientific_procedure",
       "search_toxicology_evidence",
       "submit_grounded_answer",
       "update_scientific_case"
     ],
+    "decision_support_read": [
+      "get_activity_snapshot",
+      "get_analysis_bundle",
+      "get_analysis_slice",
+      "get_artifact_inventory",
+      "get_attribution",
+      "get_evidence_record",
+      "get_explanation_slice",
+      "get_prioritisation_decision",
+      "get_report_summary",
+      "get_scientific_case",
+      "get_screening_state",
+      "read_evidence_text",
+      "submit_grounded_answer"
+    ],
     "evidence_research": [
       "get_analysis_slice",
       "get_evidence_record",
+      "read_evidence_text",
+      "run_scientific_procedure",
       "search_toxicology_evidence",
       "submit_grounded_answer"
     ],
@@ -69,6 +91,9 @@
     ],
     "report_synthesis": [
       "submit_report_synthesis"
+    ],
+    "workflow_synthesis": [
+      "submit_grounded_answer"
     ]
   },
   "eval_packs": {
@@ -250,6 +275,11 @@
     "report": 20
   },
   "rollout_flags": {
+    "activity_replay_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "answer_draft_v2": {
       "default": false,
       "owner": "backend-scientific",
@@ -265,6 +295,11 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-14"
     },
+    "evidence_full_text_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "evidence_pipeline_v2": {
       "default": false,
       "owner": "backend-scientific",
@@ -275,10 +310,25 @@
       "owner": "platform",
       "remove_by": "2026-12-12"
     },
+    "fixed_workflow_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
+    "investigator_contract_v1": {
+      "default": false,
+      "owner": "backend-agent",
+      "remove_by": "2026-12-12"
+    },
     "normalized_usage_v2": {
       "default": true,
       "owner": "backend-runtime",
       "remove_by": "2026-12-12"
+    },
+    "release_gate_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
     },
     "report_orchestrator_v2": {
       "default": false,
@@ -305,6 +355,11 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "scientific_procedures_v1": {
+      "default": false,
+      "owner": "backend-agent",
+      "remove_by": "2026-12-12"
+    },
     "scientific_skills_v1": {
       "default": false,
       "owner": "backend-scientific",
@@ -315,6 +370,11 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "subject_binding_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "subjectless_research_v1": {
       "default": false,
       "owner": "backend-scientific",
@@ -324,6 +384,11 @@
       "default": false,
       "owner": "backend-platform",
       "remove_by": "2026-12-14"
+    },
+    "typed_stop_v1": {
+      "default": false,
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
     }
   },
   "runtime_kinds": [

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from sqlalchemy import and_, insert, select, update
+from sqlalchemy import and_, insert, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from ....domain.errors import Conflict
@@ -107,18 +107,31 @@ class SqlEvidenceRelationStore:
     def __init__(self, conn: AsyncConnection) -> None:
         self._conn = conn
 
-    async def add(self, assessment: EvidenceRelationAssessment) -> None:
+    async def add(
+        self, assessment: EvidenceRelationAssessment, *, answer_id: str | None = None,
+    ) -> None:
         await self._conn.execute(
             insert(evidence_relation_assessments).values(
-                m.evidence_relation_to_row(assessment)
+                {**m.evidence_relation_to_row(assessment), "answer_id": answer_id}
             )
         )
 
-    async def list_for_run(self, run_id: str) -> Sequence[EvidenceRelationAssessment]:
+    async def list_for_run(
+        self, run_id: str, *, answer_id: str | None = None,
+    ) -> Sequence[EvidenceRelationAssessment]:
+        """A run's relations; with ``answer_id``, only those submitted with that
+        answer (#47) -- and rows written before relations carried one, when a
+        run had a single answer and every relation was its."""
+        condition = evidence_relation_assessments.c.run_id == run_id
+        if answer_id is not None:
+            condition = and_(condition, or_(
+                evidence_relation_assessments.c.answer_id == answer_id,
+                evidence_relation_assessments.c.answer_id.is_(None),
+            ))
         rows = (
             await self._conn.execute(
                 select(evidence_relation_assessments)
-                .where(evidence_relation_assessments.c.run_id == run_id)
+                .where(condition)
                 .order_by(evidence_relation_assessments.c.created_at)
             )
         ).mappings().all()

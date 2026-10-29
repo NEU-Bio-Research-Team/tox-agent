@@ -11,6 +11,7 @@ from ...domain.errors import (
     NotFound,
 )
 from ..responses import (
+    CaseRunChanges,
     DecisionDossier,
     ScientificCase,
     ScientificCaseEventsResponse,
@@ -77,6 +78,28 @@ async def get_scientific_case_events(
     return {"case_id": case.id, "events": [event.to_dict() for event in events]}
 
 
+@router.get(
+    "/sessions/{session_id}/cases/{case_id}/runs/{run_id}/changes",
+    responses={200: {"model": CaseRunChanges}},
+)
+async def get_scientific_case_run_changes(
+    request: Request, session_id: str, case_id: str, run_id: str,
+    principal: Actor = Depends(actor),
+):
+    """What one turn changed in the case and what it kept: the case's log
+    replayed to where the previous run left it and to this run's last update.
+    404 for a run that never touched the case."""
+    from ...domain import scientific_case as sc
+
+    services, case = await _owned_case(request, principal, session_id, case_id)
+    async with services.database.unit_of_work() as uow:
+        events = await uow.scientific_cases.events(case.id, session_id=session_id)
+    try:
+        return sc.run_changes(list(events), run_id)
+    except sc.RunNotInCase:
+        raise NotFound("this run did not update the case", case_id=case_id, run_id=run_id) from None
+
+
 @router.get("/sessions/{session_id}/cases/{case_id}/dossier", responses={200: {"model": DecisionDossier}})
 async def get_latest_decision_dossier(
     request: Request, session_id: str, case_id: str, principal: Actor = Depends(actor)
@@ -130,9 +153,11 @@ async def add_scientific_case_context(
     principal: Actor = Depends(actor),
 ):
     """Add researcher-supplied context; the next turn sees it in the case."""
+    typed = {k: v for k, v in (("unit", body.unit), ("source", body.source),
+                                ("scope", body.scope)) if v}
     return await _user_case_update(
         request, principal, session_id, case_id, "add_context",
-        key=body.key, value=body.value, note=body.note or "",
+        key=body.key, value=body.value, note=body.note or "", **typed,
     )
 
 

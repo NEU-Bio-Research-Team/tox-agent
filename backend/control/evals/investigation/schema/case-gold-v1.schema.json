@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "case-gold-v1",
+  "title": "What a grader checks one case against. Never model-facing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "status",
+    "reference_outcome",
+    "acceptable_conclusions",
+    "mandatory_facts",
+    "limitation_scoring",
+    "forbidden_inferences"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "case-gold-v1"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "synthetic_engineering_gold",
+        "pending_sme_verification",
+        "sme_verified",
+        "sme_disputed"
+      ]
+    },
+    "reference_outcome": {
+      "type": "string",
+      "minLength": 1
+    },
+    "acceptable_conclusions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "statement"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "committed",
+              "gap_statement"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requires_sources": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "mandatory_facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "statement"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "statement": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "boolean",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "required_limitations": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+          "L5",
+          "L6",
+          "L7",
+          "L8",
+          "L9"
+        ]
+      }
+    },
+    "optional_limitations": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+          "L5",
+          "L6",
+          "L7",
+          "L8",
+          "L9"
+        ]
+      }
+    },
+    "limitation_scoring": {
+      "enum": [
+        "scored",
+        "not_applicable"
+      ]
+    },
+    "forbidden_inferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "critical_errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_spans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_ref",
+          "locator"
+        ],
+        "properties": {
+          "evidence_ref": {
+            "type": "string"
+          },
+          "locator": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string"
+          },
+          "access": {
+            "enum": [
+              "full_text_retrieved",
+              "access_failed"
+            ]
+          }
+        }
+      }
+    },
+    "predictor_error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actually_wrong"
+      ],
+      "properties": {
+        "actually_wrong": {
+          "type": "boolean"
+        },
+        "verified_label_source": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "turn_expectations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "turn"
+        ],
+        "properties": {
+          "turn": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keeps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "note": {
+      "type": "string"
+    },
+    "adjudication": {
+      "description": "Predictor adjudication (adjudication.py): what the predictor called, the verified answer and the stance an agent should take given the corpus it can search.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "endpoint",
+        "predictor_call",
+        "verified",
+        "decidable_from_corpus",
+        "expected_stance",
+        "deciding_sources"
+      ],
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string"
+        },
+        "predictor_call": {
+          "enum": [
+            "positive",
+            "negative"
+          ]
+        },
+        "verified": {
+          "enum": [
+            "positive",
+            "negative"
+          ]
+        },
+        "verified_by": {
+          "type": "string"
+        },
+        "decidable_from_corpus": {
+          "type": "boolean"
+        },
+        "expected_stance": {
+          "enum": [
+            "corroborate",
+            "challenge",
+            "insufficient"
+          ]
+        },
+        "deciding_sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

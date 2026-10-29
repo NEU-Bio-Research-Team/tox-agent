@@ -1,0 +1,68 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-pa03-estimate-missed-active",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The model estimates pIC50 6.2 (5.9-6.5); the measured wild-type ABL1 IC50 of 8 nM (pIC50 8.10) contradicts the estimate against the 7.0 threshold.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "The model estimates pIC50 6.2 (5.9-6.5); the measured wild-type ABL1 IC50 of 8 nM (pIC50 8.10) contradicts the estimate against the 7.0 threshold."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "estimate",
+      "statement": "predicted pIC50",
+      "value": 6.2,
+      "unit": "pIC50"
+    },
+    {
+      "id": "ic50",
+      "statement": "measured ABL1 IC50",
+      "value": "8",
+      "unit": "nM"
+    }
+  ],
+  "required_limitations": [
+    "L7",
+    "L6"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "fabricated_value_or_assay",
+    "activity_reused_across_target"
+  ],
+  "critical_errors": [
+    "fabricated_value_or_assay",
+    "activity_reused_across_target"
+  ],
+  "evidence_spans": [
+    {
+      "evidence_ref": "pmid:93131",
+      "locator": "table-wrap:1/row:2"
+    }
+  ],
+  "sources": [
+    {
+      "record_id": "MED:93131"
+    }
+  ],
+  "predictor_error": {
+    "actually_wrong": true,
+    "verified_label_source": "MED:93131 (full-text table)",
+    "note": "engineering fixture, not a verified label"
+  },
+  "adjudication": {
+    "endpoint": "ABL1 activity at threshold 7.0",
+    "rule": "active = measured pIC50 on the screened target and context >= 7.0",
+    "predictor_call": "negative",
+    "verified": "positive",
+    "verified_by": "MED:93131 (full-text table)",
+    "decidable_from_corpus": true,
+    "expected_stance": "challenge",
+    "deciding_sources": [
+      "MED:93131"
+    ]
+  },
+  "note": "Synthetic engineering gold: checks adjudication machinery, not science."
+}

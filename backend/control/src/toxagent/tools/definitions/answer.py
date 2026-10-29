@@ -12,11 +12,11 @@ import logging
 from typing import Final
 
 from ...application.investigation import scientific_case_service
-from ...application.conversation.submit_answer import SubmitAnswer
+from ...application.conversation.submit_answer import SubmitAnswer, release_gated
 from ...platform.config import PolicySettings
 from ...platform.flags import is_enabled
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
-from ...validation.answer.draft_wire import GroundedAnswerDraftV2
+from ...validation.answer.draft_wire import draft_model
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 #: Referenced by tools/runner.py so the final-answer tool can be excluded from
@@ -56,6 +56,21 @@ _V2_DESCRIPTION: Final[str] = (
     "most one correction attempt is allowed per run."
 )
 
+#: Added under typed_stop_v1 (#46), with the schema that has the field.
+_STOP_TOOL_DESCRIPTION: Final[str] = (
+    "\n\nSay why the answer stops in stop.reason. When the question turns on something "
+    "only the researcher can supply (their exposure, their assay, their constraint), use "
+    "needs_user_input and name it in needed_inputs instead of searching for it."
+)
+
+#: Added under evidence_full_text_v1 (#43), with the schema that has the field.
+_SPANS_DESCRIPTION: Final[str] = (
+    "\n\nTo quote a paper's text or table, cite the record in citation_ids and name "
+    "each passage in the claim's evidence_spans (evidence_id + a locator "
+    "read_evidence_text returned). A number from a passage may appear in "
+    "answer_markdown only through such a span."
+)
+
 
 def build(database, settings: PolicySettings) -> list[ToolDefinition]:
     submit_answer = SubmitAnswer(database, settings)
@@ -65,7 +80,11 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             session_id=context.session_id, run_id=context.run_id, candidate=payload,
             language=context.language,
         )
-        if not outcome.is_fallback and is_enabled("scientific_case_v1"):
+        async with database.unit_of_work() as uow:
+            gated = await release_gated(uow, context.run_id)
+        # Under the release gate (#47) the case records the answer that is
+        # released, at release, so a candidate a repair replaces never enters it.
+        if not outcome.is_fallback and not gated and is_enabled("scientific_case_v1"):
             # ADR 0012: an accepted answer's relations (v2) and cited sources
             # (any schema, W9-04) join the case ledger as server entries —
             # after the answer committed, in their own unit of work, so case
@@ -93,6 +112,9 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
             "is_fallback": outcome.is_fallback,
             "candidate_generation": outcome.answer.candidate_generation,
         }
+        if gated and not outcome.is_fallback:
+            # Validated; an independent review decides whether it is released.
+            model_view["release"] = "pending_review"
         # W6/plan section 12.1: rendered as its own labeled block, never
         # folded into answer_markdown's prose — a posture value like
         # "proceed" sitting unlabeled next to ordinary claim text is exactly
@@ -113,14 +135,20 @@ def build(database, settings: PolicySettings) -> list[ToolDefinition]:
         )
 
     if is_enabled("answer_draft_v2"):
+        spans = is_enabled("evidence_full_text_v1")
+        stop = is_enabled("typed_stop_v1")
         return [
             ToolDefinition(
                 name=ANSWER_TOOL_NAME,
                 title="Submit a grounded answer",
-                description=_V2_DESCRIPTION,
-                input_model=GroundedAnswerDraftV2,
+                description=(
+                    _V2_DESCRIPTION + (_SPANS_DESCRIPTION if spans else "")
+                    + (_STOP_TOOL_DESCRIPTION if stop else "")
+                ),
+                input_model=draft_model(spans=spans, stop=stop),
                 handler=submit,
-                profiles=frozenset({"analysis", "report_qa", "evidence_research", "decision_support"}),
+                profiles=frozenset({"analysis", "report_qa", "evidence_research", "decision_support",
+                                    "workflow_synthesis"}),
                 soft_timeout_s=5.0,
                 hard_timeout_s=10.0,
                 idempotent=False,

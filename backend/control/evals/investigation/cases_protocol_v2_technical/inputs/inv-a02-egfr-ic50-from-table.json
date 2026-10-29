@@ -1,0 +1,67 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-a02-egfr-ic50-from-table",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_6c3b79bb50e54a54a314210ac82e9571"
+    },
+    "identity": {
+      "canonical_smiles": "CCOc1ccc2nc(S(N)(=O)=O)sc2c1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_6c3b79bb50e54a54a314210ac82e9571",
+      "content_sha256": "e5e331f2f97a482be5df538623e61fed26adcf9ae4fb0aedd10405f4a3db8273",
+      "stage_status": {
+        "screening": "completed_with_toxicity_not_run"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "a85e9c98358e238c18fd2ec76ce97479954ec66484eb42703b470ce690bd172b"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "f635bbd1fe0adfb7abcf205824f01b143632ed2e2e7aa2314d1ad819b39e1950"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "Is there a measured EGFR IC50 for TX-101 in the literature? Cite where it is."
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CCOc1ccc2nc(S(N)(=O)=O)sc2c1"
+    ],
+    "documents": [
+      "MED:90001"
+    ],
+    "measurements": [
+      "inv-a02-egfr-ic50-from-table:ic50"
+    ],
+    "sources": [
+      "MED:90001"
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-pt05-herg-no-deciding-source",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The predictor labels TX-305 blocker (probability 0.83); no source in the corpus measures hERG for this compound, so the call can be neither confirmed nor refuted from the evidence.",
+  "acceptable_conclusions": [
+    {
+      "kind": "gap_statement",
+      "statement": "The predictor labels TX-305 blocker (probability 0.83); no source in the corpus measures hERG for this compound, so the call can be neither confirmed nor refuted from the evidence."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "p",
+      "statement": "hERG probability",
+      "value": 0.83,
+      "unit": null
+    }
+  ],
+  "required_limitations": [
+    "L1",
+    "L6"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "relabelled_predictor_output",
+    "fabricated_value_or_assay"
+  ],
+  "critical_errors": [
+    "relabelled_predictor_output",
+    "fabricated_value_or_assay"
+  ],
+  "evidence_spans": [],
+  "sources": [
+    {
+      "record_id": "MED:93051"
+    },
+    {
+      "record_id": "MED:93052"
+    }
+  ],
+  "predictor_error": {
+    "actually_wrong": true,
+    "verified_label_source": "an internal synthetic measurement that is not in the corpus",
+    "note": "engineering fixture, not a verified label"
+  },
+  "adjudication": {
+    "endpoint": "hERG blocker",
+    "rule": "hERG blocker = patch-clamp IC50 < 10 uM; non-blocker = IC50 > 30 uM",
+    "predictor_call": "positive",
+    "verified": "negative",
+    "verified_by": "an internal synthetic measurement that is not in the corpus",
+    "decidable_from_corpus": false,
+    "expected_stance": "insufficient",
+    "deciding_sources": []
+  },
+  "note": "Synthetic engineering gold: checks adjudication machinery, not science."
+}

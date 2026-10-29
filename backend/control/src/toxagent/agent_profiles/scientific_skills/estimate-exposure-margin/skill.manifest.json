@@ -1,0 +1,30 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "estimate-exposure-margin",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-scientific",
+  "allowed_profiles": [
+    "decision_support"
+  ],
+  "required_capabilities": [
+    "compute_exposure_margin",
+    "get_scientific_case",
+    "update_scientific_case",
+    "get_evidence_record"
+  ],
+  "risk_tier": "medium",
+  "output_contract": "a ratio only from compute_exposure_margin, with both inputs sourced and their units stated; a missing_exposure uncertainty and the exact exposure asked for when the case holds none; the prediction's interval carried into a margin computed from an estimate; never a clinical or regulatory conclusion",
+  "eval_set": {
+    "positive_tags": [
+      "t4",
+      "missing_data_and_limits",
+      "missing_exposure"
+    ],
+    "negative_tags": [
+      "numeric_lookup",
+      "t1"
+    ]
+  },
+  "references": []
+}

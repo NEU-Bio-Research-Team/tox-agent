@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 Endpoint = Literal["clintox", "herg", "tox21"]
 RunStatus = Literal["queued", "running", "validating", "completed", "failed", "cancelled"]
@@ -370,7 +370,16 @@ ClaimKind = Literal[
 LimitationCode = Literal[
     "uncalibrated_probability", "applicability_is_rule_based", "attribution_not_causality",
     "endpoint_unavailable", "evidence_scope_limited", "screening_not_safety_assessment",
+    "evidence_full_text_not_read",
+    "activity_interval_is_marginal_coverage", "pic50_not_therapeutic_efficacy",
+    "activity_model_not_admitted", "policy_decision_not_a_measurement",
+    "toxicity_not_run_not_negative", "user_supplied_value_not_verified",
 ]
+
+
+class EvidenceSpan(_Response):
+    evidence_id: str
+    locator: str
 
 
 class Claim(_Response):
@@ -384,6 +393,10 @@ class Claim(_Response):
     source_value: float | int | str | bool = None
     rendered_value: str = None
     input_claim_ids: list[str] = None
+    #: The passages of cited records this claim quotes (#43); absent when none.
+    evidence_spans: list[EvidenceSpan] = None
+    #: The draft's own label (grounded-answer v2), stable across a repair (#47).
+    local_ref: str = None
 
 
 class Limitation(_Response):
@@ -394,6 +407,24 @@ class Limitation(_Response):
 class RecommendedNextStep(_Response):
     text: str
     basis_claim_ids: list[str]
+
+
+class AnswerReleaseView(_Response):
+    """How the answer was released under the release gate (#47). Only
+    ``reviewed`` and ``repaired_and_reviewed`` mean the review passed."""
+
+    answer_id: str
+    outcome: Literal[
+        "reviewed", "repaired_and_reviewed", "released_with_unresolved_review", "ungated",
+        "fallback",
+    ]
+    semantically_passed: bool
+    reviews: list[dict[str, Any]]
+    repair: dict[str, Any] | None
+    unresolved_claim_ids: list[str]
+    ungated_reason: str | None
+    replaced_answer_id: str | None
+    released_at: str
 
 
 class GroundedAnswer(_Response):
@@ -408,6 +439,201 @@ class GroundedAnswer(_Response):
     is_fallback: bool
     content_sha256: str
     created_at: str
+    #: Present when the answer went through the release gate.
+    release: AnswerReleaseView | None = None
+    #: #47: the run's result under a declared release policy -- disposition,
+    #: review status, policy. Absent before one was declared.
+    result: dict[str, Any] | None = None
+
+
+class AnswerDraft(_Response):
+    """One submission of a run as the model sent it (#47), with what the
+    server made of it. The first is the raw draft; the accepted one is the
+    candidate; the run's released answer is GET .../answers/{id}."""
+
+    generation: int
+    schema_version: str
+    payload: dict[str, Any]
+    #: ``candidate`` under the release gate (#47): accepted, awaiting review.
+    outcome: Literal["accepted", "rejected", "candidate"]
+    answer_id: str | None
+    violations: list[dict[str, Any]]
+    created_at: str
+    #: #47: initial, hard_correction or semantic_repair; None before 0028.
+    phase: Literal["initial", "hard_correction", "semantic_repair"] | None = None
+
+
+class AnswerDraftList(_Response):
+    drafts: list[AnswerDraft]
+
+
+class ScreeningSummary(_Response):
+    """A frozen activity screening attached to a session (#44): its subject
+    and how far it got. The numbers are read through the activity tools."""
+
+    screening_id: str
+    status: str | None
+    canonical_smiles: str | None
+    target: dict[str, Any] | None
+    assay_context: str | None
+    intended_target_role: str | None
+    toxicity_run: bool | None
+    has_activity_estimate: bool
+    has_prioritisation_decision: bool
+    model_admitted: bool | None
+    #: #44: whether the frozen record carries the toxicity analysis its
+    #: toxicity stage produced, readable on replay without the predictor.
+    has_toxicity_snapshot: bool = False
+    #: AG-EVIDENCE: what the ligand is called, as the frozen record states it.
+    ligand_names: list[str] = []
+    record_sha256: str | None
+    source: str
+    attached_at: str
+
+
+class RunResult(_Response):
+    """What a decision-support run ended with under a declared release policy
+    (#47). ``recorded`` false for a run before one was declared: then nothing
+    is known about whether its answer was reviewed."""
+
+    run_id: str
+    recorded: bool
+    release_policy: str
+    schema_version: str | None = None
+    disposition: Literal["publish", "partial_facts", "withhold"] | None = None
+    review_status: str | None = None
+    execution_outcome: str | None = None
+    knowledge_outcome: str | None = None
+    release_policy_sha256: str | None = None
+    public_answer_id: str | None = None
+    candidate_answer_id: str | None = None
+    detail: dict[str, Any] = Field(default_factory=dict)
+    created_at: str | None = None
+    note: str | None = None
+
+
+class LineageStage(_Response):
+    index: int
+    phase: str
+    generation: int | None
+    outcome: str | None
+    answer_id: str | None
+    #: The server accepted the draft as an answer (the hard validator passed).
+    hard_valid: bool
+    #: The stage the answer route serves; at most one, none when withheld.
+    is_public: bool
+    violation_codes: list[str]
+    claim_count: int
+    limitation_codes: list[str]
+    #: A candidate's prose: audit material, never the answer.
+    answer_markdown: str
+    created_at: str | None
+
+
+class LineageVerdict(_Response):
+    claim_id: str | None
+    key: str | None
+    text: str | None
+    verdict: str | None
+    reason: str | None
+
+
+class LineageReview(_Response):
+    round: int
+    phase: str
+    status: str | None
+    reason: str | None
+    answer_id: str | None
+    counts: dict[str, int]
+    blocking_claim_ids: list[str]
+    verdicts: list[LineageVerdict]
+
+
+class LineageClaim(_Response):
+    """One claim from the first hard-valid candidate to what the reader got,
+    keyed by the draft's own label so a repair can be read claim by claim."""
+
+    key: str
+    kind: str | None
+    candidate_text: str | None
+    final_text: str | None
+    change: Literal["kept", "reworded", "removed", "added"]
+    verdicts: list[dict[str, Any]]
+
+
+class LineageMissing(_Response):
+    needed_inputs: list[str]
+    unresolved_claim_ids: list[str]
+    lost_limitation_codes: list[str]
+    confirmed_fact_count: int
+    reason: str | None
+    failure_code: str | None
+
+
+class RunStageLineage(_Response):
+    """How the run's answer came to be what the researcher saw (AG-UI audit):
+    drafts, review rounds, the repair's effect and what went missing."""
+
+    schema_version: Literal["stage-lineage-v1"]
+    run_id: str
+    recorded: bool
+    release_policy: str
+    disposition: str | None
+    review_status: str | None
+    execution_outcome: str | None
+    public_answer_id: str | None
+    candidate_answer_id: str | None
+    stages: list[LineageStage]
+    reviews: list[LineageReview]
+    claims: list[LineageClaim]
+    repair: dict[str, Any] | None
+    missing: LineageMissing
+
+
+class ScreeningDetail(_Response):
+    """One attached screening as the research UI reads it (#44): its subject,
+    each stage's status, the artifacts it holds with their hashes, and that
+    it is a replay whose model has or has not passed admission. Numbers are
+    shown by the artifact card from the same canonical payloads the tools
+    cite; nothing here is a policy computed by the client."""
+
+    screening_id: str
+    subject: dict[str, Any]
+    subject_key: str
+    intended_target_role: str | None
+    status: str | None
+    stages: dict[str, Any]
+    activity_estimate: dict[str, Any] | None
+    prioritisation_decision: dict[str, Any] | None
+    artifact_refs: list[dict[str, Any]]
+    required_limitations: list[str]
+    mode: str
+    serving: bool
+    model_admitted: bool | None
+    record_sha256: str
+    attached_at: str
+
+
+class ScreeningList(_Response):
+    screenings: list[ScreeningSummary]
+    #: Always "replay" until an admitted model is served (#54).
+    mode: Literal["replay"]
+
+
+class EvidenceFullTextView(_Response):
+    """What was read of a record's full text (#43). Absent when nothing was
+    asked; ``normalized_facts.text_access`` then says what the search knew."""
+
+    state: Literal["full_text_retrieved", "access_failed"]
+    reason: str | None
+    full_text_id: str | None
+    passage_count: int
+    omitted: dict[str, int]
+    run_id: str
+    fetched_at: str
+    #: #43: served_by, replay, parser_version and, for a replay, the capture
+    #: (captured_from, captured_at, source_sha256, document_sha256, store_sha256).
+    provenance: dict[str, Any] = Field(default_factory=dict)
 
 
 class EvidenceRecordView(_Response):
@@ -430,11 +656,84 @@ class EvidenceRecordView(_Response):
     retrieved_at: str
     content_sha256: str
     untrusted_external_content: Literal[True]
+    full_text: EvidenceFullTextView | None = None
+    #: Whether the record is about the subject it was searched for, and by
+    #: which rule: relevance, reason codes, and (AG-EVIDENCE) the ligand and
+    #: target the assessment established. Empty when no assessment ran.
+    relevance_assessment: dict[str, Any] = Field(default_factory=dict)
 
 
 class EvidenceListResponse(_Response):
     evidence: list[EvidenceRecordView]
     count: int
+
+
+class EvidenceTextAccess(_Response):
+    """Whether the record's text was read (AG-UI passage viewer). ``not_read``
+    when nothing was asked or the record is not an article; a provider outage
+    is never stored, so it never appears here."""
+
+    state: Literal["full_text_retrieved", "access_failed", "not_read"]
+    reason: str | None
+    full_text_id: str | None
+    passage_count: int
+    omitted: dict[str, int]
+    truncated: bool
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
+class PassageOutlineItem(_Response):
+    locator: str
+    section: str
+    kind: str
+    preview: str
+    truncated: bool
+
+
+class PassageColumn(_Response):
+    header: str
+    value: str
+    cited: bool
+
+
+class PassageTable(_Response):
+    """The table around a cited row or cell, as written: units in a header
+    and comparators in a cell are part of the text, never parsed here."""
+
+    locator: str
+    label: str | None
+    caption: str | None
+    header_locator: str | None
+    header: list[str]
+    row_locator: str | None
+    row_kind: str | None
+    cells: list[str]
+    cited_cell: int | None
+    columns: list[PassageColumn]
+
+
+class PassageFocus(_Response):
+    locator: str
+    found: bool
+    passage: dict[str, Any] | None = None
+    table: PassageTable | None = None
+
+
+class EvidencePassagesView(_Response):
+    """What a reader checks a quote against: the access state, the passage a
+    claim cites (with its table), or an outline of every passage read. All of
+    it is external content, never instructions."""
+
+    schema_version: Literal["evidence-passages-v1"]
+    evidence_id: str
+    access: EvidenceTextAccess
+    #: The record's own value with its relation and unit, as the provider
+    #: stated it (a structured record such as a ChEMBL activity); None when
+    #: the record states no value.
+    measurement: dict[str, Any] | None
+    focus: PassageFocus | None
+    passages: list[PassageOutlineItem]
+    untrusted_external_content: Literal[True]
 
 
 # -- events ----------------------------------------------------------------------
@@ -472,6 +771,8 @@ class ToolCallView(_Response):
     observation_ids: list[str]
     started_at: str | None
     ended_at: str | None
+    #: #46/#53: which phase of the run made the call; None before 0029.
+    phase: str | None = None
 
 
 class RuntimeManifest(_Response):
@@ -522,6 +823,8 @@ class RunDetail(RunProjection):
     runtime: RuntimeManifest | None
     usage: RuntimeUsage
     tool_calls: list[ToolCallView]
+    #: #46/#53: usage and calls per phase (phase-usage-v1), every dispatch.
+    phase_usage: dict[str, Any] | None = None
 
 
 # -- reports ---------------------------------------------------------------------
@@ -776,6 +1079,9 @@ class CaseContextItem(_Open):
     note: str
     actor: Actor
     run_id: str | None
+    unit: str | None = None
+    source: str | None = None
+    scope: dict[str, str] | None = None
 
 
 class CaseHypothesis(_Open):
@@ -915,6 +1221,53 @@ class ScientificCaseEvent(_Response):
 class ScientificCaseEventsResponse(_Response):
     case_id: str
     events: list[ScientificCaseEvent]
+
+
+class CaseSectionChanges(_Response):
+    """One section of a case before and after a turn, by entry id."""
+
+    added: list[dict[str, Any]]
+    #: Each with ``changes``: [{field, before, after}].
+    changed: list[dict[str, Any]]
+    kept: list[str]
+    #: Always empty for an append-only case; reported if it ever is not.
+    removed: list[str]
+
+
+class CaseArtifactChanges(_Response):
+    """The frozen artifacts the run was given against the previous run's, by
+    kind and origin id, compared by content hash."""
+
+    compared: bool
+    reason: str | None
+    added: list[dict[str, Any]]
+    changed: list[dict[str, Any]]
+    kept: list[dict[str, Any]]
+    removed: list[dict[str, Any]]
+
+
+class CaseRunChanges(_Response):
+    """What one turn changed in the case, and what it kept (AG-UI, US4). The
+    before and after are the case's own log replayed to two revisions."""
+
+    schema_version: Literal["case-changes-v1"]
+    case_id: str
+    run_id: str
+    previous_run_id: str | None
+    from_revision: int
+    to_revision: int
+    subject: dict[str, Any]
+    updates_by_actor: dict[str, int]
+    operations: list[dict[str, Any]]
+    context: CaseSectionChanges
+    hypotheses: CaseSectionChanges
+    evidence: CaseSectionChanges
+    uncertainties: CaseSectionChanges
+    next_tests: CaseSectionChanges
+    conclusion: dict[str, Any]
+    data_scope: dict[str, Any]
+    run: dict[str, Any]
+    artifacts: CaseArtifactChanges
 
 
 class DossierHypothesis(CaseHypothesis):
@@ -1058,6 +1411,10 @@ class DecisionState(_Open):
     found_refs: list[str]
     stop_reason: str | None
     answer_outcome: str | None = None
+    #: #46: claims citing an observation / evidence in the accepted answer.
+    answer_basis: dict[str, int] = {}
+    #: #46 (typed_stop_v1): the stop the answer declared.
+    declared_stop: dict[str, Any] = {}
     revision: int
 
 

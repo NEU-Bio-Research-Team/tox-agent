@@ -241,6 +241,126 @@ FLAGS: tuple[RolloutFlag, ...] = (
                           "on the skill's positive cases with no rise in unsupported claims, "
                           "false reassurance or false triggers on its negative cases",
     ),
+    _flag(
+        "evidence_full_text_v1",
+        "Issue #43: register read_evidence_text in evidence_research and "
+        "decision_support when the research provider can serve full text. It "
+        "fetches an accepted record's text once per session, stores its located "
+        "passages and the access outcome, and returns a selected page of them. "
+        "A v2 claim may then cite a passage (evidence_spans) and quote numbers "
+        "from it, and an answer citing an article not read in full owes "
+        "evidence_full_text_not_read. Off, the tool is absent, claims cannot "
+        "cite spans and the limitation vocabulary in use is unchanged.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on cases whose answer is in a paper's body or tables, the paired "
+                          "run solves them with full text and states access_failed / "
+                          "abstract_only otherwise, with no rise in unsupported claims or "
+                          "first-draft refusals",
+    ),
+    _flag(
+        "activity_replay_v1",
+        "Issue #44: activity screenings in decision_support, replayed from the "
+        "pinned file of frozen screenings (TOXAGENT_ACTIVITY_REPLAY_PATH and "
+        "_SHA256). /v1/sessions/{id}/screenings attaches one to a session; "
+        "get_screening_state, get_activity_snapshot and "
+        "get_prioritisation_decision read it as citable observations. No "
+        "activity model is served: the effective product says replay. Off, "
+        "the tools and routes are absent.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="the four #46 user stories run on replay with typed stop reasons, "
+                          "and activity serving (#54) replaces replay behind an admitted model",
+    ),
+    _flag(
+        "release_gate_v1",
+        "Issue #47 (needs claim_reviewer_v1 and answer_draft_v2): an accepted "
+        "decision_support answer is a candidate until the independent reviewer "
+        "has judged it. A not_supported or partially_supported claim gets one "
+        "repair turn, the repaired candidate is validated and reviewed again, "
+        "and only then is an answer released -- answer.accepted, the answer "
+        "route and the assistant message all wait for release, and the release "
+        "records how it was reached. Off, the reviewer only observes.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on the paired pilot, gated answers have fewer unsupported claims "
+                          "than observed ones at no loss of required-information recall, and "
+                          "the repair turn does not raise deadline failures",
+    ),
+    _flag(
+        "typed_stop_v1",
+        "Issue #46 (with answer_draft_v2): a v2 draft may declare why it stops "
+        "(sufficient, needs_user_input with the inputs named, "
+        "sources_do_not_resolve, budget_reached). It is recorded beside the "
+        "stop reason the server derives, and needs_user_input becomes the run's "
+        "stop reason. Off, the answer schema has no stop field.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="on cases that need the researcher's input, the pilot shows "
+                          "needs_user_input declared where graders expect it and not on "
+                          "cases the corpus settles",
+    ),
+    _flag(
+        "subject_binding_v1",
+        "Issue #44: a decision_support message is bound to one subject when it is "
+        "accepted -- the analysis or activity screening the request names "
+        "(subject_ref), or the session's only one -- and the binding travels "
+        "frozen in a v2 run envelope to the gateway, the scientific case (keyed by "
+        "the subject's identity), the decision state and the dossier. Two subjects "
+        "and no selection is a subject_ambiguous clarification, never the first "
+        "one. Off, the gateway reads the session's active analysis at dispatch and "
+        "a screening-only case is keyed 'none'.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="every worker reads run envelope v2 and the four user stories "
+                          "pass through the product with the flag on",
+    ),
+    _flag(
+        "scientific_procedures_v1",
+        "Register run_scientific_procedure in decision_support and "
+        "evidence_research (#66, §7.1/§7.2): normalise_measurements, "
+        "deduplicate_by_origin, compare_measurements and check_dependencies, "
+        "each returning the criteria it applied, the records it excluded with "
+        "the reason, the fields the inputs did not state and its own "
+        "sub-operation count. Off, the tool does not exist and the model does "
+        "this arithmetic in prose.",
+        owner="backend-agent",
+        removal_condition="a pilot shows procedure runs quote fewer unconverted values and "
+                          "no more false contradictions than prose runs",
+        added_on=date(2026, 10, 28),
+    ),
+    _flag(
+        "investigator_contract_v1",
+        "Send the investigator a goal contract and the six-group case view "
+        "(#69/#63/#68 of the 2026-10-28 architecture proposal): the route, the "
+        "subject, what must be answered, the actions available, the budget and "
+        "the typed stop conditions, with the case's observations, evidence, "
+        "counter-evidence, missing metadata, open gaps and prior searches as "
+        "refs. Off, the turn gets the case checkpoint summary as before.",
+        owner="backend-agent",
+        removal_condition="a pilot shows contract-and-view runs stop for a declared reason "
+                          "at least as often as checkpoint runs, with no loss in task success",
+        added_on=date(2026, 10, 28),
+    ),
+    _flag(
+        "fixed_workflow_v1",
+        "Issue #50 arm B: decision_support runs as a fixed workflow. The server "
+        "reads the subject's artifacts, decides by rule whether to search, "
+        "searches by fixed templates, reads the top records and their tables, "
+        "notes what only the researcher can supply, and hands the material to "
+        "one synthesis turn whose only tool is submit_grounded_answer -- the "
+        "same tools, validator and gates as the agent. A study arm, never a "
+        "product setting.",
+        owner="backend-scientific",
+        added_on=date(2026, 10, 21),
+        remove_by=date(2027, 1, 18),
+        removal_condition="the locked D-versus-B comparison has run on test",
+    ),
 )
 
 _BY_NAME: dict[str, RolloutFlag] = {flag.name: flag for flag in FLAGS}

@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Mapping
 
+from .dependencies import DerivedClaim
+
 SCHEMA_VERSION = "scientific-case-v1"
 
 
@@ -27,6 +29,12 @@ MAX_NEXT_TESTS = 12
 
 
 MAX_CONTEXT = 32
+
+
+#: #60. A case derives a handful of quantities, not a spreadsheet: the margin,
+#: a comparison, a recommendation that rests on them. A cap keeps the
+#: dependency graph something a researcher can read.
+MAX_DERIVED_CLAIMS = 24
 
 
 MAX_TEXT = 1000
@@ -63,12 +71,20 @@ class SourceClass(str, Enum):
     EXTERNAL_REGULATORY = "external_regulatory"
     REPORT_FACT = "report_fact"
     USER_SUPPLIED = "user_supplied"
+    #: #44: the output of a fixed rule over a model output (a prioritisation
+    #: decision). A rule restating its input is not a second measurement.
+    POLICY_FACT = "policy_fact"
+    #: #44: where a workflow stands (a screening's stage status). That a stage
+    #: did not run is a fact about the workflow, never a result of the stage.
+    WORKFLOW_FACT = "workflow_fact"
 
 
 #: Which ref kind each source class must cite.
 REF_KIND: Mapping[str, str] = {
     SourceClass.PREDICTOR_FACT.value: "observation",
     SourceClass.EXPLANATION_FACT.value: "observation",
+    SourceClass.POLICY_FACT.value: "observation",
+    SourceClass.WORKFLOW_FACT.value: "observation",
     SourceClass.EXTERNAL_EXPERIMENTAL.value: "evidence",
     SourceClass.EXTERNAL_REGULATORY.value: "evidence",
     SourceClass.REPORT_FACT.value: "report",
@@ -164,13 +180,19 @@ class Hypothesis:
     status_reason: str = ""
     actor: str = Actor.MODEL.value
     run_id: str | None = None
+    #: #47: the run that last changed ``status``. A later turn reads a status
+    #: set by a run whose answer was not published as proposed, not trusted.
+    status_run_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id, "statement": self.statement, "kind": self.kind,
             "refutation_condition": self.refutation_condition, "status": self.status,
             "status_reason": self.status_reason, "actor": self.actor, "run_id": self.run_id,
         }
+        if self.status_run_id is not None:
+            data["status_run_id"] = self.status_run_id
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -185,22 +207,40 @@ class EvidenceEntry:
     hypothesis_ids: tuple[str, ...] = ()
     #: Where in the source: a field path, a quoted span, a section.
     locator: str | None = None
-    #: endpoint / species / assay / dose / use_context, as far as known.
+    #: What the source is scoped to, as far as known: the EvidenceScope axes
+    #: (endpoint, species, dose, use_context, ligand_id, target_id,
+    #: target_variant, target_sequence_sha256, assay_type, readout, unit,
+    #: comparator, experimental_context), plus the two older keys ``assay``
+    #: and ``compound``. Kept as written, never collapsed to fewer axes.
     scope: Mapping[str, str] = field(default_factory=dict)
     actor: str = Actor.MODEL.value
     run_id: str | None = None
+    #: #44: every passage of the source the claim quoted, by locator
+    #: (``table-wrap:1/row:3``), so a ledger entry keeps what an answer's
+    #: evidence_spans named and not only that the record was cited.
+    spans: tuple[str, ...] = ()
+    #: #44: where the source came from, as the server recorded it -- e.g. the
+    #: screening and the frozen record a replayed estimate was read from.
+    provenance: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def independent(self) -> bool:
         return self.source_class in INDEPENDENT_SOURCES
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id, "claim": self.claim, "source_class": self.source_class,
             "source_ref": self.source_ref, "stance": self.stance, "directness": self.directness,
             "hypothesis_ids": list(self.hypothesis_ids), "locator": self.locator,
             "scope": dict(self.scope), "actor": self.actor, "run_id": self.run_id,
         }
+        # Written only when set, so an entry recorded before #44 serialises
+        # exactly as it did and a replayed log still equals its snapshot.
+        if self.spans:
+            data["spans"] = list(self.spans)
+        if self.provenance:
+            data["provenance"] = dict(self.provenance)
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -236,14 +276,22 @@ class Action:
     hypothesis_ids: tuple[str, ...] = ()
     actor: str = Actor.MODEL.value
     run_id: str | None = None
+    #: #70 (§6.2): which of the seven gaps this action was meant to close.
+    #: The vocabulary is ``domain.investigation_gap.Gap``. Empty for an action
+    #: recorded before #70 and for one whose run did not say -- which is
+    #: itself worth seeing, so it is not defaulted to a plausible gap.
+    gap: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "id": self.id, "action": self.action, "purpose": self.purpose,
             "decision": self.decision, "outcome": self.outcome,
             "hypothesis_ids": list(self.hypothesis_ids), "actor": self.actor,
             "run_id": self.run_id,
         }
+        if self.gap:
+            data["gap"] = self.gap
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -270,7 +318,14 @@ class NextTest:
 
 @dataclass(frozen=True, slots=True)
 class ContextItem:
-    """Something the researcher told the case: an assay result, an exposure."""
+    """Something the researcher told the case: an assay result, an exposure.
+
+    ``unit``, ``source`` and ``scope`` (#46/US4) say what the value is in,
+    who stated it and what it is about (a target, an assay context): a
+    measured pIC50 on EGFR is not a measurement on hERG. Left out of the
+    serialised form when unset, so a case written before them reads and
+    hashes as it did. A value the researcher supplied is context, never an
+    SME-verified assay."""
 
     id: str
     key: str
@@ -278,10 +333,36 @@ class ContextItem:
     note: str = ""
     actor: str = Actor.USER.value
     run_id: str | None = None
+    unit: str | None = None
+    source: str | None = None
+    scope: Mapping[str, str] | None = None
+    #: How much standing the value has (#61). Unset reads as ``user_asserted``
+    #: -- the weakest of the three -- because that is what an item written
+    #: before this field was, and because assuming the strongest is the error
+    #: that turns something the researcher typed into a verified measurement.
+    #: The vocabulary is ``scientific_case.values.VerificationStatus``.
+    verification: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {"id": self.id, "key": self.key, "value": self.value, "note": self.note,
-                "actor": self.actor, "run_id": self.run_id}
+        data: dict[str, Any] = {"id": self.id, "key": self.key, "value": self.value,
+                                "note": self.note, "actor": self.actor, "run_id": self.run_id}
+        if self.unit:
+            data["unit"] = self.unit
+        if self.source:
+            data["source"] = self.source
+        if self.scope:
+            data["scope"] = dict(self.scope)
+        if self.verification:
+            data["verification"] = self.verification
+        return data
+
+    def describe(self) -> str:
+        """``key = value unit (source; scope)``: one line, for a checkpoint."""
+        text = f"{self.key} = {self.value[:160]}" + (f" {self.unit}" if self.unit else "")
+        qualifiers = [f"source: {self.source}"] if self.source else []
+        if self.scope:
+            qualifiers.append("scope: " + ", ".join(f"{k} {v}" for k, v in sorted(self.scope.items())))
+        return text + (f" ({'; '.join(qualifiers)})" if qualifiers else "")
 
 
 @dataclass(frozen=True, slots=True)
@@ -293,9 +374,22 @@ class ConclusionLine:
         return {"text": self.text, "evidence_ids": list(self.evidence_ids)}
 
 
+#: #47: a conclusion written by a run whose answer was not (yet) published.
+CONCLUSION_PROPOSED = "proposed"
+#: The case's trusted conclusion: written before a release policy existed, or
+#: promoted when its run's answer was published.
+CONCLUSION_RELEASED = "released"
+
+
 @dataclass(frozen=True, slots=True)
 class Conclusion:
-    """What the case can say so far, conditionally. Replaced, never merged."""
+    """What the case can say so far, conditionally. Replaced, never merged.
+
+    Under a declared release policy (#47) a run's conclusion is ``proposed``
+    until its answer is published; a later turn's checkpoint does not treat a
+    proposed conclusion as what the case can say. The last released one is
+    kept beside it, so a withheld run never erases what was trusted before.
+    """
 
     can_say: tuple[ConclusionLine, ...] = ()
     cannot_say: tuple[str, ...] = ()
@@ -303,14 +397,18 @@ class Conclusion:
     #: Who must approve any step outside the system (RETHINK §3.1 item 7).
     approver: str = ""
     run_id: str | None = None
+    status: str = CONCLUSION_RELEASED
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "can_say": [line.to_dict() for line in self.can_say],
             "cannot_say": list(self.cannot_say),
             "what_would_change": list(self.what_would_change),
             "approver": self.approver, "run_id": self.run_id,
         }
+        if self.status != CONCLUSION_RELEASED:
+            data["status"] = self.status
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -339,10 +437,22 @@ class RunRecord:
     stop_reason: str | None = None
     answer_id: str | None = None
     usage: Mapping[str, int] = field(default_factory=dict)
+    #: #44: what this run was given about the case's subject -- the binding's
+    #: hash, how it was resolved and the artifacts with their content hashes.
+    #: The subject's identity is the case's; the artifacts are the run's.
+    binding: Mapping[str, Any] = field(default_factory=dict)
+    #: #47: the run's publication disposition (publish / partial_facts /
+    #: withhold) under a declared release policy; None before one existed.
+    disposition: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {"run_id": self.run_id, "goal": self.goal, "stop_reason": self.stop_reason,
+        data = {"run_id": self.run_id, "goal": self.goal, "stop_reason": self.stop_reason,
                 "answer_id": self.answer_id, "usage": dict(self.usage)}
+        if self.binding:
+            data["binding"] = dict(self.binding)
+        if self.disposition is not None:
+            data["disposition"] = self.disposition
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -374,6 +484,10 @@ class ScientificCaseV1:
     #: one compound's evidence never lands in another's ledger.
     subject_key: str
     question: str = ""
+    #: #44: the subject's identity as the server bound it (kind, reference,
+    #: ligand, target, assay context). Empty for a case opened before #44 or
+    #: without subject binding, whose subject is only ``subject_key``.
+    subject: Mapping[str, Any] = field(default_factory=dict)
     decision_context: str = ""
     subject_refs: tuple[str, ...] = ()
     #: Who the investigation is for: the session owner's subject id, recorded
@@ -387,7 +501,13 @@ class ScientificCaseV1:
     uncertainties: tuple[Uncertainty, ...] = ()
     actions: tuple[Action, ...] = ()
     next_tests: tuple[NextTest, ...] = ()
+    #: #60: claims the case derived, each with the inputs, rule and
+    #: assumptions it was reached by. Empty for a case written before #60,
+    #: which therefore serialises and hashes exactly as it did.
+    derived_claims: tuple[DerivedClaim, ...] = ()
     conclusion: Conclusion = field(default_factory=Conclusion)
+    #: #47: the last released conclusion while a newer one is only proposed.
+    released_conclusion: Conclusion | None = None
     runs: tuple[RunRecord, ...] = ()
     revision: int = 0
     created_at: str = ""
@@ -441,6 +561,7 @@ class ScientificCaseV1:
         return {
             "schema_version": self.schema_version,
             "case_id": self.id, "session_id": self.session_id, "subject_key": self.subject_key,
+            "subject": dict(self.subject),
             "question": self.question, "decision_context": self.decision_context,
             "subject_refs": list(self.subject_refs), "status": self.status,
             "requester": self.requester, "data_scope": self.data_scope.to_dict(),
@@ -450,7 +571,11 @@ class ScientificCaseV1:
             "uncertainties": [u.to_dict() for u in self.uncertainties],
             "actions": [a.to_dict() for a in self.actions],
             "next_tests": [t.to_dict() for t in self.next_tests],
+            **({"derived_claims": [c.to_dict() for c in self.derived_claims]}
+               if self.derived_claims else {}),
             "conclusion": self.conclusion.to_dict(),
+            **({"released_conclusion": self.released_conclusion.to_dict()}
+               if self.released_conclusion is not None else {}),
             "runs": [r.to_dict() for r in self.runs],
             "coverage": self.coverage,
             "revision": self.revision, "created_at": self.created_at,
@@ -460,8 +585,24 @@ class ScientificCaseV1:
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "ScientificCaseV1":
         conclusion = data.get("conclusion") or {}
+
+        def _conclusion(raw: Mapping[str, Any]) -> Conclusion:
+            return Conclusion(
+                can_say=tuple(
+                    ConclusionLine(text=line["text"],
+                                   evidence_ids=tuple(line.get("evidence_ids") or ()))
+                    for line in raw.get("can_say") or ()
+                ),
+                cannot_say=tuple(raw.get("cannot_say") or ()),
+                what_would_change=tuple(raw.get("what_would_change") or ()),
+                approver=raw.get("approver", ""), run_id=raw.get("run_id"),
+                status=raw.get("status", CONCLUSION_RELEASED),
+            )
+
+        released = data.get("released_conclusion")
         return cls(
             id=data["case_id"], session_id=data["session_id"], subject_key=data["subject_key"],
+            subject=dict(data.get("subject") or {}),
             question=data.get("question", ""), decision_context=data.get("decision_context", ""),
             subject_refs=tuple(data.get("subject_refs") or ()),
             requester=data.get("requester", ""),
@@ -471,7 +612,9 @@ class ScientificCaseV1:
             hypotheses=tuple(Hypothesis(**h) for h in data.get("hypotheses") or ()),
             evidence=tuple(
                 EvidenceEntry(**{**e, "hypothesis_ids": tuple(e.get("hypothesis_ids") or ()),
-                                 "scope": dict(e.get("scope") or {})})
+                                 "scope": dict(e.get("scope") or {}),
+                                 "spans": tuple(e.get("spans") or ()),
+                                 "provenance": dict(e.get("provenance") or {})})
                 for e in data.get("evidence") or ()
             ),
             uncertainties=tuple(
@@ -488,19 +631,16 @@ class ScientificCaseV1:
                             "expected_readouts": tuple(t.get("expected_readouts") or ())})
                 for t in data.get("next_tests") or ()
             ),
-            conclusion=Conclusion(
-                can_say=tuple(
-                    ConclusionLine(text=line["text"], evidence_ids=tuple(line.get("evidence_ids") or ()))
-                    for line in conclusion.get("can_say") or ()
-                ),
-                cannot_say=tuple(conclusion.get("cannot_say") or ()),
-                what_would_change=tuple(conclusion.get("what_would_change") or ()),
-                approver=conclusion.get("approver", ""), run_id=conclusion.get("run_id"),
-            ),
+            derived_claims=tuple(DerivedClaim.from_dict(c)
+                                 for c in data.get("derived_claims") or ()),
+            conclusion=_conclusion(conclusion),
+            released_conclusion=_conclusion(released) if released else None,
             runs=tuple(
                 RunRecord(run_id=r["run_id"], goal=r.get("goal", ""),
                           stop_reason=r.get("stop_reason"), answer_id=r.get("answer_id"),
-                          usage=dict(r.get("usage") or {}))
+                          usage=dict(r.get("usage") or {}),
+                          binding=dict(r.get("binding") or {}),
+                          disposition=r.get("disposition"))
                 for r in data.get("runs") or ()
             ),
             revision=int(data.get("revision", 0)), created_at=data.get("created_at", ""),

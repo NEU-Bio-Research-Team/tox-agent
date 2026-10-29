@@ -16,6 +16,7 @@ from ..responses import (
     AnalysisProjection,
     AttributionListResponse,
     EvidenceListResponse,
+    EvidencePassagesView,
     EvidenceRecordView,
     GroundedAnswer,
     ObservationResponse,
@@ -91,9 +92,28 @@ async def get_answer(
     await services.sessions.get(principal, session_id)
     async with services.database.unit_of_work() as uow:
         answer = await uow.answers.get(answer_id, session_id=session_id)
-    if answer is None:
+        release = await uow.answer_releases.get(answer_id) if answer is not None else None
+        result = await uow.run_results.get(answer.run_id) if answer is not None else None
+        held = answer is not None and release is None and any(
+            d.get("answer_id") == answer_id and d.get("outcome") == "candidate"
+            for d in await uow.answer_drafts.list_for_run(answer.run_id)
+        )
+        # #47: under a declared policy the run result names the one answer a
+        # reader is served; every other candidate of the run is audit-only.
+        if result is not None and result.public_answer_id != answer_id:
+            held = True
+    # #47: a candidate the release gate has not released is not the run's
+    # answer yet -- or ever, if a repair replaced it -- so it is not served.
+    if answer is None or held:
         raise NotFound("no such answer", answer_id=answer_id)
-    return answer.to_dict()
+    body = answer.to_dict()
+    if release is not None:
+        body["release"] = release.to_dict()
+    if result is not None:
+        body["result"] = {"disposition": result.disposition.value,
+                          "review_status": result.review_status.value,
+                          "release_policy": result.release_policy.value}
+    return body
 
 
 @router.get("/sessions/{session_id}/observations/{observation_id}", responses={200: {"model": ObservationResponse}})
@@ -133,6 +153,29 @@ async def get_observation(
     return body
 
 
+def _full_text_view(full_text) -> dict | None:
+    """#43: whether the record's text was read, so a run record shows
+    access_failed / full_text_retrieved rather than leaving it to inference."""
+    if full_text is None:
+        return None
+    return {
+        "state": full_text.state,
+        "reason": full_text.reason,
+        "full_text_id": full_text.full_text_id,
+        "passage_count": len(full_text.passages),
+        "omitted": dict(full_text.omitted),
+        "run_id": full_text.run_id,
+        "fetched_at": full_text.fetched_at.isoformat(),
+        # #43: live or replayed from a frozen store, and from which capture.
+        "provenance": {
+            k: full_text.provenance.get(k)
+            for k in ("served_by", "replay", "parser_version", "captured_from", "captured_at",
+                      "source_sha256", "document_sha256", "store_sha256")
+            if full_text.provenance.get(k) is not None
+        },
+    }
+
+
 @router.get("/sessions/{session_id}/evidence", responses={200: {"model": EvidenceListResponse}})
 async def list_evidence(
     request: Request,
@@ -150,6 +193,10 @@ async def list_evidence(
             status=EvidenceStatus(status) if status != "all" else None,
             limit=limit, offset=offset,
         )
+        full_texts = {
+            record.id: await uow.evidence_text.get(record.id, session_id=session_id)
+            for record in records
+        }
     return {
         "evidence": [
             {
@@ -158,6 +205,8 @@ async def list_evidence(
                 "provider": record.provider,
                 "retrieved_at": record.retrieved_at.isoformat(),
                 "content_sha256": record.content_sha256,
+                "full_text": _full_text_view(full_texts[record.id]),
+                "relevance_assessment": dict(record.relevance_assessment or {}),
             }
             for record in records
         ],
@@ -182,6 +231,10 @@ async def get_evidence(
     await services.sessions.get(principal, session_id)
     async with services.database.unit_of_work() as uow:
         record = await uow.evidence.get(evidence_id, session_id=session_id)
+        full_text = (
+            await uow.evidence_text.get(evidence_id, session_id=session_id)
+            if record is not None else None
+        )
     if record is None:
         raise NotFound("no such evidence", evidence_id=evidence_id)
     return {
@@ -190,4 +243,68 @@ async def get_evidence(
         "provider": record.provider,
         "retrieved_at": record.retrieved_at.isoformat(),
         "content_sha256": record.content_sha256,
+        "full_text": _full_text_view(full_text),
+        "relevance_assessment": dict(record.relevance_assessment or {}),
+    }
+
+
+@router.get(
+    "/sessions/{session_id}/evidence/{evidence_id}/passages",
+    responses={200: {"model": EvidencePassagesView}},
+)
+async def get_evidence_passages(
+    request: Request,
+    session_id: str,
+    evidence_id: str,
+    locator: str | None = Query(None, max_length=200),
+    principal: Actor = Depends(actor),
+):
+    """What a claim's quote can be checked against (AG-UI passage viewer).
+
+    With ``locator``: that passage, and for a table row or cell the table
+    around it -- caption, header row, cells, the cited cell. Without: an
+    outline of every passage read. Either way the access state (read,
+    refused with the provider's reason, or never read) and, for a structured
+    record, its stated value with relation and unit.
+    """
+    from ...application.investigation.evidence_text import (
+        passage_focus,
+        passage_not_found,
+        passage_outline,
+    )
+    from ...research.measurement import is_measured_value, normalised_record
+
+    services = _services(request)
+    await services.sessions.get(principal, session_id)
+    async with services.database.unit_of_work() as uow:
+        record = await uow.evidence.get(evidence_id, session_id=session_id)
+        full_text = (
+            await uow.evidence_text.get(evidence_id, session_id=session_id)
+            if record is not None else None
+        )
+    if record is None:
+        raise NotFound("no such evidence", evidence_id=evidence_id)
+    read = full_text is not None and full_text.was_read
+    view = _full_text_view(full_text) or {}
+    return {
+        "schema_version": "evidence-passages-v1",
+        "evidence_id": evidence_id,
+        "access": {
+            "state": full_text.state if full_text is not None else "not_read",
+            "reason": full_text.reason if full_text is not None else None,
+            "full_text_id": full_text.full_text_id if full_text is not None else None,
+            "passage_count": len(full_text.passages) if full_text is not None else 0,
+            "omitted": dict(full_text.omitted) if full_text is not None else {},
+            "truncated": bool(full_text.truncated) if full_text is not None else False,
+            "provenance": view.get("provenance") or {},
+        },
+        "measurement": (
+            normalised_record(record.normalized_facts)
+            if is_measured_value(record.normalized_facts) else None
+        ),
+        "focus": passage_focus(full_text, locator) if (read and locator) else (
+            passage_not_found(locator) if locator else None
+        ),
+        "passages": passage_outline(full_text) if (read and not locator) else [],
+        "untrusted_external_content": True,
     }

@@ -303,6 +303,7 @@ def create_app(
             structure_recognition_available=ocr is not None,
             object_store=objects,
             runtime_settings=settings.runtime,
+            activity_replay_getter=lambda: app.state.activity_replay,
         )
         app.state.create_analysis = analysis
         app.state.create_analysis_batch = batch
@@ -318,6 +319,14 @@ def create_app(
         app.state.ocr = ocr
         app.state.object_store = objects
         app.state.tool_registry = registry
+        # #44: the frozen screenings a session may be given. Loaded (and its
+        # pin checked) only when the flag is on, so a bad file cannot stop a
+        # deployment that does not use it.
+        app.state.activity_replay = None
+        if is_enabled("activity_replay_v1"):
+            from ..application.activity.replay import build_replay_store
+
+            app.state.activity_replay = build_replay_store(settings.activity)
         app.state.skill_catalog = skill_catalog
         app.state.tool_runner = runner
         app.state.runtime_gateway = None

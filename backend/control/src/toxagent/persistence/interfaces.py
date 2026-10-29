@@ -20,6 +20,7 @@ from ..domain.analysis import AnalysisSnapshot
 from ..domain.answer import Claim, GroundedAnswer
 from ..domain.attachment import Attachment
 from ..domain.evidence import EvidenceRecord, EvidenceStatus
+from ..domain.evidence_text import EvidenceFullText
 from ..domain.events import Event, EventType
 from ..domain.message import Message
 from ..domain.observation import Observation
@@ -83,6 +84,12 @@ class ObservationStore(Protocol):
     async def get(self, observation_id: str, *, session_id: str) -> Observation | None: ...
     async def list_for_run(self, run_id: str) -> Sequence[Observation]: ...
     async def list_for_analysis(self, analysis_id: str) -> Sequence[Observation]: ...
+
+
+@runtime_checkable
+class EvidenceTextStore(Protocol):
+    async def get(self, evidence_id: str, *, session_id: str) -> EvidenceFullText | None: ...
+    async def add_if_absent(self, full_text: EvidenceFullText) -> EvidenceFullText: ...
 
 
 @runtime_checkable
@@ -184,7 +191,17 @@ class UnitOfWork(Protocol):
     analyses: AnalysisStore
     observations: ObservationStore
     evidence: EvidenceStore
+    #: What was read of a record's full text, and its passages (#43).
+    evidence_text: EvidenceTextStore
+    #: Frozen activity screenings attached to sessions (#44).
+    screenings: Any
     answers: AnswerStore
+    #: Every draft a run submitted, with what the server made of it (#47).
+    answer_drafts: Any
+    #: How an answer was released, under release_gate_v1 (#47).
+    answer_releases: Any
+    #: What a run ended with, under a declared release policy (#47).
+    run_results: Any
     runtime_bindings: RuntimeBindingStore
     runtime_usage: RuntimeUsageStore
     tool_calls: ToolCallStore

@@ -33,7 +33,12 @@ from ..application.report.submit_draft import (
     SUBMIT_SAVED_TOOL_NAME,
     SUBMIT_TOOL_NAME as REPORT_SUBMIT_TOOL_NAME,
 )
+from ..platform.config import run_budget_preset, total_call_accounting
 from .registry import ToolContext, ToolRegistry
+
+#: The submissions a run must always be able to make: under total accounting
+#: they may use the reserved slots of the call budget.
+_SUBMISSION_TOOLS = frozenset({ANSWER_TOOL_NAME, CLAIM_REVIEW_TOOL_NAME})
 
 log = logging.getLogger("toxagent.tools")
 
@@ -82,6 +87,14 @@ class ToolRunner:
         try:
             payload = definition.input_model.model_validate(arguments)
         except ValidationError as exc:
+            if total_call_accounting() and context.intent == Intent.DECISION_SUPPORT.value:
+                # #46: an invalid call is recorded and counts against the
+                # invalid-call cap, so a model cannot spend a run on free
+                # malformed calls.
+                capped = await self._record_invalid(context, tool_name, arguments_hash,
+                                                    _schema_errors(exc))
+                if capped is not None:
+                    return capped
             return envelope.failed(
                 call_id=call_id, tool_name=tool_name, code="invalid_request",
                 message="the arguments do not match this tool's schema",
@@ -163,21 +176,33 @@ class ToolRunner:
         sees and the database never records.
         """
         max_calls = self._budget_for(context, tool_name)
+        total = total_call_accounting() and context.intent == Intent.DECISION_SUPPORT.value
+        phase = await self._phase_of(context, tool_name) if context.phase else None
         denial: ToolDenied | None = None
         async with self._db.unit_of_work() as uow:
             run = await uow.runs.get(context.run_id)
+            prior = await self._chain_calls(uow, run) if total and run is not None else 0
+            invalid_cap = run_budget_preset()[1].get("max_invalid_calls") if total else None
             if run is None or run.is_terminal:
                 denial = ToolDenied(
                     "this run is no longer accepting tool calls", run_id=context.run_id
                 )
             elif await uow.runs.cancel_requested(context.run_id):
                 denial = ToolDenied("this run has been cancelled", run_id=context.run_id)
+            elif invalid_cap is not None and tool_name not in _SUBMISSION_TOOLS \
+                    and await uow.tool_calls.count_denied_for_run(context.run_id) >= invalid_cap:
+                denial = ToolDenied(
+                    f"this run has made {invalid_cap} invalid or refused tool calls; no further "
+                    "call is admitted. Submit the answer you have.",
+                    reason="invalid_call_budget",
+                )
             else:
                 reserved = await uow.tool_calls.try_reserve(
                     call_id=context.call_id, session_id=context.session_id,
                     run_id=context.run_id, tool_name=tool_name,
                     arguments_sha256=arguments_hash, now=_now(),
-                    max_calls=max_calls, max_identical=MAX_IDENTICAL_CALLS,
+                    max_calls=(max(0, max_calls - prior) if max_calls is not None else None),
+                    max_identical=MAX_IDENTICAL_CALLS, phase=phase,
                 )
                 if reserved:
                     uow.emit(
@@ -194,11 +219,11 @@ class ToolRunner:
                     await uow.commit()
                     return
 
-                total = await uow.tool_calls.count_for_run(context.run_id)
+                used = await uow.tool_calls.count_for_run(context.run_id)
                 repeats = await uow.tool_calls.duplicate_count(
                     context.run_id, tool_name, arguments_hash
                 )
-                if max_calls is not None and total >= max_calls:
+                if max_calls is not None and used + prior >= max_calls:
                     # Name the exempt tool. A live report build reached this
                     # message holding one correctable violation and an exempt
                     # submit path, kept trying to re-read instead, and ended
@@ -212,8 +237,12 @@ class ToolRunner:
                     denial = ToolDenied(
                         f"this run has reached its budget of {max_calls} tool calls. "
                         f"{exempt} is exempt from this budget and can still be called: "
-                        "submit what you already have rather than gathering more.",
-                        tool_calls=total, max_calls=max_calls, remaining_calls=0,
+                        "submit what you already have rather than gathering more."
+                        if not total else
+                        f"this run has used the {max_calls} tool calls it may spend on "
+                        f"gathering. {exempt} still has its reserved calls: submit what you "
+                        "already have.",
+                        tool_calls=used + prior, max_calls=max_calls, remaining_calls=0,
                         still_available=exempt,
                     )
                 else:
@@ -226,7 +255,7 @@ class ToolRunner:
             await uow.tool_calls.record_denied(
                 call_id=context.call_id, session_id=context.session_id,
                 run_id=context.run_id, tool_name=tool_name, arguments_sha256=arguments_hash,
-                error_code=denial.code, now=_now(),
+                error_code=denial.code, now=_now(), phase=phase,
             )
             uow.emit(
                 session_id=context.session_id, type=EventType.TOOL_FAILED,
@@ -244,13 +273,88 @@ class ToolRunner:
         its budget on reads must still be able to attempt the product it is
         required to submit — and, having been handed typed violations, must be
         able to submit the correction those violations describe.
+
+        Under total accounting (#46, investigator-pilot-v2) nothing is exempt:
+        the submissions may use the whole total, everything else the total
+        less the reserved submission slots -- so gathering can never spend
+        the calls the answer, its review and its one repair need.
         """
+        if total_call_accounting() and context.intent == Intent.DECISION_SUPPORT.value:
+            _, preset = run_budget_preset()
+            total = int(preset.get("max_tool_calls", self._max_calls))
+            if tool_name in _SUBMISSION_TOOLS:
+                return total
+            return max(0, total - int(preset.get("reserved_submission_slots") or 0))
         if tool_name in {ANSWER_TOOL_NAME, REPORT_SUBMIT_TOOL_NAME, SUBMIT_SAVED_TOOL_NAME,
                          CLAIM_REVIEW_TOOL_NAME}:
             return None
         if context.intent == Intent.BUILD_REPORT.value:
             return self._max_calls_report
         return self._max_calls
+
+    async def _chain_calls(self, uow, run) -> int:
+        """Calls the runs this one recovers spent (#46): a recovery continues
+        the original's budget rather than starting a new one."""
+        spent, seen = 0, set()
+        parent_id = getattr(run, "recovery_of_run_id", None)
+        while parent_id and parent_id not in seen:
+            seen.add(parent_id)
+            spent += await uow.tool_calls.count_for_run(parent_id)
+            parent = await uow.runs.get(parent_id)
+            parent_id = getattr(parent, "recovery_of_run_id", None) if parent else None
+        return spent
+
+    async def _phase_of(self, context: ToolContext, tool_name: str) -> str:
+        """The phase a call is recorded under. A second answer submission in
+        the answering phase is its hard correction."""
+        if tool_name == ANSWER_TOOL_NAME and context.phase in ("investigator",
+                                                               "workflow_synthesis"):
+            async with self._db.unit_of_work() as uow:
+                submitted = await uow.tool_calls.count_for_run_and_tool(
+                    context.run_id, ANSWER_TOOL_NAME
+                )
+            if submitted:
+                return "hard_correction"
+        return context.phase
+
+    async def _record_invalid(self, context: ToolContext, tool_name: str,
+                              arguments_hash: str,
+                              schema_errors: list[dict[str, str]] | None = None,
+                              ) -> dict[str, Any] | None:
+        """Record an invalid call. Past the run's invalid-call cap the call is
+        refused for the cap instead -- returned as the denial envelope -- so a
+        model told its arguments are wrong cannot keep spending free calls.
+        The submissions are never capped this way: the run can still answer."""
+        phase = context.phase or None
+        cap = run_budget_preset()[1].get("max_invalid_calls")
+        async with self._db.unit_of_work() as uow:
+            over = (
+                cap is not None and tool_name not in _SUBMISSION_TOOLS
+                and await uow.tool_calls.count_denied_for_run(context.run_id) >= cap
+            )
+            code = "tool_denied" if over else "invalid_request"
+            failed_payload: dict[str, Any] = {"tool_name": tool_name, "error_code": code}
+            if schema_errors:
+                failed_payload["schema_errors"] = schema_errors
+            await uow.tool_calls.record_denied(
+                call_id=context.call_id, session_id=context.session_id,
+                run_id=context.run_id, tool_name=tool_name, arguments_sha256=arguments_hash,
+                error_code=code, now=_now(), phase=phase,
+            )
+            uow.emit(
+                session_id=context.session_id, type=EventType.TOOL_FAILED,
+                entity_type="tool_call", entity_id=context.call_id, run_id=context.run_id,
+                payload=failed_payload,
+            )
+            await uow.commit()
+        if not over:
+            return None
+        return envelope.failed(
+            call_id=context.call_id, tool_name=tool_name, code="tool_denied",
+            message=f"this run has made {cap} invalid or refused tool calls; no further call "
+                    "is admitted. Submit the answer you have.",
+            details={"reason": "invalid_call_budget"},
+        )
 
     def _budget(self, context: ToolContext, hard_timeout_s: float) -> float:
         remaining = (context.deadline_at - _now()).total_seconds()
@@ -345,3 +449,16 @@ class ToolRunner:
             retryable=retryable, details=details, retry_after_ms=retry_after_ms,
             duration_ms=duration_ms,
         )
+
+
+def _schema_errors(exc: ValidationError, limit: int = 8) -> list[dict[str, str]]:
+    """Where a call's arguments broke the schema, and how -- never the values.
+
+    Recorded on the failure event because a live run (2026-10-29, arm E) had
+    17 answer submissions refused at the schema and no record of why: the
+    model is told, and nobody reading the run afterwards could be.
+    """
+    return [
+        {"loc": ".".join(str(part) for part in error.get("loc", ())), "type": error.get("type", "")}
+        for error in exc.errors(include_input=False)[:limit]
+    ]

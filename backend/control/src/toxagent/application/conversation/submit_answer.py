@@ -26,14 +26,24 @@ from ...domain.evidence_relation import (
     SourceRef,
     Strength,
     new_proposition_id,
+    scope_conflicts,
 )
 from ...domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ...domain.observation import Observation
-from ...validation.answer.validator import AnswerValidationResult, validate_candidate
+from ...domain.subject import RunSubjectBinding, SubjectKind
+from ...platform.flags import is_enabled
+from ...research.measurement import is_measured_value
+from ..investigation import evidence_text
+from ...validation.answer.validator import (
+    AnswerValidationResult,
+    limitation_violations,
+    validate_candidate,
+)
 from ...validation.fallback import build_fallback_answer
 from ...validation.prohibited_claims import validate_posture_wording
 from ...validation.answer.candidate_wire import GroundedAnswerCandidate
 from ...validation.answer.claim_resolver import resolve_draft
+from ...validation.answer.coverage import passage_values
 from ...validation.answer.draft_wire import (
     DevelopmentPostureInputV2,
     EvidenceRelationInputV2,
@@ -69,8 +79,27 @@ def _synthesis_only_posture(posture, relations) -> list[Violation]:
     return []
 
 
+async def _run_binding(uow, run_id: str) -> RunSubjectBinding | None:
+    """The subject the run was bound to at admission (#44), if any."""
+    snapshot = await uow.run_configuration_snapshots.get(run_id)
+    data = (snapshot or {}).get("subject_binding")
+    if not data or data.get("pending_snapshot"):
+        return None
+    return RunSubjectBinding.from_dict(data)
+
+
+def _bound_analysis_id(binding: RunSubjectBinding) -> str | None:
+    """The analysis a bound subject's prediction lives in: the analysis
+    itself, or the analysis a screening's toxicity stage replayed."""
+    if binding.kind is SubjectKind.ACTIVITY_SCREENING:
+        toxicity = binding.artifact("toxicity_snapshot")
+        return toxicity.local_id if toxicity is not None else None
+    return binding.analysis_id
+
+
 async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: bool,
-                                  generation: int) -> None:
+                                  generation: int, answer: GroundedAnswer | None = None,
+                                  declared_stop=None) -> None:
     """Resolve the run's DecisionSupportStateV1 from the committed answer.
 
     Inside the answer's own unit of work so the two cannot disagree; a lost
@@ -86,6 +115,13 @@ async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: b
             lambda state: ds.apply_answer(
                 state, relations=payload, is_fallback=is_fallback,
                 candidate_generation=generation,
+                basis={
+                    "observations": sum(1 for c in answer.claims if c.observation_id),
+                    "evidence": sum(1 for c in answer.claims if c.citation_ids),
+                } if answer is not None else None,
+                declared_stop=(
+                    declared_stop.model_dump(mode="json") if declared_stop is not None else None
+                ),
             ),
         )
     except Conflict:
@@ -97,6 +133,33 @@ async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: b
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+#: #47: what the one repair turn may submit beyond the run's own allowance --
+#: the repaired answer, and one correction of it if validation refuses it.
+REPAIR_SUBMISSIONS = 2
+
+
+async def release_gated(uow, run_id: str) -> bool:
+    """Whether this run's answer is held as a candidate until the server
+    decides what is published (#47): release_gate_v1 with its reviewer, or a
+    declared strict / hard-only release policy, on a decision_support run."""
+    from ...platform.config import release_policy
+
+    declared = release_policy() != "legacy"
+    if not declared and not (is_enabled("release_gate_v1") and is_enabled("claim_reviewer_v1")):
+        return False
+    run = await uow.runs.get(run_id)
+    return run is not None and getattr(run.intent, "value", run.intent) == "decision_support"
+
+
+async def repair_open(uow, run_id: str, candidate: GroundedAnswer) -> bool:
+    """The gateway opened a repair of exactly this candidate, and nothing has
+    been released yet."""
+    if candidate.is_fallback or await uow.answer_releases.get_for_run(run_id) is not None:
+        return False
+    state = await uow.decision_states.get(run_id)
+    return bool(state and state.claim_review.get("repair_requested_for") == candidate.id)
 
 
 @dataclass(frozen=True)
@@ -123,13 +186,27 @@ class SubmitAnswer:
             if session is None:
                 raise SessionNotFound("no such session", session_id=session_id)
 
-            if await uow.answers.get_for_run(run_id) is not None:
-                raise Conflict(
-                    "this run has already committed an answer; it cannot be overwritten",
-                    run_id=run_id,
-                )
+            gated = await release_gated(uow, run_id)
+            repairing = False
+            existing = await uow.answers.get_for_run(run_id)
+            if existing is not None:
+                # #47: under the release gate, an accepted answer is a
+                # candidate, and the one repair turn may replace it -- only
+                # that turn, only before release, only once.
+                repairing = gated and await repair_open(uow, run_id, existing)
+                if not repairing:
+                    raise Conflict(
+                        "this run has already committed an answer; it cannot be overwritten",
+                        run_id=run_id,
+                    )
+            cap = self._settings.max_answer_candidates_per_run + (
+                REPAIR_SUBMISSIONS if repairing else 0
+            )
 
             generation = await self._attempt_number(uow, run_id)
+            # #47: the draft exactly as the model sent it, before resolution
+            # replaces ``candidate`` with the internal form.
+            raw_draft = (candidate.schema_version, candidate.model_dump(mode="json"))
             observations_by_id = await self._resolve_observations(uow, session_id, candidate)
             evidence_by_id = await self._resolve_evidence(uow, session_id, candidate)
             read_evidence_ids = await self._resolve_read_evidence_ids(uow, run_id)
@@ -144,9 +221,12 @@ class SubmitAnswer:
                 candidate.development_posture
                 if isinstance(candidate, GroundedAnswerDraftV2) else None
             )
+            # typed_stop_v1 (#46): the stop the draft declares, if its schema has one.
+            declared_stop = getattr(candidate, "stop", None)
 
             issued_ids: Mapping[str, str] = {}
             claimed_values: tuple[float, ...] = ()
+            span_violations: list[Violation] = []
             if isinstance(candidate, GroundedAnswerDraftV2):
                 # The server issues the identifiers and reads the values before
                 # anything is validated, so every check below runs against
@@ -157,13 +237,27 @@ class SubmitAnswer:
                     language=language,
                 )
                 if resolved.candidate is None:
+                    # Report what the limitations owe now as well: they follow
+                    # from which observations the claims cite, not from their
+                    # values, and a draft refused first for a field path and
+                    # then for a limitation spends both of its attempts on
+                    # what one message could have said (live run 2026-10-21).
                     return await self._reject(
                         uow, session, session_id, run_id, generation,
-                        list(resolved.violations), language,
+                        [*resolved.violations, *limitation_violations(
+                            candidate, observations_by_id=observations_by_id,
+                        )],
+                        language, raw_draft=raw_draft, cap=cap,
+                        phase="semantic_repair" if repairing else (
+                            "initial" if generation == 1 else "hard_correction"),
                     )
                 candidate = resolved.candidate
                 issued_ids = resolved.issued_ids
                 claimed_values = resolved.claimed_values
+                span_values, span_violations = await self._resolve_evidence_spans(
+                    uow, session_id=session_id, run_id=run_id, candidate=candidate,
+                )
+                claimed_values = (*claimed_values, *span_values)
 
             result = validate_candidate(
                 candidate,
@@ -171,8 +265,15 @@ class SubmitAnswer:
                 observations_by_id=observations_by_id, evidence_by_id=evidence_by_id,
                 language=language, now=_now(), read_evidence_ids=read_evidence_ids,
                 claimed_values=claimed_values,
+                unread_article_ids=await self._unread_articles(
+                    uow, session_id=session_id, evidence_by_id=evidence_by_id,
+                ),
             )
             result = await self._reject_claim_id_collisions(uow, candidate, result)
+            if span_violations:
+                result = replace(
+                    result, violations=(*result.violations, *span_violations), answer=None
+                )
 
             resolved_relations: list[EvidenceRelationAssessment] = []
             if result.ok and proposed_relations:
@@ -200,30 +301,46 @@ class SubmitAnswer:
                         result, violations=(*result.violations, *posture_violations), answer=None
                     )
 
+            phase = "semantic_repair" if repairing else (
+                "initial" if generation == 1 else "hard_correction"
+            )
             if result.ok:
                 await uow.answers.add(result.answer)
+                await self._record_draft(
+                    uow, run_id=run_id, session_id=session_id, generation=generation,
+                    raw_draft=raw_draft, outcome="candidate" if gated else "accepted",
+                    answer_id=result.answer.id, violations=(), phase=phase,
+                )
                 for assessment in resolved_relations:
-                    await uow.evidence_relations.add(assessment)
+                    await uow.evidence_relations.add(assessment, answer_id=result.answer.id)
                 if posture is not None:
                     await uow.development_postures.add(
                         posture, answer_id=result.answer.id, session_id=session_id,
                         run_id=run_id, now=_now(),
                     )
                 uow.emit(
-                    session_id=session_id, type=EventType.ANSWER_ACCEPTED,
+                    session_id=session_id,
+                    # Under the gate the answer is not the run's yet: the
+                    # gateway emits answer.accepted when it releases it.
+                    type=EventType.ANSWER_CANDIDATE if gated else EventType.ANSWER_ACCEPTED,
                     entity_type="answer", entity_id=result.answer.id, run_id=run_id,
                     payload={"is_fallback": False, "candidate_generation": generation},
                 )
                 await _record_answer_in_state(
                     uow, run_id, relations=proposed_relations, is_fallback=False,
-                    generation=generation,
+                    generation=generation, answer=result.answer, declared_stop=declared_stop,
                 )
                 await uow.commit()
                 return SubmitOutcome(
                     result.answer, is_fallback=False, development_posture=posture
                 )
 
-            if generation >= self._settings.max_answer_candidates_per_run:
+            await self._record_draft(
+                uow, run_id=run_id, session_id=session_id, generation=generation,
+                raw_draft=raw_draft, outcome="rejected", answer_id=None,
+                violations=result.violations, phase=phase,
+            )
+            if generation >= cap:
                 fallback = await self._build_fallback(uow, session, session_id, run_id, generation, language)
                 await uow.answers.add(fallback)
                 uow.emit(
@@ -255,7 +372,7 @@ class SubmitAnswer:
             )
             await uow.commit()
 
-        attempts_remaining = self._settings.max_answer_candidates_per_run - generation
+        attempts_remaining = cap - generation
         raise AnswerValidationFailed(
             f"candidate {generation} did not pass validation ({len(result.violations)} "
             f"violation(s), listed in details.violations). Correct exactly those and call "
@@ -266,9 +383,29 @@ class SubmitAnswer:
             attempts_remaining=attempts_remaining,
         )
 
+    async def _record_draft(
+        self, uow, *, run_id: str, session_id: str, generation: int, raw_draft,
+        outcome: str, answer_id: str | None, violations, phase: str | None = None,
+    ) -> None:
+        """#47: keep the draft as sent, beside what the server made of it, so
+        the raw draft, the accepted candidate and the released answer can each
+        be graded. A retried tool call that replays a generation is already
+        recorded and is not written twice."""
+        schema_version, payload = raw_draft
+        existing = {d["generation"] for d in await uow.answer_drafts.list_for_run(run_id)}
+        if generation in existing:
+            return
+        await uow.answer_drafts.add(
+            run_id=run_id, session_id=session_id, generation=generation,
+            schema_version=schema_version, payload=payload, outcome=outcome,
+            answer_id=answer_id, violations=[v.to_dict() for v in violations], now=_now(),
+            phase=phase,
+        )
+
     async def _reject(
         self, uow, session, session_id: str, run_id: str, generation: int,
-        violations: list, language: str,
+        violations: list, language: str, *, raw_draft=None, cap: int | None = None,
+        phase: str | None = None,
     ) -> SubmitOutcome:
         """The shared rejection path: one more attempt, or the fallback.
 
@@ -277,7 +414,14 @@ class SubmitAnswer:
         and giving it a different shape of error would spend a correction
         attempt on a message the model cannot act on.
         """
-        if generation >= self._settings.max_answer_candidates_per_run:
+        if raw_draft is not None:
+            await self._record_draft(
+                uow, run_id=run_id, session_id=session_id, generation=generation,
+                raw_draft=raw_draft, outcome="rejected", answer_id=None, violations=violations,
+                phase=phase,
+            )
+        cap = cap if cap is not None else self._settings.max_answer_candidates_per_run
+        if generation >= cap:
             fallback = await self._build_fallback(
                 uow, session, session_id, run_id, generation, language
             )
@@ -310,7 +454,7 @@ class SubmitAnswer:
             },
         )
         await uow.commit()
-        attempts_remaining = self._settings.max_answer_candidates_per_run - generation
+        attempts_remaining = cap - generation
         raise AnswerValidationFailed(
             f"candidate {generation} did not pass validation ({len(violations)} "
             f"violation(s), listed in details.violations). Correct exactly those and call "
@@ -363,11 +507,81 @@ class SubmitAnswer:
         read: set[str] = set()
         for call in calls:
             # get_chembl_activities (W9-13) returns each record whole, so a
-            # record it returned has been read, not merely listed.
-            if call["tool_name"] in ("get_evidence_record", "get_chembl_activities") \
-                    and call["status"] == "completed":
+            # record it returned has been read, not merely listed; a record
+            # whose full text was read (#43) has been read too.
+            if call["tool_name"] in (
+                "get_evidence_record", "get_chembl_activities", "read_evidence_text",
+            ) and call["status"] == "completed":
                 read.update(call.get("observation_ids") or ())
         return frozenset(read)
+
+    async def _unread_articles(
+        self, uow, *, session_id: str, evidence_by_id: Mapping[str, EvidenceRecord],
+    ) -> frozenset[str]:
+        """#43: cited articles whose full text was not read. Only where it can
+        be read at all (evidence_full_text_v1); otherwise the default
+        evidence_scope_limited wording already says no full text was read."""
+        if not is_enabled("evidence_full_text_v1"):
+            return frozenset()
+        unread: set[str] = set()
+        for evidence_id, record in evidence_by_id.items():
+            full_text = await uow.evidence_text.get(evidence_id, session_id=session_id)
+            if evidence_text.text_not_read(record, full_text):
+                unread.add(evidence_id)
+        return frozenset(unread)
+
+    async def _resolve_evidence_spans(
+        self, uow, *, session_id: str, run_id: str, candidate: GroundedAnswerCandidate,
+    ) -> tuple[tuple[float, ...], list[Violation]]:
+        """#43: the passages claims quote, checked against the text the server
+        holds. A span is accepted when this run read that record's text with
+        read_evidence_text and the locator names a passage of it; the numbers
+        in an accepted passage are then values the prose may quote."""
+        spans = [
+            (index, claim, evidence_id, locator)
+            for index, claim in enumerate(candidate.claims)
+            for evidence_id, locator in claim.evidence_spans
+        ]
+        if not spans:
+            return (), []
+        text_read: set[str] = set()
+        for call in await uow.tool_calls.list_for_run(run_id):
+            if call["tool_name"] == "read_evidence_text" and call["status"] == "completed":
+                text_read.update(call.get("observation_ids") or ())
+        values: list[float] = []
+        violations: list[Violation] = []
+        texts: dict[str, object] = {}
+        for index, claim, evidence_id, locator in spans:
+            path = f"claims[{index}].evidence_spans"
+            if evidence_id not in texts:
+                texts[evidence_id] = await uow.evidence_text.get(
+                    evidence_id, session_id=session_id
+                )
+            full_text = texts[evidence_id]
+            if evidence_id not in text_read or full_text is None or not full_text.was_read:
+                violations.append(
+                    Violation(
+                        "evidence_span_not_read",
+                        f"claim {claim.claim_id} quotes {evidence_id} at {locator!r}, but this "
+                        "run did not read that record's text with read_evidence_text; read it "
+                        "first, or cite the record without a span",
+                        path=path, actual=locator,
+                    )
+                )
+                continue
+            passage = full_text.passage(locator)
+            if passage is None:
+                violations.append(
+                    Violation(
+                        "evidence_span_locator_unknown",
+                        f"{evidence_id} has no passage at {locator!r}; use a locator "
+                        "read_evidence_text returned",
+                        path=path, actual=locator,
+                    )
+                )
+                continue
+            values.extend(passage_values(passage.text))
+        return tuple(values), violations
 
     async def _resolve_evidence_relations(
         self, uow, *, session_id: str, run_id: str, proposed: list[EvidenceRelationInputV2],
@@ -387,6 +601,10 @@ class SubmitAnswer:
         proposition_ids: dict[str, str] = {}
         assessments: list[EvidenceRelationAssessment] = []
         violations: list[Violation] = []
+        # Sources that are measured values, whatever scope the model declared
+        # for them: a contradiction involving one is held to the measurement
+        # bar, so leaving the assay out of the scope cannot lower it.
+        measured: set[str] = set()
         now = _now()
         for index, item in enumerate(proposed):
             if item.source_class == "agent_synthesis":
@@ -422,6 +640,16 @@ class SubmitAnswer:
                     )
                 )
                 continue
+            if item.source_class in ("external_experimental", "external_regulatory"):
+                record = await uow.evidence.get(item.source_id, session_id=session_id)
+                if record is not None and is_measured_value(record.normalized_facts):
+                    measured.add(item.source_id)
+            subject_violation = await self._subject_scope_violation(
+                uow, session_id=session_id, item=item, index=index,
+            )
+            if subject_violation is not None:
+                violations.append(subject_violation)
+                continue
             proposition_id = proposition_ids.setdefault(item.proposition, new_proposition_id())
             assessments.append(
                 EvidenceRelationAssessment.create(
@@ -439,11 +667,51 @@ class SubmitAnswer:
                     scope=EvidenceScope(
                         endpoint=item.endpoint, species=item.species, dose=item.dose,
                         use_context=item.use_context,
+                        ligand_id=item.ligand_id, target_id=item.target_id,
+                        target_variant=item.target_variant,
+                        target_sequence_sha256=item.target_sequence_sha256,
+                        assay_type=item.assay_type, readout=item.readout,
+                        unit=item.unit, comparator=item.comparator,
+                        experimental_context=item.experimental_context,
                     ),
                     input_refs=tuple(item.input_source_refs),
                     now=now,
                 )
             )
+        # A `contradicts` claims two sources cannot both hold, which requires
+        # them to have measured the same thing. Where the scopes differ, the
+        # model is told which axis differs and asked for `contextual` instead;
+        # where they say too little to tell, it is told what to state. A false
+        # contradiction is on the critical-error list, so either is a
+        # violation rather than a silent downgrade.
+        for conflict in scope_conflicts(assessments, measured_source_ids=frozenset(measured)):
+            position = next(
+                (
+                    index
+                    for index, assessment in enumerate(assessments)
+                    if assessment.id == conflict.contradicting_relation_id
+                ),
+                0,
+            )
+            if conflict.reason == "scope_differs":
+                violations.append(
+                    Violation(
+                        "evidence_relation_contradiction_out_of_scope",
+                        f"{conflict.describe()}; state it as 'contextual' and name the "
+                        "differing scope, or correct the scope if they do match",
+                        path=f"evidence_relations[{position}].relation",
+                    )
+                )
+            else:
+                violations.append(
+                    Violation(
+                        "evidence_relation_contradiction_scope_not_assessed",
+                        f"{conflict.describe()}, as each source states them; if a source "
+                        "does not say, leave that field out and state the relation as "
+                        "'contextual' instead -- do not fill a scope in to make it match",
+                        path=f"evidence_relations[{position}].relation",
+                    )
+                )
         if violations:
             return [], violations
         return assessments, []
@@ -471,6 +739,57 @@ class SubmitAnswer:
             return None, [
                 Violation("development_posture_invalid", str(exc), path="development_posture")
             ]
+
+    async def _subject_scope_violation(
+        self, uow, *, session_id: str, item: EvidenceRelationInputV2, index: int,
+    ) -> Violation | None:
+        """AG-EVIDENCE: what the server knows a source is about, against what
+        the relation says it is about.
+
+        An activity artifact states its own target; a literature record a
+        subject-bound search assessed states the target it was found to be
+        about, or that it is about the ligand on another target. A relation
+        may not restate either (a KCNH2 estimate scoped as EGFR), and a record
+        about another target cannot be *direct* support for or contradiction
+        of this one -- it is contextual, which is what the record already says.
+        """
+        from ...domain.observation import ObservationKind
+
+        known_target: str | None = None
+        out_of_subject = False
+        if item.source_class in ("predictor_fact", "explanation_fact"):
+            observation = await uow.observations.get(item.source_id, session_id=session_id)
+            if observation is not None and observation.kind in (
+                ObservationKind.ACTIVITY_ESTIMATE, ObservationKind.PRIORITISATION_DECISION,
+                ObservationKind.SCREENING_STATE,
+            ):
+                subject = (observation.canonical_payload or {}).get("subject") or {}
+                known_target = ((subject.get("target") or {}).get("target_id")
+                                or ((observation.canonical_payload or {}).get("policy") or {})
+                                .get("target_id"))
+        elif item.source_class in ("external_experimental", "external_regulatory"):
+            record = await uow.evidence.get(item.source_id, session_id=session_id)
+            assessment = (record.relevance_assessment or {}) if record is not None else {}
+            known_target = (assessment.get("assessed_scope") or {}).get("target_id")
+            out_of_subject = "target_mismatch" in (assessment.get("reason_codes") or ())
+        if known_target and item.target_id and \
+                item.target_id.strip().casefold() != str(known_target).casefold():
+            return Violation(
+                "evidence_relation_scope_contradicts_source",
+                f"source {item.source_id} is about target {known_target}, not "
+                f"{item.target_id}; state the scope the source itself has",
+                path=f"evidence_relations[{index}].target_id",
+            )
+        if out_of_subject and item.directness == "direct" \
+                and item.relation in ("supports", "contradicts"):
+            return Violation(
+                "evidence_relation_direct_out_of_subject",
+                f"source {item.source_id} was assessed as about this ligand on another "
+                "target, so it cannot be direct evidence about this subject; state it as "
+                "'contextual' (or 'indirect') and name the target it is about",
+                path=f"evidence_relations[{index}].directness",
+            )
+        return None
 
     async def _source_exists(
         self, uow, *, session_id: str, source_class: str, source_id: str,
@@ -533,12 +852,28 @@ class SubmitAnswer:
     async def _build_fallback(
         self, uow, session, session_id: str, run_id: str, generation: int, language: str
     ) -> GroundedAnswer:
+        # #62: a run bound to a subject falls back on *that* subject's
+        # prediction, never on whichever analysis the session has active --
+        # the fallback is the one answer built without the agent, so it is
+        # the easiest place for an answer to leave the subject it was about.
+        binding = await _run_binding(uow, run_id)
+        if binding is not None:
+            analysis_id = _bound_analysis_id(binding)
+            # A screening subject whose toxicity stage produced no analysis has
+            # no prediction to show, and "run an analysis first" would send the
+            # researcher the wrong way.
+            has_other_subject = binding.kind is SubjectKind.ACTIVITY_SCREENING
+        else:
+            analysis_id = session.active_analysis_id
+            has_other_subject = is_enabled("activity_replay_v1") and bool(
+                await uow.screenings.list_for_session(session_id)
+            )
         observations: list[Observation] = []
-        if session.active_analysis_id:
-            observations = list(await uow.observations.list_for_analysis(session.active_analysis_id))
+        if analysis_id:
+            observations = list(await uow.observations.list_for_analysis(analysis_id))
         answer = build_fallback_answer(
             session_id=session_id, run_id=run_id, observations=observations,
-            language=language, now=_now(),
+            language=language, now=_now(), has_other_subject=has_other_subject,
         )
         # candidate_generation belongs to the run's attempt sequence, same as a
         # model-authored candidate would have used.

@@ -1,0 +1,50 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-t05-exposure-arrives",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "With an IC50 of 0.3 uM and a free Cmax of 0.01 uM the margin is 30-fold, a ratio of two measurements and not a safety verdict.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "With an IC50 of 0.3 uM and a free Cmax of 0.01 uM the margin is 30-fold, a ratio of two measurements and not a safety verdict."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "margin",
+      "statement": "IC50 / free Cmax",
+      "value": 30,
+      "unit": "fold"
+    }
+  ],
+  "required_limitations": [
+    "L5",
+    "L6"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "clinical_or_regulatory_overreach"
+  ],
+  "critical_errors": [
+    "clinical_or_regulatory_overreach"
+  ],
+  "evidence_spans": [],
+  "sources": [
+    {
+      "record_id": "MED:90011"
+    }
+  ],
+  "turn_expectations": [
+    {
+      "turn": 1,
+      "changes": [
+        "margin computed"
+      ],
+      "keeps": [
+        "hERG probability",
+        "label"
+      ]
+    }
+  ],
+  "note": "Synthetic engineering gold: checks the machinery, not the science."
+}

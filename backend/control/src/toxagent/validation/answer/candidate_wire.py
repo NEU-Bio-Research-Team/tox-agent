@@ -19,6 +19,7 @@ import re
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic.json_schema import SkipJsonSchema
 
 TRANSFORM_PATTERN = re.compile(r"^(identity|round:[0-6]|percent:[0-6]|difference|ratio)$")
 ID_PATTERN = re.compile(r"^[a-z]{3,4}_[0-9a-f]{32}$")
@@ -54,7 +55,14 @@ class ClaimCandidate(_Wire):
     field_path: str | None = None
     source_value: object = None
     rendered_value: str | None = None
-    transform: str = "identity"
+    transform: str = Field(
+        default="identity",
+        description=(
+            "How the cited value is rendered, exactly one of: identity, round:N or "
+            "percent:N (N from 0 to 6), difference, ratio. Omit it for the value as "
+            "stored. Anything else is refused before the answer is checked."
+        ),
+    )
     citation_ids: list[str] = Field(default_factory=list)
     input_claim_ids: list[str] = Field(
         default_factory=list,
@@ -64,6 +72,12 @@ class ClaimCandidate(_Wire):
             "second."
         ),
     )
+    #: (evidence_id, locator) passages the claim quotes, carried over from a v2
+    #: draft's evidence_spans (#43). Server-side only: not part of the v1 tool
+    #: schema, which has no way to read a passage.
+    evidence_spans: SkipJsonSchema[list[tuple[str, str]]] = Field(default_factory=list)
+    #: The v2 draft's local_ref, kept for lineage across submissions (#47).
+    local_ref: SkipJsonSchema[str | None] = None
 
     @field_validator("transform")
     @classmethod

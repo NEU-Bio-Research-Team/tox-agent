@@ -1,0 +1,68 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pa03-estimate-missed-active",
+  "workflow_context": "activity_guided",
+  "subject": {
+    "subject_ref": {
+      "kind": "activity_screening",
+      "screening_id": "scr_955348a385b94fc99d911c86da0c47bb"
+    },
+    "identity": {
+      "canonical_smiles": "Cc1ccc(Nc2nccc(n2)-c2cccnc2)cc1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "screening",
+      "ref": "scr_955348a385b94fc99d911c86da0c47bb",
+      "content_sha256": "aa19ff1a81705373ab8296dfe6f33d29c827b3100be9c179b6a0719d984440a3",
+      "stage_status": {
+        "screening": "completed_with_toxicity_not_run"
+      }
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the activity model estimate for TX-313 on ABL1, and does measured evidence support or contradict it?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "Cc1ccc(Nc2nccc(n2)-c2cccnc2)cc1"
+    ],
+    "documents": [
+      "MED:93131"
+    ],
+    "measurements": [
+      "inv-pa03-estimate-missed-active:estimate",
+      "inv-pa03-estimate-missed-active:ic50"
+    ],
+    "sources": [
+      "MED:93131"
+    ]
+  }
+}

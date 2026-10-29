@@ -52,31 +52,41 @@ Any other target, or any other method, is `not_measured`.
 | `analysis` | `create_analysis_snapshot`, `get_analysis_slice`, `submit_grounded_answer` | — |
 | `audit_readonly` | `get_analysis_slice`, `get_evidence_record`, `get_explanation_slice` | — |
 | `claim_review` | — | `submit_claim_review` (claim_reviewer_v1) |
-| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `compute_exposure_margin` (scientific_primitives_v1), `get_chembl_activities` (scientific_primitives_v1), `get_scientific_case` (scientific_case_v1), `propose_skill_draft` (skill_drafts_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `update_scientific_case` (scientific_case_v1) |
-| `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | — |
+| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `compute_exposure_margin` (scientific_primitives_v1), `get_activity_snapshot` (activity_replay_v1), `get_chembl_activities` (scientific_primitives_v1), `get_prioritisation_decision` (activity_replay_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `propose_skill_draft` (skill_drafts_v1), `read_evidence_text` (evidence_full_text_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `run_scientific_procedure` (scientific_procedures_v1), `update_scientific_case` (scientific_case_v1) |
+| `decision_support_read` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `submit_grounded_answer` | `get_activity_snapshot` (activity_replay_v1), `get_prioritisation_decision` (activity_replay_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `read_evidence_text` (evidence_full_text_v1) |
+| `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | `read_evidence_text` (evidence_full_text_v1), `run_scientific_procedure` (scientific_procedures_v1) |
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
 | `report_qa` | `get_analysis_slice`, `get_attribution`, `submit_grounded_answer` | — |
 | `report_synthesis` | `submit_report_synthesis` | — |
+| `workflow_synthesis` | `submit_grounded_answer` | — |
 
 ## Rollout flags
 
 | Flag | Default | Owner | Remove by | Gates tools |
 |---|---|---|---|---|
+| `activity_replay_v1` | no | backend-scientific | 2027-01-18 | `get_activity_snapshot`, `get_prioritisation_decision`, `get_screening_state` |
 | `answer_draft_v2` | no | backend-scientific | 2026-12-12 | — |
 | `claim_reviewer_v1` | no | backend-scientific | 2026-12-23 | `submit_claim_review` |
 | `decision_state_plan_tool` | no | backend-scientific | 2026-12-14 | `record_decision_plan` |
+| `evidence_full_text_v1` | no | backend-scientific | 2027-01-18 | `read_evidence_text` |
 | `evidence_pipeline_v2` | no | backend-scientific | 2026-12-12 | — |
 | `external_worker_mode` | no | platform | 2026-12-12 | — |
+| `fixed_workflow_v1` | no | backend-scientific | 2027-01-18 | — |
+| `investigator_contract_v1` | no | backend-agent | 2026-12-12 | — |
 | `normalized_usage_v2` | yes | backend-runtime | 2026-12-12 | — |
+| `release_gate_v1` | no | backend-scientific | 2027-01-18 | — |
 | `report_orchestrator_v2` | no | backend-report | 2026-12-12 | — |
 | `router_v2` | no | backend-platform | 2026-12-12 | — |
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `scientific_case_v1` | no | backend-scientific | 2026-12-23 | `get_scientific_case`, `update_scientific_case` |
 | `scientific_primitives_v1` | no | backend-scientific | 2026-12-23 | `compute_exposure_margin`, `get_chembl_activities` |
+| `scientific_procedures_v1` | no | backend-agent | 2026-12-12 | `run_scientific_procedure` |
 | `scientific_skills_v1` | no | backend-scientific | 2026-12-23 | `read_scientific_skill`, `read_skill_reference` |
 | `skill_drafts_v1` | no | backend-scientific | 2026-12-23 | `propose_skill_draft` |
+| `subject_binding_v1` | no | backend-scientific | 2027-01-18 | — |
 | `subjectless_research_v1` | no | backend-scientific | 2026-12-23 | — |
 | `trust_envelope_v1` | no | backend-platform | 2026-12-14 | — |
+| `typed_stop_v1` | no | backend-scientific | 2027-01-18 | — |
 
 ## Instruction surfaces
 
@@ -107,13 +117,16 @@ provider count.
 
 off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.
 
-Dynamic index ≈ 676 tokens; static composition of every active skill ≈ 12160 tokens.
+Dynamic index ≈ 1012 tokens; static composition of every active skill ≈ 14671 tokens.
 
 | Skill | Version | Status | Risk | Requires | Tokens (body / with references) |
 |---|---|---|---|---|---|
 | `assess-conflicting-evidence` | 1.2.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 1066 / 1878 |
 | `critique-case` | 1.1.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 769 / 782 |
+| `estimate-exposure-margin` | 1.0.0 | active | medium | `compute_exposure_margin`, `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 785 / 801 |
 | `interpret-model-attribution` | 1.1.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 780 / 1300 |
+| `read-activity-screening` | 1.0.0 | active | medium | `get_activity_snapshot`, `get_prioritisation_decision`, `get_scientific_case`, `get_screening_state`, `update_scientific_case` | 981 / 997 |
+| `update-case-across-turns` | 1.0.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 688 / 705 |
 | `assemble-report-context` | 1.0.0 | active | low | `get_analysis_bundle`, `get_analysis_slice`, `get_report_context` | 714 / 1570 |
 | `compose-scientific-report` | 1.0.0 | active | medium | `save_report_draft` | 774 / 2019 |
 | `explain-predictor-results` | 1.0.0 | active | medium | `get_explanation_package`, `get_or_create_explanation` | 545 / 1040 |

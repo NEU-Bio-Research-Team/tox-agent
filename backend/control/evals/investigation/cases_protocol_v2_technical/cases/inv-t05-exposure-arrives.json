@@ -1,0 +1,43 @@
+{
+  "schema_version": "investigation-case-v3",
+  "set_id": "protocol-v2-technical-seed-1",
+  "case_id": "inv-t05-exposure-arrives",
+  "tags": [
+    "t5",
+    "toxicity_only",
+    "synthetic"
+  ],
+  "task_group": "T5",
+  "workflow_context": "toxicity_only",
+  "answerability": "answerable_from_corpus",
+  "evidence_mode": "frozen",
+  "cohort": "synthetic_engineering",
+  "stress_set": false,
+  "inputs_ref": {
+    "path": "../inputs/inv-t05-exposure-arrives.json",
+    "sha256": "3a6eb316fc907deb17d5f4727d7aaa8cff979587fe1e8cab94bb412abff496de"
+  },
+  "gold_ref": {
+    "path": "../gold/inv-t05-exposure-arrives.json",
+    "sha256": "97fc31ec8756691ef7963def820a4625fe2c917e254120329b10c522ef29efe2"
+  },
+  "provenance": {
+    "kind": "synthetic_engineering_fixture"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CC(C)NCC(O)c1ccc(NS(C)(=O)=O)cc1"
+    ],
+    "documents": [
+      "MED:90011"
+    ],
+    "measurements": [
+      "inv-t05-exposure-arrives:margin"
+    ],
+    "sources": [
+      "MED:90011"
+    ]
+  },
+  "split": "dev",
+  "spec_sha256": "993707ef37a6c2a27e895089a1c0230d7129d2a30da41bb67afbcbcdde68ce60"
+}

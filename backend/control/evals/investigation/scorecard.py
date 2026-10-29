@@ -17,13 +17,15 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import random
 import statistics
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from evals.investigation import cases as case_module
 from evals.investigation.packet import RUBRIC_PATH
 from evals.investigation.run import DEFAULT_ROOT
 
@@ -70,6 +72,11 @@ def read_grades(paths: list[Path], rubric: dict[str, Any]) -> list[dict[str, Any
                     if raw not in {"0", "1"}:
                         raise GradeError(f"{where}: {crit} must be 0 or 1, got {raw!r}")
                     grade["critical"][crit] = raw == "1"
+                # #53: optional, so a sheet from before the column still reads.
+                raw = (row.get("task_success") or "").strip()
+                if raw not in {"", "0", "1"}:
+                    raise GradeError(f"{where}: task_success must be 0 or 1, got {raw!r}")
+                grade["task_success"] = None if raw == "" else raw == "1"
                 rows.append(grade)
     return rows
 
@@ -103,9 +110,102 @@ def _weighted_kappa(pairs: list[tuple[int, int]], categories: int = 4) -> float 
     return None if den == 0 else round(1 - num / den, 4)
 
 
+def clopper_pearson(successes: int, n: int, *, alpha: float = 0.05) -> tuple[float, float] | None:
+    """The exact binomial interval. 8/8 gives about 0.631-1.000 and 0/8
+    about 0.000-0.369, the figures #53 quotes. Computed by bisection on the
+    binomial tail, so it needs nothing beyond the standard library."""
+    if n <= 0:
+        return None
+
+    def at_least(k: int, p: float) -> float:
+        return sum(math.comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(k, n + 1))
+
+    def solve(target, rising: bool) -> float:
+        low, high = 0.0, 1.0
+        for _ in range(80):
+            mid = (low + high) / 2
+            value = target(mid)
+            if (value < 0) == rising:
+                low = mid
+            else:
+                high = mid
+        return (low + high) / 2
+
+    lower = 0.0 if successes == 0 else solve(
+        lambda p: at_least(successes, p) - alpha / 2, rising=True)
+    upper = 1.0 if successes == n else solve(
+        lambda p: (1 - at_least(successes + 1, p)) - alpha / 2, rising=False)
+    return round(lower, 4), round(upper, 4)
+
+
+def task_success_table(
+    *, key: dict[str, Any], grades: list[dict[str, Any]],
+    cases: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Task Success over every assigned case and trial (#53).
+
+    The denominator is everything the key assigned to a system -- a response
+    that never came (error, timeout, not run) is in it and is not a success.
+    A response succeeds only if every grader who judged it marked
+    task_success and none flagged a critical error. Graders who disagree on
+    task_success leave it unsuccessful until adjudicated, and are counted.
+    Each failure is given one cause, so the table says why as well as how
+    often.
+    """
+    by_response: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for grade in grades:
+        by_response[(grade["case_id"], grade["response_id"])].append(grade)
+
+    tables: dict[str, Any] = {}
+    rows_by_system: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for response in key["responses"]:
+        system = response["system_id"]
+        case_id = response["case_id"]
+        group = ((cases or {}).get(case_id) or {}).get("task_group")
+        if not response.get("response_id"):
+            rows_by_system[system].append({"case_id": case_id, "group": group,
+                                           "success": False,
+                                           "cause": f"no_response:{response.get('missing_reason')}"})
+            continue
+        judged = by_response.get((case_id, response["response_id"]), [])
+        verdicts = [g["task_success"] for g in judged if g.get("task_success") is not None]
+        critical = any(any(g["critical"].values()) for g in judged)
+        if critical:
+            cause = "critical_error"
+        elif not verdicts:
+            cause = "not_graded"
+        elif len(set(verdicts)) > 1:
+            cause = "graders_disagree"
+        elif not verdicts[0]:
+            cause = "fallback" if response.get("is_fallback") else "task_not_met"
+        else:
+            cause = None
+        rows_by_system[system].append({"case_id": case_id, "group": group,
+                                       "success": cause is None, "cause": cause})
+
+    for system, rows in sorted(rows_by_system.items()):
+        def rate(subset: list[dict[str, Any]]) -> dict[str, Any]:
+            n = len(subset)
+            k = sum(1 for r in subset if r["success"])
+            return {"successes": k, "assigned": n,
+                    "rate": round(k / n, 4) if n else None,
+                    "ci95_clopper_pearson": clopper_pearson(k, n)}
+
+        groups = sorted({r["group"] for r in rows if r["group"]})
+        tables[system] = {
+            **rate(rows),
+            "failure_causes": dict(sorted(Counter(r["cause"] for r in rows if r["cause"]).items())),
+            "by_task_group": {g: rate([r for r in rows if r["group"] == g]) for g in groups},
+            "note": "cases are counted per trial; when trials or cases are dependent, read "
+                    "the interval as optimistic and use the case bootstrap",
+        }
+    return tables
+
+
 def build_scorecard(*, key: dict[str, Any], grades: list[dict[str, Any]], rubric: dict[str, Any],
                     compare: list[tuple[str, str]] = (), reps: int = 2000,
-                    seed: int = 20260925) -> dict[str, Any]:
+                    seed: int = 20260925,
+                    cases: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     identity = {(r["case_id"], r["response_id"]): r for r in key["responses"] if r.get("response_id")}
     unknown = sorted({(g["case_id"], g["response_id"]) for g in grades} - set(identity))
     if unknown:
@@ -205,6 +305,8 @@ def build_scorecard(*, key: dict[str, Any], grades: list[dict[str, Any]], rubric
         "graders": graders, "unit_of_analysis": "case (graders and trials averaged within a case)",
         "interval": f"95% percentile bootstrap over cases, {reps} resamples, seed {seed}",
         "systems": systems, "comparisons": comparisons, "inter_rater": agreement,
+        # #53's primary metric, over every assigned case and trial.
+        "task_success": task_success_table(key=key, grades=grades, cases=cases),
         "note": "Dimensions are separate; there is no total score.",
     }
 
@@ -229,6 +331,16 @@ def render_markdown(card: dict[str, Any]) -> str:
         lines.append(f"| `{name}` | {s['responses_graded']} / {s['responses_in_packet']} / "
                      f"{s['responses_missing']} | " + " | ".join(cells) + " | "
                      + ("—" if crit["rate"] is None else f"{crit['responses']} ({crit['rate']:.0%})") + " |")
+    if card.get("task_success"):
+        lines += ["", "## Task success (every assigned case and trial)", "",
+                  "| System | Successes / assigned | Rate [95% Clopper–Pearson] | Failure causes |",
+                  "|---|---|---|---|"]
+        for name, t in card["task_success"].items():
+            ci = t["ci95_clopper_pearson"]
+            causes = ", ".join(f"{k}: {v}" for k, v in t["failure_causes"].items()) or "—"
+            rate = "—" if t["rate"] is None else (
+                f"{t['rate']:.0%}" + (f" [{ci[0]:.0%}, {ci[1]:.0%}]" if ci else ""))
+            lines.append(f"| `{name}` | {t['successes']} / {t['assigned']} | {rate} | {causes} |")
     for comp in card["comparisons"]:
         lines += ["", f"## `{comp['system']}` minus `{comp['baseline']}` (shared cases)", "",
                   "| Dimension | Shared cases | Mean difference [95% CI] |", "|---|---|---|"]
@@ -257,8 +369,10 @@ def main(argv: list[str] | None = None) -> int:
     study_dir = args.root / args.study
     key = json.loads((study_dir / "keys" / f"{args.packet_id}.unblinding.json").read_text())
     rubric = json.loads(RUBRIC_PATH.read_text())
+    cases = {c["case_id"]: c for c in case_module.load_cases(case_module.CASES_DIR)}
     card = build_scorecard(key=key, grades=read_grades(args.grades, rubric), rubric=rubric,
-                           compare=[tuple(c.split(":", 1)) for c in args.compare], reps=args.reps)
+                           compare=[tuple(c.split(":", 1)) for c in args.compare], reps=args.reps,
+                           cases=cases)
     out = study_dir / "scorecards" / args.packet_id
     out.mkdir(parents=True, exist_ok=True)
     (out / "scorecard.json").write_text(json.dumps(card, indent=2) + "\n")

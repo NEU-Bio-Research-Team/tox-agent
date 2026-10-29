@@ -3,7 +3,16 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Mapping
 
-from .model import DOSSIER_SCHEMA_VERSION, EvidenceEntry, ScientificCaseV1, SourceClass, Stance
+from .dependencies import needs_reassessment
+from .model import (
+    CONCLUSION_PROPOSED,
+    CONCLUSION_RELEASED,
+    DOSSIER_SCHEMA_VERSION,
+    EvidenceEntry,
+    ScientificCaseV1,
+    SourceClass,
+    Stance,
+)
 
 
 def compile_dossier(
@@ -45,6 +54,8 @@ def compile_dossier(
         "answer_id": answer_id,
         "question": case.question,
         "decision_context": case.decision_context,
+        "subject_key": case.subject_key,
+        "subject": dict(case.subject),
         "subject_refs": list(case.subject_refs),
         "requester": case.requester,
         "data_scope": case.data_scope.to_dict(),
@@ -67,12 +78,26 @@ def compile_dossier(
         "next_tests": [t.to_dict() for t in case.next_tests],
         "conclusion": {
             **case.conclusion.to_dict(),
+            "status": case.conclusion.status,
             "can_say": [
                 {**line.to_dict(),
                  "sources": [ledger[i].source_ref for i in line.evidence_ids if i in ledger]}
                 for line in case.conclusion.can_say
             ],
         },
+        # #47: what the case last trusted, while the conclusion above is only
+        # a proposal of a run whose answer was not published.
+        "released_conclusion": (
+            case.released_conclusion.to_dict() if case.released_conclusion is not None else None
+        ),
+        # #60: what the case derived, from what, and what a changed premise
+        # has left waiting. §16 item 5 -- "thay đổi so với assessment trước" --
+        # is read from here: a claim marked needs_reassessment is exactly the
+        # part of the last assessment a new premise moved.
+        "derived_claims": [c.to_dict() for c in case.derived_claims],
+        "claims_needing_reassessment": [
+            c.id for c in needs_reassessment(case.derived_claims)
+        ],
         "coverage": case.coverage,
         "stop_reason": stop_reason,
     }
@@ -86,6 +111,15 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
     ledger entries with theirs, and the conclusion so far.
     """
     lines = [f"Open scientific case {case.id} (revision {case.revision})."]
+    identity = (case.subject or {}).get("identity") or {}
+    if identity.get("target"):
+        target = identity["target"]
+        variant = f" ({target['variant']})" if target.get("variant") else ""
+        lines.append(
+            f"Subject: {identity.get('canonical_smiles')} on {target.get('target_id')}{variant} "
+            f"in {identity.get('assay_context')}. Evidence about another target or context "
+            "is not this case's evidence."
+        )
     if case.question:
         lines.append(f"Decision question: {case.question[:400]}")
     if not case.data_scope.external_search:
@@ -95,11 +129,15 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
             "existing records and what the researcher supplies."
         )
     for item in case.context[:limit]:
-        lines.append(f"- context {item.id} ({item.actor}): {item.key} = {item.value[:160]}")
+        lines.append(f"- context {item.id} ({item.actor}): {item.describe()}")
+    unpublished = {r.run_id for r in case.runs if r.disposition not in (None, "publish")}
     for h in case.hypotheses[:limit]:
         n_for = len(case.evidence_for(h.id, Stance.SUPPORTS.value))
         n_against = len(case.evidence_for(h.id, Stance.CONTRADICTS.value))
-        lines.append(f"- {h.id} [{h.status}] {h.statement[:200]} "
+        # #47: a status a withheld run set is a proposal, not the case's.
+        status = (f"{h.status}, proposed by a run whose answer was not published"
+                  if h.status_run_id in unpublished else h.status)
+        lines.append(f"- {h.id} [{status}] {h.statement[:200]} "
                      f"(for: {n_for}, against: {n_against})")
     open_items = case.open_uncertainties[:limit]
     if open_items:
@@ -114,12 +152,33 @@ def checkpoint_summary(case: ScientificCaseV1, *, limit: int = 6, evidence_limit
             lines.append(f"- {e.id} {e.stance}{bears} [{e.source_class} {e.source_ref}] {e.claim[:140]}")
     if case.next_tests:
         lines.append("Proposed tests: " + "; ".join(t.test[:120] for t in case.next_tests[:3]))
-    if case.conclusion.can_say or case.conclusion.cannot_say:
-        lines.append("Conclusion so far: " + "; ".join(
+    # #60: a premise moved under these, so they are the work this turn starts
+    # from. Said before the conclusion, because a conclusion that rests on one
+    # of them is not what the case can say any more.
+    stale = needs_reassessment(case.derived_claims)[:limit]
+    if stale:
+        lines.append(
+            "Derived claims a changed premise left waiting (recompute or reassess before "
+            "relying on them): " + "; ".join(f"{c.id} {c.statement[:120]} — {c.note[:160]}"
+                                             for c in stale))
+    def said(conclusion) -> str:
+        return "; ".join(
             [f"can say: {line.text[:120]} ({','.join(line.evidence_ids)})"
-             for line in case.conclusion.can_say[:3]]
-            + [f"cannot say: {text[:120]}" for text in case.conclusion.cannot_say[:2]]
-        ))
+             for line in conclusion.can_say[:3]]
+            + [f"cannot say: {text[:120]}" for text in conclusion.cannot_say[:2]]
+        )
+
+    trusted = (
+        case.conclusion if case.conclusion.status == CONCLUSION_RELEASED
+        else case.released_conclusion
+    )
+    if trusted is not None and (trusted.can_say or trusted.cannot_say):
+        lines.append("Conclusion so far: " + said(trusted))
+    if case.conclusion.status == CONCLUSION_PROPOSED and (
+        case.conclusion.can_say or case.conclusion.cannot_say
+    ):
+        lines.append("Proposed by an earlier run, not published -- not the case's conclusion: "
+                     + said(case.conclusion))
     cov = case.coverage
     lines.append(
         f"Coverage: {cov['with_any_source']}/{cov['hypotheses']} hypotheses have a source; "

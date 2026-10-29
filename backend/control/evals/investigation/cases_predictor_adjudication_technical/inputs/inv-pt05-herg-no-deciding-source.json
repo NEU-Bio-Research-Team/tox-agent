@@ -1,0 +1,66 @@
+{
+  "schema_version": "frozen-case-inputs-v1",
+  "case_id": "inv-pt05-herg-no-deciding-source",
+  "workflow_context": "toxicity_only",
+  "subject": {
+    "subject_ref": {
+      "kind": "analysis",
+      "analysis_ref": "ana_b99643d1ee134ecdaeb560d84764c3f8"
+    },
+    "identity": {
+      "canonical_smiles": "CCOC(=O)c1ccc(O)cc1",
+      "name_disclosed": true
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "frozen_analysis",
+      "ref": "ana_b99643d1ee134ecdaeb560d84764c3f8",
+      "content_sha256": "670a6022b28fc177a1b3984ee2656ccd5325218c18537444765de92e90217337"
+    }
+  ],
+  "evidence": {
+    "provider": "snapshot",
+    "snapshot": {
+      "path_name": "evidence.json",
+      "content_sha256": "6a1ece3f4c2810a541297ebc62f036cae702a3ec5056f1a2b2607118a2b4d632"
+    },
+    "full_text": {
+      "inline": true,
+      "content_sha256": "df53f503e80a691c217013eea1c3cc6a326e2b3fc1fc20765b1d6ca4d8013e07"
+    }
+  },
+  "contracts": {
+    "model": "synthetic-toxicity-fixture-v1 / sair-descriptor-hgb-b0 (synthetic values)",
+    "policy": "activity-priority-*-v1 (synthetic thresholds)",
+    "parser": "jats-passages-v1",
+    "tool_contract": "grounded-answer-v2"
+  },
+  "turns": [
+    {
+      "text": "What does the predictor say about hERG for TX-305, and does the available evidence support or contradict that call?"
+    }
+  ],
+  "provenance": {
+    "kind": "synthetic_engineering_fixture",
+    "admission_status": "not_admitted",
+    "sair_status": "unavailable",
+    "note": "fictional compounds, invented numbers; machinery only"
+  },
+  "dependency_groups": {
+    "compounds": [
+      "CCOC(=O)c1ccc(O)cc1"
+    ],
+    "documents": [
+      "MED:93051",
+      "MED:93052"
+    ],
+    "measurements": [
+      "inv-pt05-herg-no-deciding-source:p"
+    ],
+    "sources": [
+      "MED:93051",
+      "MED:93052"
+    ]
+  }
+}

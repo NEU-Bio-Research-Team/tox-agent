@@ -27,6 +27,7 @@ from ...domain import scientific_case as sc
 from ...domain.errors import Conflict, InvalidRequest
 from ...domain.evidence import EvidenceStatus
 from ...domain.observation import ObservationKind
+from ...platform.config import release_policy
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 GET_TOOL = "get_scientific_case"
@@ -123,6 +124,16 @@ class CaseOperation(_Input):
                                 description="record_action: why — which hypothesis it could move.")
     decision: Literal["continue", "redirect", "ask_user", "answer", "stop"] | None = None
     outcome: str | None = Field(default=None, max_length=500)
+    gap: Literal[
+        "identity_or_scope", "no_relevant_evidence", "span_not_read",
+        "measurement_unresolved", "disagreement_unexplained",
+        "only_researcher_has_it", "provider_or_corpus",
+    ] | None = Field(
+        default=None,
+        description="record_action: which unresolved gap this action is meant to close "
+                    "(§6.2). One of the seven, or leave it out -- do not pick the "
+                    "nearest-sounding one.",
+    )
     # propose_next_test
     test: str | None = Field(default=None, max_length=500)
     rationale: str | None = Field(default=None, max_length=1000)
@@ -275,9 +286,14 @@ def build(database) -> list[ToolDefinition]:
                 except InvalidRequest as exc:
                     refused.append((index, operation.op, exc.message))
                     continue
+                fields = _payload(operation)
+                if operation.op == "set_conclusion" and release_policy() != "legacy":
+                    # #47: a conclusion written during a run is proposed; it
+                    # becomes the case's only if the run's answer is published.
+                    fields["status"] = sc.CONCLUSION_PROPOSED
                 updates.append((index, service.update(
                     operation.op, actor=sc.Actor.MODEL.value, run_id=context.run_id,
-                    **_payload(operation))))
+                    **fields)))
             try:
                 if not updates:
                     raise sc.InvalidCaseUpdate("; ".join(

@@ -312,3 +312,27 @@ def test_punctuation_does_not_prevent_a_match() -> None:
 
 def test_an_empty_phrase_never_matches() -> None:
     assert not contains_phrase(tokenize("anything"), "")
+
+
+# ── #44: an attached screening is a subject ───────────────────────────────
+
+def test_a_question_about_an_attached_screening_needs_no_molecule():
+    decision = route(RouteRequest(
+        text="Why was this screening sent to review?", has_attached_screening=True,
+    ))
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert decision.decision.reason_codes == ("question_about_screening",)
+
+
+def test_without_a_screening_the_same_question_still_asks_for_a_molecule():
+    decision = route(RouteRequest(text="Why was this screening sent to review?"))
+    assert decision.intent is Intent.CLARIFICATION_REQUIRED
+
+
+def test_a_research_question_with_a_screening_attached_is_not_subjectless():
+    decision = route(RouteRequest(
+        text="find literature on this target", intent_hint="research_evidence",
+        has_attached_screening=True,
+    ))
+    assert decision.intent is Intent.DECISION_SUPPORT
+    assert "subject_absent" not in decision.decision.reason_codes

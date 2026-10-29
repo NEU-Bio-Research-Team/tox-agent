@@ -15,6 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ...application.conversation.subject_resolution import binding_of
 from ...application.investigation.artifact_inventory import build_artifact_inventory
 from ...domain.errors import InvalidRequest
 from ..registry import ToolContext, ToolDefinition, ToolOutput
@@ -47,16 +48,21 @@ class ReportSummaryInput(_Input):
 
 def build(database, *, research_provider_configured: bool) -> list[ToolDefinition]:
     async def artifact_inventory(context: ToolContext, payload: ArtifactInventoryInput) -> ToolOutput:
+        binding = binding_of(context)
         async with database.unit_of_work() as uow:
             session = await uow.sessions.get_unscoped(context.session_id)
             analysis_id = payload.analysis_id or (
-                session.active_analysis_id if session else None
+                # #44: the run's bound subject, never the session's current
+                # selection; a screening subject has no analysis of its own.
+                binding.analysis_id if binding is not None
+                else session.active_analysis_id if session else None
             )
             view = await build_artifact_inventory(
                 uow,
                 session_id=context.session_id,
                 analysis_id=analysis_id,
                 research_provider_configured=research_provider_configured,
+                subject=binding,
             )
         return ToolOutput(canonical=view, model_view=view, ui_view=view)
 
@@ -68,8 +74,10 @@ def build(database, *, research_provider_configured: bool) -> list[ToolDefinitio
                 )
             else:
                 session = await uow.sessions.get_unscoped(context.session_id)
+                binding = binding_of(context)
                 analysis_id = payload.analysis_id or (
-                    session.active_analysis_id if session else None
+                    binding.analysis_id if binding is not None
+                    else session.active_analysis_id if session else None
                 )
                 if not analysis_id:
                     raise InvalidRequest(

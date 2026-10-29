@@ -10,8 +10,9 @@ import { RunTimelineTab } from './RunTimelineTab';
 import { RuntimeManifestTab } from './RuntimeManifestTab';
 import { ValidationTab } from './ValidationTab';
 import { RawJsonTab } from './RawJsonTab';
+import { StageLineage } from '../artifacts/StageLineage';
 
-const TAB_VALUES = ['timeline', 'runtime', 'validation', 'raw'] as const;
+const TAB_VALUES = ['timeline', 'release', 'runtime', 'validation', 'raw'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
 
 function isTabValue(value: string | null): value is TabValue {
@@ -101,6 +102,7 @@ export function RunInspectorContent({ sessionId, runId }: { sessionId: string; r
           <div className="overflow-x-auto">
             <TabsList>
               <TabsTrigger value="timeline">Dòng thời gian</TabsTrigger>
+              <TabsTrigger value="release">Phát hành</TabsTrigger>
               <TabsTrigger value="runtime">Runtime</TabsTrigger>
               <TabsTrigger value="validation">Kiểm định</TabsTrigger>
               <TabsTrigger value="raw">JSON thô</TabsTrigger>
@@ -108,6 +110,10 @@ export function RunInspectorContent({ sessionId, runId }: { sessionId: string; r
           </div>
           <TabsContent value="timeline" className="pt-4">
             <RunTimelineTab run={run} />
+          </TabsContent>
+          <TabsContent value="release" className="pt-4">
+            {/* A withheld run has no answer to audit; its stages are here. */}
+            <StageLineage sessionId={sessionId} runId={run.run_id} />
           </TabsContent>
           <TabsContent value="runtime" className="pt-4">
             <RuntimeManifestTab run={run} />

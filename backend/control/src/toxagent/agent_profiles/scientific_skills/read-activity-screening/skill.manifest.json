@@ -1,0 +1,16 @@
+{
+  "schema_version": "scientific-skill-manifest-v1",
+  "skill_id": "read-activity-screening",
+  "version": "1.0.0",
+  "status": "active",
+  "owner": "backend-scientific",
+  "allowed_profiles": ["decision_support"],
+  "required_capabilities": ["get_screening_state", "get_activity_snapshot", "get_prioritisation_decision", "get_scientific_case", "update_scientific_case"],
+  "risk_tier": "medium",
+  "output_contract": "the estimate, interval, policy decision and stage status stated as what they are; record_evidence scoped to the screening's target and assay context for any measurement read; an uncertainty when the decision still rests on the interval; never a changed estimate, interval or decision",
+  "eval_set": {
+    "positive_tags": ["activity_guided"],
+    "negative_tags": ["toxicity_only"]
+  },
+  "references": []
+}

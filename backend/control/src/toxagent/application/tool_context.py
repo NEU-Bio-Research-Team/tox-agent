@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Mapping
+from typing import Any, Mapping
 
 from .policy import Actor
 
@@ -39,3 +39,11 @@ class ToolContext:
     #: selection in the hands of the thing being explained (I10). No tool
     #: input schema exposes a model field; this is the only way one arrives.
     model_selection: Mapping[str, str] | None = None
+    #: #44 (subject_binding_v1): the run's frozen RunSubjectBinding, as its
+    #: wire dict, injected like ``model_selection``. A tool that defaults to
+    #: "the run's subject" reads this, never the session's current selection.
+    subject: Mapping[str, Any] | None = None
+    #: #46/#53: which phase of the run this call belongs to (investigator,
+    #: workflow_acquisition, workflow_synthesis, review_initial,
+    #: semantic_repair, review_final), set by the server per dispatch.
+    phase: str = ""

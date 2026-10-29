@@ -7,7 +7,7 @@ Each test below pins one way that could happen again.
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -270,8 +270,10 @@ def test_the_budget_in_the_product_is_the_enforced_one():
 
 def test_expired_flags_are_visible():
     from toxagent.api.effective_product import flag_snapshot
+    from toxagent.platform.flags import FLAGS
 
-    snapshot = flag_snapshot(today=date(2027, 1, 1))
+    # The day after the last flag is due out, whichever flag that is.
+    snapshot = flag_snapshot(today=max(f.remove_by for f in FLAGS) + timedelta(days=1))
     assert all(flag["expired"] for flag in snapshot.values())
 
 

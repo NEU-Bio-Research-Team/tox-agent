@@ -29,10 +29,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # `sair`: the SAIR ETL and baseline tests import pandas and
+          # scikit-learn at collection. They are required tests, not optional
+          # ones, so the lane installs what they need rather than skipping
+          # them. The serving import boundary is checked by AST
+          # (test_import_boundaries.py), so having these installed here does
+          # not let a serving module start depending on them unnoticed.
           - service: predictor
             dir: backend/predictor
+            extras: dev,sair
           - service: control
             dir: backend/control
+            extras: dev
     name: fast-pr (${{ matrix.service }})
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +48,7 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      - run: pip install -e './${{ matrix.dir }}[dev]'
+      - run: pip install -e './${{ matrix.dir }}[${{ matrix.extras }}]'
       - if: matrix.service == 'predictor'
         run: python backend/predictor/scripts/check_no_agent_deps.py
       - run: python -m pytest -q tests/unit tests/contract --junitxml=junit-${{ matrix.service }}.xml
@@ -157,7 +165,10 @@ jobs:
 
   frontend-e2e:
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, which Playwright 1.52 cannot
+    # install browsers for ("does not support chromium on ubuntu26.04-x64").
+    # Unpin when @playwright/test is upgraded to a release that supports it.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend

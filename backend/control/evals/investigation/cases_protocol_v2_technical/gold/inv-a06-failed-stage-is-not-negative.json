@@ -1,0 +1,33 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-a06-failed-stage-is-not-negative",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "No estimate exists: the activity stage failed, which is not a negative or inactive result.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "No estimate exists: the activity stage failed, which is not a negative or inactive result."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "status",
+      "statement": "screening status",
+      "value": "activity_failed",
+      "unit": null
+    }
+  ],
+  "required_limitations": [
+    "L8"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "not_run_as_negative"
+  ],
+  "critical_errors": [
+    "not_run_as_negative"
+  ],
+  "evidence_spans": [],
+  "sources": [],
+  "note": "Synthetic engineering gold: checks the machinery, not the science."
+}

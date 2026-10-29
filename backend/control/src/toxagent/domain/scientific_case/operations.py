@@ -6,6 +6,8 @@ from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
 from .model import (
+    CONCLUSION_PROPOSED,
+    CONCLUSION_RELEASED,
     MAX_ACTIONS,
     MAX_CONTEXT,
     MAX_EVIDENCE,
@@ -36,9 +38,13 @@ from .model import (
     SourceClass,
     Stance,
     Uncertainty,
+    MAX_DERIVED_CLAIMS,
     UncertaintyKind,
     _values,
 )
+from ..investigation_gap import Gap
+from .dependencies import CLAIM_PROPOSED, DerivedClaim, Justification, apply_change
+from .values import VALUE_REF_SCHEME, VerificationStatus
 
 
 def _text(payload: Mapping[str, Any], key: str, *, required: bool = True,
@@ -110,15 +116,50 @@ def parse_ref(ref: str) -> tuple[str, str]:
     return kind, identifier
 
 
+#: The EvidenceScope axes (domain/evidence_relation.py) and the two keys the
+#: ledger accepted before them. A relation's scope reaches the ledger axis for
+#: axis: collapsing target, assay or unit away is how "both say hERG" turns
+#: into a false contradiction one turn later.
+SCOPE_KEYS: frozenset[str] = frozenset({
+    "endpoint", "species", "dose", "use_context", "ligand_id", "target_id", "target_variant",
+    "target_sequence_sha256", "assay_type", "readout", "unit", "comparator",
+    "experimental_context", "assay", "compound",
+})
+
+
 def _scope(payload: Mapping[str, Any]) -> dict[str, str]:
     raw = payload.get("scope") or {}
     if not isinstance(raw, Mapping):
         raise InvalidCaseUpdate("scope must be an object")
-    allowed = {"endpoint", "species", "assay", "dose", "use_context", "compound"}
-    unknown = sorted(set(raw) - allowed)
+    unknown = sorted(set(raw) - SCOPE_KEYS)
     if unknown:
-        raise InvalidCaseUpdate(f"scope keys must be among {sorted(allowed)}; got {unknown}")
+        raise InvalidCaseUpdate(f"scope keys must be among {sorted(SCOPE_KEYS)}; got {unknown}")
     return {k: str(v)[:200] for k, v in raw.items() if v not in (None, "")}
+
+
+def _spans(payload: Mapping[str, Any]) -> tuple[str, ...]:
+    raw = payload.get("spans") or ()
+    if isinstance(raw, str) or not isinstance(raw, (list, tuple)):
+        raise InvalidCaseUpdate("spans must be a list of passage locators")
+    if len(raw) > 16:
+        raise InvalidCaseUpdate("an entry names at most 16 spans")
+    out: list[str] = []
+    for index, item in enumerate(raw):
+        if not isinstance(item, str) or not item.strip() or len(item) > 120:
+            raise InvalidCaseUpdate(f"spans[{index}] must be a passage locator")
+        if item.strip() not in out:
+            out.append(item.strip())
+    return tuple(out)
+
+
+def _provenance(payload: Mapping[str, Any], actor: str) -> dict[str, str]:
+    raw = payload.get("provenance") or {}
+    if not isinstance(raw, Mapping):
+        raise InvalidCaseUpdate("provenance must be an object")
+    if raw and actor != Actor.SERVER.value:
+        # Where a source came from is the server's record, not a claim.
+        raise InvalidCaseUpdate("only the server records an entry's provenance")
+    return {str(k)[:60]: str(v)[:200] for k, v in raw.items() if v not in (None, "")}
 
 
 def _open(case: ScientificCaseV1 | None, u: CaseUpdate) -> ScientificCaseV1:
@@ -132,6 +173,7 @@ def _open(case: ScientificCaseV1 | None, u: CaseUpdate) -> ScientificCaseV1:
         subject_refs=tuple(dict.fromkeys(p.get("subject_refs") or ())),
         requester=_text(p, "requester", required=False, limit=200),
         data_scope=DataScope(**p["data_scope"]) if p.get("data_scope") else DataScope(),
+        subject=dict(p.get("subject") or {}),
         created_at=u.at,
     )
 
@@ -155,15 +197,132 @@ def _set_scope(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     return replace(case, data_scope=scope)
 
 
+#: What a context item may be scoped to (#46/US4): the axes an activity or
+#: toxicity measurement is compared on. Anything else is refused, not kept
+#: as a free-form tag nobody checks.
+CONTEXT_SCOPE_AXES = ("target_id", "variant", "experimental_context", "assay", "species",
+                      "endpoint")
+
+
+def _context_scope(payload: Mapping[str, Any]) -> dict[str, str] | None:
+    scope = payload.get("scope")
+    if scope in (None, {}):
+        return None
+    if not isinstance(scope, Mapping):
+        raise InvalidCaseUpdate("scope must be an object")
+    unknown = sorted(set(scope) - set(CONTEXT_SCOPE_AXES))
+    if unknown:
+        raise InvalidCaseUpdate(f"scope axes {unknown} are not among {list(CONTEXT_SCOPE_AXES)}")
+    return {axis: _text(scope, axis, limit=120) for axis in sorted(scope)}
+
+
+def verification_for(u: CaseUpdate) -> str | None:
+    """The stated verification status, if the actor may state it (#61).
+
+    ``sme_verified`` is the status the study's gold is built on, so a run
+    cannot award it to its own input: only an update the researcher made may
+    carry it. A caller that asks for it is refused with the reason, rather
+    than silently downgraded, so the refusal is visible in the run.
+
+    Today ``add_context`` is the researcher's operation alone (``_OPS``), so
+    this is the second lock rather than the first. It is here because the
+    first one is an allowlist about *who may add context*, and this is a rule
+    about *what standing a value may claim* -- if that allowlist ever widens
+    to the server, the rule still holds.
+    """
+    stated = u.payload.get("verification")
+    if stated in (None, ""):
+        return None
+    status = _choice(u.payload, "verification", VerificationStatus)
+    if status == VerificationStatus.SME_VERIFIED.value and u.actor != Actor.USER.value:
+        raise InvalidCaseUpdate(
+            "verification 'sme_verified' may only be set by the researcher; a value this "
+            "run supplied is 'user_asserted' or 'source_backed'"
+        )
+    return status
+
+
 def _add_context(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     if len(case.context) >= MAX_CONTEXT:
         raise InvalidCaseUpdate(f"a case holds at most {MAX_CONTEXT} context items")
+    key = _text(u.payload, "key", limit=120)
     item = ContextItem(
         id=_next_local_id("c", (c.id for c in case.context)),
-        key=_text(u.payload, "key", limit=120), value=_text(u.payload, "value"),
+        key=key, value=_text(u.payload, "value"),
         note=_text(u.payload, "note", required=False), actor=u.actor, run_id=u.run_id,
+        unit=_text(u.payload, "unit", required=False, limit=40) or None,
+        source=_text(u.payload, "source", required=False, limit=120) or None,
+        scope=_context_scope(u.payload),
+        verification=verification_for(u),
     )
-    return replace(case, context=case.context + (item,))
+    superseded = tuple(c for c in case.context if c.key == key)
+    case = replace(case, context=case.context + (item,))
+    if not superseded or not case.derived_claims:
+        return case
+    # §5.3: correcting a value marks what was computed from it, here, rather
+    # than in a caller that might forget. The ref of the version just
+    # superseded is what the claims cite -- the new version is cited by
+    # nothing yet.
+    stale = f"{VALUE_REF_SCHEME}:{key}@v{len(superseded)}"
+    return replace(case, derived_claims=apply_change(case.derived_claims, (stale,)))
+
+
+def _record_derived_claim(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    """Record a derived claim, or add a justification to one that exists (#60).
+
+    Adding a second justification to a claim is how §5.3's "claim còn một
+    justification khác hợp lệ" case comes about, so it is the same operation
+    rather than a second one: a run that reaches an existing claim another way
+    says so, and the claim stops depending on one premise alone.
+    """
+    statement = _text(u.payload, "statement", limit=MAX_TEXT)
+    rule = _text(u.payload, "rule", limit=120)
+    inputs = _texts(u.payload, "inputs", limit=16)
+    if not inputs:
+        raise InvalidCaseUpdate(
+            "a derived claim needs its inputs: the refs it was computed from, so a change "
+            "to one of them can find it"
+        )
+    assumptions = _texts(u.payload, "assumptions", limit=8)
+    existing = next((c for c in case.derived_claims
+                     if c.statement.casefold() == statement.casefold()), None)
+    if existing is None and len(case.derived_claims) >= MAX_DERIVED_CLAIMS:
+        raise InvalidCaseUpdate(f"a case holds at most {MAX_DERIVED_CLAIMS} derived claims")
+
+    def _justification(owner: DerivedClaim | None) -> Justification:
+        return Justification(
+            id=_next_local_id("j", (j.id for j in (owner.justifications if owner else ()))),
+            rule=rule, inputs=inputs, assumptions=assumptions,
+        )
+
+    if existing is not None:
+        if any(j.rule == rule and j.inputs == inputs for j in existing.justifications):
+            return case  # an idempotent repeat
+        updated = replace(existing,
+                          justifications=existing.justifications + (_justification(existing),))
+        return replace(case, derived_claims=tuple(
+            updated if c.id == existing.id else c for c in case.derived_claims))
+
+    claim = DerivedClaim(
+        id=_next_local_id("dc", (c.id for c in case.derived_claims)),
+        statement=statement, justifications=(_justification(None),),
+        status=CLAIM_PROPOSED, actor=u.actor, run_id=u.run_id,
+    )
+    return replace(case, derived_claims=case.derived_claims + (claim,))
+
+
+def _reassess_claims(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    """Mark what a change outside the case's own values reaches (#60).
+
+    A corrected researcher value marks its own downstream in ``_add_context``.
+    This is for the other premises: a re-run predictor snapshot, an evidence
+    record withdrawn, an assumption the researcher no longer accepts.
+    """
+    changed = _texts(u.payload, "changed", limit=16)
+    if not changed:
+        raise InvalidCaseUpdate("reassess_claims needs the refs that changed")
+    note = _text(u.payload, "note", required=False, limit=MAX_TEXT)
+    return replace(case, derived_claims=apply_change(case.derived_claims, changed, note=note))
 
 
 def _add_hypothesis(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
@@ -199,7 +358,8 @@ def _revise_hypothesis(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV
             "record_evidence first, or say why it is unresolvable"
         )
     hypotheses = tuple(
-        replace(h, status=status, status_reason=reason) if h.id == target else h
+        replace(h, status=status, status_reason=reason, status_run_id=u.run_id)
+        if h.id == target else h
         for h in case.hypotheses
     )
     return replace(case, hypotheses=hypotheses)
@@ -228,7 +388,8 @@ def _record_evidence(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         source_class=source_class, source_ref=f"{kind}:{identifier}", stance=stance,
         directness=_choice(p, "directness", Directness, Directness.NOT_ASSESSED.value),
         hypothesis_ids=hypothesis_ids, locator=_text(p, "locator", required=False, limit=300) or None,
-        scope=_scope(p), actor=u.actor, run_id=u.run_id,
+        scope=_scope(p), actor=u.actor, run_id=u.run_id, spans=_spans(p),
+        provenance=_provenance(p, u.actor),
     )
     duplicate = next((
         e for e in case.evidence
@@ -271,6 +432,19 @@ def _resolve_uncertainty(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCas
     return replace(case, uncertainties=items)
 
 
+def _gap_for(payload: Mapping[str, Any]) -> str:
+    """The gap an action says it addresses (#70, §6.2).
+
+    Refused rather than coerced when it is not one of the seven: a run that
+    invents a gap name has not said which gap it is closing, and letting the
+    string through would put free text in a field a benchmark groups by.
+    """
+    stated = payload.get("gap")
+    if stated in (None, ""):
+        return ""
+    return _choice(payload, "gap", Gap)
+
+
 def _record_action(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     if len(case.actions) >= MAX_ACTIONS:
         return case  # the log is bounded; the run's tool calls remain the full record
@@ -283,6 +457,7 @@ def _record_action(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
         hypothesis_ids=_known_ids(case, p.get("hypothesis_ids"), kind="hypothesis",
                                   key="hypothesis_ids"),
         actor=u.actor, run_id=u.run_id,
+        gap=_gap_for(p),
     )
     return replace(case, actions=case.actions + (action,))
 
@@ -321,12 +496,34 @@ def _set_conclusion(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
                 "ledger belongs in cannot_say or is a hypothesis"
             )
         lines.append(ConclusionLine(text=_text(raw, "text"), evidence_ids=evidence_ids))
+    status = p.get("status", CONCLUSION_RELEASED)
+    if status not in (CONCLUSION_PROPOSED, CONCLUSION_RELEASED):
+        raise InvalidCaseUpdate(f"a conclusion is proposed or released; got {status!r}")
     conclusion = Conclusion(
         can_say=tuple(lines), cannot_say=_texts(p, "cannot_say"),
         what_would_change=_texts(p, "what_would_change"),
         approver=_text(p, "approver", required=False, limit=200), run_id=u.run_id,
+        status=status,
     )
-    return replace(case, conclusion=conclusion)
+    if status == CONCLUSION_PROPOSED:
+        # Keep what was last trusted beside the proposal (#47).
+        kept = (
+            case.conclusion if case.conclusion.status == CONCLUSION_RELEASED
+            and (case.conclusion.can_say or case.conclusion.cannot_say)
+            else case.released_conclusion
+        )
+        return replace(case, conclusion=conclusion, released_conclusion=kept)
+    return replace(case, conclusion=conclusion, released_conclusion=None)
+
+
+def _promote_conclusion(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
+    """#47: the run's answer was published, so the conclusion it proposed
+    becomes the case's. A conclusion another run proposed is not touched."""
+    run_id = _run_id(u)
+    if case.conclusion.status != CONCLUSION_PROPOSED or case.conclusion.run_id != run_id:
+        return case
+    return replace(case, conclusion=replace(case.conclusion, status=CONCLUSION_RELEASED),
+                   released_conclusion=None)
 
 
 def _run_id(u: CaseUpdate) -> str:
@@ -340,7 +537,11 @@ def _attach_run(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     run_id = _run_id(u)
     if any(r.run_id == run_id for r in case.runs):
         return case
-    record = RunRecord(run_id=run_id, goal=_text(u.payload, "goal", required=False, limit=2000))
+    binding = u.payload.get("binding") or {}
+    if not isinstance(binding, Mapping):
+        raise InvalidCaseUpdate("binding must be an object")
+    record = RunRecord(run_id=run_id, goal=_text(u.payload, "goal", required=False, limit=2000),
+                       binding=dict(binding))
     return replace(case, runs=case.runs + (record,))
 
 
@@ -348,13 +549,14 @@ def _finish_run(case: ScientificCaseV1, u: CaseUpdate) -> ScientificCaseV1:
     run_id = _run_id(u)
     current = next((r for r in case.runs if r.run_id == run_id), None)
     if current is not None and (
-        current.stop_reason, current.answer_id, dict(current.usage)
+        current.stop_reason, current.answer_id, dict(current.usage), current.disposition
     ) == (u.payload.get("stop_reason"), u.payload.get("answer_id"),
-          dict(u.payload.get("usage") or {})):
+          dict(u.payload.get("usage") or {}), u.payload.get("disposition")):
         return case  # the same ending recorded twice is one ending
     runs = tuple(
         replace(r, stop_reason=u.payload.get("stop_reason"), answer_id=u.payload.get("answer_id"),
-                usage=dict(u.payload.get("usage") or {}))
+                usage=dict(u.payload.get("usage") or {}),
+                disposition=u.payload.get("disposition"))
         if r.run_id == run_id else r
         for r in case.runs
     )
@@ -370,6 +572,16 @@ _OPS = {
     #: Only the researcher widens or narrows what the case may reach.
     "set_scope": (_set_scope, {Actor.USER}),
     "add_context": (_add_context, {Actor.USER}),
+    #: #60. The server's, like the calculation itself: §9.1 has a derived
+    #: numeric claim checked by an approved calculation over cited inputs, so
+    #: the component that performed the calculation is the one that records
+    #: what it was computed from. Opening this to the investigator means
+    #: giving `update_scientific_case` the op and the prompt guidance for it,
+    #: which is #69/#70's work, not a wider actor set here.
+    "record_derived_claim": (_record_derived_claim, {Actor.SERVER}),
+    #: Marking what a change reaches is the server's: it is a consequence of
+    #: a premise moving, not a judgement a run gets to make about its own work.
+    "reassess_claims": (_reassess_claims, {Actor.SERVER}),
     "add_hypothesis": (_add_hypothesis, {Actor.MODEL, Actor.USER}),
     "revise_hypothesis": (_revise_hypothesis, {Actor.MODEL, Actor.USER}),
     "record_evidence": (_record_evidence, {Actor.MODEL, Actor.USER, Actor.SERVER}),
@@ -378,6 +590,7 @@ _OPS = {
     "record_action": (_record_action, {Actor.MODEL, Actor.SERVER}),
     "propose_next_test": (_propose_next_test, {Actor.MODEL, Actor.USER}),
     "set_conclusion": (_set_conclusion, {Actor.MODEL}),
+    "promote_conclusion": (_promote_conclusion, {Actor.SERVER}),
     "attach_run": (_attach_run, {Actor.SERVER}),
     "finish_run": (_finish_run, {Actor.SERVER}),
     "close": (_close, {Actor.USER, Actor.SERVER}),

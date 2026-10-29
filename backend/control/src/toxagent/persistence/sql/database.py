@@ -34,6 +34,11 @@ from .repositories import (
     SqlDevelopmentPostureStore,
     SqlEvidenceStore,
     SqlEvidenceRelationStore,
+    SqlEvidenceTextStore,
+    SqlAnswerDraftStore,
+    SqlAnswerReleaseStore,
+    SqlRunResultStore,
+    SqlScreeningAttachmentStore,
     SqlExplanationCheckpointStore,
     SqlInvestigationStore,
     SqlMessageStore,
@@ -112,6 +117,8 @@ class SqlUnitOfWork:
         self.observations = SqlObservationStore(conn)
         self.evidence = SqlEvidenceStore(conn)
         self.evidence_relations = SqlEvidenceRelationStore(conn)
+        self.evidence_text = SqlEvidenceTextStore(conn)
+        self.screenings = SqlScreeningAttachmentStore(conn)
         self.development_postures = SqlDevelopmentPostureStore(conn)
         self.decision_states = SqlDecisionStateStore(conn)
         self.scientific_cases = SqlScientificCaseStore(conn)
@@ -120,6 +127,9 @@ class SqlUnitOfWork:
         self.investigations = SqlInvestigationStore(conn)
         self.model_connections = SqlModelConnectionStore(conn)
         self.answers = SqlAnswerStore(conn)
+        self.answer_drafts = SqlAnswerDraftStore(conn)
+        self.answer_releases = SqlAnswerReleaseStore(conn)
+        self.run_results = SqlRunResultStore(conn)
         self.runtime_bindings = SqlRuntimeBindingStore(conn)
         self.runtime_usage = SqlRuntimeUsageStore(conn)
         self.tool_calls = SqlToolCallStore(conn)

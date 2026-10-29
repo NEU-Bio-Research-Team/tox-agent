@@ -2,12 +2,29 @@ import { useQuery } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
 import { getEvidence } from '../../../shared/api/endpoints';
 import { ArtifactUnavailable } from './ArtifactUnavailable';
+import { EvidencePassages } from './EvidencePassages';
+
+const RELEVANCE_LABEL: Record<string, string> = {
+  direct: 'trực tiếp về subject (đúng ligand và target)',
+  contextual: 'bối cảnh (cùng ligand, target khác)',
+  uncertain: 'chưa xác định được',
+  irrelevant: 'không về subject này',
+};
 
 function safeExternalUrl(value: string | null): string | null {
   return value && /^https:\/\//i.test(value) ? value : null;
 }
 
-export function EvidenceArtifact({ sessionId, evidenceId }: { sessionId: string; evidenceId: string }) {
+export function EvidenceArtifact({
+  sessionId,
+  evidenceId,
+  locator,
+}: {
+  sessionId: string;
+  evidenceId: string;
+  /** The passage a claim quotes; the viewer opens on it. */
+  locator?: string;
+}) {
   const query = useQuery({
     queryKey: ['evidence', sessionId, evidenceId],
     queryFn: () => getEvidence(sessionId, evidenceId),
@@ -41,6 +58,10 @@ export function EvidenceArtifact({ sessionId, evidenceId }: { sessionId: string;
         {identifiers.map(([kind, value]) => <Detail key={kind} label={kind.toUpperCase()} value={value!} />)}
         <Detail label="SHA-256" value={record.content_sha256} mono />
       </dl>
+
+      <RelevanceLine assessment={record.relevance_assessment ?? {}} />
+
+      <EvidencePassages sessionId={sessionId} evidenceId={evidenceId} locator={locator} />
 
       {record.rejection_reason && (
         <p className="rounded-lg border p-2 text-xs" style={{ borderColor: 'var(--accent-yellow)', color: 'var(--text-muted)' }}>
@@ -90,5 +111,22 @@ function Detail({ label, value, mono = false }: { label: string; value: string; 
       <dt className="w-20 shrink-0" style={{ color: 'var(--text-faint)' }}>{label}</dt>
       <dd className={`min-w-0 break-all ${mono ? 'font-mono' : ''}`}>{value}</dd>
     </div>
+  );
+}
+
+/** Whether the record is about the subject it was searched for, by the
+ * server's rule -- never inferred here. Absent when no assessment ran. */
+function RelevanceLine({ assessment }: { assessment: Record<string, unknown> }) {
+  const relevance = typeof assessment.relevance === 'string' ? assessment.relevance : null;
+  if (!relevance) return null;
+  const reasons = Array.isArray(assessment.reason_codes) ? assessment.reason_codes.map(String) : [];
+  const scope = (assessment.assessed_scope ?? {}) as Record<string, unknown>;
+  const scopeText = Object.entries(scope).map(([key, value]) => `${key}: ${String(value)}`).join(' · ');
+  return (
+    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+      Liên quan: <span style={{ color: 'var(--text)' }}>{RELEVANCE_LABEL[relevance] ?? relevance}</span>
+      {scopeText ? ` · ${scopeText}` : ''}
+      {reasons.length > 0 && <span style={{ color: 'var(--text-faint)' }}> ({reasons.join(', ')})</span>}
+    </p>
   );
 }

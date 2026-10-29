@@ -80,7 +80,14 @@ class ClaimCandidateV2(_Wire):
     text: str = Field(min_length=1, max_length=2000)
     observation_id: str | None = None
     field_path: str | None = None
-    transform: str = "identity"
+    transform: str = Field(
+        default="identity",
+        description=(
+            "How the cited value is rendered, exactly one of: identity, round:N or "
+            "percent:N (N from 0 to 6), difference, ratio. Omit it for the value as "
+            "stored. Anything else is refused before the answer is checked."
+        ),
+    )
     citation_ids: list[str] = Field(default_factory=list)
     input_local_refs: list[str] = Field(
         default_factory=list,
@@ -154,10 +161,45 @@ class EvidenceRelationInputV2(_Wire):
     applicability: Literal[_APPLICABILITY] = "ok"
     strength: Literal[_STRENGTH] = "not_assessed"
     reason_codes: list[str] = Field(default_factory=list, max_length=8)
-    endpoint: str | None = None
+    # The scope fields below are what this source itself states. They decide
+    # whether a `contradicts` is accepted (domain/evidence_relation.py): set
+    # against a `supports` on the same proposition, both must state what was
+    # observed and in which molecule or system, and, if either is a measured
+    # value, how it was measured -- with no field both state differently.
+    endpoint: str | None = Field(
+        default=None,
+        description=(
+            "What this source observed, as it states it. A 'contradicts' set against a "
+            "'supports' on the same proposition is accepted only when both state what "
+            "was observed (endpoint or target_id) and in which molecule or system "
+            "(ligand_id, species, experimental_context, use_context or "
+            "target_variant), plus assay_type or readout if either is a measured value, "
+            "and no field both state differs. Leave a field out when the source does "
+            "not say it; a scope filled in to match is a false contradiction."
+        ),
+    )
     species: str | None = None
     dose: str | None = None
     use_context: str | None = None
+    # What makes a measurement the same measurement. Two records can both say
+    # "hERG" and measure different things, so a `contradicts` whose scope
+    # differs from the source it contradicts on any of these is rejected and
+    # has to be restated as `contextual` (domain/evidence_relation.py).
+    ligand_id: str | None = Field(
+        default=None, max_length=200,
+        description=(
+            "Which molecule: an identifier a tool gave you, else the name the source "
+            "uses, spelled the same in every relation."
+        ),
+    )
+    target_id: str | None = Field(default=None, max_length=200)
+    target_variant: str | None = Field(default=None, max_length=200)
+    target_sequence_sha256: str | None = Field(default=None, max_length=64)
+    assay_type: str | None = Field(default=None, max_length=200)
+    readout: str | None = Field(default=None, max_length=200)
+    unit: str | None = Field(default=None, max_length=40)
+    comparator: str | None = Field(default=None, max_length=8)
+    experimental_context: str | None = Field(default=None, max_length=300)
     input_source_refs: list[str] = Field(
         default_factory=list, max_length=8,
         description=(
@@ -285,3 +327,116 @@ class GroundedAnswerDraftV2(_Wire):
                     f"{unknown}"
                 )
         return self
+
+
+#: Locators as research/fulltext.py mints them (evals/investigation/
+#: case_validator.py checks gold spans against the same grammar).
+EVIDENCE_LOCATOR_PATTERN = (
+    r"^(abstract|sec:\d+/p:\d+|body/p:\d+|table-wrap:\d+(/row:\d+(/cell:\d+)?)?)$"
+)
+
+
+class EvidenceSpanV2(_Wire):
+    """One passage of a cited record, named by the locator read_evidence_text
+    returned. The server reads the passage itself; a number the claim's prose
+    quotes from it is checked against that text."""
+
+    evidence_id: str
+    locator: str = Field(max_length=80, pattern=EVIDENCE_LOCATOR_PATTERN)
+
+    @field_validator("evidence_id")
+    @classmethod
+    def _evidence_id_shape(cls, value: str) -> str:
+        if not ID_PATTERN.match(value):
+            raise ValueError(f"evidence_id {value!r} is not a ToxAgent identifier")
+        return value
+
+
+class ClaimCandidateV2Spans(ClaimCandidateV2):
+    """A v2 claim that may quote passages (flag evidence_full_text_v1)."""
+
+    evidence_spans: list[EvidenceSpanV2] = Field(
+        default_factory=list, max_length=8,
+        description=(
+            "Passages this claim quotes, each an evidence_id from citation_ids and a "
+            "locator read_evidence_text returned for it. A number taken from a paper's "
+            "text or table may appear in answer_markdown only through a span that "
+            "contains it."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _spans_are_of_cited_records(self) -> "ClaimCandidateV2Spans":
+        uncited = sorted({s.evidence_id for s in self.evidence_spans} - set(self.citation_ids))
+        if uncited:
+            raise ValueError(
+                f"claim {self.local_ref!r} quotes passages of records it does not cite: "
+                f"{uncited}; add them to citation_ids"
+            )
+        return self
+
+
+class GroundedAnswerDraftV2Spans(GroundedAnswerDraftV2):
+    """The v2 draft whose claims may quote passages (flag evidence_full_text_v1).
+    A subclass, so every check on GroundedAnswerDraftV2 still applies."""
+
+    claims: list[ClaimCandidateV2Spans] = Field(default_factory=list, max_length=64)
+
+
+class StopDeclarationV2(_Wire):
+    """Why the answer stops here (#46, flag typed_stop_v1). The server derives
+    its own stop reason from the run; this is the answer's, recorded beside
+    it. Only ``needs_user_input`` changes the run's stop reason, because only
+    the answer can know it is waiting on the researcher."""
+
+    reason: Literal["sufficient", "needs_user_input", "sources_do_not_resolve", "budget_reached"]
+    needed_inputs: list[str] = Field(
+        default_factory=list, max_length=5,
+        description=(
+            "For needs_user_input: what only the researcher can supply, each as one short "
+            "item (e.g. 'free plasma Cmax at the intended dose')."
+        ),
+    )
+
+    @field_validator("needed_inputs")
+    @classmethod
+    def _short_items(cls, value: list[str]) -> list[str]:
+        cleaned = [item.strip() for item in value if item.strip()]
+        if any(len(item) > 200 for item in cleaned):
+            raise ValueError("each needed input is one short item (at most 200 characters)")
+        return cleaned
+
+    @model_validator(mode="after")
+    def _needs_name_the_input(self) -> "StopDeclarationV2":
+        if self.reason == "needs_user_input" and not self.needed_inputs:
+            raise ValueError(
+                "a needs_user_input stop must name what the researcher has to supply "
+                "(needed_inputs)"
+            )
+        return self
+
+
+_STOP_DESCRIPTION = (
+    "Why the answer stops: sufficient (the sources settle the question), needs_user_input "
+    "(name what only the researcher can supply), sources_do_not_resolve (what was read "
+    "cannot settle it), or budget_reached."
+)
+
+
+class GroundedAnswerDraftV2Stop(GroundedAnswerDraftV2):
+    stop: StopDeclarationV2 | None = Field(default=None, description=_STOP_DESCRIPTION)
+
+
+class GroundedAnswerDraftV2SpansStop(GroundedAnswerDraftV2Spans):
+    stop: StopDeclarationV2 | None = Field(default=None, description=_STOP_DESCRIPTION)
+
+
+def draft_model(*, spans: bool, stop: bool) -> type[GroundedAnswerDraftV2]:
+    """The v2 draft schema a deployment offers, by which optional parts are on."""
+    return {
+        (False, False): GroundedAnswerDraftV2,
+        (True, False): GroundedAnswerDraftV2Spans,
+        (False, True): GroundedAnswerDraftV2Stop,
+        (True, True): GroundedAnswerDraftV2SpansStop,
+    }[(spans, stop)]
+

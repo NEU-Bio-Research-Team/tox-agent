@@ -32,8 +32,8 @@ so a case can be rebuilt and tested without a database.
 
 Split by role: ``model`` (the case and its entries), ``operations`` (the
 closed set of updates and ``apply``/``replay``), ``updates`` (updates derived
-from an accepted answer or its citations), ``dossier`` (read models). Every
-name is re-exported here.
+from an accepted answer or its citations), ``dossier`` and ``changes`` (read
+models). Every name is re-exported here.
 """
 from __future__ import annotations
 
@@ -46,6 +46,7 @@ from .model import (  # noqa: F401
     MAX_ACTIONS,
     MAX_NEXT_TESTS,
     MAX_CONTEXT,
+    MAX_DERIVED_CLAIMS,
     MAX_TEXT,
     InvalidCaseUpdate,
     Actor,
@@ -73,6 +74,8 @@ from .model import (  # noqa: F401
     RunRecord,
     CaseUpdate,
     ScientificCaseV1,
+    CONCLUSION_PROPOSED,
+    CONCLUSION_RELEASED,
     subject_key,
 )
 from .operations import (  # noqa: F401
@@ -82,11 +85,14 @@ from .operations import (  # noqa: F401
     _known_ids,
     _next_local_id,
     parse_ref,
+    SCOPE_KEYS,
     _scope,
     _open,
     _set_question,
     _set_scope,
     _add_context,
+    _record_derived_claim,
+    _reassess_claims,
     _add_hypothesis,
     _revise_hypothesis,
     _record_evidence,
@@ -95,16 +101,19 @@ from .operations import (  # noqa: F401
     _record_action,
     _propose_next_test,
     _set_conclusion,
+    _promote_conclusion,
     _run_id,
     _attach_run,
     _finish_run,
     _close,
     _OPS,
     MODEL_OPS,
+    verification_for,
     apply,
     replay,
 )
 from .updates import (  # noqa: F401
+    RELATION_SCOPE_AXES,
     _STANCE_BY_RELATION,
     _DIRECTNESS_BY_RELATION,
     updates_from_answer,
@@ -113,4 +122,41 @@ from .updates import (  # noqa: F401
 from .dossier import (  # noqa: F401
     compile_dossier,
     checkpoint_summary,
+)
+from .changes import (  # noqa: F401
+    CHANGES_SCHEMA_VERSION,
+    RunNotInCase,
+    run_changes,
+)
+from .dependencies import (  # noqa: F401
+    CLAIM_PROPOSED,
+    CLAIM_RELEASED,
+    CLAIM_NEEDS_REASSESSMENT,
+    CLAIM_RETRACTED,
+    CLAIM_STATUSES,
+    CLAIM_REF_SCHEME,
+    Impact,
+    Justification,
+    DerivedClaim,
+    ClaimImpact,
+    claim_ref,
+    is_claim_ref,
+    referenced_claim_id,
+    unresolved_references,
+    cycles,
+    affected,
+    apply_change,
+    needs_reassessment,
+)
+from .values import (  # noqa: F401
+    VALUE_REF_SCHEME,
+    DEFAULT_VERIFICATION,
+    VerificationStatus,
+    ValueVersion,
+    value_versions,
+    current_values,
+    resolve_value_ref,
+    version_for_item,
+    is_value_ref,
+    iter_history,
 )

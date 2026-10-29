@@ -58,6 +58,12 @@ EVIDENCE_RELATION: Final = "evr"
 SCIENTIFIC_CASE: Final = "scase"
 #: A proposed skill awaiting expert review (domain/skill_draft.py, W9-11).
 SKILL_DRAFT: Final = "skd"
+#: Activity-guided screening. Activity remains a separate measurement from the
+#: toxicity analysis (`ANALYSIS`); the workflow links the two without merging
+#: their scientific semantics.
+ACTIVITY_SNAPSHOT: Final = "act"
+PRIORITISATION: Final = "pri"
+SCREENING: Final = "scr"
 
 PREFIXES: Final[frozenset[str]] = frozenset(
     {
@@ -66,6 +72,7 @@ PREFIXES: Final[frozenset[str]] = frozenset(
         CASE, PLAN, STEP, CONFLICT, GAP, CONNECTION,
         REPORT, REPORT_BUILD, FIGURE, EXPLANATION, SYNTHESIS, RENDERING,
         PROPOSITION, EVIDENCE_RELATION, SCIENTIFIC_CASE, SKILL_DRAFT,
+        ACTIVITY_SNAPSHOT, PRIORITISATION, SCREENING,
     }
 )
 

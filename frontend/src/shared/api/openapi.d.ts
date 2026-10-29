@@ -530,6 +530,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/cases/{case_id}/runs/{run_id}/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Scientific Case Run Changes
+         * @description What one turn changed in the case and what it kept: the case's log
+         *     replayed to where the previous run left it and to this run's last update.
+         *     404 for a run that never touched the case.
+         */
+        get: operations["get_scientific_case_run_changes_v1_sessions__session_id__cases__case_id__runs__run_id__changes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/cases/{case_id}/scope": {
         parameters: {
             query?: never;
@@ -647,6 +669,32 @@ export interface paths {
          *     material (W4-09) and is never a browser URL or a model capability.
          */
         get: operations["get_evidence_v1_sessions__session_id__evidence__evidence_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/evidence/{evidence_id}/passages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Evidence Passages
+         * @description What a claim's quote can be checked against (AG-UI passage viewer).
+         *
+         *     With ``locator``: that passage, and for a table row or cell the table
+         *     around it -- caption, header row, cells, the cited cell. Without: an
+         *     outline of every passage read. Either way the access state (read,
+         *     refused with the provider's reason, or never read) and, for a structured
+         *     record, its stated value with relation and unit.
+         */
+        get: operations["get_evidence_passages_v1_sessions__session_id__evidence__evidence_id__passages_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -836,6 +884,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/runs/{run_id}/answer-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Answer Drafts
+         * @description #47: every draft the run submitted, as sent, in order -- so the raw
+         *     draft, the accepted candidate and the released answer can be graded
+         *     apart.
+         */
+        get: operations["list_answer_drafts_v1_sessions__session_id__runs__run_id__answer_drafts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/runs/{run_id}/decision-state": {
         parameters: {
             query?: never;
@@ -905,6 +975,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/runs/{run_id}/lineage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run Stage Lineage
+         * @description How the run's answer came to be what the researcher saw: each draft,
+         *     the review rounds with their verdicts, the repair's effect claim by claim,
+         *     and what the reader did not get. Audit material: a candidate's prose
+         *     appears here, never on the answer route.
+         */
+        get: operations["get_run_stage_lineage_v1_sessions__session_id__runs__run_id__lineage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/runs/{run_id}/queue": {
         parameters: {
             query?: never;
@@ -914,6 +1007,29 @@ export interface paths {
         };
         /** Get Run Queue */
         get: operations["get_run_queue_v1_sessions__session_id__runs__run_id__queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/runs/{run_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run Result
+         * @description What the run ended with (#47): its publication disposition, review
+         *     status, execution and knowledge outcomes, the public answer if one was
+         *     published -- never a candidate's text. A run admitted before a release
+         *     policy was declared has no recorded result, and says so.
+         */
+        get: operations["get_run_result_v1_sessions__session_id__runs__run_id__result_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -933,6 +1049,41 @@ export interface paths {
         put?: never;
         /** Cancel Run */
         post: operations["cancel_run_v1_sessions__session_id__runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/screenings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Screenings */
+        get: operations["list_screenings_v1_sessions__session_id__screenings_get"];
+        put?: never;
+        /** Attach Screening */
+        post: operations["attach_screening_v1_sessions__session_id__screenings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/screenings/{screening_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Screening */
+        get: operations["get_screening_v1_sessions__session_id__screenings__screening_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1169,6 +1320,74 @@ export interface components {
             herg?: components["schemas"]["HergSection"] | null;
             tox21?: components["schemas"]["Tox21Section"] | null;
         };
+        /**
+         * AnswerDraft
+         * @description One submission of a run as the model sent it (#47), with what the
+         *     server made of it. The first is the raw draft; the accepted one is the
+         *     candidate; the run's released answer is GET .../answers/{id}.
+         */
+        AnswerDraft: {
+            /** Answer Id */
+            answer_id: string | null;
+            /** Created At */
+            created_at: string;
+            /** Generation */
+            generation: number;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "accepted" | "rejected" | "candidate";
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Phase */
+            phase?: ("initial" | "hard_correction" | "semantic_repair") | null;
+            /** Schema Version */
+            schema_version: string;
+            /** Violations */
+            violations: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** AnswerDraftList */
+        AnswerDraftList: {
+            /** Drafts */
+            drafts: components["schemas"]["AnswerDraft"][];
+        };
+        /**
+         * AnswerReleaseView
+         * @description How the answer was released under the release gate (#47). Only
+         *     ``reviewed`` and ``repaired_and_reviewed`` mean the review passed.
+         */
+        AnswerReleaseView: {
+            /** Answer Id */
+            answer_id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "reviewed" | "repaired_and_reviewed" | "released_with_unresolved_review" | "ungated" | "fallback";
+            /** Released At */
+            released_at: string;
+            /** Repair */
+            repair: {
+                [key: string]: unknown;
+            } | null;
+            /** Replaced Answer Id */
+            replaced_answer_id: string | null;
+            /** Reviews */
+            reviews: {
+                [key: string]: unknown;
+            }[];
+            /** Semantically Passed */
+            semantically_passed: boolean;
+            /** Ungated Reason */
+            ungated_reason: string | null;
+            /** Unresolved Claim Ids */
+            unresolved_claim_ids: string[];
+        };
         /** Applicability */
         Applicability: {
             /** Method */
@@ -1241,6 +1460,15 @@ export interface components {
             symbol: string;
         } & {
             [key: string]: unknown;
+        };
+        /**
+         * AttachScreeningRequest
+         * @description Attach a frozen screening the deployment's replay file holds (#44).
+         *     Only an id: a client can name a screening, never supply one.
+         */
+        AttachScreeningRequest: {
+            /** Screening Id */
+            screening_id: string;
         };
         /** AttributionListResponse */
         AttributionListResponse: {
@@ -1365,6 +1593,33 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * CaseArtifactChanges
+         * @description The frozen artifacts the run was given against the previous run's, by
+         *     kind and origin id, compared by content hash.
+         */
+        CaseArtifactChanges: {
+            /** Added */
+            added: {
+                [key: string]: unknown;
+            }[];
+            /** Changed */
+            changed: {
+                [key: string]: unknown;
+            }[];
+            /** Compared */
+            compared: boolean;
+            /** Kept */
+            kept: {
+                [key: string]: unknown;
+            }[];
+            /** Reason */
+            reason: string | null;
+            /** Removed */
+            removed: {
+                [key: string]: unknown;
+            }[];
+        };
         /** CaseConclusion */
         CaseConclusion: {
             /** Approver */
@@ -1395,6 +1650,14 @@ export interface components {
             note: string;
             /** Run Id */
             run_id: string | null;
+            /** Scope */
+            scope?: {
+                [key: string]: string;
+            } | null;
+            /** Source */
+            source?: string | null;
+            /** Unit */
+            unit?: string | null;
             /** Value */
             value: string;
         } & {
@@ -1411,6 +1674,14 @@ export interface components {
             key: string;
             /** Note */
             note?: string | null;
+            /** Scope */
+            scope?: {
+                [key: string]: string;
+            } | null;
+            /** Source */
+            source?: string | null;
+            /** Unit */
+            unit?: string | null;
             /** Value */
             value: string;
         };
@@ -1534,6 +1805,58 @@ export interface components {
             [key: string]: unknown;
         };
         /**
+         * CaseRunChanges
+         * @description What one turn changed in the case, and what it kept (AG-UI, US4). The
+         *     before and after are the case's own log replayed to two revisions.
+         */
+        CaseRunChanges: {
+            artifacts: components["schemas"]["CaseArtifactChanges"];
+            /** Case Id */
+            case_id: string;
+            /** Conclusion */
+            conclusion: {
+                [key: string]: unknown;
+            };
+            context: components["schemas"]["CaseSectionChanges"];
+            /** Data Scope */
+            data_scope: {
+                [key: string]: unknown;
+            };
+            evidence: components["schemas"]["CaseSectionChanges"];
+            /** From Revision */
+            from_revision: number;
+            hypotheses: components["schemas"]["CaseSectionChanges"];
+            next_tests: components["schemas"]["CaseSectionChanges"];
+            /** Operations */
+            operations: {
+                [key: string]: unknown;
+            }[];
+            /** Previous Run Id */
+            previous_run_id: string | null;
+            /** Run */
+            run: {
+                [key: string]: unknown;
+            };
+            /** Run Id */
+            run_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "case-changes-v1";
+            /** Subject */
+            subject: {
+                [key: string]: unknown;
+            };
+            /** To Revision */
+            to_revision: number;
+            uncertainties: components["schemas"]["CaseSectionChanges"];
+            /** Updates By Actor */
+            updates_by_actor: {
+                [key: string]: number;
+            };
+        };
+        /**
          * CaseScopeRequest
          * @description What the case may reach (W9-07). Turning external search off needs a
          *     reason, which the agent is shown and the dossier keeps.
@@ -1543,6 +1866,24 @@ export interface components {
             external_search: boolean;
             /** Reason */
             reason?: string | null;
+        };
+        /**
+         * CaseSectionChanges
+         * @description One section of a case before and after a turn, by entry id.
+         */
+        CaseSectionChanges: {
+            /** Added */
+            added: {
+                [key: string]: unknown;
+            }[];
+            /** Changed */
+            changed: {
+                [key: string]: unknown;
+            }[];
+            /** Kept */
+            kept: string[];
+            /** Removed */
+            removed: string[];
         };
         /** CaseUncertainty */
         CaseUncertainty: {
@@ -1581,6 +1922,8 @@ export interface components {
             citation_ids: string[];
             /** Claim Id */
             claim_id: string;
+            /** Evidence Spans */
+            evidence_spans?: components["schemas"]["EvidenceSpan"][];
             /** Field Path */
             field_path?: string;
             /** Input Claim Ids */
@@ -1590,6 +1933,8 @@ export interface components {
              * @enum {string}
              */
             kind: "numeric" | "classification" | "scientific" | "comparison" | "limitation" | "recommendation";
+            /** Local Ref */
+            local_ref?: string;
             /** Observation Id */
             observation_id?: string;
             /** Rendered Value */
@@ -1732,6 +2077,13 @@ export interface components {
          * @description ``DecisionSupportStateV1`` for one run (``domain/decision_state.py``).
          */
         DecisionState: {
+            /**
+             * Answer Basis
+             * @default {}
+             */
+            answer_basis: {
+                [key: string]: number;
+            };
             /** Answer Outcome */
             answer_outcome?: string | null;
             /** Available Refs */
@@ -1742,6 +2094,13 @@ export interface components {
             };
             /** Coverage */
             coverage: {
+                [key: string]: unknown;
+            };
+            /**
+             * Declared Stop
+             * @default {}
+             */
+            declared_stop: {
                 [key: string]: unknown;
             };
             /** Found Refs */
@@ -1898,12 +2257,70 @@ export interface components {
             /** Latest Sequence */
             latest_sequence: number;
         };
+        /**
+         * EvidenceFullTextView
+         * @description What was read of a record's full text (#43). Absent when nothing was
+         *     asked; ``normalized_facts.text_access`` then says what the search knew.
+         */
+        EvidenceFullTextView: {
+            /** Fetched At */
+            fetched_at: string;
+            /** Full Text Id */
+            full_text_id: string | null;
+            /** Omitted */
+            omitted: {
+                [key: string]: number;
+            };
+            /** Passage Count */
+            passage_count: number;
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            };
+            /** Reason */
+            reason: string | null;
+            /** Run Id */
+            run_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "full_text_retrieved" | "access_failed";
+        };
         /** EvidenceListResponse */
         EvidenceListResponse: {
             /** Count */
             count: number;
             /** Evidence */
             evidence: components["schemas"]["EvidenceRecordView"][];
+        };
+        /**
+         * EvidencePassagesView
+         * @description What a reader checks a quote against: the access state, the passage a
+         *     claim cites (with its table), or an outline of every passage read. All of
+         *     it is external content, never instructions.
+         */
+        EvidencePassagesView: {
+            access: components["schemas"]["EvidenceTextAccess"];
+            /** Evidence Id */
+            evidence_id: string;
+            focus: components["schemas"]["PassageFocus"] | null;
+            /** Measurement */
+            measurement: {
+                [key: string]: unknown;
+            } | null;
+            /** Passages */
+            passages: components["schemas"]["PassageOutlineItem"][];
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "evidence-passages-v1";
+            /**
+             * Untrusted External Content
+             * @constant
+             */
+            untrusted_external_content: true;
         };
         /**
          * EvidenceRecordView
@@ -1921,6 +2338,7 @@ export interface components {
             content_sha256: string;
             /** Evidence Id */
             evidence_id: string;
+            full_text?: components["schemas"]["EvidenceFullTextView"] | null;
             /** Identifier */
             identifier: {
                 [key: string]: string | null;
@@ -1935,6 +2353,10 @@ export interface components {
             published_at: string | null;
             /** Rejection Reason */
             rejection_reason: string | null;
+            /** Relevance Assessment */
+            relevance_assessment?: {
+                [key: string]: unknown;
+            };
             /** Retrieved At */
             retrieved_at: string;
             /** Source Quality Tier */
@@ -1990,6 +2412,42 @@ export interface components {
         EvidenceRelationList: {
             /** Evidence Relations */
             evidence_relations: components["schemas"]["EvidenceRelationAssessment"][];
+        };
+        /** EvidenceSpan */
+        EvidenceSpan: {
+            /** Evidence Id */
+            evidence_id: string;
+            /** Locator */
+            locator: string;
+        };
+        /**
+         * EvidenceTextAccess
+         * @description Whether the record's text was read (AG-UI passage viewer). ``not_read``
+         *     when nothing was asked or the record is not an article; a provider outage
+         *     is never stored, so it never appears here.
+         */
+        EvidenceTextAccess: {
+            /** Full Text Id */
+            full_text_id: string | null;
+            /** Omitted */
+            omitted: {
+                [key: string]: number;
+            };
+            /** Passage Count */
+            passage_count: number;
+            /** Provenance */
+            provenance?: {
+                [key: string]: unknown;
+            };
+            /** Reason */
+            reason: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "full_text_retrieved" | "access_failed" | "not_read";
+            /** Truncated */
+            truncated: boolean;
         };
         /**
          * ExplainRequest
@@ -2073,6 +2531,11 @@ export interface components {
             limitations: components["schemas"]["Limitation"][];
             /** Recommended Next Steps */
             recommended_next_steps: components["schemas"]["RecommendedNextStep"][];
+            release?: components["schemas"]["AnswerReleaseView"] | null;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
             /** Run Id */
             run_id: string;
             /** Schema Version */
@@ -2154,9 +2617,109 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "uncalibrated_probability" | "applicability_is_rule_based" | "attribution_not_causality" | "endpoint_unavailable" | "evidence_scope_limited" | "screening_not_safety_assessment";
+            code: "uncalibrated_probability" | "applicability_is_rule_based" | "attribution_not_causality" | "endpoint_unavailable" | "evidence_scope_limited" | "screening_not_safety_assessment" | "evidence_full_text_not_read" | "activity_interval_is_marginal_coverage" | "pic50_not_therapeutic_efficacy" | "activity_model_not_admitted" | "policy_decision_not_a_measurement" | "toxicity_not_run_not_negative" | "user_supplied_value_not_verified";
             /** Text */
             text: string;
+        };
+        /**
+         * LineageClaim
+         * @description One claim from the first hard-valid candidate to what the reader got,
+         *     keyed by the draft's own label so a repair can be read claim by claim.
+         */
+        LineageClaim: {
+            /** Candidate Text */
+            candidate_text: string | null;
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "kept" | "reworded" | "removed" | "added";
+            /** Final Text */
+            final_text: string | null;
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string | null;
+            /** Verdicts */
+            verdicts: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** LineageMissing */
+        LineageMissing: {
+            /** Confirmed Fact Count */
+            confirmed_fact_count: number;
+            /** Failure Code */
+            failure_code: string | null;
+            /** Lost Limitation Codes */
+            lost_limitation_codes: string[];
+            /** Needed Inputs */
+            needed_inputs: string[];
+            /** Reason */
+            reason: string | null;
+            /** Unresolved Claim Ids */
+            unresolved_claim_ids: string[];
+        };
+        /** LineageReview */
+        LineageReview: {
+            /** Answer Id */
+            answer_id: string | null;
+            /** Blocking Claim Ids */
+            blocking_claim_ids: string[];
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Phase */
+            phase: string;
+            /** Reason */
+            reason: string | null;
+            /** Round */
+            round: number;
+            /** Status */
+            status: string | null;
+            /** Verdicts */
+            verdicts: components["schemas"]["LineageVerdict"][];
+        };
+        /** LineageStage */
+        LineageStage: {
+            /** Answer Id */
+            answer_id: string | null;
+            /** Answer Markdown */
+            answer_markdown: string;
+            /** Claim Count */
+            claim_count: number;
+            /** Created At */
+            created_at: string | null;
+            /** Generation */
+            generation: number | null;
+            /** Hard Valid */
+            hard_valid: boolean;
+            /** Index */
+            index: number;
+            /** Is Public */
+            is_public: boolean;
+            /** Limitation Codes */
+            limitation_codes: string[];
+            /** Outcome */
+            outcome: string | null;
+            /** Phase */
+            phase: string;
+            /** Violation Codes */
+            violation_codes: string[];
+        };
+        /** LineageVerdict */
+        LineageVerdict: {
+            /** Claim Id */
+            claim_id: string | null;
+            /** Key */
+            key: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Text */
+            text: string | null;
+            /** Verdict */
+            verdict: string | null;
         };
         /** LiveStatus */
         LiveStatus: {
@@ -2281,6 +2844,67 @@ export interface components {
             run_id: string;
             /** Schema Version */
             schema_version: string;
+        };
+        /** PassageColumn */
+        PassageColumn: {
+            /** Cited */
+            cited: boolean;
+            /** Header */
+            header: string;
+            /** Value */
+            value: string;
+        };
+        /** PassageFocus */
+        PassageFocus: {
+            /** Found */
+            found: boolean;
+            /** Locator */
+            locator: string;
+            /** Passage */
+            passage?: {
+                [key: string]: unknown;
+            } | null;
+            table?: components["schemas"]["PassageTable"] | null;
+        };
+        /** PassageOutlineItem */
+        PassageOutlineItem: {
+            /** Kind */
+            kind: string;
+            /** Locator */
+            locator: string;
+            /** Preview */
+            preview: string;
+            /** Section */
+            section: string;
+            /** Truncated */
+            truncated: boolean;
+        };
+        /**
+         * PassageTable
+         * @description The table around a cited row or cell, as written: units in a header
+         *     and comparators in a cell are part of the text, never parsed here.
+         */
+        PassageTable: {
+            /** Caption */
+            caption: string | null;
+            /** Cells */
+            cells: string[];
+            /** Cited Cell */
+            cited_cell: number | null;
+            /** Columns */
+            columns: components["schemas"]["PassageColumn"][];
+            /** Header */
+            header: string[];
+            /** Header Locator */
+            header_locator: string | null;
+            /** Label */
+            label: string | null;
+            /** Locator */
+            locator: string;
+            /** Row Kind */
+            row_kind: string | null;
+            /** Row Locator */
+            row_locator: string | null;
         };
         /**
          * PredictBatchRequest
@@ -2956,6 +3580,10 @@ export interface components {
              * @enum {string}
              */
             lane: "deterministic" | "agentic" | "mixed";
+            /** Phase Usage */
+            phase_usage?: {
+                [key: string]: unknown;
+            } | null;
             /** Potentially Billed */
             potentially_billed: boolean;
             /** Recovery Of Run Id */
@@ -3035,6 +3663,83 @@ export interface components {
             status: string;
             /** Waiting On */
             waiting_on?: string | null;
+        };
+        /**
+         * RunResult
+         * @description What a decision-support run ended with under a declared release policy
+         *     (#47). ``recorded`` false for a run before one was declared: then nothing
+         *     is known about whether its answer was reviewed.
+         */
+        RunResult: {
+            /** Candidate Answer Id */
+            candidate_answer_id?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Detail */
+            detail?: {
+                [key: string]: unknown;
+            };
+            /** Disposition */
+            disposition?: ("publish" | "partial_facts" | "withhold") | null;
+            /** Execution Outcome */
+            execution_outcome?: string | null;
+            /** Knowledge Outcome */
+            knowledge_outcome?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Public Answer Id */
+            public_answer_id?: string | null;
+            /** Recorded */
+            recorded: boolean;
+            /** Release Policy */
+            release_policy: string;
+            /** Release Policy Sha256 */
+            release_policy_sha256?: string | null;
+            /** Review Status */
+            review_status?: string | null;
+            /** Run Id */
+            run_id: string;
+            /** Schema Version */
+            schema_version?: string | null;
+        };
+        /**
+         * RunStageLineage
+         * @description How the run's answer came to be what the researcher saw (AG-UI audit):
+         *     drafts, review rounds, the repair's effect and what went missing.
+         */
+        RunStageLineage: {
+            /** Candidate Answer Id */
+            candidate_answer_id: string | null;
+            /** Claims */
+            claims: components["schemas"]["LineageClaim"][];
+            /** Disposition */
+            disposition: string | null;
+            /** Execution Outcome */
+            execution_outcome: string | null;
+            missing: components["schemas"]["LineageMissing"];
+            /** Public Answer Id */
+            public_answer_id: string | null;
+            /** Recorded */
+            recorded: boolean;
+            /** Release Policy */
+            release_policy: string;
+            /** Repair */
+            repair: {
+                [key: string]: unknown;
+            } | null;
+            /** Review Status */
+            review_status: string | null;
+            /** Reviews */
+            reviews: components["schemas"]["LineageReview"][];
+            /** Run Id */
+            run_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "stage-lineage-v1";
+            /** Stages */
+            stages: components["schemas"]["LineageStage"][];
         };
         /** RunSummary */
         RunSummary: {
@@ -3218,6 +3923,111 @@ export interface components {
             /** Updated At */
             updated_at: string;
         };
+        /**
+         * ScreeningDetail
+         * @description One attached screening as the research UI reads it (#44): its subject,
+         *     each stage's status, the artifacts it holds with their hashes, and that
+         *     it is a replay whose model has or has not passed admission. Numbers are
+         *     shown by the artifact card from the same canonical payloads the tools
+         *     cite; nothing here is a policy computed by the client.
+         */
+        ScreeningDetail: {
+            /** Activity Estimate */
+            activity_estimate: {
+                [key: string]: unknown;
+            } | null;
+            /** Artifact Refs */
+            artifact_refs: {
+                [key: string]: unknown;
+            }[];
+            /** Attached At */
+            attached_at: string;
+            /** Intended Target Role */
+            intended_target_role: string | null;
+            /** Mode */
+            mode: string;
+            /** Model Admitted */
+            model_admitted: boolean | null;
+            /** Prioritisation Decision */
+            prioritisation_decision: {
+                [key: string]: unknown;
+            } | null;
+            /** Record Sha256 */
+            record_sha256: string;
+            /** Required Limitations */
+            required_limitations: string[];
+            /** Screening Id */
+            screening_id: string;
+            /** Serving */
+            serving: boolean;
+            /** Stages */
+            stages: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string | null;
+            /** Subject */
+            subject: {
+                [key: string]: unknown;
+            };
+            /** Subject Key */
+            subject_key: string;
+        };
+        /** ScreeningList */
+        ScreeningList: {
+            /**
+             * Mode
+             * @constant
+             */
+            mode: "replay";
+            /** Screenings */
+            screenings: components["schemas"]["ScreeningSummary"][];
+        };
+        /**
+         * ScreeningSummary
+         * @description A frozen activity screening attached to a session (#44): its subject
+         *     and how far it got. The numbers are read through the activity tools.
+         */
+        ScreeningSummary: {
+            /** Assay Context */
+            assay_context: string | null;
+            /** Attached At */
+            attached_at: string;
+            /** Canonical Smiles */
+            canonical_smiles: string | null;
+            /** Has Activity Estimate */
+            has_activity_estimate: boolean;
+            /** Has Prioritisation Decision */
+            has_prioritisation_decision: boolean;
+            /**
+             * Has Toxicity Snapshot
+             * @default false
+             */
+            has_toxicity_snapshot: boolean;
+            /** Intended Target Role */
+            intended_target_role: string | null;
+            /**
+             * Ligand Names
+             * @default []
+             */
+            ligand_names: string[];
+            /** Model Admitted */
+            model_admitted: boolean | null;
+            /** Record Sha256 */
+            record_sha256: string | null;
+            /** Screening Id */
+            screening_id: string;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string | null;
+            /** Target */
+            target: {
+                [key: string]: unknown;
+            } | null;
+            /** Toxicity Run */
+            toxicity_run: boolean | null;
+        };
         /** SendMessageRequest */
         SendMessageRequest: {
             /** Analysis Id */
@@ -3235,6 +4045,7 @@ export interface components {
              */
             intent_hint: "auto" | "analyze" | "ask_report" | "research_evidence" | "request_attribution" | "build_report";
             molecule?: components["schemas"]["MoleculeInput"] | null;
+            subject_ref?: components["schemas"]["SubjectRefInput"] | null;
         };
         /** ServiceInfo */
         ServiceInfo: {
@@ -3464,6 +4275,25 @@ export interface components {
             /** Note */
             note: string;
         };
+        /**
+         * SubjectRefInput
+         * @description #44: the subject a message is about, by reference. The server reads
+         *     what it is; a client names one of the session's subjects, never describes
+         *     one.
+         */
+        SubjectRefInput: {
+            /** Analysis Id */
+            analysis_id?: string | null;
+            /** Analysis Ref */
+            analysis_ref?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "analysis" | "activity_screening" | "frozen_analysis";
+            /** Screening Id */
+            screening_id?: string | null;
+        };
         /** SupportedProvider */
         SupportedProvider: {
             /** Auth Modes */
@@ -3511,6 +4341,8 @@ export interface components {
             error_code: string | null;
             /** Observation Ids */
             observation_ids: string[];
+            /** Phase */
+            phase?: string | null;
             /** Started At */
             started_at: string | null;
             /** Status */
@@ -4479,6 +5311,39 @@ export interface operations {
             };
         };
     };
+    get_scientific_case_run_changes_v1_sessions__session_id__cases__case_id__runs__run_id__changes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                case_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRunChanges"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_scientific_case_scope_v1_sessions__session_id__cases__case_id__scope_post: {
         parameters: {
             query?: never;
@@ -4669,6 +5534,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EvidenceRecordView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_evidence_passages_v1_sessions__session_id__evidence__evidence_id__passages_get: {
+        parameters: {
+            query?: {
+                locator?: string | null;
+            };
+            header?: never;
+            path: {
+                session_id: string;
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidencePassagesView"];
                 };
             };
             /** @description Validation Error */
@@ -5045,6 +5944,38 @@ export interface operations {
             };
         };
     };
+    list_answer_drafts_v1_sessions__session_id__runs__run_id__answer_drafts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerDraftList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_decision_state_v1_sessions__session_id__runs__run_id__decision_state_get: {
         parameters: {
             query?: never;
@@ -5141,6 +6072,38 @@ export interface operations {
             };
         };
     };
+    get_run_stage_lineage_v1_sessions__session_id__runs__run_id__lineage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunStageLineage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_run_queue_v1_sessions__session_id__runs__run_id__queue_get: {
         parameters: {
             query?: never;
@@ -5173,6 +6136,38 @@ export interface operations {
             };
         };
     };
+    get_run_result_v1_sessions__session_id__runs__run_id__result_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     cancel_run_v1_sessions__session_id__runs__run_id__cancel_post: {
         parameters: {
             query?: never;
@@ -5192,6 +6187,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CancelResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_screenings_v1_sessions__session_id__screenings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreeningList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attach_screening_v1_sessions__session_id__screenings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachScreeningRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreeningSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_screening_v1_sessions__session_id__screenings__screening_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                screening_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreeningDetail"];
                 };
             };
             /** @description Validation Error */

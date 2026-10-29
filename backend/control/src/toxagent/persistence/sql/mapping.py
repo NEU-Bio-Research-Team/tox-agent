@@ -358,10 +358,16 @@ def claim_to_row(claim: Claim, answer_id: str, position: int) -> dict[str, Any]:
         "transform": claim.transform,
         "input_claim_ids": list(claim.input_claim_ids),
         "position": position,
+        "local_ref": claim.local_ref,
     }
 
 
-def row_to_claim(row: Mapping[str, Any], citation_ids: tuple[str, ...] = ()) -> Claim:
+def row_to_claim(
+    row: Mapping[str, Any],
+    citation_ids: tuple[str, ...] = (),
+    *,
+    evidence_spans: tuple[tuple[str, str], ...] = (),
+) -> Claim:
     return Claim(
         claim_id=row["id"],
         kind=ClaimKind(row["kind"]),
@@ -373,6 +379,8 @@ def row_to_claim(row: Mapping[str, Any], citation_ids: tuple[str, ...] = ()) -> 
         transform=row["transform"],
         citation_ids=citation_ids,
         input_claim_ids=tuple(row["input_claim_ids"]),
+        evidence_spans=evidence_spans,
+        local_ref=row.get("local_ref"),
     )
 
 
@@ -640,6 +648,15 @@ def row_to_evidence_relation(row: Mapping[str, Any]) -> EvidenceRelationAssessme
         scope=EvidenceScope(
             endpoint=scope.get("endpoint"), species=scope.get("species"),
             dose=scope.get("dose"), use_context=scope.get("use_context"),
+            # Rows written before the measurement axes existed simply lack
+            # these keys, which reads back as "not stated" — the same thing
+            # they meant then.
+            ligand_id=scope.get("ligand_id"), target_id=scope.get("target_id"),
+            target_variant=scope.get("target_variant"),
+            target_sequence_sha256=scope.get("target_sequence_sha256"),
+            assay_type=scope.get("assay_type"), readout=scope.get("readout"),
+            unit=scope.get("unit"), comparator=scope.get("comparator"),
+            experimental_context=scope.get("experimental_context"),
         ),
         created_at=utc(row["created_at"]),
         input_refs=tuple(row.get("input_refs") or ()),

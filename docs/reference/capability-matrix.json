@@ -184,6 +184,17 @@
     }
   ],
   "rollout_flags": {
+    "activity_replay_v1": {
+      "default": false,
+      "description": "Issue #44: activity screenings in decision_support, replayed from the pinned file of frozen screenings (TOXAGENT_ACTIVITY_REPLAY_PATH and _SHA256). /v1/sessions/{id}/screenings attaches one to a session; get_screening_state, get_activity_snapshot and get_prioritisation_decision read it as citable observations. No activity model is served: the effective product says replay. Off, the tools and routes are absent.",
+      "gates_tools": [
+        "get_activity_snapshot",
+        "get_prioritisation_decision",
+        "get_screening_state"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "answer_draft_v2": {
       "default": false,
       "description": "Accept GroundedAnswerDraftV2 (local claim refs, server-issued ids, server-resolved source values). Off, the v1 wire shape is the only one the answer tool accepts.",
@@ -209,6 +220,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-14"
     },
+    "evidence_full_text_v1": {
+      "default": false,
+      "description": "Issue #43: register read_evidence_text in evidence_research and decision_support when the research provider can serve full text. It fetches an accepted record's text once per session, stores its located passages and the access outcome, and returns a selected page of them. A v2 claim may then cite a passage (evidence_spans) and quote numbers from it, and an answer citing an article not read in full owes evidence_full_text_not_read. Off, the tool is absent, claims cannot cite spans and the limitation vocabulary in use is unchanged.",
+      "gates_tools": [
+        "read_evidence_text"
+      ],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "evidence_pipeline_v2": {
       "default": false,
       "description": "Search results become candidates with an explicit relevance assessment; only direct/contextual assessments become citable durable records. Off, an accepted provider payload is a record.",
@@ -223,12 +243,33 @@
       "owner": "platform",
       "remove_by": "2026-12-12"
     },
+    "fixed_workflow_v1": {
+      "default": false,
+      "description": "Issue #50 arm B: decision_support runs as a fixed workflow. The server reads the subject's artifacts, decides by rule whether to search, searches by fixed templates, reads the top records and their tables, notes what only the researcher can supply, and hands the material to one synthesis turn whose only tool is submit_grounded_answer -- the same tools, validator and gates as the agent. A study arm, never a product setting.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
+    "investigator_contract_v1": {
+      "default": false,
+      "description": "Send the investigator a goal contract and the six-group case view (#69/#63/#68 of the 2026-10-28 architecture proposal): the route, the subject, what must be answered, the actions available, the budget and the typed stop conditions, with the case's observations, evidence, counter-evidence, missing metadata, open gaps and prior searches as refs. Off, the turn gets the case checkpoint summary as before.",
+      "gates_tools": [],
+      "owner": "backend-agent",
+      "remove_by": "2026-12-12"
+    },
     "normalized_usage_v2": {
       "default": true,
       "description": "Record provider usage reports as normalized facts with source identity and cumulative/delta semantics, and serve usage.summary from them. Off, usage rows are appended as the adapter emits them.",
       "gates_tools": [],
       "owner": "backend-runtime",
       "remove_by": "2026-12-12"
+    },
+    "release_gate_v1": {
+      "default": false,
+      "description": "Issue #47 (needs claim_reviewer_v1 and answer_draft_v2): an accepted decision_support answer is a candidate until the independent reviewer has judged it. A not_supported or partially_supported claim gets one repair turn, the repaired candidate is validated and reviewed again, and only then is an answer released -- answer.accepted, the answer route and the assistant message all wait for release, and the release records how it was reached. Off, the reviewer only observes.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
     },
     "report_orchestrator_v2": {
       "default": false,
@@ -271,6 +312,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "scientific_procedures_v1": {
+      "default": false,
+      "description": "Register run_scientific_procedure in decision_support and evidence_research (#66, §7.1/§7.2): normalise_measurements, deduplicate_by_origin, compare_measurements and check_dependencies, each returning the criteria it applied, the records it excluded with the reason, the fields the inputs did not state and its own sub-operation count. Off, the tool does not exist and the model does this arithmetic in prose.",
+      "gates_tools": [
+        "run_scientific_procedure"
+      ],
+      "owner": "backend-agent",
+      "remove_by": "2026-12-12"
+    },
     "scientific_skills_v1": {
       "default": false,
       "description": "The dynamic skill arm: decision_support prompts list the scientific skill catalog (names and descriptions) and register read_scientific_skill/read_skill_reference, so the model loads a skill's pinned instructions only when the situation calls for it. Off, no skill is offered (TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 selects the static comparison arm instead).",
@@ -290,6 +340,13 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "subject_binding_v1": {
+      "default": false,
+      "description": "Issue #44: a decision_support message is bound to one subject when it is accepted -- the analysis or activity screening the request names (subject_ref), or the session's only one -- and the binding travels frozen in a v2 run envelope to the gateway, the scientific case (keyed by the subject's identity), the decision state and the dossier. Two subjects and no selection is a subject_ambiguous clarification, never the first one. Off, the gateway reads the session's active analysis at dispatch and a screening-only case is keyed 'none'.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
+    },
     "subjectless_research_v1": {
       "default": false,
       "description": "A literature question with no molecule in the session runs as a decision_support turn on a subjectless case, and search_toxicology_evidence accepts a search without an analysis (results are then assessed against the endpoint only). Off, the router asks for a molecule (research_subject_missing) and the search tool's schema is unchanged.",
@@ -303,6 +360,13 @@
       "gates_tools": [],
       "owner": "backend-platform",
       "remove_by": "2026-12-14"
+    },
+    "typed_stop_v1": {
+      "default": false,
+      "description": "Issue #46 (with answer_draft_v2): a v2 draft may declare why it stops (sufficient, needs_user_input with the inputs named, sources_do_not_resolve, budget_reached). It is recorded beside the stop reason the server derives, and needs_user_input becomes the run's stop reason. Off, the answer schema has no stop field.",
+      "gates_tools": [],
+      "owner": "backend-scientific",
+      "remove_by": "2027-01-18"
     }
   },
   "runtime_invariants": [
@@ -317,9 +381,9 @@
   ],
   "schema_version": "capability-matrix-v1",
   "scientific_skills": {
-    "catalog_sha256": "d557c97ea1e68356a01fccba673512deea9ab317d241ea4bd708df737ae85c35",
-    "estimated_tokens_dynamic_index": 676,
-    "estimated_tokens_static_all": 12160,
+    "catalog_sha256": "6a91776a8d2055c157d9eb0b37544a3cbfbefc1ef4dbac17c37d436ab46918cf",
+    "estimated_tokens_dynamic_index": 1012,
+    "estimated_tokens_static_all": 14671,
     "loading": "off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.",
     "skills": [
       {
@@ -354,6 +418,22 @@
         "version": "1.1.0"
       },
       {
+        "content_sha256": "ff12b679ea0a503dced3f50115a29d401f4499f9001f264e2541894811d84850",
+        "estimated_tokens_body": 785,
+        "estimated_tokens_with_references": 801,
+        "references": [],
+        "required_capabilities": [
+          "compute_exposure_margin",
+          "get_evidence_record",
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "estimate-exposure-margin",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
         "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb",
         "estimated_tokens_body": 780,
         "estimated_tokens_with_references": 1300,
@@ -369,6 +449,37 @@
         "skill_id": "interpret-model-attribution",
         "status": "active",
         "version": "1.1.0"
+      },
+      {
+        "content_sha256": "562e5ab5c7c5d0c65280f4875ff5cd0c60f915fbc1ed8d7d5686972954074cc1",
+        "estimated_tokens_body": 981,
+        "estimated_tokens_with_references": 997,
+        "references": [],
+        "required_capabilities": [
+          "get_activity_snapshot",
+          "get_prioritisation_decision",
+          "get_scientific_case",
+          "get_screening_state",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "read-activity-screening",
+        "status": "active",
+        "version": "1.0.0"
+      },
+      {
+        "content_sha256": "6c5896a479a8b6401a3bda87277a60a38fa7fb3e2af2ffd232e75764449bf40f",
+        "estimated_tokens_body": 688,
+        "estimated_tokens_with_references": 705,
+        "references": [],
+        "required_capabilities": [
+          "get_scientific_case",
+          "update_scientific_case"
+        ],
+        "risk_tier": "medium",
+        "skill_id": "update-case-across-turns",
+        "status": "active",
+        "version": "1.0.0"
       },
       {
         "content_sha256": "7e102fbd2fec637288f3559385a4f0d90d8390173e5a71e187785f6744674457",
@@ -491,13 +602,37 @@
       ],
       "flag_gated": {
         "compute_exposure_margin": "scientific_primitives_v1",
+        "get_activity_snapshot": "activity_replay_v1",
         "get_chembl_activities": "scientific_primitives_v1",
+        "get_prioritisation_decision": "activity_replay_v1",
         "get_scientific_case": "scientific_case_v1",
+        "get_screening_state": "activity_replay_v1",
         "propose_skill_draft": "skill_drafts_v1",
+        "read_evidence_text": "evidence_full_text_v1",
         "read_scientific_skill": "scientific_skills_v1",
         "read_skill_reference": "scientific_skills_v1",
         "record_decision_plan": "decision_state_plan_tool",
+        "run_scientific_procedure": "scientific_procedures_v1",
         "update_scientific_case": "scientific_case_v1"
+      }
+    },
+    "decision_support_read": {
+      "default": [
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_report_summary",
+        "submit_grounded_answer"
+      ],
+      "flag_gated": {
+        "get_activity_snapshot": "activity_replay_v1",
+        "get_prioritisation_decision": "activity_replay_v1",
+        "get_scientific_case": "scientific_case_v1",
+        "get_screening_state": "activity_replay_v1",
+        "read_evidence_text": "evidence_full_text_v1"
       }
     },
     "evidence_research": {
@@ -507,7 +642,10 @@
         "search_toxicology_evidence",
         "submit_grounded_answer"
       ],
-      "flag_gated": {}
+      "flag_gated": {
+        "read_evidence_text": "evidence_full_text_v1",
+        "run_scientific_procedure": "scientific_procedures_v1"
+      }
     },
     "report_build": {
       "default": [
@@ -539,6 +677,12 @@
     "report_synthesis": {
       "default": [
         "submit_report_synthesis"
+      ],
+      "flag_gated": {}
+    },
+    "workflow_synthesis": {
+      "default": [
+        "submit_grounded_answer"
       ],
       "flag_gated": {}
     }

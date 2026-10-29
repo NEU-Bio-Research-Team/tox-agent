@@ -67,6 +67,9 @@ class SnapshotResearchProvider:
         }
         self._records: dict[str, dict[str, Any]] = dict(evidence.get("records") or {})
         self._fault = fault
+        #: #43: a frozen-full-text-v1 store the fixture carries inline. The
+        #: fixture's own content hash covers it; build_provider serves it.
+        self.inline_full_text: dict[str, Any] | None = evidence.get("full_text")
 
     async def search(
         self,

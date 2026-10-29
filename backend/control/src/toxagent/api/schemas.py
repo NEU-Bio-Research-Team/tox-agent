@@ -41,6 +41,13 @@ class CaseContextRequest(_Request):
     key: str = Field(min_length=1, max_length=120)
     value: str = Field(min_length=1, max_length=1000)
     note: str | None = Field(default=None, max_length=1000)
+    #: #46/US4: the value's unit, who stated it, and what it is about.
+    unit: str | None = Field(default=None, max_length=40)
+    source: str | None = Field(default=None, max_length=120)
+    scope: dict[
+        Literal["target_id", "variant", "experimental_context", "assay", "species", "endpoint"],
+        str,
+    ] | None = None
 
 
 class CaseQuestionRequest(_Request):
@@ -54,6 +61,13 @@ class CaseScopeRequest(_Request):
 
     external_search: bool
     reason: str | None = Field(default=None, max_length=500)
+
+
+class AttachScreeningRequest(_Request):
+    """Attach a frozen screening the deployment's replay file holds (#44).
+    Only an id: a client can name a screening, never supply one."""
+
+    screening_id: str = Field(pattern=r"^scr_[0-9a-f]{32}$")
 
 
 class SkillDraftRequest(_Request):
@@ -136,6 +150,28 @@ class ExplanationTarget(_Request):
         return self
 
 
+class SubjectRefInput(_Request):
+    """#44: the subject a message is about, by reference. The server reads
+    what it is; a client names one of the session's subjects, never describes
+    one."""
+
+    kind: Literal["analysis", "activity_screening", "frozen_analysis"]
+    analysis_id: str | None = Field(default=None, pattern=r"^ana_[0-9a-f]{32}$")
+    screening_id: str | None = Field(default=None, pattern=r"^scr_[0-9a-f]{32}$")
+    #: #50: a frozen toxicity analysis the deployment's replay file holds, by
+    #: its origin id; the run is given a session-local copy of it.
+    analysis_ref: str | None = Field(default=None, pattern=r"^ana_[0-9a-f]{32}$")
+
+    @model_validator(mode="after")
+    def _one_id_for_its_kind(self) -> "SubjectRefInput":
+        named = {k for k in ("analysis_id", "screening_id", "analysis_ref") if getattr(self, k)}
+        wanted = {"analysis": "analysis_id", "activity_screening": "screening_id",
+                  "frozen_analysis": "analysis_ref"}[self.kind]
+        if named != {wanted}:
+            raise ValueError(f"a {self.kind} subject_ref names {wanted} and nothing else")
+        return self
+
+
 class SendMessageRequest(_Request):
     client_message_id: str | None = Field(default=None, max_length=255)
     content: list[TextPart] = Field(default_factory=list)
@@ -147,6 +183,7 @@ class SendMessageRequest(_Request):
     image: ImageInput | None = None
     analysis_options: AnalysisOptions | None = None
     analysis_id: str | None = None
+    subject_ref: SubjectRefInput | None = None
 
     @property
     def text(self) -> str:

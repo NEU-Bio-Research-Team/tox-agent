@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any, Final, Iterable, Mapping
 
 from ..domain.answer import ClaimKind, LimitationCode
+from ..platform.flags import is_enabled
 
 CODE = LimitationCode
 
@@ -66,6 +67,18 @@ TEXT: Final[Mapping[LimitationCode, Mapping[str, str]]] = {
             "không đọc toàn văn. Việc không tìm thấy bằng chứng không phải bằng chứng phủ định."
         ),
     },
+    CODE.EVIDENCE_FULL_TEXT_NOT_READ: {
+        "en": (
+            "At least one cited paper was read from its abstract only: its full text was "
+            "unavailable, could not be retrieved, or was not read. Results reported only in "
+            "its body or tables were not checked."
+        ),
+        "vi": (
+            "Ít nhất một bài báo được trích dẫn chỉ được đọc phần tóm tắt: toàn văn không có "
+            "sẵn, không truy cập được hoặc chưa được đọc. Các kết quả chỉ có trong thân bài "
+            "hoặc bảng chưa được kiểm tra."
+        ),
+    },
     CODE.SCREENING_NOT_SAFETY_ASSESSMENT: {
         "en": (
             "These are screening signals proposing what to verify next. They are not a "
@@ -76,11 +89,90 @@ TEXT: Final[Mapping[LimitationCode, Mapping[str, str]]] = {
             "đánh giá an toàn và không có giá trị pháp lý."
         ),
     },
+    CODE.ACTIVITY_INTERVAL_IS_MARGINAL_COVERAGE: {
+        "en": (
+            "The activity interval covers the stated share of validation residuals across "
+            "many candidates. It is not a guarantee for this one candidate."
+        ),
+        "vi": (
+            "Khoảng activity bao phủ tỷ lệ đã nêu của sai số trên tập validation, tính "
+            "trên nhiều ứng viên. Đây không phải bảo đảm cho riêng ứng viên này."
+        ),
+    },
+    CODE.PIC50_NOT_THERAPEUTIC_EFFICACY: {
+        "en": (
+            "A pIC50 is an estimated in-vitro potency against one target in one assay "
+            "context. It says nothing about therapeutic efficacy."
+        ),
+        "vi": (
+            "pIC50 là ước lượng hoạt lực in vitro trên một target trong một bối cảnh "
+            "assay. Nó không nói gì về hiệu quả điều trị."
+        ),
+    },
+    CODE.ACTIVITY_MODEL_NOT_ADMITTED: {
+        "en": (
+            "The activity model behind this estimate has not passed admission, so the "
+            "estimate is not validated for decisions."
+        ),
+        "vi": (
+            "Mô hình activity tạo ra ước lượng này chưa qua admission, nên ước lượng "
+            "chưa được kiểm định để dùng cho quyết định."
+        ),
+    },
+    CODE.POLICY_DECISION_NOT_A_MEASUREMENT: {
+        "en": (
+            "The prioritisation is the output of a fixed rule applied to the estimate, "
+            "not a second measurement of anything."
+        ),
+        "vi": (
+            "Mức ưu tiên là đầu ra của một quy tắc cố định áp lên ước lượng, không phải "
+            "một phép đo thứ hai."
+        ),
+    },
+    CODE.TOXICITY_NOT_RUN_NOT_NEGATIVE: {
+        "en": (
+            "The toxicity stage did not run for this candidate. That is the absence of a "
+            "result, not a negative toxicity result."
+        ),
+        "vi": (
+            "Bước đánh giá độc tính chưa chạy cho ứng viên này. Đó là việc chưa có kết "
+            "quả, không phải kết quả độc tính âm tính."
+        ),
+    },
+    CODE.USER_SUPPLIED_VALUE_NOT_VERIFIED: {
+        "en": (
+            "This number was supplied by the researcher. It is an input to the "
+            "calculation, not a measurement this product made or verified."
+        ),
+        "vi": (
+            "Con số này do nhà nghiên cứu cung cấp. Nó là đầu vào của phép tính, không "
+            "phải một phép đo do sản phẩm này thực hiện hay xác minh."
+        ),
+    },
+}
+
+
+#: evidence_scope_limited's wording where full text can be read (#43). The
+#: default wording says full texts were not read, which is true of every answer
+#: when no tool can read one and false of an answer that read one; with the
+#: tool, that half of the statement is evidence_full_text_not_read's, owed
+#: exactly when it is true.
+_SCOPE_WITH_FULL_TEXT: Final[Mapping[str, str]] = {
+    "en": (
+        "The literature search covered one provider and the records it returned. "
+        "Absence of evidence here is not evidence of absence."
+    ),
+    "vi": (
+        "Tìm kiếm tài liệu chỉ qua một provider và các bản ghi provider trả về. Việc không "
+        "tìm thấy bằng chứng không phải bằng chứng phủ định."
+    ),
 }
 
 
 def text_for(code: LimitationCode, language: str = "en") -> str:
     entry = TEXT[code]
+    if code is CODE.EVIDENCE_SCOPE_LIMITED and is_enabled("evidence_full_text_v1"):
+        entry = _SCOPE_WITH_FULL_TEXT
     return entry.get(language, entry["en"])
 
 
@@ -104,12 +196,40 @@ _PROBABILITY_MARKERS: Final[tuple[str, ...]] = (
     "probability_blocker", "probability_activity", "probability_clinical_toxicity", "probability",
 )
 
+#: Carried by an observation and required of every claim that cites it,
+#: whatever field the claim read: each one says what the whole artifact is.
+OBSERVATION_WIDE: Final[frozenset[str]] = frozenset({
+    CODE.ENDPOINT_UNAVAILABLE.value,
+    CODE.ATTRIBUTION_NOT_CAUSALITY.value,
+    CODE.PIC50_NOT_THERAPEUTIC_EFFICACY.value,
+    CODE.ACTIVITY_MODEL_NOT_ADMITTED.value,
+    CODE.POLICY_DECISION_NOT_A_MEASUREMENT.value,
+    CODE.TOXICITY_NOT_RUN_NOT_NEGATIVE.value,
+    CODE.USER_SUPPLIED_VALUE_NOT_VERIFIED.value,
+})
+
+#: Carried by an observation but about one part of it: required of a claim
+#: that reads a field matching one of the fragments, or that names no field at
+#: all and so cannot be shown not to have used it.
+FIELD_SCOPED: Final[Mapping[str, tuple[str, ...]]] = {
+    CODE.ACTIVITY_INTERVAL_IS_MARGINAL_COVERAGE.value: ("interval", "uncertainty"),
+}
+
+#: Observation kinds whose fields are not the toxicity predictor's, so the
+#: predictor's path triggers do not apply to them: an activity estimate's
+#: ``applicability`` is a ligand/target domain, not the element whitelist.
+_NOT_TOXICITY_PREDICTOR: Final[frozenset[str]] = frozenset(
+    {"activity_estimate", "prioritisation_decision", "screening_state"}
+)
+
 
 def required_for_answer(
     claims: Iterable[Any],
     *,
     observation_limitations: Mapping[str, tuple[str, ...]] | None = None,
+    observation_kinds: Mapping[str, str] | None = None,
     cited_evidence: bool = False,
+    cited_article_unread: bool = False,
     has_recommendation: bool = False,
 ) -> frozenset[str]:
     """The limitation codes an answer must carry, derived from what it claimed.
@@ -125,16 +245,21 @@ def required_for_answer(
     """
     required: set[str] = set()
     observation_limitations = observation_limitations or {}
+    observation_kinds = observation_kinds or {}
 
     for claim in claims:
         path = claim.field_path or ""
         kind = getattr(claim.kind, "value", claim.kind)
-        if kind == ClaimKind.NUMERIC.value and any(m in path for m in _PROBABILITY_MARKERS):
-            required.add(CODE.UNCALIBRATED_PROBABILITY.value)
-        if path.startswith("applicability"):
-            required.add(CODE.APPLICABILITY_IS_RULE_BASED.value)
-        if "attribution" in path or "tokens" in path:
-            required.add(CODE.ATTRIBUTION_NOT_CAUSALITY.value)
+        predictor_fields = (
+            observation_kinds.get(claim.observation_id or "") not in _NOT_TOXICITY_PREDICTOR
+        )
+        if predictor_fields:
+            if kind == ClaimKind.NUMERIC.value and any(m in path for m in _PROBABILITY_MARKERS):
+                required.add(CODE.UNCALIBRATED_PROBABILITY.value)
+            if path.startswith("applicability"):
+                required.add(CODE.APPLICABILITY_IS_RULE_BASED.value)
+            if "attribution" in path or "tokens" in path:
+                required.add(CODE.ATTRIBUTION_NOT_CAUSALITY.value)
         if claim.observation_id:
             # endpoint_unavailable and attribution_not_causality are genuinely
             # observation-wide — they say something about the analysis this
@@ -153,14 +278,23 @@ def required_for_answer(
             # optional) silently escaped the "attribution"/"tokens" substring
             # check above — this observation-keyed check is the actual source
             # of truth, not a substring guess at wording the model chose.
+            #
+            # The activity artifacts' limitations follow the same split: what
+            # the artifact is (a pIC50, a rule's output, a stage that did not
+            # run) is observation-wide; the interval caveat is about the
+            # interval, so it is required of a claim that reads it.
             cited_limitations = observation_limitations.get(claim.observation_id, ())
-            if CODE.ENDPOINT_UNAVAILABLE.value in cited_limitations:
-                required.add(CODE.ENDPOINT_UNAVAILABLE.value)
-            if CODE.ATTRIBUTION_NOT_CAUSALITY.value in cited_limitations:
-                required.add(CODE.ATTRIBUTION_NOT_CAUSALITY.value)
+            required.update(code for code in cited_limitations if code in OBSERVATION_WIDE)
+            for code, fragments in FIELD_SCOPED.items():
+                if code in cited_limitations and (
+                    not path or any(fragment in path for fragment in fragments)
+                ):
+                    required.add(code)
 
     if cited_evidence:
         required.add(CODE.EVIDENCE_SCOPE_LIMITED.value)
+    if cited_article_unread:
+        required.add(CODE.EVIDENCE_FULL_TEXT_NOT_READ.value)
     if has_recommendation:
         required.add(CODE.SCREENING_NOT_SAFETY_ASSESSMENT.value)
     return frozenset(required)

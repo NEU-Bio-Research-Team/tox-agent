@@ -1,0 +1,58 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-pa05-no-wildtype-measurement",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The model estimates pIC50 7.5; the corpus holds only measurements on another target or a mutant, so nothing decides the wild-type EGFR estimate.",
+  "acceptable_conclusions": [
+    {
+      "kind": "gap_statement",
+      "statement": "The model estimates pIC50 7.5; the corpus holds only measurements on another target or a mutant, so nothing decides the wild-type EGFR estimate."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "estimate",
+      "statement": "predicted pIC50",
+      "value": 7.5,
+      "unit": "pIC50"
+    }
+  ],
+  "required_limitations": [
+    "L7",
+    "L9"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "fabricated_value_or_assay",
+    "activity_reused_across_target"
+  ],
+  "critical_errors": [
+    "fabricated_value_or_assay",
+    "activity_reused_across_target"
+  ],
+  "evidence_spans": [],
+  "sources": [
+    {
+      "record_id": "MED:93151"
+    },
+    {
+      "record_id": "MED:93152"
+    }
+  ],
+  "predictor_error": {
+    "actually_wrong": true,
+    "verified_label_source": "an internal synthetic measurement that is not in the corpus",
+    "note": "engineering fixture, not a verified label"
+  },
+  "adjudication": {
+    "endpoint": "EGFR activity at threshold 7.0",
+    "rule": "active = measured pIC50 on the screened target and context >= 7.0",
+    "predictor_call": "positive",
+    "verified": "negative",
+    "verified_by": "an internal synthetic measurement that is not in the corpus",
+    "decidable_from_corpus": false,
+    "expected_stance": "insufficient",
+    "deciding_sources": []
+  },
+  "note": "Synthetic engineering gold: checks adjudication machinery, not science."
+}

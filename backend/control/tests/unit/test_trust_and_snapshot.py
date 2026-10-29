@@ -93,4 +93,46 @@ def test_the_snapshot_is_recorded_in_the_effective_product():
     )
     providers = describe_effective_product(settings)["providers"]
     assert providers["research_provider"] == "snapshot"
-    assert providers["research_snapshot"] == {"path_name": SNAPSHOT.name, "fault": "empty"}
+    import hashlib
+
+    assert providers["research_snapshot"] == {
+        "path_name": SNAPSHOT.name, "fault": "empty",
+        "sha256": hashlib.sha256(SNAPSHOT.read_bytes()).hexdigest(),
+    }
+
+
+def test_the_live_activity_lookup_is_reported_when_the_primitives_bring_it(monkeypatch):
+    """2026-10-29: arm E reached live ChEMBL on frozen inputs and preflight
+    could not tell -- the lookup was in no field it compared."""
+    from toxagent.api.effective_product import describe_effective_product
+    from toxagent.platform.config import (
+        ChemblSettings, CompoundSettings, OcrSettings, PolicySettings, PredictSettings,
+        PredictorSettings, ResearchSettings, RuntimeSettings, SecuritySettings, Settings,
+    )
+
+    def lookup(chembl: ChemblSettings) -> object:
+        settings = Settings(
+            database_url="sqlite+aiosqlite:///x.db", predictor=PredictorSettings(),
+            policy=PolicySettings(), predict=PredictSettings(), runtime=RuntimeSettings(),
+            research=ResearchSettings(), compound=CompoundSettings(), ocr=OcrSettings(),
+            security=SecuritySettings(), chembl=chembl,
+        )
+        return describe_effective_product(settings)["providers"]["activity_lookup"]
+
+    monkeypatch.delenv("TOXAGENT_FLAG_SCIENTIFIC_PRIMITIVES_V1", raising=False)
+    assert lookup(ChemblSettings()) is None
+    monkeypatch.setenv("TOXAGENT_FLAG_SCIENTIFIC_PRIMITIVES_V1", "1")
+    assert lookup(ChemblSettings()) == "chembl"
+    assert lookup(ChemblSettings(provider="")) is None
+
+
+@pytest.mark.parametrize("raw, expected", [(None, "chembl"), ("", ""), ("none", ""),
+                                           ("chembl", "chembl")])
+def test_a_deployment_can_turn_the_activity_lookup_off(monkeypatch, raw, expected):
+    from toxagent.platform.config import ChemblSettings
+
+    if raw is None:
+        monkeypatch.delenv("TOXAGENT_CHEMBL_PROVIDER", raising=False)
+    else:
+        monkeypatch.setenv("TOXAGENT_CHEMBL_PROVIDER", raw)
+    assert ChemblSettings.from_env().provider == expected

@@ -57,6 +57,14 @@ def _host(url: str) -> str | None:
     return parts.hostname or None
 
 
+def _file_sha256(path: str) -> str | None:
+    """The sha256 of a pinned file's bytes, or ``None`` when it cannot be read."""
+    try:
+        return hashlib.sha256(Path(path).read_bytes()).hexdigest() if path else None
+    except OSError:
+        return None
+
+
 def flag_snapshot(today: date | None = None) -> dict[str, dict[str, Any]]:
     today = today or date.today()
     return {
@@ -116,6 +124,25 @@ def _skills_section(settings: Settings, flags: dict[str, Any]) -> dict[str, Any]
     else:
         mode = "off"
     return {"mode": mode, **load_catalog(settings.profiles_dir).manifest()}
+
+
+def _contracts() -> dict[str, Any]:
+    from ..application.runs.envelope import ENVELOPE_VERSION
+    from ..domain.subject import SCHEMA_VERSION as SUBJECT_BINDING_VERSION
+
+    from ..domain.run_result import ReleasePolicy, policy_sha256
+    from ..platform.config import release_policy
+
+    policy = release_policy()
+    return {
+        "run_envelope_version": ENVELOPE_VERSION,
+        "run_subject_binding": SUBJECT_BINDING_VERSION,
+        # #47: how answers are published, and the hash of its decision table.
+        "release_policy": policy,
+        "release_policy_sha256": (
+            policy_sha256(ReleasePolicy(policy)) if policy != "legacy" else None
+        ),
+    }
 
 
 def describe_effective_product(
@@ -200,11 +227,22 @@ def describe_effective_product(
             "predictor_host": _host(settings.predictor.base_url),
             "research_provider": settings.research.provider or None,
             "research_host": _host(settings.research.base_url),
+            # The live activity lookup the primitives bring with them
+            # (app.py builds it only under scientific_primitives_v1). Reported
+            # because it has no frozen form: an arm on frozen inputs that has
+            # it reaches a live provider, which happened on 2026-10-29 (arm E,
+            # T5 -- ChEMBL recognised the "synthetic" structure as sotalol).
+            "activity_lookup": (
+                settings.chembl.provider or None
+                if flags["scientific_primitives_v1"]["enabled"] else None
+            ),
             "research_max_results": settings.research.max_results,
             # A benchmark on frozen evidence says so, and says which snapshot.
             "research_snapshot": (
                 {"path_name": Path(settings.research.snapshot_path).name,
-                 "fault": settings.research.snapshot_fault or None}
+                 "fault": settings.research.snapshot_fault or None,
+                 # #50: the bytes, so two arms on files of one name are told apart.
+                 "sha256": _file_sha256(settings.research.snapshot_path)}
                 if settings.research.provider == "snapshot" else None
             ),
             # A benchmark over a local corpus says so, and says which corpus:
@@ -215,12 +253,30 @@ def describe_effective_product(
                  "sha256": settings.research.corpus_sha256 or None}
                 if settings.research.provider == "corpus" else None
             ),
+            # #43: full text served offline from a pinned frozen store; a
+            # frozen deployment without one has no text tool at all.
+            "research_full_text": (
+                {"path_name": Path(settings.research.full_text_path).name,
+                 "sha256": settings.research.full_text_sha256 or None, "replay": True}
+                if settings.research.full_text_path else None
+            ),
+            # #44: activity is replayed from a pinned file of frozen
+            # screenings, never served; a recorded run says which file.
+            "activity_replay": (
+                {"path_name": Path(settings.activity.replay_path).name,
+                 "sha256": settings.activity.replay_sha256 or None, "serving": False}
+                if flags["activity_replay_v1"]["enabled"] and settings.activity.replay_path
+                else None
+            ),
             "compound_provider": getattr(settings.compound, "provider", None) or None,
             "ocr_configured": bool(settings.ocr.base_url),
         },
         # ADR 0012 / RETHINK §5.5: which skill arm this deployment runs and
         # the exact skill texts, so two runs of the ablation can be told apart.
         "scientific_skills": _skills_section(settings, flags),
+        # The contract versions a run is admitted and executed under (#44):
+        # a study arm compares these, not the code that happens to implement them.
+        "contracts": _contracts(),
         "hashes": {
             **prompt_hashes(settings.profiles_dir),
             **({"tool_registry": registry.schema_hash()} if registry is not None else {}),

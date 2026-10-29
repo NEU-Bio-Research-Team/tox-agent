@@ -1,0 +1,68 @@
+{
+  "schema_version": "case-gold-v1",
+  "case_id": "inv-pt04-herg-false-blocker",
+  "status": "synthetic_engineering_gold",
+  "reference_outcome": "The predictor labels TX-304 blocker (probability 0.77); a patch-clamp IC50 of > 30 uM contradicts that call, and the measurement should weigh more than the uncalibrated score.",
+  "acceptable_conclusions": [
+    {
+      "kind": "committed",
+      "statement": "The predictor labels TX-304 blocker (probability 0.77); a patch-clamp IC50 of > 30 uM contradicts that call, and the measurement should weigh more than the uncalibrated score."
+    }
+  ],
+  "mandatory_facts": [
+    {
+      "id": "p",
+      "statement": "hERG probability",
+      "value": 0.77,
+      "unit": null
+    },
+    {
+      "id": "ic50",
+      "statement": "hERG patch-clamp IC50",
+      "value": "> 30",
+      "unit": "uM"
+    }
+  ],
+  "required_limitations": [
+    "L1",
+    "L6"
+  ],
+  "limitation_scoring": "scored",
+  "forbidden_inferences": [
+    "relabelled_predictor_output",
+    "fabricated_value_or_assay"
+  ],
+  "critical_errors": [
+    "relabelled_predictor_output",
+    "fabricated_value_or_assay"
+  ],
+  "evidence_spans": [
+    {
+      "evidence_ref": "pmid:93041",
+      "locator": "table-wrap:1/row:2"
+    }
+  ],
+  "sources": [
+    {
+      "record_id": "MED:93041"
+    }
+  ],
+  "predictor_error": {
+    "actually_wrong": true,
+    "verified_label_source": "MED:93041 (full-text table)",
+    "note": "engineering fixture, not a verified label"
+  },
+  "adjudication": {
+    "endpoint": "hERG blocker",
+    "rule": "hERG blocker = patch-clamp IC50 < 10 uM; non-blocker = IC50 > 30 uM",
+    "predictor_call": "positive",
+    "verified": "negative",
+    "verified_by": "MED:93041 (full-text table)",
+    "decidable_from_corpus": true,
+    "expected_stance": "challenge",
+    "deciding_sources": [
+      "MED:93041"
+    ]
+  },
+  "note": "Synthetic engineering gold: checks adjudication machinery, not science."
+}

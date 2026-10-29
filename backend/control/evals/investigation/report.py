@@ -81,6 +81,15 @@ def skill_triggers(records, cases: dict[str, dict[str, Any]], skills: list[Any])
     return out
 
 
+def _usage_totals(records) -> dict[str, float]:
+    totals: dict[str, float] = {}
+    for record in records:
+        for key, value in (record.usage or {}).items():
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                totals[key] = totals.get(key, 0) + value
+    return {key: round(value, 6) for key, value in sorted(totals.items())}
+
+
 def build_report(study_dir: Path, *, cases_dir: Path = case_module.CASES_DIR) -> dict[str, Any]:
     from toxagent.application.investigation.skill_catalog import load_catalog
     from toxagent.platform.config import PACKAGE_ROOT
@@ -114,7 +123,15 @@ def build_report(study_dir: Path, *, cases_dir: Path = case_module.CASES_DIR) ->
             "models": sorted({m for r in ok for m in answering_models(
                 r, store, (manifest["systems"][system_id].get("adapter_config") or {}).get("model_requested"))}),
             "median_turn_seconds": _median(durations),
+            # Of the latest successful attempt per (case, trial): what one
+            # finished run of each costs.
             "usage_totals": {k: round(sum((r.usage or {}).get(k, 0) for r in ok), 6) for k in usage_keys},
+            # Of every attempt recorded, failed and superseded ones included:
+            # what running the arm actually cost. A retry is paid for, and an
+            # arm that fails often is dearer than its successful runs show.
+            "usage_totals_all_attempts": _usage_totals(
+                r for r in all_records if r.system_id == system_id
+            ),
             "errors": {r.case_id: r.error for r in records if r.status == "error"},
             "error_attempts_by_class": dict(Counter(
                 error_class(r.error) for r in all_records
@@ -144,15 +161,19 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines = [f"# Study report — {report['study_id']}", "",
              report["note"], "",
              "| System | Arm | ok / error / pending / not run (of expected) | Failed attempts by class (all attempts) "
-             "| Model(s) | Median s per turn | Usage (reported) |",
-             "|---|---|---|---|---|---|---|"]
+             "| Model(s) | Median s per turn | Usage, latest runs (reported) "
+             "| Usage, every attempt (reported) |",
+             "|---|---|---|---|---|---|---|---|"]
     for system_id, s in report["systems"].items():
         usage = ", ".join(f"{k}={v:g}" for k, v in s["usage_totals"].items()) or "—"
+        spent = ", ".join(
+            f"{k}={v:g}" for k, v in (s.get("usage_totals_all_attempts") or {}).items()
+        ) or "—"
         failed = ", ".join(f"{k}: {v}" for k, v in sorted(s["error_attempts_by_class"].items())) or "—"
         lines.append(
             f"| `{system_id}` | {s['arm']} | {s['ok']} / {s['error']} / {s['pending']} / {s['not_run']} "
             f"({s['expected']}) | {failed} | {', '.join(s['models']) or '—'} | {s['median_turn_seconds'] or '—'} "
-            f"| {usage} |"
+            f"| {usage} | {spent} |"
         )
     toxagent = {k: v for k, v in report["systems"].items() if "toxagent" in v}
     if toxagent:

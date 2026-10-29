@@ -84,6 +84,9 @@ class RunContext:
     include_external_evidence: bool = True
     report_output_formats: tuple[str, ...] = ("markdown", "html")
     report_build_id: str | None = None
+    #: #44 (subject_binding_v1): the RunSubjectBinding fixed when the message
+    #: was accepted, as its wire dict. ``None`` for a run admitted without one.
+    subject: Mapping[str, Any] | None = None
 
 
 # Imported after `RunContext`: the codec is defined in terms of it, and takes
@@ -581,10 +584,15 @@ class RunScheduler:
                 )
                 await uow.messages.add(notice)
                 recovery: Run | None = None
-                if _can_recover_runtime_loss(run, status=status, failure_code=code):
+                inherited = _inherited_deadline(run)
+                if _can_recover_runtime_loss(run, status=status, failure_code=code) and (
+                    inherited is None or inherited.total_seconds() >= MIN_RECOVERY_S
+                ):
                     # PROD-10: never resume a terminal run.  This is a new
                     # auditable entity and deliberately has no assistant text
-                    # appended to the failed run's transcript.
+                    # appended to the failed run's transcript. Under total
+                    # accounting (#46) it continues the original's clock and
+                    # call budget instead of starting new ones.
                     recovery = Run.create(
                         run.session_id,
                         run.trigger_message_id,
@@ -592,6 +600,7 @@ class RunScheduler:
                         run.intent,
                         now=_now(),
                         recovery_of_run_id=run.id,
+                        **({"deadline": inherited} if inherited is not None else {}),
                     )
                     await uow.runs.add(recovery)
                     uow.emit(
@@ -658,6 +667,9 @@ class RunScheduler:
                     include_external_evidence=context.include_external_evidence,
                     report_output_formats=context.report_output_formats,
                     report_build_id=context.report_build_id,
+                    # #44: a recovery answers about the subject the original
+                    # was bound to, not whatever the session selects now.
+                    subject=context.subject,
                 )
                 # In the same transaction as the recovery run itself: a
                 # recovery created but never enqueued would be the original
@@ -787,6 +799,21 @@ class RunScheduler:
     @property
     def queues(self) -> tuple[str, ...] | None:
         return self._queues
+
+
+#: A recovery with less of the original's clock left than this is not started.
+MIN_RECOVERY_S = 30.0
+
+
+def _inherited_deadline(run: Run) -> timedelta | None:
+    """What a recovery of ``run`` may still spend, when the budget preset
+    counts a run and its recoveries as one execution chain (#46); ``None``
+    when a recovery gets the default deadline, as before."""
+    from ...platform.config import total_call_accounting
+
+    if run.intent is not Intent.DECISION_SUPPORT or not total_call_accounting():
+        return None
+    return max(timedelta(0), run.deadline_at - _now())
 
 
 def _can_recover_runtime_loss(run: Run, *, status: RunStatus, failure_code: str) -> bool:
