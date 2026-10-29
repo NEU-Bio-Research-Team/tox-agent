@@ -91,7 +91,8 @@ class ToolRunner:
                 # #46: an invalid call is recorded and counts against the
                 # invalid-call cap, so a model cannot spend a run on free
                 # malformed calls.
-                capped = await self._record_invalid(context, tool_name, arguments_hash)
+                capped = await self._record_invalid(context, tool_name, arguments_hash,
+                                                    _schema_errors(exc))
                 if capped is not None:
                     return capped
             return envelope.failed(
@@ -317,7 +318,9 @@ class ToolRunner:
         return context.phase
 
     async def _record_invalid(self, context: ToolContext, tool_name: str,
-                              arguments_hash: str) -> dict[str, Any] | None:
+                              arguments_hash: str,
+                              schema_errors: list[dict[str, str]] | None = None,
+                              ) -> dict[str, Any] | None:
         """Record an invalid call. Past the run's invalid-call cap the call is
         refused for the cap instead -- returned as the denial envelope -- so a
         model told its arguments are wrong cannot keep spending free calls.
@@ -330,6 +333,9 @@ class ToolRunner:
                 and await uow.tool_calls.count_denied_for_run(context.run_id) >= cap
             )
             code = "tool_denied" if over else "invalid_request"
+            failed_payload: dict[str, Any] = {"tool_name": tool_name, "error_code": code}
+            if schema_errors:
+                failed_payload["schema_errors"] = schema_errors
             await uow.tool_calls.record_denied(
                 call_id=context.call_id, session_id=context.session_id,
                 run_id=context.run_id, tool_name=tool_name, arguments_sha256=arguments_hash,
@@ -338,7 +344,7 @@ class ToolRunner:
             uow.emit(
                 session_id=context.session_id, type=EventType.TOOL_FAILED,
                 entity_type="tool_call", entity_id=context.call_id, run_id=context.run_id,
-                payload={"tool_name": tool_name, "error_code": code},
+                payload=failed_payload,
             )
             await uow.commit()
         if not over:
@@ -443,3 +449,16 @@ class ToolRunner:
             retryable=retryable, details=details, retry_after_ms=retry_after_ms,
             duration_ms=duration_ms,
         )
+
+
+def _schema_errors(exc: ValidationError, limit: int = 8) -> list[dict[str, str]]:
+    """Where a call's arguments broke the schema, and how -- never the values.
+
+    Recorded on the failure event because a live run (2026-10-29, arm E) had
+    17 answer submissions refused at the schema and no record of why: the
+    model is told, and nobody reading the run afterwards could be.
+    """
+    return [
+        {"loc": ".".join(str(part) for part in error.get("loc", ())), "type": error.get("type", "")}
+        for error in exc.errors(include_input=False)[:limit]
+    ]

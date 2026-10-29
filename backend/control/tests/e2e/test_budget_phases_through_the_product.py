@@ -96,8 +96,17 @@ async def test_submissions_keep_their_calls_and_every_call_has_a_phase(db, small
         result = (await client.get(f"/v1/sessions/{session_id}/runs/{run['run_id']}/result",
                                    headers=AUTH)).json()
         product = (await client.get("/v1/system/effective-product", headers=AUTH)).json()
+        events = (await client.get(f"/v1/sessions/{session_id}/events:list",
+                                   params={"run_id": run["run_id"]}, headers=AUTH)).json()
 
     assert state["third"]["status"] == "completed"
+    # The record says where the arguments broke the schema, and never what they were.
+    schema_failures = [e["payload"] for e in events["events"]
+                       if e["type"] == "tool.failed" and e["payload"].get("schema_errors")]
+    assert schema_failures, events
+    assert {"loc": "nope", "type": "extra_forbidden"} in schema_failures[0]["schema_errors"]
+    assert {"loc": "evidence_id", "type": "missing"} in schema_failures[0]["schema_errors"]
+    assert "0" not in json.dumps(schema_failures[0]["schema_errors"])
     fourth = state["fourth"]
     assert fourth["status"] == "error" and fourth["error"]["code"] == "tool_denied"
     assert "reserved calls" in fourth["error"]["message"]
