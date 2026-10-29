@@ -90,6 +90,7 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
                 subject = observation.model_projection.get("subject")
                 if subject is not None:
                     source["subject"] = subject
+                source.update(await _what_it_was_made_of(uow, session_id, answer, observation))
                 sources.append(source)
         for evidence_id in claim.citation_ids:
             record = await uow.evidence.get(evidence_id, session_id=session_id)
@@ -138,6 +139,67 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
             entry["transform"] = claim.transform
         claims.append(entry)
     return {"answer_id": answer.id, "claims": claims}
+
+
+async def _what_it_was_made_of(uow, session_id: str, answer, observation) -> dict[str, Any]:
+    """For a calculation, its formula and every input with where it came from;
+    for a researcher value, that it is one and what standing it has.
+
+    Found live (2026-10-29, arm E, T5): a margin of 30 computed from a cited
+    IC50 and the researcher's free Cmax was judged partially_supported twice,
+    because the reviewer saw the IC50's record and nothing that said the
+    exposure was the researcher's -- "no cited source provides the free Cmax".
+    A derived number is checked against its inputs (§9.1), so the inputs are
+    what the reviewer has to see.
+    """
+    payload = observation.canonical_payload or {}
+    kind = observation.kind.value
+    if kind == "researcher_value":
+        return {"researcher_value": {
+            key: payload.get(key) for key in ("ref", "key", "value", "unit", "verification",
+                                              "superseded_by")
+        }}
+    if kind != "calculation" or not isinstance(payload.get("inputs"), dict):
+        return {}
+    case = None
+    inputs: dict[str, Any] = {}
+    for name, item in payload["inputs"].items():
+        if not isinstance(item, dict):
+            continue
+        row = {k: item.get(k) for k in ("value", "unit", "kind", "source_ref") if k in item}
+        ref = str(item.get("source_ref") or "")
+        if ref.startswith("context:"):
+            if case is None:
+                from . import scientific_case_service
+
+                case = await scientific_case_service.case_for_run(
+                    uow, session_id=session_id, run_id=answer.run_id
+                )
+            context_item = next(
+                (c for c in (case.context if case else ()) if f"context:{c.id}" == ref), None
+            )
+            row["source"] = (
+                {"kind": "researcher_supplied", "key": context_item.key,
+                 "stated": context_item.value, "unit": context_item.unit,
+                 "verification": context_item.verification or "user_asserted"}
+                if context_item is not None else {"kind": "researcher_supplied",
+                                                 "found": False}
+            )
+        elif ref.startswith("evidence:"):
+            record = await uow.evidence.get(ref.split(":", 1)[1], session_id=session_id)
+            row["source"] = ({"kind": "evidence_record", "title": record.title}
+                             if record is not None else {"kind": "evidence_record",
+                                                         "found": False})
+        inputs[name] = row
+    return {"calculation": {
+        "method_version": payload.get("method_version"), "formula": payload.get("formula"),
+        "result": {k: payload.get(k) for k in ("margin", "ic50_nM", "free_cmax_nM")
+                   if k in payload},
+        "inputs": inputs,
+        "how_to_judge": "a computed value is supported when the formula applied to these "
+                        "inputs gives it; a researcher-supplied input is the researcher's "
+                        "statement, not a claim a cited record must make",
+    }}
 
 
 def summarize(reviews: list[dict[str, Any]]) -> dict[str, int]:

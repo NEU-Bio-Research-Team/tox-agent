@@ -204,3 +204,49 @@ async def test_an_answer_quotes_the_researchers_value_by_the_observation_it_was_
     answer = state["answer"]
     assert answer["status"] == "completed", answer
     assert answer["model_view"]["is_fallback"] is False
+
+
+async def test_the_reviewer_sees_what_a_margin_was_computed_from(db, flags_on):
+    """Live (2026-10-29, arm E, T5): a correct margin of 30 was withheld twice,
+    because the reviewer saw the IC50's record and nothing that said the free
+    Cmax was the researcher's. The bundle now carries the formula and each
+    input with its provenance."""
+    from toxagent.application.investigation import claim_review
+
+    state: dict = {}
+
+    async def script(turn) -> None:
+        if "margin" not in turn.user_message:
+            await turn.call_tool("submit_grounded_answer", {
+                "answer_markdown": "Noted.", "claims": [], "limitations": []})
+            return
+        result = await turn.call_tool("compute_exposure_margin", {
+            "ic50": {"value": 300, "unit": "nM", "source_ref": "context:c1"},
+            "cmax": {"value": 10, "unit": "nM", "source_ref": "context:c2"},
+        })
+        state["answer"] = await turn.call_tool("submit_grounded_answer",
+                                               _margin_answer(result["observation_ids"][0]))
+
+    async with api_client(db, StubPredictor()) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        await _analyse(client, session_id)
+        await _post(client, session_id, "Is hERG a concern?")
+        case_id = (await _case(client, session_id))["case_id"]
+        await _add(client, session_id, case_id, "patch_clamp_ic50", "300 nM, in-house HEK293")
+        await _add(client, session_id, case_id, "free_cmax", "10 nM at the intended dose")
+        await _post(client, session_id, "What is the exposure margin?")
+
+    async with db.unit_of_work() as uow:
+        answer = await uow.answers.get(state["answer"]["model_view"]["answer_id"],
+                                       session_id=session_id)
+        bundle = await claim_review.review_bundle(uow, session_id=session_id, answer=answer)
+    (claim,) = bundle["claims"]
+    calculation = claim["sources"][0]["calculation"]
+    assert calculation["result"]["margin"] == 30.0
+    assert "IC50 / free Cmax" in calculation["formula"]
+    cmax = calculation["inputs"]["cmax"]
+    assert cmax["source"] == {"kind": "researcher_supplied", "key": "free_cmax",
+                              "stated": "10 nM at the intended dose", "unit": None,
+                              "verification": "user_asserted"}
+    assert "not a claim a cited record must make" in calculation["how_to_judge"]
