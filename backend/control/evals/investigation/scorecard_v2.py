@@ -450,6 +450,7 @@ def build_scorecard_v2(
     reps: int = 2000, seed: int = 20261022, cost: Mapping[str, Any] | None = None,
     retrieval: Mapping[str, Any] | None = None,
     claims: Sequence[Mapping[str, Any]] = (),
+    routing: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     from evals.investigation import adjudication as adjudication_module
     from evals.investigation import claims as claims_module
@@ -472,6 +473,7 @@ def build_scorecard_v2(
                           if claims else {}),
         "adjudication": adjudication_module.adjudication(key=key, grades=grades, gold=gold),
         "cost": dict(cost or {}),
+        "routing": dict(routing or {}),
         "note": "Dimensions are separate measurements; there is no total score. Engineering "
                 "conformance on synthetic fixtures is not scientific performance.",
     }
@@ -616,6 +618,45 @@ def usage_summary(records: Iterable[Any]) -> dict[str, Any]:
     return dict(sorted(per_system.items()))
 
 
+def routing_summary(records: Iterable[Any],
+                    cases: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """§4.2: routes and what each cost, apart from task success.
+
+    Per arm: how many turns took each route, and per route the median turn
+    time and tool calls -- the read route exists to be cheaper, so that is
+    what has to be visible. Per task group, which routes its turns took.
+    Routing *errors* need the route each turn should have taken, and no gold
+    file states one yet; the card says so rather than guessing.
+    """
+    per_system: dict[str, dict[str, Any]] = {}
+    for record in records:
+        if getattr(record, "attempt_kind", None) == "diagnostic_rerun":
+            continue
+        row = per_system.setdefault(record.system_id, {"by_route": {}, "by_task_group": {}})
+        group = (cases.get(record.case_id) or {}).get("task_group") or "unassigned"
+        for turn in record.turns:
+            route = (turn.meta or {}).get("route")
+            if route is None:
+                continue
+            into = row["by_route"].setdefault(route, {"turns": 0, "durations": [], "calls": []})
+            into["turns"] += 1
+            if isinstance(turn.duration_s, (int, float)):
+                into["durations"].append(float(turn.duration_s))
+            into["calls"].append(len((turn.meta or {}).get("tool_calls") or ()))
+            counts = row["by_task_group"].setdefault(group, {})
+            counts[route] = counts.get(route, 0) + 1
+    for row in per_system.values():
+        for into in row["by_route"].values():
+            durations, calls = into.pop("durations"), into.pop("calls")
+            into["median_turn_seconds"] = (round(statistics.median(durations), 1)
+                                           if durations else None)
+            into["median_tool_calls"] = statistics.median(calls) if calls else None
+    return {
+        "systems": dict(sorted(per_system.items())),
+        "routing_errors": "not measured: no gold file states the route a turn should take",
+    }
+
+
 def retrieval_summary(*, key: Mapping[str, Any], gold: Mapping[str, Mapping[str, Any]],
                       traces: Mapping[tuple[str, str, int], Mapping[str, Any]]) -> dict[str, Any]:
     """Record- and span-level retrieval per arm, from the traces alone."""
@@ -686,6 +727,7 @@ def score_study(*, study_dir: Path, case_set_dir: Path, packet_id: str, grades: 
         key=key, grades=read_grades_v2(grades, criticals=criticals), cases=cases, gold=gold,
         criticals=criticals, compare=compare, reps=reps, seed=seed,
         cost=usage_summary(records),
+        routing=routing_summary(records, cases),
         retrieval=retrieval_summary(key=key, gold=gold, traces=traces),
         claims=_claim_rows(claims),
     )

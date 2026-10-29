@@ -297,3 +297,32 @@ def test_retrieval_is_measured_from_the_trace_and_placed_before_or_after_the_rea
     assert summary["B"]["records"]["read"] == {"n": 0, "of": 1, "rate": 0.0}
     assert summary["B"]["spans"]["quoted"] == {"n": 0, "of": 1, "rate": 0.0}
     assert summary["D"]["unusable_refs"] == []
+
+
+def test_routes_and_their_cost_are_read_apart_from_task_success():
+    """§4.2: routing is measured on its own, and the read route has to be
+    visibly cheaper -- which is the reason it exists."""
+    from evals.investigation.scorecard_v2 import routing_summary
+
+    class _RoutedTurn:
+        def __init__(self, route, duration, calls):
+            self.duration_s = duration
+            self.meta = {"route": route, "tool_calls": ["t"] * calls}
+
+    class _Routed:
+        def __init__(self, case_id, turns, kind="primary"):
+            self.system_id, self.case_id, self.turns, self.attempt_kind = "E", case_id, turns, kind
+
+    records = [
+        _Routed("c1", [_RoutedTurn("read_explain", 30.0, 3)]),
+        _Routed("c2", [_RoutedTurn("investigate", 90.0, 12), _RoutedTurn("update", 70.0, 8)]),
+        _Routed("c2", [_RoutedTurn("investigate", 999.0, 99)], kind="diagnostic_rerun"),
+    ]
+    card = routing_summary(records, {"c1": {"task_group": "T1"}, "c2": {"task_group": "T5"}})
+    row = card["systems"]["E"]
+    assert row["by_route"]["read_explain"] == {"turns": 1, "median_turn_seconds": 30.0,
+                                               "median_tool_calls": 3}
+    assert row["by_route"]["investigate"]["turns"] == 1  # the diagnostic rerun is not counted
+    assert row["by_task_group"] == {"T1": {"read_explain": 1},
+                                    "T5": {"investigate": 1, "update": 1}}
+    assert card["routing_errors"].startswith("not measured")

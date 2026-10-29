@@ -231,6 +231,11 @@ class ToxAgentReplayAdapter(ToxAgentAdapter):
                               "execution_outcome": (result or {}).get("execution_outcome"),
                               "knowledge_outcome": (result or {}).get("knowledge_outcome"),
                               "stop_reason": state.get("stop_reason"),
+                              # §4.1/§4.2: the serving route, recorded per turn
+                              # so routing is read apart from task success.
+                              "route": (state.get("goal_contract") or {}).get("route"),
+                              "route_decision": (state.get("goal_contract") or {})
+                              .get("route_decision"),
                               "skills": state.get("skills"),
                               "tool_calls": [c.get("tool_name") for c in run.get("tool_calls") or ()],
                               "phase_usage": run.get("phase_usage"),
