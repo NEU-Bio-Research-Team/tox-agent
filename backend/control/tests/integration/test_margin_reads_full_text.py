@@ -17,6 +17,8 @@ from toxagent.application.policy import Actor
 from toxagent.application.prediction.create_analysis import CreateAnalysis
 from toxagent.domain.evidence import EvidenceRecord, EvidenceStatus, SourceType
 from toxagent.domain.evidence_text import EvidenceFullText, EvidencePassage
+from toxagent.domain.message import Message, Role
+from toxagent.domain.run import Intent, Lane, Run
 from toxagent.domain.session import Session
 from toxagent.platform.config import PolicySettings
 from toxagent.tools.bootstrap import build_registry
@@ -26,19 +28,22 @@ from tests.support.predictor import StubPredictor
 pytestmark = pytest.mark.anyio
 
 NOW = datetime.now(timezone.utc)
-RUN = "run_" + "7" * 32
 ACTOR = Actor(subject_id="user-1")
 
 
-async def _seed(db) -> tuple[str, str]:
+async def _seed(db) -> tuple[str, str, str]:
+    # A real run: the full text references it, and Postgres enforces the key
+    # SQLite does not.
     session = Session.create(ACTOR.subject_id, now=NOW)
+    message = Message.create(session.id, Role.USER, 1, now=NOW)
+    run = Run.create(session.id, message.id, Lane.AGENTIC, Intent.DECISION_SUPPORT, now=NOW)
     record = replace(EvidenceRecord.create(
         session_id=session.id, provider="europe_pmc", provider_record_id="MED:90011",
         source_type=SourceType.ARTICLE, title="TX-202 hERG IC50 by patch clamp",
         retrieved_at=NOW, abstract_or_excerpt="Free plasma Cmax was 10 nM at the clinical dose.",
     ), status=EvidenceStatus.ACCEPTED)
     full_text = EvidenceFullText.retrieved(
-        evidence_id=record.id, session_id=session.id, run_id=RUN,
+        evidence_id=record.id, session_id=session.id, run_id=run.id,
         passages=(EvidencePassage(
             locator="table:1/row:2", section="Results", kind="table_row",
             text="TX-202 | patch clamp | 0.3 uM", cells=("TX-202", "patch clamp", "0.3 uM"),
@@ -47,13 +52,15 @@ async def _seed(db) -> tuple[str, str]:
     )
     async with db.unit_of_work() as uow:
         await uow.sessions.add(session)
+        await uow.messages.add(message)
+        await uow.runs.add(run)
         await uow.evidence.add(record)
         await uow.evidence_text.add_if_absent(full_text)
         await uow.commit()
-    return session.id, record.id
+    return session.id, run.id, record.id
 
 
-async def _margin(db, session_id: str, payload: dict, monkeypatch):
+async def _margin(db, session_id: str, run_id: str, payload: dict, monkeypatch):
     monkeypatch.setenv("TOXAGENT_FLAG_SCIENTIFIC_PRIMITIVES_V1", "1")
     predictor = StubPredictor().client()
     registry = build_registry(db, predictor, CreateAnalysis(db, predictor, PolicySettings()),
@@ -61,15 +68,15 @@ async def _margin(db, session_id: str, payload: dict, monkeypatch):
     definition = next(t for t in registry.visible_for("decision_support")
                       if t.name == "compute_exposure_margin")
     context = ToolContext(
-        session_id=session_id, run_id=RUN, actor=ACTOR, profile="decision_support",
+        session_id=session_id, run_id=run_id, actor=ACTOR, profile="decision_support",
         deadline_at=datetime.now(timezone.utc) + timedelta(seconds=60),
     )
     return await definition.handler(context, definition.input_model(**payload))
 
 
 async def test_an_ic50_written_only_in_a_table_row_is_accepted(db, monkeypatch):
-    session_id, evidence_id = await _seed(db)
-    result = await _margin(db, session_id, {
+    session_id, run_id, evidence_id = await _seed(db)
+    result = await _margin(db, session_id, run_id, {
         "ic50": {"value": 0.3, "unit": "uM", "source_ref": f"evidence:{evidence_id}"},
         "cmax": {"value": 10, "unit": "nM", "source_ref": f"evidence:{evidence_id}"},
     }, monkeypatch)
@@ -77,9 +84,9 @@ async def test_an_ic50_written_only_in_a_table_row_is_accepted(db, monkeypatch):
 
 
 async def test_a_number_in_neither_the_record_nor_its_text_is_still_refused(db, monkeypatch):
-    session_id, evidence_id = await _seed(db)
+    session_id, run_id, evidence_id = await _seed(db)
     with pytest.raises(Exception, match="not written in"):
-        await _margin(db, session_id, {
+        await _margin(db, session_id, run_id, {
             "ic50": {"value": 0.7, "unit": "uM", "source_ref": f"evidence:{evidence_id}"},
             "cmax": {"value": 10, "unit": "nM", "source_ref": f"evidence:{evidence_id}"},
         }, monkeypatch)
