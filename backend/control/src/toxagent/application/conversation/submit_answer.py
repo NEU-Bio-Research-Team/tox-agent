@@ -30,6 +30,7 @@ from ...domain.evidence_relation import (
 )
 from ...domain.development_posture import DevelopmentPosture, DevelopmentScope, PostureValue
 from ...domain.observation import Observation
+from ...domain.subject import RunSubjectBinding, SubjectKind
 from ...platform.flags import is_enabled
 from ...research.measurement import is_measured_value
 from ..investigation import evidence_text
@@ -76,6 +77,24 @@ def _synthesis_only_posture(posture, relations) -> list[Violation]:
             )
         ]
     return []
+
+
+async def _run_binding(uow, run_id: str) -> RunSubjectBinding | None:
+    """The subject the run was bound to at admission (#44), if any."""
+    snapshot = await uow.run_configuration_snapshots.get(run_id)
+    data = (snapshot or {}).get("subject_binding")
+    if not data or data.get("pending_snapshot"):
+        return None
+    return RunSubjectBinding.from_dict(data)
+
+
+def _bound_analysis_id(binding: RunSubjectBinding) -> str | None:
+    """The analysis a bound subject's prediction lives in: the analysis
+    itself, or the analysis a screening's toxicity stage replayed."""
+    if binding.kind is SubjectKind.ACTIVITY_SCREENING:
+        toxicity = binding.artifact("toxicity_snapshot")
+        return toxicity.local_id if toxicity is not None else None
+    return binding.analysis_id
 
 
 async def _record_answer_in_state(uow, run_id: str, *, relations, is_fallback: bool,
@@ -833,15 +852,28 @@ class SubmitAnswer:
     async def _build_fallback(
         self, uow, session, session_id: str, run_id: str, generation: int, language: str
     ) -> GroundedAnswer:
+        # #62: a run bound to a subject falls back on *that* subject's
+        # prediction, never on whichever analysis the session has active --
+        # the fallback is the one answer built without the agent, so it is
+        # the easiest place for an answer to leave the subject it was about.
+        binding = await _run_binding(uow, run_id)
+        if binding is not None:
+            analysis_id = _bound_analysis_id(binding)
+            # A screening subject whose toxicity stage produced no analysis has
+            # no prediction to show, and "run an analysis first" would send the
+            # researcher the wrong way.
+            has_other_subject = binding.kind is SubjectKind.ACTIVITY_SCREENING
+        else:
+            analysis_id = session.active_analysis_id
+            has_other_subject = is_enabled("activity_replay_v1") and bool(
+                await uow.screenings.list_for_session(session_id)
+            )
         observations: list[Observation] = []
-        if session.active_analysis_id:
-            observations = list(await uow.observations.list_for_analysis(session.active_analysis_id))
-        has_screening = is_enabled("activity_replay_v1") and bool(
-            await uow.screenings.list_for_session(session_id)
-        )
+        if analysis_id:
+            observations = list(await uow.observations.list_for_analysis(analysis_id))
         answer = build_fallback_answer(
             session_id=session_id, run_id=run_id, observations=observations,
-            language=language, now=_now(), has_other_subject=has_screening,
+            language=language, now=_now(), has_other_subject=has_other_subject,
         )
         # candidate_generation belongs to the run's attempt sequence, same as a
         # model-authored candidate would have used.
