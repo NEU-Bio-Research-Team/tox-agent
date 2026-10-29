@@ -80,7 +80,14 @@ class ClaimCandidateV2(_Wire):
     text: str = Field(min_length=1, max_length=2000)
     observation_id: str | None = None
     field_path: str | None = None
-    transform: str = "identity"
+    transform: str = Field(
+        default="identity",
+        description=(
+            "How the cited value is rendered, exactly one of: identity, round:N or "
+            "percent:N (N from 0 to 6), difference, ratio. Omit it for the value as "
+            "stored. Anything else is refused before the answer is checked."
+        ),
+    )
     citation_ids: list[str] = Field(default_factory=list)
     input_local_refs: list[str] = Field(
         default_factory=list,
