@@ -97,8 +97,11 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # +11 for #44's three activity reads, which #44 names one per
         # artifact so each states its own invariant (not-run is not negative,
         # pIC50 is not efficacy, a policy is a rule); they are useful only
-        # with a screening attached.
-        assert len(tools) <= ceiling + 11, f"{name} has {len(tools)} tools with every flag on"
+        # with a screening attached. +12 for #66's run_scientific_procedure,
+        # which is one entry for four determinate operations precisely because
+        # §7.3 asks the core surface to stay small: four tools would have cost
+        # four here and made the list harder to choose from.
+        assert len(tools) <= ceiling + 12, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

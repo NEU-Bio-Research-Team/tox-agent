@@ -312,6 +312,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "scientific_procedures_v1": {
+      "default": false,
+      "description": "Register run_scientific_procedure in decision_support and evidence_research (#66, §7.1/§7.2): normalise_measurements, deduplicate_by_origin, compare_measurements and check_dependencies, each returning the criteria it applied, the records it excluded with the reason, the fields the inputs did not state and its own sub-operation count. Off, the tool does not exist and the model does this arithmetic in prose.",
+      "gates_tools": [
+        "run_scientific_procedure"
+      ],
+      "owner": "backend-agent",
+      "remove_by": "2026-12-12"
+    },
     "scientific_skills_v1": {
       "default": false,
       "description": "The dynamic skill arm: decision_support prompts list the scientific skill catalog (names and descriptions) and register read_scientific_skill/read_skill_reference, so the model loads a skill's pinned instructions only when the situation calls for it. Off, no skill is offered (TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 selects the static comparison arm instead).",
@@ -603,6 +612,7 @@
         "read_scientific_skill": "scientific_skills_v1",
         "read_skill_reference": "scientific_skills_v1",
         "record_decision_plan": "decision_state_plan_tool",
+        "run_scientific_procedure": "scientific_procedures_v1",
         "update_scientific_case": "scientific_case_v1"
       }
     },
@@ -614,7 +624,8 @@
         "submit_grounded_answer"
       ],
       "flag_gated": {
-        "read_evidence_text": "evidence_full_text_v1"
+        "read_evidence_text": "evidence_full_text_v1",
+        "run_scientific_procedure": "scientific_procedures_v1"
       }
     },
     "report_build": {

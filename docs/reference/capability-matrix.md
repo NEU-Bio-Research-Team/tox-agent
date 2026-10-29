@@ -52,8 +52,8 @@ Any other target, or any other method, is `not_measured`.
 | `analysis` | `create_analysis_snapshot`, `get_analysis_slice`, `submit_grounded_answer` | — |
 | `audit_readonly` | `get_analysis_slice`, `get_evidence_record`, `get_explanation_slice` | — |
 | `claim_review` | — | `submit_claim_review` (claim_reviewer_v1) |
-| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `compute_exposure_margin` (scientific_primitives_v1), `get_activity_snapshot` (activity_replay_v1), `get_chembl_activities` (scientific_primitives_v1), `get_prioritisation_decision` (activity_replay_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `propose_skill_draft` (skill_drafts_v1), `read_evidence_text` (evidence_full_text_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `update_scientific_case` (scientific_case_v1) |
-| `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | `read_evidence_text` (evidence_full_text_v1) |
+| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `compute_exposure_margin` (scientific_primitives_v1), `get_activity_snapshot` (activity_replay_v1), `get_chembl_activities` (scientific_primitives_v1), `get_prioritisation_decision` (activity_replay_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `propose_skill_draft` (skill_drafts_v1), `read_evidence_text` (evidence_full_text_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `run_scientific_procedure` (scientific_procedures_v1), `update_scientific_case` (scientific_case_v1) |
+| `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | `read_evidence_text` (evidence_full_text_v1), `run_scientific_procedure` (scientific_procedures_v1) |
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
 | `report_qa` | `get_analysis_slice`, `get_attribution`, `submit_grounded_answer` | — |
 | `report_synthesis` | `submit_report_synthesis` | — |
@@ -79,6 +79,7 @@ Any other target, or any other method, is `not_measured`.
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `scientific_case_v1` | no | backend-scientific | 2026-12-23 | `get_scientific_case`, `update_scientific_case` |
 | `scientific_primitives_v1` | no | backend-scientific | 2026-12-23 | `compute_exposure_margin`, `get_chembl_activities` |
+| `scientific_procedures_v1` | no | backend-agent | 2026-12-12 | `run_scientific_procedure` |
 | `scientific_skills_v1` | no | backend-scientific | 2026-12-23 | `read_scientific_skill`, `read_skill_reference` |
 | `skill_drafts_v1` | no | backend-scientific | 2026-12-23 | `propose_skill_draft` |
 | `subject_binding_v1` | no | backend-scientific | 2027-01-18 | — |
