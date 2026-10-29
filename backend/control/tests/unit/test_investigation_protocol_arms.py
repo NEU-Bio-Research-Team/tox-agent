@@ -34,8 +34,24 @@ def test_c_differs_from_d_only_in_the_case_and_the_skills():
     }
 
 
+def test_e_differs_from_d_only_in_the_architecture_of_2026_10_28():
+    assert arm_diff(_arm("D"), _arm("E")) == {
+        "required_flags.investigator_contract_v1": (False, True),
+        "required_flags.scientific_primitives_v1": (False, True),
+        "required_flags.scientific_procedures_v1": (False, True),
+    }
+
+
+def test_every_flag_e_turns_on_is_a_declared_treatment():
+    """Otherwise preflight would refuse E beside D as an undeclared confound."""
+    treatments = set(_arm("E")["treatment_fields"])
+    for flag, value in _arm("E")["required_flags"].items():
+        if value != _arm("C")["required_flags"].get(flag):
+            assert f"flags.{flag}" in treatments, flag
+
+
 def test_the_agent_arms_share_the_gates_the_budget_and_the_sources():
-    for letter in "BCD":
+    for letter in "BCDE":
         arm = _arm(letter)
         flags = arm["required_flags"]
         assert flags["answer_draft_v2"] and flags["release_gate_v1"] and flags["claim_reviewer_v1"]
@@ -49,7 +65,8 @@ def test_the_agent_arms_share_the_gates_the_budget_and_the_sources():
 
 def test_the_v2_arms_are_registered_beside_the_historical_ones():
     v2 = protocol_arms()
-    assert set(v2) == {"A2_template", "B2_fixed_workflow", "C2_generic_react", "D2_investigator"}
+    assert set(v2) == {"A2_template", "B2_fixed_workflow", "C2_generic_react", "D2_investigator",
+                       "E2_contract_investigator"}
     assert set(v2) <= set(SYSTEMS)
     # the v1 arms stay, as diagnostics of the code as it was
     assert SYSTEMS["C_toxagent_current"].protocol == "v1"
