@@ -229,3 +229,27 @@ def test_a_superseded_version_says_so_to_the_model():
     assert observation.canonical_payload["superseded_by"] == "case_value:free_cmax@v2"
     assert not observation.model_projection["current"]
     assert "A later version of this value exists" in observation.model_projection["reading"]
+
+
+def test_a_value_written_as_a_number_is_citable_as_one():
+    """Live (2026-10-29, arm E, a05): a pIC50 of "6.2" cited through ``value``
+    was refused as not numeric, and the run fell back."""
+    from datetime import datetime, timezone
+
+    from toxagent.application.investigation.researcher_values import citable_field, project_value
+    from toxagent.domain.scientific_case.values import ValueVersion, VerificationStatus
+
+    def version(value: str) -> ValueVersion:
+        return ValueVersion(key="pic50", version=1, item_id="c1", value=value, unit="pIC50",
+                            source=None, scope=None,
+                            verification=VerificationStatus.USER_ASSERTED, actor="user",
+                            run_id=None)
+
+    observation = project_value(version("6.2"), case_id="scase_1", session_id="ses_" + "1" * 32,
+                                run_id="run_" + "1" * 32, now=datetime.now(timezone.utc))
+    assert observation.canonical_payload["number"] == 6.2
+    assert citable_field(version("6.2")) == "number"
+    assert citable_field(version("10 nM at the intended dose")) == "value"
+    prose = project_value(version("about 6"), case_id="scase_1", session_id="ses_" + "1" * 32,
+                          run_id="run_" + "1" * 32, now=datetime.now(timezone.utc))
+    assert "number" not in prose.canonical_payload

@@ -62,6 +62,12 @@ def project_value(
         "superseded_by": version.superseded_by,
         "constraint": constraint.to_dict(),
     }
+    number = _plain_number(version.value)
+    if number is not None:
+        # A numeric claim cites a number, and ``value`` is the researcher's
+        # text. Live (2026-10-29, arm E, a05): a pIC50 of "6.2" cited as
+        # ``value`` was refused as not numeric, and the run fell back.
+        payload["number"] = number
     projection = {
         "ref": version.ref,
         "key": version.key,
@@ -92,6 +98,19 @@ def project_value(
         now=now,
         required_limitations=limitations,
     )
+
+
+def _plain_number(text: str) -> float | None:
+    """The value as a number when it is written as one and nothing else."""
+    try:
+        return float(str(text).strip().replace(",", "."))
+    except ValueError:
+        return None
+
+
+def citable_field(version: ValueVersion) -> str:
+    """The field a claim cites to quote this value."""
+    return "number" if _plain_number(version.value) is not None else "value"
 
 
 def _reading(version: ValueVersion) -> str:

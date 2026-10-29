@@ -46,6 +46,7 @@ from ...domain.scientific_case import (
     value_versions,
 )
 from .goal_contract import GoalContractV1
+from .researcher_values import citable_field
 
 CASE_VIEW_SCHEMA_VERSION = "case-view-v1"
 
@@ -183,7 +184,8 @@ def _observation_rows(
          "current": version.current,
          # What an answer cites to quote the value: the observation this run
          # projected it into (#61). Only a version in force has one.
-         **({"observation_id": researcher_observations[version.ref], "field_path": "value"}
+         **({"observation_id": researcher_observations[version.ref],
+             "field_path": citable_field(version)}
             if version.ref in researcher_observations else {})}
         for item, version in zip(case.context, value_versions(case))
     ]
