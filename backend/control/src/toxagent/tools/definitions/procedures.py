@@ -38,7 +38,7 @@ class _Input(BaseModel):
 class RunProcedureInput(_Input):
     procedure: Literal[
         "normalise_measurements", "deduplicate_by_origin", "compare_measurements",
-        "check_dependencies",
+        "check_dependencies", "compare_candidates",
     ] = Field(description="Which determinate operation to run.")
     evidence_ids: list[str] = Field(
         default_factory=list, max_length=24,
@@ -53,6 +53,13 @@ class RunProcedureInput(_Input):
                     "saying so in a field, and guessing is how an unrelated source "
                     "becomes comparable.",
     )
+    criterion: Literal["herg_probability_blocker", "clintox_probability",
+                       "predicted_pic50"] | None = Field(
+        default=None,
+        description="compare_candidates only: the one criterion the question declares. "
+                    "Every analysis and screening in this session is a candidate; each row "
+                    "is read from that candidate's own artifact. There is no combined score.",
+    )
     tolerance_fold: float | None = Field(
         default=None, gt=0,
         description="compare_measurements only: the fold difference beyond which two "
@@ -66,7 +73,15 @@ def build(database) -> list[ToolDefinition]:
     async def run_procedure(context: ToolContext, payload: RunProcedureInput) -> ToolOutput:
         spec = procedures.spec_for(payload.procedure)
 
-        if payload.procedure == "check_dependencies":
+        if payload.procedure == "compare_candidates":
+            if payload.criterion is None:
+                raise InvalidRequest(
+                    "compare_candidates needs the criterion the question declares; if it "
+                    "declares none, ask the researcher which one rather than choosing"
+                )
+            rows = await _candidate_rows(database, context, payload.criterion)
+            result = procedures.compare_candidates(rows, criterion=payload.criterion)
+        elif payload.procedure == "check_dependencies":
             async with database.unit_of_work() as uow:
                 case = await scientific_case_service.case_for_run(
                     uow, session_id=context.session_id, run_id=context.run_id
@@ -133,7 +148,9 @@ def build(database) -> list[ToolDefinition]:
                 "compare_measurements (two records: whether their scopes are comparable, "
                 "then whether their values agree under a tolerance you declare); "
                 "check_dependencies (derived claims a changed premise left stale, plus "
-                "unresolved references and cycles). Every result states the criteria it "
+                "unresolved references and cycles); compare_candidates (every analysis and "
+                "screening in this session on one declared criterion, each from its own "
+                "artifact, with citable observation_ids). Every result states the criteria it "
                 "applied and the records it excluded with the reason -- read those before "
                 "quoting a count. Do not do this arithmetic yourself."
             ),
@@ -168,3 +185,70 @@ async def _load(
                 )
             records.append((evidence_id, dict(record.normalized_facts or {})))
     return records
+
+
+async def _candidate_rows(database, context: ToolContext, criterion: str) -> list[dict[str, Any]]:
+    """One row per subject in the session, read from that subject's own artifact.
+
+    A value is cited through an observation, so a screening's estimate is
+    projected into one for this run (as get_activity_snapshot does); an
+    analysis's prediction already is one.
+    """
+    from datetime import datetime, timezone
+
+    from ...application.activity import replay
+    from ...domain.observation import ObservationKind
+
+    spec = procedures.CRITERIA[criterion]
+    rows: list[dict[str, Any]] = []
+    async with database.unit_of_work() as uow:
+        analyses = await uow.analyses.list_for_session(context.session_id, limit=50)
+        screenings = await uow.screenings.list_for_session(context.session_id)
+        for analysis in analyses:
+            row: dict[str, Any] = {"subject_key": f"analysis:{analysis.id}"}
+            if spec["artifact"] != "prediction":
+                row["reason"] = "an analysis has no activity estimate"
+            else:
+                prediction = next(
+                    (o for o in await uow.observations.list_for_analysis(analysis.id)
+                     if o.kind is ObservationKind.PREDICTION), None)
+                value = _value_at(prediction, spec["field_path"])
+                if value is None:
+                    row["reason"] = "the analysis has no such prediction"
+                else:
+                    row.update(value=value, observation_id=prediction.id)
+            rows.append(row)
+        for attachment in screenings:
+            row = {"subject_key": f"screening:{attachment.screening_id}"}
+            if spec["artifact"] != "activity_estimate":
+                row["reason"] = ("a screening's toxicity prediction is its toxicity analysis, "
+                                 "listed as its own candidate when it ran")
+                rows.append(row)
+                continue
+            observation = replay.observation_for(
+                attachment.record, "activity_estimate", session_id=context.session_id,
+                run_id=context.run_id, now=datetime.now(timezone.utc),
+            )
+            value = _value_at(observation, spec["field_path"])
+            if value is None:
+                state = (attachment.record.get("screening_state") or {})
+                row["reason"] = f"no activity estimate (screening {state.get('status')})"
+            else:
+                await uow.observations.add(observation)
+                subject = (attachment.record.get("activity_estimate") or {}).get("subject") or {}
+                row.update(value=value, observation_id=observation.id,
+                           target_id=(subject.get("target") or {}).get("target_id"),
+                           assay_context=subject.get("assay_context"))
+            rows.append(row)
+        await uow.commit()
+    return rows
+
+
+def _value_at(observation, path: str) -> float | None:
+    if observation is None:
+        return None
+    try:
+        value = observation.value_at(path)
+    except Exception:  # noqa: BLE001 - an absent path is "no value", not a failure
+        return None
+    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None

@@ -255,3 +255,36 @@ def test_every_procedure_declares_its_version_and_writes_nothing():
         assert spec.version.endswith("-v1"), name
         assert spec.writes == (), name
         assert spec.reads, name
+
+
+# ── compare_candidates (§4.1 compare/batch) ───────────────────────────────
+
+
+def test_candidates_are_sorted_within_a_scale_and_never_across_two():
+    from toxagent.application.investigation import procedures as p
+
+    result = p.compare_candidates([
+        {"subject_key": "screening:a", "value": 7.1, "observation_id": "obs_a",
+         "target_id": "EGFR", "assay_context": "IC50|wild_type"},
+        {"subject_key": "screening:b", "value": 8.0, "observation_id": "obs_b",
+         "target_id": "EGFR", "assay_context": "IC50|wild_type"},
+        {"subject_key": "screening:c", "value": 9.0, "observation_id": "obs_c",
+         "target_id": "KCNH2", "assay_context": "IC50|wild_type"},
+        {"subject_key": "screening:d", "value": None, "reason": "no activity estimate"},
+    ], criterion="predicted_pic50")
+
+    groups = result.facts["groups"]
+    assert len(groups) == 2
+    egfr = next(g for g in groups if g["group"]["target_id"] == "EGFR")
+    assert [r["subject_key"] for r in egfr["rows"]] == ["screening:b", "screening:a"]
+    # Listed with why, not dropped: the comparison must not look complete.
+    assert result.exclusions == ({"ref": "screening:d", "reason": "no activity estimate"},)
+    assert result.counts == {"candidates": 4, "compared": 3, "groups": 2, "without_value": 1}
+    assert "No score combines criteria" in result.facts["reading"]
+
+
+def test_a_criterion_nobody_declared_is_refused_by_name():
+    from toxagent.application.investigation import procedures as p
+
+    with pytest.raises(p.UnknownProcedure, match="herg_probability_blocker"):
+        p.compare_candidates([], criterion="overall_score")

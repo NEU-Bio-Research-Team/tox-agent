@@ -346,12 +346,109 @@ def check_dependencies(
     )
 
 
+# ── compare candidates ────────────────────────────────────────────────────
+
+COMPARE_CANDIDATES = ProcedureSpec(
+    name="compare_candidates",
+    version="compare-candidates-v1",
+    summary="The session's candidates side by side on one declared criterion, each value "
+            "from that candidate's own artifact, grouped where values are not comparable "
+            "across groups. Never a combined score.",
+    reads=("analysis_predictions", "screening_artifacts"),
+)
+
+#: The criteria a comparison may be asked for, with where each value lives and
+#: what decides whether two values are on one scale. A predicted pIC50 against
+#: EGFR and one against hERG are two scales, so pIC50 groups by target and
+#: assay context; a probability from one predictor is one scale.
+CRITERIA: Mapping[str, Mapping[str, Any]] = {
+    "herg_probability_blocker": {
+        "artifact": "prediction", "field_path": "predictions.herg.probability_blocker",
+        "unit": "probability", "group_by": (),
+    },
+    "clintox_probability": {
+        "artifact": "prediction",
+        "field_path": "predictions.clintox.probability_clinical_toxicity",
+        "unit": "probability", "group_by": (),
+    },
+    "predicted_pic50": {
+        "artifact": "activity_estimate", "field_path": "estimate.predicted_pic50",
+        "unit": "pIC50", "group_by": ("target_id", "assay_context"),
+    },
+}
+
+
+def compare_candidates(
+    rows: Sequence[Mapping[str, Any]], *, criterion: str,
+) -> ProcedureResult:
+    """One row per candidate on ``criterion``, sorted within comparable groups.
+
+    ``rows`` are what the caller read, one per candidate: ``subject_key``,
+    ``value`` (``None`` when the candidate has no such artifact), ``reason``
+    when it has none, the ``observation_id``/``field_path`` to cite, and the
+    scope axes the criterion groups by. Pure.
+
+    Three refusals, each §4.1's: no combined score (one criterion only); no
+    ranking across groups whose values are on different scales; and a
+    candidate without the value is listed with why, not dropped -- dropping
+    it would make the comparison look complete.
+    """
+    spec = CRITERIA.get(criterion)
+    if spec is None:
+        raise UnknownProcedure(
+            f"{criterion!r} is not a declared comparison criterion; one of {sorted(CRITERIA)}"
+        )
+    group_by = tuple(spec["group_by"])
+    groups: dict[tuple, list[dict[str, Any]]] = {}
+    exclusions: list[dict[str, Any]] = []
+    for row in rows:
+        if row.get("value") is None:
+            exclusions.append({"ref": row.get("subject_key"),
+                               "reason": row.get("reason") or "no_value_for_criterion"})
+            continue
+        key = tuple(str(row.get(axis) or "not_stated") for axis in group_by)
+        groups.setdefault(key, []).append({
+            "subject_key": row.get("subject_key"), "value": float(row["value"]),
+            "observation_id": row.get("observation_id"), "field_path": spec["field_path"],
+            **{axis: row.get(axis) for axis in group_by},
+        })
+    rendered = []
+    for key, members in sorted(groups.items()):
+        members.sort(key=lambda m: m["value"], reverse=True)
+        rendered.append({
+            "group": dict(zip(group_by, key)) if group_by else {},
+            "rows": [{**m, "position": i + 1} for i, m in enumerate(members)],
+        })
+    return ProcedureResult(
+        procedure=COMPARE_CANDIDATES.name, version=COMPARE_CANDIDATES.version,
+        facts={
+            "criterion": criterion, "unit": spec["unit"], "groups": rendered,
+            "reading": (
+                "Sorted by the value, highest first, within each group. Higher is not "
+                "better or worse by itself: that depends on what the criterion means for "
+                "this decision. Groups are separate scales and are not ranked against "
+                "each other. No score combines criteria."
+            ),
+        },
+        counts={"candidates": len(rows), "compared": sum(len(g) for g in groups.values()),
+                "groups": len(groups), "without_value": len(exclusions)},
+        exclusions=tuple(exclusions),
+        refs=tuple(m["observation_id"] for g in groups.values() for m in g
+                   if m.get("observation_id")),
+        sub_operations=tuple({"op": "read", "subject_key": r.get("subject_key")} for r in rows)
+        + ({"op": "group_and_sort"},),
+        criteria={"criterion": criterion, "field_path": spec["field_path"],
+                  "group_by": list(group_by)},
+    )
+
+
 # ── the allowlist ─────────────────────────────────────────────────────────
 
 #: §7.2: an allowlisted runner, not a general shell. A name not here does not
 #: run, and the refusal names what is available.
 CATALOG: dict[str, ProcedureSpec] = {
-    spec.name: spec for spec in (NORMALISE, DEDUPLICATE, COMPARE, CHECK_DEPENDENCIES)
+    spec.name: spec for spec in (NORMALISE, DEDUPLICATE, COMPARE, CHECK_DEPENDENCIES,
+                                  COMPARE_CANDIDATES)
 }
 
 
