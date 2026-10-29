@@ -157,8 +157,18 @@ async def _source_text(uow, context: ToolContext, ref: str) -> str:
         record = await uow.evidence.get(identifier, session_id=context.session_id)
         if record is None or record.status is not EvidenceStatus.ACCEPTED:
             raise InvalidRequest(f"{ref}: not an accepted evidence record of this session")
+        # The full text this session captured counts as the source too: a
+        # potency read off a paper's table row is as written as one in its
+        # abstract. Found live on 2026-10-29 -- T5's IC50 is only in Table 1,
+        # and the margin was refused three times while the model quoted the row.
+        full_text = await uow.evidence_text.get(identifier, session_id=context.session_id)
+        passages = " ".join(
+            " ".join((passage.text, *passage.cells))
+            for passage in (full_text.passages if full_text is not None else ())
+        )
         return " ".join((record.title, record.abstract_or_excerpt or "",
-                         json.dumps(record.normalized_facts, ensure_ascii=False, default=str)))
+                         json.dumps(record.normalized_facts, ensure_ascii=False, default=str),
+                         passages))
     raise InvalidRequest(f"{ref}: a concentration cites 'context:' or 'evidence:', not {kind!r}")
 
 
