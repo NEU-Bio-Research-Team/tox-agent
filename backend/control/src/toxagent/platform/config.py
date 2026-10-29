@@ -631,6 +631,16 @@ class CompoundSettings:
         )
 
 
+def _chembl_provider(raw: str | None, default: str) -> str:
+    """Set means set: ``""`` or ``none`` turns the lookup off. ``_env`` reads an
+    empty value as unset, which left a frozen deployment no way to keep
+    ChEMBL out (found live 2026-10-29)."""
+    if raw is None:
+        return default
+    value = raw.strip()
+    return "" if value.lower() == "none" else value
+
+
 @dataclass(frozen=True)
 class ChemblSettings:
     """ChEMBL activity lookup (W9-13, flag scientific_primitives_v1).
@@ -655,7 +665,7 @@ class ChemblSettings:
     @classmethod
     def from_env(cls) -> "ChemblSettings":
         return cls(
-            provider=_env("TOXAGENT_CHEMBL_PROVIDER", cls.provider),
+            provider=_chembl_provider(os.getenv("TOXAGENT_CHEMBL_PROVIDER"), cls.provider),
             base_url=_env("TOXAGENT_CHEMBL_URL", cls.base_url).rstrip("/"),
             allowed_hosts=_list("TOXAGENT_CHEMBL_ALLOWED_HOSTS", cls.allowed_hosts),
             timeout_s=_float("TOXAGENT_CHEMBL_TIMEOUT", cls.timeout_s),

@@ -141,3 +141,14 @@ def test_a_flag_that_differs_and_is_not_a_treatment_is_refused():
                 "D2_investigator": _product(scientific_case_v1=True, router_v2=False)}
     (problem,) = fairness_problems(specs, products)
     assert "flag router_v2 differs" in problem
+
+
+def test_an_arm_that_reaches_a_live_activity_lookup_is_refused_beside_one_that_does_not():
+    """2026-10-29: ChEMBL has no frozen form, so an arm that has it is not on
+    the protocol's frozen inputs."""
+    specs = [SYSTEMS["D2_investigator"], SYSTEMS["E2_contract_investigator"]]
+    live = _product()
+    live["providers"]["activity_lookup"] = "chembl"
+    problems = fairness_problems(specs, {"D2_investigator": _product(),
+                                         "E2_contract_investigator": live})
+    assert any("providers.activity_lookup" in p for p in problems), problems
