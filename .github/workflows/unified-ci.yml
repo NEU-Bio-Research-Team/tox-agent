@@ -165,7 +165,10 @@ jobs:
 
   frontend-e2e:
     if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, which Playwright 1.52 cannot
+    # install browsers for ("does not support chromium on ubuntu26.04-x64").
+    # Unpin when @playwright/test is upgraded to a release that supports it.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
