@@ -208,12 +208,13 @@ account. Provider requests consume that account's quota.
 
 ## Documentation
 
-- [Getting started](docs/tutorials/getting-started.md)
+- [Documentation index](docs/README.md)
+- [The agent layer](docs/agent-layer/README.md) — architecture, running it, extending it, the benchmark
+- [The research design](docs/research/README.md) — the claims, and what has been measured
 - [Configuration](docs/reference/configuration.md)
 - [Operations](docs/how-to/operations.md)
-- [Architecture](docs/explanation/architecture.md)
 - [Model card](docs/reference/model-card.md)
-- [Development](docs/how-to/development.md)
+- [Decision records](docs/adr/)
 
 ClinTox is intentionally shown as unavailable: its release artifact lacks the
 tokenizer needed for reproducible inference. hERG and Tox21 are the served

@@ -174,7 +174,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I07 — ClinTox v1 vẫn bị chặn bởi tokenizer chính xác
 
-**P1 · Artifact/nguồn · K10.** Nguồn: [docs/artifacts/clintox-smilesgnn-v1.md](../../reference/artifacts/clintox-smilesgnn-v1.md), [backend/predictor/registry/predictor-manifest.yaml](../../../backend/predictor/registry/predictor-manifest.yaml).
+**P1 · Artifact/nguồn · K10.** Nguồn: `docs/reference/artifacts/clintox-smilesgnn-v1.md` (removed 2026-10-30), [backend/predictor/registry/predictor-manifest.yaml](../../../backend/predictor/registry/predictor-manifest.yaml).
 
 **Bằng chứng và điều kiện:** Checkpoint yêu cầu mapping 69 token; tokenizer khác trên máy không chứng minh đúng mapping huấn luyện. Manifest giữ trạng thái không serve.
 
@@ -474,7 +474,7 @@ Danh sách lỗi tìm được bằng cách **chạy thật thay vì đọc code
 
 ## I32 — Tài liệu vận hành và bằng chứng lịch sử chưa theo layout hiện tại
 
-**P2 · Nguồn · K01.** Nguồn: [docs/DEVELOPMENT.md](../../how-to/development.md), `docs/runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md` (removed 2026-09-27), docs/refactor/PREDICTOR_ONLY_STATUS_VI.md (removed: `../../docs/refactor/PREDICTOR_ONLY_STATUS_VI.md`), docs/unified-v2/BASELINE.md (removed: `../../docs/unified-v2/BASELINE.md`).
+**P2 · Nguồn · K01.** Nguồn: `docs/how-to/development.md` (removed 2026-10-30), `docs/runbooks/DEPLOY_FIREBASE_APP_RUNBOOK.md` (removed 2026-09-27), docs/refactor/PREDICTOR_ONLY_STATUS_VI.md (removed: `../../docs/refactor/PREDICTOR_ONLY_STATUS_VI.md`), docs/unified-v2/BASELINE.md (removed: `../../docs/unified-v2/BASELINE.md`).
 
 **Bằng chứng và điều kiện:** Nhiều command/path còn model_server, deploy root, predictor-only hoặc artifact path cũ. Báo cáo progress tổng hợp nhiều thời điểm, có mục đã được mục sau sửa.
 
