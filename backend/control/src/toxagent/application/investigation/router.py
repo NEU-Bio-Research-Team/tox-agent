@@ -148,11 +148,24 @@ def classify(
             reason_codes=tuple(codes),
         )
 
-    if candidate_count > 1 or _has(text, _COMPARE_MARKERS):
-        codes.append("several_candidates" if candidate_count > 1 else "compare_wording")
+    compare = _has(text, _COMPARE_MARKERS)
+    if compare:
+        # Wording asks for a comparison; the session decides whether one can
+        # be served. Several subjects in a session is not, on its own, a
+        # request to compare them -- that would send every question asked in
+        # a multi-compound session down the batch route.
+        if candidate_count > 1:
+            codes.extend(["compare_wording", "several_candidates"])
+            return RouteDecision(
+                COMPARE_BATCH, confidence="high", reason_codes=tuple(codes),
+                detail={"candidates": candidate_count, "marker": compare},
+            )
         return RouteDecision(
-            COMPARE_BATCH, confidence="high" if candidate_count > 1 else "low",
-            reason_codes=tuple(codes), detail={"candidates": candidate_count},
+            UNDETERMINED, confidence="high",
+            reason_codes=("compare_wording", "one_candidate"),
+            clarification="This session holds one candidate. Which others should it be "
+                          "compared with?",
+            detail={"candidates": candidate_count, "marker": compare},
         )
 
     if not has_subject and not artifact_refs:
@@ -185,9 +198,20 @@ def classify(
 #: read does not need eight competing explanations.
 LIGHT_ROUTES: frozenset[str] = frozenset({READ_EXPLAIN, UNDETERMINED})
 
+#: The capability profile each route runs under (§4.1 "Cách chạy"). A light
+#: route gets the reads and the answer and nothing else: no search, no case
+#: writes, no skills -- which is what makes it cheaper rather than merely
+#: labelled cheaper.
+READ_PROFILE = "decision_support_read"
+FULL_PROFILE = "decision_support"
+
 
 def opens_hypotheses(route: str) -> bool:
     return route not in LIGHT_ROUTES
+
+
+def profile_for(route: str) -> str:
+    return READ_PROFILE if route in LIGHT_ROUTES else FULL_PROFILE
 
 
 _WORD = re.compile(r"[a-z0-9]+")

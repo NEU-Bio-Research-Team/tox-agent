@@ -86,7 +86,10 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # report_qa + evidence_research (ADR 0010, ADS plan section 7.2) plus
         # the read-your-own-artifacts tools of W2-03/04 — its ceiling is wider
         # on purpose, not an oversight this guardrail should catch.
-        ceiling = 10 if name == "decision_support" else 6
+        # decision_support_read (#68, §4.1) is a strict subset of it -- the
+        # reads, minus search, case writes and skills -- so it shares that
+        # ceiling; the subset relation is asserted below.
+        ceiling = 10 if name in ("decision_support", "decision_support_read") else 6
         default = tools - set(FLAG_GATED_TOOLS)
         assert 2 <= len(default) <= ceiling, f"{name} has {len(default)} default tools"
         # Every flag on at once still has a ceiling, so a flag cannot become a
@@ -158,3 +161,14 @@ def registry_with_two_tools() -> ToolRegistry:
     registry.register(definition("get_analysis_slice", frozenset({"analysis", "report_qa"})))
     registry.register(definition("get_attribution", frozenset({"report_qa"})))
     return registry
+
+
+def test_the_read_route_profile_is_the_full_profile_minus_search_writes_and_skills():
+    """§4.1: a read is cheaper because it can do less, never because it can do
+    something the full loop cannot."""
+    read, full = PROFILES["decision_support_read"], PROFILES["decision_support"]
+    assert read < full
+    assert "submit_grounded_answer" in read
+    assert not read & {"search_toxicology_evidence", "update_scientific_case",
+                       "read_scientific_skill", "read_skill_reference", "record_decision_plan",
+                       "compute_exposure_margin", "get_chembl_activities"}

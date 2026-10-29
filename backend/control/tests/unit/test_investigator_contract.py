@@ -150,7 +150,8 @@ def test_the_contract_cannot_be_handed_a_benchmark_answer():
     assert not {"gold", "expected", "reference", "answer", "acceptable_conclusions"} & parameters
     assert parameters == {
         "route", "question", "question_needs", "question_gap", "subject", "endpoint", "admissible_actions", "budget",
-        "open_questions", "stale_claims",
+        "open_questions", "stale_claims", "new_values", "researcher_values_seen", "candidates",
+        "clarification",
     }
 
 
@@ -435,3 +436,65 @@ def test_the_open_gap_is_rendered_with_what_it_asks_of_the_turn():
     assert "[open gap: no_relevant_evidence -- search for a measured value" in text
     assert "a predicted label or probability is not a measurement" in text
     assert goal_contract.GoalContractV1.from_dict(contract.to_dict()) == contract
+
+
+# ── §4.1: each route runs differently ─────────────────────────────────────
+
+
+def test_several_subjects_in_a_session_are_not_a_request_to_compare_them():
+    decision = router.classify(question="Does it block hERG?", has_subject=True,
+                               artifact_refs=["analysis:a"], candidate_count=3)
+    assert decision.route != router.COMPARE_BATCH
+
+
+def test_asking_to_compare_with_one_candidate_asks_which_others():
+    decision = router.classify(question="Compare it with the alternatives", has_subject=True,
+                               artifact_refs=["analysis:a"], candidate_count=1)
+    assert decision.route == router.UNDETERMINED
+    assert "Which others" in decision.clarification
+
+
+def test_the_light_routes_run_under_the_read_profile():
+    assert router.profile_for(router.READ_EXPLAIN) == "decision_support_read"
+    assert router.profile_for(router.UNDETERMINED) == "decision_support_read"
+    for route in (router.INVESTIGATE, router.UPDATE, router.COMPARE_BATCH):
+        assert router.profile_for(route) == "decision_support"
+
+
+def test_the_update_contract_names_each_new_value_and_records_what_it_saw():
+    contract = goal_contract.build(
+        route="update", question="Does this change anything?",
+        new_values=[{"ref": "case_value:free_cmax@v2", "key": "free_cmax", "value": "0.02",
+                     "unit": "uM"}],
+        researcher_values_seen=["case_value:free_cmax@v2", "case_value:free_cmax@v2"],
+    )
+    texts = [q.question for q in contract.must_answer]
+    assert any("free_cmax = 0.02 uM (case_value:free_cmax@v2)" in t
+               and "what it leaves as it was" in t for t in texts)
+    assert contract.researcher_values_seen == ("case_value:free_cmax@v2",)
+    assert goal_contract.GoalContractV1.from_dict(contract.to_dict()) == contract
+
+
+def test_the_undetermined_contract_asks_first():
+    contract = goal_contract.build(route="undetermined", question="Does it block hERG?",
+                                   clarification="Which compound is this about?")
+    first = contract.must_answer[0]
+    assert first.question == "Which compound is this about?"
+    assert first.gap == "only_researcher_has_it"
+
+
+def test_the_compare_contract_lists_the_candidates_and_forbids_a_combined_score():
+    contract = goal_contract.build(
+        route="compare_batch", question="Compare them by hERG probability",
+        candidates=[{"subject_key": "analysis:a"}, {"subject_key": "analysis:b"}],
+    )
+    text = contract.render()
+    assert "analysis:a; analysis:b" in text
+    assert "never a combined score" in text
+    assert any("compare_candidates" in q.question for q in contract.must_answer)
+    assert goal_contract.GoalContractV1.from_dict(contract.to_dict()) == contract
+
+
+def test_a_contract_written_before_these_fields_reads_back_unchanged():
+    old = goal_contract.build(route="investigate", question="Why?").to_dict()
+    assert "researcher_values_seen" not in old and "candidates" not in old

@@ -81,10 +81,16 @@ class GoalContractV1:
     #: The admitted ``EffectiveRunBudgetV1``, as recorded.
     budget: Mapping[str, Any] = field(default_factory=dict)
     stop_conditions: Mapping[str, str] = field(default_factory=lambda: dict(STOP_CONDITIONS))
+    #: The researcher-value versions in force when this contract was written.
+    #: The next run of the subject diffs against it to know what is new (§4.1
+    #: update route) -- a fact the server holds, not a reading of the wording.
+    researcher_values_seen: tuple[str, ...] = ()
+    #: The compare route's candidates, one subject each (§4.1 compare/batch).
+    candidates: tuple[Mapping[str, Any], ...] = ()
     schema_version: str = GOAL_CONTRACT_SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "schema_version": self.schema_version,
             "route": self.route,
             "subject": dict(self.subject),
@@ -94,6 +100,11 @@ class GoalContractV1:
             "budget": dict(self.budget),
             "stop_conditions": dict(self.stop_conditions),
         }
+        if self.researcher_values_seen:
+            data["researcher_values_seen"] = list(self.researcher_values_seen)
+        if self.candidates:
+            data["candidates"] = [dict(c) for c in self.candidates]
+        return data
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> "GoalContractV1":
@@ -109,6 +120,8 @@ class GoalContractV1:
             admissible_actions=tuple(raw.get("admissible_actions") or ()),
             budget=dict(raw.get("budget") or {}),
             stop_conditions=dict(raw.get("stop_conditions") or STOP_CONDITIONS),
+            researcher_values_seen=tuple(raw.get("researcher_values_seen") or ()),
+            candidates=tuple(dict(c) for c in raw.get("candidates") or ()),
         )
 
     def render(self) -> str:
@@ -132,6 +145,10 @@ class GoalContractV1:
                        if question.gap in GAP_GUIDANCE
                        else f" [open gap: {question.gap}]" if question.gap else "")
                 lines.append(f"- {question.id} {question.question}{needs}{gap}")
+        if self.candidates:
+            lines.append("Candidates, each its own subject -- one row per candidate, never "
+                         "a combined score: " + "; ".join(
+                             str(c.get("subject_key")) for c in self.candidates))
         if self.admissible_actions:
             lines.append("Actions available to this turn: " +
                          ", ".join(self.admissible_actions) +
@@ -210,6 +227,10 @@ def build(
     budget: Mapping[str, Any] | None = None,
     open_questions: Sequence[Mapping[str, Any]] = (),
     stale_claims: Sequence[str] = (),
+    new_values: Sequence[Mapping[str, Any]] = (),
+    researcher_values_seen: Sequence[str] = (),
+    candidates: Sequence[Mapping[str, Any]] = (),
+    clarification: str = "",
 ) -> GoalContractV1:
     """The contract for one run.
 
@@ -222,6 +243,13 @@ def build(
     claims come from the question.
     """
     must: list[RequiredQuestion] = []
+    if clarification:
+        # §4.2: the undetermined route asks. Put first, because answering the
+        # question below without it is guessing.
+        must.append(RequiredQuestion(
+            id="q0", question=clarification, needs=("researcher_input",),
+            gap=Gap.ONLY_RESEARCHER_HAS_IT.value,
+        ))
     if question.strip():
         must.append(RequiredQuestion(id="q1", question=question.strip()[:500],
                                      needs=tuple(question_needs), gap=question_gap))
@@ -242,8 +270,31 @@ def build(
             needs=("prediction", "researcher_input"),
             gap=Gap.MEASUREMENT_UNRESOLVED.value,
         ))
+    for value in new_values:
+        # §4.1 update route: what the researcher just supplied, by version,
+        # is something the run has to account for -- including saying what
+        # it leaves unchanged.
+        unit = f" {value['unit']}" if value.get("unit") else ""
+        must.append(RequiredQuestion(
+            id=f"q{len(must) + 1}",
+            question=f"The researcher supplied {value['key']} = {value['value']}{unit} "
+                     f"({value['ref']}). Say what it changes in the assessment and what it "
+                     "leaves as it was.",
+            needs=("researcher_input",),
+        ))
+    if route == "compare_batch" and len(candidates) > 1:
+        must.append(RequiredQuestion(
+            id=f"q{len(must) + 1}",
+            question="Compare the candidates by the one criterion the question declares, "
+                     "with run_scientific_procedure compare_candidates. Each row comes from "
+                     "that candidate's own artifacts; do not combine criteria into a score. "
+                     "If the question declares no criterion, ask which one.",
+            needs=("prediction",),
+        ))
     return GoalContractV1(
         route=route,
+        researcher_values_seen=tuple(dict.fromkeys(researcher_values_seen)),
+        candidates=tuple(dict(c) for c in candidates),
         subject=dict(subject or {}),
         endpoint=endpoint,
         must_answer=tuple(must),

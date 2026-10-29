@@ -60,6 +60,25 @@
         "update_scientific_case"
       ]
     },
+    "decision_support_read": {
+      "description": "The read/explain and undetermined routes of decision support (#68, §4.1): read what the run already holds and answer, or ask what the question is about. No search, no case writes, no skills -- the full loop is the investigate route's.",
+      "read_only": false,
+      "tools": [
+        "get_activity_snapshot",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_prioritisation_decision",
+        "get_report_summary",
+        "get_scientific_case",
+        "get_screening_state",
+        "read_evidence_text",
+        "submit_grounded_answer"
+      ]
+    },
     "audit_readonly": {
       "description": "Read-only audit: inspects answers and their sources; never authors one.",
       "read_only": true,

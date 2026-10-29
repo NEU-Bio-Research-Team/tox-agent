@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import Any, Mapping, Sequence
 
 from ...application.investigation import case_view, goal_contract, router, scientific_case_service
 from ...application.investigation.skill_catalog import render_index, render_static
@@ -32,6 +33,28 @@ class ContextMixin:
     #: Ledger entries that restate the run's own artifacts rather than a
     #: source's measurement (the same split as the case view's groups).
     _ARTIFACT_FACT_CLASSES = frozenset({"predictor_fact", "explanation_fact", "report_fact"})
+
+    async def _session_candidates(self, context: RunContext) -> list[dict[str, Any]]:
+        """The subjects a compare question could be about: each screening, and
+        each analysed structure that is not a screening's own ligand -- a
+        screening's toxicity analysis is that screening, not a second candidate."""
+        async with self._db.unit_of_work() as uow:
+            screenings = await uow.screenings.list_for_session(context.session_id)
+            analyses = await uow.analyses.list_for_session(context.session_id, limit=50)
+        ligands = {
+            ((a.record.get("screening_state") or {}).get("subject") or {}).get("canonical_smiles")
+            or ((a.record.get("activity_estimate") or {}).get("subject") or {})
+            .get("canonical_smiles")
+            for a in screenings
+        }
+        rows = [{"subject_key": f"screening:{a.screening_id}"} for a in screenings]
+        seen: set[str] = set()
+        for analysis in analyses:
+            if analysis.canonical_smiles in ligands or analysis.canonical_smiles in seen:
+                continue
+            seen.add(analysis.canonical_smiles)
+            rows.append({"subject_key": f"analysis:{analysis.id}"})
+        return rows
 
     async def _researcher_observations(self, context: RunContext, case) -> dict[str, str]:
         """The case's researcher values in force, as observations of this run (#61).
@@ -71,6 +94,8 @@ class ContextMixin:
     def _contract_and_view(
         self, context: RunContext, *, case, profile: str, pinned, carried_over,
         researcher_observations: dict[str, str] | None = None,
+        previous_contract: Mapping[str, Any] | None = None,
+        candidates: Sequence[Mapping[str, Any]] = (),
     ):
         """#69/#63/#68: the route, the contract and the six-group view.
 
@@ -86,12 +111,26 @@ class ContextMixin:
 
         stale = [c.id for c in needs_reassessment(case.derived_claims)] if case else []
         artifact_refs = [f"{p.kind}:{p.id}" for p in pinned if p.kind != "report_build"]
+        in_force = list(current_values(case)) if case else []
+        # §4.1 update route: new is what the previous run of this subject did
+        # not see -- read off its contract, a recorded fact, not the wording.
+        # A subject with no earlier contract has seen nothing yet.
+        seen = set((previous_contract or {}).get("researcher_values_seen") or ())
+        new_values = [
+            {"ref": v.ref, "key": v.key, "value": v.value, "unit": v.unit}
+            for v in in_force if v.ref not in seen
+        ]
         decision = router.classify(
             question=context.text or "",
             has_subject=any(p.kind in ("analysis", "screening") for p in pinned),
             artifact_refs=artifact_refs,
             stale_claims=stale,
+            new_researcher_input=bool(new_values),
+            candidate_count=len(candidates),
         )
+        # §4.1 "Cách chạy": the route decides the capability profile, so a
+        # read is cheaper in fact -- fewer tools, no search, no skills.
+        profile = router.profile_for(decision.route)
         budget = effective_run_budget(
             context.intent.value, self._policy or PolicySettings(), self._settings
         ).to_dict()
@@ -118,6 +157,10 @@ class ContextMixin:
             budget=budget,
             open_questions=carried_over,
             stale_claims=stale,
+            new_values=new_values if decision.route == router.UPDATE else (),
+            researcher_values_seen=[v.ref for v in in_force],
+            candidates=candidates if decision.route == router.COMPARE_BATCH else (),
+            clarification=decision.clarification,
         )
         searched = [
             action.action for action in (case.actions if case else ())
@@ -135,7 +178,7 @@ class ContextMixin:
                                   "max_evidence_reads") and v is not None},
         )
         self._contracts[context.run_id] = contract.to_dict()
-        return view.render(), decision
+        return view.render(), decision, profile
 
     async def snapshot_before_runtime(self, context: RunContext) -> None:
         """The mixed-run snapshot, for a caller that drives its own workflow."""
@@ -325,6 +368,7 @@ class ContextMixin:
             case_summary = ""
             run_case = None
             carried_over: list = []
+            previous_contract: dict = {}
             if context.intent is Intent.DECISION_SUPPORT and is_enabled("scientific_case_v1"):
                 run_case = await scientific_case_service.case_for_run(
                     uow, session_id=context.session_id, run_id=context.run_id
@@ -361,6 +405,7 @@ class ContextMixin:
                     }
                     accepted_evidence = [r for r in accepted_evidence if r.id in scoped_ids]
                 if same_subject:
+                    previous_contract = dict(same_subject[0].goal_contract or {})
                     checkpoint = SessionCheckpoint(
                         summary=decision_state.checkpoint_summary(same_subject[0]),
                         open_intent="; ".join(
@@ -446,9 +491,11 @@ class ContextMixin:
         route_decision = None
         if context.intent is Intent.DECISION_SUPPORT and is_enabled("investigator_contract_v1"):
             researcher_observations = await self._researcher_observations(context, run_case)
-            case_summary, route_decision = self._contract_and_view(
+            case_summary, route_decision, profile = self._contract_and_view(
                 context, case=run_case, profile=profile, pinned=pinned,
                 carried_over=carried_over, researcher_observations=researcher_observations,
+                previous_contract=previous_contract,
+                candidates=await self._session_candidates(context),
             )
         self._routes[context.run_id] = route_decision
         deadline = min(
