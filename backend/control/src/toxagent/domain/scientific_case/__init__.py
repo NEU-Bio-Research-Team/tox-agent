@@ -156,6 +156,7 @@ from .values import (  # noqa: F401
     value_versions,
     current_values,
     resolve_value_ref,
+    version_for_item,
     is_value_ref,
     iter_history,
 )

@@ -25,7 +25,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ...application.investigation import procedures
 from ...application.investigation import scientific_case_service
+from ...domain import scientific_case as sc
 from ...domain.errors import InvalidRequest
+from ...domain.evidence import EvidenceStatus
 from ..registry import ToolContext, ToolDefinition, ToolOutput
 
 
@@ -69,15 +71,23 @@ def build(database) -> list[ToolDefinition]:
                 case = await scientific_case_service.case_for_run(
                     uow, session_id=context.session_id, run_id=context.run_id
                 )
+                accepted = await uow.evidence.list_for_session(
+                    context.session_id, status=EvidenceStatus.ACCEPTED, limit=500,
+                )
             if case is None:
                 raise InvalidRequest(
                     "this run has no scientific case, so there are no derived claims to "
                     "check; the dependency graph is written by the case, not by a run"
                 )
+            # Claims cite a researcher value by its version (case_value:key@vN),
+            # not by its context item; every version stays citable, so every
+            # version is known.
             known = (
-                [f"context:{item.id}" for item in case.context]
+                [version.ref for version in sc.value_versions(case)]
+                + [f"context:{item.id}" for item in case.context]
                 + [entry.id for entry in case.evidence]
                 + [entry.source_ref for entry in case.evidence if entry.source_ref]
+                + [f"evidence:{record.id}" for record in accepted]
             )
             result = procedures.check_dependencies(case, known_refs=known)
         else:

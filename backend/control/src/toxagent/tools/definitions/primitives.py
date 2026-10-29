@@ -162,6 +162,57 @@ async def _source_text(uow, context: ToolContext, ref: str) -> str:
     raise InvalidRequest(f"{ref}: a concentration cites 'context:' or 'evidence:', not {kind!r}")
 
 
+#: What a margin needs and this server does not check. Written on the claim
+#: because §5.3 asks for assumptions to be reviewable, not implied.
+_MARGIN_ASSUMPTIONS: Final[tuple[str, ...]] = (
+    "exposure_context_compatible",
+    "potency_and_exposure_of_the_same_compound",
+)
+
+
+def _claim_input(case: sc.ScientificCaseV1, ref: str) -> str | None:
+    """The ref a derived claim cites for one input of the calculation.
+
+    A researcher value is cited by its version, not its context item: when the
+    researcher corrects it, the case marks what cited the superseded version,
+    and an item id would not say which version that was."""
+    kind, identifier = sc.parse_ref(ref)
+    if kind == "context":
+        version = sc.version_for_item(case, identifier)
+        return version.ref if version is not None else None
+    return ref
+
+
+async def _record_margin_claim(database, context: ToolContext, result: dict[str, Any],
+                               refs: list[str]) -> str | None:
+    """§11 turn 2: the margin as a derived claim over the input versions.
+
+    The server records it, not the investigator, because the server did the
+    division (§9.1; ``record_derived_claim`` is the server's op). Without a
+    case there is nothing to record into, and the observation still stands.
+    """
+    statement = (f"exposure margin {result['margin']:g} = IC50 {result['ic50_nM']:g} nM / "
+                 f"free Cmax {result['free_cmax_nM']:g} nM")
+
+    def updates_for(case: sc.ScientificCaseV1) -> list[sc.CaseUpdate]:
+        claim_inputs = [_claim_input(case, ref) for ref in refs]
+        if None in claim_inputs:
+            return []
+        return [scientific_case_service.update(
+            "record_derived_claim", actor=sc.Actor.SERVER.value, run_id=context.run_id,
+            statement=statement, rule=em.METHOD_VERSION, inputs=claim_inputs,
+            assumptions=list(_MARGIN_ASSUMPTIONS),
+        )]
+
+    case = await scientific_case_service.advance(
+        database, session_id=context.session_id, run_id=context.run_id, updates_for=updates_for,
+    )
+    if case is None:
+        return None
+    return next((claim.id for claim in case.derived_claims
+                 if claim.statement.casefold() == statement.casefold()), None)
+
+
 async def _chembl_subject(database, context, payload, binding) -> tuple[str | None, str]:
     """The structure a ChEMBL lookup is about, and the analysis it belongs to.
 
@@ -238,7 +289,12 @@ def build(database, chembl_provider=None) -> list[ToolDefinition]:
         async with database.unit_of_work() as uow:
             await uow.observations.add(observation)
             await uow.commit()
-        return ToolOutput(canonical=result, model_view=observation.model_projection,
+        claim_id = await _record_margin_claim(database, context, result,
+                                              [ref for _, _, ref in inputs])
+        view = dict(observation.model_projection)
+        if claim_id is not None:
+            view["derived_claim"] = claim_id
+        return ToolOutput(canonical={**result, "derived_claim": claim_id}, model_view=view,
                           ui_view=result, observation_ids=(observation.id,),
                           provenance=observation.provenance)
 

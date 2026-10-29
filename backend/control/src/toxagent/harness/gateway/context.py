@@ -29,8 +29,44 @@ from ._common import ResolvedProfile, _now
 class ContextMixin:
     """Everything assembled before the runtime is dispatched."""
 
+    async def _researcher_observations(self, context: RunContext, case) -> dict[str, str]:
+        """The case's researcher values in force, as observations of this run (#61).
+
+        A claim can only cite an observation, and a value the researcher typed
+        into the case was not one -- which is why no arm could quote an
+        exposure the researcher supplied (live run 2026-10-22, T5 0/2). Each
+        current version is projected once per run; a context build that runs
+        again for the same run reuses what it projected.
+        """
+        from ...application.investigation.researcher_values import project_value
+        from ...domain.observation import ObservationKind
+        from ...domain.scientific_case import current_values
+
+        if case is None or not case.context:
+            return {}
+        async with self._db.unit_of_work() as uow:
+            existing = {
+                o.canonical_payload.get("ref"): o.id
+                for o in await uow.observations.list_for_run(context.run_id)
+                if o.kind is ObservationKind.RESEARCHER_VALUE
+            }
+            projected = dict(existing)
+            for version in current_values(case):
+                if version.ref in projected:
+                    continue
+                observation = project_value(
+                    version, case_id=case.id, session_id=context.session_id,
+                    run_id=context.run_id, now=_now(),
+                )
+                await uow.observations.add(observation)
+                projected[version.ref] = observation.id
+            if len(projected) != len(existing):
+                await uow.commit()
+        return projected
+
     def _contract_and_view(
         self, context: RunContext, *, case, profile: str, pinned, carried_over,
+        researcher_observations: dict[str, str] | None = None,
     ):
         """#69/#63/#68: the route, the contract and the six-group view.
 
@@ -69,7 +105,7 @@ class ContextMixin:
             if action.action.startswith("search")
         ]
         view = case_view.build(
-            case, contract=contract,
+            case, contract=contract, researcher_observations=researcher_observations or {},
             open_gaps=[
                 {"gap": q.gap, "question": q.question}
                 for q in contract.must_answer if q.gap
@@ -390,9 +426,10 @@ class ContextMixin:
         profile = self._registry.profile_for_intent(context.intent.value)
         route_decision = None
         if context.intent is Intent.DECISION_SUPPORT and is_enabled("investigator_contract_v1"):
+            researcher_observations = await self._researcher_observations(context, run_case)
             case_summary, route_decision = self._contract_and_view(
                 context, case=run_case, profile=profile, pinned=pinned,
-                carried_over=carried_over,
+                carried_over=carried_over, researcher_observations=researcher_observations,
             )
         self._routes[context.run_id] = route_decision
         deadline = min(

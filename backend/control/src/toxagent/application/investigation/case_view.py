@@ -38,9 +38,12 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping, Sequence
 
 from ...domain.scientific_case import (
+    CLAIM_PROPOSED,
+    CLAIM_RELEASED,
     ScientificCaseV1,
     Stance,
     needs_reassessment,
+    value_versions,
 )
 from .goal_contract import GoalContractV1
 
@@ -97,9 +100,7 @@ class CaseView:
             lines.append(GoalContractV1.from_dict(self.contract).render())
         if self.observations:
             lines.append("Observations in this case (read values with a tool, never from here):")
-            lines.extend(
-                f"- {o['ref']} {o.get('what', '')}".rstrip() for o in self.observations
-            )
+            lines.extend(_observation_line(o) for o in self.observations)
             self._withheld_line(lines, "observations")
         if self.conclusions.get("can_say") or self.conclusions.get("cannot_say"):
             said = "; ".join(self.conclusions.get("can_say") or [])
@@ -109,6 +110,9 @@ class CaseView:
                 f"Conclusion in force ({status}): " + (said or "nothing yet")
                 + (f". Explicitly not established: {not_said}" if not_said else "")
             )
+        if self.conclusions.get("derived"):
+            lines.append("Derived claims in force (computed by the server from cited inputs):")
+            lines.extend(f"- {item}" for item in self.conclusions["derived"])
         if self.changed:
             lines.append("Changed since the last assessment, and so not settled any more:")
             lines.extend(f"- {item}" for item in self.changed)
@@ -147,7 +151,21 @@ class CaseView:
             lines.append(f"  (+{held} more in the case; read them with a tool)")
 
 
-def _observation_rows(case: ScientificCaseV1, limit: int) -> tuple[list[dict[str, Any]], int]:
+def _observation_line(row: Mapping[str, Any]) -> str:
+    line = f"- {row['ref']} {row.get('what', '')}".rstrip()
+    if row.get("source_class") != "researcher_value":
+        return line
+    line += f" [{row['value_ref']}"
+    if not row.get("current", True):
+        line += ", superseded -- cite the version in force"
+    elif row.get("observation_id"):
+        line += f"; cite observation_id {row['observation_id']} field_path {row['field_path']}"
+    return line + "]"
+
+
+def _observation_rows(
+    case: ScientificCaseV1, limit: int, researcher_observations: Mapping[str, str] | None = None,
+) -> tuple[list[dict[str, Any]], int]:
     """Predictor, policy and workflow facts the case already holds, by ref."""
     rows = [
         {"ref": entry.source_ref or entry.id, "what": entry.claim[:160],
@@ -155,10 +173,19 @@ def _observation_rows(case: ScientificCaseV1, limit: int) -> tuple[list[dict[str
         for entry in case.evidence
         if entry.source_class in ("predictor_fact", "explanation_fact", "report_fact")
     ]
+    # The version ref is what a claim computed from the value cites, and a
+    # superseded version stays listed: the turn has to see that the number it
+    # read last time is no longer the one in force (§11 turn 3).
+    researcher_observations = researcher_observations or {}
     researcher = [
-        {"ref": f"context:{item.id}", "what": item.describe()[:160],
-         "source_class": "researcher_value"}
-        for item in case.context
+        {"ref": f"context:{version.item_id}", "value_ref": version.ref,
+         "what": item.describe()[:160], "source_class": "researcher_value",
+         "current": version.current,
+         # What an answer cites to quote the value: the observation this run
+         # projected it into (#61). Only a version in force has one.
+         **({"observation_id": researcher_observations[version.ref], "field_path": "value"}
+            if version.ref in researcher_observations else {})}
+        for item, version in zip(case.context, value_versions(case))
     ]
     everything = researcher + rows
     return everything[:limit], max(0, len(everything) - limit)
@@ -217,6 +244,7 @@ def build(
     budget_left: Mapping[str, Any] | None = None,
     skills: Sequence[Mapping[str, Any]] = (),
     limit: int = DEFAULT_LIMIT,
+    researcher_observations: Mapping[str, str] | None = None,
 ) -> CaseView:
     """The view for one step. Pure: same case and state, same view.
 
@@ -232,7 +260,7 @@ def build(
             skills=tuple(dict(s) for s in skills),
         )
 
-    observations, held_observations = _observation_rows(case, limit)
+    observations, held_observations = _observation_rows(case, limit, researcher_observations)
     evidence, counter, held_evidence = _evidence_rows(case, limit)
     stale = needs_reassessment(case.derived_claims)
     trusted = case.conclusion if case.conclusion.status == "released" else case.released_conclusion
@@ -244,6 +272,11 @@ def build(
             "status": case.conclusion.status,
             "can_say": [line.text[:160] for line in (trusted.can_say if trusted else ())],
             "cannot_say": [text[:160] for text in (trusted.cannot_say if trusted else ())],
+            "derived": [
+                f"{claim.id} [{claim.status}] {claim.statement[:140]}"
+                for claim in case.derived_claims
+                if claim.status in (CLAIM_PROPOSED, CLAIM_RELEASED)
+            ][:limit],
         },
         changed=tuple(
             f"{claim.id} {claim.statement[:120]} — {claim.note[:140]}" for claim in stale[:limit]

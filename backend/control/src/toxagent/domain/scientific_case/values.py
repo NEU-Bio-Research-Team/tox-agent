@@ -157,6 +157,16 @@ def resolve_value_ref(case: ScientificCaseV1, ref: str) -> ValueVersion | None:
     return None
 
 
+def version_for_item(case: ScientificCaseV1, item_id: str) -> ValueVersion | None:
+    """The version a context item is. A run cites ``context:c2``; a claim
+    computed from it must cite ``case_value:free_cmax@v2``, because the item id
+    says nothing about which value it replaced."""
+    for row in value_versions(case):
+        if row.item_id == item_id:
+            return row
+    return None
+
+
 def is_value_ref(ref: str) -> bool:
     return ref.startswith(f"{VALUE_REF_SCHEME}:")
 
