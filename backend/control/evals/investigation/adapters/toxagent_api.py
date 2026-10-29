@@ -51,14 +51,36 @@ class ToxAgentAPI:
         return (await self.post("/v1/sessions", {"preferred_language": language}))["session_id"]
 
     async def wait(self, session_id: str, run_id: str) -> dict[str, Any]:
+        """The run once it is terminal -- or, when the server recovered it, the
+        recovery once *it* is.
+
+        A run that lost its runtime is retried once by the server as a new run
+        (``recovery_of_run_id``). Returning the lost run sent the next turn
+        while the recovery was still in flight, and the product refused it
+        with 409 (live, arm E on a05, 2026-10-29).
+        """
         deadline = time.monotonic() + self._run_timeout_s
         while True:
             run = await self.get(f"/v1/sessions/{session_id}/runs/{run_id}")
             if run and run.get("status") in TERMINAL:
-                return run
+                recovery = await self._recovery_of(session_id, run)
+                return await self.wait(session_id, recovery) if recovery else run
             if time.monotonic() > deadline:
                 raise TimeoutError(f"run {run_id} did not finish in {self._run_timeout_s:.0f}s")
             await asyncio.sleep(self._poll_delay_s)
+
+    async def _recovery_of(self, session_id: str, run: dict[str, Any]) -> str | None:
+        """The recovery the server started for ``run``, if it started one."""
+        if run.get("status") != "failed" or run.get("failure_code") != "runtime_unavailable":
+            return None
+        # The recovery is created as the lost run is failed; give it a moment.
+        for _ in range(5):
+            session = await self.get(f"/v1/sessions/{session_id}") or {}
+            active = session.get("active_run") or {}
+            if active.get("recovery_of_run_id") == run.get("run_id"):
+                return active.get("run_id")
+            await asyncio.sleep(self._poll_delay_s)
+        return None
 
     async def analyse(self, session_id: str, smiles: str) -> dict[str, Any]:
         """Submit the structure; return the finished analysis run and its projection."""
