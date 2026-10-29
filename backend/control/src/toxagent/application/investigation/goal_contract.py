@@ -128,7 +128,9 @@ class GoalContractV1:
             lines.append("You must answer, and nothing here is optional:")
             for question in self.must_answer:
                 needs = f" (needs: {', '.join(question.needs)})" if question.needs else ""
-                gap = f" [open gap: {question.gap}]" if question.gap else ""
+                gap = (f" [open gap: {question.gap} -- {GAP_GUIDANCE[question.gap]}]"
+                       if question.gap in GAP_GUIDANCE
+                       else f" [open gap: {question.gap}]" if question.gap else "")
                 lines.append(f"- {question.id} {question.question}{needs}{gap}")
         if self.admissible_actions:
             lines.append("Actions available to this turn: " +
@@ -156,10 +158,52 @@ def _budget_lines(budget: Mapping[str, Any]) -> list[str]:
     return [f"{budget[key]} {label}" for key, label in named if budget.get(key) is not None]
 
 
+#: What a calculation the server performs is made of. A requirement table,
+#: not a router: it does not decide how a question is investigated, only what
+#: an answer to it cannot do without -- so a margin question whose case holds
+#: no measured potency is told that, instead of reading the predictor's label
+#: and stopping (live, arm E on T5, 2026-10-29: four turns, no search). Only
+#: the margin is here because it is the only calculation the server has.
+_CALCULATION_MARKERS: tuple[str, ...] = ("margin",)
+
+
+def requirements(
+    question: str, *, has_measurement: bool, has_exposure: bool,
+) -> tuple[tuple[str, ...], str]:
+    """``(needs, gap)`` for the question a run was asked (§6.2 steps 1-2).
+
+    The gap is the most important unmet requirement the run can act on: a
+    missing measurement before a missing exposure, because the run can search
+    for the first and only the researcher has the second -- and a run that
+    stops at "give me your Cmax" without looking for the potency has to be
+    asked twice.
+    """
+    lowered = question.lower()
+    if not any(marker in lowered for marker in _CALCULATION_MARKERS):
+        return (), ""
+    needs = ("evidence", "researcher_input")
+    if not has_measurement:
+        return needs, Gap.NO_RELEVANT_EVIDENCE.value
+    if not has_exposure:
+        return needs, Gap.ONLY_RESEARCHER_HAS_IT.value
+    return needs, ""
+
+
+#: What an open gap asks of the turn, in one line the contract prints.
+GAP_GUIDANCE: dict[str, str] = {
+    Gap.NO_RELEVANT_EVIDENCE.value: "search for a measured value before stopping; a "
+                                    "predicted label or probability is not a measurement",
+    Gap.ONLY_RESEARCHER_HAS_IT.value: "name the input and stop with needs_user_input",
+    Gap.MEASUREMENT_UNRESOLVED.value: "recompute from the inputs in force, or say why not",
+}
+
+
 def build(
     *,
     route: str,
     question: str,
+    question_needs: Sequence[str] = (),
+    question_gap: str = "",
     subject: Mapping[str, Any] | None = None,
     endpoint: str = "",
     admissible_actions: Iterable[str] = (),
@@ -179,7 +223,8 @@ def build(
     """
     must: list[RequiredQuestion] = []
     if question.strip():
-        must.append(RequiredQuestion(id="q1", question=question.strip()[:500]))
+        must.append(RequiredQuestion(id="q1", question=question.strip()[:500],
+                                     needs=tuple(question_needs), gap=question_gap))
     for index, carried in enumerate(open_questions, start=len(must) + 1):
         text = str(carried.get("question") or "").strip()
         if not text:

@@ -29,6 +29,10 @@ from ._common import ResolvedProfile, _now
 class ContextMixin:
     """Everything assembled before the runtime is dispatched."""
 
+    #: Ledger entries that restate the run's own artifacts rather than a
+    #: source's measurement (the same split as the case view's groups).
+    _ARTIFACT_FACT_CLASSES = frozenset({"predictor_fact", "explanation_fact", "report_fact"})
+
     async def _researcher_observations(self, context: RunContext, case) -> dict[str, str]:
         """The case's researcher values in force, as observations of this run (#61).
 
@@ -77,7 +81,7 @@ class ContextMixin:
         not one rebuilt later from the same inputs.
         """
         from ...application.runs.budget import effective_run_budget
-        from ...domain.scientific_case import needs_reassessment
+        from ...domain.scientific_case import current_values, needs_reassessment
         from ...platform.config import PolicySettings
 
         stale = [c.id for c in needs_reassessment(case.derived_claims)] if case else []
@@ -91,9 +95,24 @@ class ContextMixin:
         budget = effective_run_budget(
             context.intent.value, self._policy or PolicySettings(), self._settings
         ).to_dict()
+        needs, gap = goal_contract.requirements(
+            context.text or "",
+            has_measurement=any(
+                entry.source_class not in self._ARTIFACT_FACT_CLASSES
+                for entry in (case.evidence if case else ())
+            ),
+            # A researcher value keyed as an exposure. Keys are the researcher's
+            # words, so this reads the two that name one, and only those.
+            has_exposure=any(
+                any(word in version.key.lower() for word in ("cmax", "exposure"))
+                for version in (current_values(case) if case else ())
+            ),
+        )
         contract = goal_contract.build(
             route=decision.route,
             question=context.text or "",
+            question_needs=needs,
+            question_gap=gap,
             subject=dict(case.subject) if case is not None else {},
             admissible_actions=[t["name"] for t in self._registry.descriptors(profile)],
             budget=budget,

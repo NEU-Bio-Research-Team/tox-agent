@@ -149,7 +149,7 @@ def test_the_contract_cannot_be_handed_a_benchmark_answer():
 
     assert not {"gold", "expected", "reference", "answer", "acceptable_conclusions"} & parameters
     assert parameters == {
-        "route", "question", "subject", "endpoint", "admissible_actions", "budget",
+        "route", "question", "question_needs", "question_gap", "subject", "endpoint", "admissible_actions", "budget",
         "open_questions", "stale_claims",
     }
 
@@ -390,3 +390,48 @@ def test_a_state_without_a_contract_serialises_as_it_did():
     state = _state()
 
     assert "goal_contract" not in state.to_dict()
+
+
+# ── §6.2 requirements: what a margin question cannot do without ──────────
+
+
+def test_a_margin_question_with_no_measurement_opens_the_gap_the_run_can_act_on():
+    """Live, arm E on T5 (2026-10-29): with nothing telling it a margin needs a
+    measured potency, the investigator read the predictor's label and stopped
+    in four turns of four, without one search."""
+    from toxagent.application.investigation import goal_contract
+
+    needs, gap = goal_contract.requirements(
+        "What is the margin now?", has_measurement=False, has_exposure=True)
+    assert needs == ("evidence", "researcher_input")
+    assert gap == "no_relevant_evidence"
+    # Missing both: the measurement first, because only it can be searched for.
+    assert goal_contract.requirements(
+        "Is the hERG margin acceptable?", has_measurement=False, has_exposure=False,
+    )[1] == "no_relevant_evidence"
+    assert goal_contract.requirements(
+        "Is the hERG margin acceptable?", has_measurement=True, has_exposure=False,
+    )[1] == "only_researcher_has_it"
+    assert goal_contract.requirements(
+        "What is the margin?", has_measurement=True, has_exposure=True)[1] == ""
+
+
+def test_a_question_that_is_not_a_calculation_gets_no_requirements():
+    from toxagent.application.investigation import goal_contract
+
+    assert goal_contract.requirements(
+        "What does the hERG score mean?", has_measurement=False, has_exposure=False,
+    ) == ((), "")
+
+
+def test_the_open_gap_is_rendered_with_what_it_asks_of_the_turn():
+    from toxagent.application.investigation import goal_contract
+
+    contract = goal_contract.build(
+        route="investigate", question="What is the margin now?",
+        question_needs=("evidence", "researcher_input"), question_gap="no_relevant_evidence",
+    )
+    text = contract.render()
+    assert "[open gap: no_relevant_evidence -- search for a measured value" in text
+    assert "a predicted label or probability is not a measurement" in text
+    assert goal_contract.GoalContractV1.from_dict(contract.to_dict()) == contract
