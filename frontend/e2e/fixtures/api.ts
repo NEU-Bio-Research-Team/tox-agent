@@ -36,6 +36,7 @@ export async function installStoryApi(page: Page, sessionId: string, routes: Rou
     // Ambient reads every workbench makes, unrelated to a story.
     [`GET /v1/sessions/${sessionId}/settings`]: { ai_profile_id: null, predictor_bindings: {} },
     'GET /v1/model-connections': { connections: [] },
+    'GET /v1/model-connections:providers': { providers: [] },
     [`GET /v1/sessions/${sessionId}/evidence`]: { evidence: [], count: 0 },
     ...routes,
   };
