@@ -253,6 +253,50 @@ export function deleteModelConnection(connectionId: string): Promise<void> {
   return apiRequest(`/v1/model-connections/${connectionId}`, { method: 'DELETE' });
 }
 
+/** One model a credential can use, as the provider itself lists it. */
+export type ModelOption = Schemas['ModelOption'];
+
+/**
+ * The models a key can use, before it is saved — so the user picks one rather
+ * than guessing an id. The key is used for this listing and not stored.
+ */
+export function listModelsForKey(input: {
+  provider_id: string; base_url?: string; credential?: string;
+}): Promise<{ models: ModelOption[] }> {
+  return apiRequest('/v1/model-connections:models', { method: 'POST', body: input });
+}
+
+/** The models a saved connection's own credential can use. */
+export function listConnectionModels(connectionId: string): Promise<{ models: ModelOption[] }> {
+  return apiRequest(`/v1/model-connections/${connectionId}/models`);
+}
+
+/** Switch a saved connection to another model of the same account (needs a new Test). */
+export function changeConnectionModel(
+  connectionId: string, input: { model_id: string; display_name?: string },
+): Promise<ModelConnection> {
+  return apiRequest(`/v1/model-connections/${connectionId}`, { method: 'PATCH', body: input });
+}
+
+/** A ChatGPT Plus/Pro sign-in in progress, for the signed-in user. */
+export type ChatGPTEnrollment = Schemas['ChatGPTEnrollment'];
+
+export function startChatGPTSignIn(): Promise<ChatGPTEnrollment> {
+  return apiRequest('/v1/model-connections:chatgpt-start', { method: 'POST' });
+}
+
+export function getChatGPTSignIn(): Promise<ChatGPTEnrollment> {
+  return apiRequest('/v1/model-connections:chatgpt');
+}
+
+export function completeChatGPTSignIn(input: { model_id: string; display_name?: string }): Promise<ModelConnection> {
+  return apiRequest('/v1/model-connections:chatgpt-complete', { method: 'POST', body: input });
+}
+
+export function cancelChatGPTSignIn(): Promise<void> {
+  return apiRequest('/v1/model-connections:chatgpt', { method: 'DELETE' });
+}
+
 /** Image → SMILES through the stateless toxocr proxy. Two-step by design:
  * the caller confirms (and may edit) the SMILES before calling quickPredict. */
 export function recognizeStructure(input: {

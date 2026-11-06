@@ -132,6 +132,30 @@ export interface paths {
         delete: operations["delete_model_connection_v1_model_connections__connection_id__delete"];
         options?: never;
         head?: never;
+        /**
+         * Change Connection Model
+         * @description Switch a connection to another model of the same account; test it again.
+         */
+        patch: operations["change_connection_model_v1_model_connections__connection_id__patch"];
+        trace?: never;
+    };
+    "/v1/model-connections/{connection_id}/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Connection Models
+         * @description The models this connection's own credential can use.
+         */
+        get: operations["list_connection_models_v1_model_connections__connection_id__models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -152,6 +176,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/model-connections:chatgpt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chatgpt Sign In Status */
+        get: operations["chatgpt_sign_in_status_v1_model_connections_chatgpt_get"];
+        put?: never;
+        post?: never;
+        /** Cancel Chatgpt Sign In */
+        delete: operations["cancel_chatgpt_sign_in_v1_model_connections_chatgpt_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/model-connections:chatgpt-complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Chatgpt Sign In
+         * @description Save a finished sign-in as a connection for the chosen model.
+         */
+        post: operations["complete_chatgpt_sign_in_v1_model_connections_chatgpt_complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/model-connections:chatgpt-start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Chatgpt Sign In
+         * @description Begin a device-code sign-in; returns the OpenAI page and the code to enter.
+         */
+        post: operations["start_chatgpt_sign_in_v1_model_connections_chatgpt_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/model-connections:models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List Models For Key
+         * @description The models a key can use, before it is saved. The key is not stored.
+         */
+        post: operations["list_models_for_key_v1_model_connections_models_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/model-connections:providers": {
         parameters: {
             query?: never;
@@ -166,7 +268,8 @@ export interface paths {
          *     The UI used to carry its own list, which included providers whose wire
          *     format nothing here speaks and whose base URL default was blank — so the
          *     form could be filled in correctly and still fail every probe (I13). One
-         *     list, served by the code that decides.
+         *     list, served by the code that decides. ChatGPT sign-in is listed only
+         *     where this deployment can actually run it.
          */
         get: operations["list_supported_providers_v1_model_connections_providers_get"];
         put?: never;
@@ -1916,6 +2019,36 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** ChatGPTAvailability */
+        ChatGPTAvailability: {
+            /** Available */
+            available: boolean;
+            /** Documentation Url */
+            documentation_url?: string | null;
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * ChatGPTEnrollment
+         * @description One owner's ChatGPT sign-in. The URL and code appear only while pending.
+         */
+        ChatGPTEnrollment: {
+            /** Error */
+            error?: string | null;
+            /** Expires In S */
+            expires_in_s?: number | null;
+            /** Instructions */
+            instructions?: string | null;
+            /** Models */
+            models?: components["schemas"]["ModelOption"][] | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "none" | "pending" | "connected" | "failed" | "expired" | "cancelled";
+            /** Verification Url */
+            verification_url?: string | null;
+        };
         /** Claim */
         Claim: {
             /** Citation Ids */
@@ -1962,6 +2095,13 @@ export interface components {
             threshold_source: string;
         } & {
             [key: string]: unknown;
+        };
+        /** CompleteChatGPTRequest */
+        CompleteChatGPTRequest: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Model Id */
+            model_id: string;
         };
         /** ConfigurationSnapshot */
         ConfigurationSnapshot: {
@@ -2721,6 +2861,20 @@ export interface components {
             /** Verdict */
             verdict: string | null;
         };
+        /**
+         * ListModelsRequest
+         * @description A key the user is about to save, to list the models it can use.
+         *
+         *     The key is used for this one listing and not stored.
+         */
+        ListModelsRequest: {
+            /** Base Url */
+            base_url?: string | null;
+            /** Credential */
+            credential?: string | null;
+            /** Provider Id */
+            provider_id: string;
+        };
         /** LiveStatus */
         LiveStatus: {
             /** Status */
@@ -2806,6 +2960,18 @@ export interface components {
         ModelConnectionList: {
             /** Connections */
             connections: components["schemas"]["ModelConnection"][];
+        };
+        /** ModelOption */
+        ModelOption: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** ModelOptionList */
+        ModelOptionList: {
+            /** Models */
+            models: components["schemas"]["ModelOption"][];
         };
         /** MoleculeInput */
         MoleculeInput: {
@@ -4300,10 +4466,13 @@ export interface components {
             auth_modes: string[];
             /** Base Url Required */
             base_url_required: boolean;
+            chatgpt_oauth: components["schemas"]["ChatGPTAvailability"] | null;
             /** Default Base Url */
             default_base_url: string | null;
             /** Display Name */
             display_name: string;
+            /** Lists Models */
+            lists_models: boolean;
             /** Note */
             note: string;
             /** Protocol */
@@ -4402,6 +4571,13 @@ export interface components {
             session_id: string;
             /** Type */
             type: string;
+        };
+        /** UpdateModelConnectionRequest */
+        UpdateModelConnectionRequest: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Model Id */
+            model_id: string;
         };
         /** UpdateSessionRequest */
         UpdateSessionRequest: {
@@ -4647,6 +4823,72 @@ export interface operations {
             };
         };
     };
+    change_connection_model_v1_model_connections__connection_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateModelConnectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelConnection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_connection_models_v1_model_connections__connection_id__models_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelOptionList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     test_model_connection_v1_model_connections__connection_id__test_post: {
         parameters: {
             query?: never;
@@ -4665,6 +4907,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelConnection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chatgpt_sign_in_status_v1_model_connections_chatgpt_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatGPTEnrollment"];
+                };
+            };
+        };
+    };
+    cancel_chatgpt_sign_in_v1_model_connections_chatgpt_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    complete_chatgpt_sign_in_v1_model_connections_chatgpt_complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteChatGPTRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelConnection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_chatgpt_sign_in_v1_model_connections_chatgpt_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatGPTEnrollment"];
+                };
+            };
+        };
+    };
+    list_models_for_key_v1_model_connections_models_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListModelsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelOptionList"];
                 };
             };
             /** @description Validation Error */
