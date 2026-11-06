@@ -2,129 +2,207 @@
 {
 "case_id": "herg_pos_01",
 "herg_classification": "blocker",
-"herg_probability": 0.98,
-"tox21_active_assays": ["NR-AhR", "SR-MMP"],
-"limitations": ["Predictions do not account for active metabolites which may have different activity profiles.", "Lack of physiological temperature electrophysiology data."],
-"response_text": "Astemizole exhibits a classic hERG blocking pharmacophore characterized by multiple lipophilic aromatic rings and a central basic nitrogen (piperidine ring). This structural topology facilitates high-affinity interactions with the Y652 and F656 residues within the hERG channel's central cavity. Its potent hERG inhibition led to its market withdrawal due to Torsades de Pointes risk."
+"herg_ic50_um": 0.0009,
+"herg_ic50_source": "PMID:9843990",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-AR-LBD",
+"NR-ER-LBD",
+"SR-p53"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Astemizole is a prototypical, ultra-potent hERG (Kv11.1) potassium channel blocker with an experimental patch-clamp IC50 of approximately 0.9 nM (0.0009 uM, PMID:9843990; ChEMBL:CHEMBL294). Structurally, it features a central basic piperidine nitrogen flanked by lipophilic aromatic domains (4-fluorobenzylbenzimidazole and 4-methoxyphenethyl). At physiological pH, the protonated piperidine forms cation-pi interactions with Tyr652 and high-affinity hydrophobic/pi-stacking interactions with Phe656 inside the inner pore cavity of the hERG channel, stabilizing the inactivated state and severely delaying cardiac repolarization (IKr). Tox21 Profile: Due to its high lipophilicity (cLogP > 5) and cationic amphiphilic nature, Astemizole triggers mitochondrial membrane potential disruption (SR-MMP) and p53-mediated cellular stress (SR-p53), alongside off-target nuclear receptor LBD antagonism at micromolar concentrations. Limitations: In silico models cannot capture the toxicokinetics of its major active metabolite, desmethylastemizole, which exhibits a prolonged systemic half-life (~9-13 days) and accumulates in myocardial tissue. Final Safety Opinion: Do not proceed to clinical trials; Astemizole was withdrawn globally due to fatal ventricular arrhythmias and Torsades de Pointes (TdP)."
 },
 {
 "case_id": "herg_pos_02",
 "herg_classification": "blocker",
-"herg_probability": 0.97,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["In vitro/in silico models do not account for CYP3A4-mediated metabolism which rapidly clears the parent drug in healthy individuals.", "Cannot confidently extrapolate to in vivo QT prolongation without considering systemic exposure."],
-"response_text": "Terfenadine is a prototypical hERG blocker containing a basic piperidine nitrogen and bulky, lipophilic functional groups (diphenylmethyl and tert-butylphenyl moieties). These features allow it to become trapped in the hERG pore. Blockade of the rapid delayed rectifier potassium current (IKr) is highly probable, consistent with its known cardiotoxicity profile."
+"herg_ic50_um": 0.056,
+"herg_ic50_source": "PMID:8620042",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-ER",
+"SR-ARE",
+"SR-p53"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Terfenadine is a benchmark hERG potassium channel blocker with a mammalian cell patch-clamp IC50 of approximately 56 nM (0.056 uM, PMID:8620042; ChEMBL:CHEMBL17157). Its structure exemplifies the classic hERG pharmacophore: a protonatable tertiary piperidine amine linked to a bulky diphenylmethanol group on one side and a tert-butylphenyl-butanol chain on the other. This geometry allows deep insertion into the hERG central cavity, engaging Tyr652 and Phe656 via aromatic stacking and hydrophobic contacts that occlude potassium ion flux. Tox21 Profile: As a potent cationic amphiphilic molecule, Terfenadine induces mitochondrial depolarization (SR-MMP), oxidative stress signaling (SR-ARE), and p53 activation (SR-p53), along with promiscuous estrogen receptor interference (NR-ER) near cytotoxic thresholds. Limitations: Standard structure-based QSAR models evaluate only the parent molecule and do not inherently account for metabolic clearance; in vivo, Terfenadine undergoes rapid CYP3A4-mediated oxidation to fexofenadine (a zwitterion with negligible hERG affinity), meaning clinical cardiotoxicity manifests primarily during CYP3A4 inhibition or hepatic impairment. Final Safety Opinion: Do not proceed; the parent compound carries an unacceptable risk of QT prolongation and fatal Torsades de Pointes."
 },
 {
 "case_id": "herg_pos_03",
 "herg_classification": "blocker",
-"herg_probability": 0.96,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["The computational prediction does not dynamically model state-dependent channel blockade.", "Does not evaluate potential gastrointestinal prokinetic-related secondary toxicities."],
-"response_text": "Cisapride presents a fluorophenyl group, a basic piperidine nitrogen, and a benzamide moiety. This combination fulfills the pharmacophoric requirements for hERG channel binding, predicting high-affinity pore block. The molecular architecture drives favorable pi-pi stacking and cation-pi interactions within the inner cavity of the potassium channel."
+"herg_ic50_um": 0.0065,
+"herg_ic50_source": "PMID:9353401",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-AhR"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.98 (High Confidence). Mechanistic & Biological Basis: Cisapride is a gastroprokinetic 5-HT4 agonist that acts as a highly potent hERG channel inhibitor with an experimental IC50 of 6.5 nM to 44 nM in mammalian expression systems (0.0065 uM, PMID:9353401; ChEMBL:CHEMBL1729). The molecule possesses a central basic piperidine ring tethered via a flexible propoxy linker to a para-fluorophenyl ring and via an amide bond to a chlorinated 2-methoxy-4-aminobenzamide core. The protonated piperidine and flanking halogen-substituted aromatics bind avidly to the S6 transmembrane domain residues Tyr652 and Phe656 in the open/inactivated hERG pore. Tox21 Profile: Cisapride shows moderate activity in mitochondrial membrane potential disruption (SR-MMP) at higher concentrations and weak aryl hydrocarbon receptor (NR-AhR) activation driven by its halogenated benzamide motif. Limitations: In vitro hERG assays and 2D SMILES predictions do not capture drug-drug interaction dynamics (specifically CYP3A4 inhibition by macrolides or azoles) that elevate free plasma concentrations above the nanomolar hERG IC50 threshold. Final Safety Opinion: Do not proceed; Cisapride lacks an adequate safety margin between therapeutic 5-HT4 agonism and IKr blockade, leading to severe clinical QT prolongation and ventricular arrhythmias."
 },
 {
 "case_id": "herg_pos_04",
 "herg_classification": "blocker",
-"herg_probability": 0.95,
+"herg_ic50_um": 0.012,
+"herg_ic50_source": "PMID:8843389",
 "tox21_active_assays": [],
-"limitations": ["Proarrhythmic risk is heavily dependent on patient-specific factors (e.g., hypokalemia) not captured here.", "Lack of multi-ion channel (e.g., Nav1.5, Cav1.2) profiling to determine net arrhythmogenic risk."],
-"response_text": "Dofetilide is a Class III antiarrhythmic agent rationally designed to selectively inhibit the hERG (Kv11.1) potassium channel. The molecule features an optimal distance between its basic central tertiary amine and the terminal methanesulfonamide-substituted aromatic rings, directly anchoring into the channel vestibule."
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Dofetilide is a pure Class III antiarrhythmic agent and an ultra-potent, selective blocker of the rapid delayed rectifier potassium current (IKr / hERG), exhibiting an IC50 of ~12 nM (0.012 uM, PMID:8843389; ChEMBL:CHEMBL633). It features a symmetric bis-(methanesulfonamido)phenethyl/phenoxyethyl framework around a central basic tertiary N-methylamine. Along with engaging Tyr652 and Phe656 in the inner vestibule, its polar methanesulfonamide groups form specific hydrogen bonds with Thr623 and Ser624 at the base of the pore helix, locking the drug in the open/inactivated state. Tox21 Profile: Because Dofetilide is moderately hydrophilic (cLogP ~ 1.0) and highly target-selective, it is largely inactive across the broad Tox21 stress response and nuclear receptor panels, avoiding nonspecific membrane disruption (SR-MMP negative). Limitations: While toxicologically clean in general cellular assays, its extreme on-target hERG potency exhibits reverse use-dependence (greater QT prolongation at lower heart rates), which static IC50 values do not reflect. Final Safety Opinion: Conditional progression only if developed strictly for specialist-monitored inpatient Class III antiarrhythmic indications; for any non-antiarrhythmic indication, it is an immediate do-not-proceed due to extreme Torsades de Pointes liability."
 },
 {
 "case_id": "herg_pos_05",
 "herg_classification": "blocker",
-"herg_probability": 0.88,
+"herg_ic50_um": 78.0,
+"herg_ic50_source": "PMID:12126581",
 "tox21_active_assays": [],
-"limitations": ["Does not account for the protective effect of simultaneous beta-adrenergic receptor blockade on net arrhythmogenic risk.", "Stereochemical specifics (d- vs l-sotalol) are not differentiated in simple 2D SMILES processing."],
-"response_text": "Sotalol exhibits structural characteristics of a beta-blocker but possesses significant hERG channel inhibitory activity, characteristic of its dual Class II and Class III antiarrhythmic properties. While it is a smaller, less lipophilic molecule than prototypical hERG blockers like astemizole, the secondary amine and aromatic sulfonamide provide sufficient channel binding."
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.85 (Moderate-High Confidence). Mechanistic & Biological Basis: Sotalol is a hydrophilic methanesulfonanilide with combined non-selective beta-adrenergic receptor antagonism and Class III antiarrhythmic (hERG blocking) activity. Unlike nanomolar blockers, Sotalol is a relatively low-affinity hERG inhibitor with an in vitro patch-clamp IC50 of approximately 43 to 78 uM (PMID:12126581; ChEMBL:CHEMBL471). It shares the para-methanesulfonamidophenyl headgroup of dofetilide—enabling hydrogen bonding near Ser624/Thr623—coupled to an ethanolamine isopropylamine tail that protonates at physiological pH to interact with Tyr652, but lacks a second distal aromatic ring to anchor strongly against Phe656. Tox21 Profile: Due to its low lipophilicity (cLogP ~ 0.2) and small molecular footprint, Sotalol shows no significant activity across Tox21 nuclear receptor or cellular stress panels up to 100 uM. Limitations: High IC50 values in silico can falsely suggest clinical safety if therapeutic exposure is ignored; Sotalol is administered at high clinical doses yielding plasma concentrations in the 3–15 uM range with minimal plasma protein binding, making its 78 uM hERG IC50 clinically critical. Furthermore, 2D SMILES lack stereochemical specification (d- vs l-enantiomers). Final Safety Opinion: Conditional progression; acceptable only for targeted antiarrhythmic therapy under strict renal function and ECG QT monitoring, but unacceptable as an off-target liability for general indications."
 },
 {
 "case_id": "herg_pos_06",
 "herg_classification": "blocker",
-"herg_probability": 0.92,
-"tox21_active_assays": ["NR-AhR", "SR-MMP"],
-"limitations": ["Model does not account for blood-brain barrier partitioning which alters relative cardiac exposure.", "Concentration-dependent differences in receptor binding (D2 vs hERG) are not quantified."],
-"response_text": "Haloperidol is a butyrophenone antipsychotic with a well-documented risk of hERG channel inhibition. The basic piperidine nitrogen and halogenated aromatic rings form a robust interaction network with the intra-cavity aromatic residues of the hERG pore, predicting a high risk of QT prolongation, particularly at elevated circulating concentrations."
+"herg_ic50_um": 0.027,
+"herg_ic50_source": "PMID:10379629",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-AR-LBD",
+"NR-ER-LBD",
+"SR-p53"
+],
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.98 (High Confidence). Mechanistic & Biological Basis: Haloperidol is a classic butyrophenone typical antipsychotic and a potent hERG channel blocker with a mammalian patch-clamp IC50 of ~27 nM (0.027 uM, PMID:10379629; ChEMBL:CHEMBL54). Its structure contains a 4-(4-chlorophenyl)-4-hydroxypiperidine moiety linked via a propyl chain to a 4-fluorobutyrophenone group. At physiological pH, the basic piperidine nitrogen is protonated and positioned at the optimal ~5–7 Angstrom distance from both halogenated aromatic rings, facilitating strong cation-pi interactions with Tyr652 and pi-stacking with Phe656 in the hERG inner cavity. Tox21 Profile: Haloperidol's cationic amphiphilic properties result in mitochondrial membrane depolarization (SR-MMP) and p53 stress pathway activation at elevated micromolar concentrations, alongside weak nuclear receptor ligand-binding domain displacement (NR-AR-LBD, NR-ER-LBD). Limitations: In vitro hERG potency overpredicts arrhythmia risk unless corrected for Haloperidol's ~92% plasma protein binding and therapeutic nanomolar free plasma concentrations, though intravenous administration or overdose breaches this safety margin. Final Safety Opinion: Conditional progression; requires comprehensive ICH S7B nonclinical telemetry, strict Cmax clamping, and clinical QT monitoring, or structural optimization to attenuate hERG affinity before advancing as a novel candidate."
 },
 {
 "case_id": "herg_pos_07",
 "herg_classification": "blocker",
-"herg_probability": 0.94,
-"tox21_active_assays": ["NR-AhR", "SR-MMP", "SR-p53"],
-"limitations": ["Extrapolation of in vitro hERG IC50 to clinical TdP risk requires consideration of free plasma drug concentrations.", "Metabolites (e.g., mesoridazine) which also block hERG are not assessed here."],
-"response_text": "Thioridazine possesses a phenothiazine core linked to a basic piperidine-type side chain. This lipophilic, basic structure perfectly matches the hERG pharmacophore. The compound has a high probability of causing direct pore blockade by extending its hydrophobic tricyclic system and terminal methylthio group into the channel's lateral pockets."
+"herg_ic50_um": 0.033,
+"herg_ic50_source": "PMID:10669567",
+"tox21_active_assays": [
+"SR-MMP",
+"SR-ARE",
+"SR-HSE",
+"SR-p53",
+"NR-AR-LBD",
+"NR-ER-LBD"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Thioridazine is a phenothiazine antipsychotic that potently inhibits the hERG channel with a patch-clamp IC50 of approximately 33 nM to 191 nM (0.033 uM, PMID:10669567; ChEMBL:CHEMBL479). The rigid, lipophilic tricyclic 2-methylthiophenothiazine core stacks extensively against Phe656 in the hERG S6 domain, while the ethyl-linked N-methylpiperidine side chain provides the protonated tertiary amine that forms cation-pi contacts with Tyr652. Unlike verapamil, its L-type calcium channel blockade is insufficient to offset its profound IKr inhibition at clinical exposures. Tox21 Profile: Highly lipophilic (cLogP ~ 5.9) and phenothiazine-based, Thioridazine is pan-active across Tox21 cellular stress pathways, strongly inducing mitochondrial membrane potential disruption (SR-MMP), oxidative stress (SR-ARE), heat shock response (SR-HSE), DNA damage/p53 signaling (SR-p53), and phospholipidosis, alongside broad nuclear receptor antagonism. Limitations: Metabolites (mesoridazine and sulforidazine) are also potent hERG blockers and contribute significantly to clinical cardiotoxicity, which single-structure evaluations omit. Final Safety Opinion: Do not proceed; Thioridazine carries one of the highest clinical incidences of QTc prolongation and Torsades de Pointes among psychotropics, compounded by severe multi-pathway cellular toxicity."
 },
 {
 "case_id": "herg_pos_08",
 "herg_classification": "blocker",
-"herg_probability": 0.85,
-"tox21_active_assays": ["SR-MMP"],
-"limitations": ["In vivo proarrhythmic risk is heavily mitigated by potent concurrent calcium channel (Cav1.2) blockade, which is not captured by isolated hERG assessment.", "Model does not assess active enantiomeric differences."],
-"response_text": "Verapamil is fundamentally a calcium channel blocker but is structurally a phenylalkylamine that also acts as a moderate-to-potent hERG channel blocker. The basic nitrogen and flexible spacer flanked by dimethoxy-substituted aromatic rings enable binding within the hERG cavity. However, its net clinical arrhythmogenic profile is blunted by calcium channel antagonism."
+"herg_ic50_um": 0.143,
+"herg_ic50_source": "PMID:9922375",
+"tox21_active_assays": [
+"SR-MMP"
+],
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.96 (High Confidence). Mechanistic & Biological Basis: Verapamil is a phenylalkylamine L-type calcium channel blocker that also potently inhibits the hERG potassium channel with an experimental IC50 of ~143 nM (0.143 uM, PMID:9922375; ChEMBL:CHEMBL6966). Structurally, it possesses a central protonatable N-methyl tertiary amine linking two 3,4-dimethoxyphenyl rings and an isopropyl-nitrile quaternary carbon center. In the hERG pore, the basic amine and flexible dimethoxyphenyl rings engage Tyr652 and Phe656 in an open/inactivated channel conformation. However, Verapamil is the classic clinical false-positive for Torsades de Pointes: its concomitant, potent blockade of inward L-type calcium currents (ICa,L, Cav1.2) prevents early afterdepolarizations (EADs) and mitigates net action potential prolongation. Tox21 Profile: Verapamil exhibits a relatively clean Tox21 profile, showing only moderate mitochondrial membrane potential activity (SR-MMP) at high micromolar concentrations and acting as a known P-glycoprotein (ABCB1) modulator. Limitations: Single-channel hERG models fail to integrate multi-ion channel pharmacology (CiPA paradigm), specifically the protective counterbalance of Cav1.2 inhibition. Final Safety Opinion: Conditional progression; safe to proceed if the dual Cav1.2/hERG balance is confirmed via human iPSC-derived cardiomyocyte (hiPSC-CM) assays and comprehensive CiPA ion channel profiling."
 },
 {
 "case_id": "herg_pos_09",
 "herg_classification": "blocker",
-"herg_probability": 0.95,
-"tox21_active_assays": ["NR-AhR", "NR-PPAR-gamma", "SR-MMP"],
-"limitations": ["Amiodarone's extremely high tissue distribution and lipophilicity complicate the direct translation of in vitro hERG block to in vivo TdP incidence.", "Chronic toxicity (e.g., pulmonary, thyroid) is not predictable from this isolated channel screen."],
-"response_text": "Amiodarone is a highly lipophilic benzofuran derivative containing two bulky iodine atoms and a basic diethylamine side chain. It binds strongly to the hERG channel. Notably, despite potent in vitro IKr inhibition, its clinical propensity to cause Torsades de Pointes is uniquely low compared to other Class III agents, likely due to polypharmacology (multichannel block)."
+"herg_ic50_um": 0.045,
+"herg_ic50_source": "PMID:10379628",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-ER-LBD",
+"NR-AR-LBD",
+"NR-PPAR-gamma",
+"SR-ARE",
+"SR-p53"
+],
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Amiodarone is a complex Class III antiarrhythmic agent that potently blocks hERG channels with an IC50 of ~45 to 70 nM in mammalian cells (0.045 uM, PMID:10379628; ChEMBL:CHEMBL63325). It contains a bulky, highly lipophilic 2-butylbenzofuran core linked via a ketone to a 3,5-diiodo-4-(2-diethylaminoethoxy)phenyl ring. The tertiary diethylamino group protonates to interact with Tyr652, while the heavily iodinated aromatic ring and benzofuran scaffold form extensive hydrophobic contacts with Phe656 and inner pore residues. Despite potent IKr block and marked QTc prolongation, Amiodarone has a relatively low incidence of Torsades de Pointes due to multi-channel inhibition (late INa, ICa,L, IKs, and beta-adrenergic blockade) that homogenizes transmural dispersion of repolarization. Tox21 Profile: Due to extreme lipophilicity (cLogP > 7) and cationic amphiphilic structure, Amiodarone triggers severe phospholipidosis, mitochondrial toxicity (SR-MMP), oxidative stress (SR-ARE), p53 activation, and thyroid/nuclear receptor disruption. Limitations: Extreme lipophilicity causes massive nonspecific binding in plastic labware and slow tissue accumulation (half-life ~50 days) alongside its active metabolite desethylamiodarone. Final Safety Opinion: Conditional progression only for life-threatening arrhythmias; do not proceed for general indications due to severe hERG blockade and multi-organ toxicity (pulmonary, hepatic, thyroid)."
 },
 {
 "case_id": "herg_pos_10",
 "herg_classification": "blocker",
-"herg_probability": 0.96,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["Computational assessment relies on structural similarity to known blockers and may overpredict clinical risk at low therapeutic doses.", "Does not reflect delayed channel trafficking inhibition effects."],
-"response_text": "Pimozide is a diphenylbutylpiperidine antipsychotic with exceptionally high lipophilicity and a basic piperidine nitrogen. It represents a classic hERG blocker, interacting with the canonical F656 and Y652 residues. The structural rigidity provided by the benzimidazolinone ring and the dual fluorophenyl groups drive high-affinity occlusion of the potassium pore."
+"herg_ic50_um": 0.018,
+"herg_ic50_source": "PMID:11179947",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-AR-LBD",
+"NR-ER-LBD",
+"SR-ARE",
+"SR-p53",
+"SR-ATAD5"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Pimozide is a diphenylbutylpiperidine antipsychotic and one of the most potent hERG blockers known, with an experimental patch-clamp IC50 of ~18 nM (0.018 uM, PMID:11179947; ChEMBL:CHEMBL1423). Its structure closely mirrors astemizole and terfenadine, combining a benzimidazolone-substituted piperidine ring with a long 4,4-bis(4-fluorophenyl)butyl tail. The protonated piperidine amine forms a tight cation-pi interaction with Tyr652, while the geminal bis(4-fluorophenyl) group and benzimidazolone ring occupy hydrophobic pockets around Phe656, effectively plugging the inner vestibule of the hERG channel. Tox21 Profile: Pimozide exhibits broad promiscuity in Tox21 assays, strongly inducing mitochondrial membrane potential disruption (SR-MMP), oxidative stress (SR-ARE), p53 and genotoxic stress signaling (SR-p53, SR-ATAD5), and nuclear receptor antagonism (NR-AR-LBD, NR-ER-LBD) driven by its high lipophilicity (cLogP ~ 6.2). Limitations: Static IC50 models do not capture CYP3A4/CYP2D6 metabolic bottlenecks that can cause sharp spikes in systemic exposure. Final Safety Opinion: Do not proceed; the combination of sub-20 nM hERG potency, documented clinical Torsades de Pointes/sudden cardiac death, and broad cellular toxicity precludes safe Phase I advancement."
 },
 {
 "case_id": "herg_pos_11",
-"herg_classification": "uncertain",
-"herg_probability": 0.55,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["The provided SMILES describes a highly lipophilic ether lacking a basic nitrogen, departing from the classic hERG pharmacophore.", "Predictive confidence is lower for neutral/non-basic compounds blocking the channel."],
-"response_text": "This flunarizine analog lacks the characteristic basic nitrogen typically required for potent cation-pi interactions within the hERG central cavity. However, its significant lipophilicity and bis-fluorophenyl motif suggest it could still interact via purely hydrophobic forces with F656. While structural alerts are present, the absence of an ionizable amine reduces the predicted binding affinity."
+"herg_classification": "non-blocker",
+"herg_ic50_um": 45.0,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"NR-AhR",
+"NR-ER-LBD"
+],
+"clinical_recommendation": "proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.22 (Moderate Confidence - Non-Blocker / Weak Fragment). Mechanistic & Biological Basis: Although labeled 'Flunarizine-analog', rigorous inspection of the submitted SMILES (Fc1ccc(C(OCC2CC2)c2ccc(F)cc2)cc1) reveals a neutral bis(4-fluorophenyl)methyl cyclopropylmethyl ether (MW 286.3 Da) that completely lacks the central piperazine ring and cinnamyl tail of authentic flunarizine. Crucially, this structure contains zero nitrogen atoms and no basic ionizable center (no protonatable amine at physiological pH). Without a positively charged nitrogen to form cation-pi interactions with Tyr652 or electrostatic stabilization within the pore, its affinity for the hERG channel is drastically attenuated, relying solely on weak, non-specific hydrophobic contacts of the gem-difluorodiphenylmethane motif with Phe656 (predicted IC50 ~45 uM, >30 uM non-blocker threshold). Tox21 Profile: Lacking cationic amphiphilic character, it avoids potent SR-MMP mitochondrial toxicity, showing only weak predicted lipophilic binding at nuclear/xenobiotic receptors (NR-AhR, NR-ER-LBD). Limitations: If the submission intended authentic flunarizine (which contains a basic piperazine and is a potent sub-micromolar hERG blocker), the SMILES string was truncated during input preparation; the ether linkage may also undergo metabolic cleavage in vivo. Final Safety Opinion: Proceed to further preclinical evaluation for the submitted neutral ether structure, subject to verification that the SMILES accurately represents the intended drug candidate."
 },
 {
 "case_id": "herg_pos_12",
 "herg_classification": "blocker",
-"herg_probability": 0.86,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["Cannot predict in vivo clearance rates which dictate the maximal plasma concentration available for channel block.", "Requires patch-clamp validation to determine IC50."],
-"response_text": "The quinazoline-pyrrolidine compound features a prominent lipophilic aromatic core linked via an ether spacer to a basic pyrrolidine nitrogen. This structural array aligns well with known hERG channel blockers. At physiological pH, the protonated nitrogen is expected to engage in electrostatic interactions with Y652, while the quinazoline system intercalates into hydrophobic pockets."
+"herg_ic50_um": 2.4,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"NR-AhR",
+"SR-MMP"
+],
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.86 (High Confidence). Mechanistic & Biological Basis: This synthetic derivative (SMILES: c1ccc2c(c1)nc1ccc(OCCN3CCCC3)cc1n2, a phenazine/quinoxaline-type tricyclic heteroaromatic tethered to a 2-(pyrrolidin-1-yl)ethoxy side chain) exhibits the hallmark structural features of a micromolar hERG potassium channel blocker (predicted IC50 ~2.4 uM). The alicyclic pyrrolidine ring contains a strongly basic tertiary amine (pKa ~ 9.5) that is fully protonated at physiological pH (7.4), forming cation-pi interactions with Tyr652 in the S6 transmembrane helix. The planar, electron-rich tricyclic heteroaromatic core is positioned at a ~6 Angstrom distance via the ethoxy linker, enabling robust pi-pi stacking with Phe656 and Tyr652. Tox21 Profile: The planar polycyclic aromatic nitrogen heterocycle is a classic pharmacophore for aryl hydrocarbon receptor activation (NR-AhR), while the basic amphiphilic motif confers moderate mitochondrial membrane potential depolarization (SR-MMP) at higher micromolar concentrations. Limitations: Planar tricyclic nitrogen heterocycles also carry DNA intercalation and Ames mutagenicity risks not fully captured by Tox21 reporter assays, and specific experimental patch-clamp records for this exact scaffold are unindexed. Final Safety Opinion: Conditional progression; requires immediate automated patch-clamp hERG verification, Ames genotoxicity screening, and SAR modification (e.g., reducing amine basicity via morpholine substitution or disrupting tricyclic planarity) prior to IND filing."
 },
 {
 "case_id": "herg_pos_13",
 "herg_classification": "blocker",
-"herg_probability": 0.88,
-"tox21_active_assays": ["NR-AhR", "NR-ER"],
-"limitations": ["Does not account for non-hERG repolarization currents (e.g., IKs).", "Potential for rapid metabolic inactivation (e.g., N-dealkylation) is not considered."],
-"response_text": "This benzophenone-piperidine derivative constitutes a significant hERG liability. The highly flexible ether linkage allows the basic piperidine ring to orient optimally towards Y652, while the benzophenone moiety provides two distinct aromatic faces for pi-pi stacking with F656. This flexibility often results in high-affinity block."
+"herg_ic50_um": 1.8,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-ER",
+"NR-ER-LBD",
+"NR-AR-LBD"
+],
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.88 (High Confidence). Mechanistic & Biological Basis: Benzophenone-piperidine (4-(2-(piperidin-1-yl)ethoxy)benzophenone; SMILES: O=C(c1ccccc1)c1ccc(OCCN2CCCCC2)cc1) is a direct structural analog of the selective estrogen receptor modulator (SERM) scaffold seen in raloxifene and clomiphene, both documented micromolar hERG blockers. It displays a predicted hERG IC50 of ~1.8 uM. The basic piperidine nitrogen (pKa ~ 9.8) is protonated at physiological pH and tethered via a flexible two-carbon ethoxy linker to a lipophilic diphenylmethanone (benzophenone) core. Inside the hERG pore cavity, the protonated piperidine engages Tyr652 via cation-pi forces while the two phenyl rings of the benzophenone moiety orient into hydrophobic pockets around Phe656, stabilizing channel blockade. Tox21 Profile: The 4-(2-piperidinylethoxy)benzoyl motif is the canonical pharmacophore for estrogen and androgen receptor modulation, strongly flagging NR-ER, NR-ER-LBD, and NR-AR-LBD, alongside cationic amphiphilic mitochondrial membrane disruption (SR-MMP). Limitations: The benzophenone moiety is also a known structural alert for UV-induced phototoxicity and reactive oxygen species generation, which standard non-irradiated Tox21 assays do not detect. Final Safety Opinion: Conditional progression; requires experimental GLP patch-clamp hERG testing, endocrine disruption profiling, and medicinal chemistry optimization (e.g., introducing polar substituents or decreasing piperidine pKa) to widen the cardiac safety margin."
 },
 {
 "case_id": "herg_pos_14",
 "herg_classification": "blocker",
-"herg_probability": 0.89,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["In silico binding predictions cannot perfectly determine if the molecule acts as an open-channel or inactivated-state blocker.", "Does not differentiate between direct pore block and disruption of membrane dynamics."],
-"response_text": "The arylpiperazine construct presents a well-known toxicological alert for cardiovascular safety. The combination of a highly basic piperazine ring, a chlorophenyl group, and a trifluoromethyl-substituted pyridine provides both the necessary basicity and pronounced lipophilicity to secure the molecule within the hERG inner vestibule."
+"herg_ic50_um": 0.85,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"SR-MMP",
+"SR-ARE",
+"NR-AR-LBD"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.93 (High Confidence). Mechanistic & Biological Basis: This 1-(4-chlorobenzyl)-4-(3-(trifluoromethyl)pyridin-2-yl)piperazine derivative (SMILES: Clc1ccc(CN2CCN(c3ncccc3C(F)(F)F)CC2)cc1) is a potent predicted hERG blocker with an estimated IC50 of ~0.85 uM. It embodies a classic linear CNS/ion-channel pharmacophore: a central piperazine ring where the benzylic tertiary amine nitrogen is basic and protonated at physiological pH (pKa ~ 8.1), flanked by two highly lipophilic, halogen-substituted aromatic terminals (a para-chlorophenyl ring on one end and an ortho-CF3-pyridine ring on the other). With a high cLogP (~4.5), the molecule partitions readily into the hERG inner cavity, where the protonated benzylic piperazine nitrogen forms a cation-pi bond with Tyr652 and the terminal para-Cl and CF3 aromatic groups make extensive hydrophobic and pi-stacking contacts with Phe656. Tox21 Profile: As a lipophilic, poly-halogenated cationic amphiphile, it is predicted to trigger mitochondrial membrane potential depolarization (SR-MMP), oxidative stress response (SR-ARE), and off-target androgen receptor LBD binding (NR-AR-LBD). Limitations: N-benzylpiperazines undergo CYP-mediated N-dealkylation in vivo, which can alter the ratio of parent to metabolite toxicity. Final Safety Opinion: Do not proceed without structural redesign; sub-micromolar hERG potency combined with high lipophilicity poses a severe risk of clinical QT prolongation. Recommend replacing the para-chlorophenyl or CF3 group with polar heterocycles to lower logD and disrupt Phe656 binding."
 },
 {
 "case_id": "herg_pos_15",
-"herg_classification": "blocker",
-"herg_probability": 0.72,
-"tox21_active_assays": [],
-"limitations": ["Acetylation of the piperazine ring reduces overall basicity, which may lead to an overprediction of hERG affinity by generalized 2D pharmacophore models.", "Requires in vitro follow-up to confirm functional IC50."],
-"response_text": "This compound features an acetylated piperazine ring linked to an aryloxy moiety. While N-acetylation neutralizes one nitrogen, the remaining aniline-type nitrogen and the overall lipophilicity still pose a moderate risk for hERG interaction. The affinity is likely reduced compared to fully basic alkyl-piperazines, but it retains sufficient characteristics to warrant a 'blocker' classification."
+"herg_classification": "non-blocker",
+"herg_ic50_um": 38.0,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"SR-ARE",
+"SR-p53",
+"SR-ATAD5"
+],
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Predicted hERG Blocker Probability: 0.28 (Moderate Confidence - Weak/Non-Blocker for hERG, High Genotoxic Risk). Mechanistic & Biological Basis: Structurally, 1-acetyl-4-(4-(oxiran-2-ylmethoxy)phenyl)piperazine (SMILES: CC(=O)N1CCN(c2ccc(OCC3CO3)cc2)CC1) attenuates classic hERG binding through two key features, yielding a weak predicted hERG IC50 of ~38 uM (above the 10–30 uM blocker cutoff). First, the distal piperazine nitrogen is capped as an N-acetyl amide, completely abolishing its basicity, while the remaining aniline-type nitrogen (N-arylpiperazine) has a suppressed pKa (~6.0–6.5) and remains predominantly unprotonated at physiological pH 7.4. Second, the molecule is small, polar (cLogP ~ 0.9), and lacks a second distal aromatic ring to engage Phe656. Tox21 Profile: Despite low hERG risk, the terminal glycidyl ether (oxirane / epoxide ring, OCC3CO3) is a potent electrophilic structural alert that covalently alkylates nucleophilic DNA bases and cellular thiols (glutathione/proteins). Consequently, it strongly activates Tox21 oxidative stress (SR-ARE), p53 DNA damage (SR-p53), and genotoxic replication stress (SR-ATAD5) pathways. Limitations: Epoxides may undergo rapid enzymatic hydrolysis by epoxide hydrolases in vivo, which in vitro cell lines lacking metabolic competence may not fully mirror. Final Safety Opinion: Do not proceed; although hERG channel inhibition risk is low, the presence of an unmasked reactive epoxide moiety presents a severe mutagenicity and carcinogenicity liability under ICH M7 guidelines."
 },
 {
 "case_id": "herg_pos_16",
 "herg_classification": "blocker",
-"herg_probability": 0.91,
-"tox21_active_assays": ["NR-AhR"],
-"limitations": ["Risk of clinical QT prolongation cannot be established without concurrent pharmacokinetic parameters.", "Assumes 100% bioavailability which is rarely accurate for highly lipophilic basic amines."],
-"response_text": "The dimethoxyphenylpiperidine architecture presents a classic, potent hERG inhibitory framework. The benzylpiperidine structural motif combined with the dimethoxyphenyl group creates a highly flexible, basic, and lipophilic entity. This enables the molecule to adopt a low-energy conformation that perfectly bridges the key aromatic residues spanning the hERG pore."
+"herg_ic50_um": 3.2,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"SR-MMP"
+],
+"clinical_recommendation": "conditional",
+"response_text": "Predicted hERG Blocker Probability: 0.84 (High Confidence). Mechanistic & Biological Basis: 1-Benzyl-4-(3,4-dimethoxyphenyl)piperidine (SMILES: COc1ccc(C2CCN(Cc3ccccc3)CC2)cc1OC) possesses the canonical N-benzylpiperidine pharmacophore shared by numerous CNS drugs (e.g., donepezil) and established hERG blockers, with a predicted hERG IC50 of ~3.2 uM. The tertiary N-benzylpiperidine nitrogen is strongly basic (pKa ~ 9.3) and fully protonated at physiological pH, positioning a positive charge directly between two aromatic systems—the N-benzyl ring and the 3,4-dimethoxyphenyl ring—separated by an optimal ~6–8 Angstrom span. Within the hERG inner cavity, the protonated piperidine engages Tyr652 via cation-pi interactions while the terminal phenyl and dimethoxyphenyl rings form hydrophobic and pi-stacking contacts with Phe656. Furthermore, the 3,4-dimethoxy groups can participate in dipole interactions within the pore vestibule, similar to verapamil. Tox21 Profile: The compound is relatively clean across nuclear receptors, flagging primarily in the mitochondrial membrane potential assay (SR-MMP) at higher micromolar concentrations due to its lipophilic cationic character (cLogP ~ 3.8). Limitations: N-benzylpiperidines are susceptible to CYP2D6/CYP3A4-mediated N-debenzylation and O-demethylation, which alters clearance and metabolite hERG affinity. Final Safety Opinion: Conditional progression; requires experimental patch-clamp IC50 determination and free Cmax margin assessment (targeting hERG IC50 / free Cmax > 30), with potential medicinal chemistry tuning of the N-benzyl basicity."
 }
 ]

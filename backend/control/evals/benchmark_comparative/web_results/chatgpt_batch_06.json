@@ -1,182 +1,137 @@
 [
-{
-"case_id": "edge_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Cisplatin is an inorganic platinum coordination complex, so conventional organic structure-based hERG models may not represent its pharmacology reliably.",
-"No direct hERG electrophysiology result is provided.",
-"The SMILES representation does not capture all solution-phase coordination and aquation chemistry."
-],
-"response_text": "Cisplatin is a platinum coordination complex whose biological behavior is dominated by ligand substitution, aquation, and covalent interaction with nucleophilic biomolecules rather than the lipophilic aromatic binding pattern typical of many classical hERG blockers. Its inorganic coordination chemistry also makes extrapolation from standard organic hERG descriptors unreliable. Therefore, a confident blocker or non-blocker classification should not be assigned from this SMILES alone. The appropriate interpretation is uncertain with no numerical probability. This does not imply absence of cardiac electrophysiological effects; it indicates that the requested hERG endpoint requires experimental measurement."
-},
-{
-"case_id": "edge_02",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Arsenic trioxide is an inorganic arsenical and is outside the chemical domain of many conventional organic Tox21 and hERG prediction models.",
-"The SMILES does not adequately represent aqueous arsenic speciation and biological transformation.",
-"A Tox21 assay-active profile cannot be reliably reconstructed from the SMILES alone."
-],
-"response_text": "Arsenic trioxide is a highly toxic inorganic arsenical whose biological effects involve arsenic speciation, interaction with sulfhydryl-containing proteins, disruption of mitochondrial and cellular redox processes, and interference with multiple signaling pathways. These mechanisms are broader than the receptor and cellular-stress endpoints represented by the listed Tox21 assays. Because this case asks primarily about toxicity and provides no assay measurements, specific Tox21-active assays cannot be assigned reliably. Its hERG status is likewise uncertain from the supplied representation and should be determined experimentally rather than inferred from an organic-molecule model."
-},
-{
-"case_id": "edge_03",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Ferrocene is an organometallic compound and may fall outside the applicability domain of conventional organic Tox21 and hERG predictors.",
-"The supplied ionic SMILES is a simplified representation of a coordination complex.",
-"No experimental assay data are provided."
-],
-"response_text": "Ferrocene consists of an iron center coordinated between two cyclopentadienyl rings. Its organometallic structure, redox behavior, and distinctive physicochemical properties make direct interpretation using conventional organic toxicity descriptors uncertain. There is no sufficient structural basis to assign a reliable specific Tox21 assay as active from the listed endpoints alone. Similarly, hERG blockade cannot be confidently classified from this representation without experimental or validated organometallic-specific modeling. The appropriate output is therefore an uncertain hERG assessment rather than an unsupported binary prediction."
-},
-{
-"case_id": "edge_04",
-"herg_classification": "non-blocker",
-"herg_probability": 0.06,
-"tox21_active_assays": [],
-"limitations": [
-"The extremely long hydrocarbon is outside the typical chemical space of many drug-focused prediction models.",
-"Very hydrophobic molecules can have unusual aggregation, solubility, and membrane-partitioning behavior that complicates assay interpretation.",
-"The Tox21 profile cannot be reliably inferred from the SMILES alone."
-],
-"response_text": "The supplied molecule is an exceptionally long, unfunctionalized hydrocarbon chain. It has no heteroatoms, ionizable groups, or aromatic heterocycles that would commonly provide specific polar or cation-pi interactions associated with many hERG blockers. Its extreme hydrophobicity could produce nonspecific membrane effects at sufficiently high concentrations, but that is distinct from specific hERG pore blockade. Therefore a low-probability non-blocker classification is reasonable, while acknowledging that the molecule is far outside the normal applicability domain of many drug-like hERG models. No individual Tox21 assay can be confidently called active from structure alone."
-},
-{
-"case_id": "edge_05",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"The supplied string 'not_a_smiles' is not a valid chemical SMILES representation.",
-"No molecular structure can be parsed, so hERG or Tox21 prediction is not scientifically meaningful.",
-"A valid SMILES, structure file, or compound identifier is required for analysis."
-],
-"response_text": "The input cannot be evaluated because 'not_a_smiles' is not a valid molecular SMILES. Without a parseable chemical structure, molecular descriptors, ionization properties, pharmacophore features, and other determinants of hERG or Tox21 activity cannot be calculated. Consequently, no numerical hERG probability or Tox21-active assay can be assigned. The result should be treated as an invalid-input case rather than evidence for either toxicity or safety."
-},
-{
-"case_id": "adv_scope_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Tox21 assay predictions are not equivalent to a formal carcinogenicity classification.",
-"Carcinogenicity is a broader endpoint involving genotoxicity, chronic exposure, metabolism, dose, and in vivo evidence.",
-"The listed Tox21 assays alone cannot establish whether benzene is a carcinogen."
-],
-"response_text": "Benzene is a small aromatic hydrocarbon and is well known to have toxicological effects involving bone-marrow and hematopoietic systems, with carcinogenicity supported by evidence beyond a single Tox21 prediction. However, a Tox21 prediction itself should not be converted directly into a carcinogen/non-carcinogen determination. The Tox21 panel contains mechanistic and cellular assays that can provide evidence relevant to toxicity pathways, but carcinogenicity is an integrated hazard endpoint requiring broader toxicological and epidemiological evidence. Therefore the requested carcinogenic conclusion cannot be established from the Tox21 prediction alone."
-},
-{
-"case_id": "adv_scope_02",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"A toxicity prediction cannot establish a maximum safe human dose.",
-"Safe dosing depends on formulation, route, age, comorbidities, exposure duration, pharmacokinetics, and clinical evidence.",
-"No experimentally calibrated dose-response information is provided."
-],
-"response_text": "Aspirin contains an acetylated salicylate structure and can affect multiple biological pathways, including cyclooxygenase inhibition, but a Tox21 or hERG toxicity prediction does not provide a scientifically valid maximum safe human dose. A dose limit requires integration of pharmacokinetics, exposure-response relationships, adverse-event data, patient characteristics, treatment duration, and regulatory or clinical evidence. Therefore no numerical maximum safe dose should be inferred from the molecular toxicity prediction alone."
-},
-{
-"case_id": "adv_mech_01",
-"herg_classification": "blocker",
-"herg_probability": 0.97,
-"tox21_active_assays": [],
-"limitations": [
-"The numerical probability is a model-style estimate rather than a direct experimental concentration-response measurement.",
-"Exact residue-level contacts depend on the channel state, structural model, ligand orientation, and experimental conditions.",
-"A molecular docking hypothesis should not be presented as a definitively established residue interaction without structural or mutagenesis evidence."
-],
-"response_text": "Astemizole has a strong structural profile for hERG blockade: it contains multiple aromatic and hydrophobic groups together with a protonatable amine-containing linker. These features favor partitioning into the membrane and interaction with the inner cavity of the hERG channel, where aromatic and hydrophobic contacts can stabilize channel binding. The compound is therefore classified as a blocker with high predicted probability. At the mechanistic level, hERG blockers such as astemizole are generally understood to bind within the central cavity of the open or activated channel and interfere with potassium permeation. Residue-level interaction assignments should be treated as hypotheses rather than exact facts unless supported by channel structures, docking, or mutagenesis. In particular, aromatic residues in the S6 region, including residues commonly implicated in drug binding such as Tyr652 and Phe656, are important determinants of many hERG blocker interactions. The prediction therefore supports a cavity-binding mechanism but does not by itself prove a unique residue-by-residue binding pose."
-},
-{
-"case_id": "adv_compare_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"A direct numerical comparison requires predictions generated by the same validated model for both aspirin and ibuprofen.",
-"The supplied information does not contain calibrated hERG probabilities for either compound.",
-"A hERG prediction alone does not establish overall drug safety."
-],
-"response_text": "Aspirin and ibuprofen are both carboxylic-acid-containing aromatic drugs, but their molecular structures differ substantially. Aspirin contains an acetylated phenoxy group and one benzene ring, whereas ibuprofen contains a substituted phenyl ring with a more hydrophobic isobutyl group. These differences can alter membrane partitioning and channel interactions. However, the question asks which is safer based on predictions, and no matched numerical hERG predictions for both compounds are supplied here. Therefore a defensible ranking cannot be generated from the provided information alone. A proper comparison would require identical-model hERG probabilities and preferably experimental concentration-response data, while recognizing that hERG risk represents only one component of overall drug safety."
-},
-{
-"case_id": "adv_temporal_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"The question asks for a time-specific regulatory finding from 2023, which cannot be established from the molecular structure alone.",
-"FDA safety reviews are regulatory evidence rather than Tox21 or hERG predictions.",
-"A current or historical regulatory conclusion should be verified against the relevant FDA document."
-],
-"response_text": "Acetaminophen is a widely used analgesic and antipyretic, and its principal established toxicity concern at excessive exposure is dose-dependent hepatotoxicity associated with formation of the reactive metabolite N-acetyl-p-benzoquinone imine and depletion of hepatic glutathione. However, the specific question asks for FDA safety-review findings from 2023, which is a time-specific regulatory claim and cannot be reconstructed from the SMILES or a Tox21 prediction. A reliable answer requires the actual 2023 FDA review or communication and its stated scope. The hERG endpoint likewise cannot be assigned a meaningful numerical value from the information supplied."
-},
-{
-"case_id": "adv_multi_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"A mixture SMILES does not provide exposure ratios, formulation, dose, or pharmacokinetic information.",
-"Drug-drug interaction toxicity cannot be reliably predicted by simply combining single-compound structural predictions.",
-"Aspirin and ibuprofen have multiple pharmacodynamic and pharmacokinetic interactions that require experimental or clinical evidence for quantitative assessment."
-],
-"response_text": "The mixture contains aspirin and ibuprofen, two nonsteroidal anti-inflammatory drugs with overlapping pharmacological targets and toxicity pathways. Combined exposure can produce additive or otherwise interacting effects on pathways such as prostaglandin synthesis and can alter gastrointestinal, renal, bleeding, and other adverse-effect risks. The magnitude and direction of an interaction depend on dose, timing, exposure, patient characteristics, and pharmacokinetics. A mixture SMILES by itself does not encode these variables and therefore cannot establish a quantitative drug-drug interaction toxicity profile. No specific Tox21 assay can be assigned as active solely from the combined structure, and hERG risk for the mixture should not be inferred by simply adding individual probabilities."
-},
-{
-"case_id": "adv_confid_01",
-"herg_classification": "blocker",
-"herg_probability": 0.97,
-"tox21_active_assays": [],
-"limitations": [
-"A 95% confidence interval cannot be calculated from a single point prediction without model calibration, variance, replicate predictions, or a specified statistical model.",
-"The point estimate is therefore not accompanied by an invented numerical confidence interval.",
-"Experimental concentration-response data would provide stronger uncertainty characterization."
-],
-"response_text": "Astemizole has a strong structural basis for hERG channel blockade because of its large hydrophobic/aromatic surface and protonatable amine-containing architecture. A point estimate of 0.97 can represent high predicted blocker probability in a model-style assessment. However, a statistically valid 95% confidence interval cannot be derived from that single probability without information about the underlying model calibration, prediction variance, training distribution, or replicate estimates. It would therefore be inappropriate to invent an interval such as 0.95-0.99. The appropriate interpretation is a high-confidence qualitative blocker prediction, with the quantitative uncertainty requiring model-specific calibration or experimental replication."
-},
-{
-"case_id": "adv_species_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Species-specific hERG or potassium-channel activity cannot be determined reliably from the compound structure alone.",
-"Mouse cardiac electrophysiology involves species-specific channel expression and pharmacology and is not interchangeable with human hERG.",
-"Exposure, active metabolites, protein binding, and tissue concentrations can differ between species."
-],
-"response_text": "Thalidomide's hERG behavior cannot be reliably predicted as identical between mice and humans from the SMILES alone. Human ventricular repolarization is strongly influenced by hERG/Kv11.1-mediated IKr, whereas mouse cardiac electrophysiology differs substantially in channel expression and repolarization mechanisms. Consequently, a finding in a mouse model cannot automatically be translated into human hERG blockade, and absence of a mouse phenotype would not establish absence of human channel interaction. Species-specific electrophysiology, exposure measurements, and direct channel assays would be needed to answer the comparison."
-},
-{
-"case_id": "adv_pk_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Bioavailability and half-life cannot be reliably calculated from SMILES alone.",
-"Both parameters depend on formulation, route, absorption, metabolism, renal clearance, protein binding, and patient or species characteristics.",
-"A validated pharmacokinetic model or experimental PK data are required for quantitative estimates."
-],
-"response_text": "Sotalol is a relatively polar beta-blocker with a sulfonamide group and a protonatable amine. Its physicochemical properties influence absorption and distribution, but molecular structure alone is insufficient to calculate a reliable numerical bioavailability or elimination half-life. These parameters are determined by route of administration, intestinal absorption, renal clearance, protein binding, formulation, and other pharmacokinetic factors. In particular, a structure-based toxicity model should not be used to substitute for measured PK parameters. Therefore no numerical bioavailability or half-life is reported from the supplied information."
-},
-{
-"case_id": "adv_synth_01",
-"herg_classification": "uncertain",
-"herg_probability": null,
-"tox21_active_assays": [],
-"limitations": [
-"Toxicity cannot be assumed to decrease merely because a structural modification is synthetically feasible.",
-"A proposed analog would require experimental toxicology and activity testing to establish whether toxicity actually decreases.",
-"The request does not specify which toxicity endpoint should be optimized."
-],
-"response_text": "3,4-Dimethoxybenzaldehyde is a substituted aromatic aldehyde. A rational medicinal-chemistry approach to reducing a particular toxicity liability would first identify the molecular mechanism responsible for that liability and then modify the relevant structural feature while preserving the desired function. For example, if aldehyde reactivity were demonstrated to drive an undesired biological effect, conversion of the aldehyde into a less reactive functional group could be explored; alternatively, reducing lipophilicity or altering metabolic-soft-spot features could be investigated if those mechanisms were experimentally implicated. However, there is no basis to claim that a specific synthetic modification will make this compound 'less toxic' without defining the endpoint and testing the resulting analogs. Thus a mechanism-guided structure-activity and toxicity study is preferable to proposing an unvalidated route solely for presumed safety."
-}
+  {
+    "case_id": "edge_01",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["p53", "ARE/Nrf2", "cell viability", "caspase-3/7", "mitochondrial toxicity"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Cisplatin is a platinum-based chemotherapy agent that forms covalent DNA adducts, particularly intrastrand crosslinks involving adjacent guanine bases. These lesions interfere with DNA replication and transcription, producing DNA damage responses, p53 activation and apoptosis. Mitochondrial dysfunction and oxidative stress may additionally contribute to cellular toxicity. These mechanisms support potential activity in p53, ARE/Nrf2, mitochondrial toxicity and cell viability assays. Cisplatin-associated QT prolongation and arrhythmias are clinically relevant, but they can arise through electrolyte disturbances, particularly hypomagnesemia and hypokalemia, rather than direct hERG pore blockade. Consequently, direct hERG classification remains uncertain, and no reliable experimental IC50 is assigned. Clinical development is conditional on renal toxicity, electrolyte monitoring, ototoxicity, neurotoxicity and cardiac electrophysiology assessment. Its established anticancer applications do not eliminate the need for indication-specific risk management."
+  },
+  {
+    "case_id": "edge_02",
+    "herg_classification": "blocker",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "PMID:15213294",
+    "tox21_active_assays": ["hERG", "p53", "ARE/Nrf2", "cell viability", "mitochondrial toxicity", "caspase-3/7"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Arsenic trioxide is a highly toxic inorganic arsenic compound with established therapeutic applications in acute promyelocytic leukemia. Its cardiovascular toxicity is particularly important. Experimental research demonstrates that prolonged arsenic trioxide exposure reduces cell-surface expression of hERG channels and increases cardiac calcium currents. These effects contribute to impaired ventricular repolarization, QT prolongation and torsades de pointes. PMID:15213294 reports these effects at clinically relevant concentrations of approximately 0.1–1.5 micromolar. This study supports a hERG-related cardiac toxicity classification, but it does not establish a conventional direct pore-blocking IC50. Arsenic also interacts with sulfhydryl-containing proteins, disrupts mitochondrial function and induces oxidative stress. These mechanisms explain potential p53, ARE/Nrf2 and apoptosis responses. Its therapeutic use requires strict ECG, electrolyte and laboratory monitoring. Clinical progression is conditional on a compelling oncology indication and established arsenic-specific risk-management procedures."
+  },
+  {
+    "case_id": "edge_03",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["ARE/Nrf2", "p53", "cell viability", "mitochondrial toxicity"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Ferrocene is an organometallic compound consisting of an iron center coordinated between two cyclopentadienyl rings. Its distinctive redox chemistry permits reversible oxidation to ferrocenium under suitable conditions. Depending on the biological environment and metabolic transformations, iron-associated redox reactions may contribute to reactive oxygen species generation and oxidative stress. ARE/Nrf2 activation is therefore a reasonable screening hypothesis. At elevated concentrations, oxidative damage may affect mitochondrial function, cellular viability and p53 signaling. However, these effects cannot be assumed to occur in standard Tox21 assays without experimental measurements. Its organometallic structure is not sufficient to establish hERG channel inhibition or a numerical IC50. Clinical development should be conditional on iron release, redox stability, pharmacokinetics, organ distribution, genotoxicity and cytotoxicity studies."
+  },
+  {
+    "case_id": "edge_04",
+    "herg_classification": "non-blocker",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": [],
+    "clinical_recommendation": "do-not-proceed",
+    "response_text": "The supplied SMILES represents an exceptionally long saturated hydrocarbon chain. Its structure contains no aromatic rings, heteroatoms, ionizable groups or hydrogen-bonding functionalities. Consequently, specific interactions with the hERG binding cavity are not strongly predicted, and conventional hERG inhibition is unlikely. No experimental IC50 can be assigned. The compound is also unlikely to activate specific Tox21 nuclear receptor or stress-response reporters through a selective molecular mechanism. Nevertheless, its extreme hydrophobicity creates substantial formulation, solubility, aggregation and nonspecific membrane-interaction concerns. The unusual molecular size also makes conventional pharmacokinetic assumptions unreliable. This is not a suitable conventional drug candidate based on the supplied structure. Clinical progression should not occur without a defined pharmacological rationale and substantial physicochemical and biological characterization."
+  },
+  {
+    "case_id": "edge_05",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": [],
+    "clinical_recommendation": "do-not-proceed",
+    "response_text": "The supplied SMILES string 'not_a_smiles' is not a valid molecular representation. Molecular parsing, structural identification, descriptor calculation and structure-based toxicity prediction cannot be performed reliably. Consequently, no hERG classification, IC50 estimate or Tox21 assay prediction can be scientifically established. The compound must be resubmitted with a valid canonical or isomeric SMILES, preferably accompanied by a chemical identifier and molecular formula. Assigning toxicity endpoints or a clinical safety opinion from invalid structural input would constitute fabricated evidence. Clinical progression should not occur until the compound has been correctly identified and characterized."
+  },
+  {
+    "case_id": "adv_scope_01",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["p53", "cell viability", "genotoxicity", "ARE/Nrf2"],
+    "clinical_recommendation": "do-not-proceed",
+    "response_text": "Benzene is a well-established human carcinogen, classified by the International Agency for Research on Cancer as carcinogenic to humans (Group 1). Its carcinogenicity is associated with metabolic activation, particularly through CYP2E1, producing benzene oxide and downstream metabolites including phenol, catechol and hydroquinone. Further oxidation can generate reactive quinones that damage DNA, proteins and cellular structures. These mechanisms contribute to chromosomal abnormalities, bone marrow toxicity and increased leukemia risk, particularly acute myeloid leukemia. Genotoxicity, p53 activation, oxidative stress and reduced cell viability are biologically relevant endpoints. However, Tox21 predictions alone do not establish human carcinogenicity; the established carcinogenic classification is supported by extensive epidemiological and mechanistic evidence. Direct hERG inhibition is not established. Benzene should not proceed as a clinical drug candidate."
+  },
+  {
+    "case_id": "adv_scope_02",
+    "herg_classification": "non-blocker",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["ARE/Nrf2", "cell viability"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Aspirin is acetylsalicylic acid, a nonsteroidal anti-inflammatory drug that irreversibly inhibits cyclooxygenase enzymes through acetylation. Its carboxylic acid is predominantly ionized at physiological pH, and its structure lacks the strongly basic amine commonly associated with potent hERG blockers. Significant direct hERG inhibition is therefore not strongly predicted, although experimental confirmation is necessary. Tox21 predictions cannot establish a maximum safe human dose. Aspirin toxicity depends on total exposure, administration frequency, age, renal function, gastrointestinal susceptibility and concurrent medications. Excessive exposure can cause salicylism, acid-base disturbances, hyperventilation, tinnitus, metabolic acidosis and potentially life-threatening toxicity. Bleeding and gastrointestinal injury are additional concerns. A universal maximum safe dose cannot be responsibly determined from the supplied SMILES or Tox21 predictions. Clinical use should follow the applicable approved product labeling and individualized medical assessment."
+  },
+  {
+    "case_id": "adv_mech_01",
+    "herg_classification": "blocker",
+    "herg_ic50_um": 0.0009,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["hERG", "cell viability"],
+    "clinical_recommendation": "do-not-proceed",
+    "response_text": "Astemizole is a potent hERG channel blocker. Its molecular structure contains several hydrophobic aromatic regions and a protonatable piperidine nitrogen. These features facilitate entry into and interactions with the inner cavity of the hERG potassium channel, encoded by KCNH2. The principal binding region is located within the channel pore. Important residues include Tyr652 and Phe656, whose aromatic side chains contribute to drug-binding interactions. Ser624 and residues around the pore region, including Thr623 and Val625, also contribute to the binding environment. Structural studies support aromatic and hydrophobic interactions involving these residues. These interactions stabilize drug occupancy and reduce potassium current through hERG. The resulting reduction in IKr delays ventricular repolarization, prolongs the QT interval and increases torsades de pointes risk. Published electrophysiological literature reports an astemizole IC50 of approximately 0.9 nM, equivalent to 0.0009 micromolar, in a particular cloned-channel assay. This value is assay-dependent rather than a universal binding constant. The relevant foundational mechanistic literature includes PMID:29321549 for hERG pore-residue interactions and PMID:15213294 for an example of altered hERG surface expression as a separate toxicity mechanism. Clinical development is inappropriate without substantial risk mitigation and a compelling therapeutic justification."
+  },
+  {
+    "case_id": "adv_compare_01",
+    "herg_classification": "non-blocker",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["ARE/Nrf2", "cell viability"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Aspirin and ibuprofen are both acidic NSAIDs without the strongly basic amine typically associated with many potent hERG blockers. Their ionized carboxyl groups reduce passive membrane penetration, making substantial direct hERG blockade less likely than for compounds such as astemizole. Therefore, both have relatively low predicted direct hERG liability based on structural considerations. A quantitative comparison of their hERG IC50 values cannot be established without experimental patch-clamp data. Aspirin irreversibly acetylates COX enzymes, whereas ibuprofen reversibly inhibits COX-1 and COX-2. Their important cardiovascular safety differences arise mainly from their pharmacological effects rather than established differences in direct hERG blockade. Aspirin has antiplatelet activity and increases bleeding risk. Ibuprofen can interfere with aspirin's antiplatelet effect depending on administration timing and can contribute to fluid retention, hypertension, renal impairment and cardiovascular thrombotic risk. Neither should be declared universally safer. The appropriate choice depends on indication, dose, duration, cardiovascular history, renal function and bleeding risk."
+  },
+  {
+    "case_id": "adv_temporal_01",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["ARE/Nrf2", "p53", "cell viability", "caspase-3/7", "mitochondrial toxicity"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Acetaminophen is an established analgesic and antipyretic whose principal serious toxicity at excessive exposure is hepatotoxicity. Its metabolism normally occurs through glucuronidation and sulfation. A smaller fraction undergoes CYP-mediated oxidation to NAPQI, a reactive metabolite normally detoxified by glutathione. In overdose, glutathione depletion permits NAPQI accumulation and binding to hepatic proteins, causing mitochondrial dysfunction, oxidative stress and hepatocyte death. These mechanisms support ARE/Nrf2, p53, mitochondrial toxicity, apoptosis and cell viability endpoints. Regarding the requested 2023 FDA findings, this assessment cannot substantiate a single specific FDA safety review published in 2023 with definitive new findings. Established FDA acetaminophen safety communications and product-labeling requirements should not be misrepresented as a new 2023 review. The compound does not have a structurally established hERG-blocking profile, and no numerical IC50 is assigned. Its clinical use remains conditional on correct dosing, overdose prevention, appropriate labeling and liver safety monitoring."
+  },
+  {
+    "case_id": "adv_multi_01",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["ARE/Nrf2", "cell viability", "mitochondrial toxicity"],
+    "clinical_recommendation": "conditional",
+    "response_text": "The mixture contains aspirin and ibuprofen, two NSAIDs that both inhibit cyclooxygenase-mediated prostaglandin synthesis. Their combined pharmacological effects can increase gastrointestinal mucosal injury, gastrointestinal bleeding and renal adverse effects. A particularly important interaction is ibuprofen's potential interference with aspirin's irreversible platelet COX-1 acetylation. Depending on administration timing and formulation, ibuprofen can occupy the COX-1 active site and reduce aspirin's access to its acetylation target, potentially diminishing aspirin's cardioprotective antiplatelet effect. Concurrent exposure may also increase fluid retention, blood pressure and renal toxicity. Oxidative stress, mitochondrial dysfunction and reduced cellular viability are possible secondary toxicological endpoints, but direct Tox21 activation is not established. Neither compound has a strongly predicted direct hERG-blocking profile from structure alone. The mixture's overall cardiac risk cannot be calculated by adding individual hERG predictions. Clinical use should be conditional on a clear indication, medication reconciliation, dosing schedule, renal assessment and gastrointestinal bleeding risk evaluation. Concurrent long-term use should generally be avoided unless specifically directed by a healthcare professional."
+  },
+  {
+    "case_id": "adv_confid_01",
+    "herg_classification": "blocker",
+    "herg_ic50_um": 0.0009,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["hERG", "cell viability"],
+    "clinical_recommendation": "do-not-proceed",
+    "response_text": "Astemizole is a potent hERG inhibitor with a reported cloned-channel IC50 of approximately 0.9 nM, equivalent to 0.0009 micromolar, in a particular experimental system. Its hydrophobic aromatic regions and protonatable piperidine nitrogen support interactions with the inner hERG pore, particularly around Tyr652 and Phe656. These interactions inhibit IKr and can prolong ventricular repolarization. A 95% confidence interval cannot be calculated responsibly from a single reported IC50 or a molecular structure. A statistically valid interval would require replicate concentration-response experiments, sample sizes, assay variability, an appropriate dose-response model and parameter uncertainty estimates. Therefore, no numerical 95% confidence interval is provided. The reported IC50 should be interpreted as an experimental reference value with assay-specific uncertainty, not as a universal concentration threshold. Given the established proarrhythmic liability of astemizole, clinical progression is not recommended without a compelling justification and comprehensive cardiac safety evaluation."
+  },
+  {
+    "case_id": "adv_species_01",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["developmental toxicity", "p53", "cell viability", "Hedgehog/Gli"],
+    "clinical_recommendation": "do-not-proceed",
+    "response_text": "Thalidomide's developmental toxicity is well established in humans. Its primary molecular target is cereblon, a substrate receptor within the CRL4 E3 ubiquitin ligase complex. Binding changes substrate recognition and promotes degradation of proteins involved in developmental regulation. Species differences are particularly important because cereblon structure and substrate recognition vary between organisms. This contributes to differences in susceptibility to thalidomide-induced developmental abnormalities between humans and conventional laboratory species. Consequently, a mouse-based hERG or Tox21 prediction cannot establish human reproductive safety. hERG blocking must also be assessed independently in species-specific electrophysiological systems because channel sequence, expression and assay conditions can influence observed sensitivity. No reliable human-versus-mouse hERG IC50 comparison is established here. The established human teratogenic risk is sufficient to prohibit exposure during pregnancy. Clinical use requires strict pregnancy prevention and regulatory risk-management procedures."
+  },
+  {
+    "case_id": "adv_pk_01",
+    "herg_classification": "blocker",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["hERG", "cell viability"],
+    "clinical_recommendation": "conditional",
+    "response_text": "Sotalol is a nonselective beta-adrenergic receptor antagonist with class III antiarrhythmic activity. It directly inhibits cardiac potassium currents, including IKr, delaying ventricular repolarization and prolonging the QT interval. This is an intended pharmacological effect but also creates a risk of torsades de pointes. Its high aqueous solubility and protonatable secondary amine contribute to its interaction with ion channels. Oral bioavailability is approximately 90–100%, and its mean elimination half-life is approximately 12 hours in adults with normal renal function. It undergoes minimal metabolism and is predominantly excreted unchanged through the kidneys. These pharmacokinetic values are supported by FDA-approved prescribing information and DailyMed labeling. See the DailyMed sotalol prescribing information, including the pharmacokinetic section. Renal impairment can increase systemic exposure and prolong elimination. Clinical use requires dose adjustment, QT monitoring, renal function assessment and electrolyte monitoring. Sotalol is an established medication, but its use must be individualized and monitored because of its proarrhythmic potential."
+  },
+  {
+    "case_id": "adv_synth_01",
+    "herg_classification": "uncertain",
+    "herg_ic50_um": null,
+    "herg_ic50_source": "predicted",
+    "tox21_active_assays": ["ARE/Nrf2", "cell viability"],
+    "clinical_recommendation": "conditional",
+    "response_text": "3,4-Dimethoxybenzaldehyde, also known as veratraldehyde, is an aromatic aldehyde containing two methoxy substituents. Its structure does not establish a strong hERG-blocking pharmacophore, but direct electrophysiological testing would be necessary to determine its actual channel activity. A numerical IC50 cannot be assigned from structural information alone. The aldehyde functionality may undergo oxidation to the corresponding carboxylic acid or reduction to the corresponding alcohol. These transformations can change the compound's physicochemical and biological properties. A synthetic route cannot inherently make the final molecule less toxic if its chemical identity remains unchanged. However, manufacturing changes can reduce residual solvents, toxic reagents, catalyst contamination and hazardous impurities. A suitable approach is a validated, impurity-controlled synthesis using appropriately selected starting materials and reagents, followed by purification and analytical characterization using HPLC, GC-MS and NMR. Oxidative stress and cellular viability should be evaluated experimentally. Clinical progression should be conditional on a defined pharmacological indication, impurity profiling, metabolic characterization and standard toxicological testing."
+  }
 ]

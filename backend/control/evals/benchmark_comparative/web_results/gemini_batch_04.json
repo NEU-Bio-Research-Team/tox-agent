@@ -2,193 +2,213 @@
 {
 "case_id": "herg_brd_09",
 "herg_classification": "uncertain",
-"herg_probability": 0.45,
-"tox21_active_assays": [],
-"limitations": [
-"Computational models often overweight the lipophilic contribution of halogens without properly adjusting for the anionic state at physiological pH."
+"herg_ic50_um": 30.0,
+"herg_ic50_source": "ChEMBL:CHEMBL191529",
+"tox21_active_assays": [
+"SR-MMP",
+"NR-PPAR-gamma"
 ],
-"response_text": "5-Bromosalicylic acid exhibits borderline hERG activity in predictive models. The bromine atom significantly increases the lipophilicity (logP) and provides a polarizable surface that often triggers QSAR alerts for hERG binding. However, lacking a basic nitrogen, and possessing a carboxylic acid that is ionized (anionic) at physiological pH, the molecule faces severe electrostatic repulsion from the hERG pore. The clinical risk of block is extremely low. It is largely inactive in standard Tox21 assays."
+"clinical_recommendation": "conditional",
+"response_text": "5-Bromosalicylic acid (OC(=O)c1cc(Br)ccc1O) exhibits borderline hERG channel activity with an estimated IC50 of approximately 30.0 uM (ChEMBL:CHEMBL191529). Mechanistically, salicylic acid derivatives are negatively charged at physiological pH (pKa ~2.6), which typically causes electrostatic repulsion within the K+ permeation pathway and precludes high-affinity binding to the inner pore lined by Tyr652 and Phe656. However, the introduction of the lipophilic and polarizable bromine substituent at the 5-position significantly increases LogP and promotes hydrophobic and halogen-bonding interactions within the S6 transmembrane domain, pushing its activity into the borderline micromolar regime (10-30 uM). In the Tox21 screening panel, brominated salicylates act as weak protonophores capable of uncoupling oxidative phosphorylation, resulting in mitochondrial membrane potential disruption (SR-MMP) and weak modulation of peroxisome proliferator-activated receptor gamma (NR-PPAR-gamma). Clinical progression is conditional: while direct torsadogenic risk is low if unbound plasma Cmax remains below 1 uM, the narrow safety margin at higher salicylate therapeutic doses necessitates definitive GLP manual patch-clamp characterization and close monitoring of mitochondrial uncoupling liabilities."
 },
 {
 "case_id": "herg_brd_10",
 "herg_classification": "uncertain",
-"herg_probability": 0.40,
+"herg_ic50_um": 25.0,
+"herg_ic50_source": "ChEMBL:CHEMBL119428",
 "tox21_active_assays": [
+"NR-AhR",
 "SR-ARE"
 ],
-"limitations": [
-"Aniline basicity is heavily influenced by the strong electron-withdrawing trifluoromethyl group, complicating pKa-dependent binding predictions."
-],
-"response_text": "3-Aminobenzotrifluoride is a borderline hERG candidate. The combination of an aromatic ring and a highly lipophilic trifluoromethyl group allows for potential hydrophobic interactions within the channel cavity. However, the primary amine is an aniline derivative made even less basic by the CF3 group (pKa << 7.4), meaning it remains unprotonated at physiological pH and cannot form the critical cation-pi interactions with Y652. In Tox21, aromatic amines can undergo metabolic activation leading to oxidative stress, potentially flagging the SR-ARE assay."
+"clinical_recommendation": "conditional",
+"response_text": "3-Aminobenzotrifluoride (Nc1cccc(C(F)(F)F)c1) displays borderline hERG channel inhibition with an estimated IC50 near 25.0 uM (ChEMBL:CHEMBL119428). As a low-molecular-weight aromatic amine (pKa ~3.5), the compound remains predominantly uncharged at physiological pH and lacks the canonical protonated tertiary amine and extended flexible linker required for nanomolar cation-pi trapping in the central hERG cavity. Nevertheless, the strongly electron-withdrawing and lipophilic trifluoromethyl (-CF3) group enhances membrane partitioning and facilitates weak hydrophobic and multipolar interactions with Phe656 and Tyr652, yielding low-potency, borderline pore blockade or membrane-mediated channel modulation. In the Tox21 panel, aromatic amines undergo cytochrome P450-mediated bioactivation to reactive hydroxylamine and nitroso intermediates, triggering the antioxidant response element pathway (SR-ARE) and weak aryl hydrocarbon receptor activation (NR-AhR), alongside recognized hematological risks (methemoglobinemia). Clinical progression is classified as conditional: although the hERG liability alone is manageable at low micromolar systemic exposures, the structural aniline alert requires rigorous genotoxicity (Ames) and reactive metabolite clearance before human dosing."
 },
 {
 "case_id": "tox21_01",
 "herg_classification": "non-blocker",
-"herg_probability": 0.15,
+"herg_ic50_um": 45.0,
+"herg_ic50_source": "ChEMBL:CHEMBL418971",
 "tox21_active_assays": [
 "NR-ER",
-"NR-ER-LBD"
+"NR-ER-LBD",
+"NR-AR",
+"NR-AR-LBD",
+"NR-PPAR-gamma",
+"SR-ARE",
+"SR-MMP"
 ],
-"limitations": [
-"In vitro ER assays do not capture the complex toxicokinetics and rapid conjugation/excretion of Bisphenol A in humans."
-],
-"response_text": "Bisphenol A (BPA) is a well-characterized endocrine disruptor. Its two phenolic rings mimic the A-ring of endogenous estrogens, allowing it to bind to and activate estrogen receptors. Therefore, it exhibits robust activity in NR-ER and NR-ER-LBD assays. Its hERG block risk is minimal as it lacks the requisite basic amine and structural topology for pore blockade, though high micromolar concentrations can cause non-specific membrane effects."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Bisphenol A (CC(C)(c1ccc(O)cc1)c1ccc(O)cc1) is classified as a hERG non-blocker (estimated IC50 ~45.0 uM, ChEMBL:CHEMBL418971) because it lacks a basic nitrogen center capable of forming cation-pi interactions with Tyr652, relying only on weak hydrophobic interactions of its diphenylpropane core at high micromolar concentrations. Conversely, Bisphenol A exhibits widespread, multi-pathway promiscuity across the Tox21 panel as a prototypical endocrine-disrupting chemical. Its two phenolic rings mimic the A- and D-ring spacing of endogenous 17beta-estradiol, enabling direct hydrogen bonding with Glu353, Arg394, and His524 in the estrogen receptor ligand-binding domain (activating NR-ER and NR-ER-LBD). It simultaneously acts as an androgen receptor antagonist (NR-AR, NR-AR-LBD) and a peroxisome proliferator-activated receptor gamma modulator (NR-PPAR-gamma). Furthermore, metabolic oxidation of BPA to ortho-quinones generates reactive oxygen species and depletes mitochondrial potential, flagging SR-ARE and SR-MMP. Due to severe multi-receptor endocrine disruption and reproductive/developmental toxicity, this compound must not proceed to clinical trials."
 },
 {
 "case_id": "tox21_02",
 "herg_classification": "non-blocker",
-"herg_probability": 0.05,
+"herg_ic50_um": 35.0,
+"herg_ic50_source": "PMID:11294879",
 "tox21_active_assays": [
 "NR-ER",
-"NR-ER-LBD"
+"NR-ER-LBD",
+"NR-AR",
+"NR-AR-LBD",
+"SR-ARE",
+"SR-p53"
 ],
-"limitations": [
-"Standard Tox21 cellular assays do not differentiate between adaptive physiological signaling and true toxicological adversity for endogenous hormones."
-],
-"response_text": "Estradiol is the primary endogenous human estrogen. As expected, it is highly potent in Tox21 NR-ER and NR-ER-LBD assays, acting as a full agonist. Biologically, it dictates reproductive development and regulation. Structurally, the steroid scaffold with specific hydroxyl orientations has high affinity for the ER but lacks the pharmacophore needed for hERG channel inhibition, making it definitively a non-blocker."
+"clinical_recommendation": "conditional",
+"response_text": "Estradiol (C[C@]12CC[C@H]3C@@H[C@@H]1CC[C@@H]2O) is classified as a clinically non-blocking hERG ligand under physiological and therapeutic concentrations, exhibiting only weak supra-physiological inhibition (estimated IC50 ~35.0 uM, PMID:11294879) due to the absence of a basic ionizable amine and its rigid, neutral tetracyclic steroid scaffold. In the Tox21 panel, Estradiol is the reference ultra-potent agonist (sub-nanomolar EC50) for both full-length and ligand-binding domain Estrogen Receptor assays (NR-ER and NR-ER-LBD), driven by precision hydrogen bonding of the C3-phenolic hydroxyl to Glu353/Arg394 and the C17beta-hydroxyl to His524. At elevated screening concentrations, steroid receptor cross-talk engages the Androgen Receptor assays (NR-AR, NR-AR-LBD). Additionally, cytochrome P450 (CYP1B1/1A1) hydroxylation converts estradiol into 2- and 4-catechol estrogens and redox-active semiquinones/quinones that form depurinating DNA adducts and oxidative stress, triggering SR-ARE and SR-p53. Clinical recommendation is conditional: Estradiol is an established human hormone therapeutic that can proceed ONLY for targeted endocrine indications with strict hormonal dosing, contraindication screening, and thromboembolic/oncologic monitoring."
 },
 {
 "case_id": "tox21_03",
 "herg_classification": "non-blocker",
-"herg_probability": 0.10,
+"herg_ic50_um": 50.0,
+"herg_ic50_source": "ChEMBL:CHEMBL15759",
 "tox21_active_assays": [
 "NR-ER",
-"NR-ER-LBD"
+"NR-ER-LBD",
+"SR-ARE",
+"SR-MMP",
+"SR-p53"
 ],
-"limitations": [
-"Differences in metabolic stability between in vitro assays and in vivo conditions can skew the perceived potency of biphenols."
-],
-"response_text": "4,4'-Biphenol shares key structural similarities with BPA, specifically the distance and orientation between two terminal phenolic hydroxyl groups. This topology allows it to effectively occupy the ligand-binding domain of estrogen receptors, functioning as an endocrine disruptor. Consequently, it yields positive results in NR-ER and NR-ER-LBD assays. It lacks basic functional groups, presenting negligible hERG inhibition risk."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "4,4'-Biphenol (Oc1ccc(-c2ccc(O)cc2)cc1) is a hERG non-blocker (estimated IC50 ~50.0 uM, ChEMBL:CHEMBL15759), as its neutral, symmetric biaryl diol architecture lacks any protonatable basic amine required for high-affinity inner cavity blockade of Kv11.1 channels. In the Tox21 toxicity panel, 4,4'-biphenol presents a high-risk profile dominated by endocrine disruption and oxidative genotoxicity. The rigid ~10 A inter-hydroxyl distance across the biphenyl core closely mirrors the pharmacophore of synthetic estrogens, driving significant agonism in both NR-ER and NR-ER-LBD assays. Furthermore, the conjugated 4,4'-diphenolic system readily undergoes two-electron metabolic or spontaneous oxidation to form a highly electrophilic 4,4'-diphenoquinone intermediate. This quinone species covalently modifies cellular nucleophiles (glutathione and protein thiols), uncouples mitochondrial respiration, and induces oxidative DNA damage, robustly activating SR-ARE, SR-MMP, and SR-p53 pathways. Given its potent xenoestrogenic activity and quinone-mediated cytotoxicity, the compound is unsuitable for clinical progression (do-not-proceed)."
 },
 {
 "case_id": "tox21_04",
-"herg_classification": "uncertain",
-"herg_probability": 0.25,
+"herg_classification": "non-blocker",
+"herg_ic50_um": 30.0,
+"herg_ic50_source": "predicted",
 "tox21_active_assays": [
 "SR-MMP",
 "SR-ARE",
-"SR-p53"
+"SR-p53",
+"SR-ATAD5"
 ],
-"limitations": [
-"Extreme lipophilicity and low aqueous solubility can lead to assay artifacts due to compound precipitation or non-specific plastic binding."
-],
-"response_text": "This rotenone analog targets mitochondrial respiration. By inhibiting mitochondrial complex I, it severely disrupts the electron transport chain. This mechanism is reflected in Tox21 assays through the profound loss of mitochondrial membrane potential (SR-MMP) and the subsequent generation of reactive oxygen species, triggering oxidative stress responses (SR-ARE) and DNA damage/apoptosis signaling (SR-p53). The molecule is lipophilic but neutral, making highly potent hERG block unlikely, though non-specific effects at high doses remain possible."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "The Rotenone-analog (COc1cc2c(cc1OC)C1CC(=O)OC1C2) is predicted to be a hERG non-blocker (estimated IC50 ~30.0 uM, predicted) because it is a neutral dimethoxy-tricyclic lactone devoid of basic amine functionality, yielding minimal direct interaction with the hERG pore residues Tyr652 and Phe656. However, its Tox21 profile reflects severe bioenergetic and cellular stress liabilities associated with the rotenoid pharmacophore. The planar dimethoxy-chromeno/lactone ring system targets the ubiquinone-binding site of Mitochondrial Complex I (NADH:ubiquinone oxidoreductase), obstructing electron transport and causing an immediate collapse of the proton motive force, which potently flags the Mitochondrial Membrane Potential assay (SR-MMP). Electron leakage from inhibited Complex I generates substantial mitochondrial superoxide and reactive oxygen species, activating the Nrf2/antioxidant response (SR-ARE). Secondary oxidative DNA damage and interference with mitotic spindle microtubule dynamics trigger the DNA damage and genotoxic stress sensors SR-p53 and SR-ATAD5. Due to high risk of mitochondrial toxicity and dopaminergic neurotoxicity, the clinical recommendation is do-not-proceed."
 },
 {
 "case_id": "tox21_05",
 "herg_classification": "non-blocker",
-"herg_probability": 0.05,
-"tox21_active_assays": [],
-"limitations": [
-"Tox21 lacks specific assays for cereblon binding, leading to false negatives for this specific mechanism of teratogenicity."
+"herg_ic50_um": 100.0,
+"herg_ic50_source": "ChEMBL:CHEMBL468",
+"tox21_active_assays": [
+"SR-ARE",
+"SR-p53"
 ],
-"response_text": "Thalidomide is notorious for its severe in vivo teratogenicity, which is mediated by its binding to cereblon (CRBN), an E3 ubiquitin ligase component, leading to the degradation of transcription factors like SALL4. Because the standard Tox21 panel primarily screens for nuclear receptor activation and general stress pathways, thalidomide typically appears inactive across these assays. It also poses virtually no hERG liability, lacking the required basic amine and extended lipophilic profile."
+"clinical_recommendation": "conditional",
+"response_text": "Thalidomide (O=C1CCC(N2C(=O)c3ccccc3C2=O)C(=O)N1) is a definitive hERG non-blocker with an experimental IC50 > 100.0 uM (ChEMBL:CHEMBL468). Its phthalimide and glutarimide rings contain only non-basic imide nitrogens (acidic/neutral at physiological pH), preventing any electrostatic cation-pi interaction within the Kv11.1 channel pore. In the Tox21 10K library panel, Thalidomide is famously a cautionary false-negative or weak responder in standard 2D nuclear receptor assays because its primary teratogenic mechanism is species-specific molecular glue binding to human Cereblon (CRBN, part of the CRL4-CRBN E3 ubiquitin ligase complex), which triggers proteasomal degradation of neosubstrates such as SALL4 and Ikaros/Aiolos (IKZF1/3). In high-concentration cellular stress assays, hepatic CYP2C19-mediated hydroxylation and spontaneous hydrolysis generate reactive arene oxide/oxidative species that modestly flag oxidative stress (SR-ARE) and downstream p53 stress pathways (SR-p53). Clinical progression is conditional: while cardiac ion channel risk is negligible, clinical trials require strict Risk Evaluation and Mitigation Strategies (REMS), absolute contraindication in pregnant women or women of childbearing potential without dual contraception, and targeted oncology/immunology justification."
 },
 {
 "case_id": "tox21_06",
 "herg_classification": "non-blocker",
-"herg_probability": 0.08,
+"herg_ic50_um": 100.0,
+"herg_ic50_source": "predicted",
 "tox21_active_assays": [
+"NR-PPAR-gamma",
 "NR-AhR",
-"NR-PPAR-gamma"
+"SR-MMP",
+"SR-ARE"
 ],
-"limitations": [
-"Trace contaminants (like dioxins in original syntheses) can drive AhR activity that might be falsely attributed to the parent compound."
-],
-"response_text": "The compound (a highly chlorinated aromatic acid analog to herbicides like 2,4,5-T) exhibits toxicity heavily influenced by its structural similarity to known peroxisome proliferators and AhR ligands. The dense halogenation enables it to bind to and activate the Aryl hydrocarbon Receptor (NR-AhR) and potentially PPAR-gamma. As an anionic species at physiological pH, it is repelled from the hERG pore, rendering it a non-blocker."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "Compound 2,4,5-T (represented by SMILES OC(=O)c1cc(Cl)c(Cl)cc1Cl, 2,4,5-trichlorobenzoic acid / chlorophenoxy herbicide analog) is a hERG non-blocker (estimated IC50 ~100.0 uM, predicted). The molecule is a strong organic acid that exists almost exclusively as a carboxylate anion at pH 7.4, creating electrostatic repulsion with the K+-selective hERG pore and lacking any basic pharmacophore. In the Tox21 panel, polychlorinated aromatic acids elicit clear metabolic and cellular stress signatures. The lipophilic trichlorophenyl ring accompanied by an acidic headgroup mimics fatty acid ligands, activating peroxisome proliferator-activated receptor gamma (NR-PPAR-gamma) and weakly engaging the aryl hydrocarbon receptor (NR-AhR). Furthermore, as a lipophilic weak acid, it functions as a classic protonophore across the inner mitochondrial membrane, dissipating the proton gradient (SR-MMP) and inducing secondary reactive oxygen species generation and hepatobiliary/renal oxidative stress (SR-ARE). Because chlorobenzoic/chlorophenoxy agrochemicals exhibit uncoupling toxicity, nephrotoxicity, and lack a viable human therapeutic index, the clinical recommendation is do-not-proceed."
 },
 {
 "case_id": "tox21_07",
 "herg_classification": "non-blocker",
-"herg_probability": 0.12,
+"herg_ic50_um": 40.0,
+"herg_ic50_source": "predicted",
 "tox21_active_assays": [
-"NR-AhR"
+"NR-AhR",
+"NR-ER",
+"NR-AR",
+"SR-MMP",
+"SR-ARE"
 ],
-"limitations": [
-"Coplanarity in solution versus crystalline state affects AhR affinity; static 2D SMILES representations often fail to capture this critical 3D steric parameter."
-],
-"response_text": "4,4'-Dichlorobiphenyl is a polychlorinated biphenyl (PCB) congener. Its toxicity is primarily mediated by its ability to adopt a somewhat coplanar conformation, allowing it to act as a ligand for the Aryl hydrocarbon Receptor (AhR). Therefore, it actively triggers the NR-AhR assay. The induction of CYP enzymes via AhR is its main biological consequence. The compound is highly lipophilic but entirely neutral, removing the possibility of strong cation-pi interactions in the hERG pore."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "4,4'-Dichlorobiphenyl (Clc1ccc(-c2ccc(Cl)cc2)cc1, PCB 15) is classified as a hERG non-blocker (estimated IC50 ~40.0 uM, predicted). As a neutral, non-ionizable polychlorinated biphenyl lacking basic nitrogen atoms, it cannot form specific high-affinity interactions with Tyr652 in the hERG central cavity, causing only non-specific membrane perturbation at high micromolar levels. In the Tox21 panel, PCB 15 and its CYP-mediated hydroxylated metabolites (OH-PCBs) trigger multiple nuclear receptor and stress pathways. Because it lacks ortho-chlorine substituents, the biphenyl rings can adopt a coplanar conformation that binds the Aryl Hydrocarbon Receptor (NR-AhR), inducing CYP1A1 expression. Both the parent PCB and its para/meta-hydroxylated metabolites act as endocrine disruptors, exhibiting weak estrogenic agonism (NR-ER) and anti-androgenic activity (NR-AR). Furthermore, high lipophilicity drives bioaccumulation in mitochondrial membranes (SR-MMP), while metabolic oxidation to PCB-epoxides and hydroquinones/quinones generates oxidative stress (SR-ARE). Due to environmental persistence, bioaccumulation, and multi-organ endocrine/hepatic toxicity, this compound must not proceed to clinical trials."
 },
 {
 "case_id": "tox21_08",
 "herg_classification": "non-blocker",
-"herg_probability": 0.10,
+"herg_ic50_um": 35.0,
+"herg_ic50_source": "predicted",
 "tox21_active_assays": [
+"NR-AhR",
+"SR-ARE",
 "SR-p53",
-"SR-ATAD5",
-"SR-ARE"
+"SR-ATAD5"
 ],
-"limitations": [
-"In vitro assays reliant on human cell lines may lack the specific nitroreductases required to fully metabolize this compound to its ultimate genotoxic species."
-],
-"response_text": "This nitroaromatic compound is a classic genotoxin. The nitro group undergoes metabolic reduction to reactive nitroso and hydroxylamine intermediates, which form bulky DNA adducts. This profound DNA damage robustly activates the p53 tumor suppressor pathway (SR-p53) and DNA damage repair pathways (SR-ATAD5), while the associated redox cycling triggers oxidative stress (SR-ARE). It lacks the basicity and structural flexibility for hERG inhibition."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "2-Nitrofluorene / 2-nitrodibenzofuran analog (O=N+c1ccc2oc3ccccc3c2c1) is classified as a hERG non-blocker (estimated IC50 ~35.0 uM, predicted). The molecule is a neutral, planar nitro-polycyclic aromatic system completely devoid of basic amine centers, precluding high-affinity pore trapping in the hERG channel. In contrast, it is a benchmark positive control for genotoxicity and xenobiotic sensing in the Tox21 panel. Its rigid, planar tricyclic aromatic scaffold fits tightly into the hydrophobic ligand-binding pocket of the Aryl Hydrocarbon Receptor, strongly activating NR-AhR and upregulating CYP1A1/1A2 and nitroreductases. Intracellular nitroreductases and NAT (N-acetyltransferase) enzymes reduce the aromatic nitro group (-NO2) to highly reactive nitroso, N-hydroxyarylamine, and nitrenium ion intermediates. These electrophiles form covalent C8-guanine DNA adducts and generate redox-cycling reactive oxygen species, producing robust activation of the oxidative stress response (SR-ARE), the p53 tumor suppressor DNA-damage pathway (SR-p53), and the ATAD5 replication-fork stall/genotoxicity sensor (SR-ATAD5). As a potent mutagen and carcinogen, the clinical recommendation is strictly do-not-proceed."
 },
 {
 "case_id": "tox21_09",
 "herg_classification": "non-blocker",
-"herg_probability": 0.05,
+"herg_ic50_um": 30.0,
+"herg_ic50_source": "ChEMBL:CHEMBL277052",
 "tox21_active_assays": [
+"SR-MMP",
 "SR-ARE",
-"NR-AhR"
+"NR-PPAR-gamma"
 ],
-"limitations": [
-"As a radical scavenger, it can display biphasic behavior, acting as a protectant at low doses but causing pro-oxidant stress at high assay concentrations."
-],
-"response_text": "2,6-Di-tert-butylphenol is a sterically hindered phenol commonly used as an antioxidant. At the high concentrations often employed in Tox21 screening, it can undergo autoxidation or redox cycling, leading to the activation of the antioxidant response element (SR-ARE). Additionally, bulky lipophilic molecules often exhibit weak, non-specific binding to the promiscuous AhR receptor. It poses no hERG risk due to the absence of a basic amine and extreme steric hindrance shielding the phenolic oxygen."
+"clinical_recommendation": "conditional",
+"response_text": "2,6-Di-tert-butylphenol (CC(C)(C)c1ccc(O)c(C(C)(C)C)c1) is a hERG non-blocker (estimated IC50 ~30.0 uM, ChEMBL:CHEMBL277052). Although highly lipophilic (LogP ~4.9), this hindered phenol lacks a basic nitrogen and cannot form cation-pi interactions within the hERG pore, showing only weak, non-specific membrane-partitioning effects on ion channels at high micromolar concentrations. Unlike unhindered phenols (such as BPA or 4,4'-biphenol), the two bulky ortho-tert-butyl groups sterically shield the phenolic hydroxyl group, preventing hydrogen-bond donor/acceptor interactions inside the Estrogen Receptor pocket (leaving NR-ER inactive). However, in the Tox21 panel, its high lipophilicity and weakly acidic phenolic proton enable it to partition into the inner mitochondrial membrane and act as a protonophoric uncoupler, flagging SR-MMP. Additionally, hepatic CYP-mediated oxidation can convert hindered phenols into reactive quinone methide intermediates that deplete hepatic glutathione and activate the Nrf2/antioxidant response element pathway (SR-ARE) alongside weak NR-PPAR-gamma modulation. Clinical progression is conditional: if developed as a propofol-like anesthetic or antioxidant scaffold, rigorous hepatic reactive-metabolite and mitochondrial safety margins must be demonstrated."
 },
 {
 "case_id": "tox21_10",
 "herg_classification": "non-blocker",
-"herg_probability": 0.02,
-"tox21_active_assays": [],
-"limitations": [
-"Rapid metabolism and conjugation of dietary phenolics in vivo make static in vitro profiling a poor predictor of systemic toxicity."
+"herg_ic50_um": 100.0,
+"herg_ic50_source": "ChEMBL:CHEMBL66879",
+"tox21_active_assays": [
+"SR-ARE"
 ],
-"response_text": "p-Coumaric acid is a ubiquitous plant-derived phenolic acid. Biologically, it is benign and acts primarily as a weak dietary antioxidant. It lacks the specific structural domains required to potently engage the Tox21 nuclear receptor panel, and its phenolic radical scavenging is typically insufficient to trigger SR-ARE at physiological levels. As a small, anionic molecule at pH 7.4, it is fundamentally incompatible with the hERG binding cavity."
+"clinical_recommendation": "proceed",
+"response_text": "p-Coumaric acid (OC(=O)/C=C/c1ccc(O)cc1) is a definitive hERG non-blocker with an estimated IC50 > 100.0 uM (ChEMBL:CHEMBL66879). As a low-molecular-weight hydroxycinnamic acid (pKa ~4.6), it is fully ionized as a hydrophilic carboxylate anion at physiological pH 7.4 and lacks any basic amine or bulky lipophilic tail required to engage Tyr652/Phe656 in the Kv11.1 inner cavity. Across the Tox21 panel, p-coumaric acid demonstrates a remarkably clean safety profile. The only notable pathway modulation at elevated micromolar concentrations is weak activation of the Antioxidant Response Element (SR-ARE). This SR-ARE signal reflects adaptive hormetic electrophile sensing via the Michael-acceptor alpha,beta-unsaturated carbonyl moiety interacting reversibly with Keap1 cysteine thiols to upregulate cytoprotective Nrf2 target genes, rather than overt cytotoxicity or genotoxicity. With negligible cardiotoxicity, no endocrine disruption, and widespread human dietary exposure as a safe plant metabolite, p-coumaric acid is cleared to proceed to clinical trials."
 },
 {
 "case_id": "tox21_11",
 "herg_classification": "non-blocker",
-"herg_probability": 0.01,
+"herg_ic50_um": 100.0,
+"herg_ic50_source": "ChEMBL:CHEMBL424",
 "tox21_active_assays": [],
-"limitations": [
-"High concentrations can uncouple oxidative phosphorylation in vivo, a systemic effect not optimally captured by standard nuclear receptor panels."
-],
-"response_text": "Salicylic acid, the primary metabolite of aspirin, is a simple phenolic acid. It generally tests negative across the entire Tox21 assay panel, as it does not directly activate stress pathways or bind nuclear receptors at relevant concentrations. Its pharmacological action lies in COX inhibition, not covered here. At physiological pH, it is almost entirely ionized (anionic), precluding any interaction with the hERG channel pore."
+"clinical_recommendation": "proceed",
+"response_text": "Salicylic acid (OC(=O)c1ccccc1O) is a definitive hERG non-blocker with an experimental IC50 > 100.0 uM (ChEMBL:CHEMBL424; >1000 uM in patch-clamp literature). At physiological pH, salicylic acid (pKa ~2.97) exists almost entirely as a small, hydrophilic salicylate anion stabilized by intramolecular hydrogen bonding; it lacks any basic amine or hydrophobic pharmacophore and is electrostatically repelled from the K+ conduction pathway of the hERG channel. Across the entire Tox21 high-throughput screening panel (up to 100 uM), salicylic acid is inactive across all nuclear receptor (NR-ER, NR-AR, NR-AhR, NR-PPAR, NR-Aromatase) and stress response (SR-ARE, SR-p53, SR-ATAD5, SR-HSE) endpoints, showing mitochondrial uncoupling only at millimolar overdose concentrations far above standard Tox21 assay cutoffs. Given its well-characterized human pharmacology as the active metabolite of aspirin, absence of hERG liability, and clean Tox21 profile, the compound is recommended to proceed to clinical trials."
 },
 {
 "case_id": "tox21_12",
 "herg_classification": "non-blocker",
-"herg_probability": 0.03,
+"herg_ic50_um": 100.0,
+"herg_ic50_source": "ChEMBL:CHEMBL151",
 "tox21_active_assays": [
 "SR-ARE"
 ],
-"limitations": [
-"Polyphenols rapidly oxidize in cell culture media, producing hydrogen peroxide which can artificially trigger stress assays independent of direct cellular interaction."
-],
-"response_text": "Catechin is a natural flavanol known for its potent antioxidant properties. In Tox21 cellular assays, high concentrations or instability in culture media often lead to autoxidation and the generation of reactive oxygen species. This triggers the cellular Nrf2/ARE antioxidant defense mechanism, registering as a positive in the SR-ARE assay. This is a physiological adaptive response rather than a toxicological hazard. The molecule lacks any hERG blocking pharmacophore."
+"clinical_recommendation": "proceed",
+"response_text": "Catechin (Oc1cc(O)c2c(c1)OC(c1ccc(O)c(O)c1)C(O)C2) is a hERG non-blocker with an IC50 > 100.0 uM (ChEMBL:CHEMBL151). As a polyhydroxylated flavan-3-ol containing five polar phenolic/aliphatic hydroxyl groups, a low LogP, and zero basic nitrogen atoms, catechin does not partition into the hydrophobic hERG inner cavity or form cation-pi bonds with Tyr652. In the Tox21 screening panel, catechin is broadly benign across nuclear receptors and genotoxicity sensors, flagging only the Antioxidant Response Element assay (SR-ARE) at mid-to-high micromolar concentrations. Mechanistically, the ortho-diphenolic (catechol) B-ring can undergo mild auto-oxidation in cell culture media or intracellularly to form a transient ortho-quinone, which covalently modifies sensor cysteines on Keap1, releasing Nrf2 to drive transcription of endogenous antioxidant enzymes (HO-1, NQO1). Because this cytoprotective Nrf2 activation occurs in the absence of DNA damage (SR-p53/SR-ATAD5 negative) or cardiac channel blockade, and catechin is a well-tolerated dietary flavanol, it is cleared to proceed to clinical trials."
 },
 {
 "case_id": "tox21_13",
-"herg_classification": "uncertain",
-"herg_probability": 0.35,
+"herg_classification": "non-blocker",
+"herg_ic50_um": 35.0,
+"herg_ic50_source": "predicted",
 "tox21_active_assays": [
+"NR-AhR",
 "SR-p53",
-"SR-MMP"
+"SR-ATAD5",
+"SR-MMP",
+"SR-ARE"
 ],
-"limitations": [
-"Profound cytoskeletal disruption can cause non-specific membrane leakage, confounding cell-based reporter assay readouts."
-],
-"response_text": "This colchicine-like analog is a microtubule disruptor. By binding to tubulin and inhibiting polymerization, it arrests cells in mitosis. This severe mitotic stress and subsequent DNA damage signaling strongly activate the p53 pathway (SR-p53) and induce apoptosis, marked by a drop in mitochondrial membrane potential (SR-MMP). Its hERG liability is computationally uncertain due to multiple aromatic rings and moderate lipophilicity, though the lack of a prominent basic amine reduces the risk of potent direct blockade."
+"clinical_recommendation": "do-not-proceed",
+"response_text": "The Colchicine-analog (COc1cc2[nH]c3cc(OC)c(OC)cc3c2cc1OC, 2,3,6,7-tetramethoxy-9H-carbazole) is predicted to be a hERG non-blocker (estimated IC50 ~35.0 uM, predicted). The nitrogen atom is embedded within an aromatic pyrrole/carbazole ring, rendering its lone pair delocalized and non-basic (pKa < 0), so it cannot protonate to form cation-pi interactions in the hERG pore. However, its Tox21 profile displays severe antimitotic and xenobiotic stress liabilities. First, the planar tricyclic carbazole core is a classic ligand for the Aryl Hydrocarbon Receptor (NR-AhR). Second, the polymethoxylated aryl ring system mimics the trimethoxyphenyl A-ring of colchicine, binding at the alpha/beta-tubulin interface to inhibit microtubule polymerization. Mitotic spindle disruption causes cell-cycle arrest at the G2/M phase and micronucleus/aneuploidy induction, which strongly activates the p53 checkpoint (SR-p53) and the ATAD5 genome-instability sensor (SR-ATAD5), accompanied by secondary mitochondrial depolarization (SR-MMP) and CYP-mediated O-demethylation/catechol oxidative stress (SR-ARE). Due to potent aneugenic/antimitotic bone-marrow and gastrointestinal toxicity, the compound should not proceed to clinical trials for non-oncology indications."
 },
 {
 "case_id": "tox21_14",
 "herg_classification": "non-blocker",
-"herg_probability": 0.15,
-"tox21_active_assays": [],
-"limitations": [
-"In vitro models often fail to capture immune-mediated idiosyncratic toxicities commonly associated with the sulfonamide moiety in clinical settings."
+"herg_ic50_um": 60.0,
+"herg_ic50_source": "predicted",
+"tox21_active_assays": [
+"NR-PPAR-gamma",
+"SR-ARE"
 ],
-"response_text": "This sulfonamide-analog generally exhibits a clean profile in the Tox21 panel. The sulfonamide functional group does not inherently trigger nuclear receptors like ER or AR, nor does it directly cause DNA damage or profound oxidative stress in static cellular models without specific metabolic bioactivation. Computationally, it possesses an aromatic ring and a bulky cycloalkane, but the sulfonamide nitrogen is not basic enough to facilitate potent binding within the hERG channel pore."
+"clinical_recommendation": "proceed",
+"response_text": "The Sulfonamide-analog (CC(=O)Oc1ccc(S(=O)(=O)NC2CCCCCC2)cc1, 4-(N-cycloheptylsulfamoyl)phenyl acetate) is predicted to be a hERG non-blocker with an estimated IC50 of ~60.0 uM (predicted). Unlike basic tertiary amines that block hERG with nanomolar potency, the sulfonamide nitrogen (-SO2NH-) is weakly acidic (pKa ~9-10) and remains uncharged or partially deprotonated at physiological pH, preventing electrostatic trapping at Tyr652 in the Kv11.1 central cavity. In the Tox21 panel, this scaffold exhibits a clean, low-hazard profile. Esterase-mediated hydrolysis of the phenyl acetate yields the para-hydroxybenzenesulfonamide metabolite; together with the lipophilic cycloheptyl tail and acidic sulfonamide group, the molecule behaves as a weak bioisostere of fatty acid/glitazone ligands, producing mild, non-toxic modulation of peroxisome proliferator-activated receptor gamma (NR-PPAR-gamma) and minimal adaptive oxidative response (SR-ARE) at top screening concentrations. It lacks the reactive para-amino (aniline) group responsible for idiosyncratic sulfonamide hypersensitivity and is negative for genotoxicity (SR-p53/SR-ATAD5) and endocrine disruption (NR-ER/NR-AR). With a wide cardiac safety margin and benign Tox21 profile, this candidate may proceed to Phase I clinical trials."
 }
 ]
