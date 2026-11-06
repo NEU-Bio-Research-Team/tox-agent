@@ -292,7 +292,23 @@ class ContextMixin:
                     "profile, so the run would use the runtime's own authentication",
                     profile_id=connection.id,
                 )
-            credential = self._secrets.get(connection.credential_ref)
+            from ...connections.secrets import SecretUnavailable, read_for_owner
+
+            try:
+                credential = read_for_owner(
+                    self._secrets, connection.credential_ref, connection.owner_id
+                )
+            except (SecretUnavailable, OSError, ValueError) as exc:
+                raise RuntimeUnavailable(
+                    "the credential of the selected AI profile cannot be read; "
+                    "enter it again in Settings",
+                    profile_id=connection.id,
+                ) from exc
+        elif connection.auth_mode is AuthMode.CHATGPT_SUBSCRIPTION:
+            raise RuntimeUnavailable(
+                "the selected ChatGPT profile has no stored sign-in; reconnect it",
+                profile_id=connection.id,
+            )
         return ResolvedProfile(
             provider_id=connection.provider_id,
             model_id=connection.model_id,
@@ -300,6 +316,8 @@ class ContextMixin:
             base_url=connection.base_url,
             credential=credential,
             auth_mode=connection.auth_mode,
+            owner_id=connection.owner_id,
+            credential_ref=connection.credential_ref,
         )
 
     async def _prepare_context(self, context: RunContext) -> tuple[str, str, datetime, str | None]:

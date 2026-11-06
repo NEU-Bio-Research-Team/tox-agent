@@ -1948,6 +1948,117 @@
         "title": "CaseUncertainty",
         "type": "object"
       },
+      "ChatGPTAvailability": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "documentation_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documentation Url"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "reason"
+        ],
+        "title": "ChatGPTAvailability",
+        "type": "object"
+      },
+      "ChatGPTEnrollment": {
+        "additionalProperties": false,
+        "description": "One owner's ChatGPT sign-in. The URL and code appear only while pending.",
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "expires_in_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires In S"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "models": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ModelOption"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Models"
+          },
+          "state": {
+            "enum": [
+              "none",
+              "pending",
+              "connected",
+              "failed",
+              "expired",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "verification_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Url"
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "title": "ChatGPTEnrollment",
+        "type": "object"
+      },
       "Claim": {
         "additionalProperties": false,
         "properties": {
@@ -2077,6 +2188,34 @@
           "probability_clinical_toxicity"
         ],
         "title": "ClintoxSection",
+        "type": "object"
+      },
+      "CompleteChatGPTRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "model_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_id"
+        ],
+        "title": "CompleteChatGPTRequest",
         "type": "object"
       },
       "ConfigurationSnapshot": {
@@ -4141,6 +4280,48 @@
         "title": "LineageVerdict",
         "type": "object"
       },
+      "ListModelsRequest": {
+        "additionalProperties": false,
+        "description": "A key the user is about to save, to list the models it can use.\n\nThe key is used for this one listing and not stored.",
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "credential": {
+            "anyOf": [
+              {
+                "maxLength": 16384,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential"
+          },
+          "provider_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Provider Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id"
+        ],
+        "title": "ListModelsRequest",
+        "type": "object"
+      },
       "LiveStatus": {
         "additionalProperties": false,
         "properties": {
@@ -4377,6 +4558,42 @@
           "connections"
         ],
         "title": "ModelConnectionList",
+        "type": "object"
+      },
+      "ModelOption": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ModelOption",
+        "type": "object"
+      },
+      "ModelOptionList": {
+        "additionalProperties": false,
+        "properties": {
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelOption"
+            },
+            "title": "Models",
+            "type": "array"
+          }
+        },
+        "required": [
+          "models"
+        ],
+        "title": "ModelOptionList",
         "type": "object"
       },
       "MoleculeInput": {
@@ -8961,6 +9178,16 @@
             "title": "Base Url Required",
             "type": "boolean"
           },
+          "chatgpt_oauth": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatGPTAvailability"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "default_base_url": {
             "anyOf": [
               {
@@ -8975,6 +9202,10 @@
           "display_name": {
             "title": "Display Name",
             "type": "string"
+          },
+          "lists_models": {
+            "title": "Lists Models",
+            "type": "boolean"
           },
           "note": {
             "title": "Note",
@@ -8996,7 +9227,9 @@
           "default_base_url",
           "base_url_required",
           "auth_modes",
-          "note"
+          "note",
+          "lists_models",
+          "chatgpt_oauth"
         ],
         "title": "SupportedProvider",
         "type": "object"
@@ -9267,6 +9500,34 @@
           "payload"
         ],
         "title": "ToxAgentEvent",
+        "type": "object"
+      },
+      "UpdateModelConnectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "model_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Model Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_id"
+        ],
+        "title": "UpdateModelConnectionRequest",
         "type": "object"
       },
       "UpdateSessionRequest": {
@@ -9674,6 +9935,100 @@
         "tags": [
           "toxagent"
         ]
+      },
+      "patch": {
+        "description": "Switch a connection to another model of the same account; test it again.",
+        "operationId": "change_connection_model_v1_model_connections__connection_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModelConnectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelConnection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change Connection Model",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/model-connections/{connection_id}/models": {
+      "get": {
+        "description": "The models this connection's own credential can use.",
+        "operationId": "list_connection_models_v1_model_connections__connection_id__models_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelOptionList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Connection Models",
+        "tags": [
+          "toxagent"
+        ]
       }
     },
     "/v1/model-connections/{connection_id}:test": {
@@ -9718,9 +10073,148 @@
         ]
       }
     },
+    "/v1/model-connections:chatgpt": {
+      "delete": {
+        "operationId": "cancel_chatgpt_sign_in_v1_model_connections_chatgpt_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Cancel Chatgpt Sign In",
+        "tags": [
+          "toxagent"
+        ]
+      },
+      "get": {
+        "operationId": "chatgpt_sign_in_status_v1_model_connections_chatgpt_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatGPTEnrollment"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Chatgpt Sign In Status",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/model-connections:chatgpt-complete": {
+      "post": {
+        "description": "Save a finished sign-in as a connection for the chosen model.",
+        "operationId": "complete_chatgpt_sign_in_v1_model_connections_chatgpt_complete_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteChatGPTRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelConnection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Chatgpt Sign In",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/model-connections:chatgpt-start": {
+      "post": {
+        "description": "Begin a device-code sign-in; returns the OpenAI page and the code to enter.",
+        "operationId": "start_chatgpt_sign_in_v1_model_connections_chatgpt_start_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatGPTEnrollment"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Start Chatgpt Sign In",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
+    "/v1/model-connections:models": {
+      "post": {
+        "description": "The models a key can use, before it is saved. The key is not stored.",
+        "operationId": "list_models_for_key_v1_model_connections_models_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListModelsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelOptionList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Models For Key",
+        "tags": [
+          "toxagent"
+        ]
+      }
+    },
     "/v1/model-connections:providers": {
       "get": {
-        "description": "Providers this control plane has an adapter for, and their defaults.\n\nThe UI used to carry its own list, which included providers whose wire\nformat nothing here speaks and whose base URL default was blank — so the\nform could be filled in correctly and still fail every probe (I13). One\nlist, served by the code that decides.",
+        "description": "Providers this control plane has an adapter for, and their defaults.\n\nThe UI used to carry its own list, which included providers whose wire\nformat nothing here speaks and whose base URL default was blank — so the\nform could be filled in correctly and still fail every probe (I13). One\nlist, served by the code that decides. ChatGPT sign-in is listed only\nwhere this deployment can actually run it.",
         "operationId": "list_supported_providers_v1_model_connections_providers_get",
         "responses": {
           "200": {

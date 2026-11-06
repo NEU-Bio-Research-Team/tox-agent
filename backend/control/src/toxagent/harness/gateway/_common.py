@@ -33,6 +33,8 @@ class ResolvedProfile:
     base_url: str | None
     credential: str | None
     auth_mode: AuthMode
+    owner_id: str = ""
+    credential_ref: str | None = None
 
 
 log = logging.getLogger("toxagent.gateway")

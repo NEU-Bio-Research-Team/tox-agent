@@ -1037,6 +1037,12 @@ class ModelConnectionList(_Response):
     connections: list[ModelConnection]
 
 
+class ChatGPTAvailability(_Response):
+    available: bool
+    reason: str
+    documentation_url: str | None = None
+
+
 class SupportedProvider(_Response):
     provider_id: str
     display_name: str
@@ -1045,6 +1051,28 @@ class SupportedProvider(_Response):
     base_url_required: bool
     auth_modes: list[str]
     note: str
+    lists_models: bool
+    chatgpt_oauth: ChatGPTAvailability | None
+
+
+class ModelOption(_Response):
+    id: str
+    name: str
+
+
+class ModelOptionList(_Response):
+    models: list[ModelOption]
+
+
+class ChatGPTEnrollment(_Response):
+    """One owner's ChatGPT sign-in. The URL and code appear only while pending."""
+
+    state: Literal["none", "pending", "connected", "failed", "expired", "cancelled"]
+    expires_in_s: int | None = None
+    verification_url: str | None = None
+    instructions: str | None = None
+    models: list[ModelOption] | None = None
+    error: str | None = None
 
 
 class SupportedProviderList(_Response):

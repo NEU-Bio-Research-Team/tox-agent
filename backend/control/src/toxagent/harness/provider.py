@@ -110,9 +110,15 @@ class RuntimeSessionSpec:
     #: turn rather than fall back to the runtime's ambient authentication —
     #: silently using someone else's credentials is worse than not running.
     provider_base_url: str | None = None
-    provider_credential: str | None = None
+    provider_credential: str | None = field(default=None, repr=False)
     auth_mode: str = "none"
     local_tool_context: Any = None
+    #: Who the profile belongs to, and where its credential is stored. An
+    #: adapter that runs the profile on a private host needs both: the owner
+    #: to scope that host, the reference to write back a credential the
+    #: runtime refreshed (a ChatGPT OAuth pair). Neither is a secret.
+    owner_id: str = ""
+    provider_credential_ref: str | None = None
 
     def credential_fingerprint(self) -> str:
         """A stable, non-reversible id for *which* credential this was.

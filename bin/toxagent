@@ -31,6 +31,10 @@ bootstrap_env() {
   if [[ ! -f .env ]]; then cp .env.example .env; fi
   [[ -n "$(env_value POSTGRES_PASSWORD)" ]] || set_env POSTGRES_PASSWORD "$(random)"
   [[ -n "$(env_value TOXAGENT_CAPABILITY_SECRET)" ]] || set_env TOXAGENT_CAPABILITY_SECRET "$(random)"
+  # Encrypts users' stored AI keys and ChatGPT sign-ins. Keep it: losing it
+  # means every user re-enters their keys.
+  [[ -n "$(env_value TOXAGENT_SECRET_ENCRYPTION_KEY)" ]] || set_env TOXAGENT_SECRET_ENCRYPTION_KEY \
+    "$(python3 -c 'import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())')"
   local token
   token="$(env_value TOXAGENT_STATIC_TOKENS)"
   if [[ -z "$token" ]]; then

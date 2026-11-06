@@ -344,6 +344,27 @@ class CancelResponse(BaseModel):
     action: str
 
 
+class ListModelsRequest(_Request):
+    """A key the user is about to save, to list the models it can use.
+
+    The key is used for this one listing and not stored.
+    """
+
+    provider_id: str = Field(min_length=1, max_length=128)
+    base_url: str | None = Field(default=None, max_length=2048)
+    credential: str | None = Field(default=None, min_length=1, max_length=16_384)
+
+
+class UpdateModelConnectionRequest(_Request):
+    model_id: str = Field(min_length=1, max_length=128)
+    display_name: str | None = Field(default=None, max_length=160)
+
+
+class CompleteChatGPTRequest(_Request):
+    model_id: str = Field(min_length=1, max_length=128)
+    display_name: str | None = Field(default=None, max_length=160)
+
+
 class CreateModelConnectionRequest(_Request):
     provider_id: str = Field(min_length=1, max_length=128)
     model_id: str = Field(min_length=1, max_length=128)

@@ -40,6 +40,7 @@ Only what passes is released, and the run records why it stopped.
 | How do I run one turn and see it work? | [running.md](running.md) |
 | How do I add a tool, an operation, a procedure? | [extending.md](extending.md) |
 | How do I run the arms and read the results? | [benchmark.md](benchmark.md) |
+| How does a user run the agent on their own AI key or ChatGPT sign-in? | [ai-connections.md](ai-connections.md) |
 | Why is it built this way, and what is proven? | [../research/](../research/) |
 
 ## Where the code is
@@ -55,5 +56,6 @@ Everything below is under `backend/control/src/toxagent/`.
 | `tools/` | The tool registry, the capability profiles, and each tool definition |
 | `validation/` | The answer schemas, the hard validator, the deterministic fallback |
 | `platform/flags.py` | Every rollout flag, with its owner and its removal condition |
+| `connections/`, `harness/owner_hosts.py` | Users' AI connections: providers, probes, model lists, encrypted secrets, ChatGPT sign-in, private runtime hosts |
 
 The benchmark lives beside it, in `backend/control/evals/investigation/`.

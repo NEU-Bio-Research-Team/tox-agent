@@ -380,6 +380,8 @@ class AgentRuntimeGateway(
             provider_credential=resolved.credential,
             auth_mode=resolved.auth_mode.value,
             local_tool_context=local_context,
+            owner_id=resolved.owner_id,
+            provider_credential_ref=resolved.credential_ref,
         )
 
         runtime_session: RuntimeSession | None = None
@@ -398,6 +400,9 @@ class AgentRuntimeGateway(
                 runtime_session_id=runtime_session.runtime_session_id,
                 provider_id=runtime_session.provider_id,
                 model_id=runtime_session.model_id,
+                # It was never passed, so every binding recorded `none` — the
+                # audit could not tell a subscription run from an API-key one.
+                auth_mode=resolved.auth_mode,
                 connection_id=resolved.connection_id,
                 profile_hash=profile_hash,
                 tool_schema_hash=tool_schema_hash,

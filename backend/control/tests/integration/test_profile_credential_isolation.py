@@ -190,3 +190,58 @@ async def test_the_opencode_adapter_refuses_a_credential_it_cannot_inject():
         await provider.create_session(spec)
     assert "will not fall back" in str(excinfo.value)
     assert "sk-owner-a-key" not in str(excinfo.value)
+
+
+# --- a run on the user's own AI: owner, reference and auth mode travel ------
+
+async def test_a_resolved_profile_carries_its_owner_and_credential_reference(db, tmp_path):
+    """A private runtime host needs both: the owner scopes the host, and the
+    reference is where a refreshed ChatGPT sign-in is written back."""
+    secrets = FilesystemSecretStore(tmp_path / "secrets")
+    connection = await _store(db, secrets, "owner-a")
+    resolved = await _gateway(db, secrets)._resolve_ai_profile(
+        _Context(_Actor("owner-a"), connection.id)
+    )
+    assert resolved.owner_id == "owner-a"
+    assert resolved.credential_ref == connection.credential_ref
+    assert resolved.auth_mode is AuthMode.API_KEY
+
+
+async def test_an_encrypted_credential_is_read_only_for_its_owner(db, tmp_path):
+    """A secret file copied under another owner's row decrypts to nothing usable."""
+    from cryptography.fernet import Fernet
+
+    from toxagent.connections.secrets import EncryptedSecretStore
+
+    secrets = EncryptedSecretStore(tmp_path / "secrets", Fernet.generate_key().decode())
+    foreign_ref = secrets.put("owner-a", "sk-owner-a-key")
+    connection = replace(
+        ModelConnection.create(
+            owner_id="owner-b", provider_id="openai_compatible", model_id="model-x",
+            auth_mode=AuthMode.API_KEY, credential_ref=foreign_ref,
+            base_url="https://b.example.com/v1", now=NOW,
+        ),
+        status=ConnectionStatus.READY,
+    )
+    async with db.unit_of_work() as uow:
+        await uow.model_connections.add(connection)
+        await uow.commit()
+    with pytest.raises(RuntimeUnavailable, match="cannot be read") as excinfo:
+        await _gateway(db, secrets)._resolve_ai_profile(_Context(_Actor("owner-b"), connection.id))
+    assert "sk-owner-a-key" not in str(excinfo.value)
+
+
+async def test_a_chatgpt_profile_without_a_stored_sign_in_is_refused(db, tmp_path):
+    connection = replace(
+        ModelConnection.create(
+            owner_id="owner-a", provider_id="openai", model_id="gpt-x",
+            auth_mode=AuthMode.CHATGPT_SUBSCRIPTION, credential_ref=None, base_url=None, now=NOW,
+        ),
+        status=ConnectionStatus.READY,
+    )
+    async with db.unit_of_work() as uow:
+        await uow.model_connections.add(connection)
+        await uow.commit()
+    gateway = _gateway(db, FilesystemSecretStore(tmp_path / "secrets"))
+    with pytest.raises(RuntimeUnavailable, match="reconnect"):
+        await gateway._resolve_ai_profile(_Context(_Actor("owner-a"), connection.id))
