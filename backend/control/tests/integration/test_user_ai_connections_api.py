@@ -33,10 +33,16 @@ def _security(**overrides) -> SecuritySettings:
 
 @pytest.fixture(autouse=True)
 def _public_dns(monkeypatch):
-    monkeypatch.setattr(
-        socket, "getaddrinfo",
-        lambda host, port, *a, **k: [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))],
-    )
+    real = socket.getaddrinfo
+
+    def resolve(host, port, *args, **kwargs):
+        # Only the providers' names are faked; the test database (Postgres on
+        # CI, reached as localhost) must still resolve for real.
+        if host in {"localhost", "127.0.0.1", "::1"} or str(host).startswith("postgres"):
+            return real(host, port, *args, **kwargs)
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+
+    monkeypatch.setattr(socket, "getaddrinfo", resolve)
 
 
 def _models_transport(seen):
