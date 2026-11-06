@@ -56,6 +56,7 @@ def _synthesis(state: dict, *, answer):
         material = json.loads(_MATERIAL.search(turn.system_prompt).group(1))
         state.setdefault("materials", []).append(material)
         state["submitted"] = await turn.call_tool("submit_grounded_answer", answer(material))
+        state.setdefault("submissions", []).append(state["submitted"])
 
     return script
 
@@ -266,6 +267,19 @@ async def test_a_provider_failure_is_reported_as_a_failure_not_as_no_evidence(db
     assert material.get("evidence", []) == [] and material["_found"] == []
 
 
+def _screening_answer_with_reading(material: dict) -> dict:
+    """The lookup plus a reading of it: the lookup is a field code checks
+    (#72), the reading is what the reviewer still judges."""
+    draft = _screening_answer(material)
+    draft["claims"].append({
+        "local_ref": "reading", "kind": "scientific",
+        "text": "The estimate is a potency, not a statement about therapeutic effect.",
+        "observation_id": draft["claims"][0]["observation_id"],
+        "field_path": "estimate.predicted_pic50",
+    })
+    return draft
+
+
 async def test_b_goes_through_the_same_release_gate_and_repairs_in_its_synthesis_step(
     db, arm_b, tmp_path, monkeypatch,
 ):
@@ -274,7 +288,7 @@ async def test_b_goes_through_the_same_release_gate_and_repairs_in_its_synthesis
     record = frozen_screening()
     state: dict = {"verdict": "partially_supported"}
     async with api_client(db, StubPredictor(), config=_config(tmp_path, record)) as client:
-        await _install_scripted_runtime(client, _synthesis(state, answer=_screening_answer))
+        await _install_scripted_runtime(client, _synthesis(state, answer=_screening_answer_with_reading))
         session_id = await _new_session(client)
         await _attach(client, session_id, record)
         run = await _post(client, session_id, "What is the estimated pIC50 here?")

@@ -206,7 +206,7 @@ async def test_an_answer_quotes_the_researchers_value_by_the_observation_it_was_
     assert answer["model_view"]["is_fallback"] is False
 
 
-async def test_the_reviewer_sees_what_a_margin_was_computed_from(db, flags_on):
+async def test_a_margin_is_verified_by_recomputation_not_by_the_reviewer(db, flags_on):
     """Live (2026-10-29, arm E, T5): a correct margin of 30 was withheld twice,
     because the reviewer saw the IC50's record and nothing that said the free
     Cmax was the researcher's. The bundle now carries the formula and each
@@ -241,8 +241,17 @@ async def test_the_reviewer_sees_what_a_margin_was_computed_from(db, flags_on):
         answer = await uow.answers.get(state["answer"]["model_view"]["answer_id"],
                                        session_id=session_id)
         bundle = await claim_review.review_bundle(uow, session_id=session_id, answer=answer)
-    (claim,) = bundle["claims"]
-    calculation = claim["sources"][0]["calculation"]
+        (margin_claim,) = [c for c in answer.claims if c.observation_id]
+        observation = await uow.observations.get(margin_claim.observation_id, session_id=session_id)
+        made_of = await claim_review._what_it_was_made_of(uow, session_id, answer, observation)
+    # #72: the arithmetic is code's to check, so the margin never reaches the
+    # reviewer — the failure above cannot recur.
+    assert bundle["claims"] == []
+    (check,) = [c for c in bundle["code_checks"] if c["claim_id"] == margin_claim.claim_id]
+    assert check["claim_type"] == "derived_numeric" and check["verdict"] == "supported"
+    assert "recomputed 30" in check["reason"]
+    # Where a reviewer does see a calculation, it still sees its provenance.
+    calculation = made_of["calculation"]
     assert calculation["result"]["margin"] == 30.0
     assert "IC50 / free Cmax" in calculation["formula"]
     cmax = calculation["inputs"]["cmax"]
