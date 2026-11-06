@@ -451,6 +451,12 @@ class RuntimeSettings:
     #: single-user deployment), ``hosted`` (operator opted in after
     #: registering with OpenAI) or ``off``.
     chatgpt_oauth: str = "local"
+    #: Whether this deployment has an AI of its own: a shared OpenCode host
+    #: (``TOXAGENT_OPENCODE_URL``) authenticated for ``TOXAGENT_PROVIDER_ID``.
+    #: Off means every run uses the AI its user connected in Settings, and the
+    #: back end needs no AI configuration at all; a session with no connection
+    #: is told to connect one. Requires ``owner_hosts``.
+    opencode_shared_host: bool = True
 
     @classmethod
     def from_env(cls) -> "RuntimeSettings":
@@ -504,6 +510,7 @@ class RuntimeSettings:
             owner_hosts_max=_int("TOXAGENT_OWNER_HOSTS_MAX", cls.owner_hosts_max),
             owner_hosts_idle_s=_int("TOXAGENT_OWNER_HOSTS_IDLE_S", cls.owner_hosts_idle_s),
             chatgpt_oauth=_chatgpt_mode(_env("TOXAGENT_CHATGPT_OAUTH", cls.chatgpt_oauth)),
+            opencode_shared_host=_bool("TOXAGENT_OPENCODE_SHARED_HOST", cls.opencode_shared_host),
         )
 
 

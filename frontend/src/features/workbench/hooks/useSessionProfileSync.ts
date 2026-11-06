@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { getSessionSettings, listModelConnections, updateSessionSettings } from '../../../shared/api/endpoints';
+import { getHealthReady, getSessionSettings, listModelConnections, updateSessionSettings } from '../../../shared/api/endpoints';
 import { profileForSession } from '../../../shared/lib/aiProfile';
 import { getDefaultAiProfileId } from '../../../shared/lib/preferences';
 
@@ -18,11 +18,16 @@ export function useSessionProfileSync(sessionId: string): () => Promise<void> {
   useEffect(() => {
     pending.current = (async () => {
       try {
-        const [saved, profiles] = await Promise.all([getSessionSettings(sessionId), listModelConnections()]);
+        const [saved, profiles, health] = await Promise.all([
+          getSessionSettings(sessionId),
+          listModelConnections(),
+          getHealthReady().catch(() => null),
+        ]);
         const wanted = profileForSession({
           defaultProfileId: getDefaultAiProfileId(),
           currentProfileId: saved.ai_profile_id,
           readyProfileIds: profiles.connections.filter((item) => item.status === 'ready').map((item) => item.connection_id),
+          userAiRequired: health?.runtime?.ai_source === 'user_connections',
         });
         if (wanted !== saved.ai_profile_id) {
           await updateSessionSettings(sessionId, { ...saved, ai_profile_id: wanted });

@@ -171,3 +171,30 @@ async def test_the_protocol_probe_routes_by_provider():
     probe = ProtocolProbe(transport=_transport(lambda r: httpx.Response(200, content=body), seen))
     await probe.probe(_anthropic_connection(), "sk-ant")
     assert seen[0].url.path == "/v1/messages"
+
+
+async def test_gemini_models_lose_their_prefix_and_non_chat_models_are_dropped():
+    seen: list[httpx.Request] = []
+    data = {"data": [
+        {"id": "models/gemini-3-flash"}, {"id": "models/text-embedding-004"},
+        {"id": "models/imagen-4"}, {"id": "models/gemini-3-pro"},
+    ]}
+    catalog = ModelCatalog(transport=_transport(lambda r: httpx.Response(200, json=data), seen))
+    models = await catalog.list(provider_id="google", base_url=None, credential="g-key")
+    assert [m.id for m in models] == ["gemini-3-flash", "gemini-3-pro"]
+    assert str(seen[0].url) == "https://generativelanguage.googleapis.com/v1beta/openai/models"
+    assert seen[0].headers["authorization"] == "Bearer g-key"
+
+
+@pytest.mark.parametrize(
+    ("provider_id", "url"),
+    [("groq", "https://api.groq.com/openai/v1/models"), ("xai", "https://api.x.ai/v1/models"),
+     ("mistral", "https://api.mistral.ai/v1/models")],
+)
+async def test_each_new_provider_lists_from_its_own_endpoint(provider_id, url):
+    seen: list[httpx.Request] = []
+    data = {"data": [{"id": "chat-model"}, {"id": "whisper-large-v3"}, {"id": "llama-guard-4"}]}
+    catalog = ModelCatalog(transport=_transport(lambda r: httpx.Response(200, json=data), seen))
+    models = await catalog.list(provider_id=provider_id, base_url=None, credential="k")
+    assert [m.id for m in models] == ["chat-model"]
+    assert str(seen[0].url) == url

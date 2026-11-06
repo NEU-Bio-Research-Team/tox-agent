@@ -3,13 +3,53 @@
 Written for engineers and operators of this repository.
 
 A user can run the agent on their own AI instead of the deployment's: an API
-key (OpenAI, Claude, OpenRouter, DeepSeek, or any OpenAI-compatible server) or
-a ChatGPT Plus/Pro sign-in. The run then bills that user's account, reaches the
+key (OpenAI, Claude, Google Gemini, OpenRouter, DeepSeek, xAI, Groq, Mistral,
+or any OpenAI-compatible server) or a ChatGPT Plus/Pro sign-in. OpenCode stays
+the engine for every one of them. The run then bills that user's account, reaches the
 endpoint they chose, and is recorded as such in the run's runtime binding.
 
 The design follows G1_Web_Design's AI connections (encrypted per-user
 credentials, one model picker fed by each provider's own model list, ChatGPT
 sign-in through OpenCode), adapted to how this control plane runs OpenCode.
+
+## A back end with no AI of its own
+
+With `TOXAGENT_OPENCODE_SHARED_HOST=0`, the deployment configures no AI at
+all: no shared OpenCode host, no `TOXAGENT_PROVIDER_ID`/`MODEL_ID`, no
+credential. Every run uses the connection its user chose.
+
+- Readiness checks that a private host *can* be started: the pinned binary and
+  the agent profile. `GET /health/ready` reports
+  `runtime.ai_source = "user_connections"`.
+- A session with no connection fails its run with `ai_connection_required` and
+  a message that says where to connect one. It does not fall back to anything.
+- The web app reads `ai_source` and pins the user's first ready connection to
+  the session when they have not chosen one. It says "connect your AI" instead
+  of offering a server default.
+- Starting with this setting but without `TOXAGENT_OWNER_RUNTIME_HOSTS=1` is
+  refused at start-up.
+
+`./bin/toxagent up --user-ai` runs the whole stack this way. It uses
+`devops/compose/user-ai.yaml`, which mounts the OpenCode 1.17.11 binary
+(`OPENCODE_BINARY_HOST_PATH`, default `~/.opencode/bin/opencode`) read-only
+into the control-plane container and turns on the agent layer's flags (arm E
+of protocol v2; each one can be turned off in `.env`). Users' hosts then run
+inside that container, and their credential files live in its `/tmp`.
+
+## Providers
+
+| Provider | Key from | Probe and model list | Runs on OpenCode as |
+|---|---|---|---|
+| OpenAI | platform.openai.com, or a ChatGPT Plus/Pro sign-in | chat/completions, `/models` | `openai` |
+| Claude (Anthropic) | console.anthropic.com | Messages API, `/models` | `anthropic` |
+| Google Gemini | aistudio.google.com | Gemini's OpenAI-compatible endpoint | `google` |
+| OpenRouter, DeepSeek, xAI, Groq, Mistral | each provider's console | chat/completions, `/models` | the same id |
+| OpenAI-compatible | your server | chat/completions at your base URL | a custom provider |
+
+A Claude Code or Claude.ai Pro/Max sign-in is not offered. Anthropic does not
+allow third-party apps to use a consumer subscription for inference, so use an
+Anthropic API key. Every provider id here was checked against the catalog of
+the pinned binary.
 
 ## Why a run needs its own runtime host
 
@@ -132,9 +172,9 @@ Each host is a full OpenCode process (~300 MB). On an 8 GB machine keep
 - A custom base URL on the `openai` provider must serve OpenAI's **Responses
   API**, because that is what OpenCode's OpenAI provider calls (seen live). For
   a gateway that only speaks chat/completions, use *OpenAI-compatible*.
-- The Compose stack runs the control plane in a container without the OpenCode
-  binary, so owner hosts are off there. They need the control plane and the
-  binary on the same machine, or a container spawner.
+- Owner hosts need the binary where the control plane runs. `up --user-ai`
+  mounts it into the container. The plain Compose stack does not, so owner
+  hosts are off there.
 - A ChatGPT connection's capabilities are recorded as not proven. The test
   proves that the sign-in is accepted, not what the model can do.
 - Hosts live in one control-plane process. A second replica starts its own.

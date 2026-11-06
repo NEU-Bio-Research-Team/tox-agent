@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 COMPOSE=(docker compose --project-directory "$ROOT" -f "$ROOT/devops/compose/compose.yaml")
 AGENT_COMPOSE=(docker compose --project-directory "$ROOT" -f "$ROOT/devops/compose/compose.yaml" -f "$ROOT/devops/compose/local-opencode-host.yaml")
+USER_AI_COMPOSE=(docker compose --project-directory "$ROOT" -f "$ROOT/devops/compose/compose.yaml" -f "$ROOT/devops/compose/user-ai.yaml")
 CHECKPOINT_DIR=".artifacts/toxocr"
 CHECKPOINT="$CHECKPOINT_DIR/swin_base_char_aux_1m.pth"
 CHECKPOINT_URL="https://huggingface.co/yujieq/MolScribe/resolve/main/swin_base_char_aux_1m.pth"
@@ -198,6 +199,36 @@ agent_up() {
   esac
 }
 
+# Agent mode where every user brings their own AI (API key or ChatGPT
+# Plus/Pro, connected in Settings). No provider, model or credential is
+# configured here; only the pinned OpenCode binary, which the control plane
+# runs once per user connection.
+user_ai_up() {
+  bootstrap_env
+  doctor
+  local binary
+  binary="$(env_value OPENCODE_BINARY_HOST_PATH || true)"
+  binary="${binary:-${OPENCODE_BIN:-$HOME/.opencode/bin/opencode}}"
+  [[ -x "$binary" ]] || fail "OpenCode 1.17.11 was not found at $binary; set OPENCODE_BINARY_HOST_PATH in .env"
+  [[ "$("$binary" --version)" == "1.17.11" ]] || fail "OpenCode 1.17.11 is required at $binary"
+  export OPENCODE_BINARY_HOST_PATH="$binary"
+  "${USER_AI_COMPOSE[@]}" up --build --detach --wait --wait-timeout 600 \
+    || fail "user-AI stack did not become ready; run ./bin/toxagent logs --user-ai"
+  local port mode
+  port="$(env_value FRONTEND_PORT || true)"; port="${port:-8088}"
+  mode="$(curl --fail --silent "http://localhost:${port}/health/ready" \
+    | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("mode",""), (d.get("runtime") or {}).get("ai_source",""))' 2>/dev/null || true)"
+  case "$mode" in
+    "agent_enabled user_connections")
+      printf 'User-AI stack ready: http://localhost:%s — each user connects their AI in Settings.\n' "$port" ;;
+    *) fail "stack started but is not in user-AI agent mode (got: ${mode:-nothing}); run ./bin/toxagent logs --user-ai" ;;
+  esac
+}
+
+user_ai_down() { export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"; "${USER_AI_COMPOSE[@]}" down; }
+user_ai_status() { export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"; "${USER_AI_COMPOSE[@]}" ps; }
+user_ai_logs() { export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"; "${USER_AI_COMPOSE[@]}" logs --tail=200 toxagent-control; }
+
 agent_down() { "${AGENT_COMPOSE[@]}" down; "$OPENCODE_RUNTIME" stop; }
 agent_status() { "$OPENCODE_RUNTIME" status; "${AGENT_COMPOSE[@]}" ps; }
 agent_logs() { "$OPENCODE_RUNTIME" logs; "${AGENT_COMPOSE[@]}" logs --tail=200 toxagent-control; }
@@ -235,6 +266,7 @@ doctor() {
 
 up() {
   if [[ "${1:-}" == "--agent" ]]; then agent_up; return; fi
+  if [[ "${1:-}" == "--user-ai" ]]; then user_ai_up; return; fi
   doctor; "${COMPOSE[@]}" up --build --detach --wait --wait-timeout 600; printf 'Ready: http://localhost:%s\n' "$(env_value FRONTEND_PORT)";
 }
 down() { "${COMPOSE[@]}" down; }
@@ -282,9 +314,9 @@ case "$command" in
     ;;
   doctor) doctor ;;
   up) up "$@" ;;
-  down) [[ "${1:-}" == "--agent" ]] && agent_down || down ;;
-  status) [[ "${1:-}" == "--agent" ]] && agent_status || status ;;
-  logs) [[ "${1:-}" == "--agent" ]] && agent_logs || logs "$@" ;;
+  down) case "${1:-}" in --agent) agent_down ;; --user-ai) user_ai_down ;; *) down ;; esac ;;
+  status) case "${1:-}" in --agent) agent_status ;; --user-ai) user_ai_status ;; *) status ;; esac ;;
+  logs) case "${1:-}" in --agent) agent_logs ;; --user-ai) user_ai_logs ;; *) logs "$@" ;; esac ;;
   smoke) smoke ;; backup) backup ;; restore) restore "$@" ;;
-  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent],down [--agent],status [--agent],logs [--agent],smoke,backup,restore,models}\n' "$0" >&2; exit 2 ;;
+  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent|--user-ai],down [--agent|--user-ai],status [--agent|--user-ai],logs [--agent|--user-ai],smoke,backup,restore,models}\n' "$0" >&2; exit 2 ;;
 esac

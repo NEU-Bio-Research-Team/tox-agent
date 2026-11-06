@@ -178,6 +178,12 @@ def create_app(
         settings.secrets_dir, settings.security.secret_encryption_key
     )
     owner_hosts = getattr(runtime_provider, "hosts", None)
+    if not settings.runtime.opencode_shared_host and settings.runtime.kind == "opencode":
+        if owner_hosts is None:
+            raise ValueError(
+                "TOXAGENT_OPENCODE_SHARED_HOST=0 leaves only users' own AI connections, "
+                "which need TOXAGENT_OWNER_RUNTIME_HOSTS=1"
+            )
     if owner_hosts is not None:
         owner_hosts.credential_sink = secret_store.replace
 

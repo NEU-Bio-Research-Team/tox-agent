@@ -55,7 +55,10 @@ export function SettingsPage() {
           </CardContent>
         </Card>
 
-        <AiConnectionsCard agentEnabled={health ? health.mode === 'agent_enabled' : null} />
+        <AiConnectionsCard
+          agentEnabled={health ? health.mode === 'agent_enabled' : null}
+          userAiRequired={health?.runtime?.ai_source === 'user_connections'}
+        />
 
         <details className="rounded-xl border px-6 py-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
           <summary className="cursor-pointer text-base font-semibold">Nâng cao</summary>

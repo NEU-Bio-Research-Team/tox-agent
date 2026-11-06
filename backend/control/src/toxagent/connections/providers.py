@@ -13,7 +13,8 @@ hand its credential to the agent runtime (``harness/owner_hosts.py``
 maps ``runtime_provider_id`` onto OpenCode's own provider of that name).
 
 Anthropic was refused here until a Messages-API probe existed; it now does.
-Gemini still has none, and stays refused with the reason.
+Gemini is offered as ``google``: its key is probed through Gemini's
+OpenAI-compatible endpoint, and a run uses OpenCode's native Google provider.
 
 Adding a provider means adding an entry here *and* a probe that has been run
 against it. A `default_base_url` of None means the deployment must supply one —
@@ -116,6 +117,41 @@ SUPPORTED: tuple[ProviderSpec, ...] = (
         runtime_provider_id="deepseek",
     ),
     ProviderSpec(
+        id="google",
+        display_name="Google Gemini",
+        protocol=Protocol.OPENAI_CHAT_COMPLETIONS,
+        # Gemini's OpenAI-compatible surface: what the probe and the model list
+        # call. A run uses OpenCode's native Google provider with the same key.
+        default_base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+        auth_modes=(AuthMode.API_KEY,),
+        note="Gemini API key from Google AI Studio.",
+        runtime_provider_id="google",
+    ),
+    ProviderSpec(
+        id="xai",
+        display_name="xAI (Grok)",
+        protocol=Protocol.OPENAI_CHAT_COMPLETIONS,
+        default_base_url="https://api.x.ai/v1",
+        auth_modes=(AuthMode.API_KEY,),
+        runtime_provider_id="xai",
+    ),
+    ProviderSpec(
+        id="groq",
+        display_name="Groq",
+        protocol=Protocol.OPENAI_CHAT_COMPLETIONS,
+        default_base_url="https://api.groq.com/openai/v1",
+        auth_modes=(AuthMode.API_KEY,),
+        runtime_provider_id="groq",
+    ),
+    ProviderSpec(
+        id="mistral",
+        display_name="Mistral",
+        protocol=Protocol.OPENAI_CHAT_COMPLETIONS,
+        default_base_url="https://api.mistral.ai/v1",
+        auth_modes=(AuthMode.API_KEY,),
+        runtime_provider_id="mistral",
+    ),
+    ProviderSpec(
         id="openai_compatible",
         display_name="OpenAI-compatible / self-hosted",
         protocol=Protocol.OPENAI_CHAT_COMPLETIONS,
@@ -130,10 +166,14 @@ SUPPORTED: tuple[ProviderSpec, ...] = (
 #: and so re-adding one is a visible change.
 UNSUPPORTED: dict[str, str] = {
     "gemini": (
-        "Gemini's generateContent API is a different wire format from "
-        "chat/completions and this control plane has no adapter for it yet. "
-        "Gemini through an OpenAI-compatible gateway can be added as "
-        "OpenAI-compatible."
+        "Gemini is listed as 'google' (Google Gemini): its API key is probed "
+        "through Gemini's OpenAI-compatible endpoint and runs on OpenCode's "
+        "Google provider."
+    ),
+    "claude_code": (
+        "A Claude Code or Claude.ai Pro/Max sign-in is not offered: Anthropic "
+        "does not allow third-party apps to use a consumer subscription for "
+        "inference. Use an Anthropic API key (Claude (Anthropic)) instead."
     ),
     "claude_pro": (
         "A Claude.ai Pro/Max sign-in is not offered: Anthropic does not allow "

@@ -261,6 +261,15 @@ class ContextMixin:
         at the trust boundary that has already re-proved ownership, and handed
         to the adapter for this turn only.
         """
+        if context.ai_profile_id is None and not getattr(
+            self._settings, "opencode_shared_host", True
+        ):
+            from ...domain.errors import AiConnectionRequired
+
+            raise AiConnectionRequired(
+                "this deployment runs on each user's own AI; connect one in "
+                "Settings → AI của bạn and choose it for your sessions"
+            )
         if context.ai_profile_id is None:
             return ResolvedProfile(
                 provider_id=self._settings.provider_id,

@@ -91,3 +91,31 @@ describe('profileForSession', () => {
     expect(profileForSession({ defaultProfileId: undefined, currentProfileId: 'conn_gone', readyProfileIds: ready })).toBeNull();
   });
 });
+
+describe('a server with no AI of its own', () => {
+  it('asks the user to connect one instead of naming a server default', () => {
+    const choice = describeAgentProfileChoice({ agentEnabled: true, readyProfileCount: 0, userAiRequired: true });
+    expect(choice.defaultOptionLabel).not.toMatch(/server/i);
+    expect(choice.notice).toMatch(/không có AI riêng/);
+    expect(choice.disabled).toBe(false);
+  });
+
+  it('pins a ready connection rather than the runtime that is not there', () => {
+    expect(profileForSession({
+      defaultProfileId: undefined, currentProfileId: null, readyProfileIds: ['con_a', 'con_b'], userAiRequired: true,
+    })).toBe('con_a');
+    expect(profileForSession({
+      defaultProfileId: null, currentProfileId: null, readyProfileIds: ['con_a'], userAiRequired: true,
+    })).toBe('con_a');
+    expect(profileForSession({
+      defaultProfileId: 'con_b', currentProfileId: null, readyProfileIds: ['con_a', 'con_b'], userAiRequired: true,
+    })).toBe('con_b');
+    expect(profileForSession({
+      defaultProfileId: undefined, currentProfileId: null, readyProfileIds: [], userAiRequired: true,
+    })).toBeNull();
+  });
+
+  it('keeps the old behaviour where the server has its own runtime', () => {
+    expect(profileForSession({ defaultProfileId: undefined, currentProfileId: null, readyProfileIds: ['con_a'] })).toBeNull();
+  });
+});

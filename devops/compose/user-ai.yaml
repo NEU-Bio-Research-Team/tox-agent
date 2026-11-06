@@ -1,0 +1,46 @@
+# Agent mode with no AI of its own: each user connects their own AI in
+# Settings → "AI của bạn" (an API key for OpenAI, Claude, Gemini, OpenRouter,
+# DeepSeek, xAI, Groq, Mistral or any OpenAI-compatible server, or a ChatGPT
+# Plus/Pro sign-in). The back end needs no provider, model or credential.
+#
+# OpenCode stays the engine. The pinned binary is mounted read-only into the
+# control plane, which starts one private OpenCode process per connection
+# (harness/owner_hosts.py) inside this container. There is no shared host.
+#
+#   ./bin/toxagent up --user-ai
+#
+# Run alongside compose/compose.yaml.
+services:
+  toxagent-control:
+    volumes:
+      - "${OPENCODE_BINARY_HOST_PATH:?set OPENCODE_BINARY_HOST_PATH to the OpenCode 1.17.11 binary}:/opt/opencode/opencode:ro"
+    environment:
+      TOXAGENT_RUNTIME_KIND: opencode
+      TOXAGENT_OPENCODE_VERSION: "1.17.11"
+      TOXAGENT_OPENCODE_SHARED_HOST: "false"
+      TOXAGENT_OWNER_RUNTIME_HOSTS: "true"
+      TOXAGENT_OPENCODE_BINARY: /opt/opencode/opencode
+      # Inside the container's own filesystem, not the state volume: a host's
+      # root holds its credential file, and a container restart should take
+      # any leftover with it.
+      TOXAGENT_OWNER_HOSTS_DIR: /tmp/toxagent-owner-hosts
+      TOXAGENT_OPENCODE_DIRECTORY: /tmp/toxagent-opencode-workspace
+      TOXAGENT_OWNER_HOSTS_MAX: ${TOXAGENT_OWNER_HOSTS_MAX:-2}
+      TOXAGENT_OWNER_HOSTS_IDLE_S: ${TOXAGENT_OWNER_HOSTS_IDLE_S:-600}
+      TOXAGENT_CHATGPT_OAUTH: ${TOXAGENT_CHATGPT_OAUTH:-local}
+      # The private hosts run in this container, so they reach the tool plane
+      # on loopback.
+      TOXAGENT_MCP_RUNTIME_URL: http://127.0.0.1:8000/internal/mcp
+      # The agent layer as merged (arm E of protocol v2). Each can be turned
+      # off from .env.
+      TOXAGENT_FLAG_ANSWER_DRAFT_V2: ${TOXAGENT_FLAG_ANSWER_DRAFT_V2:-1}
+      TOXAGENT_FLAG_EVIDENCE_FULL_TEXT_V1: ${TOXAGENT_FLAG_EVIDENCE_FULL_TEXT_V1:-1}
+      TOXAGENT_FLAG_CLAIM_REVIEWER_V1: ${TOXAGENT_FLAG_CLAIM_REVIEWER_V1:-1}
+      TOXAGENT_FLAG_RELEASE_GATE_V1: ${TOXAGENT_FLAG_RELEASE_GATE_V1:-1}
+      TOXAGENT_FLAG_TYPED_STOP_V1: ${TOXAGENT_FLAG_TYPED_STOP_V1:-1}
+      TOXAGENT_FLAG_SUBJECT_BINDING_V1: ${TOXAGENT_FLAG_SUBJECT_BINDING_V1:-1}
+      TOXAGENT_FLAG_SCIENTIFIC_CASE_V1: ${TOXAGENT_FLAG_SCIENTIFIC_CASE_V1:-1}
+      TOXAGENT_FLAG_SCIENTIFIC_SKILLS_V1: ${TOXAGENT_FLAG_SCIENTIFIC_SKILLS_V1:-1}
+      TOXAGENT_FLAG_SCIENTIFIC_PRIMITIVES_V1: ${TOXAGENT_FLAG_SCIENTIFIC_PRIMITIVES_V1:-1}
+      TOXAGENT_FLAG_SCIENTIFIC_PROCEDURES_V1: ${TOXAGENT_FLAG_SCIENTIFIC_PROCEDURES_V1:-1}
+      TOXAGENT_FLAG_INVESTIGATOR_CONTRACT_V1: ${TOXAGENT_FLAG_INVESTIGATOR_CONTRACT_V1:-1}

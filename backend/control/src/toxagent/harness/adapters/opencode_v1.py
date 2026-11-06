@@ -190,6 +190,16 @@ class OpenCodeV1Provider:
 
     async def health(self) -> RuntimeHealth:
         """Probe the live server and verify the dedicated product agent exists."""
+        if self._hosts is not None and not self._settings.opencode_shared_host:
+            # No shared host to probe: every run starts its user's own host,
+            # so what must hold is that one can be started.
+            ok, detail, missing = await self._hosts.preflight(OPENCODE_V1_PIN)
+            if ok and self._settings.agent_name in missing:
+                return RuntimeHealth(
+                    False, f"agent {self._settings.agent_name!r} is not in the profile",
+                    missing_agents=missing,
+                )
+            return RuntimeHealth(ok, detail, missing_agents=missing if ok else ())
         try:
             response = await self._client.get("/agent", params=self._query())
         except httpx.HTTPError as exc:

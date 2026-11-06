@@ -245,3 +245,21 @@ async def test_a_chatgpt_profile_without_a_stored_sign_in_is_refused(db, tmp_pat
     gateway = _gateway(db, FilesystemSecretStore(tmp_path / "secrets"))
     with pytest.raises(RuntimeUnavailable, match="reconnect"):
         await gateway._resolve_ai_profile(_Context(_Actor("owner-a"), connection.id))
+
+
+async def test_with_no_deployment_ai_a_session_without_a_connection_is_told_to_connect_one(db, tmp_path):
+    from toxagent.domain.errors import AiConnectionRequired
+
+    gateway = AgentRuntimeGateway(
+        db, registry=None, capability_tokens=None, provider=Recorder(),
+        settings=RuntimeSettings(kind="scripted", opencode_shared_host=False),
+        secrets=FilesystemSecretStore(tmp_path / "secrets"),
+    )
+    with pytest.raises(AiConnectionRequired) as excinfo:
+        await gateway._resolve_ai_profile(_Context(_Actor("owner-a"), None))
+    assert excinfo.value.code == "ai_connection_required"
+    assert "Settings" in str(excinfo.value)
+    # A connection still resolves as usual.
+    connection = await _store(db, FilesystemSecretStore(tmp_path / "secrets"), "owner-a")
+    resolved = await gateway._resolve_ai_profile(_Context(_Actor("owner-a"), connection.id))
+    assert resolved.connection_id == connection.id
