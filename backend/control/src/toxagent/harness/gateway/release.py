@@ -243,20 +243,35 @@ class ReleaseGateMixin:
                                  phase: str = "review_initial"):
         """One reviewer turn over ``answer``, and what it decides."""
         review = await self._review_round(context, answer, phase=phase)
+        from ...application.investigation import claim_verification
+
+        async with self._db.unit_of_work() as uow:
+            checks = await claim_verification.plan_checks(
+                uow, session_id=context.session_id, answer=answer
+            )
+        by_code = claim_verification.code_verdicts(checks)
+        reviewer = [
+            {**item, "checked_by": "reviewer"} for item in review.get("reviews") or ()
+        ]
+        # A review that did not complete leaves its claims unjudged; code's
+        # verdicts stand either way, so a code-only answer is still gated.
         decision = release_gate.release_decision(
-            review.get("reviews") or (),
+            [*reviewer, *by_code],
             reviewed_claim_ids=[
-                c.claim_id for c in answer.claims
-                if getattr(c.kind, "value", c.kind) in claim_review.REVIEWED_KINDS
+                *claim_verification.review_claim_ids(checks),
+                *(item["claim_id"] for item in by_code),
             ],
         )
+        if review.get("status") == "skipped" and by_code and not claim_verification.review_claim_ids(checks):
+            review = {**review, "status": "completed", "reason": "every claim was checked by code"}
         review = {
             **{k: v for k, v in review.items() if k != "reviews"},
             "answer_id": answer.id,
             "verdicts": [
-                {k: item.get(k) for k in ("claim_id", "verdict", "reason")}
-                for item in review.get("reviews") or ()
+                {k: item.get(k) for k in ("claim_id", "verdict", "reason", "checked_by", "claim_type")}
+                for item in [*reviewer, *by_code]
             ],
+            "claim_checks": [c.to_dict() for c in checks],
             "counts": dict(decision.counts),
             "blocking_claim_ids": list(decision.blocking_claim_ids),
         }

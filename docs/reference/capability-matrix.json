@@ -211,6 +211,15 @@
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
     },
+    "decision_loop_v1": {
+      "default": false,
+      "description": "Register plan_next_action in decision_support and evidence_research (#70/#71, §6.2-6.4): before each search, read or answer the investigator lists candidate actions with the requirement each serves and the gap or competing explanation it discriminates; the server refuses repeats, ranks in §6.4 order, asks for one counter-evidence search before a decisive answer, and keeps a typed gap ledger that an insufficient stop reports from. Off, the tool does not exist.",
+      "gates_tools": [
+        "plan_next_action"
+      ],
+      "owner": "backend-agent",
+      "remove_by": "2026-12-12"
+    },
     "decision_state_plan_tool": {
       "default": false,
       "description": "Register record_decision_plan in the decision_support profile, so the model can propose the propositions its answer must resolve. Off, the DecisionSupportStateV1 is still kept (goal, usage, answer resolution, stop reason) but has no model-proposed plan and the tool surface is unchanged.",
@@ -607,6 +616,7 @@
         "get_prioritisation_decision": "activity_replay_v1",
         "get_scientific_case": "scientific_case_v1",
         "get_screening_state": "activity_replay_v1",
+        "plan_next_action": "decision_loop_v1",
         "propose_skill_draft": "skill_drafts_v1",
         "read_evidence_text": "evidence_full_text_v1",
         "read_scientific_skill": "scientific_skills_v1",
@@ -643,6 +653,7 @@
         "submit_grounded_answer"
       ],
       "flag_gated": {
+        "plan_next_action": "decision_loop_v1",
         "read_evidence_text": "evidence_full_text_v1",
         "run_scientific_procedure": "scientific_procedures_v1"
       }

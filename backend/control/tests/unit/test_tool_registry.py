@@ -104,7 +104,10 @@ def test_every_conversational_profile_is_a_small_closed_set():
         # which is one entry for four determinate operations precisely because
         # §7.3 asks the core surface to stay small: four tools would have cost
         # four here and made the list harder to choose from.
-        assert len(tools) <= ceiling + 12, f"{name} has {len(tools)} tools with every flag on"
+        # +14 for #70/#71's plan_next_action (one bookkeeping call, fetches
+        # nothing) and #75's delegate_evidence_workers (one entry for at most
+        # two bounded workers): each is its own flag and its own experiment.
+        assert len(tools) <= ceiling + 14, f"{name} has {len(tools)} tools with every flag on"
 
 
 def test_the_orchestrated_synthesis_turn_sees_exactly_one_tool():

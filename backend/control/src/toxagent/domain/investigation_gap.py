@@ -17,6 +17,7 @@ vocabulary instead of inventing two.
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any, Mapping
 
 
 class Gap(str, Enum):
@@ -52,3 +53,34 @@ def is_blocking(gap: Gap | str) -> bool:
         return Gap(gap) in BLOCKING_GAPS
     except ValueError:
         return False
+
+
+#: Which gap is worth closing first when nothing else distinguishes two (§6.2
+#: step two). Identity first: nothing can be compared before it is settled.
+GAP_PRIORITY: tuple[Gap, ...] = (
+    Gap.IDENTITY_OR_SCOPE,
+    Gap.DISAGREEMENT_UNEXPLAINED,
+    Gap.MEASUREMENT_UNRESOLVED,
+    Gap.SPAN_NOT_READ,
+    Gap.NO_RELEVANT_EVIDENCE,
+    Gap.ONLY_RESEARCHER_HAS_IT,
+    Gap.PROVIDER_OR_CORPUS,
+)
+_RANK = {gap.value: i for i, gap in enumerate(GAP_PRIORITY)}
+
+
+def open_gaps(ledger: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Open gaps, most important first (§6.2 step two)."""
+    items = [g for g in ledger.get("gaps") or () if g.get("status") == "open"]
+    return sorted(items, key=lambda g: (not g.get("decisive"), _RANK.get(g.get("gap"), 99)))
+
+
+
+def insufficiency(ledger: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """What is missing and which claim it limits — the content of an
+    'insufficient' stop (§6.3), never prose alone."""
+    return [
+        {"requirement_id": g.get("requirement_id"), "missing": g.get("gap"),
+         "limits": g.get("limits"), "blocking": is_blocking(g.get("gap", ""))}
+        for g in open_gaps(ledger)
+    ]

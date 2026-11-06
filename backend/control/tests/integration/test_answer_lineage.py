@@ -126,8 +126,10 @@ async def test_a_claim_keeps_its_draft_label_and_the_reviewer_sees_what_it_quote
     (relation,) = evidence_source["relations"]
     assert relation["scope"] == {"endpoint": "herg", "ligand_id": "compound 7",
                                  "assay_type": "patch clamp"}
-    (observation_source,) = by_text["Predicted probability."]["sources"]
-    assert observation_source["required_limitations"]
+    # #72: a field lookup is checked by code, not sent to the reviewer.
+    assert "Predicted probability." not in by_text
+    (lookup,) = [c for c in bundle["code_checks"] if c["claim_id"] == claims["herg_p"].claim_id]
+    assert lookup["claim_type"] == "artifact_fact" and lookup["verdict"] == "supported"
 
 
 async def _submit_reading(db, session, run, observation, record):
