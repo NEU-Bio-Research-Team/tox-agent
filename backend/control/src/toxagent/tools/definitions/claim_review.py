@@ -37,12 +37,14 @@ def build(database) -> list[ToolDefinition]:
     async def submit(context: ToolContext, payload: SubmitClaimReviewInput) -> ToolOutput:
         async with database.unit_of_work() as uow:
             answer = await uow.answers.get_for_run(context.run_id)
-        if answer is None:
-            raise InvalidRequest("this run has no accepted answer to review")
-        expected = {
-            c.claim_id for c in answer.claims
-            if getattr(c.kind, "value", c.kind) in claim_review.REVIEWED_KINDS
-        }
+            if answer is None:
+                raise InvalidRequest("this run has no accepted answer to review")
+            # Exactly the claims the bundle listed: those code settles (#72)
+            # are not the reviewer's to judge.
+            bundle = await claim_review.review_bundle(
+                uow, session_id=context.session_id, answer=answer
+            )
+        expected = {item["claim_id"] for item in bundle["claims"]}
         given = [item.claim_id for item in payload.reviews]
         unknown = sorted(set(given) - expected)
         missing = sorted(expected - set(given))

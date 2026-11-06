@@ -42,7 +42,7 @@ Where a source lists quoted_passages, those are the passages the claim says \
 it quotes: judge the claim against them. Where it lists relations, those are \
 the scope the answer declared for that source: a claim that goes beyond it is \
 partially_supported at best. A derived claim lists its inputs; judge whether \
-it follows from them. Give a one-sentence reason for each verdict. Call \
+it follows from them. Each claim carries its claim_type and the rule for that type: apply that rule, and judge "observed" (what the answer says) against what each source states. Arithmetic and field lookups listed in code_checks were verified by code and are not yours to judge. Give a one-sentence reason for each verdict. Call \
 submit_claim_review once, with a verdict for every claim listed. Do not \
 rewrite the answer."""
 
@@ -56,6 +56,10 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
     declared for it; for an observation, what it is about and the caveats it
     carries; for a derived claim, the claims it was computed from.
     """
+    from . import claim_verification
+
+    checks = await claim_verification.plan_checks(uow, session_id=session_id, answer=answer)
+    to_review = {c.claim_id: c for c in checks if c.path == "review"}
     by_id = {c.claim_id: c for c in answer.claims}
     relations: dict[str, list[dict[str, Any]]] = {}
     for relation in await uow.evidence_relations.list_for_run(answer.run_id, answer_id=answer.id):
@@ -69,8 +73,9 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
     claims: list[dict[str, Any]] = []
     for claim in answer.claims:
         kind = getattr(claim.kind, "value", claim.kind)
-        if kind not in REVIEWED_KINDS:
+        if kind not in REVIEWED_KINDS or claim.claim_id not in to_review:
             continue
+        check = to_review[claim.claim_id]
         sources: list[dict[str, Any]] = []
         if claim.observation_id:
             observation = await uow.observations.get(claim.observation_id, session_id=session_id)
@@ -127,8 +132,14 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
             if relations.get(evidence_id):
                 source["relations"] = relations[evidence_id]
             sources.append(source)
+        # §9.2: X (what the answer says), Y (what each source states), the
+        # rule for this type of claim and the scope, side by side.
         entry: dict[str, Any] = {
-            "claim_id": claim.claim_id, "kind": kind, "text": claim.text, "sources": sources,
+            "claim_id": claim.claim_id, "kind": kind, "claim_type": check.claim_type,
+            "observed": f"the answer says: {claim.text}",
+            "text": claim.text,
+            "rule": claim_verification.RULES.get(check.claim_type, ""),
+            "sources": sources,
         }
         if claim.input_claim_ids:
             entry["inputs"] = [
@@ -138,7 +149,12 @@ async def review_bundle(uow, *, session_id: str, answer) -> dict[str, Any]:
             ]
             entry["transform"] = claim.transform
         claims.append(entry)
-    return {"answer_id": answer.id, "claims": claims}
+    return {
+        "answer_id": answer.id, "claims": claims,
+        # Settled without the reviewer; listed so the record shows every
+        # claim's path, never sent as something to judge.
+        "code_checks": [c.to_dict() for c in checks if c.path != "review"],
+    }
 
 
 async def _what_it_was_made_of(uow, session_id: str, answer, observation) -> dict[str, Any]:
