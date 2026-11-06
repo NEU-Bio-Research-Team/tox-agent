@@ -76,6 +76,10 @@ class StopReason(str, Enum):
     #: that produced no answer at all is ``blocked``, which is the runtime
     #: axis and unchanged.
     PROVIDER_FAILURE = "provider_failure"
+    #: #70 (§6.3): reachable sources were read and did not settle the
+    #: question. Not insufficient_evidence (nothing relevant was in reach):
+    #: here the run looked at what it found and the science stayed open.
+    SOURCES_UNRESOLVED = "sources_unresolved"
 
 
 class RequiredSource(str, Enum):
@@ -185,6 +189,12 @@ class DecisionSupportStateV1:
     #: conditions. Recorded so a grader can read what the run was *asked* to
     #: do without reconstructing it from four places and a prompt.
     goal_contract: Mapping[str, Any] = field(default_factory=dict)
+    #: #70/#71 (decision_loop_v1): the gap ledger -- typed gaps per required
+    #: question, the actions taken with the gap each served and one public
+    #: reason, competing explanations, and the counter-evidence check.
+    decision_loop: Mapping[str, Any] = field(default_factory=dict)
+    #: #70: what an insufficient stop is missing and which claim it limits.
+    stop_detail: tuple[Mapping[str, Any], ...] = ()
     revision: int = 0
     schema_version: str = SCHEMA_VERSION
 
@@ -221,6 +231,8 @@ class DecisionSupportStateV1:
             **({"access_failures": [dict(f) for f in self.access_failures]}
                if self.access_failures else {}),
             **({"goal_contract": dict(self.goal_contract)} if self.goal_contract else {}),
+            **({"decision_loop": dict(self.decision_loop)} if self.decision_loop else {}),
+            **({"stop_detail": [dict(d) for d in self.stop_detail]} if self.stop_detail else {}),
             "declared_stop": dict(self.declared_stop),
             "workflow": dict(self.workflow),
             "revision": self.revision,
@@ -254,6 +266,8 @@ class DecisionSupportStateV1:
             workflow=dict(data.get("workflow") or {}),
             access_failures=tuple(dict(f) for f in data.get("access_failures") or ()),
             goal_contract=dict(data.get("goal_contract") or {}),
+            decision_loop=dict(data.get("decision_loop") or {}),
+            stop_detail=tuple(dict(d) for d in data.get("stop_detail") or ()),
             revision=int(data.get("revision", 0)),
         )
 
@@ -533,6 +547,15 @@ def record_access_failure(
     return _next(state, access_failures=state.access_failures + (entry,))
 
 
+def record_decision_loop(
+    state: DecisionSupportStateV1, ledger: Mapping[str, Any]
+) -> DecisionSupportStateV1:
+    """#70: the run's gap ledger after one plan_next_action step."""
+    if state.stop_reason is not None:
+        return state
+    return _next(state, decision_loop=dict(ledger))
+
+
 def request_repair(state: DecisionSupportStateV1, *, answer_id: str) -> DecisionSupportStateV1:
     """#47: the review blocked this candidate and its one repair is open.
     submit_grounded_answer accepts one more answer for the run while this
@@ -587,9 +610,21 @@ def finalize(
         # having looked and found the question unsettled. Budget comes first:
         # a run that also ran out of budget stopped for that.
         reason = StopReason.PROVIDER_FAILURE
+    elif state.decision_loop and state.usage.get("evidence_reads", 0):
+        # Under the gap loop (#70) a run that read what it found and still
+        # has an open question says so, apart from one that found nothing.
+        reason = StopReason.SOURCES_UNRESOLVED
     else:
         reason = StopReason.INSUFFICIENT_EVIDENCE
-    return _next(state, stop_reason=reason.value)
+    detail: tuple[Mapping[str, Any], ...] = ()
+    if state.decision_loop and reason in {
+        StopReason.INSUFFICIENT_EVIDENCE, StopReason.SOURCES_UNRESOLVED,
+        StopReason.PROVIDER_FAILURE, StopReason.BUDGET_EXHAUSTED,
+    }:
+        from .investigation_gap import insufficiency
+
+        detail = tuple(insufficiency(state.decision_loop))
+    return _next(state, stop_reason=reason.value, stop_detail=detail)
 
 
 def checkpoint_summary(state: DecisionSupportStateV1, *, limit: int = 4) -> str:

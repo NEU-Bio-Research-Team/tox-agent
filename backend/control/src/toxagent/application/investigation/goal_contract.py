@@ -153,6 +153,14 @@ class GoalContractV1:
             lines.append("Actions available to this turn: " +
                          ", ".join(self.admissible_actions) +
                          ". No other tool exists for you.")
+        if "plan_next_action" in self.admissible_actions:
+            lines.append(
+                "Work gap by gap: before each search, read or answer, call plan_next_action "
+                "with the candidate actions you are weighing, each naming the question it "
+                "serves and what its result could tell apart; take the action it chooses. "
+                "Stop when no required question is open, or when the gap left is one only "
+                "the researcher or a working provider can close."
+            )
         declared = _budget_lines(self.budget)
         if declared:
             lines.append("Budget: " + "; ".join(declared) +

@@ -335,6 +335,19 @@ FLAGS: tuple[RolloutFlag, ...] = (
         added_on=date(2026, 10, 28),
     ),
     _flag(
+        "decision_loop_v1",
+        "Register plan_next_action in decision_support and evidence_research (#70/#71, "
+        "§6.2-6.4): before each search, read or answer the investigator lists candidate "
+        "actions with the requirement each serves and the gap or competing explanation it "
+        "discriminates; the server refuses repeats, ranks in §6.4 order, asks for one "
+        "counter-evidence search before a decisive answer, and keeps a typed gap ledger "
+        "that an insufficient stop reports from. Off, the tool does not exist.",
+        owner="backend-agent",
+        removal_condition="a pilot shows gap-loop runs reach decisive evidence at no higher "
+                          "cost than runs without it, against the #71 controls",
+        added_on=date(2026, 11, 7),
+    ),
+    _flag(
         "investigator_contract_v1",
         "Send the investigator a goal contract and the six-group case view "
         "(#69/#63/#68 of the 2026-10-28 architecture proposal): the route, the "
