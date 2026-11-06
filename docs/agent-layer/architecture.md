@@ -239,3 +239,28 @@ Code: `application/runs/budget.py`, `tools/runner.py`.
 The single rule behind the table: the model proposes, the server records. Every
 value in a released answer resolves to a stored field, which is what makes an
 answer auditable after the fact.
+
+## The live run log
+
+The chat shows each run's work as it happens — the trace panel under the
+user's message (`RunTrace.tsx`), open while the run works and folded into a
+one-line summary when it ends. It is built from session events only:
+
+| Line | Event | Emitted by |
+|---|---|---|
+| Turn: phase, model, tool count, prompt size | `agent.trace` `kind=turn` | gateway `_dispatch`, once the runtime binding exists |
+| Skills offered, static or dynamic | `agent.trace` `kind=skills` | gateway, when the skill arm is not `off` |
+| Reasoning, streamed | `agent.reasoning` (one entity per reasoning part) | gateway, from the runtime's `REASONING_DELTA` |
+| Tool call with a bounded argument preview, timing, result | `tool.started` (`arguments_preview`) / `tool.completed` / `tool.failed` | `ToolRunner` |
+| A rejected answer; validation | `answer.rejected`; `run.validating` | unchanged |
+
+Reasoning is mirrored, assistant text is not. Message deltas stay out of
+product state so an ungrounded number never survives in the transcript (see
+`_consume_events`); reasoning is a separate event type the UI labels as
+unverified thinking, which no validator or projection reads. It is throttled
+to one event per part per second plus the final text, capped at its last 6,000
+characters, and flushed when the turn ends. Every trace write is best effort:
+a failure is logged and never fails the run it describes.
+
+A skill read on demand (`read_scientific_skill`) appears as its tool call,
+with the skill id from its arguments.

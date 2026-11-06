@@ -7,12 +7,12 @@
  * deployment with no profiles configured — two states where nothing would run.
  *
  * The wording is the fix, so it is what is tested. It now labels the default
- * profile choice in Settings; the per-session popover it used to live in is
- * gone, and profileForSession below decides what a session is pinned to.
+ * connection state in the chat's model picker, and choiceForSession below
+ * decides what a session runs on when it is opened.
  */
 import { describe, expect, it } from 'vitest';
 
-import { describeAgentProfileChoice, profileForSession } from './aiProfile';
+import { choiceForSession, describeAgentProfileChoice, sameChoice } from './aiProfile';
 
 describe('predictor-only deployment', () => {
   const choice = describeAgentProfileChoice({ agentEnabled: false, readyProfileCount: 0 });
@@ -67,28 +67,32 @@ describe('before /health/ready answers', () => {
   });
 });
 
-describe('profileForSession', () => {
+describe('choiceForSession', () => {
   const ready = ['conn_a', 'conn_b'];
+  const a = { connectionId: 'conn_a', modelId: 'gpt-5.1' };
+  const b = { connectionId: 'conn_b', modelId: null };
 
-  it('pins the Settings default while it is ready', () => {
-    expect(profileForSession({ defaultProfileId: 'conn_a', currentProfileId: 'conn_b', readyProfileIds: ready })).toBe('conn_a');
+  it('keeps the model a session picked while its connection is ready', () => {
+    expect(choiceForSession({ saved: a, lastChoice: b, readyConnectionIds: ready })).toEqual(a);
   });
 
-  it('honours an explicit choice of the server runtime', () => {
-    expect(profileForSession({ defaultProfileId: null, currentProfileId: 'conn_b', readyProfileIds: ready })).toBeNull();
+  it('starts a session with no pick on the last model picked anywhere', () => {
+    expect(choiceForSession({ saved: null, lastChoice: b, readyConnectionIds: ready })).toEqual(b);
   });
 
-  it('keeps what the session had when no default was ever chosen', () => {
-    // A profile pinned through the old per-session popover must survive the
-    // popover's removal.
-    expect(profileForSession({ defaultProfileId: undefined, currentProfileId: 'conn_b', readyProfileIds: ready })).toBe('conn_b');
+  it('unpins a connection that is no longer ready, whichever way it was chosen', () => {
+    // A deleted or failed connection left pinned would fail every run.
+    const gone = { connectionId: 'conn_gone', modelId: 'x' };
+    expect(choiceForSession({ saved: gone, lastChoice: gone, readyConnectionIds: ready })).toBeNull();
+    expect(choiceForSession({ saved: gone, lastChoice: a, readyConnectionIds: ready })).toEqual(a);
   });
+});
 
-  it('unpins a profile that is no longer ready, whichever way it was chosen', () => {
-    // A deleted or failed profile left pinned would fail every run, and there
-    // is no per-session control left to unpin it.
-    expect(profileForSession({ defaultProfileId: 'conn_gone', currentProfileId: null, readyProfileIds: ready })).toBeNull();
-    expect(profileForSession({ defaultProfileId: undefined, currentProfileId: 'conn_gone', readyProfileIds: ready })).toBeNull();
+describe('sameChoice', () => {
+  it("treats a missing model as the connection's own", () => {
+    expect(sameChoice({ connectionId: 'c', modelId: null }, { connectionId: 'c', modelId: null })).toBe(true);
+    expect(sameChoice({ connectionId: 'c', modelId: 'm' }, { connectionId: 'c', modelId: null })).toBe(false);
+    expect(sameChoice(null, null)).toBe(true);
   });
 });
 
@@ -101,21 +105,14 @@ describe('a server with no AI of its own', () => {
   });
 
   it('pins a ready connection rather than the runtime that is not there', () => {
-    expect(profileForSession({
-      defaultProfileId: undefined, currentProfileId: null, readyProfileIds: ['con_a', 'con_b'], userAiRequired: true,
-    })).toBe('con_a');
-    expect(profileForSession({
-      defaultProfileId: null, currentProfileId: null, readyProfileIds: ['con_a'], userAiRequired: true,
-    })).toBe('con_a');
-    expect(profileForSession({
-      defaultProfileId: 'con_b', currentProfileId: null, readyProfileIds: ['con_a', 'con_b'], userAiRequired: true,
-    })).toBe('con_b');
-    expect(profileForSession({
-      defaultProfileId: undefined, currentProfileId: null, readyProfileIds: [], userAiRequired: true,
-    })).toBeNull();
+    expect(choiceForSession({ saved: null, lastChoice: null, readyConnectionIds: ['con_a', 'con_b'], userAiRequired: true }))
+      .toEqual({ connectionId: 'con_a', modelId: null });
+    expect(choiceForSession({ saved: null, lastChoice: { connectionId: 'con_b', modelId: 'm' }, readyConnectionIds: ['con_a', 'con_b'], userAiRequired: true }))
+      .toEqual({ connectionId: 'con_b', modelId: 'm' });
+    expect(choiceForSession({ saved: null, lastChoice: null, readyConnectionIds: [], userAiRequired: true })).toBeNull();
   });
 
-  it('keeps the old behaviour where the server has its own runtime', () => {
-    expect(profileForSession({ defaultProfileId: undefined, currentProfileId: null, readyProfileIds: ['con_a'] })).toBeNull();
+  it('keeps the server runtime where the server has one', () => {
+    expect(choiceForSession({ saved: null, lastChoice: null, readyConnectionIds: ['con_a'] })).toBeNull();
   });
 });

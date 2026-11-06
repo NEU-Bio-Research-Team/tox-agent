@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { WorkspaceLayout } from '../../app/shell/WorkspaceLayout';
 import { WorkspaceHeader } from '../../app/shell/WorkspaceHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '../../shared/ui/card';
@@ -11,12 +12,13 @@ import { getDeveloperModeEnabled, getExpertModeEnabled, setDeveloperModeEnabled,
 import { getHealthReady, type HealthReady } from '../../shared/api/endpoints';
 import { AiConnectionsCard } from './AiConnectionsCard';
 
-// The AI section (providers, keys, models, ChatGPT sign-in) lives in
-// AiConnectionsCard; this page keeps the connection to the control plane and
+// The AI section (API keys and ChatGPT sign-in only — models are picked in the
+// chat) lives in AiConnectionsCard; this page keeps the connection to the control plane and
 // the display preferences.
 
 export function SettingsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [expertMode, setExpertMode] = useState(getExpertModeEnabled());
   const [developerMode, setDeveloperMode] = useState(getDeveloperModeEnabled());
   const [health, setHealth] = useState<HealthReady | null>(null);
@@ -58,6 +60,10 @@ export function SettingsPage() {
         <AiConnectionsCard
           agentEnabled={health ? health.mode === 'agent_enabled' : null}
           userAiRequired={health?.runtime?.ai_source === 'user_connections'}
+          onConnectionsChanged={() => {
+            void queryClient.invalidateQueries({ queryKey: ['model-connections'] });
+            void queryClient.invalidateQueries({ queryKey: ['connection-models'] });
+          }}
         />
 
         <details className="rounded-xl border px-6 py-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>

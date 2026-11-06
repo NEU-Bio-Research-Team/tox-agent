@@ -129,6 +129,32 @@ export function setDefaultAiProfileId(profileId: string | null): void {
   try { localStorage.setItem(DEFAULT_AI_PROFILE_KEY, profileId ?? ''); } catch { /* best effort */ }
 }
 
+const LAST_AI_CHOICE_KEY = 'toxagent.ai.last_choice';
+
+/** The connection and model last picked in the chat's model picker; a new
+ * session starts on it. Falls back to the old Settings default (a connection
+ * id with no model) so nobody loses their choice on upgrade. */
+export function getLastAiChoice(): { connectionId: string; modelId: string | null } | null {
+  try {
+    const raw = localStorage.getItem(LAST_AI_CHOICE_KEY);
+    if (raw) {
+      const value = JSON.parse(raw) as { connectionId?: unknown; modelId?: unknown };
+      if (typeof value.connectionId === 'string' && value.connectionId) {
+        return { connectionId: value.connectionId, modelId: typeof value.modelId === 'string' ? value.modelId : null };
+      }
+    }
+  } catch { /* fall through */ }
+  const legacy = getDefaultAiProfileId();
+  return legacy ? { connectionId: legacy, modelId: null } : null;
+}
+
+export function setLastAiChoice(choice: { connectionId: string; modelId: string | null } | null): void {
+  try {
+    if (choice) localStorage.setItem(LAST_AI_CHOICE_KEY, JSON.stringify(choice));
+    else localStorage.removeItem(LAST_AI_CHOICE_KEY);
+  } catch { /* best effort */ }
+}
+
 export function getEndpointSelection():Array<'herg' | 'tox21' | 'clintox'> | null {
   try {
     const value = JSON.parse(localStorage.getItem(ENDPOINT_SELECTION_KEY) ?? 'null');

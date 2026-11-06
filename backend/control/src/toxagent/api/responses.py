@@ -68,6 +68,7 @@ class SessionListResponse(_Response):
 
 class ConfigurationSnapshot(_Open):
     ai_profile_id: str | None
+    ai_model_id: str | None = None
     predictor_bindings: dict[str, str]
     created_at: str
 
@@ -91,6 +92,7 @@ class RunProjection(_Response):
 
 class SessionSettings(_Response):
     ai_profile_id: str | None
+    ai_model_id: str | None = None
     predictor_bindings: dict[str, str]
 
 

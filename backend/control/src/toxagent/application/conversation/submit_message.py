@@ -238,6 +238,7 @@ class SubmitMessage:
                 **dict(submission.model_selection or {}),
             }
             ai_profile_id = saved_settings.get("ai_profile_id")
+            ai_model_id = saved_settings.get("ai_model_id") if ai_profile_id else None
 
             if submission.client_message_id:
                 existing = await uow.messages.find_by_client_id(
@@ -387,7 +388,7 @@ class SubmitMessage:
                 and not capability_unavailable else None
             )
             await uow.run_configuration_snapshots.add(
-                run.id, ai_profile_id=ai_profile_id,
+                run.id, ai_profile_id=ai_profile_id, ai_model_id=ai_model_id,
                 predictor_bindings=resolved_model_selection, now=_now(),
                 intent_decision=(
                     decision.decision.to_dict() if decision.decision else None
@@ -445,6 +446,7 @@ class SubmitMessage:
                 endpoints=submission.endpoints,
                 model_selection=resolved_model_selection,
                 ai_profile_id=ai_profile_id,
+                ai_model_id=ai_model_id,
                 threshold_overrides=submission.threshold_overrides,
                 explanation_mode=submission.explanation_mode,
                 explanation_targets=submission.explanation_targets,

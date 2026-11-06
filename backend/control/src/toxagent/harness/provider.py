@@ -28,6 +28,8 @@ class RuntimeEventType(str, Enum):
     TURN_ACCEPTED = "runtime.turn.accepted"
     TURN_STARTED = "runtime.turn.started"
     MESSAGE_DELTA = "runtime.message.delta"
+    #: A reasoning part's text so far (cumulative), and whether it is done.
+    REASONING_DELTA = "runtime.reasoning.delta"
     TOOL_REQUESTED = "runtime.tool.requested"
     TOOL_COMPLETED = "runtime.tool.completed"
     USAGE_REPORTED = "runtime.usage.reported"

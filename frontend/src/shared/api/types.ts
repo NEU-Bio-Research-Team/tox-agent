@@ -360,6 +360,8 @@ export type EventType =
   | 'answer.rejected'
   | 'runtime.recovery_started'
   | 'runtime.usage_reported'
+  | 'agent.trace'
+  | 'agent.reasoning'
   | 'report.build_started'
   | 'report.stage_changed'
   | 'report.figure_created'

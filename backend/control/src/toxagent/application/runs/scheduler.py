@@ -66,6 +66,8 @@ class RunContext:
     endpoints: tuple[str, ...] | None = None
     model_selection: Mapping[str, str] | None = None
     ai_profile_id: str | None = None
+    #: The connection's model the user picked in the chat; None: its own.
+    ai_model_id: str | None = None
     threshold_overrides: Mapping[str, Any] | None = None
     explanation_mode: str = "on_demand"
     explanation_targets: tuple[tuple[str, str | None], ...] = ()
@@ -652,6 +654,7 @@ class RunScheduler:
                     endpoints=context.endpoints,
                     model_selection=context.model_selection,
                     ai_profile_id=context.ai_profile_id,
+                    ai_model_id=context.ai_model_id,
                     threshold_overrides=context.threshold_overrides,
                     explanation_mode=context.explanation_mode,
                     explanation_targets=context.explanation_targets,

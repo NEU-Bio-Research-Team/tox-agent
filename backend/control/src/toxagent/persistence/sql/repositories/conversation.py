@@ -35,12 +35,15 @@ class SqlSessionSettingsStore:
             session_settings.c.session_id == session_id
         ))).mappings().first()
         if row is None:
-            return {"ai_profile_id": None, "predictor_bindings": {}}
-        return {"ai_profile_id": row["ai_profile_id"], "predictor_bindings": dict(row["predictor_bindings"] or {})}
+            return {"ai_profile_id": None, "ai_model_id": None, "predictor_bindings": {}}
+        return {"ai_profile_id": row["ai_profile_id"], "ai_model_id": row.get("ai_model_id"),
+                "predictor_bindings": dict(row["predictor_bindings"] or {})}
 
     async def put(self, session_id: str, *, ai_profile_id: str | None,
-                  predictor_bindings: dict[str, str], now: datetime) -> None:
+                  predictor_bindings: dict[str, str], now: datetime,
+                  ai_model_id: str | None = None) -> None:
         values = {"session_id": session_id, "ai_profile_id": ai_profile_id,
+                  "ai_model_id": ai_model_id,
                   "predictor_bindings": dict(predictor_bindings), "updated_at": now}
         existing = await self._conn.execute(select(session_settings.c.session_id).where(
             session_settings.c.session_id == session_id

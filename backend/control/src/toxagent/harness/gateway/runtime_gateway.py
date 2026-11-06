@@ -183,6 +183,16 @@ class AgentRuntimeGateway(
                     state, mode=mode, offered=[skill.pin() for skill in offered],
                 ),
             )
+            # static: composed into the prompt; dynamic: an index the model
+            # reads from with read_scientific_skill, which shows as a tool call.
+            await self._emit_trace(context, "skills", {
+                "mode": mode,
+                "skills": [
+                    {"skill_id": skill.skill_id, "version": skill.version,
+                     "description": (skill.description or "")[:200]}
+                    for skill in offered
+                ],
+            })
         run_status = "failed"
         failure: BaseException | None = None
         commit = self._commit_with_case if keeps_case else self._commit_product_and_complete
@@ -417,6 +427,15 @@ class AgentRuntimeGateway(
                 },
             )
             await self._persist_started_run(context, binding)
+            await self._emit_trace(context, "turn", {
+                "phase": phase or None,
+                "profile": profile,
+                "provider_id": binding.provider_id,
+                "model_id": binding.model_id,
+                "auth_mode": resolved.auth_mode.value,
+                "tool_count": len(tool_schema),
+                "prompt_tokens": budget.total_tokens,
+            })
 
             # The database now has a truthful runtime session id, so the JTI
             # and the signed token can be scoped to the binding without a

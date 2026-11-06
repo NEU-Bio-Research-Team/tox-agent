@@ -80,6 +80,7 @@ async def update_session_settings(request: Request, session_id: str, body: Sessi
                                   principal: Actor = Depends(actor)):
     return await _services(request).sessions.update_settings(
         principal, session_id, ai_profile_id=body.ai_profile_id,
+        ai_model_id=body.ai_model_id,
         predictor_bindings=dict(body.predictor_bindings),
     )
 

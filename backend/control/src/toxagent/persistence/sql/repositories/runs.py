@@ -30,11 +30,12 @@ class SqlRunConfigurationSnapshotStore:
 
     async def add(self, run_id: str, *, ai_profile_id: str | None,
                   predictor_bindings: dict[str, str], now: datetime,
+                  ai_model_id: str | None = None,
                   intent_decision: dict[str, Any] | None = None,
                   effective_budget: dict[str, Any] | None = None,
                   subject_binding: dict[str, Any] | None = None) -> None:
         await self._conn.execute(insert(run_configuration_snapshots).values(
-            run_id=run_id, ai_profile_id=ai_profile_id,
+            run_id=run_id, ai_profile_id=ai_profile_id, ai_model_id=ai_model_id,
             predictor_bindings=dict(predictor_bindings),
             intent_decision=dict(intent_decision) if intent_decision else None,
             effective_budget=dict(effective_budget) if effective_budget else None,
@@ -63,6 +64,7 @@ class SqlRunConfigurationSnapshotStore:
             return None
         return {
             "ai_profile_id": row["ai_profile_id"],
+            "ai_model_id": row.get("ai_model_id"),
             "predictor_bindings": dict(row["predictor_bindings"] or {}),
             "intent_decision": dict(row["intent_decision"] or {}),
             "effective_budget": dict(row["effective_budget"]) if row.get("effective_budget") else None,

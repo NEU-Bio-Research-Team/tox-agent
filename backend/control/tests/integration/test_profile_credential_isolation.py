@@ -73,6 +73,7 @@ class _Context:
     def __init__(self, actor, ai_profile_id):
         self.actor = actor
         self.ai_profile_id = ai_profile_id
+        self.ai_model_id = None
 
 
 class _Actor:

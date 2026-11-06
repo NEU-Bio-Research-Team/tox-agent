@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import type { Message, RunProjection } from '../../../shared/api/types';
 import { isClarificationContent, isStructureRecognitionContent } from '../../../shared/api/types';
-import type { RecoveryBanner as RecoveryBannerData, ToolCallLive } from '../hooks/useSessionEvents';
+import type { RecoveryBanner as RecoveryBannerData, ToolCallLive, TraceEntry } from '../hooks/useSessionEvents';
+import { RunTrace } from './RunTrace';
 import { MessageBubble } from './MessageBubble';
 import { ClarificationCard } from './ClarificationCard';
 import { StructureRecognitionCard } from './StructureRecognitionCard';
@@ -26,6 +27,7 @@ import type { PendingUserSend } from '../store/pendingSends';
 // ActivityPresence status rather than a raw runtime trace.
 const ANALYSIS_INTENTS = new Set(['analysis', 'analysis_batch', 'structure_recognition']);
 const SILENT_INTENTS = new Set(['clarification_required', 'out_of_scope']);
+const LIVE_STATUSES = new Set(['queued', 'running', 'validating']);
 
 export function Transcript({
   sessionId,
@@ -38,6 +40,7 @@ export function Transcript({
   analysisIdByRun,
   activeAnalysisId,
   liveReportProgress = {},
+  liveTrace = {},
   onClarificationAction,
   onUseRecognizedSmiles,
 }: {
@@ -56,6 +59,8 @@ export function Transcript({
   activeAnalysisId?: string | null;
   /** run_id -> report build stages (useSessionEvents). */
   liveReportProgress?: Record<string, ReportProgress>;
+  /** run_id -> the run's live log (useSessionEvents). */
+  liveTrace?: Record<string, TraceEntry[]>;
   onClarificationAction: (action: string) => void;
   /** A recognition result is a prefill only; it never auto-submits analysis. */
   onUseRecognizedSmiles: (smiles: string) => void;
@@ -142,7 +147,15 @@ export function Transcript({
                     // A report build reports its stages; a tool-call spinner
                     // would hide which of eight steps a long build is on.
                     <ReportProgressTimeline progress={liveReportProgress[run.run_id]} />
+                  ) : (liveTrace[run.run_id]?.length || LIVE_STATUSES.has(run.status)) ? (
+                    <RunTrace
+                      run={run}
+                      entries={liveTrace[run.run_id] ?? []}
+                      activities={liveActivities[run.run_id] ?? []}
+                      sessionId={sessionId}
+                    />
                   ) : (
+                    // A run from before the live log existed has no trace.
                     <ActivityPresence
                       activities={liveActivities[run.run_id] ?? []}
                       tools={liveToolCalls[run.run_id] ?? []}

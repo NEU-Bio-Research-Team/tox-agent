@@ -598,6 +598,8 @@ class OpenCodeV1Provider:
                     )
             if part.get("type") == "tool":
                 return self._tool_event(part, envelope)
+            if part.get("type") == "reasoning":
+                return self._reasoning_event(part, properties, envelope)
             if part.get("type") == "step-finish":
                 tokens = part.get("tokens")
                 if isinstance(tokens, dict):
@@ -647,6 +649,34 @@ class OpenCodeV1Provider:
             if isinstance(nested, dict) and isinstance(nested.get("sessionID"), str):
                 return nested["sessionID"]
         return None
+
+    @staticmethod
+    def _reasoning_event(
+        part: dict[str, Any], properties: dict[str, Any], raw: dict[str, Any]
+    ) -> RuntimeEvent | None:
+        """A reasoning part: its whole text so far, keyed by part id.
+
+        ``part.text`` is cumulative in V1 while ``delta`` is only the newest
+        piece, so the cumulative text is preferred: a consumer that missed an
+        update still holds the right text after the next one.
+        """
+        part_id = part.get("id")
+        if not isinstance(part_id, str) or not part_id:
+            return None
+        text = part.get("text")
+        if not isinstance(text, str):
+            delta = properties.get("delta")
+            text = delta if isinstance(delta, str) else ""
+        timing = part.get("time")
+        done = isinstance(timing, dict) and timing.get("end") is not None
+        if not text and not done:
+            return None
+        return RuntimeEvent(
+            RuntimeEventType.REASONING_DELTA,
+            _now(),
+            {"part_id": part_id, "text": text, "done": done},
+            raw=raw,
+        )
 
     @staticmethod
     def _tool_event(part: dict[str, Any], raw: dict[str, Any]) -> RuntimeEvent | None:

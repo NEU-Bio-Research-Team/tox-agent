@@ -64,3 +64,22 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* The run trace's live text: a light sweeping across the label while the
+   agent works (RunTrace). Static for anyone who asked for less motion. */
+@keyframes trace-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.trace-shimmer {
+  background: linear-gradient(90deg, var(--text-muted) 0%, var(--text-muted) 40%, var(--purple-500) 50%, var(--text-muted) 60%, var(--text-muted) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: trace-shimmer 2.4s linear infinite;
+}
+.trace-fade-top {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 28px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .trace-shimmer { animation: none; background: none; color: var(--text-muted); }
+}

@@ -46,7 +46,7 @@ export function describeAgentProfileChoice({
           defaultOptionLabel: 'Chưa có AI — hãy thêm kết nối',
           notice:
             'Server này không có AI riêng: mỗi người tự kết nối AI của mình (API key hoặc ' +
-            'ChatGPT Plus/Pro) ở bên dưới rồi bấm Test.',
+            'ChatGPT Plus/Pro) trong Cài đặt, rồi chọn model ngay trong khung chat.',
           disabled: false,
         }
       : {
@@ -69,31 +69,43 @@ export function describeAgentProfileChoice({
   };
 }
 
+/** A connection (the credential) and which of its account's models to run. */
+export interface AiChoice {
+  connectionId: string;
+  /** `null`: the connection's own model, the one its test ran on. */
+  modelId: string | null;
+}
+
 /**
- * The profile a session's next run should be pinned to.
+ * What a session should run on when the workbench opens it.
  *
- * The Settings default when the user chose one; otherwise whatever the
- * session was already pinned to, so a profile picked in the old per-session
- * popover survives until a default is chosen. Either way only while that
- * profile is still ready: a deleted or failed profile left pinned makes every
- * run fail with "profile unavailable", and with no per-session picker the user
- * would have no way to unpin it. `null` is the deployment's own runtime.
+ * The model is picked in the chat, per session. A session keeps its own pick
+ * while that connection is still ready; a session with none (or a deleted /
+ * failed one) starts on the user's last pick, and — on a deployment with no
+ * AI of its own, where `null` would fail every run — on the first ready
+ * connection. `null` is the deployment's own runtime.
+ *
+ * A failed or deleted connection must never stay pinned: every run would fail
+ * with "profile unavailable" until the user noticed.
  */
-export function profileForSession({
-  defaultProfileId,
-  currentProfileId,
-  readyProfileIds,
+export function choiceForSession({
+  saved,
+  lastChoice,
+  readyConnectionIds,
   userAiRequired = false,
 }: {
-  /** `undefined`: the user never chose a default. `null`: they chose the server runtime. */
-  defaultProfileId: string | null | undefined;
-  currentProfileId: string | null;
-  readyProfileIds: readonly string[];
-  /** The server has no runtime of its own, so `null` would fail every run. */
+  saved: AiChoice | null;
+  lastChoice: AiChoice | null;
+  readyConnectionIds: readonly string[];
   userAiRequired?: boolean;
-}): string | null {
-  const wanted = defaultProfileId === undefined ? currentProfileId : defaultProfileId;
-  if (wanted && readyProfileIds.includes(wanted)) return wanted;
-  // With no server runtime, any ready connection beats one the run cannot use.
-  return userAiRequired ? (readyProfileIds[0] ?? null) : null;
+}): AiChoice | null {
+  if (saved && readyConnectionIds.includes(saved.connectionId)) return saved;
+  if (lastChoice && readyConnectionIds.includes(lastChoice.connectionId)) return lastChoice;
+  if (userAiRequired && readyConnectionIds[0]) return { connectionId: readyConnectionIds[0], modelId: null };
+  return null;
+}
+
+export function sameChoice(a: AiChoice | null, b: AiChoice | null): boolean {
+  if (a === null || b === null) return a === b;
+  return a.connectionId === b.connectionId && (a.modelId ?? null) === (b.modelId ?? null);
 }
