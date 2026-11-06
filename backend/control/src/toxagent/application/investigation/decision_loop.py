@@ -72,6 +72,29 @@ CARRIES_DATA_ESTIMATE: Mapping[str, float] = {
 }
 
 
+#: The procedure that closes each gap, where one does (§7.1). Live (29 arm-E
+#: turns, 2026-10-29) the model never called run_scientific_procedure: it was
+#: listed among twenty tools with nothing tying it to the moment it helps.
+#: Each open gap now names it.
+GAP_PROCEDURE: Mapping[str, str] = {
+    Gap.IDENTITY_OR_SCOPE.value: "resolve_subject_context",
+    Gap.MEASUREMENT_UNRESOLVED.value: "normalise_measurements",
+    Gap.DISAGREEMENT_UNEXPLAINED.value: "compare_measurements (then deduplicate_by_origin)",
+    Gap.NO_RELEVANT_EVIDENCE.value: "collect_assay_records over what the searches returned",
+}
+
+
+def with_procedures(gaps: Sequence[Mapping[str, Any]], *, available: bool) -> list[dict[str, Any]]:
+    """Open gaps, each with the run_scientific_procedure that closes it."""
+    out = []
+    for gap in gaps:
+        item = dict(gap)
+        if available and gap.get("gap") in GAP_PROCEDURE:
+            item["procedure"] = "run_scientific_procedure " + GAP_PROCEDURE[gap["gap"]]
+        out.append(item)
+    return out
+
+
 def normalise_target(target: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s.:/-]", " ", (target or "").lower())).strip()
 

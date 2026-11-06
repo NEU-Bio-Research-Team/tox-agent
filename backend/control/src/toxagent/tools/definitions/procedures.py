@@ -37,9 +37,15 @@ class _Input(BaseModel):
 
 class RunProcedureInput(_Input):
     procedure: Literal[
+        "resolve_subject_context", "collect_assay_records",
         "normalise_measurements", "deduplicate_by_origin", "compare_measurements",
         "check_dependencies", "compare_candidates",
     ] = Field(description="Which determinate operation to run.")
+    providers: list[str] = Field(
+        default_factory=list, max_length=6,
+        description="collect_assay_records only: the providers whose records to keep "
+                    "(e.g. chembl, europepmc). Empty keeps any.",
+    )
     evidence_ids: list[str] = Field(
         default_factory=list, max_length=24,
         description="Records to work on, already read in this session. "
@@ -73,7 +79,45 @@ def build(database) -> list[ToolDefinition]:
     async def run_procedure(context: ToolContext, payload: RunProcedureInput) -> ToolOutput:
         spec = procedures.spec_for(payload.procedure)
 
-        if payload.procedure == "compare_candidates":
+        if payload.procedure == "resolve_subject_context":
+            async with database.unit_of_work() as uow:
+                state = await uow.decision_states.get(context.run_id)
+                case = await scientific_case_service.case_for_run(
+                    uow, session_id=context.session_id, run_id=context.run_id
+                )
+                subject = dict((state.goal_contract.get("subject") if state else None) or {})
+                if not subject and state is not None:
+                    # Without subject_binding_v1 the contract carries no subject;
+                    # the run's own analysis still says what it is about.
+                    for ref in state.subject_refs:
+                        kind, _, identifier = str(ref).partition(":")
+                        if kind == "analysis" and identifier:
+                            analysis = await uow.analyses.get(identifier, session_id=context.session_id)
+                            if analysis is not None:
+                                subject = {"identity": {"canonical_smiles": analysis.canonical_smiles},
+                                           "ref": ref}
+                                break
+            items = [{"id": item.id, "key": item.key, "value": item.value}
+                     for item in (case.context if case else ())]
+            result = procedures.resolve_subject_context(subject, items, endpoint=payload.endpoint)
+        elif payload.procedure == "collect_assay_records":
+            async with database.unit_of_work() as uow:
+                if payload.evidence_ids:
+                    found = [await uow.evidence.get(eid, session_id=context.session_id)
+                             for eid in dict.fromkeys(payload.evidence_ids)]
+                    missing = [eid for eid, r in zip(dict.fromkeys(payload.evidence_ids), found)
+                               if r is None]
+                    if missing:
+                        raise InvalidRequest(f"no such evidence in this session: {missing}")
+                else:
+                    found = await uow.evidence.list_for_session(
+                        context.session_id, status=EvidenceStatus.ACCEPTED, limit=200,
+                    )
+            result = procedures.collect_assay_records(
+                [(r.id, dict(r.normalized_facts or {}), r.provider) for r in found if r],
+                endpoint=payload.endpoint, providers=payload.providers,
+            )
+        elif payload.procedure == "compare_candidates":
             if payload.criterion is None:
                 raise InvalidRequest(
                     "compare_candidates needs the criterion the question declares; if it "
@@ -128,6 +172,13 @@ def build(database) -> list[ToolDefinition]:
                 result = procedures.deduplicate_by_origin(records, endpoint=payload.endpoint)
 
         view: dict[str, Any] = result.to_dict()
+        from ...application.investigation import decision_state_service
+        from ...domain import decision_state as ds
+
+        await decision_state_service.advance(
+            database, context.run_id,
+            lambda state: ds.record_sub_operations(state, count=result.sub_operation_count),
+        )
         return ToolOutput(
             canonical=view,
             model_view=view,
@@ -142,6 +193,10 @@ def build(database) -> list[ToolDefinition]:
             title="Run a scientific procedure",
             description=(
                 "Determinate work, done by code over records you have already read: "
+                "resolve_subject_context (the subject, endpoint and which scope axes are "
+                "established, and which are not -- run it first when identity or scope is "
+                "unclear); collect_assay_records (the measured values among the records held, "
+                "by provider, with every record left out and why); "
                 "normalise_measurements (canonical value, unit and constraint kind, with "
                 "the conversion used); deduplicate_by_origin (one record per experiment -- "
                 "two rows of one measurement are not two independent sources); "

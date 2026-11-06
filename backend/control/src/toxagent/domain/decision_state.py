@@ -556,6 +556,18 @@ def record_decision_loop(
     return _next(state, decision_loop=dict(ledger))
 
 
+def record_sub_operations(
+    state: DecisionSupportStateV1, *, count: int
+) -> DecisionSupportStateV1:
+    """§7.2: a procedure that did ten things internally is ten sub-operations
+    in the run's usage, not one tool call."""
+    if state.stop_reason is not None or count <= 0:
+        return state
+    usage = dict(state.usage)
+    usage["procedure_sub_operations"] = usage.get("procedure_sub_operations", 0) + count
+    return _next(state, usage=usage)
+
+
 def request_repair(state: DecisionSupportStateV1, *, answer_id: str) -> DecisionSupportStateV1:
     """#47: the review blocked this candidate and its one repair is open.
     submit_grounded_answer accepts one more answer for the run while this

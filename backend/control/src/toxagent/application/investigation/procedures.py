@@ -442,13 +442,132 @@ def compare_candidates(
     )
 
 
+# ── resolve subject context ───────────────────────────────────────────────
+
+RESOLVE_SUBJECT = ProcedureSpec(
+    name="resolve_subject_context",
+    version="resolve-subject-context-v1",
+    summary="The run's subject, endpoint and the scope axes established for it -- from the "
+            "bound subject and what the researcher told the case -- and which axes are not "
+            "established yet.",
+    reads=("subject_binding", "case_context"),
+)
+
+#: Scope axes a comparison of toxicology measurements turns on (§5.2).
+SUBJECT_AXES: tuple[str, ...] = (
+    "ligand_id", "target_id", "target_variant", "assay_type", "readout", "species",
+)
+
+
+def resolve_subject_context(
+    subject: Mapping[str, Any], context_items: Sequence[Mapping[str, Any]], *,
+    endpoint: str | None = None,
+) -> ProcedureResult:
+    """§7.1's first procedure: what the question is about, and what is not yet settled.
+
+    Nothing is inferred: an axis is established only when the subject binding
+    or a researcher-supplied context item states it. The unestablished axes are
+    the identity/scope gap (§6.2), named rather than guessed.
+    """
+    identity = dict(subject.get("identity") or subject or {})
+    established: dict[str, Any] = {}
+    sources: dict[str, str] = {}
+    for key in ("canonical_smiles", "ligand_id", "target", "target_id", "target_variant",
+                "assay_context", "assay_type", "readout", "species"):
+        if identity.get(key):
+            established[key] = identity[key]
+            sources[key] = "subject_binding"
+    sub_ops = [{"op": "read", "what": "subject_binding"}]
+    for item in context_items:
+        key = str(item.get("key") or "")
+        sub_ops.append({"op": "read", "what": f"context:{item.get('id')}"})
+        for axis in SUBJECT_AXES:
+            if key == axis or key.startswith(axis + "_"):
+                established.setdefault(axis, item.get("value"))
+                sources.setdefault(axis, f"context:{item.get('id')}")
+    if identity.get("canonical_smiles") and "ligand_id" not in established:
+        established["ligand_id"] = identity["canonical_smiles"]
+        sources["ligand_id"] = "subject_binding"
+    if identity.get("target") and "target_id" not in established:
+        established["target_id"] = identity["target"]
+        sources["target_id"] = "subject_binding"
+    unestablished = [axis for axis in SUBJECT_AXES if axis not in established]
+    return ProcedureResult(
+        procedure=RESOLVE_SUBJECT.name, version=RESOLVE_SUBJECT.version,
+        facts={"endpoint": endpoint, "established": established, "source_of": sources,
+               "unestablished_axes": unestablished},
+        counts={"established": len(established), "unestablished": len(unestablished)},
+        missing_fields=tuple(unestablished),
+        refs=tuple(sorted({v for v in sources.values() if v.startswith("context:")})),
+        sub_operations=tuple(sub_ops),
+        criteria={"axes": list(SUBJECT_AXES),
+                  "rule": "an axis is established only by the subject binding or the researcher"},
+    )
+
+
+# ── collect assay records ─────────────────────────────────────────────────
+
+COLLECT_ASSAYS = ProcedureSpec(
+    name="collect_assay_records",
+    version="collect-assay-records-v1",
+    summary="The assay measurements among records the session holds, from the providers "
+            "named, for the endpoint asked -- with every record left out and why.",
+    reads=("evidence_records",),
+)
+
+
+def collect_assay_records(
+    records: Sequence[tuple[str, Mapping[str, Any], str]], *, endpoint: str | None = None,
+    providers: Sequence[str] = (),
+) -> ProcedureResult:
+    """§7.1's second procedure, over records already retrieved: ``(ref, facts, provider)``.
+
+    It reaches no provider itself, so a frozen benchmark replays it and every
+    arm sees the same result; retrieval stays with the search primitives,
+    where its cost is counted.
+    """
+    from ...research.measurement import is_measured_value, measured_value
+
+    wanted = {p.lower() for p in providers}
+    kept: list[dict[str, Any]] = []
+    exclusions: list[dict[str, Any]] = []
+    sub_ops: list[dict[str, Any]] = []
+    by_provider: dict[str, int] = {}
+    for ref, facts, provider in records:
+        sub_ops.append({"op": "inspect", "ref": ref})
+        if wanted and provider.lower() not in wanted:
+            exclusions.append({"ref": ref, "reason": f"provider {provider} was not asked for"})
+            continue
+        if not is_measured_value(facts):
+            exclusions.append({"ref": ref, "reason": "states no measured value"})
+            continue
+        scope = measurement_scope(facts, endpoint=endpoint)
+        declared = scope.declared()
+        if endpoint and declared.get("endpoint") and str(declared["endpoint"]).lower() != endpoint.lower():
+            exclusions.append({"ref": ref, "reason": f"endpoint {declared['endpoint']}, not {endpoint}"})
+            continue
+        by_provider[provider] = by_provider.get(provider, 0) + 1
+        kept.append({"ref": ref, "provider": provider, "measurement": measured_value(facts),
+                     "scope": declared})
+    return ProcedureResult(
+        procedure=COLLECT_ASSAYS.name, version=COLLECT_ASSAYS.version,
+        facts={"assay_records": kept},
+        counts={"in": len(records), "kept": len(kept), "excluded": len(exclusions),
+                **{f"from_{p}": n for p, n in sorted(by_provider.items())}},
+        exclusions=tuple(exclusions),
+        refs=tuple(row["ref"] for row in kept), sub_operations=tuple(sub_ops),
+        criteria={"endpoint": endpoint, "providers": sorted(wanted) or "any",
+                  "kept_when": "a measured value, from a named provider, for the endpoint"},
+    )
+
+
 # ── the allowlist ─────────────────────────────────────────────────────────
 
 #: §7.2: an allowlisted runner, not a general shell. A name not here does not
 #: run, and the refusal names what is available.
 CATALOG: dict[str, ProcedureSpec] = {
-    spec.name: spec for spec in (NORMALISE, DEDUPLICATE, COMPARE, CHECK_DEPENDENCIES,
-                                  COMPARE_CANDIDATES)
+    spec.name: spec for spec in (RESOLVE_SUBJECT, COLLECT_ASSAYS, NORMALISE, DEDUPLICATE,
+                                  COMPARE, CHECK_DEPENDENCIES, COMPARE_CANDIDATES)
 }
 
 

@@ -59,3 +59,37 @@ async def test_a_run_chooses_by_gap_refuses_a_repeat_and_records_why(db, flags_o
     assert ledger["actions"][0]["reason"] == "The prediction is already held; read it first."
     assert ledger["actions"][0]["discriminates"] == ["prediction_mismatch_in_scope"]
     assert ledger["gaps"] and all(g["gap"] for g in ledger["gaps"] if g["status"] == "open")
+
+
+async def test_a_procedure_run_is_counted_and_the_contract_names_it(db, flags_on, monkeypatch):
+    monkeypatch.setenv("TOXAGENT_FLAG_SCIENTIFIC_PROCEDURES_V1", "1")
+    state: dict = {}
+
+    async def script(turn) -> None:
+        state["prompt"] = turn.system_prompt
+        state["plan"] = await turn.call_tool("plan_next_action", {
+            "gap_updates": [{"requirement_id": "q1", "status": "open", "gap": "identity_or_scope"}],
+            "candidates": [
+            {"action": "run_scientific_procedure", "target": "resolve_subject_context",
+             "requirement_id": "q1", "discriminates": ["identity_or_scope"],
+             "reason": "Settle what the question is about first."}]})
+        state["result"] = await turn.call_tool("run_scientific_procedure", {
+            "procedure": "resolve_subject_context", "endpoint": "herg"})
+        await turn.call_tool("submit_grounded_answer", {
+            "answer_markdown": "Not established.", "claims": [], "limitations": []})
+
+    async with api_client(db, StubPredictor()) as client:
+        await _install_scripted_runtime(client, script)
+        session_id = await _new_session(client)
+        await _analyse(client, session_id)
+        run = await _post(client, session_id, "Does this compound block hERG?")
+        decision = (await client.get(
+            f"/v1/sessions/{session_id}/runs/{run['run_id']}/decision-state", headers=AUTH,
+        )).json()
+
+    result = state["result"]["model_view"]
+    assert result["procedure"] == "resolve_subject_context"
+    assert result["facts"]["established"]  # the bound analysis is the subject
+    assert decision["usage"]["procedure_sub_operations"] == result["sub_operation_count"] > 0
+    (gap,) = state["plan"]["model_view"]["open_gaps"]
+    assert gap["procedure"] == "run_scientific_procedure resolve_subject_context"

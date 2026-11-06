@@ -144,6 +144,11 @@ class GoalContractV1:
                 gap = (f" [open gap: {question.gap} -- {GAP_GUIDANCE[question.gap]}]"
                        if question.gap in GAP_GUIDANCE
                        else f" [open gap: {question.gap}]" if question.gap else "")
+                if question.gap and "run_scientific_procedure" in self.admissible_actions:
+                    from .decision_loop import GAP_PROCEDURE
+
+                    if question.gap in GAP_PROCEDURE:
+                        gap += f" [procedure: run_scientific_procedure {GAP_PROCEDURE[question.gap]}]"
                 lines.append(f"- {question.id} {question.question}{needs}{gap}")
         if self.candidates:
             lines.append("Candidates, each its own subject -- one row per candidate, never "

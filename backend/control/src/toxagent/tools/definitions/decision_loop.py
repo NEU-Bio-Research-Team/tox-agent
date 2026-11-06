@@ -130,7 +130,10 @@ def build(database) -> list[ToolDefinition]:
             "ranked": ranked,
             "refused": [{"index": i, "action": candidates[i].action, "why": why}
                         for i, why in sorted(refused.items())],
-            "open_gaps": loop.open_gaps(ledger)[:4],
+            "open_gaps": loop.with_procedures(
+                loop.open_gaps(ledger)[:4],
+                available="run_scientific_procedure" in admissible,
+            ),
             "note": note or ("take the chosen action with its own tool; call plan_next_action "
                              "again before the next one"),
             "ranking_basis": "§6.4 order; carries_data_estimate is a dev-set prior, not a "
