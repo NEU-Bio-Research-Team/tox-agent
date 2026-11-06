@@ -79,6 +79,18 @@ class SqlModelConnectionStore:
         if result.rowcount == 0:
             raise Conflict("model connection does not exist", connection_id=connection.id)
 
+    async def update_model(self, connection: ModelConnection) -> None:
+        """Change which model a connection runs, keeping its credential."""
+        result = await self._conn.execute(update(model_connections).where(and_(
+            model_connections.c.id == connection.id,
+            model_connections.c.owner_id == connection.owner_id,
+        )).values(
+            model_id=connection.model_id, display_name=connection.display_name,
+            status=connection.status.value, updated_at=connection.updated_at,
+        ))
+        if result.rowcount == 0:
+            raise Conflict("model connection does not exist", connection_id=connection.id)
+
     async def delete(self, connection_id: str, *, owner_id: str) -> bool:
         result = await self._conn.execute(delete(model_connections).where(and_(
             model_connections.c.id == connection_id,

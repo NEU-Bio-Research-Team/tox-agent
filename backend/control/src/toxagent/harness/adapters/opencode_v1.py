@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import logging
+import secrets
 import shutil
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
@@ -34,6 +35,8 @@ import httpx
 from ...platform.config import RuntimeSettings
 from ...domain.errors import RuntimeProtocolError, RuntimeUnavailable
 from ...domain.runtime import RuntimeCapabilities
+from ...connections.runtime_install import HostCredential
+from ..owner_hosts import OpenCodeHostPool, OwnerHost
 from ..provider import (
     CancelOutcome,
     CloseOutcome,
@@ -77,6 +80,7 @@ class OpenCodeV1Provider:
         settings: RuntimeSettings,
         *,
         client: httpx.AsyncClient | None = None,
+        hosts: OpenCodeHostPool | None = None,
     ) -> None:
         if settings.opencode_version != OPENCODE_V1_PIN:
             raise ValueError(
@@ -103,6 +107,22 @@ class OpenCodeV1Provider:
         self._specs: dict[str, RuntimeSessionSpec] = {}
         self._directories: dict[str, str] = {}
         self._locally_managed_directories: set[str] = set()
+        #: Private per-connection hosts (harness/owner_hosts.py). None means this
+        #: deployment has only the shared host, and a profile carrying a
+        #: credential is refused exactly as before (I12).
+        self._hosts = hosts
+        #: Sessions that live on a private host rather than the shared one,
+        #: and the OpenCode provider id each must prompt with.
+        self._session_hosts: dict[str, OwnerHost] = {}
+        self._runtime_providers: dict[str, str] = {}
+
+    @property
+    def hosts(self) -> OpenCodeHostPool | None:
+        return self._hosts
+
+    def _client_for(self, runtime_session_id: str) -> httpx.AsyncClient:
+        host = self._session_hosts.get(runtime_session_id)
+        return host.client if host is not None else self._client
 
     def _query(self, directory: str | None = None) -> dict[str, str]:
         return {"directory": directory or self._settings.opencode_directory}
@@ -163,6 +183,8 @@ class OpenCodeV1Provider:
         return True
 
     async def aclose(self) -> None:
+        if self._hosts is not None:
+            await self._hosts.aclose()
         if self._owns_client:
             await self._client.aclose()
 
@@ -232,9 +254,15 @@ class OpenCodeV1Provider:
         # retention terms, and a "Test connection" that proved nothing about
         # what a run would actually do. Per-owner credential injection needs
         # either an isolated runtime per owner or a V1 auth API this adapter
-        # can call, and neither has been built and verified against the real
-        # server — see K05 in docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md.
-        if spec.provider_credential:
+        # can call. The first now exists: with private hosts configured
+        # (harness/owner_hosts.py, verified live against 1.17.11) a profile
+        # runs on its own host under its own credential. Without them, the
+        # refusal below still stands.
+        if self._hosts is not None and (
+            spec.connection_id is not None or spec.auth_mode == "chatgpt_subscription"
+        ):
+            return await self._create_private_session(spec)
+        if spec.provider_credential or spec.auth_mode == "chatgpt_subscription":
             raise RuntimeUnavailable(
                 "this runtime cannot be given the credential from the selected AI "
                 "profile, and will not fall back to its own; remove the profile "
@@ -268,6 +296,71 @@ class OpenCodeV1Provider:
             model_id=spec.model_id,
         )
 
+    async def _create_private_session(self, spec: RuntimeSessionSpec) -> RuntimeSession:
+        """Run this profile on its own host, under its own credential.
+
+        The connection's credential never reaches the shared host. The host's
+        workspace holds one child directory per run, removed at close, for the
+        same reason the shared host isolates them: OpenCode keeps MCP
+        configuration at project scope.
+        """
+        assert self._hosts is not None
+        if not spec.connection_id or not spec.owner_id:
+            raise RuntimeProtocolError("a private runtime host needs the profile and its owner")
+        host = await self._hosts.acquire(
+            HostCredential(
+                connection_id=spec.connection_id,
+                owner_id=spec.owner_id,
+                provider_id=spec.provider_id,
+                model_id=spec.model_id,
+                auth_mode=spec.auth_mode,
+                base_url=spec.provider_base_url,
+                secret=spec.provider_credential,
+                secret_ref=spec.provider_credential_ref,
+            )
+        )
+        directory = host.workspace / spec.run_id
+        if directory.exists():
+            directory = host.workspace / f"{spec.run_id}-{spec.profile.replace('_', '-')}"
+        if directory.exists():
+            directory = directory.with_name(f"{directory.name}-{secrets.token_hex(4)}")
+        created = False
+        try:
+            try:
+                directory.mkdir(mode=0o700, parents=False, exist_ok=False)
+            except OSError as exc:
+                raise RuntimeUnavailable("could not create the run's workspace on its host") from exc
+            created = True
+            response = await self._request(
+                "POST",
+                "/session",
+                params=self._query(str(directory)),
+                json={"title": f"ToxAgent {spec.run_id}"},
+                expected={200},
+                operation="create runtime session",
+                client=host.client,
+            )
+            payload = self._json_object(response, operation="create runtime session")
+            session_id = payload.get("id")
+            if not isinstance(session_id, str) or not session_id:
+                raise RuntimeProtocolError("OpenCode V1 created a session without an id")
+        except BaseException:
+            # Only what this call made: an existing directory belongs to
+            # another session of the same run.
+            if created:
+                shutil.rmtree(directory, ignore_errors=True)
+            await self._hosts.release(host)
+            raise
+        self._specs[session_id] = spec
+        self._directories[session_id] = str(directory)
+        self._session_hosts[session_id] = host
+        self._runtime_providers[session_id] = host.runtime_provider_id
+        return RuntimeSession(
+            runtime_session_id=session_id,
+            provider_id=spec.provider_id,
+            model_id=spec.model_id,
+        )
+
     async def send(self, session: RuntimeSession, turn: RuntimeTurn) -> RuntimeReceipt:
         spec = self._specs.get(session.runtime_session_id)
         if spec is None:
@@ -279,7 +372,10 @@ class OpenCodeV1Provider:
         # The capability is deliberately absent from both the user prompt and
         # the model-visible schema.  The runtime management API installs it as
         # a private remote-MCP header only after the binding is durable.
-        await self._install_run_mcp(spec, turn.capability_token, directory)
+        await self._install_run_mcp(
+            spec, turn.capability_token, directory,
+            client=self._client_for(session.runtime_session_id),
+        )
         # ``spec.max_steps`` (the gateway's per-intent step budget) is still not
         # sent here: V1's prompt_async body has no step field at all (checked
         # against the pinned OpenAPI doc). The enforced cap is the checked-in
@@ -294,18 +390,27 @@ class OpenCodeV1Provider:
             f"/session/{session.runtime_session_id}/prompt_async",
             params=self._query(directory),
             json={
-                "model": {"providerID": session.provider_id, "modelID": session.model_id},
+                "model": {
+                    "providerID": self._runtime_providers.get(
+                        session.runtime_session_id, session.provider_id
+                    ),
+                    "modelID": session.model_id,
+                },
                 "agent": agent_name,
                 "system": spec.system_prompt,
                 "parts": [{"type": "text", "text": turn.user_message}],
             },
             expected={204},
             operation="accept runtime turn",
+            client=self._client_for(session.runtime_session_id),
         )
         del response  # Explicit: V1 returns 204; completion arrives only via SSE/state.
         return RuntimeReceipt(turn_id=turn.turn_id, accepted=True)
 
-    async def _install_run_mcp(self, spec: RuntimeSessionSpec, token: str, directory: str) -> None:
+    async def _install_run_mcp(
+        self, spec: RuntimeSessionSpec, token: str, directory: str,
+        *, client: httpx.AsyncClient | None = None,
+    ) -> None:
         config = {
             "type": "remote",
             "url": spec.mcp_url,
@@ -320,6 +425,7 @@ class OpenCodeV1Provider:
             json={"name": MCP_NAME, "config": config},
             expected={200},
             operation="configure run-scoped ToxAgent MCP",
+            client=client,
         )
         connected = await self._request(
             "POST",
@@ -327,6 +433,7 @@ class OpenCodeV1Provider:
             params=self._query(directory),
             expected={200},
             operation="connect run-scoped ToxAgent MCP",
+            client=client,
         )
         try:
             connected_value = connected.json()
@@ -368,7 +475,7 @@ class OpenCodeV1Provider:
             stream_timeout = httpx.Timeout(
                 self._settings.opencode_request_timeout_s, read=None
             )
-            async with self._client.stream(
+            async with self._client_for(session.runtime_session_id).stream(
                 "GET", "/global/event", timeout=stream_timeout
             ) as response:
                 if response.status_code != 200:
@@ -552,7 +659,7 @@ class OpenCodeV1Provider:
 
     async def _is_idle(self, runtime_session_id: str) -> bool:
         try:
-            response = await self._client.get(
+            response = await self._client_for(runtime_session_id).get(
                 "/session/status", params=self._query(self._directory_for_session(runtime_session_id))
             )
             if response.status_code != 200:
@@ -572,6 +679,7 @@ class OpenCodeV1Provider:
                 params=self._query(self._directory_for_session(session.runtime_session_id)),
                 expected={200},
                 operation="abort runtime turn",
+                client=self._client_for(session.runtime_session_id),
             )
             aborted = response.json()
         except (RuntimeProtocolError, RuntimeUnavailable, ValueError):
@@ -589,6 +697,9 @@ class OpenCodeV1Provider:
         disconnected = False
         deleted_ok = False
         directory: str | None = None
+        client = self._client_for(session.runtime_session_id)
+        host = self._session_hosts.pop(session.runtime_session_id, None)
+        self._runtime_providers.pop(session.runtime_session_id, None)
         try:
             directory = self._directory_for_session(session.runtime_session_id)
             response = await self._request(
@@ -597,6 +708,7 @@ class OpenCodeV1Provider:
                 params=self._query(directory),
                 expected={200},
                 operation="disconnect run-scoped ToxAgent MCP",
+                client=client,
             )
             disconnected = response.json() is True
             deleted = await self._request(
@@ -605,6 +717,7 @@ class OpenCodeV1Provider:
                 params=self._query(directory),
                 expected={200},
                 operation="close runtime session",
+                client=client,
             )
             deleted_ok = deleted.json() is True
         except (RuntimeProtocolError, RuntimeUnavailable, ValueError):
@@ -612,6 +725,17 @@ class OpenCodeV1Provider:
         finally:
             self._specs.pop(session.runtime_session_id, None)
             self._directories.pop(session.runtime_session_id, None)
+        if host is not None:
+            local_workspace_removed = True
+            if directory is not None:
+                target = Path(directory).resolve()
+                if target.parent == host.workspace.resolve() and not target.is_symlink():
+                    shutil.rmtree(target, ignore_errors=True)
+                else:
+                    local_workspace_removed = False
+            assert self._hosts is not None
+            await self._hosts.release(host)
+            return CloseOutcome(closed=disconnected and deleted_ok and local_workspace_removed)
         local_workspace_removed = (
             self._remove_local_directory(directory) if directory is not None else True
         )
@@ -626,9 +750,12 @@ class OpenCodeV1Provider:
         expected: set[int],
         operation: str,
         json: dict[str, Any] | None = None,
+        client: httpx.AsyncClient | None = None,
     ) -> httpx.Response:
         try:
-            response = await self._client.request(method, url, params=params, json=json)
+            response = await (client or self._client).request(
+                method, url, params=params, json=json
+            )
         except httpx.HTTPError as exc:
             raise RuntimeUnavailable(f"OpenCode V1 could not {operation}") from exc
         if response.status_code in expected:

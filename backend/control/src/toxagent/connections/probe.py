@@ -34,6 +34,7 @@ import httpx
 
 from .model import ConnectionCapabilities
 from .network import BlockedDestination, EgressPolicy, check
+from .providers import Protocol
 
 #: How long a probe may take. A model endpoint that cannot answer a one-token
 #: prompt in this long is not usable for a run either.
@@ -257,3 +258,138 @@ class OpenAICompatibleProbe:
             f"tool call {'seen' if saw_tool_call else 'absent'}"
         )
         return ProbeResult(streaming, structured, tool_calls, detail)
+
+
+#: Anthropic's API version header. Pinned: the SSE event names parsed below
+#: belong to this version.
+ANTHROPIC_VERSION = "2023-06-01"
+
+_ANTHROPIC_TOOL = {
+    "name": "probe_echo",
+    "description": "Protocol probe. Echoes one word back.",
+    "input_schema": {
+        "type": "object",
+        "properties": {"word": {"type": "string"}},
+        "required": ["word"],
+    },
+}
+
+
+def _parse_anthropic_stream(lines: list[str]) -> tuple[bool, str, bool]:
+    """(saw a text delta, accumulated text, saw a tool_use block) — Messages SSE."""
+    saw_delta = False
+    saw_tool_call = False
+    content: list[str] = []
+    for line in lines:
+        if not line.startswith("data:"):
+            continue
+        payload = line[len("data:"):].strip()
+        if not payload:
+            continue
+        try:
+            event = json.loads(payload)
+        except json.JSONDecodeError:
+            raise ProbeError(
+                ProbeFailure.PROTOCOL_ERROR,
+                "the endpoint streamed an event that is not JSON",
+            ) from None
+        kind = event.get("type")
+        if kind == "error":
+            raise ProbeError(ProbeFailure.PROTOCOL_ERROR, "the endpoint streamed an error event")
+        if kind == "content_block_start":
+            block = event.get("content_block") or {}
+            if block.get("type") == "tool_use":
+                saw_tool_call = True
+        if kind == "content_block_delta":
+            delta = event.get("delta") or {}
+            if delta.get("type") == "text_delta" and isinstance(delta.get("text"), str) and delta["text"]:
+                saw_delta = True
+                content.append(delta["text"])
+    return saw_delta, "".join(content), saw_tool_call
+
+
+class AnthropicMessagesProbe:
+    """One real streamed turn against `POST {base_url}/messages`."""
+
+    def __init__(
+        self,
+        *,
+        egress: EgressPolicy = EgressPolicy.LOCAL,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._egress = egress
+        self._transport = transport
+
+    async def probe(self, connection, credential: str | None) -> ProbeResult:
+        if not connection.base_url:
+            raise ProbeError(ProbeFailure.PROTOCOL_ERROR, "this connection has no base URL to probe")
+        url = connection.base_url.rstrip("/") + "/messages"
+        try:
+            check(url, self._egress)
+        except BlockedDestination as exc:
+            raise ProbeError(ProbeFailure.BLOCKED, str(exc)) from None
+        headers = {"anthropic-version": ANTHROPIC_VERSION}
+        if credential:
+            headers["x-api-key"] = credential
+        payload: dict[str, Any] = {
+            "model": connection.model_id,
+            "max_tokens": 128,
+            "stream": True,
+            "tools": [_ANTHROPIC_TOOL],
+            "messages": [{"role": "user", "content": _PROMPT}],
+        }
+        lines: list[str] = []
+        try:
+            async with httpx.AsyncClient(
+                timeout=PROBE_TIMEOUT_S, transport=self._transport, follow_redirects=False
+            ) as client:
+                async with client.stream("POST", url, headers=headers, json=payload) as response:
+                    if response.status_code in (301, 302, 303, 307, 308):
+                        raise ProbeError(ProbeFailure.PROTOCOL_ERROR, "the endpoint redirected")
+                    if response.status_code in (401, 403):
+                        raise ProbeError(ProbeFailure.UNAUTHORIZED, "the endpoint rejected this credential")
+                    if response.status_code >= 400:
+                        raise ProbeError(
+                            ProbeFailure.PROTOCOL_ERROR,
+                            f"the endpoint answered HTTP {response.status_code}",
+                        )
+                    async for line in response.aiter_lines():
+                        lines.append(line)
+        except httpx.TimeoutException:
+            raise ProbeError(ProbeFailure.TIMEOUT, f"no answer within {PROBE_TIMEOUT_S:.0f}s") from None
+        except httpx.HTTPError as exc:
+            raise ProbeError(
+                ProbeFailure.UNREACHABLE, f"could not reach the endpoint: {type(exc).__name__}"
+            ) from None
+        if not lines:
+            raise ProbeError(ProbeFailure.PROTOCOL_ERROR, "the endpoint returned an empty response")
+        saw_delta, content, saw_tool_call = _parse_anthropic_stream(lines)
+        streaming = Support.SUPPORTED if (saw_delta or saw_tool_call) else Support.UNKNOWN
+        tool_calls = Support.SUPPORTED if saw_tool_call else Support.UNKNOWN
+        structured = Support.SUPPORTED if _looks_like_json(content) else Support.UNKNOWN
+        detail = (
+            f"{len(lines)} stream line(s); text {'seen' if saw_delta else 'absent'}; "
+            f"tool call {'seen' if saw_tool_call else 'absent'}"
+        )
+        return ProbeResult(streaming, structured, tool_calls, detail)
+
+
+class ProtocolProbe:
+    """Pick the probe that speaks the connection's provider protocol."""
+
+    def __init__(
+        self,
+        *,
+        egress: EgressPolicy = EgressPolicy.LOCAL,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self._probes = {
+            Protocol.OPENAI_CHAT_COMPLETIONS: OpenAICompatibleProbe(egress=egress, transport=transport),
+            Protocol.ANTHROPIC_MESSAGES: AnthropicMessagesProbe(egress=egress, transport=transport),
+        }
+
+    async def probe(self, connection, credential: str | None) -> ProbeResult:
+        from . import providers
+
+        spec = providers.get(connection.provider_id)
+        return await self._probes[spec.protocol].probe(connection, credential)

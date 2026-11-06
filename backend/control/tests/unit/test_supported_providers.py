@@ -42,20 +42,55 @@ def test_a_supplied_base_url_wins_and_blank_input_is_not_a_base_url():
 
 
 def test_nothing_is_offered_that_this_control_plane_cannot_speak():
-    """One adapter exists, so one protocol may appear in the catalogue."""
-    protocols = {spec.protocol for spec in providers.SUPPORTED}
-    assert protocols == {providers.Protocol.OPENAI_CHAT_COMPLETIONS}
+    """Every listed provider's wire format has a probe that speaks it.
+
+    The rule I13 established, restated now that a second protocol exists: a
+    provider may be listed only if this code can talk to it. Anthropic was
+    refused until the Messages-API probe was written; Gemini still is.
+    """
+    from toxagent.connections.probe import ProtocolProbe
+
+    spoken = set(ProtocolProbe()._probes)
+    for spec in providers.SUPPORTED:
+        assert spec.protocol in spoken, spec.id
 
 
-@pytest.mark.parametrize("provider_id", ["anthropic", "gemini"])
-def test_the_two_that_were_offered_falsely_are_refused_with_the_reason(provider_id):
+def test_gemini_is_refused_with_the_reason():
     """Refused, not silently absent: the user asked for a reason and gets one,
     including the way to use that model through a gateway."""
     with pytest.raises(providers.UnsupportedProvider) as excinfo:
-        providers.get(provider_id)
-    assert excinfo.value.provider_id == provider_id
+        providers.get("gemini")
+    assert excinfo.value.provider_id == "gemini"
     assert "OpenAI-compatible" in excinfo.value.reason
-    assert provider_id not in {spec.id for spec in providers.SUPPORTED}
+    assert "gemini" not in {spec.id for spec in providers.SUPPORTED}
+
+
+def test_a_claude_subscription_is_refused_and_says_to_use_a_key():
+    with pytest.raises(providers.UnsupportedProvider) as excinfo:
+        providers.get("claude_pro")
+    assert "API key" in excinfo.value.reason
+
+
+def test_every_runtime_backed_provider_names_an_opencode_provider_or_is_custom():
+    """The runtime must know which OpenCode provider a connection becomes."""
+    for spec in providers.SUPPORTED:
+        if spec.default_base_url is None:
+            assert spec.runtime_provider_id is None, spec.id
+        else:
+            assert spec.runtime_provider_id, spec.id
+
+
+def test_chatgpt_sign_in_is_listed_only_where_the_deployment_can_run_it():
+    def modes(chatgpt):
+        entry = next(e for e in providers.catalogue(chatgpt=chatgpt) if e["provider_id"] == "openai")
+        return entry["auth_modes"], entry["chatgpt_oauth"]
+
+    offered, oauth = modes({"available": True, "reason": "local"})
+    assert "chatgpt_subscription" in offered and oauth["available"] is True
+    refused, oauth = modes({"available": False, "reason": "hosted without opt-in"})
+    assert "chatgpt_subscription" not in refused
+    assert oauth == {"available": False, "reason": "hosted without opt-in"}
+    assert "chatgpt_subscription" not in modes(None)[0]
 
 
 def test_an_unknown_provider_names_what_is_available():

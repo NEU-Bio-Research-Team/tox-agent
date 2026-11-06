@@ -11,6 +11,7 @@ semantics: changing one changes cost and latency, never what a prediction means.
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -430,6 +431,26 @@ class RuntimeSettings:
     #: not a product one; ignored while scientific_skills_v1 (the dynamic
     #: arm) is on.
     scientific_skills_static: bool = False
+    #: Private OpenCode hosts, one per user AI connection
+    #: (harness/owner_hosts.py). Off by default: it starts extra
+    #: OpenCode processes from this control plane, which needs the pinned
+    #: binary on the same machine. When off, a profile that carries a
+    #: credential is refused, as it always was (I12).
+    owner_hosts: bool = False
+    #: The pinned OpenCode binary private hosts are started from.
+    opencode_binary: str = ""
+    #: Where private hosts keep their HOME/XDG roots and run workspaces.
+    #: Each host's root, credential file included, is deleted when it stops.
+    owner_hosts_root: str = ""
+    #: At most this many private hosts at once. Each is a full OpenCode
+    #: process (~300 MB), so the default suits a laptop.
+    owner_hosts_max: int = 2
+    #: A host with no run for this long is stopped.
+    owner_hosts_idle_s: int = 600
+    #: ChatGPT Plus/Pro sign-in: ``local`` (offered only on a local-egress,
+    #: single-user deployment), ``hosted`` (operator opted in after
+    #: registering with OpenAI) or ``off``.
+    chatgpt_oauth: str = "local"
 
     @classmethod
     def from_env(cls) -> "RuntimeSettings":
@@ -475,7 +496,22 @@ class RuntimeSettings:
             scientific_skills_static=_bool(
                 "TOXAGENT_SCIENTIFIC_SKILLS_STATIC", cls.scientific_skills_static
             ),
+            owner_hosts=_bool("TOXAGENT_OWNER_RUNTIME_HOSTS", cls.owner_hosts),
+            opencode_binary=_env("TOXAGENT_OPENCODE_BINARY")
+            or (shutil.which("opencode") or str(Path.home() / ".opencode" / "bin" / "opencode")),
+            owner_hosts_root=_env("TOXAGENT_OWNER_HOSTS_DIR")
+            or str(SERVICE_ROOT / ".data" / "opencode-owner-hosts"),
+            owner_hosts_max=_int("TOXAGENT_OWNER_HOSTS_MAX", cls.owner_hosts_max),
+            owner_hosts_idle_s=_int("TOXAGENT_OWNER_HOSTS_IDLE_S", cls.owner_hosts_idle_s),
+            chatgpt_oauth=_chatgpt_mode(_env("TOXAGENT_CHATGPT_OAUTH", cls.chatgpt_oauth)),
         )
+
+
+def _chatgpt_mode(value: str) -> str:
+    mode = (value or "").strip().lower()
+    if mode not in {"local", "hosted", "off"}:
+        raise ValueError(f"TOXAGENT_CHATGPT_OAUTH must be local, hosted or off, got {value!r}")
+    return mode
 
 
 @dataclass(frozen=True)
@@ -704,6 +740,10 @@ class SecuritySettings:
     """
 
     capability_secret: str = ""
+    #: Fernet key that encrypts stored AI credentials, each bound to its
+    #: owner (connections/secrets.py). Without one, credentials are kept as
+    #: 0600 plaintext files, which is acceptable only on a single-user machine.
+    secret_encryption_key: str = ""
     capability_ttl_s: int = 900
     capability_grace_s: int = 60
     environment: str = "development"
@@ -765,6 +805,7 @@ class SecuritySettings:
     def from_env(cls) -> "SecuritySettings":
         settings = cls(
             capability_secret=_env("TOXAGENT_CAPABILITY_SECRET"),
+            secret_encryption_key=_env("TOXAGENT_SECRET_ENCRYPTION_KEY"),
             capability_ttl_s=_int("TOXAGENT_CAPABILITY_TTL_S", cls.capability_ttl_s),
             capability_grace_s=_int("TOXAGENT_CAPABILITY_GRACE_S", cls.capability_grace_s),
             environment=_env("TOXAGENT_ENV", cls.environment),
@@ -826,6 +867,14 @@ class SecuritySettings:
                     "TOXAGENT_EGRESS_POLICY must be 'hosted' in production; 'local' "
                     "permits requests to private addresses and is only correct for "
                     "single-user self-hosting"
+                )
+            if not settings.secret_encryption_key:
+                # Users' AI keys and ChatGPT sign-ins would sit on disk in the
+                # clear, readable by anyone who can read the volume.
+                raise ValueError(
+                    "TOXAGENT_SECRET_ENCRYPTION_KEY is required in production; generate one "
+                    "with: python -c \"from cryptography.fernet import Fernet; "
+                    "print(Fernet.generate_key().decode())\""
                 )
         return settings
 

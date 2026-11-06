@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from pathlib import Path
 from contextlib import asynccontextmanager, suppress
 from urllib.parse import urlsplit
 
@@ -44,10 +45,12 @@ from ..tools.bootstrap import build_registry
 from ..tools.capability import CapabilityTokenService
 from ..tools.mcp_server import mcp_asgi_app
 from ..tools.runner import ToolRunner
-from ..connections.secrets import FilesystemSecretStore
+from ..connections.secrets import build_secret_store
 from ..connections.network import EgressPolicy
-from ..connections.probe import OpenAICompatibleProbe
+from ..connections.models import ModelCatalog
+from ..connections.probe import ProtocolProbe
 from ..connections.service import ModelConnectionService
+from ..connections import chatgpt as chatgpt_oauth
 from . import errors
 from .auth import build_auth
 from .predict_limits import PredictLimiter
@@ -103,6 +106,43 @@ async def _adoption_sweep(scheduler) -> None:
             log.exception("run adoption sweep failed; retrying at the next interval")
 
 
+def _owner_host_pool(settings: Settings):
+    """Private per-connection OpenCode hosts, when this deployment runs them."""
+    runtime = settings.runtime
+    if not runtime.owner_hosts:
+        return None
+    from ..harness.owner_hosts import OpenCodeHostPool
+
+    binary = Path(runtime.opencode_binary).expanduser()
+    if not binary.is_file():
+        raise ValueError(
+            "TOXAGENT_OWNER_RUNTIME_HOSTS needs the pinned OpenCode binary; "
+            f"none at {binary} (set TOXAGENT_OPENCODE_BINARY)"
+        )
+    return OpenCodeHostPool(
+        binary=str(binary),
+        profile_path=settings.profiles_dir / "opencode" / "toxagent.json",
+        root=Path(runtime.owner_hosts_root),
+        required_agents=tuple(
+            dict.fromkeys(name for name in (runtime.agent_name, runtime.report_agent_name) if name)
+        ),
+        max_hosts=runtime.owner_hosts_max,
+        idle_ttl_s=float(runtime.owner_hosts_idle_s),
+        request_timeout_s=runtime.opencode_request_timeout_s,
+    )
+
+
+async def _reap_owner_hosts(pool, interval_s: float = 60.0) -> None:
+    while True:
+        await asyncio.sleep(interval_s)
+        try:
+            await pool.reap()
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001
+            log.exception("owner host reaper failed; retrying at the next interval")
+
+
 def create_app(
     settings: Settings | None = None,
     *,
@@ -128,7 +168,18 @@ def create_app(
         # deterministic test harness can become a production model path.
         from ..harness.adapters.opencode_v1 import OpenCodeV1Provider
 
-        runtime_provider = OpenCodeV1Provider(settings.runtime)
+        runtime_provider = OpenCodeV1Provider(
+            settings.runtime, hosts=_owner_host_pool(settings)
+        )
+    # One store for the whole process: the connection service writes into it,
+    # the gateway reads from it (I12), and a private host writes refreshed
+    # ChatGPT sign-ins back into it.
+    secret_store = build_secret_store(
+        settings.secrets_dir, settings.security.secret_encryption_key
+    )
+    owner_hosts = getattr(runtime_provider, "hosts", None)
+    if owner_hosts is not None:
+        owner_hosts.credential_sink = secret_store.replace
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -269,13 +320,25 @@ def create_app(
         app.state.scheduler = scheduler
         app.state.auth = build_auth(settings.security)
         app.state.sessions = SessionService(db)
+        egress = EgressPolicy(settings.security.egress_policy)
         app.state.connections = ModelConnectionService(
             db,
-            FilesystemSecretStore(settings.secrets_dir),
+            secret_store,
             # The probe calls a URL the user supplied, from inside this
             # process. Which destinations that may reach is a deployment
             # decision, not a default (I15) — see SecuritySettings.egress_policy.
-            OpenAICompatibleProbe(egress=EgressPolicy(settings.security.egress_policy)),
+            ProtocolProbe(egress=egress),
+            catalog=ModelCatalog(egress=egress),
+            hosts=owner_hosts,
+        )
+        app.state.chatgpt = chatgpt_oauth.ChatGPTEnrollment(
+            owner_hosts,
+            app.state.connections,
+            chatgpt_oauth.availability(
+                mode=settings.runtime.chatgpt_oauth,
+                hosts_enabled=owner_hosts is not None,
+                egress_policy=settings.security.egress_policy,
+            ),
         )
         # Intent.DECISION_SUPPORT only reaches a runtime turn when this
         # deployment actually has an agent runtime bound (Phase 5) —
@@ -366,7 +429,7 @@ def create_app(
                 # The same store the connection service writes into: without
                 # it a run silently used the runtime host's own credentials
                 # rather than the profile the user chose (I12).
-                secrets=FilesystemSecretStore(settings.secrets_dir),
+                secrets=secret_store,
                 profiles_dir=settings.profiles_dir,
                 policy=settings.policy,
             )
@@ -404,9 +467,19 @@ def create_app(
                 name="run-claims" if external_workers else "run-adoption",
             )
 
+        reaper = (
+            asyncio.create_task(_reap_owner_hosts(owner_hosts), name="owner-host-reaper")
+            if owner_hosts is not None
+            else None
+        )
         try:
             yield
         finally:
+            if reaper is not None:
+                reaper.cancel()
+                with suppress(asyncio.CancelledError):
+                    await reaper
+            await app.state.chatgpt.aclose()
             if adoption is not None:
                 adoption.cancel()
                 with suppress(asyncio.CancelledError):
