@@ -183,3 +183,47 @@ async def test_a_finished_chatgpt_sign_in_becomes_a_ready_connection(db, tmp_pat
         deleted = await client.delete(f"/v1/model-connections/{connection['connection_id']}", headers=AUTH)
         assert deleted.status_code == 204
         assert not any((tmp_path / "secrets").iterdir())
+
+
+async def test_a_back_end_with_no_ai_of_its_own_is_ready_and_says_whose_ai_runs(db, tmp_path):
+    """No shared host, no provider/model: readiness checks that a user's host
+    can be started, and tells the UI that runs use users' own connections."""
+    from toxagent.platform.config import RuntimeSettings
+
+    binary = tmp_path / "opencode"
+    binary.write_text("#!/bin/sh\necho 1.17.11\n")
+    binary.chmod(0o755)
+    config = settings(
+        secrets_dir=tmp_path / "secrets",
+        runtime=RuntimeSettings(
+            kind="opencode", opencode_base_url="http://127.0.0.1:9", opencode_shared_host=False,
+            opencode_directory=str(tmp_path / "ws"), owner_hosts=True,
+            opencode_binary=str(binary), owner_hosts_root=str(tmp_path / "hosts"),
+        ),
+        security=SecuritySettings(
+            capability_secret="test-secret-not-for-production",
+            static_tokens=(f"{USER_TOKEN}:user-1",),
+            mcp_runtime_url="http://127.0.0.1:8000/internal/mcp",
+        ),
+    )
+    async with api_client(db, StubPredictor(), config=config) as client:
+        ready = (await client.get("/health/ready")).json()
+        assert ready["mode"] == "agent_enabled"
+        assert ready["runtime"]["ai_source"] == "user_connections"
+        assert ready["runtime"]["healthy"] is True
+        catalogue = (await client.get("/v1/model-connections:providers", headers=AUTH)).json()
+        openai = next(p for p in catalogue["providers"] if p["provider_id"] == "openai")
+        assert "chatgpt_subscription" in openai["auth_modes"]
+        assert {"google", "xai", "groq", "mistral"} <= {p["provider_id"] for p in catalogue["providers"]}
+
+
+def test_no_shared_host_without_private_hosts_is_refused_at_start_up(tmp_path):
+    from toxagent.api.app import create_app
+    from toxagent.platform.config import RuntimeSettings
+
+    with pytest.raises(ValueError, match="TOXAGENT_OWNER_RUNTIME_HOSTS"):
+        create_app(settings(
+            secrets_dir=tmp_path / "secrets",
+            runtime=RuntimeSettings(kind="opencode", opencode_shared_host=False,
+                                    opencode_directory=str(tmp_path / "ws")),
+        ))

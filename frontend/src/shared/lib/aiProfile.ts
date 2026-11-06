@@ -22,9 +22,12 @@ export interface AgentProfileChoice {
 export function describeAgentProfileChoice({
   agentEnabled,
   readyProfileCount,
+  userAiRequired = false,
 }: {
   agentEnabled: boolean | null;
   readyProfileCount: number;
+  /** The server has no AI of its own (`runtime.ai_source === 'user_connections'`). */
+  userAiRequired?: boolean;
 }): AgentProfileChoice {
   if (agentEnabled === false) {
     return {
@@ -34,6 +37,23 @@ export function describeAgentProfileChoice({
         'tài liệu không khả dụng ở đây.',
       disabled: true,
     };
+  }
+  if (userAiRequired) {
+    // There is no server default to fall back to: offering one by name would
+    // be I06 again, a label promising a runtime that is not there.
+    return readyProfileCount === 0
+      ? {
+          defaultOptionLabel: 'Chưa có AI — hãy thêm kết nối',
+          notice:
+            'Server này không có AI riêng: mỗi người tự kết nối AI của mình (API key hoặc ' +
+            'ChatGPT Plus/Pro) ở bên dưới rồi bấm Test.',
+          disabled: false,
+        }
+      : {
+          defaultOptionLabel: 'Kết nối đầu tiên đã sẵn sàng',
+          notice: null,
+          disabled: false,
+        };
   }
   if (readyProfileCount === 0) {
     return {
@@ -63,12 +83,17 @@ export function profileForSession({
   defaultProfileId,
   currentProfileId,
   readyProfileIds,
+  userAiRequired = false,
 }: {
   /** `undefined`: the user never chose a default. `null`: they chose the server runtime. */
   defaultProfileId: string | null | undefined;
   currentProfileId: string | null;
   readyProfileIds: readonly string[];
+  /** The server has no runtime of its own, so `null` would fail every run. */
+  userAiRequired?: boolean;
 }): string | null {
   const wanted = defaultProfileId === undefined ? currentProfileId : defaultProfileId;
-  return wanted && readyProfileIds.includes(wanted) ? wanted : null;
+  if (wanted && readyProfileIds.includes(wanted)) return wanted;
+  // With no server runtime, any ready connection beats one the run cannot use.
+  return userAiRequired ? (readyProfileIds[0] ?? null) : null;
 }

@@ -152,6 +152,7 @@ class OpenCodeHostPool:
         self._port_picker = port_picker
         self._hosts: dict[str, OwnerHost] = {}
         self._lock = asyncio.Lock()
+        self._preflight_ok: tuple[bool, str, tuple[str, ...]] | None = None
         #: ``(secret_ref, owner_id, secret) -> None``; set by the app so a
         #: refreshed OAuth pair is persisted under the same reference.
         self.credential_sink: Callable[[str, str, str], None] | None = None
@@ -167,6 +168,39 @@ class OpenCodeHostPool:
     @property
     def size(self) -> int:
         return len(self._hosts)
+
+    async def preflight(self, version: str) -> tuple[bool, str, tuple[str, ...]]:
+        """Can this pool start a host at all? (ok, detail, agents the profile lacks).
+
+        Cached once it succeeds: the binary and the profile do not change under
+        a running process, and spawning ``--version`` on every readiness probe
+        would be waste. A failure is re-checked next time.
+        """
+        if self._preflight_ok is not None:
+            return self._preflight_ok
+        if not self._profile.is_file():
+            return False, "the OpenCode agent profile is missing", ()
+        try:
+            agents = set((json.loads(self._profile.read_text(encoding="utf-8")).get("agent") or {}))
+        except (OSError, ValueError, AttributeError):
+            return False, "the OpenCode agent profile is not readable", ()
+        missing = tuple(name for name in self._required_agents if name not in agents)
+        if not os.access(self._binary, os.X_OK):
+            return False, f"no executable OpenCode binary at {self._binary}", missing
+        try:
+            process = await asyncio.create_subprocess_exec(
+                self._binary, "--version", stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL, stdin=asyncio.subprocess.DEVNULL,
+                env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "HOME": str(self._root)},
+            )
+            out, _ = await asyncio.wait_for(process.communicate(), timeout=20)
+        except (OSError, asyncio.TimeoutError):
+            return False, "the OpenCode binary did not run", missing
+        found = out.decode("utf-8", "replace").strip()
+        if found != version:
+            return False, f"OpenCode {version} is required; the binary is {found or 'unknown'}", missing
+        self._preflight_ok = (True, f"OpenCode {version} ready for users' own AI connections", missing)
+        return self._preflight_ok
 
     def _host_root(self, key: str) -> Path:
         return self._root / hashlib.sha256(key.encode("utf-8")).hexdigest()[:24]

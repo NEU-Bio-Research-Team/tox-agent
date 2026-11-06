@@ -165,6 +165,16 @@ class RuntimeUnavailable(ToxAgentError):
     code, http_status, retryable = "runtime_unavailable", 503, True
 
 
+class AiConnectionRequired(ToxAgentError):
+    """The deployment has no AI of its own and the session names none.
+
+    Not a runtime fault and not retryable as is: the user connects an AI in
+    Settings (an API key or a ChatGPT sign-in) and picks it.
+    """
+
+    code, http_status = "ai_connection_required", 409
+
+
 class RuntimeProtocolError(ToxAgentError):
     code, http_status = "runtime_protocol_error", 502
 

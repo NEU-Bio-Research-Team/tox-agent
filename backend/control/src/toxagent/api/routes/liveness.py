@@ -88,6 +88,13 @@ async def ready(request: Request) -> JSONResponse:
         "bound": services.runtime_gateway is not None,
         "checked_at": checked_at,
     }
+    if services.settings.runtime.kind == "opencode":
+        # Whose AI a run uses: the deployment's (a shared, pre-authenticated
+        # host) or each user's own connection. The UI reads this to say
+        # "connect your AI" instead of offering a server default that is not there.
+        runtime_info["ai_source"] = (
+            "deployment" if services.settings.runtime.opencode_shared_host else "user_connections"
+        )
     gateway = services.runtime_gateway
     if gateway is not None:
         try:

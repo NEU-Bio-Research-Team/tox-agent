@@ -55,19 +55,21 @@ def test_nothing_is_offered_that_this_control_plane_cannot_speak():
         assert spec.protocol in spoken, spec.id
 
 
-def test_gemini_is_refused_with_the_reason():
-    """Refused, not silently absent: the user asked for a reason and gets one,
-    including the way to use that model through a gateway."""
+def test_gemini_is_offered_as_google_and_the_old_name_says_so():
+    """Gemini was refused for lack of an adapter. It is now offered under
+    OpenCode's own provider id, and the name a user might type points there."""
+    spec = providers.get("google")
+    assert spec.runtime_provider_id == "google"
+    assert spec.default_base_url.endswith("/v1beta/openai")
     with pytest.raises(providers.UnsupportedProvider) as excinfo:
         providers.get("gemini")
-    assert excinfo.value.provider_id == "gemini"
-    assert "OpenAI-compatible" in excinfo.value.reason
-    assert "gemini" not in {spec.id for spec in providers.SUPPORTED}
+    assert "'google'" in excinfo.value.reason
 
 
-def test_a_claude_subscription_is_refused_and_says_to_use_a_key():
+@pytest.mark.parametrize("provider_id", ["claude_pro", "claude_code"])
+def test_a_claude_subscription_is_refused_and_says_to_use_a_key(provider_id):
     with pytest.raises(providers.UnsupportedProvider) as excinfo:
-        providers.get("claude_pro")
+        providers.get(provider_id)
     assert "API key" in excinfo.value.reason
 
 

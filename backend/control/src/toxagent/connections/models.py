@@ -85,6 +85,17 @@ def clean(items) -> list[ModelOption]:
     return models[:MAX_MODELS]
 
 
+#: Listed by several providers next to their chat models, never usable for a run.
+_NOT_CHAT = (
+    "embedding", "embed", "whisper", "tts", "transcribe", "moderation", "guard",
+    "imagen", "image", "veo", "aqa", "audio", "realtime",
+)
+
+
+def _chat_only(items):
+    return [item for item in items if not any(w in str(item.get("id", "")).lower() for w in _NOT_CHAT)]
+
+
 def _shape(provider_id: str, data: list[dict[str, Any]]) -> list[ModelOption]:
     if provider_id == "openai":
         chat = sorted(
@@ -107,6 +118,16 @@ def _shape(provider_id: str, data: list[dict[str, Any]]) -> list[ModelOption]:
             if "text" in ((item.get("architecture") or {}).get("output_modalities") or ["text"])
         ]
         return clean((item.get("id"), item.get("name")) for item in text)
+    if provider_id == "google":
+        # Gemini's OpenAI-compatible list names models "models/<id>"; OpenCode
+        # and the native API want the bare id.
+        return clean(
+            (str(item.get("id", "")).removeprefix("models/"),
+             item.get("display_name") or str(item.get("id", "")).removeprefix("models/"))
+            for item in _chat_only(data)
+        )
+    if provider_id in {"groq", "mistral", "xai", "deepseek"}:
+        return clean((item.get("id"), item.get("id")) for item in _chat_only(data))
     return clean((item.get("id"), item.get("id")) for item in data)
 
 

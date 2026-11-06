@@ -242,7 +242,7 @@ function ChatGPTSignIn({ provider, onConnected }: { provider: SupportedProvider;
   );
 }
 
-export function AiConnectionsCard({ agentEnabled }: { agentEnabled: boolean | null }) {
+export function AiConnectionsCard({ agentEnabled, userAiRequired = false }: { agentEnabled: boolean | null; userAiRequired?: boolean }) {
   const [connections, setConnections] = useState<ModelConnection[]>([]);
   const [providers, setProviders] = useState<SupportedProvider[]>([]);
   const [provider, setProvider] = useState('');
@@ -272,7 +272,7 @@ export function AiConnectionsCard({ agentEnabled }: { agentEnabled: boolean | nu
   const offersChatGPT = Boolean(selected?.chatgpt_oauth);
   const keyOptional = selected?.auth_modes.includes('none') ?? false;
   const readyConnections = connections.filter((item) => item.status === 'ready');
-  const profileChoice = describeAgentProfileChoice({ agentEnabled, readyProfileCount: readyConnections.length });
+  const profileChoice = describeAgentProfileChoice({ agentEnabled, readyProfileCount: readyConnections.length, userAiRequired });
   // A default that was deleted or stopped passing its test is not in force;
   // useSessionProfileSync falls back to the server runtime for it.
   const defaultInForce = readyConnections.some((item) => item.connection_id === defaultProfileId) ? defaultProfileId! : '';

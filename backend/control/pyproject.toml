@@ -21,6 +21,9 @@ dependencies = [
     # to fail only when the first runtime connects.
     "mcp>=1.9,<2",
     "pyjwt[crypto]>=2.8",
+    # Encrypts users' stored AI credentials (connections/secrets.py). Already
+    # pinned through pyjwt[crypto]; declared because it is imported directly.
+    "cryptography>=42",
     "anyio>=4.2",
 ]
 

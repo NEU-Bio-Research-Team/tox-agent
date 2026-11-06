@@ -224,3 +224,54 @@ async def test_closing_the_pool_stops_every_host(tmp_path):
     await pool.aclose()
     assert pool.size == 0
     assert all(item["process"].returncode is not None for item in h.spawned)
+
+
+# -- a deployment with no AI of its own ----------------------------------------
+
+
+def _fake_binary(tmp_path: Path, version: str) -> str:
+    binary = tmp_path / "opencode"
+    binary.write_text(f"#!/bin/sh\necho {version}\n")
+    binary.chmod(0o755)
+    return str(binary)
+
+
+async def test_preflight_passes_with_the_pinned_binary_and_both_agents(tmp_path):
+    h = Harness(tmp_path)
+    h.profile.write_text(json.dumps({"agent": {"toxagent": {}, "toxagent-report": {}}}))
+    pool = h.pool(binary=_fake_binary(tmp_path, "1.17.11"))
+    ok, detail, missing = await pool.preflight("1.17.11")
+    assert ok and missing == () and "1.17.11" in detail
+    assert h.spawned == []  # nothing started just to check
+
+
+async def test_preflight_refuses_another_version_and_a_missing_binary(tmp_path):
+    h = Harness(tmp_path)
+    h.profile.write_text(json.dumps({"agent": {"toxagent": {}}}))
+    wrong = h.pool(binary=_fake_binary(tmp_path, "1.18.0"))
+    ok, detail, missing = await wrong.preflight("1.17.11")
+    assert not ok and "1.18.0" in detail and missing == ("toxagent-report",)
+    absent = h.pool(binary=str(tmp_path / "nope"))
+    assert (await absent.preflight("1.17.11"))[0] is False
+
+
+async def test_with_no_shared_host_health_is_the_pools_preflight(tmp_path):
+    from toxagent.harness.adapters.opencode_v1 import OpenCodeV1Provider
+    from toxagent.platform.config import RuntimeSettings
+
+    h = Harness(tmp_path)
+    h.profile.write_text(json.dumps({"agent": {"toxagent": {}, "toxagent-report": {}}}))
+    pool = h.pool(binary=_fake_binary(tmp_path, "1.17.11"))
+
+    def refuse(request):
+        raise AssertionError("a deployment with no shared host must not be probed")
+
+    shared = httpx.AsyncClient(base_url="http://nowhere", transport=httpx.MockTransport(refuse))
+    provider = OpenCodeV1Provider(
+        RuntimeSettings(kind="opencode", opencode_directory=str(tmp_path / "ws"),
+                        opencode_shared_host=False),
+        client=shared, hosts=pool,
+    )
+    health = await provider.health()
+    assert health.healthy and health.missing_agents == ()
+    await shared.aclose()
