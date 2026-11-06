@@ -136,6 +136,10 @@ python -m uvicorn toxagent.api.app:create_app --factory --port 8001
 which one it has, or starts with none. `GET /health/ready` reports the mode it
 came up in.
 
+To let each user run on their own AI key or ChatGPT sign-in, add
+`TOXAGENT_OWNER_RUNTIME_HOSTS=1` and an encryption key; see
+[ai-connections.md](ai-connections.md).
+
 For the whole stack in containers, with the frontend and the predictor, use
 `./bin/toxagent` from the repository root — see the [root
 README](../../README.md).
