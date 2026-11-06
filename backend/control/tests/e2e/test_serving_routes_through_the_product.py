@@ -172,6 +172,12 @@ async def test_a_read_routes_repair_runs_under_the_read_profile(db, flags_on, mo
             "claims": [{"local_ref": "label", "kind": "classification",
                         "text": "The model labels the compound a hERG blocker or not.",
                         "observation_id": read["observation_ids"][0],
+                        "field_path": "predictions.herg.label"},
+                       # #72: the label is a field code checks; this reading of
+                       # it is what the reviewer still judges, so a repair can follow.
+                       {"local_ref": "reading", "kind": "scientific",
+                        "text": "The label is the model's output, not a measured block.",
+                        "observation_id": read["observation_ids"][0],
                         "field_path": "predictions.herg.label"}],
             "limitations": [{"code": "screening_not_safety_assessment", "text": ""}],
         })
