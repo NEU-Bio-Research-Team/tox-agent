@@ -12,6 +12,7 @@ into a run that has already reported an outcome.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 from datetime import datetime, timezone
@@ -109,7 +110,8 @@ class ToolRunner:
             )
 
         try:
-            await self._reserve(context, tool_name, arguments_hash)
+            await self._reserve(context, tool_name, arguments_hash,
+                                arguments_preview=_arguments_preview(arguments))
         except ToxAgentError as exc:
             return envelope.failed(
                 call_id=call_id, tool_name=tool_name, code=exc.code, message=exc.message,
@@ -160,7 +162,8 @@ class ToolRunner:
 
     # --- admission -----------------------------------------------------
 
-    async def _reserve(self, context: ToolContext, tool_name: str, arguments_hash: str) -> None:
+    async def _reserve(self, context: ToolContext, tool_name: str, arguments_hash: str,
+                       *, arguments_preview: str | None = None) -> None:
         """Atomically admit and reserve one call, or deny it with an audit
         trail (plan section 14.5).
 
@@ -208,7 +211,8 @@ class ToolRunner:
                     uow.emit(
                         session_id=context.session_id, type=EventType.TOOL_STARTED,
                         entity_type="tool_call", entity_id=context.call_id,
-                        run_id=context.run_id, payload={"tool_name": tool_name},
+                        run_id=context.run_id,
+                        payload={"tool_name": tool_name, "arguments_preview": arguments_preview},
                     )
                     uow.emit(
                         session_id=context.session_id, type=EventType.ACTIVITY_STARTED,
@@ -462,3 +466,25 @@ def _schema_errors(exc: ValidationError, limit: int = 8) -> list[dict[str, str]]
         {"loc": ".".join(str(part) for part in error.get("loc", ())), "type": error.get("type", "")}
         for error in exc.errors(include_input=False)[:limit]
     ]
+
+
+#: How much of a call's arguments the chat's live log shows.
+ARGUMENTS_PREVIEW_CHARS = 240
+
+
+def _arguments_preview(arguments: dict[str, Any]) -> str | None:
+    """A one-line, bounded rendering of what the model asked for.
+
+    For the live log only: the full arguments are hashed for the audit and are
+    the model's own request, never a credential (those are server-injected and
+    never pass through here).
+    """
+    if not arguments:
+        return None
+    try:
+        text = json.dumps(arguments, ensure_ascii=False, sort_keys=True, default=str)
+    except (TypeError, ValueError):
+        return None
+    if len(text) > ARGUMENTS_PREVIEW_CHARS:
+        text = text[: ARGUMENTS_PREVIEW_CHARS - 1] + "…"
+    return text

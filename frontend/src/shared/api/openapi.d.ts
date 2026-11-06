@@ -2105,6 +2105,8 @@ export interface components {
         };
         /** ConfigurationSnapshot */
         ConfigurationSnapshot: {
+            /** Ai Model Id */
+            ai_model_id?: string | null;
             /** Ai Profile Id */
             ai_profile_id: string | null;
             /** Created At */
@@ -4308,6 +4310,8 @@ export interface components {
         };
         /** SessionSettings */
         SessionSettings: {
+            /** Ai Model Id */
+            ai_model_id?: string | null;
             /** Ai Profile Id */
             ai_profile_id: string | null;
             /** Predictor Bindings */
@@ -4317,6 +4321,8 @@ export interface components {
         };
         /** SessionSettingsRequest */
         SessionSettingsRequest: {
+            /** Ai Model Id */
+            ai_model_id?: string | null;
             /** Ai Profile Id */
             ai_profile_id?: string | null;
             /** Predictor Bindings */

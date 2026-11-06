@@ -71,6 +71,9 @@ session_settings = Table(
     "session_settings", metadata,
     Column("session_id", _ID, ForeignKey("sessions.id", ondelete="CASCADE"), primary_key=True),
     Column("ai_profile_id", _ID, nullable=True),
+    # 0030: the model of that connection the user picked in the chat; NULL is
+    # the connection's own model.
+    Column("ai_model_id", String(200), nullable=True),
     Column("predictor_bindings", Json, nullable=False),
     Column("updated_at", _TS, nullable=False),
 )
@@ -79,6 +82,7 @@ run_configuration_snapshots = Table(
     "run_configuration_snapshots", metadata,
     Column("run_id", _ID, ForeignKey("runs.id", ondelete="CASCADE"), primary_key=True),
     Column("ai_profile_id", _ID, nullable=True),
+    Column("ai_model_id", String(200), nullable=True),
     Column("predictor_bindings", Json, nullable=False),
     # Which router decided this run's intent, and why. Nullable: runs routed
     # before WS07 recorded neither, and a routing complaint is unanswerable

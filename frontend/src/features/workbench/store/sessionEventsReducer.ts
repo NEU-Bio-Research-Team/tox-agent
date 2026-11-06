@@ -17,6 +17,15 @@ export interface ToolCallLive {
   observation_ids?: string[];
 }
 
+/** One line of a run's live log, in the order the server recorded it. */
+export type TraceEntry =
+  | { kind: 'turn'; id: string; at: string; phase: string | null; providerId: string; modelId: string; toolCount: number; promptTokens: number | null }
+  | { kind: 'skills'; id: string; at: string; mode: string; skills: { skill_id: string; version?: string; description?: string }[] }
+  | { kind: 'reasoning'; id: string; at: string; updatedAt: string; text: string; done: boolean; truncated: boolean }
+  | { kind: 'tool'; id: string; at: string; toolName: string; args: string | null; state: ToolCallLive['state']; endedAt?: string; durationMs?: number; errorCode?: string }
+  | { kind: 'rejected'; id: string; at: string; violations: number }
+  | { kind: 'validating'; id: string; at: string };
+
 export interface RecoveryBanner {
   originalRunId: string;
   recoveryRunId: string;
@@ -33,6 +42,8 @@ export interface SessionEventsState {
   latestArtifact: (ArtifactSelection & { sequence: number }) | null;
   /** run_id -> report build progress from `report.stage_changed` (WS09). */
   liveReportProgress: Record<string, ReportProgress>;
+  /** run_id -> the run's live log: turns, skills, reasoning, tool calls. */
+  liveTrace: Record<string, TraceEntry[]>;
 }
 
 /** A short replay window gives event_id an explicit role in deduplication,
@@ -66,6 +77,7 @@ export function createSessionEventsState(initialCursor: number): SessionEventsRe
     analysisIdByRun: {},
     latestArtifact: null,
     liveReportProgress: {},
+    liveTrace: {},
   };
 }
 
@@ -122,6 +134,7 @@ function hydrateHistory(
     liveRejections: mergeRejections(history.liveRejections, state.liveRejections),
     analysisIdByRun: { ...history.analysisIdByRun, ...state.analysisIdByRun },
     liveReportProgress: { ...history.liveReportProgress, ...state.liveReportProgress },
+    liveTrace: mergeTrace(history.liveTrace, state.liveTrace),
     recoveryBanners: uniqueRecoveryBanners([...history.recoveryBanners, ...state.recoveryBanners]),
   };
 }
@@ -137,6 +150,33 @@ function mergeToolCalls(
     merged[runId] = [...byId.values()];
   }
   return merged;
+}
+
+function mergeTrace(
+  history: Record<string, TraceEntry[]>,
+  live: Record<string, TraceEntry[]>,
+): Record<string, TraceEntry[]> {
+  const merged: Record<string, TraceEntry[]> = { ...history };
+  for (const [runId, entries] of Object.entries(live)) {
+    let current = merged[runId] ?? [];
+    for (const entry of entries) current = upsertTrace(current, entry);
+    merged[runId] = current;
+  }
+  return merged;
+}
+
+/** Replace the entry with the same kind and id (a reasoning part that grew,
+ * a tool call that finished), or append a new one. */
+function upsertTrace(entries: TraceEntry[], entry: TraceEntry): TraceEntry[] {
+  const index = entries.findIndex((item) => item.kind === entry.kind && item.id === entry.id);
+  if (index < 0) return [...entries, entry];
+  const next = entries.slice();
+  next[index] = { ...entries[index], ...entry, at: entries[index].at } as TraceEntry;
+  return next;
+}
+
+function withTrace(state: SessionEventsReducerState, runId: string, entry: TraceEntry): SessionEventsReducerState {
+  return { ...state, liveTrace: { ...state.liveTrace, [runId]: upsertTrace(state.liveTrace[runId] ?? [], entry) } };
 }
 
 function mergeRejections(
@@ -189,10 +229,16 @@ function reduceEvent(state: SessionEventsReducerState, event: ToxAgentEvent): Se
       const activities = index < 0 ? [...prior, activity] : prior.map((item, i) => i === index ? { ...item, ...activity } : item);
       return { ...next, liveActivities: { ...next.liveActivities, [runId]: activities } };
     }
-    case 'tool.started':
+    case 'tool.started': {
       if (!runId) return next;
+      const traced = withTrace(next, runId, {
+        kind: 'tool', id: event.entity_id, at: event.occurred_at,
+        toolName: String(event.payload.tool_name ?? 'tool'),
+        args: typeof event.payload.arguments_preview === 'string' ? event.payload.arguments_preview : null,
+        state: 'running',
+      });
       return {
-        ...next,
+        ...traced,
         liveToolCalls: {
           ...next.liveToolCalls,
           [runId]: [
@@ -206,12 +252,23 @@ function reduceEvent(state: SessionEventsReducerState, event: ToxAgentEvent): Se
           ],
         },
       };
+    }
 
     case 'tool.completed':
-    case 'tool.failed':
+    case 'tool.failed': {
       if (!runId) return next;
+      const prior = (next.liveTrace[runId] ?? []).find((item) => item.kind === 'tool' && item.id === event.entity_id);
+      const traced = withTrace(next, runId, {
+        kind: 'tool', id: event.entity_id, at: prior?.at ?? event.occurred_at,
+        toolName: prior?.kind === 'tool' ? prior.toolName : String(event.payload.tool_name ?? 'tool'),
+        args: prior?.kind === 'tool' ? prior.args : null,
+        state: event.type === 'tool.completed' ? 'completed' : 'failed',
+        endedAt: event.occurred_at,
+        durationMs: event.payload.duration_ms as number | undefined,
+        errorCode: event.payload.error_code as string | undefined,
+      });
       return {
-        ...next,
+        ...traced,
         liveToolCalls: {
           ...next.liveToolCalls,
           [runId]: (next.liveToolCalls[runId] ?? []).map((call) =>
@@ -228,11 +285,15 @@ function reduceEvent(state: SessionEventsReducerState, event: ToxAgentEvent): Se
           ),
         },
       };
+    }
 
     case 'answer.rejected':
       if (!runId || !Array.isArray(event.payload.violations)) return next;
       return {
-        ...next,
+        ...withTrace(next, runId, {
+          kind: 'rejected', id: event.event_id, at: event.occurred_at,
+          violations: (event.payload.violations as unknown[]).length,
+        }),
         liveRejections: {
           ...next.liveRejections,
           [runId]: [...(next.liveRejections[runId] ?? []), event.payload.violations as Violation[]],
@@ -263,6 +324,40 @@ function reduceEvent(state: SessionEventsReducerState, event: ToxAgentEvent): Se
       if (!progress || progress === prior) return next;
       return { ...next, liveReportProgress: { ...next.liveReportProgress, [runId]: progress } };
     }
+
+    case 'agent.trace': {
+      if (!runId) return next;
+      const p = event.payload;
+      if (p.kind === 'turn') {
+        return withTrace(next, runId, {
+          kind: 'turn', id: event.event_id, at: event.occurred_at,
+          phase: typeof p.phase === 'string' ? p.phase : null,
+          providerId: String(p.provider_id ?? ''), modelId: String(p.model_id ?? ''),
+          toolCount: Number(p.tool_count ?? 0),
+          promptTokens: typeof p.prompt_tokens === 'number' ? p.prompt_tokens : null,
+        });
+      }
+      if (p.kind === 'skills' && Array.isArray(p.skills)) {
+        return withTrace(next, runId, {
+          kind: 'skills', id: event.event_id, at: event.occurred_at, mode: String(p.mode ?? ''),
+          skills: p.skills as { skill_id: string; version?: string; description?: string }[],
+        });
+      }
+      return next;
+    }
+
+    case 'agent.reasoning': {
+      if (!runId) return next;
+      return withTrace(next, runId, {
+        kind: 'reasoning', id: event.entity_id, at: event.occurred_at, updatedAt: event.occurred_at,
+        text: String(event.payload.text ?? ''), done: Boolean(event.payload.done),
+        truncated: Boolean(event.payload.truncated),
+      });
+    }
+
+    case 'run.validating':
+      if (!runId) return next;
+      return withTrace(next, runId, { kind: 'validating', id: runId, at: event.occurred_at });
 
     case 'runtime.recovery_started': {
       const originalRunId = String(event.payload.recovery_of_run_id ?? '');

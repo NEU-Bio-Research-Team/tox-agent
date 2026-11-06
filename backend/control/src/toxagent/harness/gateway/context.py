@@ -320,7 +320,9 @@ class ContextMixin:
             )
         return ResolvedProfile(
             provider_id=connection.provider_id,
-            model_id=connection.model_id,
+            # The model picked in the chat runs on this connection's account;
+            # the provider, endpoint and credential never come from the session.
+            model_id=getattr(context, "ai_model_id", None) or connection.model_id,
             connection_id=connection.id,
             base_url=connection.base_url,
             credential=credential,

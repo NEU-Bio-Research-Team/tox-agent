@@ -30,6 +30,11 @@ class UpdateSessionRequest(_Request):
 
 class SessionSettingsRequest(_Request):
     ai_profile_id: str | None = Field(default=None, max_length=40)
+    #: One of that connection's models, picked in the chat. ``None``: the
+    #: connection's own model. Never a provider: that comes from the connection.
+    ai_model_id: str | None = Field(
+        default=None, min_length=1, max_length=200, pattern=r"^[A-Za-z0-9._:/@+\-]+$"
+    )
     predictor_bindings: dict[Literal["clintox", "herg", "tox21"], str] = Field(default_factory=dict)
 
 

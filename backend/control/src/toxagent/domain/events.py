@@ -51,6 +51,12 @@ class EventType(str, Enum):
     RUN_RESULT_RECORDED = "run.result_recorded"
     RUNTIME_RECOVERY_STARTED = "runtime.recovery_started"
     RUNTIME_USAGE_REPORTED = "runtime.usage_reported"
+    #: The run's trace, for the chat's live log: what each turn runs on, which
+    #: skills it was given. Display only -- nothing reads it back as state.
+    AGENT_TRACE = "agent.trace"
+    #: The model's own reasoning, as the provider streams it. Unvalidated by
+    #: construction: it is never part of an answer, and the UI labels it so.
+    AGENT_REASONING = "agent.reasoning"
     # Report builder (spec section 12.2). A build emits its own progress rather
     # than reusing run.* events: a report build is a long, multi-stage,
     # resumable thing, and a client showing "which stage is it on" cannot get

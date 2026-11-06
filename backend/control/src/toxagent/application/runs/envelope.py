@@ -69,6 +69,7 @@ def to_envelope(context: "RunContext") -> dict[str, Any]:
         "endpoints": list(context.endpoints) if context.endpoints is not None else None,
         "model_selection": dict(context.model_selection) if context.model_selection else None,
         "ai_profile_id": context.ai_profile_id,
+        "ai_model_id": context.ai_model_id,
         "threshold_overrides": (
             dict(context.threshold_overrides) if context.threshold_overrides else None
         ),
@@ -132,6 +133,7 @@ def from_envelope(envelope: Mapping[str, Any]) -> "RunContext":
         endpoints=tuple(endpoints) if endpoints is not None else None,
         model_selection=envelope.get("model_selection") or None,
         ai_profile_id=envelope.get("ai_profile_id"),
+        ai_model_id=envelope.get("ai_model_id"),
         threshold_overrides=envelope.get("threshold_overrides") or None,
         explanation_mode=envelope.get("explanation_mode") or "on_demand",
         explanation_targets=tuple(

@@ -27,7 +27,8 @@ import { useSessionEvents } from './hooks/useSessionEvents';
 import { useArtifactSelectionFromUrl, artifactPath } from './hooks/useArtifactSelection';
 import { useBreakpoint } from '../../shared/hooks/useBreakpoint';
 import { useStickToBottom } from './hooks/useStickToBottom';
-import { useSessionProfileSync } from './hooks/useSessionProfileSync';
+import { useSessionAiChoice } from './hooks/useSessionAiChoice';
+import { ModelPicker } from '../composer/ModelPicker';
 import { getLayoutPreferences, setLayoutPreferences, clampArtifactsWidth } from '../../shared/lib/preferences';
 import {
   addPendingSend,
@@ -107,7 +108,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
     initialData: initial,
   });
   const session = sessionQuery.data ?? initial;
-  const profileSynced = useSessionProfileSync(sessionId);
+  const ai = useSessionAiChoice(sessionId);
 
   const messagesQuery = useQuery({
     queryKey: ['messages', sessionId],
@@ -135,7 +136,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   const structureRecognitionAvailable =
     capabilitiesQuery.data?.capabilities?.structure_recognition?.available ?? false;
 
-  const { status, liveToolCalls, liveActivities, recoveryBanners, analysisIdByRun, latestArtifact, liveReportProgress } = useSessionEvents(
+  const { status, liveToolCalls, liveActivities, recoveryBanners, analysisIdByRun, latestArtifact, liveReportProgress, liveTrace } = useSessionEvents(
     sessionId,
     initial.latest_event_sequence,
     historyEventsQuery.data,
@@ -304,6 +305,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
               analysisIdByRun={analysisIdByRun}
               activeAnalysisId={session.active_analysis?.analysis_id ?? null}
               liveReportProgress={liveReportProgress}
+              liveTrace={liveTrace}
               onClarificationAction={handleClarificationAction}
               onUseRecognizedSmiles={handleUseRecognizedSmiles}
             />
@@ -352,13 +354,23 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
               structureRecognitionAvailable={structureRecognitionAvailable}
               analysisContext={analysisContext}
               onClearAnalysisContext={() => setAnalysisContext(null)}
+              modelPicker={
+                <ModelPicker
+                  choice={ai.choice}
+                  connections={ai.readyConnections}
+                  providerNames={ai.providerNames}
+                  loading={ai.loading}
+                  disabled={activeRunBusy}
+                  onChoose={(next) => void ai.choose(next)}
+                />
+              }
               onSend={async (input) => {
                 // The subject is named on the message, never read from the
                 // selection when the run starts (#44).
                 const withSubject = subject ? { ...input, subject_ref: subject.ref } : input;
                 setPendingSends((current) => addPendingSend(current, pendingSendFromInput(input)));
                 try {
-                  await profileSynced();
+                  await ai.settled();
                   await sendMutation.mutateAsync(withSubject);
                   setAnalysisContext(null);
                   return true;

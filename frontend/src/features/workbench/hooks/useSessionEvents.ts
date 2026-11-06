@@ -8,7 +8,7 @@ import {
   type SessionEventsState,
 } from '../store/sessionEventsReducer';
 
-export type { RecoveryBanner, SessionEventsState, ToolCallLive } from '../store/sessionEventsReducer';
+export type { RecoveryBanner, SessionEventsState, ToolCallLive, TraceEntry } from '../store/sessionEventsReducer';
 
 const sessionKey = (sessionId: string) => ['session', sessionId];
 const messagesKey = (sessionId: string) => ['messages', sessionId];

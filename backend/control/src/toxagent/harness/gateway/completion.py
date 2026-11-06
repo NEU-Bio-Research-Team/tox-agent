@@ -24,6 +24,16 @@ from ..provider import (
 from ..usage_normalizer import RuntimeUsageNormalizer
 from ._common import _DIAGNOSTIC_DELTA_PREVIEW_CHARS, _now, log
 
+_TERMINAL_EVENTS = frozenset({
+    RuntimeEventType.TURN_IDLE, RuntimeEventType.TURN_FAILED, RuntimeEventType.SESSION_LOST,
+})
+#: A reasoning part is mirrored at most this often while it streams, and
+#: once more when it ends: a live log, not a row per token.
+REASONING_EMIT_INTERVAL_S = 1.0
+#: The tail of a reasoning part kept in an event. A part longer than this is
+#: shown from its end, which is the part a reader watching it needs.
+REASONING_MAX_CHARS = 6000
+
 
 class CompletionMixin:
     """Consuming a turn's events and committing its outcome."""
@@ -91,6 +101,7 @@ class CompletionMixin:
         )
         lost = False
         delta_tail = ""
+        reasoning = _ReasoningMirror()
         while True:
             remaining = (deadline - _now()).total_seconds()
             if remaining <= 0:
@@ -115,6 +126,16 @@ class CompletionMixin:
                     "the runtime event stream ended without a final answer"
                 )
 
+            if event.type is RuntimeEventType.REASONING_DELTA:
+                pending = reasoning.accept(event.payload)
+                if pending is not None:
+                    await self._emit_reasoning(context, pending)
+                continue
+            if event.type in _TERMINAL_EVENTS:
+                # Whatever reasoning was held back by the throttle is still
+                # what the model thought; flush it before the turn ends.
+                for pending in reasoning.flush():
+                    await self._emit_reasoning(context, pending)
             if event.type is RuntimeEventType.MESSAGE_DELTA:
                 delta_tail = (delta_tail + str(event.payload.get("text", "")))[
                     -_DIAGNOSTIC_DELTA_PREVIEW_CHARS:
@@ -143,6 +164,45 @@ class CompletionMixin:
                 if await has_product(context):
                     return lost
                 raise RuntimeProtocolError("the runtime turn failed", **event.payload)
+
+    async def _emit_trace(self, context: RunContext, kind: str, payload: dict) -> None:
+        """One line of the run's live log (``agent.trace``): never state."""
+        try:
+            async with self._db.unit_of_work() as uow:
+                uow.emit(
+                    session_id=context.session_id,
+                    type=EventType.AGENT_TRACE,
+                    entity_type="trace",
+                    entity_id=context.run_id,
+                    run_id=context.run_id,
+                    payload={"kind": kind, **payload},
+                )
+                await uow.commit()
+        except Exception:  # noqa: BLE001 - a log line, not product state
+            log.warning("could not record a %s trace for run %s", kind, context.run_id,
+                        exc_info=True)
+
+    async def _emit_reasoning(self, context: RunContext, payload: dict) -> None:
+        """Mirror a reasoning part into the session's event log.
+
+        Unlike MESSAGE_DELTA (see ``_consume_events``) this is safe to keep:
+        it is a separate event type the UI shows only as the model's thinking,
+        never as an answer, and no validator or projection reads it. A failure
+        here must never fail the turn it describes.
+        """
+        try:
+            async with self._db.unit_of_work() as uow:
+                uow.emit(
+                    session_id=context.session_id,
+                    type=EventType.AGENT_REASONING,
+                    entity_type="reasoning",
+                    entity_id=str(payload["part_id"])[:120],
+                    run_id=context.run_id,
+                    payload=payload,
+                )
+                await uow.commit()
+        except Exception:  # noqa: BLE001 - a log line, not product state
+            log.warning("could not record reasoning for run %s", context.run_id, exc_info=True)
 
     async def _record_usage_event(
         self,
@@ -376,3 +436,53 @@ def incomplete_result_text(result) -> str:
         lines.append("To go further, the following is needed: " + "; ".join(needed) + ".")
     lines.append("The draft and its review are kept in the run's audit view.")
     return "\n".join(lines)
+
+
+class _ReasoningMirror:
+    """Which reasoning updates are worth an event: the first, then at most one
+    per ``REASONING_EMIT_INTERVAL_S`` per part, and the final one."""
+
+    def __init__(self, *, clock: Callable[[], float] | None = None) -> None:
+        import time
+
+        self._clock = clock or time.monotonic
+        self._last_emit: dict[str, float] = {}
+        self._held: dict[str, dict] = {}
+        self._done: set[str] = set()
+
+    @staticmethod
+    def _shape(payload: dict) -> dict | None:
+        part_id = payload.get("part_id")
+        if not isinstance(part_id, str) or not part_id:
+            return None
+        text = str(payload.get("text") or "")
+        truncated = len(text) > REASONING_MAX_CHARS
+        return {
+            "part_id": part_id,
+            "text": text[-REASONING_MAX_CHARS:],
+            "truncated": truncated,
+            "chars": len(text),
+            "done": bool(payload.get("done")),
+        }
+
+    def accept(self, payload: dict) -> dict | None:
+        shaped = self._shape(payload)
+        if shaped is None or shaped["part_id"] in self._done:
+            return None
+        part_id = shaped["part_id"]
+        now = self._clock()
+        last = self._last_emit.get(part_id)
+        if shaped["done"] or last is None or now - last >= REASONING_EMIT_INTERVAL_S:
+            self._last_emit[part_id] = now
+            self._held.pop(part_id, None)
+            if shaped["done"]:
+                self._done.add(part_id)
+            return shaped
+        self._held[part_id] = shaped
+        return None
+
+    def flush(self) -> list[dict]:
+        held = [{**item, "done": True} for item in self._held.values()]
+        self._done.update(self._held)
+        self._held.clear()
+        return held

@@ -2221,6 +2221,17 @@
       "ConfigurationSnapshot": {
         "additionalProperties": true,
         "properties": {
+          "ai_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Model Id"
+          },
           "ai_profile_id": {
             "anyOf": [
               {
@@ -8750,6 +8761,17 @@
       "SessionSettings": {
         "additionalProperties": false,
         "properties": {
+          "ai_model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Model Id"
+          },
           "ai_profile_id": {
             "anyOf": [
               {
@@ -8779,6 +8801,20 @@
       "SessionSettingsRequest": {
         "additionalProperties": false,
         "properties": {
+          "ai_model_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9._:/@+\\-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Model Id"
+          },
           "ai_profile_id": {
             "anyOf": [
               {

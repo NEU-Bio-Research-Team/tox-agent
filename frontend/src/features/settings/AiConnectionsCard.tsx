@@ -1,33 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { CheckCircle2, CircleAlert, CircleDashed, KeyRound, Loader2, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../shared/ui/card';
-import { Label } from '../../shared/ui/label';
 import { Button } from '../../shared/ui/button';
 import {
   cancelChatGPTSignIn,
-  changeConnectionModel,
   completeChatGPTSignIn,
   createModelConnection,
   deleteModelConnection,
   getChatGPTSignIn,
-  listConnectionModels,
   listModelConnections,
   listModelsForKey,
   listSupportedProviders,
   startChatGPTSignIn,
   testModelConnection,
   type ChatGPTEnrollment,
-  type ModelOption,
   type SupportedProvider,
 } from '../../shared/api/endpoints';
 import { describeAgentProfileChoice } from '../../shared/lib/aiProfile';
-import { getDefaultAiProfileId, setDefaultAiProfileId } from '../../shared/lib/preferences';
 import { ApiError, type ModelConnection } from '../../shared/api/types';
 
-// Users connect their own AI here: an API key (OpenAI, Claude, OpenRouter,
-// DeepSeek, any OpenAI-compatible server) or a ChatGPT Plus/Pro sign-in. The
-// design follows G1_Web_Design's: list the models the key can actually use and
-// pick one, rather than guessing an id; a sign-in is a device code the user
-// approves on OpenAI's own page, never a token pasted here.
+// Settings only connects an account: an API key (OpenAI, Claude, OpenRouter,
+// DeepSeek, any OpenAI-compatible server…) or a ChatGPT Plus/Pro sign-in.
+// Which model a session runs is picked in the chat, where the composer's model
+// picker lists every model each connected account can use.
+//
+// The server still tests a connection against one model, so one is chosen
+// here without asking: the first chat model the provider lists for the key.
+// Only a provider that cannot list its models asks for a model id to test.
 //
 // The provider list and what each one accepts come from the server (I13), so
 // the form never offers something the server would refuse — including the
@@ -39,106 +38,65 @@ function errorText(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
 }
 
-function statusLabel(status: ModelConnection['status']): string {
-  if (status === 'ready') return 'Đã kết nối ✓';
-  if (status === 'failed') return 'Kết nối lỗi';
-  return 'Chưa kiểm tra';
-}
-
 function authLabel(mode: string): string {
   if (mode === 'chatgpt_subscription') return 'ChatGPT Plus/Pro';
   if (mode === 'api_key') return 'API key';
   return 'Không cần key';
 }
 
-/** A text field with the listed models as suggestions; any id may still be typed. */
-function ModelPicker({
-  id, value, onChange, models, placeholder,
-}: {
-  id: string; value: string; onChange: (value: string) => void; models: ModelOption[]; placeholder: string;
-}) {
+function StatusPill({ status }: { status: ModelConnection['status'] }) {
+  const tone = status === 'ready'
+    ? { icon: CheckCircle2, text: 'Đã kết nối', color: 'var(--accent-green)' }
+    : status === 'failed'
+      ? { icon: CircleAlert, text: 'Kết nối lỗi', color: 'var(--accent-red)' }
+      : { icon: CircleDashed, text: 'Chưa kiểm tra', color: 'var(--text-faint)' };
+  const Icon = tone.icon;
   return (
-    <>
-      <input
-        aria-label="AI model"
-        list={`${id}-options`}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="h-9 rounded-md border bg-transparent px-3 text-sm"
-      />
-      <datalist id={`${id}-options`}>
-        {models.map((model) => (
-          <option key={model.id} value={model.id}>{model.name !== model.id ? model.name : undefined}</option>
-        ))}
-      </datalist>
-    </>
+    <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: tone.color }}>
+      <Icon className="h-3.5 w-3.5" />{tone.text}
+    </span>
   );
 }
 
-function ConnectionRow({ connection, onChanged }: { connection: ModelConnection; onChanged: () => Promise<void> }) {
-  const [editing, setEditing] = useState(false);
-  const [models, setModels] = useState<ModelOption[]>([]);
-  const [model, setModel] = useState(connection.model_id);
+function ConnectionRow({ connection, providerName, onChanged }: {
+  connection: ModelConnection; providerName: string; onChanged: () => Promise<void>;
+}) {
   const [message, setMessage] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<'test' | 'delete' | null>(null);
 
-  const run = async (action: () => Promise<unknown>, fallback: string) => {
-    setBusy(true);
+  const run = async (kind: 'test' | 'delete', action: () => Promise<unknown>, fallback: string) => {
+    setBusy(kind);
     setMessage(null);
     try {
       await action();
     } catch (error) {
       setMessage(errorText(error, fallback));
     } finally {
-      setBusy(false);
+      setBusy(null);
       await onChanged();
     }
   };
 
-  const openModelEditor = async () => {
-    setEditing(true);
-    setMessage(null);
-    try {
-      setModels((await listConnectionModels(connection.connection_id)).models);
-    } catch (error) {
-      setModels([]);
-      setMessage(errorText(error, 'Không tải được danh sách model; vẫn có thể nhập ID model.'));
-    }
-  };
-
   return (
-    <div className="space-y-2 rounded-lg border p-3 text-sm" style={{ borderColor: 'var(--border)' }}>
+    <div className="space-y-1.5 rounded-xl border px-3 py-2.5 text-sm" style={{ borderColor: 'var(--border)' }}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="font-medium">{connection.display_name}</p>
-          <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
-            {connection.provider_id} · {connection.model_id} · {authLabel(connection.auth_mode)} · {statusLabel(connection.status)}
-            {connection.has_credential ? ' · đã lưu credential' : ''}
+        <div className="min-w-0">
+          <p className="truncate font-medium">{providerName}</p>
+          <p className="flex flex-wrap items-center gap-x-2 text-xs" style={{ color: 'var(--text-faint)' }}>
+            <span>{authLabel(connection.auth_mode)}</span>
+            <span aria-hidden>·</span>
+            <StatusPill status={connection.status} />
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => void run(() => testModelConnection(connection.connection_id), 'Kiểm tra thất bại.')}>Test</Button>
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => void (editing ? setEditing(false) : openModelEditor())}>Đổi model</Button>
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => void run(() => deleteModelConnection(connection.connection_id), 'Không xoá được.')}>Xoá</Button>
+        <div className="flex gap-1.5">
+          <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => void run('test', () => testModelConnection(connection.connection_id), 'Kiểm tra thất bại.')}>
+            {busy === 'test' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}Kiểm tra lại
+          </Button>
+          <Button size="sm" variant="ghost" aria-label="Xoá" disabled={busy !== null} onClick={() => void run('delete', () => deleteModelConnection(connection.connection_id), 'Không xoá được.')}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
-      {editing && (
-        <div className="flex flex-wrap items-center gap-2">
-          <ModelPicker id={`edit-${connection.connection_id}`} value={model} onChange={setModel} models={models} placeholder="ID model" />
-          <Button
-            size="sm"
-            disabled={busy || !model.trim() || model.trim() === connection.model_id}
-            onClick={() => void run(async () => {
-              await changeConnectionModel(connection.connection_id, { model_id: model.trim() });
-              setEditing(false);
-            }, 'Không đổi được model.')}
-          >
-            Lưu model
-          </Button>
-          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Sau khi đổi, bấm Test lại.</span>
-        </div>
-      )}
       {message && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>{message}</p>}
     </div>
   );
@@ -148,8 +106,10 @@ function ChatGPTSignIn({ provider, onConnected }: { provider: SupportedProvider;
   const oauth = provider.chatgpt_oauth;
   const [enrollment, setEnrollment] = useState<ChatGPTEnrollment>({ state: 'none' });
   const [model, setModel] = useState('');
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoSaved = useRef(false);
 
   const stopPolling = () => {
     if (timer.current) clearInterval(timer.current);
@@ -171,11 +131,31 @@ function ChatGPTSignIn({ provider, onConnected }: { provider: SupportedProvider;
     }, POLL_MS);
   }, [enrollment.state]);
 
-  useEffect(() => {
-    if (enrollment.state === 'connected' && !model && enrollment.models?.length) {
-      setModel(enrollment.models[0].id);
+  const save = async (modelId: string) => {
+    setError(null);
+    setSaving(true);
+    try {
+      await completeChatGPTSignIn({ model_id: modelId });
+      setEnrollment({ state: 'none' });
+      setModel('');
+      await onConnected();
+    } catch (e) {
+      setError(errorText(e, 'Không lưu được kết nối ChatGPT.'));
+    } finally {
+      setSaving(false);
     }
-  }, [enrollment, model]);
+  };
+
+  // Approved: save it straight away on the first listed model. The model used
+  // for each chat is picked later, in the chat.
+  useEffect(() => {
+    if (enrollment.state !== 'connected' || autoSaved.current) return;
+    const first = enrollment.models?.[0]?.id;
+    if (!first) return;
+    autoSaved.current = true;
+    void save(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per approval
+  }, [enrollment]);
 
   if (!oauth?.available) {
     return (
@@ -188,7 +168,7 @@ function ChatGPTSignIn({ provider, onConnected }: { provider: SupportedProvider;
 
   const start = async () => {
     setError(null);
-    setModel('');
+    autoSaved.current = false;
     try { setEnrollment(await startChatGPTSignIn()); } catch (e) { setError(errorText(e, 'Không bắt đầu được đăng nhập ChatGPT.')); }
   };
   const cancel = async () => {
@@ -196,20 +176,9 @@ function ChatGPTSignIn({ provider, onConnected }: { provider: SupportedProvider;
     await cancelChatGPTSignIn().catch(() => undefined);
     setEnrollment({ state: 'none' });
   };
-  const save = async () => {
-    setError(null);
-    try {
-      await completeChatGPTSignIn({ model_id: model.trim() });
-      setEnrollment({ state: 'none' });
-      setModel('');
-      await onConnected();
-    } catch (e) {
-      setError(errorText(e, 'Không lưu được kết nối ChatGPT.'));
-    }
-  };
 
   return (
-    <div className="space-y-3 rounded-lg border p-3 text-sm" style={{ borderColor: 'var(--border)' }}>
+    <div className="space-y-3 rounded-xl border p-3 text-sm" style={{ borderColor: 'var(--border)' }}>
       {(enrollment.state === 'none' || enrollment.state === 'expired' || enrollment.state === 'failed' || enrollment.state === 'cancelled') && (
         <>
           <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
@@ -223,41 +192,68 @@ function ChatGPTSignIn({ provider, onConnected }: { provider: SupportedProvider;
         <>
           <p>1. Mở <a className="font-medium underline" href={enrollment.verification_url ?? '#'} target="_blank" rel="noreferrer">{enrollment.verification_url}</a></p>
           <p>2. {enrollment.instructions}</p>
-          <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang chờ bạn xác nhận trên trang OpenAI… (còn {Math.ceil((enrollment.expires_in_s ?? 0) / 60)} phút)</p>
+          <p className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-faint)' }}>
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Đang chờ bạn xác nhận trên trang OpenAI… (còn {Math.ceil((enrollment.expires_in_s ?? 0) / 60)} phút)
+          </p>
           <Button size="sm" variant="ghost" onClick={() => void cancel()}>Huỷ</Button>
         </>
       )}
-      {enrollment.state === 'connected' && (
+      {enrollment.state === 'connected' && (enrollment.models?.length ? (
+        <p className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <Loader2 className="h-3 w-3 animate-spin" />Đã đăng nhập ChatGPT — đang lưu kết nối…
+        </p>
+      ) : (
         <>
-          <p>Đã đăng nhập ChatGPT. Chọn model cho kết nối này:</p>
+          <p>Đã đăng nhập ChatGPT, nhưng OpenAI không trả về danh sách model. Nhập một model ID để kiểm tra kết nối:</p>
           <div className="flex flex-wrap items-center gap-2">
-            <ModelPicker id="chatgpt-model" value={model} onChange={setModel} models={enrollment.models ?? []} placeholder="ID model" />
-            <Button size="sm" disabled={!model.trim()} onClick={() => void save()}>Lưu kết nối</Button>
+            <input aria-label="Model ID để kiểm tra" value={model} onChange={(e) => setModel(e.target.value)} placeholder="vd. gpt-5" className="h-9 rounded-md border bg-transparent px-3 text-sm" />
+            <Button size="sm" disabled={!model.trim() || saving} onClick={() => void save(model.trim())}>Lưu kết nối</Button>
             <Button size="sm" variant="ghost" onClick={() => void cancel()}>Huỷ</Button>
           </div>
         </>
-      )}
+      ))}
       {error && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>{error}</p>}
     </div>
   );
 }
 
-export function AiConnectionsCard({ agentEnabled, userAiRequired = false }: { agentEnabled: boolean | null; userAiRequired?: boolean }) {
+type Step = 'idle' | 'listing' | 'saving' | 'testing';
+
+const STEP_LABEL: Record<Step, string> = {
+  idle: 'Kết nối',
+  listing: 'Đang đọc các model của key…',
+  saving: 'Đang lưu…',
+  testing: 'Đang thử kết nối…',
+};
+
+export function AiConnectionsCard({
+  agentEnabled,
+  userAiRequired = false,
+  onConnectionsChanged,
+}: {
+  agentEnabled: boolean | null;
+  userAiRequired?: boolean;
+  /** Lets the chat's model picker see a new or removed connection at once. */
+  onConnectionsChanged?: () => void;
+}) {
   const [connections, setConnections] = useState<ModelConnection[]>([]);
   const [providers, setProviders] = useState<SupportedProvider[]>([]);
   const [provider, setProvider] = useState('');
   const [method, setMethod] = useState<'api_key' | 'chatgpt'>('api_key');
-  const [model, setModel] = useState('');
-  const [models, setModels] = useState<ModelOption[]>([]);
   const [baseUrl, setBaseUrl] = useState('');
   const [credential, setCredential] = useState('');
+  const [probeModel, setProbeModel] = useState('');
+  const [askModel, setAskModel] = useState(false);
+  const [step, setStep] = useState<Step>('idle');
   const [formError, setFormError] = useState<string | null>(null);
-  const [listing, setListing] = useState(false);
-  const [defaultProfileId, setDefaultProfileIdState] = useState(getDefaultAiProfileId());
+  const [success, setSuccess] = useState<string | null>(null);
 
   const refreshConnections = async () => {
     try { setConnections((await listModelConnections()).connections); } catch { setFormError('Không tải được danh sách kết nối AI.'); }
+    onConnectionsChanged?.();
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on mount
   useEffect(() => { void refreshConnections(); }, []);
   useEffect(() => {
     void listSupportedProviders()
@@ -269,96 +265,84 @@ export function AiConnectionsCard({ agentEnabled, userAiRequired = false }: { ag
   }, []);
 
   const selected = useMemo(() => providers.find((item) => item.provider_id === provider) ?? null, [providers, provider]);
+  const providerName = (id: string) => providers.find((item) => item.provider_id === id)?.display_name ?? id;
   const offersChatGPT = Boolean(selected?.chatgpt_oauth);
   const keyOptional = selected?.auth_modes.includes('none') ?? false;
-  const readyConnections = connections.filter((item) => item.status === 'ready');
-  const profileChoice = describeAgentProfileChoice({ agentEnabled, readyProfileCount: readyConnections.length, userAiRequired });
-  // A default that was deleted or stopped passing its test is not in force;
-  // useSessionProfileSync falls back to the server runtime for it.
-  const defaultInForce = readyConnections.some((item) => item.connection_id === defaultProfileId) ? defaultProfileId! : '';
+  const needsModelId = askModel || selected?.lists_models === false;
+  const readyCount = connections.filter((item) => item.status === 'ready').length;
+  const notice = describeAgentProfileChoice({ agentEnabled, readyProfileCount: readyCount, userAiRequired }).notice;
 
   const chooseProvider = (next: string) => {
     setProvider(next);
     setBaseUrl('');
-    setModels([]);
-    setModel('');
+    setProbeModel('');
+    setAskModel(false);
     setMethod('api_key');
     setFormError(null);
+    setSuccess(null);
   };
 
-  const loadModels = async () => {
-    if (!keyOptional && !credential.trim()) { setFormError('Nhập API key để tải danh sách model.'); return; }
+  const connect = async () => {
+    if (!provider) return;
+    if (!keyOptional && !credential.trim()) { setFormError('Nhập API key.'); return; }
     if (selected?.base_url_required && !baseUrl.trim()) { setFormError(`${selected.display_name} cần Base URL.`); return; }
-    setListing(true);
     setFormError(null);
+    setSuccess(null);
+    const base_url = selected?.base_url_required ? baseUrl.trim() : undefined;
+    let created = false;
     try {
-      const result = await listModelsForKey({
-        provider_id: provider,
-        base_url: selected?.base_url_required ? baseUrl.trim() : undefined,
-        credential: credential.trim() || undefined,
-      });
-      setModels(result.models);
-      if (!model && result.models[0]) setModel(result.models[0].id);
-      if (result.models.length === 0) setFormError('Provider không trả về model nào; hãy nhập ID model.');
-    } catch (error) {
-      setModels([]);
-      setFormError(errorText(error, 'Không tải được danh sách model.'));
-    } finally {
-      setListing(false);
-    }
-  };
-
-  const addConnection = async () => {
-    if (!provider || !model.trim()) { setFormError('Chọn provider và model.'); return; }
-    if (!keyOptional && !credential.trim()) { setFormError('Nhập API key để tạo kết nối này.'); return; }
-    if (selected?.base_url_required && !baseUrl.trim()) { setFormError(`${selected.display_name} cần Base URL.`); return; }
-    const authMode: ModelConnection['auth_mode'] = credential.trim() ? 'api_key' : 'none';
-    try {
-      await createModelConnection({
-        provider_id: provider, model_id: model.trim(), auth_mode: authMode,
-        base_url: selected?.base_url_required ? baseUrl.trim() : undefined,
+      let modelId = probeModel.trim();
+      if (!modelId) {
+        if (!selected?.lists_models) { setFormError('Nhập một model ID để kiểm tra kết nối.'); return; }
+        setStep('listing');
+        const listed = await listModelsForKey({ provider_id: provider, base_url, credential: credential.trim() || undefined });
+        modelId = listed.models[0]?.id ?? '';
+        if (!modelId) {
+          setAskModel(true);
+          setFormError('Provider không trả về model nào cho key này; nhập một model ID để kiểm tra.');
+          return;
+        }
+      }
+      setStep('saving');
+      const authMode: ModelConnection['auth_mode'] = credential.trim() ? 'api_key' : 'none';
+      const connection = await createModelConnection({
+        provider_id: provider, model_id: modelId, auth_mode: authMode, base_url,
         credential: authMode === 'api_key' ? credential : undefined,
       });
-      setCredential(''); setModel(''); setModels([]); setBaseUrl(''); setFormError(null);
-      await refreshConnections();
+      created = true;
+      // The key leaves the form as soon as the server has it.
+      setCredential(''); setBaseUrl(''); setProbeModel(''); setAskModel(false);
+      setStep('testing');
+      const tested = await testModelConnection(connection.connection_id).catch((error: unknown) => {
+        setFormError(errorText(error, 'Đã lưu, nhưng kiểm tra kết nối thất bại.'));
+        return null;
+      });
+      if (tested?.status === 'ready') setSuccess(`Đã kết nối ${providerName(provider)}. Chọn model ngay trong khung chat.`);
     } catch (error) {
       // The server's message says what is wrong and often what to pick instead.
-      setFormError(errorText(error, 'Không thể lưu kết nối.'));
+      setFormError(errorText(error, 'Không thể kết nối.'));
+    } finally {
+      setStep('idle');
+      if (created) await refreshConnections();
     }
   };
 
   return (
     <Card style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <CardHeader><CardTitle className="text-base">AI của bạn</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-base">AI của bạn</CardTitle>
+        <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          Kết nối tài khoản AI ở đây. Model dùng cho từng cuộc trò chuyện được chọn ngay trong khung chat.
+        </p>
+      </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="default-ai-profile">Kết nối dùng cho các phiên</Label>
-          <select
-            id="default-ai-profile"
-            className="mt-1 h-9 w-full rounded-md border bg-transparent px-3 text-sm"
-            disabled={profileChoice.disabled}
-            value={defaultInForce}
-            onChange={(event) => {
-              const next = event.target.value || null;
-              setDefaultAiProfileId(next);
-              setDefaultProfileIdState(next);
-            }}
-          >
-            <option value="">{profileChoice.defaultOptionLabel}</option>
-            {readyConnections.map((connection) => (
-              <option key={connection.connection_id} value={connection.connection_id}>
-                {connection.display_name || `${connection.provider_id} · ${connection.model_id}`}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>
-            {profileChoice.notice ?? 'Áp dụng cho run tiếp theo của mọi phiên. Chỉ kết nối đã Test thành công mới chọn được.'}
-          </p>
-        </div>
+        {notice && <p className="rounded-lg px-3 py-2 text-xs" style={{ background: 'var(--surface-muted)', color: 'var(--text-muted)' }}>{notice}</p>}
 
         {connections.length === 0
-          ? <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có kết nối nào. Key chỉ được gửi lên khi tạo kết nối, được mã hoá khi lưu, và không bao giờ trả lại giao diện.</p>
-          : connections.map((connection) => <ConnectionRow key={connection.connection_id} connection={connection} onChanged={refreshConnections} />)}
+          ? <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Chưa có kết nối nào. Key chỉ được gửi lên khi kết nối, được mã hoá khi lưu, và không bao giờ trả lại giao diện.</p>
+          : <div className="space-y-2">{connections.map((connection) => (
+              <ConnectionRow key={connection.connection_id} connection={connection} providerName={providerName(connection.provider_id)} onChanged={refreshConnections} />
+            ))}</div>}
 
         <div className="space-y-3 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
           <p className="text-sm font-medium">Thêm kết nối</p>
@@ -374,21 +358,20 @@ export function AiConnectionsCard({ agentEnabled, userAiRequired = false }: { ag
           {method === 'chatgpt' && selected
             ? <ChatGPTSignIn provider={selected} onConnected={refreshConnections} />
             : (
-              <>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder={keyOptional ? 'API key (bỏ trống nếu server không cần)' : 'API key'} className="h-9 rounded-md border bg-transparent px-3 text-sm" autoComplete="new-password" />
-                  {selected?.base_url_required && <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="Base URL (bắt buộc)" className="h-9 rounded-md border bg-transparent px-3 text-sm" />}
-                  <ModelPicker id="new-connection" value={model} onChange={setModel} models={models} placeholder={models.length ? 'Chọn hoặc nhập model' : 'ID model'} />
-                  {selected?.lists_models && (
-                    <Button size="sm" variant="outline" disabled={listing} onClick={() => void loadModels()}>
-                      {listing ? 'Đang tải…' : models.length ? `${models.length} model — tải lại` : 'Tải danh sách model'}
-                    </Button>
-                  )}
+              <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); void connect(); }}>
+                <div className="relative">
+                  <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" style={{ color: 'var(--text-faint)' }} />
+                  <input aria-label="AI API key" type="password" value={credential} onChange={(e) => setCredential(e.target.value)} placeholder={keyOptional ? 'API key (bỏ trống nếu server không cần)' : 'API key'} className="h-9 w-full rounded-md border bg-transparent pl-8 pr-3 text-sm" autoComplete="new-password" />
                 </div>
+                {selected?.base_url_required && <input aria-label="AI base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="Base URL (bắt buộc)" className="h-9 w-full rounded-md border bg-transparent px-3 text-sm" />}
+                {needsModelId && <input aria-label="Model ID để kiểm tra" value={probeModel} onChange={(e) => setProbeModel(e.target.value)} placeholder="Model ID để kiểm tra kết nối" className="h-9 w-full rounded-md border bg-transparent px-3 text-sm" />}
                 {selected?.note && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>{selected.note}</p>}
-                <Button size="sm" onClick={() => void addConnection()}>Thêm kết nối</Button>
-              </>
+                <Button size="sm" type="submit" disabled={step !== 'idle'}>
+                  {step !== 'idle' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}{STEP_LABEL[step]}
+                </Button>
+              </form>
             )}
+          {success && <p className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--accent-green)' }}><CheckCircle2 className="h-3.5 w-3.5" />{success}</p>}
           {formError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>{formError}</p>}
         </div>
       </CardContent>

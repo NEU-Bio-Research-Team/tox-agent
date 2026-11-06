@@ -30,6 +30,7 @@ FULL = RunContext(
     endpoints=("herg", "tox21"),
     model_selection={"herg": "herg-tox21-chemberta-v1"},
     ai_profile_id="conn_9",
+    ai_model_id="gpt-5.1-mini",
     threshold_overrides={"herg": 0.7},
     explanation_mode="required",
     explanation_targets=(("herg", None), ("tox21", "NR-AR")),

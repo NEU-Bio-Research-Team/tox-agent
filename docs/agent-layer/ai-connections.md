@@ -12,6 +12,34 @@ The design follows G1_Web_Design's AI connections (encrypted per-user
 credentials, one model picker fed by each provider's own model list, ChatGPT
 sign-in through OpenCode), adapted to how this control plane runs OpenCode.
 
+## Connections in Settings, models in the chat
+
+A connection is a credential: an API key or a ChatGPT Plus/Pro sign-in for
+one provider. **Settings → AI của bạn** only adds, re-tests and deletes them.
+Adding a key is one step: the web app lists the key's models, tests the
+connection on the first chat model the provider lists, and saves it. Only a
+provider that cannot list its models asks for a model id to test with.
+
+The model is chosen in the chat. The composer's model picker lists every model
+of every ready connection, grouped by provider, from that connection's own
+`GET /v1/model-connections/{id}/models` — searchable, keyboard-driven, one
+click to pick. The pick is saved per session:
+
+- `PATCH /v1/sessions/{id}/settings {ai_profile_id, ai_model_id}` stores it
+  (`session_settings.ai_model_id`, migration 0030). A model with no connection
+  is refused; the id must be an identifier (`[A-Za-z0-9._:/@+-]`).
+- Each run copies it into `run_configuration_snapshots.ai_model_id` at
+  admission, so a later pick never rewrites what an earlier run did.
+- The gateway runs `ai_model_id or connection.model_id` on the connection's
+  own provider, endpoint and credential; the session never supplies those.
+- A new session starts on the user's last pick (browser preference) while that
+  connection is ready.
+
+The model a connection was tested on is always offered, even when the
+provider cannot list models. A picked model the account cannot use fails its
+run with the provider's error rather than at pick time — the listing came from
+that same account, so this is rare.
+
 ## A back end with no AI of its own
 
 With `TOXAGENT_OPENCODE_SHARED_HOST=0`, the deployment configures no AI at
@@ -160,9 +188,9 @@ export TOXAGENT_SECRET_ENCRYPTION_KEY=...        # ./bin/toxagent setup writes o
 ```
 
 The private hosts must be able to reach `TOXAGENT_MCP_RUNTIME_URL`, as the
-shared host does. In **Settings → AI của bạn**, add a key and press *Tải danh
-sách model*, or choose *ChatGPT Plus/Pro*. Then *Test* the connection and pick
-it as the connection for sessions.
+shared host does. In **Settings → AI của bạn**, paste a key and press
+*Kết nối*, or choose *ChatGPT Plus/Pro*. Then pick a model from the model
+button in the chat's composer.
 
 Each host is a full OpenCode process (~300 MB). On an 8 GB machine keep
 `TOXAGENT_OWNER_HOSTS_MAX` at 2.
@@ -189,4 +217,5 @@ Each host is a full OpenCode process (~300 MB). On an 8 GB machine keep
 | `tests/unit/test_model_catalog_and_anthropic_probe.py` | Model listing per provider, cache, egress, the Anthropic probe |
 | `tests/contract/test_opencode_v1_owner_hosts.py` | A pinned run happens entirely on its own host |
 | `tests/integration/test_user_ai_connections_api.py` | The routes end to end |
+| `tests/integration/test_session_model_choice.py` | A model picked in the chat is saved per session, pinned into each run, and run on the connection's own account |
 | `tests/contract/test_owner_hosts_live.py` | `TOXAGENT_LIVE_OPENCODE=1`: the real binary forwards each connection's key to its endpoint, refuses unauthenticated calls, deletes its files, and returns an OpenAI device link |

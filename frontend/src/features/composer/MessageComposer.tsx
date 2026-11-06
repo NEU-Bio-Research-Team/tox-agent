@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Gauge, Hash, ImageUp, PenTool, Plus, Send, X } from 'lucide-react';
 import { Textarea } from '../../shared/ui/textarea';
 import { Input } from '../../shared/ui/input';
@@ -69,6 +69,7 @@ export function MessageComposer({
   analysisContext,
   onClearAnalysisContext,
   onSend,
+  modelPicker,
 }: {
   /** Section 7.6: draft persists per session, keyed by this id — switching
    * sessions must never leak one session's unsent text into another's box. */
@@ -92,6 +93,8 @@ export function MessageComposer({
   analysisContext?: AnalysisContext | null;
   onClearAnalysisContext?: () => void;
   onSend: (input: SendMessageInput) => Promise<boolean>;
+  /** The chat's model picker (ModelPicker), shown beside the attach menu. */
+  modelPicker?: ReactNode;
 }) {
   const [text, setTextState] = useState(() => getDraft(sessionId));
   const [smiles, setSmiles] = useState('');
@@ -371,6 +374,8 @@ export function MessageComposer({
             {attachItem('Vẽ cấu trúc', PenTool, () => setDrawDialogOpen(true))}
           </PopoverContent>
         </Popover>
+
+        {modelPicker}
 
         {expertMode && (
           <Popover>
