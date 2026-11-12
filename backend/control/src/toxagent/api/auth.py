@@ -159,6 +159,13 @@ class JwksAuth:
     algorithms: tuple[str, ...] = ("RS256", "RS384", "RS512", "ES256", "ES384")
     roles_claim: str = "roles"
     cache_ttl_s: int = 300
+    #: How far this server's clock and the provider's may disagree. A token is
+    #: stamped with the provider's clock, to the second, and presented within
+    #: milliseconds of being issued; a server a fraction of a second behind
+    #: reads its `iat` as the future and refuses a token that is perfectly
+    #: good, so sign-in fails now and then and works on retry. Applied to
+    #: `iat` only: expiry stays exact.
+    clock_skew_s: int = 10
     client: httpx.AsyncClient | None = None
 
     _keys: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -231,10 +238,18 @@ class JwksAuth:
             claims = jwt.decode(
                 token, key, algorithms=list(self.algorithms),
                 audience=self.audience, issuer=self.issuer,
-                options={"require": ["sub", "exp", "iss", "aud"]},
+                # `iat` is checked below with a margin. PyJWT's own `leeway`
+                # would loosen expiry by the same amount.
+                options={"require": ["sub", "exp", "iss", "aud"], "verify_iat": False},
             )
         except jwt.PyJWTError as exc:
             raise Unauthenticated(f"token rejected: {exc}") from exc
+        issued_at = claims.get("iat")
+        if issued_at is not None:
+            if not isinstance(issued_at, (int, float)) or isinstance(issued_at, bool):
+                raise Unauthenticated("token rejected: issued-at is not a number")
+            if issued_at > time.time() + self.clock_skew_s:
+                raise Unauthenticated("token rejected: issued in the future")
         return Actor(subject_id=str(claims["sub"]), roles=_roles_from(claims, self.roles_claim))
 
 

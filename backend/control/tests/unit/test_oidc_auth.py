@@ -202,6 +202,32 @@ async def test_an_expired_token_is_refused():
             )
 
 
+async def test_a_token_stamped_a_moment_ahead_of_this_clock_is_accepted():
+    """What sign-in looks like when this server's clock is slightly behind.
+
+    The provider stamps `iat` with its own clock and the browser presents the
+    token at once. Refusing it made the first request after a login fail
+    intermittently, seen against a real provider through the public gateway.
+    """
+    key = rsa_key()
+    async with serving(jwks_of(("k1", key))) as client:
+        actor = await verifier(client).authenticate(
+            request_with(token_from(key, "k1", iat=int(time.time()) + 3))
+        )
+    assert actor.subject_id == "user-1"
+
+
+async def test_a_token_from_well_into_the_future_is_still_refused():
+    """The margin is for clock disagreement, not for tokens that are not yet
+    valid by any honest clock."""
+    key = rsa_key()
+    async with serving(jwks_of(("k1", key))) as client:
+        with pytest.raises(Unauthenticated):
+            await verifier(client).authenticate(
+                request_with(token_from(key, "k1", iat=int(time.time()) + 600))
+            )
+
+
 async def test_a_token_with_no_key_id_is_refused():
     key = rsa_key()
     token = jwt.encode(
