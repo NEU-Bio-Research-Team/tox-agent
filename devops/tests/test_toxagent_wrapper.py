@@ -131,3 +131,23 @@ def test_restore_is_not_performed_without_the_typed_confirmation(stubbed, tmp_pa
     result = stubbed("restore", str(backup), input_text="yes\n")
     assert result.returncode != 0
     assert not any("psql" in call for call in _docker_calls(stubbed))
+
+
+# --- the public stack --------------------------------------------------------
+
+def test_public_commands_layer_the_overlay_on_the_user_ai_stack(stubbed):
+    """`--public` is the user-AI stack plus one overlay, on every subcommand.
+
+    Run without the overlay, `down --public` would leave the gateway up and
+    `logs --public` would not know the gateway exists.
+    """
+    for command in ("status", "down", "logs"):
+        stubbed(command, "--public")
+    calls = _docker_calls(stubbed)
+    assert len(calls) == 3, calls
+    for call in calls:
+        files = [part for part in call.split() if part.endswith(".yaml")]
+        assert [Path(f).name for f in files] == [
+            "compose.yaml", "user-ai.yaml", "public-local.yaml",
+        ], call
+    assert calls[2].rstrip().endswith("toxagent-control api-gateway"), calls[2]

@@ -2,6 +2,8 @@ import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { getToken, setToken } from '../../shared/api/client';
 import { oidcConfig } from './config';
 import { completeLogin, isCallback, beginLogin } from './pkce';
+import { AUTH_CHANGED_EVENT, firebaseAuthConfig } from './firebaseAuth';
+import { FirebaseSignIn } from './FirebaseSignIn';
 import { Button } from '../../shared/ui/button';
 import { Input } from '../../shared/ui/input';
 import { Label } from '../../shared/ui/label';
@@ -18,6 +20,9 @@ import { Label } from '../../shared/ui/label';
  * when it does not — local development, where the server accepts the static
  * shim — the paste gate stays, because a login form pointing at nothing is
  * worse than a form that says what it wants.
+ *
+ * A third source sits between the two: a build configured for the Firebase
+ * project signs in with email and password (see `firebaseAuth.ts`).
  *
  * Everything downstream still reads `getToken()`, unchanged.
  */
@@ -53,6 +58,15 @@ export function RequireToken({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [provider]);
+
+  // A sign-in or sign-out anywhere in this tab — the Firebase form below, the
+  // navigation bar, a refresh that the provider refused — changes the stored
+  // token without going through this component's own state.
+  useEffect(() => {
+    const sync = () => setLocalToken(getToken());
+    window.addEventListener(AUTH_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, sync);
+  }, []);
 
   if (token) return <>{children}</>;
 
@@ -94,6 +108,12 @@ export function RequireToken({ children }: { children: ReactNode }) {
       </div>
     );
   }
+
+  // The production site's accounts are Firebase accounts. A build given the
+  // project's key signs in against them; the server verifies the ID token
+  // like any other provider's.
+  const firebase = firebaseAuthConfig();
+  if (firebase) return <FirebaseSignIn config={firebase} />;
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();

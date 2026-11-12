@@ -1,0 +1,71 @@
+# The whole back end on this machine, reachable from the internet through a
+# tunnel, serving a frontend hosted elsewhere (Firebase Hosting).
+#
+#   ./bin/toxagent up --public
+#
+# Layered on compose.yaml and user-ai.yaml. Three things change:
+#
+#   1. The control plane runs as production. That is not a label: it refuses
+#      the development token shim, requires an identity provider, encrypts
+#      stored AI credentials and stops user-supplied model URLs from reaching
+#      private addresses. A stack other people can reach needs each of those,
+#      wherever it happens to be running.
+#   2. A gateway publishes the product API and the health probes on loopback,
+#      and nothing else. The tunnel connects to the gateway, never to the
+#      control plane.
+#   3. Services restart on their own, so a reboot or a crash does not need a
+#      person.
+#
+# The values below marked `:?` have no default on purpose. See
+# docs/how-to/public-local-backend.md.
+services:
+  postgres:
+    restart: unless-stopped
+
+  toxpred:
+    restart: unless-stopped
+
+  toxocr:
+    restart: unless-stopped
+
+  toxagent-control:
+    restart: unless-stopped
+    environment:
+      TOXAGENT_ENV: production
+      # Empty, overriding compose.yaml: production refuses to start with a
+      # static token configured.
+      TOXAGENT_STATIC_TOKENS: ""
+      TOXAGENT_EGRESS_POLICY: hosted
+      TOXAGENT_OIDC_ISSUER: ${TOXAGENT_OIDC_ISSUER:?set TOXAGENT_OIDC_ISSUER in .env}
+      TOXAGENT_OIDC_AUDIENCE: ${TOXAGENT_OIDC_AUDIENCE:?set TOXAGENT_OIDC_AUDIENCE in .env}
+      TOXAGENT_OIDC_JWKS_URL: ${TOXAGENT_OIDC_JWKS_URL:?set TOXAGENT_OIDC_JWKS_URL in .env}
+      TOXAGENT_OIDC_ROLES_CLAIM: ${TOXAGENT_OIDC_ROLES_CLAIM:-roles}
+      # The frontend is on another origin, so without this every browser
+      # request is refused before it is sent.
+      TOXAGENT_CORS_ALLOW_ORIGINS: ${TOXAGENT_CORS_ALLOW_ORIGINS:?set TOXAGENT_CORS_ALLOW_ORIGINS in .env to the frontend origins}
+      TOXAGENT_SECRET_ENCRYPTION_KEY: ${TOXAGENT_SECRET_ENCRYPTION_KEY:?run ./bin/toxagent setup first}
+      # A ChatGPT Plus/Pro sign-in is offered to several users only by an
+      # operator registered with OpenAI. Off unless that is true here; API
+      # keys and OpenAI-compatible servers are unaffected.
+      TOXAGENT_CHATGPT_OAUTH: ${TOXAGENT_PUBLIC_CHATGPT_OAUTH:-off}
+
+  api-gateway:
+    image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+    restart: unless-stopped
+    volumes:
+      - ./devops/compose/gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      # Loopback only. The tunnel runs on this machine and connects here; the
+      # LAN and the internet do not reach this port directly.
+      - "127.0.0.1:${API_GATEWAY_PORT:-18080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/gateway-healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    depends_on:
+      toxagent-control:
+        condition: service_started
+
+  frontend:
+    restart: unless-stopped

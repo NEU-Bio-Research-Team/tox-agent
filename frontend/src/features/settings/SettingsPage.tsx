@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../shared/ui/card';
 import { Label } from '../../shared/ui/label';
 import { Switch } from '../../shared/ui/switch';
 import { Button } from '../../shared/ui/button';
-import { getToken, setToken, API_BASE_URL } from '../../shared/api/client';
+import { getToken, API_BASE_URL } from '../../shared/api/client';
+import { signOut } from '../auth/firebaseAuth';
 import { getDeveloperModeEnabled, getExpertModeEnabled, setDeveloperModeEnabled, setExpertModeEnabled } from '../../shared/lib/preferences';
 import { getHealthReady, type HealthReady } from '../../shared/api/endpoints';
 import { AiConnectionsCard } from './AiConnectionsCard';
@@ -48,7 +49,7 @@ export function SettingsPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                setToken(null);
+                signOut();
                 navigate('/');
               }}
             >

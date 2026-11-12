@@ -30,6 +30,17 @@ async function loadWorkbenchRoute() {
   return { Component: workbenchRouteComponent };
 }
 
+async function loadAnalysisRoute() {
+  const mod = await import('./features/quick-predict/QuickPredictPage');
+  return {
+    Component: () => (
+      <RequireToken>
+        <mod.QuickPredictPage />
+      </RequireToken>
+    ),
+  };
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -61,18 +72,21 @@ export const router = createBrowserRouter([
       };
     },
   },
+  // The analysis page under both of its addresses: `/analyze` is the
+  // production site's URL and the one the navigation bar uses; `/predict` is
+  // the one this codebase's links and bookmarks already hold. One loader, so
+  // there is one page.
+  ...['/analyze', '/predict'].map((path) => ({
+    path,
+    errorElement: <RouteErrorBoundary />,
+    lazy: loadAnalysisRoute,
+  })),
   {
-    path: '/predict',
+    path: '/documents',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./features/quick-predict/QuickPredictPage');
-      return {
-        Component: () => (
-          <RequireToken>
-            <mod.QuickPredictPage />
-          </RequireToken>
-        ),
-      };
+      const mod = await import('./features/documents/DocumentsPage');
+      return { Component: mod.DocumentsPage };
     },
   },
   ...['', '/runs/:runId', '/analyses/:analysisId', '/answers/:answerId', '/observations/:observationId', '/evidence/:evidenceId'].map(
