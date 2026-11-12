@@ -42,6 +42,13 @@ const EXAMPLE_MOLECULES = [
   { name: 'Haloperidol', icon: 'H', smiles: 'O=C(CCCN1CCC(c2ccc(Cl)cc2)(O)CC1)c1ccc(F)cc1' },
 ];
 
+/** What to call a model release: the name its manifest gives it, else its
+ * identifier. Marked when it is what an unnamed request gets for `endpoint`. */
+function modelLabel(model: { model_id: string; display_name?: string; default_for?: string[] }, endpoint: Endpoint): string {
+  const name = model.display_name?.trim() || model.model_id;
+  return (model.default_for ?? []).includes(endpoint) ? `${name} · default` : name;
+}
+
 const BOX_STYLE = { borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)' } as const;
 const CAPTION_STYLE = { color: 'var(--text-faint)', letterSpacing: '0.05em' } as const;
 
@@ -114,9 +121,13 @@ export function QuickPredictPage() {
       (caps.endpoints ?? []).flatMap((endpoint) => {
         const compatible = endpoint.models ?? [];
         const retained = current[endpoint.id];
+        // The deployment's declared default, not the first entry: the list is
+        // ordered by identifier, which has nothing to do with which release
+        // is the standard one.
+        const declared = compatible.find((model) => (model.default_for ?? []).includes(endpoint.id));
         const selected = compatible.some((model) => model.model_id === retained)
           ? retained
-          : compatible[0]?.model_id;
+          : (declared ?? compatible[0])?.model_id;
         return selected ? [[endpoint.id, selected]] : [];
       }),
     ) as Partial<Record<Endpoint, string>>);
@@ -512,10 +523,14 @@ export function QuickPredictPage() {
                           <div key={`${endpoint.id}-model`} className="rounded-lg border px-3 py-2 text-xs" style={BOX_STYLE}>
                             <div className="flex items-center justify-between gap-3">
                               <span className="font-medium" style={{ color: 'var(--text)' }}>{endpoint.display_name}</span>
-                              {!compareMode && <select aria-label={`Model for ${endpoint.display_name}`} value={modelSelection[endpoint.id] ?? ''} disabled={loading} onChange={(event) => setModelSelection((current) => ({ ...current, [endpoint.id]: event.target.value }))} className="max-w-[240px] rounded-md px-2 py-1 text-xs" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-                                {models.map((model) => <option key={model.model_id} value={model.model_id}>{model.model_id}</option>)}
+                              {!compareMode && <select aria-label={`Model for ${endpoint.display_name}`} value={modelSelection[endpoint.id] ?? ''} disabled={loading} onChange={(event) => setModelSelection((current) => ({ ...current, [endpoint.id]: event.target.value }))} className="max-w-[300px] rounded-md px-2 py-1 text-xs" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
+                                {models.map((model) => <option key={model.model_id} value={model.model_id}>{modelLabel(model, endpoint.id)}</option>)}
                               </select>}
                             </div>
+                            {!compareMode && (() => {
+                              const chosen = models.find((model) => model.model_id === modelSelection[endpoint.id]);
+                              return chosen?.notes ? <p className="mt-1.5 text-[11px] leading-snug" style={{ color: 'var(--text-faint)' }}>{chosen.notes}</p> : null;
+                            })()}
                             {compareMode && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1" style={{ color: 'var(--text)' }}>
                               {models.map((model) => {
                                 const checked = (compareSelection[endpoint.id] ?? []).includes(model.model_id);
@@ -523,7 +538,7 @@ export function QuickPredictPage() {
                                   const existing = current[endpoint.id] ?? [];
                                   const next = checked ? existing.filter((id) => id !== model.model_id) : [...existing, model.model_id];
                                   return { ...current, [endpoint.id]: next };
-                                })} />{model.model_id}</label>;
+                                })} /><span title={model.notes || undefined}>{modelLabel(model, endpoint.id)}</span></label>;
                               })}
                             </div>}
                           </div>

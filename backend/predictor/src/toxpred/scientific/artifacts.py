@@ -93,6 +93,19 @@ class ArtifactSpec:
     model_config_path: Path | None = None
     """Optional architecture config living outside the artifact directory."""
     blocked_reason: str = ""
+    display_name: str = ""
+    """What a person is shown instead of the identifier. Empty means the
+    identifier is all there is."""
+    default_for: frozenset[str] = frozenset()
+    """Endpoints this model answers when a request names no model.
+
+    With one model per endpoint there is nothing to choose. With several, an
+    unnamed request used to be an error, which is right for a caller comparing
+    models and wrong for every caller that just wants the deployment's
+    standard answer. The standard is declared here, per endpoint, in the
+    manifest: reviewed, and the same on every start. It is never inferred from
+    the order models happen to be listed or loaded in.
+    """
     tokenizer: "TokenizerRequirement | None" = None
     """Set when the model needs a tokenizer whose identity has to be proved."""
     declared_thresholds: Mapping[str, float] = field(default_factory=dict)
@@ -187,10 +200,18 @@ def load_manifest(manifest_path: Path, models_root: Path | None = None) -> dict[
         capabilities = frozenset(entry.get("capabilities") or ())
         if not capabilities:
             raise ArtifactError(f"[{model_id}] manifest declares no capabilities")
+        default_for = frozenset(entry.get("default_for") or ())
+        if not default_for <= capabilities:
+            raise ArtifactError(
+                f"[{model_id}] default_for names endpoint(s) the model does not "
+                f"provide: {sorted(default_for - capabilities)}"
+            )
         specs[model_id] = ArtifactSpec(
             model_id=model_id,
             provider=entry["provider"],
             capabilities=capabilities,
+            default_for=default_for,
+            display_name=str(entry.get("display_name") or "").strip(),
             root=(base / entry["artifact_dir"]).resolve(),
             files=files,
             required=bool(entry.get("required", True)),
@@ -223,4 +244,16 @@ def load_manifest(manifest_path: Path, models_root: Path | None = None) -> dict[
         )
     if not specs:
         raise ArtifactError("manifest declares no models")
+    # Checked over the whole catalogue, includes merged: two releases each
+    # claiming to be the default for an endpoint is a contradiction no load
+    # order should be allowed to settle.
+    claimed: dict[str, str] = {}
+    for model_id, spec in specs.items():
+        for endpoint in sorted(spec.default_for):
+            if endpoint in claimed:
+                raise ArtifactError(
+                    f"two models are declared default for {endpoint!r}: "
+                    f"{claimed[endpoint]} and {model_id}"
+                )
+            claimed[endpoint] = model_id
     return specs

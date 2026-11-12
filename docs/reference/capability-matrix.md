@@ -12,7 +12,9 @@ listed as such, not as a capability.
 | Model | Endpoints | Status | Why blocked |
 |---|---|---|---|
 | `clintox-smilesgnn-v1` | `clintox` | blocked | The exact tokenizer.pkl with the 69-token vocabulary is absent, and its identity was never recorded, so a restored file could not be told from a different tokenizer of the same size. Record the hashes below from the training run, or retrain as a complete v2 release with its own tokenizer, calibration and evaluation, before this endpoint can be served. |
+| `herg-tox21-chemberta-quick-v1` | `herg`, `tox21` | served | — |
 | `herg-tox21-chemberta-v1` | `herg`, `tox21` | served | — |
+| `herg-tox21-pubchem-v1` | `herg`, `tox21` | served | — |
 
 ## Endpoints
 

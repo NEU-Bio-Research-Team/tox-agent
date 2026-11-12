@@ -27,6 +27,34 @@ async def test_a_herg_explanation_is_passed_through_with_the_limitation_echoed(d
     assert "attribution_not_causality" in body["limitations"]
 
 
+async def test_the_explanation_is_computed_by_the_model_that_made_the_result(db):
+    """With several releases on an endpoint, explaining a PubChem result with
+    the default model would attribute a prediction nobody is looking at."""
+    stub = StubPredictor()
+    async with api_client(db, stub) as client:
+        response = await client.post(
+            "/v1/predict/explain",
+            json={"smiles": ASPIRIN, "endpoint": "herg", "model_id": "herg-tox21-pubchem-v1"},
+            headers=AUTH,
+        )
+    assert response.status_code == 200, response.text
+    sent = [r["body"] for r in stub.requests if r["path"] == "/v1/explanations"]
+    assert sent and sent[-1]["model_id"] == "herg-tox21-pubchem-v1"
+    assert response.json()["metadata"]["model_id"] == "herg-tox21-pubchem-v1"
+
+
+async def test_an_unpinned_explanation_names_no_model(db):
+    """Unchanged behaviour: a caller that does not say gets the predictor's default."""
+    stub = StubPredictor()
+    async with api_client(db, stub) as client:
+        response = await client.post(
+            "/v1/predict/explain", json={"smiles": ASPIRIN, "endpoint": "herg"}, headers=AUTH
+        )
+    assert response.status_code == 200, response.text
+    sent = [r["body"] for r in stub.requests if r["path"] == "/v1/explanations"]
+    assert "model_id" not in sent[-1]
+
+
 async def test_tox21_without_a_task_is_refused_at_this_boundary(db):
     async with api_client(db, StubPredictor()) as client:
         response = await client.post(

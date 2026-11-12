@@ -300,6 +300,11 @@ class ExplainRequest(_Request):
     smiles: str = Field(min_length=1, max_length=4000)
     endpoint: Literal["herg", "tox21"]
     task: str | None = None
+    #: The release whose attribution to compute. With several models on one
+    #: endpoint, an explanation of a result must come from the model that
+    #: produced that result; omitted, the predictor answers with its declared
+    #: default, which is right only when the result came from the default.
+    model_id: str | None = Field(default=None, min_length=1, max_length=128)
 
     @model_validator(mode="after")
     def _task_rules(self) -> "ExplainRequest":

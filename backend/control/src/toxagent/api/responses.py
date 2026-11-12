@@ -206,6 +206,11 @@ class PredictModelInfo(_Open):
     required: bool
     detail: str
     blocked_reason: str | None
+    #: Human name, a one-line description of how the release was trained and
+    #: evaluated, and the endpoints it answers when no model is named.
+    display_name: str = ""
+    notes: str = ""
+    default_for: list[str] = []
 
 
 class PredictEndpointCapability(_Open):

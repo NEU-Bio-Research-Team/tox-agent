@@ -234,6 +234,9 @@ class ModelInfo(_Base):
     required: bool = True
     detail: str = ""
     blocked_reason: str | None = None
+    display_name: str = ""
+    notes: str = ""
+    default_for: list[str] = []
 
 
 class ModelsResponse(_Base):
