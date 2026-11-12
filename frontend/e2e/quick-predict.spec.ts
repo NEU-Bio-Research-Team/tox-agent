@@ -101,10 +101,10 @@ async function installApi(page: Page): Promise<Calls> {
 
 test('predicts a typed SMILES with no session request', async ({ page }) => {
   const calls = await installApi(page);
-  await page.goto('/predict');
+  await page.goto('/analyze');
 
   await page.getByLabel('SMILES', { exact: true }).fill('CCO');
-  await page.getByRole('button', { name: 'Phân tích' }).click();
+  await page.getByRole('button', { name: 'Analyze' }).click();
 
   await expect(page.getByRole('heading', { name: 'hERG' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tox21' })).toBeVisible();
@@ -115,16 +115,16 @@ test('recognises an uploaded image into an editable SMILES then predicts', async
   await installApi(page);
   await page.goto('/predict');
 
-  await page.getByRole('button', { name: 'Tải ảnh' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Tải ảnh cấu trúc' });
-  await dialog.locator('input[type=file]').setInputFiles({
+  await page.getByRole('tab', { name: 'Upload Image' }).click();
+  await page.getByLabel('Structure image').setInputFiles({
     name: 'structure.png',
     mimeType: 'image/png',
     buffer: ONE_PIXEL_PNG,
   });
+  await page.getByRole('button', { name: 'Extract SMILES from Image' }).click();
 
-  await expect(page.getByLabel(/SMILES nhận diện được/)).toHaveValue('CCO');
-  await page.getByRole('button', { name: 'Phân tích' }).click();
+  await expect(page.getByLabel('Recognized SMILES (editable)')).toHaveValue('CCO');
+  await page.getByRole('button', { name: 'Analyze' }).click();
   await expect(page.getByRole('heading', { name: 'hERG' })).toBeVisible();
 });
 
@@ -132,9 +132,9 @@ test('runs a multi-SMILES batch with a per-item error', async ({ page }) => {
   await installApi(page);
   await page.goto('/predict');
 
-  await page.getByRole('button', { name: 'Hàng loạt', exact: true }).click();
-  await page.getByLabel('Danh sách SMILES').fill('CCO\nnope\nCCN');
-  await page.getByRole('button', { name: 'Phân tích' }).click();
+  await page.getByRole('button', { name: 'Batch', exact: true }).click();
+  await page.getByLabel('SMILES list').fill('CCO\nnope\nCCN');
+  await page.getByRole('button', { name: 'Analyze' }).click();
 
   await expect(page.getByText(/1 phân tử lỗi/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'hERG' })).toHaveCount(2);
@@ -145,7 +145,7 @@ test('opens the XAI section and renders atom attribution', async ({ page }) => {
   await page.goto('/predict');
 
   await page.getByLabel('SMILES', { exact: true }).fill('CCO');
-  await page.getByRole('button', { name: 'Phân tích' }).click();
+  await page.getByRole('button', { name: 'Analyze' }).click();
   await expect(page.getByRole('heading', { name: 'hERG' })).toBeVisible();
 
   await page.getByRole('button', { name: /Giải thích \(XAI\) · herg/ }).click();
@@ -153,4 +153,32 @@ test('opens the XAI section and renders atom attribution', async ({ page }) => {
 
   await expect(page.getByText(/20% trọng số nằm ở liên kết\/tô-pô/)).toBeVisible();
   await expect(page.getByText(/không phải quan hệ nhân quả/)).toBeVisible();
+});
+
+test('serves the analysis page at the address existing links use', async ({ page }) => {
+  await installApi(page);
+  await page.goto('/predict');
+  await expect(page.getByRole('heading', { name: 'Drug Toxicity Analysis' })).toBeVisible();
+});
+
+test('reaches every navigation destination and toggles the theme', async ({ page }) => {
+  await installApi(page);
+  await page.goto('/analyze');
+  const bar = page.getByRole('navigation').first();
+
+  await bar.getByRole('button', { name: /Switch to dark mode/ }).click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  await bar.getByRole('button', { name: /Switch to light mode/ }).click();
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
+
+  await bar.getByRole('button', { name: /Beta/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Release Notes' })).toBeVisible();
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  await bar.getByRole('link', { name: 'Documents' }).click();
+  await expect(page.getByRole('heading', { name: 'User Guide' })).toBeVisible();
+  await page.getByRole('navigation').first().getByRole('link', { name: 'About' }).click();
+  await expect(page).toHaveURL(/\/about$/);
+  await page.getByRole('navigation').first().getByRole('link', { name: /ToxAgent Logo/ }).click();
+  await expect(page).toHaveURL(/\/analyze$/);
 });

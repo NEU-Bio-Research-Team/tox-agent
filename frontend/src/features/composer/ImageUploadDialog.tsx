@@ -2,25 +2,9 @@ import { useRef, useState } from 'react';
 import { ImageUp } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../shared/ui/dialog';
 import { Button } from '../../shared/ui/button';
+import { MAX_IMAGE_BYTES as MAX_BYTES, isAcceptedMimeType, type StagedImage } from './structureImage';
 
-const ACCEPTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
-type AcceptedMimeType = (typeof ACCEPTED_MIME_TYPES)[number];
-
-//: Mirrors PolicySettings.max_image_bytes — checked again on the backend,
-// this is only a fast client-side rejection before spending an upload.
-const MAX_BYTES = 5_000_000;
-
-export interface StagedImage {
-  mimeType: AcceptedMimeType;
-  dataBase64: string;
-  previewUrl: string;
-  fileName: string;
-  sizeBytes: number;
-}
-
-function isAcceptedMimeType(value: string): value is AcceptedMimeType {
-  return (ACCEPTED_MIME_TYPES as readonly string[]).includes(value);
-}
+export type { StagedImage };
 
 /**
  * Whether the upload actually gets recognised (toxocr/, ADR 0006) or answers

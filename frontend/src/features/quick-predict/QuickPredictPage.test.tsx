@@ -87,7 +87,7 @@ describe('QuickPredictPage', () => {
 
     renderPage();
     fireEvent.change(screen.getByLabelText('SMILES'), { target: { value: 'CCO' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Phân tích' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze' }));
 
     await waitFor(() => expect(quickPredict).toHaveBeenCalledOnce());
     expect(quickPredict.mock.calls[0][0]).toMatchObject({ smiles: 'CCO', endpoints: ['herg', 'tox21'] });
@@ -100,6 +100,7 @@ describe('QuickPredictPage', () => {
 
     renderPage();
     await waitFor(() => expect(quickPredictCapabilities).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
     const clintox = screen.getByRole('button', { name: /clinical toxicity/i });
     await waitFor(() => expect(clintox).toBeDisabled());
   });
@@ -109,6 +110,7 @@ describe('QuickPredictPage', () => {
     quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
     expect(screen.queryByLabelText(/threshold override/i)).not.toBeInTheDocument();
   });
 
@@ -125,13 +127,13 @@ describe('QuickPredictPage', () => {
     });
 
     renderPage();
-    const batchToggle = screen.getByRole('button', { name: 'Hàng loạt' });
+    const batchToggle = screen.getByRole('button', { name: 'Batch' });
     fireEvent.click(batchToggle);
     await waitFor(() => expect(batchToggle).toHaveAttribute('aria-pressed', 'true'));
-    fireEvent.change(await screen.findByLabelText('Danh sách SMILES'), {
+    fireEvent.change(await screen.findByLabelText('SMILES list'), {
       target: { value: 'CCO\nnope\nCCN' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Phân tích' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze' }));
 
     await waitFor(() => expect(quickPredictBatch).toHaveBeenCalledOnce());
     expect(quickPredictBatch.mock.calls[0][0].smiles).toEqual(['CCO', 'nope', 'CCN']);
@@ -139,11 +141,36 @@ describe('QuickPredictPage', () => {
     expect(screen.getAllByText('hERG')).toHaveLength(2);
   });
 
+  it('keeps Analyze disabled until there is something to send', async () => {
+    getExpertModeEnabled.mockReturnValue(false);
+    quickPredictCapabilities.mockResolvedValue(CAPS);
+
+    renderPage();
+    const analyze = screen.getByRole('button', { name: 'Analyze' });
+    expect(analyze).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /Aspirin/ }));
+    expect(screen.getByLabelText('SMILES')).toHaveValue('CC(=O)Oc1ccccc1C(=O)O');
+    expect(analyze).toBeEnabled();
+  });
+
+  it('says so when image recognition is not enabled on the deployment', async () => {
+    getExpertModeEnabled.mockReturnValue(false);
+    quickPredictCapabilities.mockResolvedValue(CAPS);
+
+    renderPage();
+    const tab = screen.getByRole('tab', { name: 'Upload Image' });
+    fireEvent.mouseDown(tab);
+    fireEvent.click(tab);
+    expect(await screen.findByText(/not enabled on this deployment/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Choose Image/ })).toBeDisabled();
+  });
+
   it('shows the threshold override field for an expert', async () => {
     getExpertModeEnabled.mockReturnValue(true);
     quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
     expect(screen.getByLabelText(/threshold override/i)).toBeInTheDocument();
   });
 });
