@@ -1,0 +1,2301 @@
+{
+  "branch": "origin/Agent_Benchmark",
+  "commit": "39a4385",
+  "case_id": "herg_brd_01",
+  "prompt": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[41] Case ID: herg_brd_01\nCompound: Albuterol\nSMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1\nClinical Context: Analyze compound 'Albuterol' (SMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1) for hERG blocking risk. The compound has borderline activity. Provide nuanced interpretation.",
+  "note": "One original case; prompt template preserved, other cases omitted to bind one subject.",
+  "session_id": "ses_ad029dc348524f4b87884da7fbf2f314",
+  "analysis_run": {
+    "run_id": "run_b43d14ac5f174a52be7579b0e2e55539",
+    "status": "completed",
+    "lane": "deterministic",
+    "intent": "analysis",
+    "trigger_message_id": "msg_df219f354bbd40fb96747644540fa1f1",
+    "runtime_binding_id": null,
+    "recovery_of_run_id": null,
+    "failure_code": null,
+    "potentially_billed": false,
+    "deadline_at": "2026-11-07T04:19:58.695459+00:00",
+    "created_at": "2026-11-07T04:04:58.695459+00:00",
+    "started_at": "2026-11-07T04:04:58.708505+00:00",
+    "ended_at": "2026-11-07T04:04:58.740342+00:00",
+    "runtime": null,
+    "configuration_snapshot": {
+      "ai_profile_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "ai_model_id": "gpt-6.1-terra",
+      "predictor_bindings": {},
+      "intent_decision": {
+        "intent": "analysis",
+        "matched": [],
+        "confidence": "medium",
+        "reason_codes": [
+          "bare_molecule"
+        ],
+        "hint_honoured": true,
+        "requested_hint": "auto",
+        "router_version": "router-3",
+        "required_context": [],
+        "clarification_options": []
+      },
+      "effective_budget": {
+        "intent": "analysis",
+        "preset": null,
+        "deadline_s": 900,
+        "max_repairs": null,
+        "max_searches": null,
+        "token_limits": null,
+        "max_tool_calls": null,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": null,
+        "review_reserve_s": null,
+        "max_invalid_calls": null,
+        "max_evidence_reads": null,
+        "requested_step_cap": null,
+        "max_full_text_reads": null,
+        "max_identical_calls": null,
+        "max_correction_turns": null,
+        "max_answer_candidates": null,
+        "reserved_submission_slots": null,
+        "max_hard_submissions_per_phase": null
+      },
+      "subject_binding": null,
+      "created_at": "2026-11-07T04:04:58.697085+00:00"
+    },
+    "usage": {
+      "status": "unknown",
+      "events": []
+    },
+    "tool_calls": [],
+    "phase_usage": {
+      "schema_version": "phase-usage-v1",
+      "phases": {},
+      "run_total": {
+        "tokens": {
+          "input": null,
+          "output": null,
+          "reasoning": null,
+          "cache_read": null,
+          "cache_write": null,
+          "total": null
+        },
+        "cost": {},
+        "cost_completeness": "not_measured",
+        "completeness": "not_measured",
+        "usage_events": 0,
+        "unknown_semantics_events": 0,
+        "models": []
+      }
+    }
+  },
+  "agent_run": {
+    "run_id": "run_909765b46a6f407797ba1cd8af03d6b7",
+    "status": "completed",
+    "lane": "agentic",
+    "intent": "decision_support",
+    "trigger_message_id": "msg_bf1efee1f66e433fa8752b145e18fe4c",
+    "runtime_binding_id": "rtb_dc914548c27244d9bb60029f4c86cd09",
+    "recovery_of_run_id": null,
+    "failure_code": null,
+    "potentially_billed": false,
+    "deadline_at": "2026-11-07T04:20:00.761845+00:00",
+    "created_at": "2026-11-07T04:05:00.761845+00:00",
+    "started_at": "2026-11-07T04:05:02.126532+00:00",
+    "ended_at": "2026-11-07T04:10:30.287118+00:00",
+    "runtime": {
+      "runtime_binding_id": "rtb_dc914548c27244d9bb60029f4c86cd09",
+      "runtime_kind": "opencode",
+      "runtime_version": "1.17.11",
+      "provider_id": "openai",
+      "model_id": "gpt-6.1-terra",
+      "auth_mode": "chatgpt_subscription",
+      "connection_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "profile_hash": "a2687745667406706cc8143d40b35b1692d1287dfb67184babcb54c41e7e3241",
+      "tool_schema_hash": "370aea36e81a312972e0d0535690455004f23af4fb4ba57ac7fefd0ef478f6d7",
+      "system_prompt_hash": "f53586ad3c6205546e1b31bc56b6b74cb4efe798c4887896741ada3669a9a378"
+    },
+    "configuration_snapshot": {
+      "ai_profile_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "ai_model_id": "gpt-6.1-terra",
+      "predictor_bindings": {},
+      "intent_decision": {
+        "intent": "decision_support",
+        "matched": [
+          "literature"
+        ],
+        "confidence": "high",
+        "reason_codes": [
+          "research_phrase"
+        ],
+        "hint_honoured": true,
+        "requested_hint": "auto",
+        "router_version": "router-3",
+        "required_context": [],
+        "clarification_options": []
+      },
+      "effective_budget": {
+        "intent": "decision_support",
+        "preset": null,
+        "deadline_s": 900,
+        "max_repairs": null,
+        "max_searches": 4,
+        "token_limits": {
+          "enforcement": "observed_only",
+          "max_cost_per_run": null,
+          "max_total_tokens_per_run": null,
+          "max_output_tokens_per_turn": null
+        },
+        "max_tool_calls": 80,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": 600,
+        "review_reserve_s": null,
+        "max_invalid_calls": null,
+        "max_evidence_reads": 8,
+        "requested_step_cap": 80,
+        "max_full_text_reads": 4,
+        "max_identical_calls": 2,
+        "max_correction_turns": 1,
+        "max_answer_candidates": 2,
+        "reserved_submission_slots": null,
+        "max_hard_submissions_per_phase": null
+      },
+      "subject_binding": {
+        "kind": "analysis",
+        "identity": {
+          "target": null,
+          "assay_context": null,
+          "canonical_smiles": "CC(C)NCC(O)c1ccc(O)c(CO)c1"
+        },
+        "resolved_by": "only_candidate",
+        "subject_key": "analysis:ana_99e56d729ab049e0a8cfa2bbc319505d",
+        "subject_ref": {
+          "analysis_id": "ana_99e56d729ab049e0a8cfa2bbc319505d"
+        },
+        "artifact_refs": [
+          {
+            "kind": "analysis",
+            "source_id": "ana_99e56d729ab049e0a8cfa2bbc319505d",
+            "content_sha256": "fffe2fa1d56f59d25311db2e9f82884af0c0ff88c9cf6da9ffbd578d8f6ea1b7"
+          }
+        ],
+        "binding_sha256": "4a06c014fb4658cc832958036eaeeb34cb5f26413b2e4eb26981ef0d48b0e30d",
+        "schema_version": "run-subject-binding-v1",
+        "pending_snapshot": false
+      },
+      "created_at": "2026-11-07T04:05:00.765105+00:00"
+    },
+    "usage": {
+      "status": "reported",
+      "events": [
+        {
+          "usage_event_id": "use_ba8cbf31397042c1a8c5858d91bb3fea",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:05:13.331444+00:00",
+          "tokens": {
+            "input": 5245,
+            "output": 43,
+            "reasoning": 0,
+            "cache_read": 5888,
+            "cache_write": 0,
+            "total": 11176
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_11bf2b849c3de3ea2c065143fcc4b3fe",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b42e68c60014rsFWZBf823mbt",
+            "step_id": "prt_1b42e91d4001G7xbCu3dgBzVJp",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_5ca59f21f32d498f8675608360e8ec66",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:06:29.568357+00:00",
+          "tokens": {
+            "input": 450,
+            "output": 273,
+            "reasoning": 0,
+            "cache_read": 11008,
+            "cache_write": 0,
+            "total": 11731
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_910496984ad9f91b6ce43fc5d69721bb",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b42e91dd001ZcEtHKhkUBxuEC",
+            "step_id": "prt_1b42fbba9001Nc6ctnEEcCAov9",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_3c48d17c7d6b48a9b24716f26df7e458",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:07:35.804699+00:00",
+          "tokens": {
+            "input": 2751,
+            "output": 376,
+            "reasoning": 0,
+            "cache_read": 11648,
+            "cache_write": 0,
+            "total": 14775
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_369f516996b881e3a7d40e1a957c0b83",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b42fbbb2001HjIe5hHnSIGLZP",
+            "step_id": "prt_1b430be63001gzxNkrC74ZcWem",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_c316ba84f5754866a1d64e9ab150bbb2",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:08:12.775984+00:00",
+          "tokens": {
+            "input": 10539,
+            "output": 825,
+            "reasoning": 10,
+            "cache_read": 5888,
+            "cache_write": 0,
+            "total": 17262
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_313dac798816df61d26ca1d0419c34f9",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b430be71001519FXQ2wfaskf2",
+            "step_id": "prt_1b4314ec8001PN6KyJ53PTrcXd",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_1df53cc6d23f4416bf5fa20e3e6c659b",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:08:20.684378+00:00",
+          "tokens": {
+            "input": 5329,
+            "output": 193,
+            "reasoning": 11,
+            "cache_read": 17152,
+            "cache_write": 0,
+            "total": 22685
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_ec6d96fa663da9d44dab7bd6278d1365",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4314ed00011eOkUbh8RgJHwP",
+            "step_id": "prt_1b4316db9001ucw9RrHybzCl6R",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_e10e27e391b943d4ae65124fca9a6790",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:08:24.999898+00:00",
+          "tokens": {
+            "input": 2035,
+            "output": 76,
+            "reasoning": 14,
+            "cache_read": 22528,
+            "cache_write": 0,
+            "total": 24653
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_5e1361ffaec39bef41faaa69feb0e21a",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4316dc3001uo0Rfomr87FDSK",
+            "step_id": "prt_1b4317e980017zqSkheF40iODB",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_1011c48d94274411b0fb62f81111992e",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:08:28.264063+00:00",
+          "tokens": {
+            "input": 630,
+            "output": 79,
+            "reasoning": 0,
+            "cache_read": 24448,
+            "cache_write": 0,
+            "total": 25157
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_0a7a177ff570e332d36acaab19d1dab0",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4317ea00012um5IVec069OvS",
+            "step_id": "prt_1b4318b5600123Juma1wnCyM1X",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_95d4de7e82564f8d9363352caf9ce9e7",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:08:57.761309+00:00",
+          "tokens": {
+            "input": 833,
+            "output": 1450,
+            "reasoning": 44,
+            "cache_read": 24960,
+            "cache_write": 0,
+            "total": 27287
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_6a6089c89aeb46588c1acc7814c77218",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4318b5d001IX4aetq6jbhcFg",
+            "step_id": "prt_1b431fe8e001qnk637h9j9FjnN",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_b086ca635d7544c4bffabf2b8345fd7c",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:09:36.717236+00:00",
+          "tokens": {
+            "input": 373,
+            "output": 1773,
+            "reasoning": 228,
+            "cache_read": 27136,
+            "cache_write": 0,
+            "total": 29510
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_f475ac9152571e7c3155ce4ff71a7710",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b431fe95001hfrFJQrTPrR3CZ",
+            "step_id": "prt_1b43296ba0017ziFrRbrnPp9Kb",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_1f2ccb529305409dae0256681c18279c",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:10:11.730451+00:00",
+          "tokens": {
+            "input": 393,
+            "output": 1749,
+            "reasoning": 10,
+            "cache_read": 29312,
+            "cache_write": 0,
+            "total": 31464
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_9604a58852bfabd4ec1179e15ad83568",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b43296c4001J1QyyM1S4pt6jE",
+            "step_id": "prt_1b4331f81001GUlvECylW2aIW9",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_c7abb79c44284f53b0af0dd77d1ef9ea",
+          "runtime_binding_id": "rtb_ec3938ff3ae94906a1daf5bb8d85f917",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:10:19.661392+00:00",
+          "tokens": {
+            "input": 373,
+            "output": 326,
+            "reasoning": 0,
+            "cache_read": 31360,
+            "cache_write": 0,
+            "total": 32059
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_5814724152c43e10901afd55d96f9d37",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4331f89001cD1zUWW5KsfJbo",
+            "step_id": "prt_1b4333e7c001D83fviU3wevAQB",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_2b5c9ea66e56448bba902e9c45b6669d",
+          "runtime_binding_id": "rtb_dc914548c27244d9bb60029f4c86cd09",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:10:28.332342+00:00",
+          "tokens": {
+            "input": 4365,
+            "output": 93,
+            "reasoning": 0,
+            "cache_read": 0,
+            "cache_write": 0,
+            "total": 4458
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_ba7d2240d6e53cb700da9dddcb5c62eb",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b43341360011JUXXCCwxLYATU",
+            "step_id": "prt_1b4336059001XBWMi4BFdQdPCG",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_b5d7ea41fac94a4eac68ee99bc5c7274",
+          "runtime_binding_id": "rtb_dc914548c27244d9bb60029f4c86cd09",
+          "provider_id": "openai",
+          "model_id": "gpt-6.1-terra",
+          "reported_at": "2026-11-07T04:10:30.188212+00:00",
+          "tokens": {
+            "input": 202,
+            "output": 4,
+            "reasoning": 0,
+            "cache_read": 4352,
+            "cache_write": 0,
+            "total": 4558
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_fa1c1c0ee9aa0f9bfdc49f2e1bfa9310",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b43360620014uPTe5cv456fao",
+            "step_id": "prt_1b433679b0017gQO0r2xXm0Ij2",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        }
+      ]
+    },
+    "tool_calls": [
+      {
+        "call_id": "call_c1b97e44f7b1401b8eb2cafb3d7feee5",
+        "tool_name": "get_artifact_inventory",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 19,
+        "arguments_sha256": "b2f4e89a0102f064521ebf789065f89f9cfbbbac46a3c306c4cd315d6989015a",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:05:13.257833+00:00",
+        "ended_at": "2026-11-07T04:05:13.273011+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_b8a6f975dbcc45b998b0a4c0fa536e75",
+        "tool_name": "get_analysis_bundle",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 413,
+        "arguments_sha256": "e6d7ee3df31558b606487182c217f5674995dd45312cab90760d67a331960764",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:06:27.384685+00:00",
+        "ended_at": "2026-11-07T04:06:27.566169+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_0a9b778e5ac140a6b316f8b4ee0b60c1",
+        "tool_name": "get_scientific_case",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 153,
+        "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:06:27.441157+00:00",
+        "ended_at": "2026-11-07T04:06:27.582840+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_2a6cc2eee7bb4388bb53fe411065a2bf",
+        "tool_name": "search_toxicology_evidence",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 1608,
+        "arguments_sha256": "63c57f10753870666ffd88fd4f64110298974fab7b9d101b28330b11a0ed0cd5",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:06:27.547435+00:00",
+        "ended_at": "2026-11-07T04:06:29.137039+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_88cc1399c338456d83bd924563eebba7",
+        "tool_name": "read_scientific_skill",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 24,
+        "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:06:29.500341+00:00",
+        "ended_at": "2026-11-07T04:06:29.522472+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_efa359153c9a4a28935a658a40e2d654",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 1880,
+        "arguments_sha256": "f010bc221d0cd20d494d4afade91acd189d369242a898a54a9e0c6866d3edcf0",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:06:46.773326+00:00",
+        "ended_at": "2026-11-07T04:06:48.635408+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_941d4fedf34c443eb857a131209bf1c6",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 4280,
+        "arguments_sha256": "a31ef5e69616f58c12ffa7f8d7746f53644bb33af885d4e11d328b42450f8c2b",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:06:47.350630+00:00",
+        "ended_at": "2026-11-07T04:06:51.601624+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_4cbbe253d055415d888d8ec110d2620c",
+        "tool_name": "run_scientific_procedure",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 4955,
+        "arguments_sha256": "51a4573c99fe0f34c5739cd424b9253c0f3aba07ef96a40ba98aecbacd56e74d",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:06:47.452773+00:00",
+        "ended_at": "2026-11-07T04:06:52.378492+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_b531190725e54556a4d58d238dd9dd1c",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 4844,
+        "arguments_sha256": "c975ea28feccd31d6bdb93fb1990e7c491473c68d1c13d4e6a0e39035fdb7955",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:06:47.825591+00:00",
+        "ended_at": "2026-11-07T04:06:52.397441+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_48d82147375541ee949b72cd8923c79f",
+        "tool_name": "search_toxicology_evidence",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 5904,
+        "arguments_sha256": "34204f72eed90403a086387a63cb3ed2ebb85600a8ba96579f5fd7b6c974849e",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:06:47.958657+00:00",
+        "ended_at": "2026-11-07T04:06:53.842440+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_033bc9f7f0c94094b4e77a03aba2962a",
+        "tool_name": "get_chembl_activities",
+        "status": "error",
+        "error_code": "tool_timeout",
+        "duration_ms": 44564,
+        "arguments_sha256": "4faf61aa70c9a1e0e0123acfa69bc72d87b74f02b1fe4076545df9a330a5c1dc",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:06:47.961889+00:00",
+        "ended_at": "2026-11-07T04:07:35.703436+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_6648606391234c4da87f685537f036af",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 268,
+        "arguments_sha256": "c18804a521dc36d81d990a266d7fa969e3c343ce98a23c0b096439ac0df2ac53",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.100440+00:00",
+        "ended_at": "2026-11-07T04:07:54.362419+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_13d12cbb91424975b2db1cfc92c6d534",
+        "tool_name": "get_chembl_activities",
+        "status": "error",
+        "error_code": "evidence_unavailable",
+        "duration_ms": 17030,
+        "arguments_sha256": "49b37d2f9ca72f301acef80050a564c85e772786cdbb835e91e8b628cad311ec",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:07:54.174625+00:00",
+        "ended_at": "2026-11-07T04:08:12.728025+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_d74586204f7642fbbb35423be95e2a77",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 290,
+        "arguments_sha256": "c83f82085ae20311639c2dea3ac21c37b42df08a68a3151d7957c88574f9fc0b",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.263583+00:00",
+        "ended_at": "2026-11-07T04:07:54.473198+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_16ccddf9c0654244b6539bb5d266f26c",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 241,
+        "arguments_sha256": "540703afdca492e652ab8669c613996d25972a7b5ab9db0fd8fb7799758bea4a",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.294321+00:00",
+        "ended_at": "2026-11-07T04:07:54.502974+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_334bb6902a8547f48160a225c37af01b",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 325,
+        "arguments_sha256": "577f71bf083269233025716ddbeec48d0a5df24dace51e6263fb219dc6f5a8d2",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.297670+00:00",
+        "ended_at": "2026-11-07T04:07:54.540536+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_f1a5c14f59264075a594050bf025c7e2",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 288,
+        "arguments_sha256": "31b93235d0566258420e451b223c9be22680d5f87481cde72e88dd13a7c2effe",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.303216+00:00",
+        "ended_at": "2026-11-07T04:07:54.564976+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_13158dfeeb4244a7b0779289f97b48de",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 313,
+        "arguments_sha256": "d7dc42a33038dae4b8ecca4fe0c1419a767be8df75c1e34b008185f6cb4a3589",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.324662+00:00",
+        "ended_at": "2026-11-07T04:07:54.643789+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_253584cf9272409785efa23422376a70",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 262,
+        "arguments_sha256": "9598b03186c0eb228e7c331d5f736cb1cf8a479c71ee31b6bf984e8efa3b1af7",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.470361+00:00",
+        "ended_at": "2026-11-07T04:07:54.663621+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_da2f58a12d234eb5a6f77dd0bc5601ea",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 265,
+        "arguments_sha256": "29be102d908f24f777fbfefa5f010e864416357c5c591594d69c280ce7ce33a1",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.500841+00:00",
+        "ended_at": "2026-11-07T04:07:54.699272+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_22b27e0bfa954bf08c3f7024bda0f5fb",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 244,
+        "arguments_sha256": "b23eaae23d912f11c97d76285b4c7c73790b9078fd2675981aa318f012c7869c",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.503465+00:00",
+        "ended_at": "2026-11-07T04:07:54.713033+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_35b99ec447764d929ba33f42469a0bb4",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 236,
+        "arguments_sha256": "ce77f1172b3bf34762f97481d89b8db2b5b7e0a464e462e2495e3a91b1767885",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.539830+00:00",
+        "ended_at": "2026-11-07T04:07:54.735009+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_fa1c82d09504401fb7b06c8ad56bc961",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 214,
+        "arguments_sha256": "ab7183c5bf76b61595d47fb03fc2a6e18dadbd0af1e034248554bec086a7601c",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.547856+00:00",
+        "ended_at": "2026-11-07T04:07:54.744462+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_159e34d651934c4aa8bd1ca153c20fad",
+        "tool_name": "search_toxicology_evidence",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 771,
+        "arguments_sha256": "933a2f3dddf17279ccf5533067d20516aa91f87ce6b19b622ba4af85ad4a0458",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:07:54.647949+00:00",
+        "ended_at": "2026-11-07T04:07:55.376778+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_cd6851b4f9fb4fd48dbd535dbcf7c2ea",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 69,
+        "arguments_sha256": "0eee3a8c1a91445f6f08b80481874505207ad218b5791d66ac11ba3135d06573",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:07:54.697676+00:00",
+        "ended_at": "2026-11-07T04:07:54.756465+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_3a7129b5a73842d296653e4ed815a2e1",
+        "tool_name": "get_evidence_record",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 14,
+        "arguments_sha256": "5e04edc14256bbeba79c2d8f3e857f4891447a206f33b93c126914f40674c1df",
+        "observation_ids": [
+          "evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+        ],
+        "started_at": "2026-11-07T04:08:19.538858+00:00",
+        "ended_at": "2026-11-07T04:08:19.550624+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_e07be7d9a79748679f3cf1ee82e9610b",
+        "tool_name": "search_toxicology_evidence",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 1014,
+        "arguments_sha256": "7497d482c343c7dbaa1fc3bb0a7fceba968962a99a82c586a74d435ae4c72800",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:08:19.634262+00:00",
+        "ended_at": "2026-11-07T04:08:20.644361+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_5ffd36c9fc274306946a4dec4ae6b76a",
+        "tool_name": "read_scientific_skill",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 18,
+        "arguments_sha256": "a730fbe48f5e6455ec323385cbebc2f8d0df8ffca4db3f5b3e1bfd33ec10b1ea",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:08:19.663612+00:00",
+        "ended_at": "2026-11-07T04:08:19.679636+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_0f224efc9ca24da0804718b3f9e3f640",
+        "tool_name": "read_evidence_text",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 970,
+        "arguments_sha256": "32978253397d73675985c6cbc2d8e3dd09dd95ee23ccebef73a31acb55d3644f",
+        "observation_ids": [
+          "evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+        ],
+        "started_at": "2026-11-07T04:08:24.000222+00:00",
+        "ended_at": "2026-11-07T04:08:24.967571+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_f3ff7efdabd64523aa9957d902421732",
+        "tool_name": "read_evidence_text",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 19,
+        "arguments_sha256": "844d891601f6ffe83c97769759d2d99febcfa7a358041f9c843ca6a20a375505",
+        "observation_ids": [
+          "evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+        ],
+        "started_at": "2026-11-07T04:08:28.206232+00:00",
+        "ended_at": "2026-11-07T04:08:28.223266+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_aab6439f6369444abce122e6ce7d658b",
+        "tool_name": "update_scientific_case",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 18,
+        "arguments_sha256": "0037809fd628e6afb9580902f3692ea1e99e732f0ec68ef185944796cc1c45be",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:08:57.650638+00:00",
+        "ended_at": "2026-11-07T04:08:57.666974+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_cf2de2f439ee407e917f52a40813a52d",
+        "tool_name": "submit_grounded_answer",
+        "status": "error",
+        "error_code": "answer_validation_failed",
+        "duration_ms": 48,
+        "arguments_sha256": "e1666caaf340c3a5b53323475746ff687fe79fdb7e3f6d11e5621371c02ea50e",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:09:36.638177+00:00",
+        "ended_at": "2026-11-07T04:09:36.681958+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_1190cc5bd21e47ae859e9e0e8d505aa5",
+        "tool_name": "submit_grounded_answer",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 43,
+        "arguments_sha256": "7f60363de7985c5b4c48f2ab83ceeb52b1a53c070978a0fd93e3cf4fd66b69d2",
+        "observation_ids": [
+          "obs_410c68c467334129a35320d02ad80894"
+        ],
+        "started_at": "2026-11-07T04:10:11.663044+00:00",
+        "ended_at": "2026-11-07T04:10:11.699553+00:00",
+        "phase": "hard_correction"
+      },
+      {
+        "call_id": "call_dcae67fa6a9f42fd805a5435b4ed7b60",
+        "tool_name": "submit_claim_review",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 30,
+        "arguments_sha256": "f13d37239e86ca018ed5b425540fc1f571d16101d1d740a52137220fe2e0c1cf",
+        "observation_ids": [],
+        "started_at": "2026-11-07T04:10:28.261596+00:00",
+        "ended_at": "2026-11-07T04:10:28.290761+00:00",
+        "phase": "review_initial"
+      }
+    ],
+    "phase_usage": {
+      "schema_version": "phase-usage-v1",
+      "phases": {
+        "investigator": {
+          "tokens": {
+            "input": 28951,
+            "output": 7163,
+            "reasoning": 317,
+            "cache_read": 211328,
+            "cache_write": 0,
+            "total": 247759
+          },
+          "cost": {},
+          "cost_completeness": "unknown",
+          "completeness": "complete",
+          "usage_events": 11,
+          "unknown_semantics_events": 0,
+          "models": [
+            "gpt-6.1-terra"
+          ],
+          "dispatches": 1,
+          "tool_calls": {
+            "completed": 29,
+            "error": 3
+          }
+        },
+        "hard_correction": {
+          "tokens": {
+            "input": null,
+            "output": null,
+            "reasoning": null,
+            "cache_read": null,
+            "cache_write": null,
+            "total": null
+          },
+          "cost": {},
+          "cost_completeness": "not_measured",
+          "completeness": "not_measured",
+          "usage_events": 0,
+          "unknown_semantics_events": 0,
+          "models": [],
+          "dispatches": 0,
+          "tool_calls": {
+            "completed": 1
+          }
+        },
+        "review_initial": {
+          "tokens": {
+            "input": 4567,
+            "output": 97,
+            "reasoning": 0,
+            "cache_read": 4352,
+            "cache_write": 0,
+            "total": 9016
+          },
+          "cost": {},
+          "cost_completeness": "unknown",
+          "completeness": "complete",
+          "usage_events": 2,
+          "unknown_semantics_events": 0,
+          "models": [
+            "gpt-6.1-terra"
+          ],
+          "dispatches": 1,
+          "tool_calls": {
+            "completed": 1
+          }
+        }
+      },
+      "run_total": {
+        "tokens": {
+          "input": 33518,
+          "output": 7260,
+          "reasoning": 317,
+          "cache_read": 215680,
+          "cache_write": 0,
+          "total": 256775
+        },
+        "cost": {},
+        "cost_completeness": "unknown",
+        "completeness": "complete",
+        "usage_events": 13,
+        "unknown_semantics_events": 0,
+        "models": [
+          "gpt-6.1-terra"
+        ]
+      }
+    }
+  },
+  "result": {
+    "run_id": "run_909765b46a6f407797ba1cd8af03d6b7",
+    "recorded": false,
+    "release_policy": "legacy",
+    "note": "this run has no recorded result; whether its answer was reviewed is not known"
+  },
+  "messages": {
+    "messages": [
+      {
+        "message_id": "msg_df219f354bbd40fb96747644540fa1f1",
+        "role": "user",
+        "sequence": 1,
+        "created_at": "2026-11-07T04:04:58.693612+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_9686147f59ba40a8885fdaac5fca2486",
+            "index": 0,
+            "type": "analysis_ref",
+            "content": {
+              "smiles": "CC(C)NCC(O)c1ccc(O)c(CO)c1"
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_bf1efee1f66e433fa8752b145e18fe4c",
+        "role": "user",
+        "sequence": 2,
+        "created_at": "2026-11-07T04:05:00.754541+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_407dcc57f72f429580c36a69abffb236",
+            "index": 0,
+            "type": "text",
+            "content": {
+              "text": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[41] Case ID: herg_brd_01\nCompound: Albuterol\nSMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1\nClinical Context: Analyze compound 'Albuterol' (SMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1) for hERG blocking risk. The compound has borderline activity. Provide nuanced interpretation."
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_e9cf704ab99c4e0685449e9474fcb816",
+        "role": "assistant",
+        "sequence": 3,
+        "created_at": "2026-11-07T04:10:30.283608+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_511cffd6cddc433383470b5972e587f2",
+            "index": 0,
+            "type": "text",
+            "content": {
+              "text": "[{\"case_id\":\"herg_brd_01\",\"herg_classification\":\"uncertain\",\"herg_ic50_um\":null,\"herg_ic50_source\":\"predicted\",\"tox21_active_assays\":[],\"clinical_recommendation\":\"conditional\",\"response_text\":\"The model labels hERG as non_blocker, but this is not a definitive experimental classification. No defensible IC50 estimate is available; the required source field says predicted only as a format placeholder, not because potency was predicted. ChEMBL was unavailable and the literature search did not establish a direct hERG IC50; this does not establish that none exists. The model flags no Tox21 assay as active; these are predictions, not measured negatives, and do not establish absence of pathway effects. A protonatable amine and aromatic ring suggest a possible hERG interaction, but no binding mode or causal structural basis has been established for this compound. In a guinea pig heart failure model, salbutamol reduced cardiac IKr and increased arrhythmia, with evidence implicating adrenergic signalling. This indirect effect in a disease model is not proof of direct hERG binding or a human clinical outcome. Model probabilities are not calibrated clinical risks. Clinical progression cannot be decided from these outputs; conditional means a decision is pending, not approval. Obtain a direct functional hERG concentration-response measurement, relevant cardiac and broader program-specific safety data, and the intended route and free plasma Cmax, or total Cmax with unbound fraction. Screening alone is not a safety assessment.\"}]"
+            }
+          },
+          {
+            "part_id": "prt_fb6a9cb5bbc046299a3a107fa7b0dd61",
+            "index": 1,
+            "type": "answer_ref",
+            "content": {
+              "answer_id": "ans_8e29d3d844a3465e8ca946882ca537d1"
+            }
+          },
+          {
+            "part_id": "prt_4922c783bdff4592af278e4fd8b5e0dc",
+            "index": 2,
+            "type": "dossier_ref",
+            "content": {
+              "run_id": "run_909765b46a6f407797ba1cd8af03d6b7",
+              "case_id": "scase_ef59a02fd5c14f3ca929a46bf35db37d",
+              "case_revision": 12
+            }
+          }
+        ]
+      }
+    ],
+    "count": 3
+  },
+  "decision_state": {
+    "schema_version": "decision-support-state-v1",
+    "session_id": "ses_ad029dc348524f4b87884da7fbf2f314",
+    "run_id": "run_909765b46a6f407797ba1cd8af03d6b7",
+    "goal": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[41] Case ID: herg_brd_01\nCompound: Albuterol\nSMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1\nClinical Context: Analyze compound 'Albuterol' (SMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1) for hERG blocking risk. The compound has borderline activity. Provide nuanced interpretation.",
+    "subject_refs": [
+      "analysis:ana_99e56d729ab049e0a8cfa2bbc319505d"
+    ],
+    "propositions": [],
+    "coverage": {
+      "required": 0,
+      "resolved": 0
+    },
+    "budget_snapshot": {
+      "intent": "decision_support",
+      "preset": null,
+      "deadline_s": 900,
+      "max_repairs": null,
+      "max_searches": 4,
+      "token_limits": {
+        "enforcement": "observed_only",
+        "max_cost_per_run": null,
+        "max_total_tokens_per_run": null,
+        "max_output_tokens_per_turn": null
+      },
+      "max_tool_calls": 80,
+      "schema_version": "effective-run-budget-v1",
+      "call_accounting": "action-read-ceiling-v1",
+      "turn_deadline_s": 600,
+      "review_reserve_s": null,
+      "max_invalid_calls": null,
+      "max_evidence_reads": 8,
+      "requested_step_cap": 80,
+      "max_full_text_reads": 4,
+      "max_identical_calls": 2,
+      "max_correction_turns": 1,
+      "max_answer_candidates": 2,
+      "reserved_submission_slots": null,
+      "max_hard_submissions_per_phase": null
+    },
+    "usage": {
+      "searches": 4,
+      "tool_calls": 33,
+      "denied_calls": 0,
+      "failed_calls": 3,
+      "evidence_reads": 3,
+      "procedure_sub_operations": 1
+    },
+    "available_refs": [
+      "observation:obs_410c68c467334129a35320d02ad80894",
+      "evidence:evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+    ],
+    "found_refs": [
+      "evidence:evd_7fa99049291043ed85114041ee8eff47",
+      "evidence:evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+    ],
+    "stop_reason": "needs_user_input",
+    "answer_outcome": "accepted_after_correction",
+    "skills": {
+      "mode": "dynamic",
+      "loaded": [
+        {
+          "version": "1.1.0",
+          "skill_id": "critique-case",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "version": "1.0.0",
+          "skill_id": "estimate-exposure-margin",
+          "content_sha256": "ff12b679ea0a503dced3f50115a29d401f4499f9001f264e2541894811d84850"
+        }
+      ],
+      "offered": [
+        {
+          "version": "1.2.0",
+          "skill_id": "assess-conflicting-evidence",
+          "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+        },
+        {
+          "version": "1.1.0",
+          "skill_id": "critique-case",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "version": "1.0.0",
+          "skill_id": "estimate-exposure-margin",
+          "content_sha256": "ff12b679ea0a503dced3f50115a29d401f4499f9001f264e2541894811d84850"
+        },
+        {
+          "version": "1.1.0",
+          "skill_id": "interpret-model-attribution",
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+        },
+        {
+          "version": "1.0.0",
+          "skill_id": "update-case-across-turns",
+          "content_sha256": "6c5896a479a8b6401a3bda87277a60a38fa7fb3e2af2ffd232e75764449bf40f"
+        }
+      ],
+      "references_loaded": []
+    },
+    "claim_review": {
+      "counts": {
+        "supported": 1,
+        "cannot_judge": 0,
+        "not_supported": 0,
+        "partially_supported": 0
+      },
+      "status": "completed",
+      "reviews": [
+        {
+          "reason": "The study reports reduced IKr in heart-failure guinea pig myocytes and increased ventricular arrhythmia with salbutamol, with antagonist experiments implicating β2-adrenergic signaling.",
+          "verdict": "supported",
+          "claim_id": "clm_87e4f7d497314614ac33cbfba826d442"
+        }
+      ],
+      "answer_id": "ans_8e29d3d844a3465e8ca946882ca537d1"
+    },
+    "answer_basis": {
+      "evidence": 1,
+      "observations": 13
+    },
+    "goal_contract": {
+      "route": "investigate",
+      "budget": {
+        "intent": "decision_support",
+        "deadline_s": 900,
+        "max_searches": 4,
+        "token_limits": {
+          "enforcement": "observed_only",
+          "max_cost_per_run": null,
+          "max_total_tokens_per_run": null,
+          "max_output_tokens_per_turn": null
+        },
+        "max_tool_calls": 80,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": 600,
+        "max_evidence_reads": 8,
+        "requested_step_cap": 80,
+        "max_full_text_reads": 4,
+        "max_identical_calls": 2,
+        "max_correction_turns": 1,
+        "max_answer_candidates": 2
+      },
+      "subject": {
+        "kind": "analysis",
+        "identity": {
+          "target": null,
+          "assay_context": null,
+          "canonical_smiles": "CC(C)NCC(O)c1ccc(O)c(CO)c1"
+        },
+        "subject_ref": {
+          "analysis_id": "ana_99e56d729ab049e0a8cfa2bbc319505d"
+        },
+        "schema_version": "run-subject-binding-v1"
+      },
+      "endpoint": "",
+      "must_answer": [
+        {
+          "id": "q1",
+          "needs": [],
+          "question": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation"
+        }
+      ],
+      "route_decision": {
+        "route": "investigate",
+        "detail": {
+          "marker": "safe"
+        },
+        "confidence": "low",
+        "reason_codes": [
+          "assessment_wording"
+        ],
+        "schema_version": "serving-route-v1",
+        "classifier_used": false
+      },
+      "schema_version": "goal-contract-v1",
+      "stop_conditions": {
+        "sufficient": "every question this contract names is resolved, in scope, with refs",
+        "budget_exhausted": "a declared limit was reached with a question still open",
+        "needs_user_input": "an input only the researcher has, named explicitly",
+        "provider_failure": "a provider or corpus could not supply the data; say which",
+        "insufficient_evidence": "the reachable sources do not settle it; say what is missing and which claim that limits"
+      },
+      "admissible_actions": [
+        "compute_exposure_margin",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_chembl_activities",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_report_summary",
+        "get_scientific_case",
+        "read_evidence_text",
+        "read_scientific_skill",
+        "read_skill_reference",
+        "run_scientific_procedure",
+        "search_toxicology_evidence",
+        "submit_grounded_answer",
+        "update_scientific_case"
+      ]
+    },
+    "declared_stop": {
+      "reason": "needs_user_input",
+      "needed_inputs": [
+        "Intended route and dose, and free plasma Cmax or total Cmax with fraction unbound",
+        "Program-specific direct hERG and broader nonclinical safety results"
+      ]
+    },
+    "workflow": {},
+    "revision": 43
+  },
+  "drafts": {
+    "drafts": [
+      {
+        "generation": 1,
+        "schema_version": "grounded-answer-v2",
+        "payload": {
+          "stop": {
+            "reason": "needs_user_input",
+            "needed_inputs": [
+              "Intended route and dose, and free plasma Cmax or total Cmax with fraction unbound",
+              "Program-specific direct hERG and broader nonclinical safety results"
+            ]
+          },
+          "claims": [
+            {
+              "kind": "classification",
+              "text": "hERG model label",
+              "local_ref": "herg_label",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-AR predicted inactive",
+              "local_ref": "ar",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-AR.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-AR-LBD predicted inactive",
+              "local_ref": "arlbd",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-AR-LBD.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-AhR predicted inactive",
+              "local_ref": "ahr",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-AhR.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-Aromatase predicted inactive",
+              "local_ref": "arom",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-Aromatase.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-ER predicted inactive",
+              "local_ref": "er",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-ER.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-ER-LBD predicted inactive",
+              "local_ref": "erlbd",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-ER-LBD.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-PPAR-gamma predicted inactive",
+              "local_ref": "ppar",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-PPAR-gamma.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ARE predicted inactive",
+              "local_ref": "are",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ATAD5 predicted inactive",
+              "local_ref": "atad",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ATAD5.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-HSE predicted inactive",
+              "local_ref": "hse",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-HSE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-MMP predicted inactive",
+              "local_ref": "mmp",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-MMP.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-p53 predicted inactive",
+              "local_ref": "p53",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-p53.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "In a guinea pig heart failure model, salbutamol reduced cardiac IKr and increased arrhythmia, with evidence implicating adrenergic signalling.",
+              "local_ref": "cardiac",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "recommendation",
+              "text": "Obtain direct functional hERG concentration-response, exposure and program-specific cardiac and broader safety data before deciding progression.",
+              "local_ref": "next",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            }
+          ],
+          "limitations": [
+            {
+              "code": "uncalibrated_probability",
+              "text": "Model probabilities are not calibrated clinical risks."
+            },
+            {
+              "code": "evidence_scope_limited",
+              "text": "The animal heart failure study concerns indirect cardiac effects, not direct human hERG binding or clinical outcomes."
+            },
+            {
+              "code": "screening_not_safety_assessment",
+              "text": "Screening predictions and proposed assays alone are not a safety assessment."
+            },
+            {
+              "code": "provider_failure",
+              "text": "ChEMBL hERG activity lookup timed out and then returned a server error."
+            }
+          ],
+          "schema_version": "grounded-answer-v2",
+          "answer_markdown": "[{\"case_id\":\"herg_brd_01\",\"herg_classification\":\"uncertain\",\"herg_ic50_um\":null,\"herg_ic50_source\":\"predicted\",\"tox21_active_assays\":[],\"clinical_recommendation\":\"conditional\",\"response_text\":\"The model labels hERG as {{herg_label}}, but this is not a definitive experimental classification. No defensible IC50 estimate is available; the required source field says predicted only as a format placeholder, not because potency was predicted. ChEMBL was unavailable and the literature search did not establish a direct hERG IC50; this does not establish that none exists. The model flags no Tox21 assay as active; these are predictions, not measured negatives, and do not establish absence of pathway effects. A protonatable amine and aromatic ring suggest a possible hERG interaction, but no binding mode or causal structural basis has been established for this compound. {{cardiac}} This indirect effect in a disease model is not proof of direct hERG binding or a human clinical outcome. Model probabilities are not calibrated clinical risks. Clinical progression cannot be decided from these outputs; conditional means a decision is pending, not approval. Obtain a direct functional hERG concentration-response measurement, relevant cardiac and broader program-specific safety data, and the intended route and free plasma Cmax, or total Cmax with unbound fraction. Screening alone is not a safety assessment.\"}]",
+          "evidence_relations": [],
+          "development_posture": {
+            "scope": "drug_candidate",
+            "value": "insufficient",
+            "rationale": "The model output and an indirect animal study do not establish clinical readiness, direct potency, or exposure margins.",
+            "conditions": [
+              "A decision requires intended exposure and relevant program-specific cardiac and broader safety data."
+            ],
+            "confidence_band": "weak",
+            "basis_local_refs": [
+              "herg_label",
+              "cardiac"
+            ],
+            "contrary_local_refs": [],
+            "recommended_next_steps": [
+              "Obtain functional hERG concentration-response and intended free plasma exposure."
+            ]
+          },
+          "recommended_next_steps": [
+            {
+              "text": "Obtain direct hERG concentration-response data, intended exposure, and a program-specific cardiac and broader nonclinical safety package.",
+              "basis_local_refs": [
+                "herg_label",
+                "cardiac"
+              ]
+            }
+          ]
+        },
+        "outcome": "rejected",
+        "answer_id": null,
+        "violations": [
+          {
+            "code": "unknown_limitation_code",
+            "path": "limitations[3].code",
+            "message": "'provider_failure' is not a declared limitation code"
+          }
+        ],
+        "created_at": "2026-11-07T04:09:36.672819+00:00",
+        "phase": "initial"
+      },
+      {
+        "generation": 2,
+        "schema_version": "grounded-answer-v2",
+        "payload": {
+          "stop": {
+            "reason": "needs_user_input",
+            "needed_inputs": [
+              "Intended route and dose, and free plasma Cmax or total Cmax with fraction unbound",
+              "Program-specific direct hERG and broader nonclinical safety results"
+            ]
+          },
+          "claims": [
+            {
+              "kind": "classification",
+              "text": "hERG model label",
+              "local_ref": "herg_label",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-AR predicted inactive",
+              "local_ref": "ar",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-AR.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-AR-LBD predicted inactive",
+              "local_ref": "arlbd",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-AR-LBD.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-AhR predicted inactive",
+              "local_ref": "ahr",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-AhR.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-Aromatase predicted inactive",
+              "local_ref": "arom",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-Aromatase.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-ER predicted inactive",
+              "local_ref": "er",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-ER.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-ER-LBD predicted inactive",
+              "local_ref": "erlbd",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-ER-LBD.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "NR-PPAR-gamma predicted inactive",
+              "local_ref": "ppar",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.NR-PPAR-gamma.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ARE predicted inactive",
+              "local_ref": "are",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ATAD5 predicted inactive",
+              "local_ref": "atad",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ATAD5.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-HSE predicted inactive",
+              "local_ref": "hse",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-HSE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-MMP predicted inactive",
+              "local_ref": "mmp",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-MMP.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-p53 predicted inactive",
+              "local_ref": "p53",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-p53.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_410c68c467334129a35320d02ad80894",
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "In a guinea pig heart failure model, salbutamol reduced cardiac IKr and increased arrhythmia, with evidence implicating adrenergic signalling.",
+              "local_ref": "cardiac",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "recommendation",
+              "text": "Obtain direct functional hERG concentration-response, exposure and program-specific cardiac and broader safety data before deciding progression.",
+              "local_ref": "next",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            }
+          ],
+          "limitations": [
+            {
+              "code": "uncalibrated_probability",
+              "text": "Model probabilities are not calibrated clinical risks."
+            },
+            {
+              "code": "evidence_scope_limited",
+              "text": "The animal heart failure study concerns indirect cardiac effects, not direct human hERG binding or clinical outcomes."
+            },
+            {
+              "code": "screening_not_safety_assessment",
+              "text": "Screening predictions and proposed assays alone are not a safety assessment."
+            }
+          ],
+          "schema_version": "grounded-answer-v2",
+          "answer_markdown": "[{\"case_id\":\"herg_brd_01\",\"herg_classification\":\"uncertain\",\"herg_ic50_um\":null,\"herg_ic50_source\":\"predicted\",\"tox21_active_assays\":[],\"clinical_recommendation\":\"conditional\",\"response_text\":\"The model labels hERG as {{herg_label}}, but this is not a definitive experimental classification. No defensible IC50 estimate is available; the required source field says predicted only as a format placeholder, not because potency was predicted. ChEMBL was unavailable and the literature search did not establish a direct hERG IC50; this does not establish that none exists. The model flags no Tox21 assay as active; these are predictions, not measured negatives, and do not establish absence of pathway effects. A protonatable amine and aromatic ring suggest a possible hERG interaction, but no binding mode or causal structural basis has been established for this compound. {{cardiac}} This indirect effect in a disease model is not proof of direct hERG binding or a human clinical outcome. Model probabilities are not calibrated clinical risks. Clinical progression cannot be decided from these outputs; conditional means a decision is pending, not approval. Obtain a direct functional hERG concentration-response measurement, relevant cardiac and broader program-specific safety data, and the intended route and free plasma Cmax, or total Cmax with unbound fraction. Screening alone is not a safety assessment.\"}]",
+          "evidence_relations": [],
+          "development_posture": {
+            "scope": "drug_candidate",
+            "value": "insufficient",
+            "rationale": "The model output and an indirect animal study do not establish clinical readiness, direct potency, or exposure margins.",
+            "conditions": [
+              "A decision requires intended exposure and relevant program-specific cardiac and broader safety data."
+            ],
+            "confidence_band": "weak",
+            "basis_local_refs": [
+              "herg_label",
+              "cardiac"
+            ],
+            "contrary_local_refs": [],
+            "recommended_next_steps": [
+              "Obtain functional hERG concentration-response and intended free plasma exposure."
+            ]
+          },
+          "recommended_next_steps": [
+            {
+              "text": "Obtain direct hERG concentration-response data, intended exposure, and a program-specific cardiac and broader nonclinical safety package.",
+              "basis_local_refs": [
+                "herg_label",
+                "cardiac"
+              ]
+            }
+          ]
+        },
+        "outcome": "candidate",
+        "answer_id": "ans_8e29d3d844a3465e8ca946882ca537d1",
+        "violations": [],
+        "created_at": "2026-11-07T04:10:11.690526+00:00",
+        "phase": "hard_correction"
+      }
+    ]
+  },
+  "answer": {
+    "schema_version": "grounded-answer-v1",
+    "answer_id": "ans_8e29d3d844a3465e8ca946882ca537d1",
+    "run_id": "run_909765b46a6f407797ba1cd8af03d6b7",
+    "answer_markdown": "[{\"case_id\":\"herg_brd_01\",\"herg_classification\":\"uncertain\",\"herg_ic50_um\":null,\"herg_ic50_source\":\"predicted\",\"tox21_active_assays\":[],\"clinical_recommendation\":\"conditional\",\"response_text\":\"The model labels hERG as non_blocker, but this is not a definitive experimental classification. No defensible IC50 estimate is available; the required source field says predicted only as a format placeholder, not because potency was predicted. ChEMBL was unavailable and the literature search did not establish a direct hERG IC50; this does not establish that none exists. The model flags no Tox21 assay as active; these are predictions, not measured negatives, and do not establish absence of pathway effects. A protonatable amine and aromatic ring suggest a possible hERG interaction, but no binding mode or causal structural basis has been established for this compound. In a guinea pig heart failure model, salbutamol reduced cardiac IKr and increased arrhythmia, with evidence implicating adrenergic signalling. This indirect effect in a disease model is not proof of direct hERG binding or a human clinical outcome. Model probabilities are not calibrated clinical risks. Clinical progression cannot be decided from these outputs; conditional means a decision is pending, not approval. Obtain a direct functional hERG concentration-response measurement, relevant cardiac and broader program-specific safety data, and the intended route and free plasma Cmax, or total Cmax with unbound fraction. Screening alone is not a safety assessment.\"}]",
+    "claims": [
+      {
+        "claim_id": "clm_bf07ed6a5ef44f6e8f1915cdedf60375",
+        "kind": "classification",
+        "text": "hERG model label",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.herg.label",
+        "source_value": "non_blocker",
+        "rendered_value": "non_blocker",
+        "local_ref": "herg_label"
+      },
+      {
+        "claim_id": "clm_a436793162a34e559cbe7d30f5f6895b",
+        "kind": "classification",
+        "text": "NR-AR predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-AR.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "ar"
+      },
+      {
+        "claim_id": "clm_2672111f719e4b90951ab066f19db0d0",
+        "kind": "classification",
+        "text": "NR-AR-LBD predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-AR-LBD.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "arlbd"
+      },
+      {
+        "claim_id": "clm_64890d34be52429eacb27ef3682472d5",
+        "kind": "classification",
+        "text": "NR-AhR predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-AhR.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "ahr"
+      },
+      {
+        "claim_id": "clm_ced5aaea3468404aa6af053a7a7a4cb3",
+        "kind": "classification",
+        "text": "NR-Aromatase predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-Aromatase.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "arom"
+      },
+      {
+        "claim_id": "clm_1a343f810e80413ba276df9824ba90b3",
+        "kind": "classification",
+        "text": "NR-ER predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-ER.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "er"
+      },
+      {
+        "claim_id": "clm_38c23eb35a64489d8b4a03c11dfb2778",
+        "kind": "classification",
+        "text": "NR-ER-LBD predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-ER-LBD.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "erlbd"
+      },
+      {
+        "claim_id": "clm_134328270c5a404aaa902e9dd33a7f78",
+        "kind": "classification",
+        "text": "NR-PPAR-gamma predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.NR-PPAR-gamma.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "ppar"
+      },
+      {
+        "claim_id": "clm_83c93ded882d4cde91beb3771b0fd305",
+        "kind": "classification",
+        "text": "SR-ARE predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.SR-ARE.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "are"
+      },
+      {
+        "claim_id": "clm_ceb5176cc3744a948968bcf8865ad84a",
+        "kind": "classification",
+        "text": "SR-ATAD5 predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.SR-ATAD5.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "atad"
+      },
+      {
+        "claim_id": "clm_2f7f26f010fb47d5bff82ac39cb1955c",
+        "kind": "classification",
+        "text": "SR-HSE predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.SR-HSE.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "hse"
+      },
+      {
+        "claim_id": "clm_b59a0de140c641f3857e5d93b0581f2b",
+        "kind": "classification",
+        "text": "SR-MMP predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.SR-MMP.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "mmp"
+      },
+      {
+        "claim_id": "clm_d0044c5c2af64003ae29be4bdd578db7",
+        "kind": "classification",
+        "text": "SR-p53 predicted inactive",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_410c68c467334129a35320d02ad80894",
+        "field_path": "predictions.tox21.assays.SR-p53.active",
+        "source_value": false,
+        "rendered_value": "False",
+        "local_ref": "p53"
+      },
+      {
+        "claim_id": "clm_87e4f7d497314614ac33cbfba826d442",
+        "kind": "scientific",
+        "text": "In a guinea pig heart failure model, salbutamol reduced cardiac IKr and increased arrhythmia, with evidence implicating adrenergic signalling.",
+        "transform": "identity",
+        "citation_ids": [
+          "evd_6d0ba535444d4d0d99e8f9e4a16eb031"
+        ],
+        "local_ref": "cardiac"
+      },
+      {
+        "claim_id": "clm_190daa6a1d0f4097bdb5061c535b9813",
+        "kind": "recommendation",
+        "text": "Obtain direct functional hERG concentration-response, exposure and program-specific cardiac and broader safety data before deciding progression.",
+        "transform": "identity",
+        "citation_ids": [],
+        "local_ref": "next"
+      }
+    ],
+    "limitations": [
+      {
+        "code": "uncalibrated_probability",
+        "text": "Model probabilities are not calibrated clinical risks."
+      },
+      {
+        "code": "evidence_scope_limited",
+        "text": "The animal heart failure study concerns indirect cardiac effects, not direct human hERG binding or clinical outcomes."
+      },
+      {
+        "code": "screening_not_safety_assessment",
+        "text": "Screening predictions and proposed assays alone are not a safety assessment."
+      }
+    ],
+    "recommended_next_steps": [
+      {
+        "text": "Obtain direct hERG concentration-response data, intended exposure, and a program-specific cardiac and broader nonclinical safety package.",
+        "basis_claim_ids": [
+          "clm_bf07ed6a5ef44f6e8f1915cdedf60375",
+          "clm_87e4f7d497314614ac33cbfba826d442"
+        ]
+      }
+    ],
+    "candidate_generation": 2,
+    "is_fallback": false,
+    "content_sha256": "332ceb0f7e49d6a85fbb4e8d3145a813e374a012595ea99d95de47ad540ac3fd",
+    "created_at": "2026-11-07T04:10:11.674471+00:00",
+    "release": {
+      "answer_id": "ans_8e29d3d844a3465e8ca946882ca537d1",
+      "outcome": "reviewed",
+      "semantically_passed": true,
+      "reviews": [
+        {
+          "counts": {
+            "supported": 14
+          },
+          "status": "completed",
+          "verdicts": [
+            {
+              "reason": "The study reports reduced IKr in heart-failure guinea pig myocytes and increased ventricular arrhythmia with salbutamol, with antagonist experiments implicating β2-adrenergic signaling.",
+              "verdict": "supported",
+              "claim_id": "clm_87e4f7d497314614ac33cbfba826d442",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.herg.label, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_bf07ed6a5ef44f6e8f1915cdedf60375",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-AR.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_a436793162a34e559cbe7d30f5f6895b",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-AR-LBD.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_2672111f719e4b90951ab066f19db0d0",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-AhR.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_64890d34be52429eacb27ef3682472d5",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-Aromatase.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_ced5aaea3468404aa6af053a7a7a4cb3",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-ER.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_1a343f810e80413ba276df9824ba90b3",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-ER-LBD.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_38c23eb35a64489d8b4a03c11dfb2778",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-PPAR-gamma.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_134328270c5a404aaa902e9dd33a7f78",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-ARE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_83c93ded882d4cde91beb3771b0fd305",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-ATAD5.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_ceb5176cc3744a948968bcf8865ad84a",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-HSE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_2f7f26f010fb47d5bff82ac39cb1955c",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-MMP.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_b59a0de140c641f3857e5d93b0581f2b",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-p53.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_d0044c5c2af64003ae29be4bdd578db7",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            }
+          ],
+          "answer_id": "ans_8e29d3d844a3465e8ca946882ca537d1",
+          "claim_checks": [
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.herg.label, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_bf07ed6a5ef44f6e8f1915cdedf60375",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-AR.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_a436793162a34e559cbe7d30f5f6895b",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-AR-LBD.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_2672111f719e4b90951ab066f19db0d0",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-AhR.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_64890d34be52429eacb27ef3682472d5",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-Aromatase.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_ced5aaea3468404aa6af053a7a7a4cb3",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-ER.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_1a343f810e80413ba276df9824ba90b3",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-ER-LBD.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_38c23eb35a64489d8b4a03c11dfb2778",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.NR-PPAR-gamma.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_134328270c5a404aaa902e9dd33a7f78",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-ARE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_83c93ded882d4cde91beb3771b0fd305",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-ATAD5.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_ceb5176cc3744a948968bcf8865ad84a",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-HSE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_2f7f26f010fb47d5bff82ac39cb1955c",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-MMP.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_b59a0de140c641f3857e5d93b0581f2b",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_410c68c467334129a35320d02ad80894.predictions.tox21.assays.SR-p53.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_d0044c5c2af64003ae29be4bdd578db7",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_87e4f7d497314614ac33cbfba826d442",
+              "claim_type": "scientific_assessment"
+            },
+            {
+              "path": "structural",
+              "reason": "names no claim it rests on; its basis, scope and what would change it should be stated",
+              "verdict": null,
+              "claim_id": "clm_190daa6a1d0f4097bdb5061c535b9813",
+              "claim_type": "recommendation"
+            }
+          ],
+          "blocking_claim_ids": []
+        }
+      ],
+      "repair": null,
+      "unresolved_claim_ids": [],
+      "ungated_reason": null,
+      "replaced_answer_id": null,
+      "released_at": "2026-11-07T04:10:30.233705+00:00"
+    }
+  }
+}

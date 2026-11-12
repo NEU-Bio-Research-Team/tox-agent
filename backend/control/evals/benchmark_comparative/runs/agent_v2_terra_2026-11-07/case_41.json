@@ -1,0 +1,269 @@
+{
+  "branch": "origin/Agent_Benchmark",
+  "commit": "39a4385",
+  "case_id": "herg_brd_01",
+  "prompt": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[41] Case ID: herg_brd_01\nCompound: Albuterol\nSMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1\nClinical Context: Analyze compound 'Albuterol' (SMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1) for hERG blocking risk. The compound has borderline activity. Provide nuanced interpretation.",
+  "note": "One original case; prompt template preserved, other cases omitted to bind one subject.",
+  "session_id": "ses_8894ce2a50b84ec192a05ac4f60b91f6",
+  "analysis_run": {
+    "run_id": "run_ee5006ae59fc44be9b0a3b85aa3bcdee",
+    "status": "failed",
+    "lane": "deterministic",
+    "intent": "analysis",
+    "trigger_message_id": "msg_f58c61c12a174417a69003224a0284c2",
+    "runtime_binding_id": null,
+    "recovery_of_run_id": null,
+    "failure_code": "predictor_protocol_error",
+    "potentially_billed": false,
+    "deadline_at": "2026-11-07T04:16:59.626088+00:00",
+    "created_at": "2026-11-07T04:01:59.626088+00:00",
+    "started_at": "2026-11-07T04:01:59.651430+00:00",
+    "ended_at": "2026-11-07T04:01:59.807320+00:00",
+    "runtime": null,
+    "configuration_snapshot": {
+      "ai_profile_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "ai_model_id": "gpt-6.1-terra",
+      "predictor_bindings": {},
+      "intent_decision": {
+        "intent": "analysis",
+        "matched": [],
+        "confidence": "medium",
+        "reason_codes": [
+          "bare_molecule"
+        ],
+        "hint_honoured": true,
+        "requested_hint": "auto",
+        "router_version": "router-3",
+        "required_context": [],
+        "clarification_options": []
+      },
+      "effective_budget": {
+        "intent": "analysis",
+        "preset": null,
+        "deadline_s": 900,
+        "max_repairs": null,
+        "max_searches": null,
+        "token_limits": null,
+        "max_tool_calls": null,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": null,
+        "review_reserve_s": null,
+        "max_invalid_calls": null,
+        "max_evidence_reads": null,
+        "requested_step_cap": null,
+        "max_full_text_reads": null,
+        "max_identical_calls": null,
+        "max_correction_turns": null,
+        "max_answer_candidates": null,
+        "reserved_submission_slots": null,
+        "max_hard_submissions_per_phase": null
+      },
+      "subject_binding": null,
+      "created_at": "2026-11-07T04:01:59.628170+00:00"
+    },
+    "usage": {
+      "status": "unknown",
+      "events": []
+    },
+    "tool_calls": [],
+    "phase_usage": {
+      "schema_version": "phase-usage-v1",
+      "phases": {},
+      "run_total": {
+        "tokens": {
+          "input": null,
+          "output": null,
+          "reasoning": null,
+          "cache_read": null,
+          "cache_write": null,
+          "total": null
+        },
+        "cost": {},
+        "cost_completeness": "not_measured",
+        "completeness": "not_measured",
+        "usage_events": 0,
+        "unknown_semantics_events": 0,
+        "models": []
+      }
+    }
+  },
+  "agent_run": {
+    "run_id": "run_2d7b26922bd44c8a8daeef936564725e",
+    "status": "completed",
+    "lane": "deterministic",
+    "intent": "clarification_required",
+    "trigger_message_id": "msg_403a56f5926d41cc9cee57a154849328",
+    "runtime_binding_id": null,
+    "recovery_of_run_id": null,
+    "failure_code": null,
+    "potentially_billed": false,
+    "deadline_at": "2026-11-07T04:17:01.729405+00:00",
+    "created_at": "2026-11-07T04:02:01.729405+00:00",
+    "started_at": "2026-11-07T04:02:01.738154+00:00",
+    "ended_at": "2026-11-07T04:02:01.738181+00:00",
+    "runtime": null,
+    "configuration_snapshot": {
+      "ai_profile_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "ai_model_id": "gpt-6.1-terra",
+      "predictor_bindings": {},
+      "intent_decision": {
+        "intent": "clarification_required",
+        "matched": [
+          "literature"
+        ],
+        "confidence": "low",
+        "reason_codes": [
+          "research_requested",
+          "subject_missing"
+        ],
+        "hint_honoured": true,
+        "requested_hint": "auto",
+        "router_version": "router-3",
+        "required_context": [
+          "analysis_id_or_smiles"
+        ],
+        "clarification_options": []
+      },
+      "effective_budget": {
+        "intent": "clarification_required",
+        "preset": null,
+        "deadline_s": 900,
+        "max_repairs": null,
+        "max_searches": null,
+        "token_limits": null,
+        "max_tool_calls": null,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": null,
+        "review_reserve_s": null,
+        "max_invalid_calls": null,
+        "max_evidence_reads": null,
+        "requested_step_cap": null,
+        "max_full_text_reads": null,
+        "max_identical_calls": null,
+        "max_correction_turns": null,
+        "max_answer_candidates": null,
+        "reserved_submission_slots": null,
+        "max_hard_submissions_per_phase": null
+      },
+      "subject_binding": null,
+      "created_at": "2026-11-07T04:02:01.732844+00:00"
+    },
+    "usage": {
+      "status": "unknown",
+      "events": []
+    },
+    "tool_calls": [],
+    "phase_usage": {
+      "schema_version": "phase-usage-v1",
+      "phases": {},
+      "run_total": {
+        "tokens": {
+          "input": null,
+          "output": null,
+          "reasoning": null,
+          "cache_read": null,
+          "cache_write": null,
+          "total": null
+        },
+        "cost": {},
+        "cost_completeness": "not_measured",
+        "completeness": "not_measured",
+        "usage_events": 0,
+        "unknown_semantics_events": 0,
+        "models": []
+      }
+    }
+  },
+  "result": {
+    "run_id": "run_2d7b26922bd44c8a8daeef936564725e",
+    "recorded": false,
+    "release_policy": "legacy",
+    "note": "this run has no recorded result; whether its answer was reviewed is not known"
+  },
+  "messages": {
+    "messages": [
+      {
+        "message_id": "msg_f58c61c12a174417a69003224a0284c2",
+        "role": "user",
+        "sequence": 1,
+        "created_at": "2026-11-07T04:01:59.621340+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_470e521a63484a2093f1dec9dcc4b59c",
+            "index": 0,
+            "type": "analysis_ref",
+            "content": {
+              "smiles": "CC(C)NCC(O)c1ccc(O)c(CO)c1"
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_afe1e0381f204a66837924307794ef71",
+        "role": "system_event",
+        "sequence": 2,
+        "created_at": "2026-11-07T04:01:59.811494+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_58f740d8fca34572ae18ff40ca07cf89",
+            "index": 0,
+            "type": "error",
+            "content": {
+              "code": "predictor_protocol_error",
+              "run_id": "run_ee5006ae59fc44be9b0a3b85aa3bcdee",
+              "message": "predictor returned 500"
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_403a56f5926d41cc9cee57a154849328",
+        "role": "user",
+        "sequence": 3,
+        "created_at": "2026-11-07T04:02:01.722274+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_873b1246ac8740bb9b19e6d6ac769418",
+            "index": 0,
+            "type": "text",
+            "content": {
+              "text": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[41] Case ID: herg_brd_01\nCompound: Albuterol\nSMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1\nClinical Context: Analyze compound 'Albuterol' (SMILES: CC(C)NCC(O)c1ccc(O)c(CO)c1) for hERG blocking risk. The compound has borderline activity. Provide nuanced interpretation."
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_7940caadc2b7427bab2ed76fa9ce93ed",
+        "role": "assistant",
+        "sequence": 4,
+        "created_at": "2026-11-07T04:02:01.736825+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_5994b7e3a7c248ca9164236cd538850b",
+            "index": 0,
+            "type": "text",
+            "content": {
+              "code": "research_subject_missing",
+              "reason": "the request is missing something the router will not guess at",
+              "options": [],
+              "question": "Which molecule or analysis should the evidence search be about?"
+            }
+          }
+        ]
+      }
+    ],
+    "count": 4
+  },
+  "decision_state": {
+    "error": "/v1/sessions/ses_8894ce2a50b84ec192a05ac4f60b91f6/runs/run_2d7b26922bd44c8a8daeef936564725e/decision-state: HTTP 404: {\"error\":{\"code\":\"not_found\",\"message\":\"this run keeps no decision-support state\",\"retryable\":false,\"details\":{\"run_id\":\"run_2d7b26922bd44c8a8daeef936564725e\"}}}"
+  },
+  "drafts": {
+    "drafts": []
+  }
+}
