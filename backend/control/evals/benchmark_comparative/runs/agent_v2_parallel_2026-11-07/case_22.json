@@ -1,0 +1,3081 @@
+{
+  "branch": "origin/Agent_Benchmark",
+  "commit": "39a4385",
+  "case_id": "herg_neg_02",
+  "prompt": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[22] Case ID: herg_neg_02\nCompound: Caffeine\nSMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O\nClinical Context: Analyze compound 'Caffeine' (SMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O) for hERG blocking risk and Tox21 toxicity profile. Provide probability, interpretation, and limitations of the prediction.",
+  "note": "One original case; prompt template preserved, other cases omitted to bind one subject.",
+  "session_id": "ses_7babf6fc22c049adbbf8d3c9eed2b6e2",
+  "analysis_run": {
+    "run_id": "run_0a3f9ad4c53347369f309589afda2e70",
+    "status": "completed",
+    "lane": "deterministic",
+    "intent": "analysis",
+    "trigger_message_id": "msg_5ecee777d44e41a4b11388417d7ce9fc",
+    "runtime_binding_id": null,
+    "recovery_of_run_id": null,
+    "failure_code": null,
+    "potentially_billed": false,
+    "deadline_at": "2026-11-07T03:58:39.883211+00:00",
+    "created_at": "2026-11-07T03:43:39.883211+00:00",
+    "started_at": "2026-11-07T03:43:39.905938+00:00",
+    "ended_at": "2026-11-07T03:43:39.951121+00:00",
+    "runtime": null,
+    "configuration_snapshot": {
+      "ai_profile_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "ai_model_id": null,
+      "predictor_bindings": {},
+      "intent_decision": {
+        "intent": "analysis",
+        "matched": [],
+        "confidence": "medium",
+        "reason_codes": [
+          "bare_molecule"
+        ],
+        "hint_honoured": true,
+        "requested_hint": "auto",
+        "router_version": "router-3",
+        "required_context": [],
+        "clarification_options": []
+      },
+      "effective_budget": {
+        "intent": "analysis",
+        "preset": null,
+        "deadline_s": 900,
+        "max_repairs": null,
+        "max_searches": null,
+        "token_limits": null,
+        "max_tool_calls": null,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": null,
+        "review_reserve_s": null,
+        "max_invalid_calls": null,
+        "max_evidence_reads": null,
+        "requested_step_cap": null,
+        "max_full_text_reads": null,
+        "max_identical_calls": null,
+        "max_correction_turns": null,
+        "max_answer_candidates": null,
+        "reserved_submission_slots": null,
+        "max_hard_submissions_per_phase": null
+      },
+      "subject_binding": null,
+      "created_at": "2026-11-07T03:43:39.884904+00:00"
+    },
+    "usage": {
+      "status": "unknown",
+      "events": []
+    },
+    "tool_calls": [],
+    "phase_usage": {
+      "schema_version": "phase-usage-v1",
+      "phases": {},
+      "run_total": {
+        "tokens": {
+          "input": null,
+          "output": null,
+          "reasoning": null,
+          "cache_read": null,
+          "cache_write": null,
+          "total": null
+        },
+        "cost": {},
+        "cost_completeness": "not_measured",
+        "completeness": "not_measured",
+        "usage_events": 0,
+        "unknown_semantics_events": 0,
+        "models": []
+      }
+    }
+  },
+  "agent_run": {
+    "run_id": "run_51693c53980648d1a6052b46089cfef5",
+    "status": "completed",
+    "lane": "agentic",
+    "intent": "decision_support",
+    "trigger_message_id": "msg_bf05b35a842745e79df04c432eacacc8",
+    "runtime_binding_id": "rtb_e0d39621e299434ba817ea5561a9b5b5",
+    "recovery_of_run_id": null,
+    "failure_code": null,
+    "potentially_billed": false,
+    "deadline_at": "2026-11-07T03:58:43.760744+00:00",
+    "created_at": "2026-11-07T03:43:43.760744+00:00",
+    "started_at": "2026-11-07T03:43:43.952877+00:00",
+    "ended_at": "2026-11-07T03:49:55.406031+00:00",
+    "runtime": {
+      "runtime_binding_id": "rtb_e0d39621e299434ba817ea5561a9b5b5",
+      "runtime_kind": "opencode",
+      "runtime_version": "1.17.11",
+      "provider_id": "openai",
+      "model_id": "gpt-5.6-luna",
+      "auth_mode": "chatgpt_subscription",
+      "connection_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "profile_hash": "a2687745667406706cc8143d40b35b1692d1287dfb67184babcb54c41e7e3241",
+      "tool_schema_hash": "370aea36e81a312972e0d0535690455004f23af4fb4ba57ac7fefd0ef478f6d7",
+      "system_prompt_hash": "a3a23bc977c6cbef16aba1480486d3927cbc58abde1622a7d2458f34a4770ad7"
+    },
+    "configuration_snapshot": {
+      "ai_profile_id": "conn_a8ad30c4fb094566b345c0ca69e83f47",
+      "ai_model_id": null,
+      "predictor_bindings": {},
+      "intent_decision": {
+        "intent": "decision_support",
+        "matched": [
+          "literature"
+        ],
+        "confidence": "high",
+        "reason_codes": [
+          "research_phrase"
+        ],
+        "hint_honoured": true,
+        "requested_hint": "auto",
+        "router_version": "router-3",
+        "required_context": [],
+        "clarification_options": []
+      },
+      "effective_budget": {
+        "intent": "decision_support",
+        "preset": null,
+        "deadline_s": 900,
+        "max_repairs": null,
+        "max_searches": 4,
+        "token_limits": {
+          "enforcement": "observed_only",
+          "max_cost_per_run": null,
+          "max_total_tokens_per_run": null,
+          "max_output_tokens_per_turn": null
+        },
+        "max_tool_calls": 80,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": 600,
+        "review_reserve_s": null,
+        "max_invalid_calls": null,
+        "max_evidence_reads": 8,
+        "requested_step_cap": 80,
+        "max_full_text_reads": 4,
+        "max_identical_calls": 2,
+        "max_correction_turns": 1,
+        "max_answer_candidates": 2,
+        "reserved_submission_slots": null,
+        "max_hard_submissions_per_phase": null
+      },
+      "subject_binding": {
+        "kind": "analysis",
+        "identity": {
+          "target": null,
+          "assay_context": null,
+          "canonical_smiles": "Cn1c(=O)c2c(ncn2C)n(C)c1=O"
+        },
+        "resolved_by": "only_candidate",
+        "subject_key": "analysis:ana_3a698b46d32f4ac39dd434f66b1cd348",
+        "subject_ref": {
+          "analysis_id": "ana_3a698b46d32f4ac39dd434f66b1cd348"
+        },
+        "artifact_refs": [
+          {
+            "kind": "analysis",
+            "source_id": "ana_3a698b46d32f4ac39dd434f66b1cd348",
+            "content_sha256": "96b7afc12667cd0e701e9d007355ca685faf3749a9c6a4442e3bdfa9c252b917"
+          }
+        ],
+        "binding_sha256": "73bbe7805254c6d7a3bed9f1c4295cc56f5391d4c24b4d7689c76dffb49d4da6",
+        "schema_version": "run-subject-binding-v1",
+        "pending_snapshot": false
+      },
+      "created_at": "2026-11-07T03:43:43.761898+00:00"
+    },
+    "usage": {
+      "status": "reported",
+      "events": [
+        {
+          "usage_event_id": "use_38998c93cda54f21a59e8afead64f5df",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:43:50.083536+00:00",
+          "tokens": {
+            "input": 11157,
+            "output": 46,
+            "reasoning": 60,
+            "cache_read": 0,
+            "cache_write": 0,
+            "total": 11263
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_a2b2b66ae453070740e4053ab0bb3f9a",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41ae795001Ti90O1tGav3Jfn",
+            "step_id": "prt_1b41afd20001GT1wcLMiMiqtHJ",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_251afa6493bc4f72ac7a5e5cc77ad62a",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:43:59.831955+00:00",
+          "tokens": {
+            "input": 541,
+            "output": 267,
+            "reasoning": 63,
+            "cache_read": 11008,
+            "cache_write": 0,
+            "total": 11879
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_2c88dae2140e82258060b00e8807ca71",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41afd29001HDJ0avMZlr2d2U",
+            "step_id": "prt_1b41b233a0015JvvipUuimcY39",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_dc159a3cdfc04d428ede97c2ff723ac0",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:44:19.969198+00:00",
+          "tokens": {
+            "input": 3599,
+            "output": 725,
+            "reasoning": 186,
+            "cache_read": 11392,
+            "cache_write": 0,
+            "total": 15902
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_ee2b5238291179283d1d43a9300f2bfc",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41b2344001oCSxYWv4RlxRva",
+            "step_id": "prt_1b41b71ec001YFYXu7q7f9tNkc",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_7c0190e797fe4269a4458af516568eb8",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:44:23.536564+00:00",
+          "tokens": {
+            "input": 6393,
+            "output": 30,
+            "reasoning": 77,
+            "cache_read": 14848,
+            "cache_write": 0,
+            "total": 21348
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_7a5a5950f06ce1e1eb2359432e8db256",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41b71f40019bWZGkh5N5KhRI",
+            "step_id": "prt_1b41b7fd90010TqWwLq8maFO5t",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_b53da1ad344d47d1918250dd386f7635",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:44:45.553888+00:00",
+          "tokens": {
+            "input": 1088,
+            "output": 100,
+            "reasoning": 196,
+            "cache_read": 21120,
+            "cache_write": 0,
+            "total": 22504
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_b9e520a97bbf726afeeccca3b0ddd85b",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41b7fe0001H7mMhghvGSo5CP",
+            "step_id": "prt_1b41bd5e0001osPzaE3CdQ2R3j",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_76be8660f6924758b2915d0761e48474",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:44:48.219583+00:00",
+          "tokens": {
+            "input": 650,
+            "output": 28,
+            "reasoning": 33,
+            "cache_read": 22016,
+            "cache_write": 0,
+            "total": 22727
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_5efddafa26bb290ecb2551d70b825769",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41bd5e70013nNE8fg6eLua41",
+            "step_id": "prt_1b41be046001rFy6EBN93vM59u",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_99447352e6f34c859db89cec10a8eb82",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:45:41.044103+00:00",
+          "tokens": {
+            "input": 909,
+            "output": 2488,
+            "reasoning": 308,
+            "cache_read": 22528,
+            "cache_write": 0,
+            "total": 26233
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_f06d4757fe3c49485040d756649e8034",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41be04f001xpiQ52ZwWgycEA",
+            "step_id": "prt_1b41cae98001za08SS1rf1TyhY",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_6c2f3df5788e46d69e668b5197eb2942",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:46:35.274456+00:00",
+          "tokens": {
+            "input": 3179,
+            "output": 2063,
+            "reasoning": 810,
+            "cache_read": 23296,
+            "cache_write": 0,
+            "total": 29348
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_3016368469e3022805597d6d8e8ee625",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41caea3001U1DOOcqLxjKSUN",
+            "step_id": "prt_1b41d8276001HmSSgY8nSOz964",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_cef0f4d36190439aa4caf06ea949af81",
+          "runtime_binding_id": "rtb_45135b2594524ef1a64aaa7711c4b6e0",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:46:37.497989+00:00",
+          "tokens": {
+            "input": 3320,
+            "output": 4,
+            "reasoning": 0,
+            "cache_read": 26368,
+            "cache_write": 0,
+            "total": 29692
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_6f7d73da374963d56965ab819d614129",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41d827e001AxC6oL688RmaH5",
+            "step_id": "prt_1b41d8b2d001isaNeSnfy9qN5Y",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_1c25d3db0b144196aa9cf761349551b2",
+          "runtime_binding_id": "rtb_9ea7a8a41899406db1aae4e19a744c02",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:46:54.203188+00:00",
+          "tokens": {
+            "input": 5967,
+            "output": 278,
+            "reasoning": 233,
+            "cache_read": 0,
+            "cache_write": 0,
+            "total": 6478
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_fcb2355a85ffdf40d242f33060dad5bd",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41d8e04001XnI1jMLn5HsCCi",
+            "step_id": "prt_1b41dcb52001YAqQ5jUCWgDX4O",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_abcdeaffefe74099b30ea196db1bf825",
+          "runtime_binding_id": "rtb_9ea7a8a41899406db1aae4e19a744c02",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:46:57.148255+00:00",
+          "tokens": {
+            "input": 685,
+            "output": 17,
+            "reasoning": 0,
+            "cache_read": 5888,
+            "cache_write": 0,
+            "total": 6590
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_6dc9730a42bf86c701abf7a0b2fb9bcf",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41dcb64001AFDmJqGXYbxxTJ",
+            "step_id": "prt_1b41dd7db001VJdapEwo0p8LIY",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_7cfa9fd9732c4cf093f3e43847cd3940",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:47:07.800234+00:00",
+          "tokens": {
+            "input": 12767,
+            "output": 46,
+            "reasoning": 85,
+            "cache_read": 0,
+            "cache_write": 0,
+            "total": 12898
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_d42ca45d535c49f71345f3b8a56ec595",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41ddb28001g352gxc6xnjfVP",
+            "step_id": "prt_1b41e01860011o19wi0o3IZE1c",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_3127178b2cfb477a96794aa4e5eeffbf",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:47:13.451670+00:00",
+          "tokens": {
+            "input": 609,
+            "output": 193,
+            "reasoning": 0,
+            "cache_read": 12672,
+            "cache_write": 0,
+            "total": 13474
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_b7927fbb49df16224d431cec6bc71af1",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41e018e0018ITLvAzYGwIFtn",
+            "step_id": "prt_1b41e178e0010xiBOji0C9TqIk",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_2ef38c9241fd4840a50f4080c7ac865b",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:47:18.138703+00:00",
+          "tokens": {
+            "input": 2391,
+            "output": 28,
+            "reasoning": 25,
+            "cache_read": 13184,
+            "cache_write": 0,
+            "total": 15628
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_cf6f39b502c484900831ae1f49a4907a",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41e1797001rQLshPOiqIXmGK",
+            "step_id": "prt_1b41e29e9001bNrxls41G505zH",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_027d13df96e74d229f6bb51fa202b140",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:47:32.146931+00:00",
+          "tokens": {
+            "input": 1886,
+            "output": 590,
+            "reasoning": 69,
+            "cache_read": 15488,
+            "cache_write": 0,
+            "total": 18033
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_62d6d5c0c5de29a4b4b256a1a8e8921b",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41e29f1001gUvDAkthrWNJ1e",
+            "step_id": "prt_1b41e60a0001xw12l0fWJmY2EU",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_2f8604fb648640bb9f6722e054cac23b",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:48:21.053996+00:00",
+          "tokens": {
+            "input": 940,
+            "output": 1863,
+            "reasoning": 554,
+            "cache_read": 17280,
+            "cache_write": 0,
+            "total": 20637
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_710613dc2e3f58fd49f55e7109f61515",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41e60a70019oNaRxY3OI2W6F",
+            "step_id": "prt_1b41f1fac001Q2h3Zx3vvBPcL7",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_f494a6b1d02b41198f039de89cf88df3",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:48:58.307654+00:00",
+          "tokens": {
+            "input": 2803,
+            "output": 1891,
+            "reasoning": 34,
+            "cache_read": 18048,
+            "cache_write": 0,
+            "total": 22776
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_afde796f4f995b8bcb8ca7fbb9776214",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41f1fb4001vfl4V7NLOu6HUS",
+            "step_id": "prt_1b41fb131001FVcq2rOdj5T33V",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_935d793e9d414281ad9ac3c42518e9f3",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:49:36.992729+00:00",
+          "tokens": {
+            "input": 2248,
+            "output": 1921,
+            "reasoning": 102,
+            "cache_read": 20736,
+            "cache_write": 0,
+            "total": 25007
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_ae6d84112e1212f19b3aa8c9a86f8755",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b41fb13b001Zk308s45Tic89J",
+            "step_id": "prt_1b420484f001bpNy0ZVCVheLvD",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_fd4d1796a4794038a34ab0cca6cfe681",
+          "runtime_binding_id": "rtb_34722de3c5254e0485d14774e63473ad",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:49:39.764533+00:00",
+          "tokens": {
+            "input": 2547,
+            "output": 4,
+            "reasoning": 0,
+            "cache_read": 22784,
+            "cache_write": 0,
+            "total": 25335
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_fc42dc017acef06c0129c6a622c086de",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4204858001r12Uo7m7cWESmb",
+            "step_id": "prt_1b420532b001IRk365FzjImx0k",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_8c0488e0d34642898fd33b4f201fcf97",
+          "runtime_binding_id": "rtb_e0d39621e299434ba817ea5561a9b5b5",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:49:53.312871+00:00",
+          "tokens": {
+            "input": 5796,
+            "output": 250,
+            "reasoning": 422,
+            "cache_read": 0,
+            "cache_write": 0,
+            "total": 6468
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_2dc674811eda61183c98150a4307149f",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b42055120019HXjXgwNZnz8Bq",
+            "step_id": "prt_1b420880f001xB20kiiD6Uzg25",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        },
+        {
+          "usage_event_id": "use_15a623881b8345f1aefd320cc9466a88",
+          "runtime_binding_id": "rtb_e0d39621e299434ba817ea5561a9b5b5",
+          "provider_id": "openai",
+          "model_id": "gpt-5.6-luna",
+          "reported_at": "2026-11-07T03:49:55.297520+00:00",
+          "tokens": {
+            "input": 929,
+            "output": 24,
+            "reasoning": 0,
+            "cache_read": 5632,
+            "cache_write": 0,
+            "total": 6585
+          },
+          "cost": {
+            "amount": null,
+            "currency": null
+          },
+          "source": {
+            "event_id": "usg_871e9756949bc3632d664d9853c960b6",
+            "event_type": "message.part.updated:step-finish",
+            "message_id": "msg_1b4208816001feL8HsI5UmPJ6d",
+            "step_id": "prt_1b4208fd2001bu0ydgzUdXZNzD",
+            "revision": null
+          },
+          "semantics": "cumulative",
+          "is_normalized": true
+        }
+      ]
+    },
+    "tool_calls": [
+      {
+        "call_id": "call_3013031ffec04bae8e7ffdf301048ecb",
+        "tool_name": "get_artifact_inventory",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 15,
+        "arguments_sha256": "56ed359b4c9512b2a420063e93549b2bfaf6ba716bf335454b2cc6c3a734206c",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:43:50.019875+00:00",
+        "ended_at": "2026-11-07T03:43:50.032274+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_8dc8f39890b34acf962a626e1c862905",
+        "tool_name": "get_analysis_bundle",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 14,
+        "arguments_sha256": "d8841924a5fc9583621b2a27cd192474b634fe5c44646fb587ada9c2323b118a",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:43:57.399478+00:00",
+        "ended_at": "2026-11-07T03:43:57.411497+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_a0a883cec6e94f88a8ae904e8fbe1956",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 38,
+        "arguments_sha256": "f9f47cd7f930513680f3a49019e0aaa59d587c024fca9a4229968e01ba089d00",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:43:57.495821+00:00",
+        "ended_at": "2026-11-07T03:43:57.530220+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_a97a8787f582402c954d0cb5576336dc",
+        "tool_name": "read_scientific_skill",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 13,
+        "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:43:57.527075+00:00",
+        "ended_at": "2026-11-07T03:43:57.538497+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_f968d8f81b9a4bdc9c7bec9aae1b4747",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 12,
+        "arguments_sha256": "f3636891825783aa82db14c6939da8956437b7f5bb8fe8a6c932884d44582ddb",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:43:57.692593+00:00",
+        "ended_at": "2026-11-07T03:43:57.703444+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_b25daa4269384307b8f498cd41d282a1",
+        "tool_name": "get_chembl_activities",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 1845,
+        "arguments_sha256": "610385c69fd8feea9f29d0583c0fd742c6a4c89ef926ce1a26b61f86e1a0fb28",
+        "observation_ids": [
+          "obs_c5e45e80e1f24bf48a51b4946bdbb0c8",
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "started_at": "2026-11-07T03:43:57.943204+00:00",
+        "ended_at": "2026-11-07T03:43:59.787495+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_94dc97d46e7547779a9fdd6cc4cb1d6b",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 12,
+        "arguments_sha256": "a4930897f5be0c96592e68393ed2942d5dc727eca2b8a6f479b51056a73f201d",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.143716+00:00",
+        "ended_at": "2026-11-07T03:44:19.153844+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_b44a9c507e124aa780d6b70a255c9249",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 147,
+        "arguments_sha256": "781545a197bd8f2747d07a396604e53ce4c083d4ca9241a7706dc5c2a676e323",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.213892+00:00",
+        "ended_at": "2026-11-07T03:44:19.362373+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_9578ebe9030049d4879cd63fab7916ad",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 159,
+        "arguments_sha256": "731984fe49064c1be6e5c2ea6d7605852440a80c507a11b54c3b47a198ea689f",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.242589+00:00",
+        "ended_at": "2026-11-07T03:44:19.405707+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_755171d810e74993af1abf82157e9c53",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 69,
+        "arguments_sha256": "a27dd7b17637fbf93235acce4e14fa08c0377fe912ae76c8cbbc81605bd063fa",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.359670+00:00",
+        "ended_at": "2026-11-07T03:44:19.421962+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_4b21ffd3bd774fc49d142b2a07f926b2",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 95,
+        "arguments_sha256": "0b05d5331e426e82bcb02aaf27d3fcf404511237efbb8853d71b0140bcb09053",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.397230+00:00",
+        "ended_at": "2026-11-07T03:44:19.534171+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_f46ddde14c5141288097348dd10eebb6",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 192,
+        "arguments_sha256": "7095f5241eb41b2c165731054eb6c4807b8427fa957845fa97b65b9867758c05",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.455539+00:00",
+        "ended_at": "2026-11-07T03:44:19.638891+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_80485d1a958c4c42b91066b13cf9fc5b",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 169,
+        "arguments_sha256": "3ea1e20059c0938e081b59be78021f8af26e1501a667475c8b192b404c7dd52f",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.537600+00:00",
+        "ended_at": "2026-11-07T03:44:19.645982+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_d41cfd0cd4b440ddb9547afe1a54f6ae",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 211,
+        "arguments_sha256": "1b9da41fcf1e2c60ddc562144660adc58430bb3744ab55955d2039779f25cd5a",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.547810+00:00",
+        "ended_at": "2026-11-07T03:44:19.720273+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_5073005116fd4f799dad7eb69b9edba5",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 178,
+        "arguments_sha256": "0d1459cd3b62267ddf6aa62775bb7b631de46819b2281317fac7bd56a6f335c9",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.548126+00:00",
+        "ended_at": "2026-11-07T03:44:19.714373+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_454885212c8a4d96a42903a3650566b0",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 100,
+        "arguments_sha256": "50d9fef35bd0ea6863e6e12c759ecf1ca01b33ee3a7eb5071f173a2e3306923c",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.636392+00:00",
+        "ended_at": "2026-11-07T03:44:19.732679+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_c8cb3706b4054c9b8c8add1a263b80d7",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 95,
+        "arguments_sha256": "c4a9d4658d26d7497c1d674b39bfba36f8b67f4eb916dd144f777eabbac0e7b2",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.838709+00:00",
+        "ended_at": "2026-11-07T03:44:19.895208+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_a59fcbabc4a64bb295873f6aed3d6c74",
+        "tool_name": "get_evidence_record",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 75,
+        "arguments_sha256": "59b721d615a3313e46f4280cef521f9ec3d0af7d0c52e7b7c82ca03ee51c599c",
+        "observation_ids": [
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "started_at": "2026-11-07T03:44:19.844341+00:00",
+        "ended_at": "2026-11-07T03:44:19.904057+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_b92c40409bc84f7dbd9a9f1756bdd730",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 32,
+        "arguments_sha256": "a518b0ee1d283d7fc695a5b3ea8e4cce5872b439020efe134db2b924d4fc328f",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:44:19.890646+00:00",
+        "ended_at": "2026-11-07T03:44:19.917777+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_1460ba61d62d437fb2757fc6bc24f684",
+        "tool_name": "read_scientific_skill",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 12,
+        "arguments_sha256": "b83464b45a498b71d0d84ec101527aec7d7ff8d1f25ca6a99a358da0be019f80",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:44:23.444303+00:00",
+        "ended_at": "2026-11-07T03:44:23.454369+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_3f7d49b14dc54a069e049aff28ce500b",
+        "tool_name": "search_toxicology_evidence",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 15420,
+        "arguments_sha256": "41b053ae0ad2c2212a58925620418bf23c02032dc7d8a1f00f17ff76541cc8eb",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:44:30.102113+00:00",
+        "ended_at": "2026-11-07T03:44:45.519999+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_5b8d8ee743ba4f9cad70dda7ddc8d398",
+        "tool_name": "get_scientific_case",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 105,
+        "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:44:48.076181+00:00",
+        "ended_at": "2026-11-07T03:44:48.179515+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_b07946f2ebb64d7db42f136df0043746",
+        "tool_name": "update_scientific_case",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 23,
+        "arguments_sha256": "be721031c9b7e39b4b588b24c07dd3d95b7bd4f17ea1acff48702a1552f7f98c",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:45:40.875592+00:00",
+        "ended_at": "2026-11-07T03:45:40.896903+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_833913f82a1d48609d1fab36a885b943",
+        "tool_name": "submit_grounded_answer",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 52,
+        "arguments_sha256": "c05628dba71618798d74eb629ecdc99cb13208669602322ba41cc0cd3e6a37b5",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:46:35.144651+00:00",
+        "ended_at": "2026-11-07T03:46:35.192450+00:00",
+        "phase": "investigator"
+      },
+      {
+        "call_id": "call_9eddda6c319149108b0d2faed3f095e1",
+        "tool_name": "submit_claim_review",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 34,
+        "arguments_sha256": "83e6563358759016e0ac2daac5a6e433bba8a57b9a920079440a82cdfd8fa25c",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:46:53.685804+00:00",
+        "ended_at": "2026-11-07T03:46:53.716673+00:00",
+        "phase": "review_initial"
+      },
+      {
+        "call_id": "call_323d8fe5581841b4bb46aa9e10ca5a14",
+        "tool_name": "get_artifact_inventory",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 16,
+        "arguments_sha256": "56ed359b4c9512b2a420063e93549b2bfaf6ba716bf335454b2cc6c3a734206c",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:47:07.745666+00:00",
+        "ended_at": "2026-11-07T03:47:07.760416+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_f9c7c52c835245a7a9639b88076e3d52",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 14,
+        "arguments_sha256": "f3636891825783aa82db14c6939da8956437b7f5bb8fe8a6c932884d44582ddb",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:47:13.103698+00:00",
+        "ended_at": "2026-11-07T03:47:13.114702+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_268e4d43475d4627aaa689bb3c5bc99f",
+        "tool_name": "get_analysis_slice",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 165,
+        "arguments_sha256": "0b05d5331e426e82bcb02aaf27d3fcf404511237efbb8853d71b0140bcb09053",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:47:13.200670+00:00",
+        "ended_at": "2026-11-07T03:47:13.359994+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_90bb02b9bd9a4895b23da07bbf79dd10",
+        "tool_name": "get_evidence_record",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 49,
+        "arguments_sha256": "59b721d615a3313e46f4280cef521f9ec3d0af7d0c52e7b7c82ca03ee51c599c",
+        "observation_ids": [
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "started_at": "2026-11-07T03:47:13.353182+00:00",
+        "ended_at": "2026-11-07T03:47:13.391398+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_deaa0b08ae124b6fb2b38afb97cca488",
+        "tool_name": "read_scientific_skill",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 15,
+        "arguments_sha256": "282a9e6781e7e7c74b567e0ac87b958026ac9f9d00fd54babda2b41b56cf276b",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:47:13.386523+00:00",
+        "ended_at": "2026-11-07T03:47:13.399129+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_eeec7bd9da684b8ba709d2e579845693",
+        "tool_name": "get_scientific_case",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 11,
+        "arguments_sha256": "82198efaa0b18c88e9abbc35935b7d7b340b3cff1f04fd66e447421e55dd0ee6",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:47:18.054806+00:00",
+        "ended_at": "2026-11-07T03:47:18.064294+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_be007c8f484b48bdae0a27b1f42daf5d",
+        "tool_name": "update_scientific_case",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 28,
+        "arguments_sha256": "325f3c3fe538a83ea71bbe3b5b2f08dacabf96009be10ca2878bae8e297dbd96",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:47:32.088446+00:00",
+        "ended_at": "2026-11-07T03:47:32.111566+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_c28342df4fd841d6b27484b142dfd9d6",
+        "tool_name": "submit_grounded_answer",
+        "status": "error",
+        "error_code": "answer_validation_failed",
+        "duration_ms": 153,
+        "arguments_sha256": "ac3954cb9bb743c2d2cd5e6d87c49590acbb3473d9a431c3081b11b6a37651da",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:48:20.863125+00:00",
+        "ended_at": "2026-11-07T03:48:21.013019+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_90aedfab163943c3b90fccd0b8c0b9f9",
+        "tool_name": "submit_grounded_answer",
+        "status": "error",
+        "error_code": "answer_validation_failed",
+        "duration_ms": 48,
+        "arguments_sha256": "83264950eb87934e2486b46885a62f8340bef579d9d2c36c3926da5fc27cf742",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:48:58.213745+00:00",
+        "ended_at": "2026-11-07T03:48:58.259737+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_cbf37e39fdc04b439b941537e0f1286a",
+        "tool_name": "submit_grounded_answer",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 56,
+        "arguments_sha256": "c90846ff90caf13ace0684736c03bc93c9770c582f3da4a45912f8773fc320af",
+        "observation_ids": [
+          "obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "started_at": "2026-11-07T03:49:36.897640+00:00",
+        "ended_at": "2026-11-07T03:49:36.951780+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "call_id": "call_79691bc7c00a446b9c8788a623616898",
+        "tool_name": "submit_claim_review",
+        "status": "completed",
+        "error_code": null,
+        "duration_ms": 23,
+        "arguments_sha256": "60680f8ff44231e7bd925f60fa09e606805ffbc3a8dc07367f1f7286fab360d5",
+        "observation_ids": [],
+        "started_at": "2026-11-07T03:49:53.262446+00:00",
+        "ended_at": "2026-11-07T03:49:53.284170+00:00",
+        "phase": "review_final"
+      }
+    ],
+    "phase_usage": {
+      "schema_version": "phase-usage-v1",
+      "phases": {
+        "investigator": {
+          "tokens": {
+            "input": 30836,
+            "output": 5751,
+            "reasoning": 1733,
+            "cache_read": 152576,
+            "cache_write": 0,
+            "total": 190896
+          },
+          "cost": {},
+          "cost_completeness": "unknown",
+          "completeness": "complete",
+          "usage_events": 9,
+          "unknown_semantics_events": 0,
+          "models": [
+            "gpt-5.6-luna"
+          ],
+          "dispatches": 1,
+          "tool_calls": {
+            "completed": 24
+          }
+        },
+        "review_initial": {
+          "tokens": {
+            "input": 6652,
+            "output": 295,
+            "reasoning": 233,
+            "cache_read": 5888,
+            "cache_write": 0,
+            "total": 13068
+          },
+          "cost": {},
+          "cost_completeness": "unknown",
+          "completeness": "complete",
+          "usage_events": 2,
+          "unknown_semantics_events": 0,
+          "models": [
+            "gpt-5.6-luna"
+          ],
+          "dispatches": 1,
+          "tool_calls": {
+            "completed": 1
+          }
+        },
+        "semantic_repair": {
+          "tokens": {
+            "input": 26191,
+            "output": 6536,
+            "reasoning": 869,
+            "cache_read": 120192,
+            "cache_write": 0,
+            "total": 153788
+          },
+          "cost": {},
+          "cost_completeness": "unknown",
+          "completeness": "complete",
+          "usage_events": 8,
+          "unknown_semantics_events": 0,
+          "models": [
+            "gpt-5.6-luna"
+          ],
+          "dispatches": 1,
+          "tool_calls": {
+            "completed": 8,
+            "error": 2
+          }
+        },
+        "review_final": {
+          "tokens": {
+            "input": 6725,
+            "output": 274,
+            "reasoning": 422,
+            "cache_read": 5632,
+            "cache_write": 0,
+            "total": 13053
+          },
+          "cost": {},
+          "cost_completeness": "unknown",
+          "completeness": "complete",
+          "usage_events": 2,
+          "unknown_semantics_events": 0,
+          "models": [
+            "gpt-5.6-luna"
+          ],
+          "dispatches": 1,
+          "tool_calls": {
+            "completed": 1
+          }
+        }
+      },
+      "run_total": {
+        "tokens": {
+          "input": 70404,
+          "output": 12856,
+          "reasoning": 3257,
+          "cache_read": 284288,
+          "cache_write": 0,
+          "total": 370805
+        },
+        "cost": {},
+        "cost_completeness": "unknown",
+        "completeness": "complete",
+        "usage_events": 21,
+        "unknown_semantics_events": 0,
+        "models": [
+          "gpt-5.6-luna"
+        ]
+      }
+    }
+  },
+  "result": {
+    "run_id": "run_51693c53980648d1a6052b46089cfef5",
+    "recorded": false,
+    "release_policy": "legacy",
+    "note": "this run has no recorded result; whether its answer was reviewed is not known"
+  },
+  "messages": {
+    "messages": [
+      {
+        "message_id": "msg_5ecee777d44e41a4b11388417d7ce9fc",
+        "role": "user",
+        "sequence": 1,
+        "created_at": "2026-11-07T03:43:39.879796+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_839c240c2f9a4e999887dacacd3e4f26",
+            "index": 0,
+            "type": "analysis_ref",
+            "content": {
+              "smiles": "Cn1c(=O)c2c(ncn2C)n(C)c1=O"
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_bf05b35a842745e79df04c432eacacc8",
+        "role": "user",
+        "sequence": 2,
+        "created_at": "2026-11-07T03:43:43.758003+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_ce3f5f1d58ab40e9a92941f3faa00e9e",
+            "index": 0,
+            "type": "text",
+            "content": {
+              "text": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[22] Case ID: herg_neg_02\nCompound: Caffeine\nSMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O\nClinical Context: Analyze compound 'Caffeine' (SMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O) for hERG blocking risk and Tox21 toxicity profile. Provide probability, interpretation, and limitations of the prediction."
+            }
+          }
+        ]
+      },
+      {
+        "message_id": "msg_c7e9ff1ef13941d5a3b984daed28b9f9",
+        "role": "assistant",
+        "sequence": 3,
+        "created_at": "2026-11-07T03:49:55.402078+00:00",
+        "client_message_id": null,
+        "parts": [
+          {
+            "part_id": "prt_f6bd30a0703c43f0a01fce6bdf010db8",
+            "index": 0,
+            "type": "text",
+            "content": {
+              "text": "[\n  {\n    \"case_id\": \"herg_neg_02\",\n    \"herg_classification\": \"non_blocker\",\n    \"herg_ic50_um\": null,\n    \"herg_ic50_source\": \"ChEMBL:CHEMBL113\",\n    \"tox21_active_assays\": [\"SR-ARE\"],\n    \"clinical_recommendation\": \"conditional\",\n    \"response_text\": \"The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of 0.141. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.\"\n  }\n]"
+            }
+          },
+          {
+            "part_id": "prt_db1ea2edf1734fa09d0b46ba93c02e4f",
+            "index": 1,
+            "type": "answer_ref",
+            "content": {
+              "answer_id": "ans_17ab3f0a5e004c7aae4f7e49487fcbb4"
+            }
+          },
+          {
+            "part_id": "prt_a34b7590d48e48789f6946aa0b0759cf",
+            "index": 2,
+            "type": "dossier_ref",
+            "content": {
+              "run_id": "run_51693c53980648d1a6052b46089cfef5",
+              "case_id": "scase_7644e8f29f8f4df8857b51236f8b43cd",
+              "case_revision": 18
+            }
+          }
+        ]
+      }
+    ],
+    "count": 3
+  },
+  "decision_state": {
+    "schema_version": "decision-support-state-v1",
+    "session_id": "ses_7babf6fc22c049adbbf8d3c9eed2b6e2",
+    "run_id": "run_51693c53980648d1a6052b46089cfef5",
+    "goal": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation — explain the molecular basis for your predictions.\n4. Final safety opinion — state clearly whether this compound should proceed to clinical trials.\n\nRESPONSE FORMAT — You MUST respond with ONLY a valid raw JSON array (no markdown, no extra text):\n[\n  {\n    \"case_id\": \"<case_id exactly as given>\",\n    \"herg_classification\": \"blocker\" | \"non-blocker\" | \"uncertain\",\n    \"herg_ic50_um\": <estimated IC50 in μM as a float, or null>,\n    \"herg_ic50_source\": \"<PMID:XXXXXXXX or ChEMBL:CHEMBLXXXXXXX or 'predicted'>\",\n    \"tox21_active_assays\": [\"<assay_name_1>\", ...],\n    \"clinical_recommendation\": \"proceed\" | \"do-not-proceed\" | \"conditional\",\n    \"response_text\": \"<Your full mechanistic interpretation. Include the biological basis for hERG binding, specific Tox21 pathway activations, estimated IC50 rationale, and your final safety opinion for clinical progression.>\"\n  }\n]\n\n--- CASES TO ANALYZE ---\n\n[22] Case ID: herg_neg_02\nCompound: Caffeine\nSMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O\nClinical Context: Analyze compound 'Caffeine' (SMILES: Cn1c(=O)c2c(ncn2C)n(C)c1=O) for hERG blocking risk and Tox21 toxicity profile. Provide probability, interpretation, and limitations of the prediction.",
+    "subject_refs": [
+      "analysis:ana_3a698b46d32f4ac39dd434f66b1cd348"
+    ],
+    "propositions": [
+      {
+        "id": "p1",
+        "question": "Caffeine is predicted to be a hERG non-blocker, with direct ChEMBL evidence reporting hERG IC50 above 100 μM.",
+        "required_sources": [
+          "prediction"
+        ],
+        "status": "supported",
+        "artifact_refs": [
+          "observation:obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "origin": "answer"
+      },
+      {
+        "id": "p2",
+        "question": "Caffeine is predicted active in the SR-ARE Tox21 assay.",
+        "required_sources": [
+          "prediction"
+        ],
+        "status": "supported",
+        "artifact_refs": [
+          "observation:obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "origin": "answer"
+      },
+      {
+        "id": "p3",
+        "question": "Caffeine has weak hERG interaction under the reported assay conditions.",
+        "required_sources": [
+          "evidence"
+        ],
+        "status": "supported",
+        "artifact_refs": [
+          "evidence:evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "origin": "answer"
+      },
+      {
+        "id": "p4",
+        "question": "The SR-ARE model flag should not be treated as proof of oxidative-stress mechanism or clinical toxicity.",
+        "required_sources": [],
+        "status": "insufficient",
+        "artifact_refs": [],
+        "origin": "answer"
+      },
+      {
+        "id": "p5",
+        "question": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+        "required_sources": [
+          "prediction"
+        ],
+        "status": "supported",
+        "artifact_refs": [
+          "observation:obs_74a7f9395a3c438faa87f9d7036e361f",
+          "evidence:evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "origin": "answer"
+      },
+      {
+        "id": "p6",
+        "question": "SR-ARE activity is an assay-level model signal and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+        "required_sources": [
+          "prediction"
+        ],
+        "status": "supported",
+        "artifact_refs": [
+          "observation:obs_74a7f9395a3c438faa87f9d7036e361f"
+        ],
+        "origin": "answer"
+      }
+    ],
+    "coverage": {
+      "required": 6,
+      "resolved": 5
+    },
+    "budget_snapshot": {
+      "intent": "decision_support",
+      "preset": null,
+      "deadline_s": 900,
+      "max_repairs": null,
+      "max_searches": 4,
+      "token_limits": {
+        "enforcement": "observed_only",
+        "max_cost_per_run": null,
+        "max_total_tokens_per_run": null,
+        "max_output_tokens_per_turn": null
+      },
+      "max_tool_calls": 80,
+      "schema_version": "effective-run-budget-v1",
+      "call_accounting": "action-read-ceiling-v1",
+      "turn_deadline_s": 600,
+      "review_reserve_s": null,
+      "max_invalid_calls": null,
+      "max_evidence_reads": 8,
+      "requested_step_cap": 80,
+      "max_full_text_reads": 4,
+      "max_identical_calls": 2,
+      "max_correction_turns": 1,
+      "max_answer_candidates": 2,
+      "reserved_submission_slots": null,
+      "max_hard_submissions_per_phase": null
+    },
+    "usage": {
+      "searches": 1,
+      "tool_calls": 34,
+      "denied_calls": 0,
+      "failed_calls": 2,
+      "evidence_reads": 2
+    },
+    "available_refs": [
+      "observation:obs_74a7f9395a3c438faa87f9d7036e361f",
+      "evidence:evd_dea4ce5775524544b17dda0cdeb0df2b"
+    ],
+    "found_refs": [],
+    "stop_reason": "insufficient_evidence",
+    "answer_outcome": "accepted_after_correction",
+    "skills": {
+      "mode": "dynamic",
+      "loaded": [
+        {
+          "version": "1.1.0",
+          "skill_id": "critique-case",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "version": "1.1.0",
+          "skill_id": "interpret-model-attribution",
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+        }
+      ],
+      "offered": [
+        {
+          "version": "1.2.0",
+          "skill_id": "assess-conflicting-evidence",
+          "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922"
+        },
+        {
+          "version": "1.1.0",
+          "skill_id": "critique-case",
+          "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7"
+        },
+        {
+          "version": "1.0.0",
+          "skill_id": "estimate-exposure-margin",
+          "content_sha256": "ff12b679ea0a503dced3f50115a29d401f4499f9001f264e2541894811d84850"
+        },
+        {
+          "version": "1.1.0",
+          "skill_id": "interpret-model-attribution",
+          "content_sha256": "3bfecf050ccf473f03de51a6ca52e9dff7cc6a4adcb01237dc2777295ac697fb"
+        },
+        {
+          "version": "1.0.0",
+          "skill_id": "update-case-across-turns",
+          "content_sha256": "6c5896a479a8b6401a3bda87277a60a38fa7fb3e2af2ffd232e75764449bf40f"
+        }
+      ],
+      "references_loaded": []
+    },
+    "claim_review": {
+      "counts": {
+        "supported": 1,
+        "cannot_judge": 0,
+        "not_supported": 0,
+        "partially_supported": 2
+      },
+      "status": "completed",
+      "reviews": [
+        {
+          "reason": "The cited ChEMBL record directly reports caffeine human ERG IC50 >100000.0 nM, and that threshold is equivalent to >100 μM.",
+          "verdict": "supported",
+          "claim_id": "clm_c16777bb7438425cb532fb4294c3d6c6"
+        },
+        {
+          "reason": "The sources support the hERG measurement and SR-ARE model output and do not provide a mechanism or clinical toxicity result, but they do not explicitly establish the broader exclusive and mechanistic-negative conclusions.",
+          "verdict": "partially_supported",
+          "claim_id": "clm_6b3c3b84e94f4724851190126e17751a"
+        },
+        {
+          "reason": "The sources support the non-blocker label, censored hERG result, SR-ARE active prediction, and limits on treating predictions as outcomes, but they do not supply the probability placeholder or directly support all of the mechanism, IND, and clinical-trial conclusions.",
+          "verdict": "partially_supported",
+          "claim_id": "clm_5380ceff699745c9bd0781a39baea126"
+        }
+      ],
+      "previous": [
+        {
+          "counts": {
+            "supported": 1,
+            "cannot_judge": 0,
+            "not_supported": 0,
+            "partially_supported": 2
+          },
+          "status": "completed",
+          "reviews": [
+            {
+              "reason": "The source directly reports caffeine human ERG IC50 >100000 nM, which is equivalent to >100 μM, in the named inhibition assay.",
+              "verdict": "supported",
+              "claim_id": "clm_14195337064f4cdf9d5307e56b44f572"
+            },
+            {
+              "reason": "The source supports the human hERG measurement and the prediction's assay-level, uncalibrated limitation, but it does not establish the scaffold's structural properties, the weak-interaction interpretation, or that the Tox21 assays are independent rather than an aggregate score.",
+              "verdict": "partially_supported",
+              "claim_id": "clm_e4ba22e60e9d439c9a508256379e6f03"
+            },
+            {
+              "reason": "The sources support the non-blocker label, the censored >100 μM hERG result, the lack of an exact IC50, and the model-limitation caveat, but they do not support the structural mechanism interpretation, the full Tox21 panel characterization, the clinical-safety conclusions, or the specific testing recommendations.",
+              "verdict": "partially_supported",
+              "claim_id": "clm_c8ee699aba53447a9e9ffb883eec4ec9"
+            }
+          ],
+          "answer_id": "ans_2cf76488628441019c953b93caf428ab",
+          "repair_requested_for": "ans_2cf76488628441019c953b93caf428ab"
+        }
+      ],
+      "answer_id": "ans_17ab3f0a5e004c7aae4f7e49487fcbb4"
+    },
+    "answer_basis": {
+      "evidence": 4,
+      "observations": 5
+    },
+    "goal_contract": {
+      "route": "investigate",
+      "budget": {
+        "intent": "decision_support",
+        "deadline_s": 900,
+        "max_searches": 4,
+        "token_limits": {
+          "enforcement": "observed_only",
+          "max_cost_per_run": null,
+          "max_total_tokens_per_run": null,
+          "max_output_tokens_per_turn": null
+        },
+        "max_tool_calls": 80,
+        "schema_version": "effective-run-budget-v1",
+        "call_accounting": "action-read-ceiling-v1",
+        "turn_deadline_s": 600,
+        "max_evidence_reads": 8,
+        "requested_step_cap": 80,
+        "max_full_text_reads": 4,
+        "max_identical_calls": 2,
+        "max_correction_turns": 1,
+        "max_answer_candidates": 2
+      },
+      "subject": {
+        "kind": "analysis",
+        "identity": {
+          "target": null,
+          "assay_context": null,
+          "canonical_smiles": "Cn1c(=O)c2c(ncn2C)n(C)c1=O"
+        },
+        "subject_ref": {
+          "analysis_id": "ana_3a698b46d32f4ac39dd434f66b1cd348"
+        },
+        "schema_version": "run-subject-binding-v1"
+      },
+      "endpoint": "",
+      "must_answer": [
+        {
+          "id": "q1",
+          "needs": [],
+          "question": "You are an expert toxicologist providing a critical safety assessment for a drug candidate nearing Phase I clinical trials.\nThe regulatory team requires a definitive toxicity opinion for the IND filing.\n\nAnalyze each compound for:\n1. hERG channel inhibition risk — provide a definitive classification AND an estimated IC50 (μM) with the literature or database source (PMID or ChEMBL ID).\n2. Tox21 panel activity — predict which assays would flag this compound as active.\n3. Mechanistic interpretation"
+        }
+      ],
+      "route_decision": {
+        "route": "investigate",
+        "detail": {
+          "marker": "safe"
+        },
+        "confidence": "low",
+        "reason_codes": [
+          "assessment_wording"
+        ],
+        "schema_version": "serving-route-v1",
+        "classifier_used": false
+      },
+      "schema_version": "goal-contract-v1",
+      "stop_conditions": {
+        "sufficient": "every question this contract names is resolved, in scope, with refs",
+        "budget_exhausted": "a declared limit was reached with a question still open",
+        "needs_user_input": "an input only the researcher has, named explicitly",
+        "provider_failure": "a provider or corpus could not supply the data; say which",
+        "insufficient_evidence": "the reachable sources do not settle it; say what is missing and which claim that limits"
+      },
+      "admissible_actions": [
+        "compute_exposure_margin",
+        "get_analysis_bundle",
+        "get_analysis_slice",
+        "get_artifact_inventory",
+        "get_attribution",
+        "get_chembl_activities",
+        "get_evidence_record",
+        "get_explanation_slice",
+        "get_report_summary",
+        "get_scientific_case",
+        "read_evidence_text",
+        "read_scientific_skill",
+        "read_skill_reference",
+        "run_scientific_procedure",
+        "search_toxicology_evidence",
+        "submit_grounded_answer",
+        "update_scientific_case"
+      ]
+    },
+    "declared_stop": {
+      "reason": "sufficient",
+      "needed_inputs": []
+    },
+    "workflow": {},
+    "revision": 47
+  },
+  "drafts": {
+    "drafts": [
+      {
+        "generation": 1,
+        "schema_version": "grounded-answer-v2",
+        "payload": {
+          "stop": {
+            "reason": "sources_do_not_resolve",
+            "needed_inputs": []
+          },
+          "claims": [
+            {
+              "kind": "classification",
+              "text": "non-blocker",
+              "local_ref": "herg_class",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "numeric",
+              "text": "The model blocker probability is 0.14136141538619995.",
+              "local_ref": "herg_probability",
+              "transform": "round:3",
+              "field_path": "predictions.herg.probability_blocker",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ARE",
+              "local_ref": "tox_active",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "ChEMBL reports caffeine hERG IC50 greater than 100000.0 nM, equivalent to greater than 100 μM, in a human ERG inhibition assay.",
+              "local_ref": "chembl_bound",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "Caffeine is a small, neutral, polar xanthine scaffold with limited hydrophobic surface, so the available evidence is consistent with weak hERG-channel interaction. The model's SR-ARE flag is an assay-level stress-response prediction; it does not establish a molecular mechanism, oxidative injury, or in vivo toxicity. The served Tox21 assays are independent measurements, not an aggregate toxicity score.",
+              "local_ref": "mechanism",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "recommendation",
+              "text": "conditional",
+              "local_ref": "clinical_rec",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. Caffeine's compact, polar xanthine scaffold has limited hydrophobic character, which is consistent with weak access to the hydrophobic hERG binding environment; this is a structural interpretation, not proof of mechanism. The Tox21 model flags only SR-ARE as active in the served panel; this is a model prediction of an assay response and does not establish oxidative stress, cytotoxicity, or clinical toxicity. The other served Tox21 assays are predicted inactive, but each assay is independent and no severity score should be inferred. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional: complete validated functional hERG concentration-response testing and orthogonal SR-ARE/stress-response testing with exposure-relevant concentrations and cytotoxicity controls before relying on this assessment for clinical progression.",
+              "local_ref": "response_text",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            }
+          ],
+          "limitations": [
+            {
+              "code": "uncalibrated_probability",
+              "text": "The reported probabilities are uncalibrated model scores, not clinical risk estimates."
+            },
+            {
+              "code": "evidence_scope_limited",
+              "text": "The direct external evidence is one accepted ChEMBL hERG record; the bounded literature search returned no additional citable result for this compound and endpoint."
+            },
+            {
+              "code": "screening_not_safety_assessment",
+              "text": "Recommended follow-up assays are verification steps, not a safety assessment or clinical authorization."
+            }
+          ],
+          "schema_version": "grounded-answer-v2",
+          "answer_markdown": "[\n  {\n    \"case_id\": \"herg_neg_02\",\n    \"herg_classification\": \"{{herg_class}}\",\n    \"herg_ic50_um\": null,\n    \"herg_ic50_source\": \"ChEMBL:CHEMBL113\",\n    \"tox21_active_assays\": [\"{{tox_active}}\"],\n    \"clinical_recommendation\": \"{{clinical_rec}}\",\n    \"response_text\": \"{{response_text}}\"\n  }\n]",
+          "evidence_relations": [
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "non-blocker classification",
+              "species": null,
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "Caffeine is predicted to be a hERG non-blocker, with direct ChEMBL evidence reporting hERG IC50 above 100 μM.",
+              "use_context": null,
+              "reason_codes": [
+                "model_prediction"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "ok",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "SR-ARE active",
+              "species": null,
+              "endpoint": "tox21",
+              "relation": "supports",
+              "strength": "weak",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "Caffeine is predicted active in the SR-ARE Tox21 assay.",
+              "use_context": null,
+              "reason_codes": [
+                "model_prediction"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "ok",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": "nM",
+              "readout": "IC50 > 100000.0 nM",
+              "species": "Homo sapiens",
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "evd_dea4ce5775524544b17dda0cdeb0df2b",
+              "target_id": "CHEMBL240",
+              "assay_type": "Inhibition of human ERG",
+              "comparator": ">",
+              "directness": "direct",
+              "proposition": "Caffeine has weak hERG interaction under the reported assay conditions.",
+              "use_context": null,
+              "reason_codes": [
+                "direct_human_erg_assay"
+              ],
+              "source_class": "external_experimental",
+              "applicability": "ok",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": "ChEMBL assay CHEMBL5223702",
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "active classification",
+              "species": null,
+              "endpoint": "tox21",
+              "relation": "insufficient",
+              "strength": "not_assessed",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "SR-ARE predictor",
+              "comparator": null,
+              "directness": "indirect",
+              "proposition": "The SR-ARE model flag should not be treated as proof of oxidative-stress mechanism or clinical toxicity.",
+              "use_context": null,
+              "reason_codes": [
+                "model_endpoint_narrow",
+                "no_orthogonal_experiment"
+              ],
+              "source_class": "agent_synthesis",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [
+                "observation:obs_74a7f9395a3c438faa87f9d7036e361f"
+              ],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            }
+          ],
+          "development_posture": {
+            "scope": "drug_candidate",
+            "value": "insufficient",
+            "rationale": "The endpoint evidence is reassuring for hERG but leaves an assay-level SR-ARE signal and lacks the broader nonclinical package needed for a definitive clinical-development decision.",
+            "conditions": [
+              "validated functional hERG testing",
+              "orthogonal SR-ARE/stress-response testing",
+              "exposure-relevant interpretation"
+            ],
+            "confidence_band": "moderate",
+            "basis_local_refs": [
+              "herg_class",
+              "chembl_bound",
+              "tox_active"
+            ],
+            "contrary_local_refs": [
+              "mechanism"
+            ],
+            "recommended_next_steps": [
+              "Run validated functional hERG concentration-response testing and orthogonal SR-ARE/stress-response testing with cytotoxicity controls."
+            ]
+          },
+          "recommended_next_steps": [
+            {
+              "text": "Run validated functional hERG patch-clamp concentration-response testing and orthogonal SR-ARE/stress-response testing with exposure-relevant concentrations and cytotoxicity controls.",
+              "basis_local_refs": [
+                "clinical_rec",
+                "mechanism"
+              ]
+            }
+          ]
+        },
+        "outcome": "candidate",
+        "answer_id": "ans_2cf76488628441019c953b93caf428ab",
+        "violations": [],
+        "created_at": "2026-11-07T03:46:35.176576+00:00",
+        "phase": "initial"
+      },
+      {
+        "generation": 2,
+        "schema_version": "grounded-answer-v2",
+        "payload": {
+          "stop": {
+            "reason": "sufficient",
+            "needed_inputs": []
+          },
+          "claims": [
+            {
+              "kind": "classification",
+              "text": "non-blocker",
+              "local_ref": "herg_class",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "numeric",
+              "text": "The model blocker probability is 0.14136141538619995.",
+              "local_ref": "herg_probability",
+              "transform": "round:3",
+              "field_path": "predictions.herg.probability_blocker",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ARE",
+              "local_ref": "tox_active",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "ChEMBL reports caffeine hERG IC50 greater than 100000.0 nM, equivalent to greater than 100 μM, in a human ERG inhibition assay.",
+              "local_ref": "chembl_bound",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The available evidence supports only the hERG assay result and model output; it does not establish a structural or molecular mechanism for hERG interaction. The SR-ARE result is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+              "local_ref": "mechanism",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "recommendation",
+              "text": "conditional",
+              "local_ref": "clinical_rec",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.",
+              "local_ref": "response_text",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            }
+          ],
+          "limitations": [
+            {
+              "code": "uncalibrated_probability",
+              "text": "The reported probabilities are uncalibrated model scores, not clinical risk estimates."
+            },
+            {
+              "code": "evidence_scope_limited",
+              "text": "The direct external evidence is one accepted ChEMBL hERG record; the bounded literature search returned no additional citable result for this compound and endpoint."
+            }
+          ],
+          "schema_version": "grounded-answer-v2",
+          "answer_markdown": "[\n  {\n    \"case_id\": \"herg_neg_02\",\n    \"herg_classification\": \"non_blocker\",\n    \"herg_ic50_um\": null,\n    \"herg_ic50_source\": \"ChEMBL:CHEMBL113\",\n    \"tox21_active_assays\": [\"SR-ARE\"],\n    \"clinical_recommendation\": \"conditional\",\n    \"response_text\": \"The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.\"\n  }\n]",
+          "evidence_relations": [
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "blocker label and probability",
+              "species": null,
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+              "use_context": null,
+              "reason_codes": [
+                "model_endpoint_only",
+                "uncalibrated_probability"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": "nM",
+              "readout": "IC50 > 100000.0",
+              "species": "Homo sapiens",
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "evd_dea4ce5775524544b17dda0cdeb0df2b",
+              "target_id": "CHEMBL240",
+              "assay_type": "Inhibition of human ERG; IC50",
+              "comparator": ">",
+              "directness": "direct",
+              "proposition": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+              "use_context": null,
+              "reason_codes": [
+                "direct_human_ERG_record",
+                "censored_IC50"
+              ],
+              "source_class": "external_experimental",
+              "applicability": "ok",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": "assay CHEMBL5223702",
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "active",
+              "species": null,
+              "endpoint": "tox21",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "SR-ARE predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "SR-ARE activity is an assay-level model signal and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+              "use_context": null,
+              "reason_codes": [
+                "assay_level_prediction",
+                "uncalibrated_probability"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            }
+          ],
+          "development_posture": {
+            "scope": "drug_candidate",
+            "value": "hold",
+            "rationale": "The available model outputs and one direct ChEMBL hERG record are narrow endpoint evidence and do not establish clinical safety or support an unconditional clinical-trial decision.",
+            "conditions": [
+              "Do not treat this endpoint-limited assessment as a definitive IND safety opinion."
+            ],
+            "confidence_band": "moderate",
+            "basis_local_refs": [
+              "herg_class",
+              "chembl_bound",
+              "tox_active"
+            ],
+            "contrary_local_refs": [],
+            "recommended_next_steps": []
+          },
+          "recommended_next_steps": []
+        },
+        "outcome": "rejected",
+        "answer_id": null,
+        "violations": [
+          {
+            "code": "missing_required_limitation",
+            "path": "limitations",
+            "message": "this answer requires limitation(s) it did not declare: ['screening_not_safety_assessment']",
+            "expected": [
+              "screening_not_safety_assessment"
+            ]
+          }
+        ],
+        "created_at": "2026-11-07T03:48:20.918696+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "generation": 3,
+        "schema_version": "grounded-answer-v2",
+        "payload": {
+          "stop": {
+            "reason": "sufficient",
+            "needed_inputs": []
+          },
+          "claims": [
+            {
+              "kind": "classification",
+              "text": "non-blocker",
+              "local_ref": "herg_class",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "numeric",
+              "text": "The model blocker probability is 0.14136141538619995.",
+              "local_ref": "herg_probability",
+              "transform": "round:3",
+              "field_path": "predictions.herg.probability_blocker",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ARE",
+              "local_ref": "tox_active",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "ChEMBL reports caffeine hERG IC50 greater than 100000.0 nM, equivalent to greater than 100 μM, in a human ERG inhibition assay.",
+              "local_ref": "chembl_bound",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The available evidence supports only the hERG assay result and model output; it does not establish a structural or molecular mechanism for hERG interaction. The SR-ARE result is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+              "local_ref": "mechanism",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "recommendation",
+              "text": "conditional",
+              "local_ref": "clinical_rec",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.",
+              "local_ref": "response_text",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            }
+          ],
+          "limitations": [
+            {
+              "code": "uncalibrated_probability",
+              "text": "The reported probabilities are uncalibrated model scores, not clinical risk estimates."
+            },
+            {
+              "code": "evidence_scope_limited",
+              "text": "The direct external evidence is one accepted ChEMBL hERG record; the bounded literature search returned no additional citable result for this compound and endpoint."
+            },
+            {
+              "code": "screening_not_safety_assessment",
+              "text": "This endpoint-limited screening output is not a safety assessment or clinical authorization."
+            }
+          ],
+          "schema_version": "grounded-answer-v2",
+          "answer_markdown": "[\n  {\n    \"case_id\": \"herg_neg_02\",\n    \"herg_classification\": \"non_blocker\",\n    \"herg_ic50_um\": null,\n    \"herg_ic50_source\": \"ChEMBL:CHEMBL113\",\n    \"tox21_active_assays\": [\"SR-ARE\"],\n    \"clinical_recommendation\": \"conditional\",\n    \"response_text\": \"The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.\"\n  }\n]",
+          "evidence_relations": [
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "blocker label and probability",
+              "species": null,
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+              "use_context": null,
+              "reason_codes": [
+                "model_endpoint_only",
+                "uncalibrated_probability"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": "nM",
+              "readout": "IC50 > 100000.0",
+              "species": "Homo sapiens",
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "evd_dea4ce5775524544b17dda0cdeb0df2b",
+              "target_id": "CHEMBL240",
+              "assay_type": "Inhibition of human ERG; IC50",
+              "comparator": ">",
+              "directness": "direct",
+              "proposition": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+              "use_context": null,
+              "reason_codes": [
+                "direct_human_ERG_record",
+                "censored_IC50"
+              ],
+              "source_class": "external_experimental",
+              "applicability": "ok",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": "assay CHEMBL5223702",
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "active",
+              "species": null,
+              "endpoint": "tox21",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "SR-ARE predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "SR-ARE activity is an assay-level model signal and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+              "use_context": null,
+              "reason_codes": [
+                "assay_level_prediction",
+                "uncalibrated_probability"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            }
+          ],
+          "development_posture": {
+            "scope": "drug_candidate",
+            "value": "hold",
+            "rationale": "The available model outputs and one direct ChEMBL hERG record are narrow endpoint evidence and do not establish clinical safety or support an unconditional clinical-trial decision.",
+            "conditions": [
+              "Do not treat this endpoint-limited assessment as a definitive IND safety opinion."
+            ],
+            "confidence_band": "moderate",
+            "basis_local_refs": [
+              "herg_class",
+              "chembl_bound",
+              "tox_active"
+            ],
+            "contrary_local_refs": [],
+            "recommended_next_steps": []
+          },
+          "recommended_next_steps": []
+        },
+        "outcome": "rejected",
+        "answer_id": null,
+        "violations": [
+          {
+            "code": "development_posture_invalid",
+            "path": "development_posture",
+            "message": "a hold posture must name recommended_next_steps — what would change the answer, not just that something is missing"
+          }
+        ],
+        "created_at": "2026-11-07T03:48:58.252798+00:00",
+        "phase": "semantic_repair"
+      },
+      {
+        "generation": 4,
+        "schema_version": "grounded-answer-v2",
+        "payload": {
+          "stop": {
+            "reason": "sufficient",
+            "needed_inputs": []
+          },
+          "claims": [
+            {
+              "kind": "classification",
+              "text": "non-blocker",
+              "local_ref": "herg_class",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "numeric",
+              "text": "The model blocker probability is 0.14136141538619995.",
+              "local_ref": "herg_probability",
+              "transform": "round:3",
+              "field_path": "predictions.herg.probability_blocker",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "classification",
+              "text": "SR-ARE",
+              "local_ref": "tox_active",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "ChEMBL reports caffeine hERG IC50 greater than 100000.0 nM, equivalent to greater than 100 μM, in a human ERG inhibition assay.",
+              "local_ref": "chembl_bound",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The available evidence supports only the hERG assay result and model output; it does not establish a structural or molecular mechanism for hERG interaction. The SR-ARE result is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+              "local_ref": "mechanism",
+              "transform": "identity",
+              "field_path": "predictions.tox21.assays.SR-ARE.active",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            },
+            {
+              "kind": "recommendation",
+              "text": "conditional",
+              "local_ref": "clinical_rec",
+              "transform": "identity",
+              "field_path": null,
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": null,
+              "input_local_refs": []
+            },
+            {
+              "kind": "scientific",
+              "text": "The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.",
+              "local_ref": "response_text",
+              "transform": "identity",
+              "field_path": "predictions.herg.label",
+              "citation_ids": [
+                "evd_dea4ce5775524544b17dda0cdeb0df2b"
+              ],
+              "evidence_spans": [],
+              "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "input_local_refs": []
+            }
+          ],
+          "limitations": [
+            {
+              "code": "uncalibrated_probability",
+              "text": "The reported probabilities are uncalibrated model scores, not clinical risk estimates."
+            },
+            {
+              "code": "evidence_scope_limited",
+              "text": "The direct external evidence is one accepted ChEMBL hERG record; the bounded literature search returned no additional citable result for this compound and endpoint."
+            },
+            {
+              "code": "screening_not_safety_assessment",
+              "text": "This endpoint-limited screening output is not a safety assessment or clinical authorization."
+            }
+          ],
+          "schema_version": "grounded-answer-v2",
+          "answer_markdown": "[\n  {\n    \"case_id\": \"herg_neg_02\",\n    \"herg_classification\": \"non_blocker\",\n    \"herg_ic50_um\": null,\n    \"herg_ic50_source\": \"ChEMBL:CHEMBL113\",\n    \"tox21_active_assays\": [\"SR-ARE\"],\n    \"clinical_recommendation\": \"conditional\",\n    \"response_text\": \"The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.\"\n  }\n]",
+          "evidence_relations": [
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "blocker label and probability",
+              "species": null,
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+              "use_context": null,
+              "reason_codes": [
+                "model_endpoint_only",
+                "uncalibrated_probability"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": "nM",
+              "readout": "IC50 > 100000.0",
+              "species": "Homo sapiens",
+              "endpoint": "herg",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "evd_dea4ce5775524544b17dda0cdeb0df2b",
+              "target_id": "CHEMBL240",
+              "assay_type": "Inhibition of human ERG; IC50",
+              "comparator": ">",
+              "directness": "direct",
+              "proposition": "The available evidence supports a low likelihood of hERG blockade for caffeine at the measured assay endpoint, but does not establish clinical safety.",
+              "use_context": null,
+              "reason_codes": [
+                "direct_human_ERG_record",
+                "censored_IC50"
+              ],
+              "source_class": "external_experimental",
+              "applicability": "ok",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": "assay CHEMBL5223702",
+              "target_sequence_sha256": null
+            },
+            {
+              "dose": null,
+              "unit": null,
+              "readout": "active",
+              "species": null,
+              "endpoint": "tox21",
+              "relation": "supports",
+              "strength": "moderate",
+              "ligand_id": "Caffeine",
+              "source_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+              "target_id": null,
+              "assay_type": "SR-ARE predictor",
+              "comparator": null,
+              "directness": "direct",
+              "proposition": "SR-ARE activity is an assay-level model signal and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+              "use_context": null,
+              "reason_codes": [
+                "assay_level_prediction",
+                "uncalibrated_probability"
+              ],
+              "source_class": "predictor_fact",
+              "applicability": "limited",
+              "target_variant": null,
+              "input_source_refs": [],
+              "experimental_context": null,
+              "target_sequence_sha256": null
+            }
+          ],
+          "development_posture": {
+            "scope": "drug_candidate",
+            "value": "hold",
+            "rationale": "The available model outputs and one direct ChEMBL hERG record are narrow endpoint evidence and do not establish clinical safety or support an unconditional clinical-trial decision.",
+            "conditions": [
+              "Do not treat this endpoint-limited assessment as a definitive IND safety opinion."
+            ],
+            "confidence_band": "moderate",
+            "basis_local_refs": [
+              "herg_class",
+              "chembl_bound",
+              "tox_active"
+            ],
+            "contrary_local_refs": [],
+            "recommended_next_steps": [
+              "Obtain validated direct functional hERG concentration-response data and orthogonal SR-ARE/stress-response data before using these outputs in a clinical-development decision."
+            ]
+          },
+          "recommended_next_steps": []
+        },
+        "outcome": "candidate",
+        "answer_id": "ans_17ab3f0a5e004c7aae4f7e49487fcbb4",
+        "violations": [],
+        "created_at": "2026-11-07T03:49:36.933357+00:00",
+        "phase": "semantic_repair"
+      }
+    ]
+  },
+  "answer": {
+    "schema_version": "grounded-answer-v1",
+    "answer_id": "ans_17ab3f0a5e004c7aae4f7e49487fcbb4",
+    "run_id": "run_51693c53980648d1a6052b46089cfef5",
+    "answer_markdown": "[\n  {\n    \"case_id\": \"herg_neg_02\",\n    \"herg_classification\": \"non_blocker\",\n    \"herg_ic50_um\": null,\n    \"herg_ic50_source\": \"ChEMBL:CHEMBL113\",\n    \"tox21_active_assays\": [\"SR-ARE\"],\n    \"clinical_recommendation\": \"conditional\",\n    \"response_text\": \"The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of 0.141. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.\"\n  }\n]",
+    "claims": [
+      {
+        "claim_id": "clm_1933e7ffb4dc461aa9f089eefce210fb",
+        "kind": "classification",
+        "text": "non-blocker",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+        "field_path": "predictions.herg.label",
+        "source_value": "non_blocker",
+        "rendered_value": "non_blocker",
+        "local_ref": "herg_class"
+      },
+      {
+        "claim_id": "clm_e27cfd70e41c4f57a2e9cbfdfdb2a023",
+        "kind": "numeric",
+        "text": "The model blocker probability is 0.14136141538619995.",
+        "transform": "round:3",
+        "citation_ids": [],
+        "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+        "field_path": "predictions.herg.probability_blocker",
+        "source_value": 0.14136141538619995,
+        "rendered_value": "0.141",
+        "local_ref": "herg_probability"
+      },
+      {
+        "claim_id": "clm_84ba2cf5b19e4986a56227b5728bcd2f",
+        "kind": "classification",
+        "text": "SR-ARE",
+        "transform": "identity",
+        "citation_ids": [],
+        "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+        "field_path": "predictions.tox21.assays.SR-ARE.active",
+        "source_value": true,
+        "rendered_value": "True",
+        "local_ref": "tox_active"
+      },
+      {
+        "claim_id": "clm_c16777bb7438425cb532fb4294c3d6c6",
+        "kind": "scientific",
+        "text": "ChEMBL reports caffeine hERG IC50 greater than 100000.0 nM, equivalent to greater than 100 μM, in a human ERG inhibition assay.",
+        "transform": "identity",
+        "citation_ids": [
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "local_ref": "chembl_bound"
+      },
+      {
+        "claim_id": "clm_6b3c3b84e94f4724851190126e17751a",
+        "kind": "scientific",
+        "text": "The available evidence supports only the hERG assay result and model output; it does not establish a structural or molecular mechanism for hERG interaction. The SR-ARE result is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity.",
+        "transform": "identity",
+        "citation_ids": [
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+        "field_path": "predictions.tox21.assays.SR-ARE.active",
+        "local_ref": "mechanism"
+      },
+      {
+        "claim_id": "clm_46bb779fd3544856b2f4aa2336b965be",
+        "kind": "recommendation",
+        "text": "conditional",
+        "transform": "identity",
+        "citation_ids": [
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "local_ref": "clinical_rec"
+      },
+      {
+        "claim_id": "clm_5380ceff699745c9bd0781a39baea126",
+        "kind": "scientific",
+        "text": "The hERG model classifies caffeine as a non-blocker, with an uncalibrated blocker probability of {{herg_probability}}. ChEMBL provides a direct human ERG inhibition record reporting IC50 greater than 100 μM, so an exact IC50 estimate is not justified and the requested numeric field is null. The available evidence supports only this hERG assay result and the model output; it does not establish a structural or molecular mechanism for hERG interaction. The Tox21 model flags SR-ARE as active; this is an assay-level model prediction and does not establish oxidative stress, cytotoxicity, or clinical toxicity. This analysis does not support a definitive IND safety opinion or an unconditional clinical-trial decision. The appropriate posture is conditional because these limited model and database findings do not by themselves establish clinical safety or authorization to proceed.",
+        "transform": "identity",
+        "citation_ids": [
+          "evd_dea4ce5775524544b17dda0cdeb0df2b"
+        ],
+        "observation_id": "obs_74a7f9395a3c438faa87f9d7036e361f",
+        "field_path": "predictions.herg.label",
+        "local_ref": "response_text"
+      }
+    ],
+    "limitations": [
+      {
+        "code": "uncalibrated_probability",
+        "text": "The reported probabilities are uncalibrated model scores, not clinical risk estimates."
+      },
+      {
+        "code": "evidence_scope_limited",
+        "text": "The direct external evidence is one accepted ChEMBL hERG record; the bounded literature search returned no additional citable result for this compound and endpoint."
+      },
+      {
+        "code": "screening_not_safety_assessment",
+        "text": "This endpoint-limited screening output is not a safety assessment or clinical authorization."
+      }
+    ],
+    "recommended_next_steps": [],
+    "candidate_generation": 4,
+    "is_fallback": false,
+    "content_sha256": "f5f5e49644435c9249c172c72b24392faaf4e11f636c56bbeacb5e3c4a257711",
+    "created_at": "2026-11-07T03:49:36.916703+00:00",
+    "release": {
+      "answer_id": "ans_17ab3f0a5e004c7aae4f7e49487fcbb4",
+      "outcome": "released_with_unresolved_review",
+      "semantically_passed": false,
+      "reviews": [
+        {
+          "counts": {
+            "supported": 4,
+            "partially_supported": 2
+          },
+          "status": "completed",
+          "verdicts": [
+            {
+              "reason": "The source directly reports caffeine human ERG IC50 >100000 nM, which is equivalent to >100 μM, in the named inhibition assay.",
+              "verdict": "supported",
+              "claim_id": "clm_14195337064f4cdf9d5307e56b44f572",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "The source supports the human hERG measurement and the prediction's assay-level, uncalibrated limitation, but it does not establish the scaffold's structural properties, the weak-interaction interpretation, or that the Tox21 assays are independent rather than an aggregate score.",
+              "verdict": "partially_supported",
+              "claim_id": "clm_e4ba22e60e9d439c9a508256379e6f03",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "The sources support the non-blocker label, the censored >100 μM hERG result, the lack of an exact IC50, and the model-limitation caveat, but they do not support the structural mechanism interpretation, the full Tox21 panel characterization, the clinical-safety conclusions, or the specific testing recommendations.",
+              "verdict": "partially_supported",
+              "claim_id": "clm_c8ee699aba53447a9e9ffb883eec4ec9",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.label, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_40c4bd9e4ebd41b5b01ffe478c098733",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.probability_blocker, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_2a5eb10b6be6433aa12800a617163d98",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.tox21.assays.SR-ARE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_d2a92ad398644c1ea475280125f9e42d",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            }
+          ],
+          "answer_id": "ans_2cf76488628441019c953b93caf428ab",
+          "claim_checks": [
+            {
+              "path": "code",
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.label, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_40c4bd9e4ebd41b5b01ffe478c098733",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.probability_blocker, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_2a5eb10b6be6433aa12800a617163d98",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.tox21.assays.SR-ARE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_d2a92ad398644c1ea475280125f9e42d",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_14195337064f4cdf9d5307e56b44f572",
+              "claim_type": "scientific_assessment"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_e4ba22e60e9d439c9a508256379e6f03",
+              "claim_type": "scientific_assessment"
+            },
+            {
+              "path": "structural",
+              "reason": "names no claim it rests on; its basis, scope and what would change it should be stated",
+              "verdict": null,
+              "claim_id": "clm_a803448e4fc747d0aa7af73fc35b6c34",
+              "claim_type": "recommendation"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_c8ee699aba53447a9e9ffb883eec4ec9",
+              "claim_type": "scientific_assessment"
+            }
+          ],
+          "blocking_claim_ids": [
+            "clm_e4ba22e60e9d439c9a508256379e6f03",
+            "clm_c8ee699aba53447a9e9ffb883eec4ec9"
+          ]
+        },
+        {
+          "counts": {
+            "supported": 4,
+            "partially_supported": 2
+          },
+          "status": "completed",
+          "previous": [
+            {
+              "counts": {
+                "supported": 1,
+                "cannot_judge": 0,
+                "not_supported": 0,
+                "partially_supported": 2
+              },
+              "status": "completed",
+              "reviews": [
+                {
+                  "reason": "The source directly reports caffeine human ERG IC50 >100000 nM, which is equivalent to >100 μM, in the named inhibition assay.",
+                  "verdict": "supported",
+                  "claim_id": "clm_14195337064f4cdf9d5307e56b44f572"
+                },
+                {
+                  "reason": "The source supports the human hERG measurement and the prediction's assay-level, uncalibrated limitation, but it does not establish the scaffold's structural properties, the weak-interaction interpretation, or that the Tox21 assays are independent rather than an aggregate score.",
+                  "verdict": "partially_supported",
+                  "claim_id": "clm_e4ba22e60e9d439c9a508256379e6f03"
+                },
+                {
+                  "reason": "The sources support the non-blocker label, the censored >100 μM hERG result, the lack of an exact IC50, and the model-limitation caveat, but they do not support the structural mechanism interpretation, the full Tox21 panel characterization, the clinical-safety conclusions, or the specific testing recommendations.",
+                  "verdict": "partially_supported",
+                  "claim_id": "clm_c8ee699aba53447a9e9ffb883eec4ec9"
+                }
+              ],
+              "answer_id": "ans_2cf76488628441019c953b93caf428ab",
+              "repair_requested_for": "ans_2cf76488628441019c953b93caf428ab"
+            }
+          ],
+          "verdicts": [
+            {
+              "reason": "The cited ChEMBL record directly reports caffeine human ERG IC50 >100000.0 nM, and that threshold is equivalent to >100 μM.",
+              "verdict": "supported",
+              "claim_id": "clm_c16777bb7438425cb532fb4294c3d6c6",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "The sources support the hERG measurement and SR-ARE model output and do not provide a mechanism or clinical toxicity result, but they do not explicitly establish the broader exclusive and mechanistic-negative conclusions.",
+              "verdict": "partially_supported",
+              "claim_id": "clm_6b3c3b84e94f4724851190126e17751a",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "The sources support the non-blocker label, censored hERG result, SR-ARE active prediction, and limits on treating predictions as outcomes, but they do not supply the probability placeholder or directly support all of the mechanism, IND, and clinical-trial conclusions.",
+              "verdict": "partially_supported",
+              "claim_id": "clm_5380ceff699745c9bd0781a39baea126",
+              "checked_by": "reviewer",
+              "claim_type": null
+            },
+            {
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.label, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_1933e7ffb4dc461aa9f089eefce210fb",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.probability_blocker, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_e27cfd70e41c4f57a2e9cbfdfdb2a023",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.tox21.assays.SR-ARE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_84ba2cf5b19e4986a56227b5728bcd2f",
+              "checked_by": "code",
+              "claim_type": "artifact_fact"
+            }
+          ],
+          "answer_id": "ans_17ab3f0a5e004c7aae4f7e49487fcbb4",
+          "claim_checks": [
+            {
+              "path": "code",
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.label, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_1933e7ffb4dc461aa9f089eefce210fb",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.herg.probability_blocker, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_e27cfd70e41c4f57a2e9cbfdfdb2a023",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "code",
+              "reason": "the value is obs_74a7f9395a3c438faa87f9d7036e361f.predictions.tox21.assays.SR-ARE.active, checked field by field by the hard validator",
+              "verdict": "supported",
+              "claim_id": "clm_84ba2cf5b19e4986a56227b5728bcd2f",
+              "claim_type": "artifact_fact"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_c16777bb7438425cb532fb4294c3d6c6",
+              "claim_type": "scientific_assessment"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_6b3c3b84e94f4724851190126e17751a",
+              "claim_type": "scientific_assessment"
+            },
+            {
+              "path": "structural",
+              "reason": "names no claim it rests on; its basis, scope and what would change it should be stated",
+              "verdict": null,
+              "claim_id": "clm_46bb779fd3544856b2f4aa2336b965be",
+              "claim_type": "recommendation"
+            },
+            {
+              "path": "review",
+              "reason": "",
+              "verdict": null,
+              "claim_id": "clm_5380ceff699745c9bd0781a39baea126",
+              "claim_type": "scientific_assessment"
+            }
+          ],
+          "blocking_claim_ids": [
+            "clm_6b3c3b84e94f4724851190126e17751a",
+            "clm_5380ceff699745c9bd0781a39baea126"
+          ]
+        }
+      ],
+      "repair": {
+        "claims_after": 7,
+        "removal_only": false,
+        "claims_before": 7,
+        "added_claim_ids": [],
+        "relations_after": 3,
+        "relations_before": 4,
+        "limitations_after": 3,
+        "removed_claim_ids": [],
+        "limitations_before": 3,
+        "reworded_claim_ids": [
+          "mechanism",
+          "response_text"
+        ],
+        "lost_limitation_codes": []
+      },
+      "unresolved_claim_ids": [
+        "clm_6b3c3b84e94f4724851190126e17751a",
+        "clm_5380ceff699745c9bd0781a39baea126"
+      ],
+      "ungated_reason": null,
+      "replaced_answer_id": "ans_2cf76488628441019c953b93caf428ab",
+      "released_at": "2026-11-07T03:49:55.343593+00:00"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "benchmark_commit": "39a4385",
+  "systems": {
+    "chatgpt": {
+      "answer_count": 95,
+      "regex_flags": {
+        "hallucination_rate": 0.11578947368421053,
+        "total_hallucination_spans": 16,
+        "mean_hallucination_density": 0.16842105263157894
+      },
+      "herg_v2_raw": 0.76,
+      "herg_correct": 34,
+      "herg_classified": 34,
+      "herg_labeled": 50,
+      "herg_uncertain": 16,
+      "tox21_cases": 20,
+      "tox21_bad_name_cases": 19,
+      "tox21_tp": 0,
+      "tox21_fp": 85,
+      "tox21_fn": 26,
+      "tox21_exact_micro_f1": 0.0
+    },
+    "gemini": {
+      "answer_count": 95,
+      "regex_flags": {
+        "hallucination_rate": 0.3157894736842105,
+        "total_hallucination_spans": 34,
+        "mean_hallucination_density": 0.35789473684210527
+      },
+      "herg_v2_raw": 0.84,
+      "herg_correct": 41,
+      "herg_classified": 46,
+      "herg_labeled": 50,
+      "herg_uncertain": 4,
+      "tox21_cases": 20,
+      "tox21_bad_name_cases": 0,
+      "tox21_tp": 21,
+      "tox21_fp": 38,
+      "tox21_fn": 5,
+      "tox21_exact_micro_f1": 0.49411764705882355
+    }
+  },
+  "warnings": [
+    "Regex matches are not verified hallucinations.",
+    "V2 treats uncertain as non-blocker.",
+    "Exact matching penalizes noncanonical assay names; references not independently verified."
+  ]
+}

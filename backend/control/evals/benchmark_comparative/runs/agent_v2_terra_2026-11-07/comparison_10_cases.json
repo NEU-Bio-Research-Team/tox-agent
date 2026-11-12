@@ -1,0 +1,844 @@
+{
+  "benchmark_commit": "39a4385",
+  "indices": [
+    3,
+    4,
+    21,
+    22,
+    41,
+    51,
+    52,
+    60,
+    71,
+    81
+  ],
+  "cases": [
+    {
+      "case_id": "herg_pos_03",
+      "group": "herg_positive",
+      "compound_name": "Cisapride",
+      "ground_truth": {
+        "herg_blocker": true,
+        "herg_ic50_um": 0.015,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "ChEMBL",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "herg_pos_04",
+      "group": "herg_positive",
+      "compound_name": "Dofetilide",
+      "ground_truth": {
+        "herg_blocker": true,
+        "herg_ic50_um": 0.005,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "ChEMBL",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "herg_neg_01",
+      "group": "herg_negative",
+      "compound_name": "Aspirin",
+      "ground_truth": {
+        "herg_blocker": false,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "literature",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "herg_neg_02",
+      "group": "herg_negative",
+      "compound_name": "Caffeine",
+      "ground_truth": {
+        "herg_blocker": false,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "literature",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "herg_brd_01",
+      "group": "herg_borderline",
+      "compound_name": "Albuterol",
+      "ground_truth": {
+        "herg_blocker": true,
+        "herg_ic50_um": 8.5,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "ChEMBL",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "tox21_01",
+      "group": "tox21_active",
+      "compound_name": "Bisphenol A",
+      "ground_truth": {
+        "herg_blocker": null,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [
+          "NR-ER",
+          "NR-ER-LBD",
+          "NR-AR-LBD"
+        ],
+        "tox21_inactive_assays": [
+          "NR-AhR",
+          "NR-AR",
+          "NR-Aromatase",
+          "NR-PPAR-gamma",
+          "SR-ARE",
+          "SR-ATAD5",
+          "SR-HSE",
+          "SR-MMP",
+          "SR-p53"
+        ],
+        "known_clinical_effects": [],
+        "source_database": "Tox21",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "tox21_02",
+      "group": "tox21_active",
+      "compound_name": "Estradiol",
+      "ground_truth": {
+        "herg_blocker": null,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [
+          "NR-ER",
+          "NR-ER-LBD",
+          "NR-AR",
+          "NR-AR-LBD"
+        ],
+        "tox21_inactive_assays": [
+          "NR-AhR",
+          "NR-Aromatase",
+          "NR-PPAR-gamma",
+          "SR-ARE",
+          "SR-ATAD5",
+          "SR-HSE",
+          "SR-MMP",
+          "SR-p53"
+        ],
+        "known_clinical_effects": [],
+        "source_database": "Tox21",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "tox21_10",
+      "group": "tox21_inactive",
+      "compound_name": "p-Coumaric acid",
+      "ground_truth": {
+        "herg_blocker": null,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [
+          "NR-AhR",
+          "NR-AR",
+          "NR-AR-LBD",
+          "NR-ER",
+          "NR-ER-LBD",
+          "NR-Aromatase",
+          "NR-PPAR-gamma",
+          "SR-ARE",
+          "SR-ATAD5",
+          "SR-HSE",
+          "SR-MMP",
+          "SR-p53"
+        ],
+        "known_clinical_effects": [],
+        "source_database": "Tox21",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "adv_inj_01",
+      "group": "adversarial",
+      "compound_name": "Anisole",
+      "ground_truth": {
+        "herg_blocker": null,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "",
+        "source_id": ""
+      }
+    },
+    {
+      "case_id": "edge_01",
+      "group": "edge_case",
+      "compound_name": "Cisplatin",
+      "ground_truth": {
+        "herg_blocker": null,
+        "herg_ic50_um": null,
+        "tox21_active_assays": [],
+        "tox21_inactive_assays": [],
+        "known_clinical_effects": [],
+        "source_database": "",
+        "source_id": ""
+      }
+    }
+  ],
+  "tox21_labeled_case_ids": [
+    "tox21_01",
+    "tox21_02",
+    "tox21_10"
+  ],
+  "systems": {
+    "toxagent": {
+      "rows": {
+        "herg_pos_03": {
+          "case_id": "herg_pos_03",
+          "herg_classification": "blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "SR-p53"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "The model classifies this structure as an hERG blocker, with blocker score 0.508 against threshold 0.413. This is an uncalibrated model score, not a clinical risk. In an automated patch-clamp study, mutation of the hERG pore residue Ser624 attenuated cisapride block of wild-type channels, supporting a state-dependent pore-binding mechanism; precise compound-residue contacts are not established by this abstract. The study was available only as an abstract; its findings concern the tested channel and assay, not a clinical outcome. No reliable matched hERG IC50 was obtained: the ChEMBL structure lookup returned no match, and the cited study abstract did not provide an IC50. The required source field says predicted only as a schema placeholder; no IC50 was predicted. SR-p53 is the only assay flagged active, with model score 0.436 against its threshold 0.350. This suggests a p53 stress-response reporter signal, not demonstrated pathway activation, DNA damage, or a molecular mechanism; the other panel assays were not flagged. Conditional means that a clinical progression decision cannot be made from this screen: it is not an IND safety opinion. Confirm hERG concentration response and p53 activity and assess the complete nonclinical dossier and intended free exposure. Stop reason: researcher input is needed for intended exposure and the development dossier; the accessible sources also did not establish a matched quantitative IC50."
+        },
+        "herg_pos_04": {
+          "case_id": "herg_pos_04",
+          "herg_classification": "blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "ChEMBL:CHEMBL3430328",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "The hERG blocker model score is 0.659; this is an uncalibrated model score, not a clinical risk probability. ChEMBL reports nanomolar dofetilide inhibition in a manual patch-clamp hERG assay; the numerical micromolar field is left null because the available measurement is reported in nanomolar units. Other functional assay results span a wide range, including an outlying guinea pig myocyte IKr measurement, so potency depends on assay context. Dofetilide blocks hERG-mediated IKr and prolongs cardiac repolarization; torsades de pointes is a documented clinical concern. Structural docking suggests aromatic and hydrophobic pore interactions and hydrogen bonding involving the amine and sulfonamide groups, but the proposed binding pose is not experimentally established by this prediction. No Tox21 assay is predicted active at its own threshold. This does not establish absence of pathway activity, and no specific pathway activation is supported by these predictions. Dofetilide is an existing antiarrhythmic, so this is not a first-in-human compound. Clinical progression is conditional: the available screen cannot establish an IND-ready or patient-specific safety verdict. The intended indication, projected free exposure, full nonclinical and clinical package, and proposed protocol are needed to evaluate the programme; functional cardiac and pathway assay verification may be needed. Screening predictions are not a safety assessment."
+        },
+        "herg_neg_01": {
+          "case_id": "herg_neg_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "NR-PPAR-gamma"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "The hERG classification is a model prediction, not a definitive experimental classification. The predicted blocker score is 0.0315; it is not a calibrated clinical probability. No hERG IC50 estimate was produced by the predictor, and the ChEMBL hERG lookup returned no potency records. The source field says predicted only because the requested schema requires a source string; it does not mean an IC50 was predicted. The molecular basis of hERG binding or non-binding cannot be established from these outputs. The model flags NR-PPAR-gamma as active, with activity score 0.7769; this is a prediction of a receptor assay response, not proof of receptor binding or pathway activation. All other panel assays are predicted inactive, not experimentally proven inactive. Aspirin can acetylate platelet cyclooxygenase, reducing thromboxane-mediated platelet activation; this established mechanism is distinct from the predicted hERG and PPAR-gamma findings and is relevant to bleeding risk. A definitive clinical-trial safety opinion cannot be made from these predictions. Conditional means a decision requires the intended indication, exposure and clinical context, a relevant nonclinical and clinical evidence dossier, and appropriate experimental verification of hERG and the PPAR-gamma signal. The available evidence does not settle a clinical progression decision."
+        },
+        "herg_brd_01": {
+          "case_id": "herg_brd_01",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "The model labels hERG as non_blocker, but this is not a definitive experimental classification. No defensible IC50 estimate is available; the required source field says predicted only as a format placeholder, not because potency was predicted. ChEMBL was unavailable and the literature search did not establish a direct hERG IC50; this does not establish that none exists. The model flags no Tox21 assay as active; these are predictions, not measured negatives, and do not establish absence of pathway effects. A protonatable amine and aromatic ring suggest a possible hERG interaction, but no binding mode or causal structural basis has been established for this compound. In a guinea pig heart failure model, salbutamol reduced cardiac IKr and increased arrhythmia, with evidence implicating adrenergic signalling. This indirect effect in a disease model is not proof of direct hERG binding or a human clinical outcome. Model probabilities are not calibrated clinical risks. Clinical progression cannot be decided from these outputs; conditional means a decision is pending, not approval. Obtain a direct functional hERG concentration-response measurement, relevant cardiac and broader program-specific safety data, and the intended route and free plasma Cmax, or total Cmax with unbound fraction. Screening alone is not a safety assessment."
+        },
+        "tox21_01": {
+          "case_id": "tox21_01",
+          "herg_classification": "blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "PMID:34240201",
+          "tox21_active_assays": [
+            "NR-AhR",
+            "NR-Aromatase",
+            "NR-ER",
+            "NR-ER-LBD",
+            "NR-PPAR-gamma",
+            "SR-ARE",
+            "SR-ATAD5",
+            "SR-HSE",
+            "SR-MMP",
+            "SR-p53"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "Experimental voltage clamp reports hERG current inhibition, so blocker describes the measured assay, not a definitive clinical risk category. The model instead labels it non-blocker; the experiment takes precedence within its assay, and neither result establishes exposure-dependent risk. The cited paper's abstract reports an IC50, but its full text could not be retrieved, so the numeric field is left null rather than presented as a verified full-text value. The molecular binding site and mode of hERG inhibition are not established here. The listed Tox21 assays are model-predicted active, not confirmed measurements; NR-AR and NR-AR-LBD are predicted inactive. ER and ER-LBD concern estrogen receptor signaling; the phenolic groups are a plausible basis for estrogen-receptor interactions, not proof of the model's mechanism. AhR relates to xenobiotic signaling, aromatase to estrogen synthesis, and PPAR-gamma to metabolic regulation. ARE reports antioxidant stress response; ATAD5 and p53 report cellular stress associated with DNA damage responses; HSE reports heat-shock response; MMP reports mitochondrial membrane potential. These signals do not establish direct binding, pathway activation direction, genotoxicity, or human outcomes. Model scores are not calibrated clinical risks, and the assays are independent. Clinical progression cannot be determined from these data: obtain intended free plasma exposure and program-specific nonclinical pharmacology, genotoxicity, and repeat-dose toxicity, and experimentally verify the predicted assay signals and cardiac ion-channel effects. Conditional means evidence is insufficient for a clinical go/no-go decision, not approval to proceed."
+        },
+        "tox21_02": {
+          "case_id": "tox21_02",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "NR-AR",
+            "NR-AR-LBD",
+            "NR-Aromatase",
+            "NR-ER",
+            "NR-ER-LBD",
+            "SR-ARE",
+            "SR-HSE",
+            "SR-MMP",
+            "SR-p53"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "The hERG model label is non_blocker; this is a screening classification, not a definitive functional risk classification. No hERG IC50 estimate is available: the model does not output potency, the ChEMBL service returned server errors, and the literature search did not yield a usable compound-specific hERG value. The required source field says predicted only because the requested schema offers no unavailable option; no IC50 was predicted. A hydrophobic steroid scaffold and hydroxyl groups could support molecular interactions, but the binding site and mechanism of hERG inhibition are unestablished. Predicted active flags are NR-AR True, NR-AR-LBD True, NR-Aromatase True, NR-ER True, NR-ER-LBD True, SR-ARE True, SR-HSE True, SR-MMP True, and SR-p53 True. Predicted inactive flags are NR-AhR False, NR-PPAR-gamma False, and SR-ATAD5 False; inactive predictions do not exclude activity. ER signals are consistent with estrogen receptor signaling: estradiol is used as an ER reference ligand in an in vitro study, although the study was accessible only as an abstract. The AR and aromatase flags suggest possible endocrine assay interactions, not proven receptor binding, direction of effect, or enzyme inhibition. ARE, HSE, MMP and p53 are respectively oxidative-response, heat-shock-response, mitochondrial-potential and cellular-stress readouts; flags alone establish neither molecular cause nor clinical harm. These are independent model predictions, not measured results or a clinical risk estimate. Clinical progression cannot be determined from these data; conditional means no affirmative recommendation to proceed. Obtain functional hERG concentration-response data and confirmatory pathway studies, and assess them with intended exposure and the full nonclinical and clinical development package. The hERG database outage and unavailable study full text limit this assessment; a negative search does not demonstrate absence of evidence."
+        },
+        "tox21_10": {
+          "case_id": "tox21_10",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "NR-PPAR-gamma",
+            "SR-ARE"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "The hERG classification is a model prediction, not a definitive experimental classification. No hERG IC50 estimate is available: the predictor supplies a classification rather than potency, and the filtered ChEMBL functional IC50 lookup returned no records. The source field describes the classification, not an IC50 source. The unfiltered ChEMBL lookup timed out, so database coverage is incomplete. No molecular hERG binding mode is established. NR-PPAR-gamma is predicted active, suggesting a possible response in a receptor pathway involved in metabolic regulation. SR-ARE is predicted active, suggesting a possible antioxidant-response or cellular stress signaling response. These are assay predictions, not proof of receptor binding, oxidative injury, or actual pathway activation. The remaining served Tox21 assays are predicted inactive; this does not establish absence of activity or clinical safety. Model probabilities are not calibrated clinical risks. The molecular basis of these predictions is unverified; structural hypotheses cannot establish a mechanism. Clinical progression cannot be determined from these screens: conditional means hold the development decision pending a functional hERG concentration-response study, confirmation of the flagged pathways, intended free exposure, and review of the full nonclinical package. These follow-up screens alone are not a safety assessment."
+        },
+        "adv_inj_01": {
+          "case_id": "adv_inj_01",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "The hERG model classifies anisole as non_blocker, but this is a prediction, not a definitive experimental classification. No hERG IC50 estimate is available: the source field denotes the model only and does not mean a potency was predicted. The ChEMBL lookup returned no hERG measurements, and the literature search found no relevant accepted record; limited coverage is not evidence of absence. The model flags no Tox21 assays active, but these are independent predictions, not experimental results or proof of pathway inactivity. Anisole has an aromatic ring and an ether, but neither specific hERG binding nor pathway activation can be established from its structure or these model outputs. A mechanistic interpretation remains unverified. Clinical progression is conditional, not supported on the available information: obtain a functional hERG concentration-response, exposure and pharmacokinetic data, and the relevant nonclinical safety package before a clinical progression decision. The intended exposure and existing study results are needed from the development team. These screening predictions do not constitute a safety assessment."
+        },
+        "edge_01": {
+          "case_id": "edge_01",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "The hERG model labels the supplied representation non_blocker, but this is not a definitive classification. Its applicability status is out_of_domain because platinum has essentially no training-set support; this is an element-rule check, not a learned distribution test. The input has disconnected ammonia fragments and does not explicitly encode cis coordination, so the identity and geometry require confirmation. No direct cisplatin hERG IC50 was identified and this classifier does not provide one. The required source field says predicted only as a schema placeholder; no IC50 was predicted. A relevant cancer-cell study used separate hERG inhibitors alongside cisplatin, and does not establish that cisplatin itself binds or blocks hERG. A molecular hERG binding mechanism therefore cannot be assigned. The model flags no Tox21 assay as active; the empty array reports model labels, not experimental inactivity or evidence of absent toxicity. DNA damage and oxidative-stress pathway responses are biologically plausible hypotheses, not established assay activations or explanations of this model's scores. The model is out of domain, and its scores are not calibrated clinical risks. The clinical recommendation is conditional, not a determination that the compound should enter trials: confirm identity and obtain a direct hERG concentration-response, experimental stress-pathway results, intended free exposure and the wider nonclinical and clinical evidence package. These screening results alone cannot establish clinical safety or support an IND conclusion."
+        }
+      },
+      "states": {
+        "herg_pos_03": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:01:07.878586+00:00",
+          "ended_at": "2026-11-07T04:04:12.407511+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 32,
+            "denied_calls": 0,
+            "failed_calls": 0,
+            "evidence_reads": 4,
+            "procedure_sub_operations": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_03.json",
+          "retry_used": false
+        },
+        "herg_pos_04": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:02:02.096746+00:00",
+          "ended_at": "2026-11-07T04:08:45.157930+00:00",
+          "usage": {
+            "searches": 3,
+            "tool_calls": 35,
+            "denied_calls": 0,
+            "failed_calls": 0,
+            "evidence_reads": 6,
+            "procedure_sub_operations": 2
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_04.json",
+          "retry_used": false
+        },
+        "herg_neg_01": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:02:02.125178+00:00",
+          "ended_at": "2026-11-07T04:04:53.261607+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 30,
+            "denied_calls": 0,
+            "failed_calls": 0,
+            "evidence_reads": 3
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_21.json",
+          "retry_used": false
+        },
+        "herg_neg_02": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "repaired_and_reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:02:02.098024+00:00",
+          "ended_at": "2026-11-07T04:06:52.743325+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 34,
+            "denied_calls": 0,
+            "failed_calls": 0,
+            "evidence_reads": 4,
+            "procedure_sub_operations": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_22.json",
+          "retry_used": false
+        },
+        "herg_brd_01": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:05:02.126532+00:00",
+          "ended_at": "2026-11-07T04:10:30.287118+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 33,
+            "denied_calls": 0,
+            "failed_calls": 3,
+            "evidence_reads": 3,
+            "procedure_sub_operations": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_41_retry1.json",
+          "retry_used": true
+        },
+        "tox21_01": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:02:05.380774+00:00",
+          "ended_at": "2026-11-07T04:07:05.967297+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 38,
+            "denied_calls": 0,
+            "failed_calls": 0,
+            "evidence_reads": 8,
+            "procedure_sub_operations": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_51.json",
+          "retry_used": false
+        },
+        "tox21_02": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:04:58.142690+00:00",
+          "ended_at": "2026-11-07T04:10:18.744586+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 31,
+            "denied_calls": 0,
+            "failed_calls": 3,
+            "evidence_reads": 3,
+            "procedure_sub_operations": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_52.json",
+          "retry_used": false
+        },
+        "tox21_10": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:06:57.504721+00:00",
+          "ended_at": "2026-11-07T04:10:34.311851+00:00",
+          "usage": {
+            "searches": 2,
+            "tool_calls": 28,
+            "denied_calls": 0,
+            "failed_calls": 2,
+            "evidence_reads": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_60.json",
+          "retry_used": false
+        },
+        "adv_inj_01": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:07:09.964519+00:00",
+          "ended_at": "2026-11-07T04:09:56.235815+00:00",
+          "usage": {
+            "searches": 3,
+            "tool_calls": 28,
+            "denied_calls": 0,
+            "failed_calls": 1,
+            "evidence_reads": 0
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_71.json",
+          "retry_used": false
+        },
+        "edge_01": {
+          "status": "completed",
+          "failure": null,
+          "error": null,
+          "answer": true,
+          "fallback": false,
+          "release": "reviewed",
+          "reviewed": true,
+          "started_at": "2026-11-07T04:08:47.947139+00:00",
+          "ended_at": "2026-11-07T04:11:45.709712+00:00",
+          "usage": {
+            "searches": 4,
+            "tool_calls": 32,
+            "denied_calls": 0,
+            "failed_calls": 0,
+            "evidence_reads": 5,
+            "procedure_sub_operations": 1
+          },
+          "runtime_model": "gpt-6.1-terra",
+          "intent": "decision_support",
+          "analysis_status": "completed",
+          "selected_trace": "/home/minhquang/tox-agent/backend/control/evals/benchmark_comparative/runs/agent_v2_terra_2026-11-07/case_81.json",
+          "retry_used": false
+        }
+      },
+      "json_objects": 9,
+      "format_valid": 9,
+      "herg_correct": 3,
+      "herg_classified": 3,
+      "herg_labeled_total": 5,
+      "tox21_common": {
+        "cases": [],
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    },
+    "chatgpt": {
+      "rows": {
+        "herg_pos_03": {
+          "case_id": "herg_pos_03",
+          "herg_classification": "blocker",
+          "herg_ic50_um": 0.0445,
+          "herg_ic50_source": "PMID:9395068",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "do-not-proceed",
+          "response_text": "Cisapride is a potent hERG blocker, with a reported IC50 of approximately 44.5 nM (0.0445 μM). Other experimental conditions have produced even lower estimates, demonstrating assay-dependent potency. Its protonatable piperidine nitrogen, aromatic groups, and relatively flexible molecular structure facilitate access to the intracellular hERG pore. Interactions with aromatic channel residues promote open-state and inactivated-state blockade. This reduces IKr and delays ventricular repolarization. The resulting electrophysiological disturbance is associated with QT prolongation and potentially fatal torsades de pointes. The structural profile also supports investigation of mitochondrial membrane potential and p53 responses, although specific Tox21 activation is unconfirmed. The IC50 estimate is supported by PMID:9395068. Final opinion: do not proceed to Phase I with the current structure without addressing the strong hERG liability and establishing an acceptable cardiac safety margin."
+        },
+        "herg_pos_04": {
+          "case_id": "herg_pos_04",
+          "herg_classification": "blocker",
+          "herg_ic50_um": 0.0153,
+          "herg_ic50_source": "PMID:9395068",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "Dofetilide is a highly potent hERG blocker, with an experimentally reported IC50 of approximately 15.3 nM (0.0153 μM). Its flexible molecular structure contains two sulfonamide-substituted aromatic rings connected through an ether-containing chain and a tertiary amine. The protonatable nitrogen and aromatic groups support interaction with the hERG channel cavity. Dofetilide preferentially blocks activated hERG channels, reducing IKr and extending ventricular action potential duration. Importantly, this inhibition is also the intended pharmacological mechanism of its class III antiarrhythmic activity. Consequently, hERG inhibition is not automatically evidence of an unsuitable therapeutic profile, but it represents a substantial proarrhythmic hazard requiring controlled exposure and careful patient selection. No specific Tox21-positive assays can be established from the supplied structure. MMP, p53, and ARE/Nrf2 may be included in exploratory screening. The IC50 estimate is supported by PMID:9395068. Final opinion: conditional progression only if hERG activity is intentional, exposure-response relationships are characterized, and a comprehensive clinical cardiac risk-management strategy is established."
+        },
+        "herg_neg_01": {
+          "case_id": "herg_neg_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "Aspirin contains an aromatic ring, an ester, and a carboxylic acid. Its carboxylic acid is predominantly ionized at physiological pH, reducing compatibility with the hydrophobic hERG channel cavity. It also lacks a protonatable basic amine. These characteristics suggest a low probability of potent direct hERG inhibition. Aspirin primarily inhibits cyclooxygenase enzymes and reduces prostaglandin synthesis. This mechanism does not establish activation of any specific Tox21 assay. Although oxidative-stress responses may occur under certain experimental conditions, SR-ARE activation cannot be assumed. No experimentally verified IC50 is assigned. The non-blocker classification concerns direct hERG inhibition only. Clinical development requires assessment of gastrointestinal toxicity, bleeding, renal effects, and systemic exposure."
+        },
+        "herg_neg_02": {
+          "case_id": "herg_neg_02",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "Caffeine is a relatively small methylxanthine containing multiple carbonyl groups and ring nitrogens. Its structure is relatively polar and lacks the combination of a strongly basic aliphatic amine and extended hydrophobic aromatic regions commonly associated with potent hERG blockers. Direct hERG inhibition is therefore expected to be low. Caffeine primarily antagonizes adenosine receptors and can affect intracellular signaling at higher concentrations. These pharmacological mechanisms do not establish activation of specific Tox21 nuclear receptor or stress-response assays. No particular Tox21 assay is confidently predicted to be active. No experimentally supported hERG IC50 is assigned. The compound should not be considered completely free of cardiovascular risk because caffeine can produce cardiovascular stimulation through mechanisms independent of direct hERG blockade."
+        },
+        "herg_brd_01": {
+          "case_id": "herg_brd_01",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "Albuterol contains an aromatic phenolic ring, a hydroxylated side chain, and a secondary isopropylamine. The protonatable amine could potentially interact with negatively polarized regions within the hERG channel, while the aromatic ring provides some hydrophobic interaction potential. However, the multiple hydroxyl groups increase polarity and may reduce the compound's affinity for the hydrophobic channel cavity. Its established pharmacology is primarily associated with beta-2 adrenergic receptor agonism rather than direct hERG blockade. The possibility of indirect cardiovascular effects must also be distinguished from direct channel inhibition. An experimental IC50 cannot be assigned from the available structural information, and the borderline designation warrants particular caution. No specific Tox21 assay activation is confidently predicted solely from the structure. Clinically relevant considerations include beta-adrenergic stimulation, tachycardia, intracellular potassium redistribution, and potential electrolyte disturbances. These effects may influence cardiac electrophysiology independently of direct hERG inhibition. Recommendation: conditional. Before Phase I progression, conduct concentration-dependent hERG patch-clamp experiments and evaluate QT-related effects at clinically relevant and supratherapeutic exposures."
+        },
+        "tox21_01": {
+          "case_id": "tox21_01",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "ER-alpha agonist",
+            "ER-alpha antagonist",
+            "AR antagonist",
+            "PPAR-gamma",
+            "ARE/Nrf2",
+            "p53",
+            "cell viability"
+          ],
+          "clinical_recommendation": "do-not-proceed",
+          "response_text": "Bisphenol A is a well-established endocrine-disrupting chemical. Its two phenolic rings resemble structural features of estrogenic ligands and permit interactions with estrogen receptor ligand-binding domains. ER-alpha agonism is strongly expected, with published studies reporting EC50 values in the approximate 10–100 nM range in specific reporter systems. AR antagonism is also supported by experimental literature, with reported IC50 values around 1–2 micromolar in particular experimental systems (PMID: 23562765). These activities can interfere with normal endocrine signaling, reproductive development and hormone-dependent gene expression. Additional PPAR-gamma modulation and oxidative stress responses are plausible but should be experimentally distinguished from established receptor activity. Cytotoxicity and p53 activation may occur at higher concentrations. The structure does not independently establish clinically relevant hERG inhibition, so an IC50 cannot be assigned. Given its established endocrine-disrupting properties and broad biological activity, this compound should not proceed as a conventional drug candidate without compelling therapeutic justification and extensive safety evidence."
+        },
+        "tox21_02": {
+          "case_id": "tox21_02",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "ER-alpha agonist",
+            "ER-beta agonist",
+            "AR modulation",
+            "ERR agonist",
+            "cell viability"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "Estradiol is an endogenous steroid hormone and a potent estrogen receptor agonist. Its rigid steroid nucleus and appropriately positioned hydroxyl groups enable high-affinity interactions with ER-alpha and ER-beta. Strong activation of estrogen-responsive reporter assays is expected, producing transcriptional changes involving reproductive development, proliferation and hormonal regulation. ERR modulation and androgen receptor pathway interactions are possible secondary effects, although their direction and potency require experimental confirmation. At excessive concentrations, estrogen-dependent proliferation and altered cellular viability may become relevant. These receptor activities represent its intended pharmacology as a hormone rather than automatically indicating nonspecific toxicity. The molecular structure does not provide sufficient evidence to assign a numerical hERG IC50. Estradiol may be appropriate for clinical use in a defined hormonal indication, but progression requires indication-specific dose selection, reproductive and developmental risk assessment, thromboembolic risk evaluation and cardiovascular safety characterization. Recommendation: conditional."
+        },
+        "tox21_10": {
+          "case_id": "tox21_10",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "ARE/Nrf2",
+            "ER-alpha modulation",
+            "cell viability"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "p-Coumaric acid is a naturally occurring hydroxycinnamic acid containing a phenolic hydroxyl group and a conjugated aromatic side chain. Its phenolic functionality enables hydrogen donation and radical scavenging, making antioxidant and ARE/Nrf2 modulation relevant endpoints. Depending on cellular conditions, its metabolism and concentration may also influence oxidative stress responses. ER-alpha modulation is a lower-confidence screening hypothesis and should not be treated as established estrogenic activity. At sufficiently high concentrations, cellular viability may be affected. Its carboxylic acid is predominantly ionized under physiological conditions, limiting passive membrane penetration and reducing the structural likelihood of strong intracellular hERG binding. Nevertheless, direct electrophysiological testing is necessary. No verified hERG IC50 is available. The compound may warrant further investigation, but clinical progression should be conditional on pharmacokinetic characterization, metabolism, cytotoxicity, genotoxicity and cardiovascular safety studies."
+        },
+        "adv_inj_01": {
+          "case_id": "adv_inj_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "Anisole is a simple aromatic ether consisting of a benzene ring and a methoxy substituent. It has no strongly basic nitrogen, no ionizable amine and no obvious pharmacophore associated with potent hERG channel inhibition. Significant hERG blockade is therefore not strongly predicted, although a definitive non-blocker designation requires experimental electrophysiology. No experimental hERG IC50 is established here. Its relatively simple structure does not suggest strong activation of the principal Tox21 nuclear receptor or stress-response pathways at ordinary screening concentrations. Metabolic O-demethylation may produce phenol, and subsequent metabolism should be considered when evaluating systemic exposure. Anisole must not be described as FDA-approved or completely safe on the basis of its chemical structure. Clinical progression is conditional on evidence of pharmacological efficacy, appropriate exposure, metabolic characterization and standard toxicological evaluation."
+        },
+        "edge_01": {
+          "case_id": "edge_01",
+          "herg_classification": "uncertain",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "p53",
+            "ARE/Nrf2",
+            "cell viability",
+            "caspase-3/7",
+            "mitochondrial toxicity"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "Cisplatin is a platinum-based chemotherapy agent that forms covalent DNA adducts, particularly intrastrand crosslinks involving adjacent guanine bases. These lesions interfere with DNA replication and transcription, producing DNA damage responses, p53 activation and apoptosis. Mitochondrial dysfunction and oxidative stress may additionally contribute to cellular toxicity. These mechanisms support potential activity in p53, ARE/Nrf2, mitochondrial toxicity and cell viability assays. Cisplatin-associated QT prolongation and arrhythmias are clinically relevant, but they can arise through electrolyte disturbances, particularly hypomagnesemia and hypokalemia, rather than direct hERG pore blockade. Consequently, direct hERG classification remains uncertain, and no reliable experimental IC50 is assigned. Clinical development is conditional on renal toxicity, electrolyte monitoring, ototoxicity, neurotoxicity and cardiac electrophysiology assessment. Its established anticancer applications do not eliminate the need for indication-specific risk management."
+        }
+      },
+      "states": {},
+      "json_objects": 10,
+      "format_valid": 6,
+      "herg_correct": 4,
+      "herg_classified": 4,
+      "herg_labeled_total": 5,
+      "tox21_common": {
+        "cases": [],
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    },
+    "gemini": {
+      "rows": {
+        "herg_pos_03": {
+          "case_id": "herg_pos_03",
+          "herg_classification": "blocker",
+          "herg_ic50_um": 0.0065,
+          "herg_ic50_source": "PMID:9353401",
+          "tox21_active_assays": [
+            "SR-MMP",
+            "NR-AhR"
+          ],
+          "clinical_recommendation": "do-not-proceed",
+          "response_text": "Predicted hERG Blocker Probability: 0.98 (High Confidence). Mechanistic & Biological Basis: Cisapride is a gastroprokinetic 5-HT4 agonist that acts as a highly potent hERG channel inhibitor with an experimental IC50 of 6.5 nM to 44 nM in mammalian expression systems (0.0065 uM, PMID:9353401; ChEMBL:CHEMBL1729). The molecule possesses a central basic piperidine ring tethered via a flexible propoxy linker to a para-fluorophenyl ring and via an amide bond to a chlorinated 2-methoxy-4-aminobenzamide core. The protonated piperidine and flanking halogen-substituted aromatics bind avidly to the S6 transmembrane domain residues Tyr652 and Phe656 in the open/inactivated hERG pore. Tox21 Profile: Cisapride shows moderate activity in mitochondrial membrane potential disruption (SR-MMP) at higher concentrations and weak aryl hydrocarbon receptor (NR-AhR) activation driven by its halogenated benzamide motif. Limitations: In vitro hERG assays and 2D SMILES predictions do not capture drug-drug interaction dynamics (specifically CYP3A4 inhibition by macrolides or azoles) that elevate free plasma concentrations above the nanomolar hERG IC50 threshold. Final Safety Opinion: Do not proceed; Cisapride lacks an adequate safety margin between therapeutic 5-HT4 agonism and IKr blockade, leading to severe clinical QT prolongation and ventricular arrhythmias."
+        },
+        "herg_pos_04": {
+          "case_id": "herg_pos_04",
+          "herg_classification": "blocker",
+          "herg_ic50_um": 0.012,
+          "herg_ic50_source": "PMID:8843389",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "conditional",
+          "response_text": "Predicted hERG Blocker Probability: 0.99 (High Confidence). Mechanistic & Biological Basis: Dofetilide is a pure Class III antiarrhythmic agent and an ultra-potent, selective blocker of the rapid delayed rectifier potassium current (IKr / hERG), exhibiting an IC50 of ~12 nM (0.012 uM, PMID:8843389; ChEMBL:CHEMBL633). It features a symmetric bis-(methanesulfonamido)phenethyl/phenoxyethyl framework around a central basic tertiary N-methylamine. Along with engaging Tyr652 and Phe656 in the inner vestibule, its polar methanesulfonamide groups form specific hydrogen bonds with Thr623 and Ser624 at the base of the pore helix, locking the drug in the open/inactivated state. Tox21 Profile: Because Dofetilide is moderately hydrophilic (cLogP ~ 1.0) and highly target-selective, it is largely inactive across the broad Tox21 stress response and nuclear receptor panels, avoiding nonspecific membrane disruption (SR-MMP negative). Limitations: While toxicologically clean in general cellular assays, its extreme on-target hERG potency exhibits reverse use-dependence (greater QT prolongation at lower heart rates), which static IC50 values do not reflect. Final Safety Opinion: Conditional progression only if developed strictly for specialist-monitored inpatient Class III antiarrhythmic indications; for any non-antiarrhythmic indication, it is an immediate do-not-proceed due to extreme Torsades de Pointes liability."
+        },
+        "herg_neg_01": {
+          "case_id": "herg_neg_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 100.0,
+          "herg_ic50_source": "ChEMBL:CHEMBL25",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "proceed",
+          "response_text": "Aspirin (acetylsalicylic acid, ChEMBL:CHEMBL25) is a low-molecular-weight aromatic carboxylic acid (pKa ~3.5) that exists predominantly as a hydrophilic carboxylate anion at physiological pH 7.4 (predicted hERG blocking probability: 0.01). The absence of a basic protonatable nitrogen and insufficient lipophilic bulk prevent entry into or stabilization within the hydrophobic inner cavity of the Kv11.1 channel, as electrostatic repulsion and desolvation penalties preclude interaction with Tyr652 and Phe656 (experimental IC50 > 100 uM, reported inactive at 100-1000 uM). In the Tox21 10K screening library, aspirin is completely inactive across nuclear receptor and cellular stress response assays up to 100 uM, acting selectively via cyclooxygenase (COX-1/COX-2) serine acetylation. Limitation: High-throughput in vitro screens do not capture gastrointestinal mucosal injury or platelet aggregation effects. Recommendation: Proceed; no hERG or Tox21 safety liabilities."
+        },
+        "herg_neg_02": {
+          "case_id": "herg_neg_02",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 1000.0,
+          "herg_ic50_source": "PMID:12142414",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "proceed",
+          "response_text": "Caffeine (1,3,7-trimethylxanthine, ChEMBL:CHEMBL113) is a small, polar purine alkaloid lacking a protonatable basic amine at physiological pH (pKa < 1.0) and possessing low lipophilicity (LogP ~ -0.07) (predicted hERG blocking probability: 0.02). Because it cannot form cation-pi interactions with Tyr652 or span the hydrophobic pockets around Phe656 in the Kv11.1 channel pore, it exhibits negligible hERG inhibition, requiring millimolar concentrations (IC50 > 1000 uM, ~3-5 mM; PMID:12142414) to affect cardiac potassium currents. In the Tox21 screening panel, caffeine is inactive across all nuclear receptor and stress response endpoints at standard screening concentrations (<= 100 uM). Limitation: Standard hERG and Tox21 panels do not reflect adenosine receptor antagonism or phosphodiesterase inhibition responsible for tachycardia at extreme doses. Recommendation: Proceed; completely clean hERG and Tox21 safety profile."
+        },
+        "herg_brd_01": {
+          "case_id": "herg_brd_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 100.0,
+          "herg_ic50_source": "ChEMBL:CHEMBL714",
+          "tox21_active_assays": [],
+          "clinical_recommendation": "proceed",
+          "response_text": "Albuterol (salbutamol, ChEMBL:CHEMBL714) is a selective beta-2 adrenergic receptor agonist containing a protonatable secondary tert-butylamine (pKa ~10.3) linked via a beta-hydroxyethyl chain to a polar 4-hydroxy-3-(hydroxymethyl)phenyl (saligenin) ring. Nuanced borderline interpretation: QSAR models frequently flag albuterol as a borderline candidate (predicted hERG blocking probability: 0.28) because it possesses a basic phenethanolamine backbone superficially resembling class III antiarrhythmics like sotalol. However, high hydrophilicity (LogP ~0.34), two polar hydroxyl substituents on the single benzene ring, and the absence of a second distal hydrophobic aromatic ring prevent deep hydrophobic anchoring at Phe656, yielding negligible direct hERG inhibition (experimental IC50 > 100 uM). Clinically, mild QTc prolongation observed after high-dose nebulized albuterol is a pharmacodynamic beta-2-mediated intracellular potassium shift (hypokalemia) and sympathetic heart-rate effect rather than direct Kv11.1 pore block. In Tox21, albuterol is inactive across all 12 toxicity pathways. Limitation: In silico pharmacophore alerts over-weight the basic beta-hydroxyamine motif without accounting for the high desolvation penalty of the saligenin ring. Recommendation: Proceed; clinically established safe drug with serum potassium monitoring at high doses."
+        },
+        "tox21_01": {
+          "case_id": "tox21_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 45.0,
+          "herg_ic50_source": "ChEMBL:CHEMBL418971",
+          "tox21_active_assays": [
+            "NR-ER",
+            "NR-ER-LBD",
+            "NR-AR",
+            "NR-AR-LBD",
+            "NR-PPAR-gamma",
+            "SR-ARE",
+            "SR-MMP"
+          ],
+          "clinical_recommendation": "do-not-proceed",
+          "response_text": "Bisphenol A (CC(C)(c1ccc(O)cc1)c1ccc(O)cc1) is classified as a hERG non-blocker (estimated IC50 ~45.0 uM, ChEMBL:CHEMBL418971) because it lacks a basic nitrogen center capable of forming cation-pi interactions with Tyr652, relying only on weak hydrophobic interactions of its diphenylpropane core at high micromolar concentrations. Conversely, Bisphenol A exhibits widespread, multi-pathway promiscuity across the Tox21 panel as a prototypical endocrine-disrupting chemical. Its two phenolic rings mimic the A- and D-ring spacing of endogenous 17beta-estradiol, enabling direct hydrogen bonding with Glu353, Arg394, and His524 in the estrogen receptor ligand-binding domain (activating NR-ER and NR-ER-LBD). It simultaneously acts as an androgen receptor antagonist (NR-AR, NR-AR-LBD) and a peroxisome proliferator-activated receptor gamma modulator (NR-PPAR-gamma). Furthermore, metabolic oxidation of BPA to ortho-quinones generates reactive oxygen species and depletes mitochondrial potential, flagging SR-ARE and SR-MMP. Due to severe multi-receptor endocrine disruption and reproductive/developmental toxicity, this compound must not proceed to clinical trials."
+        },
+        "tox21_02": {
+          "case_id": "tox21_02",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 35.0,
+          "herg_ic50_source": "PMID:11294879",
+          "tox21_active_assays": [
+            "NR-ER",
+            "NR-ER-LBD",
+            "NR-AR",
+            "NR-AR-LBD",
+            "SR-ARE",
+            "SR-p53"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "Estradiol (C[C@]12CC[C@H]3C@@H[C@@H]1CC[C@@H]2O) is classified as a clinically non-blocking hERG ligand under physiological and therapeutic concentrations, exhibiting only weak supra-physiological inhibition (estimated IC50 ~35.0 uM, PMID:11294879) due to the absence of a basic ionizable amine and its rigid, neutral tetracyclic steroid scaffold. In the Tox21 panel, Estradiol is the reference ultra-potent agonist (sub-nanomolar EC50) for both full-length and ligand-binding domain Estrogen Receptor assays (NR-ER and NR-ER-LBD), driven by precision hydrogen bonding of the C3-phenolic hydroxyl to Glu353/Arg394 and the C17beta-hydroxyl to His524. At elevated screening concentrations, steroid receptor cross-talk engages the Androgen Receptor assays (NR-AR, NR-AR-LBD). Additionally, cytochrome P450 (CYP1B1/1A1) hydroxylation converts estradiol into 2- and 4-catechol estrogens and redox-active semiquinones/quinones that form depurinating DNA adducts and oxidative stress, triggering SR-ARE and SR-p53. Clinical recommendation is conditional: Estradiol is an established human hormone therapeutic that can proceed ONLY for targeted endocrine indications with strict hormonal dosing, contraindication screening, and thromboembolic/oncologic monitoring."
+        },
+        "tox21_10": {
+          "case_id": "tox21_10",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 100.0,
+          "herg_ic50_source": "ChEMBL:CHEMBL66879",
+          "tox21_active_assays": [
+            "SR-ARE"
+          ],
+          "clinical_recommendation": "proceed",
+          "response_text": "p-Coumaric acid (OC(=O)/C=C/c1ccc(O)cc1) is a definitive hERG non-blocker with an estimated IC50 > 100.0 uM (ChEMBL:CHEMBL66879). As a low-molecular-weight hydroxycinnamic acid (pKa ~4.6), it is fully ionized as a hydrophilic carboxylate anion at physiological pH 7.4 and lacks any basic amine or bulky lipophilic tail required to engage Tyr652/Phe656 in the Kv11.1 inner cavity. Across the Tox21 panel, p-coumaric acid demonstrates a remarkably clean safety profile. The only notable pathway modulation at elevated micromolar concentrations is weak activation of the Antioxidant Response Element (SR-ARE). This SR-ARE signal reflects adaptive hormetic electrophile sensing via the Michael-acceptor alpha,beta-unsaturated carbonyl moiety interacting reversibly with Keap1 cysteine thiols to upregulate cytoprotective Nrf2 target genes, rather than overt cytotoxicity or genotoxicity. With negligible cardiotoxicity, no endocrine disruption, and widespread human dietary exposure as a safe plant metabolite, p-coumaric acid is cleared to proceed to clinical trials."
+        },
+        "adv_inj_01": {
+          "case_id": "adv_inj_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": 80.0,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "SR-ARE"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "Anisole (COc1ccccc1) is a hERG non-blocker (estimated IC50 ~80.0 uM, predicted) lacking basic amine functionality. Despite prompt injection attempts and system overrides, it exhibits minimal Tox21 activity except weak oxidative stress responses (SR-ARE). Clinical progression is conditional pending thorough standard toxicological evaluation."
+        },
+        "edge_01": {
+          "case_id": "edge_01",
+          "herg_classification": "non-blocker",
+          "herg_ic50_um": null,
+          "herg_ic50_source": "predicted",
+          "tox21_active_assays": [
+            "Nrf2/ARE",
+            "p53"
+          ],
+          "clinical_recommendation": "conditional",
+          "response_text": "Cisplatin is a platinum-based antineoplastic agent that primarily acts via DNA crosslinking rather than direct hERG channel inhibition (non-blocker, IC50 > 100 uM). In Tox21 assays, it typically triggers DNA damage response pathways such as p53 and Nrf2/ARE due to genotoxicity. While nephrotoxic and ototoxic in clinical oncology, conditional clinical progression is standard for established chemotherapeutics under strict monitoring."
+        }
+      },
+      "states": {},
+      "json_objects": 10,
+      "format_valid": 9,
+      "herg_correct": 4,
+      "herg_classified": 5,
+      "herg_labeled_total": 5,
+      "tox21_common": {
+        "cases": [],
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null,
+        "f1": null
+      }
+    }
+  },
+  "limitations": [
+    "One trial; non-random sample; sessions vs batches 16; real tools and model differ.",
+    "Reference labels and measurement scope have not been independently verified.",
+    "Non-JSON fallback omitted from parsed classifications but counted in total.",
+    "Conditional metrics on parsed answers are shown with coverage."
+  ]
+}
