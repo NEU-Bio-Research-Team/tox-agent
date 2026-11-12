@@ -40,6 +40,16 @@ HISTORICAL = (
     "audit_5_9.md",
 )
 
+#: Verbatim compilations: one file that quotes many documents whole, some of
+#: them recovered from git history. A link in a quoted document is relative to
+#: where *that* document lived, so from the compilation's own location it
+#: resolves nowhere, and for the removed sources there is nothing left to
+#: point at. Rewriting the links would make the copy stop being verbatim.
+#: Named file by file: this is not a way to exempt a document someone follows.
+VERBATIM_COMPILATIONS = frozenset({
+    "ToxAgent_Agent_Architecture_Sources_Compiled_2026-11-07.md",
+})
+
 #: Paths the workspace consolidation removed, and what replaced them.
 RETIRED = {
     "toxagent-control/": "backend/control/",
@@ -118,6 +128,8 @@ def main() -> int:
     )
     for path in scanned:
         rel = path.relative_to(REPO_ROOT).as_posix()
+        if rel in VERBATIM_COMPILATIONS:
+            continue
         problems += check_links(path, rel)
         if not _is_historical(rel):
             problems += check_retired_paths(path, rel)
