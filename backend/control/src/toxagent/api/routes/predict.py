@@ -294,7 +294,7 @@ async def quick_explain(
     services = _services(request)
     async with services.predict_limits.slot(principal.subject_id):
         explanation = await services.predictor.explain(
-            body.smiles, body.endpoint, body.task
+            body.smiles, body.endpoint, body.task, model_id=body.model_id
         )
     payload = explanation.model_dump(mode="json")
     limitations = list(payload.get("limitations") or [])

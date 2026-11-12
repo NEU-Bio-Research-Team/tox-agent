@@ -51,6 +51,17 @@ describe('ExplainPanel', () => {
     expect(document.body.innerHTML).not.toMatch(/accent-red|accent-green/);
   });
 
+  it('asks for the explanation of the release that produced the result', async () => {
+    explainPrediction.mockResolvedValue(BASE);
+    render(<ExplainPanel canonicalSmiles="CCO" endpoint="herg" modelId="herg-tox21-pubchem-v1" />);
+    fireEvent.click(screen.getByRole('button', { name: /Giải thích \(XAI\)/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Giải thích' }));
+    await screen.findByText(/30% trọng số/);
+    expect(explainPrediction).toHaveBeenCalledWith(
+      expect.objectContaining({ endpoint: 'herg', model_id: 'herg-tox21-pubchem-v1' }),
+    );
+  });
+
   it('shows a best-effort note for a partial result', async () => {
     await open({ ...BASE, status: 'partial' });
     expect(await screen.findByText(/best-effort/i)).toBeInTheDocument();

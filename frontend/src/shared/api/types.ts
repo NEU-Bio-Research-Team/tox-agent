@@ -158,6 +158,8 @@ export interface ExplainRequest {
   smiles: string;
   endpoint: 'herg' | 'tox21';
   task?: string;
+  /** The release that produced the result being explained. */
+  model_id?: string;
 }
 
 export type AtomImportance = Schemas['AtomImportance'];

@@ -2605,6 +2605,8 @@ export interface components {
              * @enum {string}
              */
             endpoint: "herg" | "tox21";
+            /** Model Id */
+            model_id?: string | null;
             /** Smiles */
             smiles: string;
             /** Task */

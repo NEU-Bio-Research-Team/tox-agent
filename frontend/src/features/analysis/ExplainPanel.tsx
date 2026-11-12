@@ -26,10 +26,14 @@ export function ExplainPanel({
   canonicalSmiles,
   endpoint,
   tox21Tasks,
+  modelId,
 }: {
   canonicalSmiles: string;
   endpoint: 'herg' | 'tox21';
   tox21Tasks?: string[];
+  /** The release that produced the result on screen. An explanation of a
+   * different release would describe a prediction nobody is looking at. */
+  modelId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [task, setTask] = useState<string>(tox21Tasks?.[0] ?? '');
@@ -43,6 +47,7 @@ export function ExplainPanel({
         smiles: canonicalSmiles,
         endpoint,
         task: needsTask ? task : undefined,
+        model_id: modelId,
       });
       setState({ phase: 'done', data });
     } catch (err) {

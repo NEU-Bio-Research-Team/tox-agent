@@ -121,6 +121,7 @@ export function AnalysisPanel({
                 ? Object.keys(analysis.sections.tox21.assays)
                 : undefined
             }
+            modelId={endpoint === 'herg' ? analysis.sections.herg?.model_id : analysis.sections.tox21?.model_id}
           />
         ))}
 
