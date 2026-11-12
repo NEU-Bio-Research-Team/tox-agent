@@ -1,0 +1,114 @@
+name: Frontend hosting
+
+# The frontend's own path to production: static files on Firebase Hosting.
+#
+# The back end is not deployed from CI. It runs on the project's machine and
+# is reached through a tunnel (docs/how-to/public-local-backend.md); CI tests
+# it (unified-ci.yml) and stops there. The frontend is a different kind of
+# artifact — a directory of files with the API address compiled in — so it has
+# this workflow to itself.
+#
+# Two repository variables decide what a run does:
+#
+#   TOXAGENT_API_ORIGIN    https://<api-host>, the tunnel's address.
+#   FIREBASE_WEB_API_KEY   the Firebase project's web API key, for sign-in.
+#
+# Without TOXAGENT_API_ORIGIN the job checks and builds and does not deploy.
+# A frontend built with no API address calls its own origin, which on Firebase
+# Hosting answers every path with index.html: the site would load and nothing
+# on it would work. Not deploying is the only correct behaviour until the
+# address exists.
+
+'on':
+  push:
+    branches: [main]
+    paths:
+      - frontend/**
+      - firebase.json
+      - .firebaserc
+      - .github/workflows/frontend-hosting.yml
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-hosting
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID || 'tox-agent' }}
+      API_ORIGIN: ${{ vars.TOXAGENT_API_ORIGIN }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+
+      # The same checks a pull request passes, on the commit being shipped.
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+      - name: Decide whether this run deploys
+        id: target
+        run: |
+          if [[ -z "${API_ORIGIN}" ]]; then
+            echo "::notice::vars.TOXAGENT_API_ORIGIN is not set. Building only; nothing is deployed."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          elif [[ ! "${API_ORIGIN}" =~ ^https://[^/]+$ ]]; then
+            echo "::error::vars.TOXAGENT_API_ORIGIN must be https://<host> with no path or trailing slash, got '${API_ORIGIN}'"
+            exit 1
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ vars.TOXAGENT_API_ORIGIN }}
+          VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY }}
+
+      - name: The API the build points at is up
+        if: steps.target.outputs.deploy == 'true'
+        run: |
+          # Shipping a frontend to a back end that is down replaces a working
+          # site with a broken one. Readiness, not liveness: the predictor and
+          # the runtime have to be there too.
+          curl --fail --silent --show-error --max-time 30 "${API_ORIGIN}/health/ready" | head -c 600
+
+      - id: auth
+        if: steps.target.outputs.deploy == 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || 'projects/147622422092/locations/global/workloadIdentityPools/github-actions-pool/providers/github-oidc' }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL || secrets.GCP_SERVICE_ACCOUNT_EMAIL || 'github-action-1193576515@tox-agent.iam.gserviceaccount.com' }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Deploy to Firebase Hosting
+        if: steps.target.outputs.deploy == 'true'
+        working-directory: .
+        run: |
+          npx -y firebase-tools@latest deploy --only hosting \
+            --project "${FIREBASE_PROJECT_ID}" --non-interactive
+
+      - name: The live site serves the app on a deep link
+        if: steps.target.outputs.deploy == 'true'
+        run: |
+          for path in / /analyze /predict /documents; do
+            code="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 60 "https://${FIREBASE_PROJECT_ID}.web.app${path}")"
+            echo "${path} -> ${code}"
+            [[ "${code}" == "200" ]] || exit 1
+          done
