@@ -21,6 +21,7 @@ from .definitions import evidence as evidence_tools
 from .definitions import explanation as explanation_tools
 from .definitions import inventory as inventory_tools
 from .definitions import primitives as primitive_tools
+from .definitions import pubchem_assays as pubchem_assay_tools
 from .definitions import procedures as procedure_tools
 from .definitions import decision_loop as decision_loop_tools
 from .definitions import report as report_tools
@@ -49,6 +50,7 @@ def build_registry(
     object_store=None,
     skill_catalog=None,
     chembl_provider=None,
+    pubchem_assay_provider=None,
     extra: list | None = None,
 ) -> ToolRegistry:
     registry = ToolRegistry()
@@ -112,6 +114,9 @@ def build_registry(
     # configured provider, like the evidence tools.
     for definition in primitive_tools.build(database, chembl_provider):
         add(definition)
+    if pubchem_assay_provider is not None:
+        for definition in pubchem_assay_tools.build(database, pubchem_assay_provider):
+            add(definition)
     # Gated by scientific_procedures_v1 (#66): determinate work over records
     # the run already read, so it reaches no provider and a repeat is free.
     for definition in procedure_tools.build(database):

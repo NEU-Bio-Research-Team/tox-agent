@@ -149,11 +149,14 @@ class ScriptedRuntimeProvider:
                 RuntimeEvent(RuntimeEventType.TURN_IDLE, _now(), {"turn_id": turn.turn_id})
             )
         except Exception as exc:  # noqa: BLE001 — reported as a normalized failure, not raised
+            payload = {"turn_id": turn.turn_id, "reason": f"{type(exc).__name__}: {exc}"}
+            # A script can stand in for a provider that refused the turn: the
+            # real adapter forwards OpenCode's ``session.error`` properties.
+            runtime_error = getattr(exc, "runtime_error", None)
+            if runtime_error is not None:
+                payload["error"] = runtime_error
             script_turn.events.append(
-                RuntimeEvent(
-                    RuntimeEventType.TURN_FAILED, _now(),
-                    {"turn_id": turn.turn_id, "reason": f"{type(exc).__name__}: {exc}"},
-                )
+                RuntimeEvent(RuntimeEventType.TURN_FAILED, _now(), payload)
             )
         self._turns[session.runtime_session_id] = script_turn
         return RuntimeReceipt(turn_id=turn.turn_id, accepted=True)

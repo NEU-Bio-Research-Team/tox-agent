@@ -154,6 +154,7 @@ def create_app(
     object_store: ObjectStore | None = None,
     create_schema: bool = False,
     chembl_provider=None,
+    pubchem_assay_provider=None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     if research_provider is None:
@@ -299,11 +300,18 @@ def create_app(
             from ..research.providers.chembl import build_chembl_provider
 
             chembl = build_chembl_provider(settings.chembl)
+        pubchem_assays = pubchem_assay_provider
+        if (pubchem_assays is None and settings.compound.provider == "pubchem"
+                and is_enabled("scientific_primitives_v1")):
+            from ..research.providers.pubchem_assays import PubChemAssayProvider
+
+            pubchem_assays = PubChemAssayProvider(settings.compound)
         registry = build_registry(
             db, client, analysis, settings.policy,
             research_provider=research_provider, research_settings=settings.research,
             compound_provider=compound_provider, object_store=objects,
             skill_catalog=skill_catalog, chembl_provider=chembl,
+            pubchem_assay_provider=pubchem_assays,
         )
         runner = ToolRunner(
             registry, db,
@@ -336,6 +344,7 @@ def create_app(
             ProtocolProbe(egress=egress),
             catalog=ModelCatalog(egress=egress),
             hosts=owner_hosts,
+            agent_name=settings.runtime.agent_name,
         )
         app.state.chatgpt = chatgpt_oauth.ChatGPTEnrollment(
             owner_hosts,
@@ -502,6 +511,9 @@ def create_app(
             close_compound = getattr(compound_provider, "aclose", None)
             if close_compound is not None:
                 await close_compound()
+            close_assays = getattr(pubchem_assays, "aclose", None)
+            if close_assays is not None:
+                await close_assays()
             if ocr_client is None and ocr is not None:
                 await ocr.aclose()
             if predictor is None:

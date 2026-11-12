@@ -77,6 +77,22 @@ def test_tool_results_count_usage_and_availability():
     assert state.found_refs == ("evidence:evd_1", "evidence:evd_2")
 
 
+def test_assay_sources_record_read_evidence_and_provider_failures():
+    state = ds.apply_tool_result(_state(), tool_name="get_chembl_activities", status="error",
+                                 error_code="tool_timeout")
+    assert state.access_failures[0]["provider"] == "chembl"
+    state = ds.apply_tool_result(state, tool_name="get_pubchem_bioassays", status="completed",
+                                 observation_ids=["evd_1"])
+    assert state.available_refs == ("evidence:evd_1",)
+    assert state.access_failures[0]["reason"] == "tool_timeout"
+
+
+def test_denied_assay_lookup_is_not_a_provider_outage():
+    state = ds.apply_tool_result(_state(), tool_name="get_pubchem_bioassays", status="denied",
+                                 error_code="tool_denied")
+    assert state.access_failures == ()
+
+
 def test_answer_relations_resolve_propositions_only_with_refs():
     state = _plan(_state())
     state = ds.apply_answer(state, relations=[

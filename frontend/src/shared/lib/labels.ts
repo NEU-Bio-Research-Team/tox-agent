@@ -81,6 +81,10 @@ export const ERROR_CODE_LABEL_VI: Record<string, string> = {
   predictor_protocol_error: 'Predictor trả về phản hồi không hợp lệ.',
   runtime_unavailable: 'Runtime agent hiện không khả dụng.',
   runtime_protocol_error: 'Runtime agent trả về phản hồi không hợp lệ.',
+  model_not_supported:
+    'Model đã chọn không dùng được với tài khoản AI này. Hãy chọn model khác ở ô model của khung chat.',
+  ai_credential_rejected:
+    'Nhà cung cấp AI từ chối đăng nhập hoặc khóa của kết nối này. Hãy kết nối lại trong Cài đặt.',
   tool_denied: 'Tool bị từ chối theo capability profile.',
   tool_timeout: 'Tool call vượt quá thời gian cho phép.',
   provider_rate_limited: 'Nhà cung cấp model đang giới hạn tốc độ.',

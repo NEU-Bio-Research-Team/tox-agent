@@ -26,12 +26,14 @@ from ...domain.errors import (
 from ...domain.runtime import AuthMode
 from ..responses import (
     ChatGPTEnrollment,
+    ModelCheckResult,
     ModelConnection,
     ModelConnectionList,
     ModelOptionList,
     SupportedProviderList,
 )
 from ..schemas import (
+    CheckModelRequest,
     CompleteChatGPTRequest,
     CreateModelConnectionRequest,
     ListModelsRequest,
@@ -197,6 +199,31 @@ async def list_connection_models(
     except ProbeError as exc:
         raise InvalidRequest(str(exc), probe_failure=exc.kind.value) from exc
     return {"models": [model.to_dict() for model in models]}
+
+
+@router.post(
+    "/model-connections/{connection_id}:check-model", responses={200: {"model": ModelCheckResult}}
+)
+async def check_connection_model(
+    request: Request, connection_id: str, body: CheckModelRequest,
+    principal: Actor = Depends(actor),
+):
+    """Ask one model a real question on this ChatGPT sign-in.
+
+    A refused model is an answer, not an error: it comes back 200 with
+    ``status`` saying why, so the picker can show it next to the model.
+    """
+    try:
+        result = await _services(request).connections.check_model(
+            connection_id, owner_id=principal.subject_id, model_id=body.model_id
+        )
+    except ConnectionNotFound as exc:
+        raise NotFound("model connection not found") from exc
+    except ValueError as exc:
+        raise InvalidRequest(str(exc)) from exc
+    except ProbeError as exc:
+        raise InvalidRequest(str(exc), probe_failure=exc.kind.value) from exc
+    return result.to_dict()
 
 
 @router.post("/model-connections/{connection_id}:test", responses={200: {"model": ModelConnection}})

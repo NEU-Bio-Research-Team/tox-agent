@@ -40,7 +40,7 @@ LEDGER_VERSION = "decision-loop-v1"
 TERMINAL_ACTIONS = frozenset({"answer", "ask_user", "stop"})
 #: Actions that look for new material, and so are subject to repeat refusal.
 SEARCH_ACTIONS = frozenset({
-    "search_toxicology_evidence", "get_chembl_activities", "get_evidence_record",
+    "search_toxicology_evidence", "get_chembl_activities", "get_pubchem_bioassays", "get_evidence_record",
     "read_evidence_text", "delegate_evidence_workers",
 })
 

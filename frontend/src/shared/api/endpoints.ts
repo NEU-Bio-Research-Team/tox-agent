@@ -271,6 +271,21 @@ export function listConnectionModels(connectionId: string): Promise<{ models: Mo
   return apiRequest(`/v1/model-connections/${connectionId}/models`);
 }
 
+/**
+ * Whether one model answers a real turn on a ChatGPT sign-in. The list above is
+ * what the runtime and its catalogue name; this is the evidence, so a pick that
+ * stands is a pick that runs. A refused model is an answer (`status`), not an
+ * HTTP error.
+ */
+export type ModelCheck = Schemas['ModelCheckResult'];
+
+export function checkConnectionModel(connectionId: string, modelId: string): Promise<ModelCheck> {
+  return apiRequest(`/v1/model-connections/${connectionId}:check-model`, {
+    method: 'POST',
+    body: { model_id: modelId },
+  });
+}
+
 /** Switch a saved connection to another model of the same account (needs a new Test). */
 export function changeConnectionModel(
   connectionId: string, input: { model_id: string; display_name?: string },

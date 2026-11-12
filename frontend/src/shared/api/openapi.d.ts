@@ -159,6 +159,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/model-connections/{connection_id}:check-model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Connection Model
+         * @description Ask one model a real question on this ChatGPT sign-in.
+         *
+         *     A refused model is an answer, not an error: it comes back 200 with
+         *     ``status`` saying why, so the picker can show it next to the model.
+         */
+        post: operations["check_connection_model_v1_model_connections__connection_id__check_model_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/model-connections/{connection_id}:test": {
         parameters: {
             query?: never;
@@ -2049,6 +2072,11 @@ export interface components {
             /** Verification Url */
             verification_url?: string | null;
         };
+        /** CheckModelRequest */
+        CheckModelRequest: {
+            /** Model Id */
+            model_id: string;
+        };
         /** Claim */
         Claim: {
             /** Citation Ids */
@@ -2922,6 +2950,25 @@ export interface components {
             /** Type */
             type: string;
         };
+        /**
+         * ModelCheckResult
+         * @description Whether a model answered a real turn on a ChatGPT sign-in.
+         *
+         *     Only ``usable`` lets a pick stand. ``unsupported``: this account cannot use
+         *     the model. ``signin_rejected``: reconnect. ``busy`` / ``unavailable``: the
+         *     check said nothing about the model, try again.
+         */
+        ModelCheckResult: {
+            /** Message */
+            message: string;
+            /** Model Id */
+            model_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "usable" | "unsupported" | "signin_rejected" | "busy" | "unavailable";
+        };
         /** ModelConnection */
         ModelConnection: {
             /** Auth Mode */
@@ -2967,6 +3014,8 @@ export interface components {
         };
         /** ModelOption */
         ModelOption: {
+            /** Availability */
+            availability?: ("runtime" | "catalogue") | null;
             /** Id */
             id: string;
             /** Name */
@@ -4899,6 +4948,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelOptionList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_connection_model_v1_model_connections__connection_id__check_model_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckModelRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCheckResult"];
                 };
             };
             /** @description Validation Error */

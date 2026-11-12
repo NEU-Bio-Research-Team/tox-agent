@@ -9,7 +9,15 @@ from ...application.investigation import decision_state_service
 from ...application.runs.scheduler import RunContext
 from ...application.runs.transitions import advance
 from ...domain import decision_state
-from ...domain.errors import Conflict, DeadlineExceeded, RuntimeProtocolError, RuntimeUnavailable
+from ...connections.refusal import classify as classify_refusal
+from ...domain.errors import (
+    AiCredentialRejected,
+    Conflict,
+    DeadlineExceeded,
+    ModelNotSupported,
+    RuntimeProtocolError,
+    RuntimeUnavailable,
+)
 from ...domain.events import EventType
 from ...domain.message import Message, PartType, Role
 from ...domain.run import Intent, RunStatus
@@ -33,6 +41,22 @@ REASONING_EMIT_INTERVAL_S = 1.0
 #: The tail of a reasoning part kept in an event. A part longer than this is
 #: shown from its end, which is the part a reader watching it needs.
 REASONING_MAX_CHARS = 6000
+
+
+def _turn_failure(payload: dict) -> Exception:
+    """The typed failure for a turn the runtime reported as failed.
+
+    A provider that says something specific is believed: a refused model and a
+    rejected credential each have their own code and a message that says what to
+    do. Anything else stays ``runtime_protocol_error`` with the runtime's own
+    payload, as before.
+    """
+    refusal = classify_refusal(payload.get("error"))
+    if refusal is not None and refusal.kind == "model_not_supported":
+        return ModelNotSupported(refusal.message, provider_status=refusal.status_code)
+    if refusal is not None and refusal.kind == "signin_rejected":
+        return AiCredentialRejected(refusal.message, provider_status=refusal.status_code)
+    return RuntimeProtocolError("the runtime turn failed", **payload)
 
 
 class CompletionMixin:
@@ -163,7 +187,7 @@ class CompletionMixin:
             if event.type is RuntimeEventType.TURN_FAILED:
                 if await has_product(context):
                     return lost
-                raise RuntimeProtocolError("the runtime turn failed", **event.payload)
+                raise _turn_failure(event.payload)
 
     async def _emit_trace(self, context: RunContext, kind: str, payload: dict) -> None:
         """One line of the run's live log (``agent.trace``): never state."""

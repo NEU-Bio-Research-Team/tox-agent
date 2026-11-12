@@ -39,7 +39,9 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from .models import MODEL_ID, ModelOption, clean
+from ..domain.errors import RuntimeUnavailable
+from .models import MODEL_ID, ModelOption, clean, is_openai_chat_model
+from .refusal import classify
 from .runtime_install import HostCredential, parse_oauth
 
 log = logging.getLogger("toxagent.connections.chatgpt")
@@ -136,7 +138,7 @@ def headless_method(methods: Any) -> int:
     raise EnrollmentError("unsupported", "the runtime offers no device-code ChatGPT sign-in")
 
 
-def openai_models(payload: Any) -> list[ModelOption]:
+def openai_models(payload: Any, *, availability: str | None = None) -> list[ModelOption]:
     providers = payload.get("providers") if isinstance(payload, dict) else None
     openai = next(
         (item for item in providers or [] if isinstance(item, dict) and item.get("id") == "openai"),
@@ -146,9 +148,62 @@ def openai_models(payload: Any) -> list[ModelOption]:
     if not isinstance(models, dict):
         return []
     return clean(
-        (key, value.get("name") if isinstance(value, dict) else key)
-        for key, value in models.items()
+        ((key, value.get("name") if isinstance(value, dict) else key)
+         for key, value in models.items()),
+        availability=availability,
     )
+
+
+def catalogue_models(payload: Any) -> list[ModelOption]:
+    """The chat models the runtime's catalogue knows for OpenAI, newest first.
+
+    ``/config/providers`` is the runtime's *own* view for this sign-in: the
+    pinned binary filters it to the models it was built to allow, so a model
+    released after it is absent however current its catalogue. ``/provider``
+    is the catalogue itself, unfiltered. Both are claims about a model, not
+    about the account, which is why a model is checked with a real turn
+    (``check_model``) before the user keeps it.
+    """
+    entries = payload.get("all") if isinstance(payload, dict) else None
+    openai = next(
+        (item for item in entries or [] if isinstance(item, dict) and item.get("id") == "openai"),
+        {},
+    )
+    models = openai.get("models") if isinstance(openai, dict) else None
+    if not isinstance(models, dict):
+        return []
+
+    def released(item: tuple[str, Any]) -> str:
+        value = item[1].get("release_date") if isinstance(item[1], dict) else None
+        return value if isinstance(value, str) else ""
+
+    ordered = sorted(models.items(), key=lambda item: (released(item), item[0]), reverse=True)
+    return clean(
+        ((key, value.get("name") if isinstance(value, dict) else key)
+         for key, value in ordered if isinstance(key, str) and is_openai_chat_model(key)),
+        availability="catalogue",
+    )
+
+
+def merge_models(offered: list[ModelOption], known: list[ModelOption]) -> list[ModelOption]:
+    """What the runtime offers first, then what only the catalogue knows."""
+    seen = {item.id for item in offered}
+    return [*offered, *(item for item in known if item.id not in seen)]
+
+
+async def host_models(host) -> list[ModelOption]:
+    """Every model a private host can name for a ChatGPT sign-in."""
+    params = {"directory": str(host.workspace)}
+    response = await host.client.get("/config/providers", params=params, timeout=20)
+    if response.status_code != 200:
+        raise EnrollmentError("unavailable", "the runtime could not list the sign-in's models")
+    offered = openai_models(response.json(), availability="runtime")
+    try:
+        known = await host.client.get("/provider", params=params, timeout=20)
+        catalogue = catalogue_models(known.json()) if known.status_code == 200 else []
+    except (httpx.HTTPError, ValueError):
+        catalogue = []  # the runtime's own list is still a usable answer
+    return merge_models(offered, catalogue)
 
 
 @dataclass
@@ -238,11 +293,8 @@ class ChatGPTEnrollment:
                 raise EnrollmentError("not_completed", "the ChatGPT sign-in returned no credential")
             credential = json.dumps(parse_oauth(json.dumps(record)), separators=(",", ":"))
             try:
-                listed = await host.client.get(
-                    "/config/providers", params={"directory": str(host.workspace)}, timeout=20
-                )
-                models = openai_models(listed.json()) if listed.status_code == 200 else []
-            except (httpx.HTTPError, ValueError):
+                models = await host_models(host)
+            except (httpx.HTTPError, ValueError, EnrollmentError):
                 models = []
             enrollment.credential = credential
             enrollment.models = models
@@ -363,11 +415,111 @@ async def verify_subscription(pool, connection, credential: str) -> list[ModelOp
         )
     )
     try:
-        response = await host.client.get(
-            "/config/providers", params={"directory": str(host.workspace)}, timeout=20
-        )
-        if response.status_code != 200:
-            raise EnrollmentError("unavailable", "the runtime could not list the sign-in's models")
-        return openai_models(response.json())
+        return await host_models(host)
     finally:
+        await pool.release(host)
+
+
+#: A turn this small answers in a few seconds and spends a handful of tokens.
+CHECK_SYSTEM = "Reply with the single word OK."
+CHECK_PROMPT = "ping"
+CHECK_TIMEOUT_S = 75.0
+
+
+@dataclass(frozen=True, slots=True)
+class ModelCheck:
+    """Whether one model answered a real turn on one ChatGPT sign-in.
+
+    ``usable`` is the only status that lets a pick stand. ``unsupported`` is the
+    provider saying this account cannot use the model; ``signin_rejected`` says
+    the sign-in itself no longer works; ``busy`` and ``unavailable`` say nothing
+    about the model (a run holds the connection, the runtime did not answer).
+    """
+
+    model_id: str
+    status: str
+    message: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {"model_id": self.model_id, "status": self.status, "message": self.message}
+
+
+async def check_model(
+    pool, connection, credential: str, model_id: str, *, agent: str = "toxagent"
+) -> ModelCheck:
+    """Ask ``model_id`` one tiny question on this sign-in's own host.
+
+    The listing of models is a claim; this is the evidence. It takes the same
+    path a run takes (the host, the sign-in, the Codex backend), so what it says
+    is what a run will find. A refused model costs nothing and says why; a
+    working one costs a few tokens of the user's own subscription, which is why
+    the service remembers the answer for a while.
+    """
+    model_id = model_id.strip()
+    if not MODEL_ID.match(model_id) or len(model_id) > 128:
+        raise ValueError("that is not a valid model id")
+    try:
+        host = await pool.acquire(
+            HostCredential(
+                connection_id=connection.id,
+                owner_id=connection.owner_id,
+                provider_id=connection.provider_id,
+                model_id=model_id,
+                auth_mode=connection.auth_mode.value,
+                base_url=None,
+                secret=credential,
+                secret_ref=connection.credential_ref,
+            )
+        )
+    except RuntimeUnavailable as exc:
+        return ModelCheck(model_id, "busy", str(exc))
+    params = {"directory": str(host.workspace)}
+    session_id: str | None = None
+    try:
+        created = await host.client.post("/session", params=params, json={"title": "model check"}, timeout=20)
+        session_id = created.json().get("id") if created.status_code == 200 else None
+        if not isinstance(session_id, str):
+            return ModelCheck(model_id, "unavailable", "the runtime could not open a session to check the model")
+        reply = await host.client.post(
+            f"/session/{session_id}/message",
+            params=params,
+            json={
+                "model": {"providerID": "openai", "modelID": model_id},
+                "agent": agent,
+                "system": CHECK_SYSTEM,
+                "parts": [{"type": "text", "text": CHECK_PROMPT}],
+            },
+            timeout=CHECK_TIMEOUT_S,
+        )
+        if reply.status_code != 200:
+            return ModelCheck(model_id, "unavailable", f"the runtime answered HTTP {reply.status_code}")
+        response = reply.json()
+        info = response.get("info") if isinstance(response, dict) else None
+        if not isinstance(info, dict) or info.get("role") != "assistant":
+            return ModelCheck(model_id, "unavailable", "the runtime returned an invalid answer")
+        refusal = classify(info.get("error"))
+        if refusal is None:
+            parts = response.get("parts")
+            if info.get("error") is not None or not isinstance(parts, list) or not any(
+                isinstance(part, dict) and part.get("type") == "text"
+                and isinstance(part.get("text"), str) and part["text"].strip()
+                for part in parts
+            ):
+                return ModelCheck(model_id, "unavailable", "the runtime returned no answer")
+            return ModelCheck(model_id, "usable", "the model answered")
+        if refusal.kind == "model_not_supported":
+            return ModelCheck(model_id, "unsupported", refusal.message)
+        if refusal.kind == "signin_rejected":
+            return ModelCheck(model_id, "signin_rejected", refusal.message)
+        return ModelCheck(model_id, "unavailable", refusal.message)
+    except httpx.TimeoutException:
+        return ModelCheck(model_id, "unavailable", f"no answer within {CHECK_TIMEOUT_S:.0f}s")
+    except (httpx.HTTPError, ValueError, AttributeError):
+        return ModelCheck(model_id, "unavailable", "the runtime did not answer the check")
+    finally:
+        if session_id is not None:
+            try:
+                await host.client.delete(f"/session/{session_id}", params=params, timeout=10)
+            except httpx.HTTPError:
+                pass  # the host's directory goes with the host
         await pool.release(host)

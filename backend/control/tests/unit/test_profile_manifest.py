@@ -81,6 +81,7 @@ def test_every_manifest_tool_is_one_the_code_can_register(monkeypatch):
         research_provider=SimpleNamespace(name="stub", fetch_full_text=lambda **_: None),
         compound_provider=SimpleNamespace(name="stub"),
         chembl_provider=SimpleNamespace(name="stub"),
+        pubchem_assay_provider=SimpleNamespace(name="stub"),
     )
     registered = set(registry.names())
     listed = set().union(*PROFILES.values())

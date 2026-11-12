@@ -8,6 +8,7 @@ looked at it on its own.
 """
 from __future__ import annotations
 
+import time
 from dataclasses import replace
 from datetime import datetime, timezone
 from typing import Protocol
@@ -24,6 +25,13 @@ class ConnectionNotFound(LookupError):
     pass
 
 
+#: How long a model check is remembered. A working model costs a few tokens of
+#: the user's own subscription to prove, so it is not proven on every click; a
+#: refusal is remembered for less, because an account's plan can change.
+#: ``busy`` / ``unavailable`` say nothing about the model and are never kept.
+_CHECK_TTL_S = {"usable": 900.0, "unsupported": 300.0, "signin_rejected": 60.0}
+
+
 class ModelProbe(Protocol):
     async def probe(self, connection: ModelConnection, credential: str | None) -> ProbeResult: ...
 
@@ -37,6 +45,7 @@ class ModelConnectionService:
         *,
         catalog: ModelCatalog | None = None,
         hosts=None,
+        agent_name: str = "toxagent",
     ) -> None:
         self._db, self._secrets = database, secrets
         self._probe = probe or ProtocolProbe()
@@ -45,6 +54,8 @@ class ModelConnectionService:
         #: deployment runs them. A ChatGPT sign-in is verified on one, and a
         #: deleted connection's host is stopped so its credential leaves disk.
         self._hosts = hosts
+        self._agent_name = agent_name
+        self._checks: dict[tuple[str, str], tuple[float, object]] = {}
 
     async def create(self, *, owner_id: str, provider_id: str, model_id: str,
                      auth_mode: AuthMode, base_url: str | None, credential: str | None,
@@ -149,6 +160,39 @@ class ModelConnectionService:
             provider_id=item.provider_id, base_url=item.base_url, credential=credential
         )
 
+    async def check_model(self, connection_id: str, *, owner_id: str, model_id: str):
+        """Whether ``model_id`` really answers on this ChatGPT sign-in.
+
+        The picker lists what the runtime and its catalogue name; this is the
+        evidence that one of them works for this account, taken the way a run
+        takes it, so a pick that stands is a pick that runs.
+        """
+        from .chatgpt import check_model
+
+        item = await self.get(connection_id, owner_id=owner_id)
+        if item.auth_mode is not AuthMode.CHATGPT_SUBSCRIPTION:
+            raise ValueError(
+                "only a ChatGPT sign-in is checked this way; a key's models are listed by "
+                "its provider"
+            )
+        credential = self._credential(item)
+        if self._hosts is None or credential is None:
+            raise ProbeError(
+                ProbeFailure.PROTOCOL_ERROR,
+                "this deployment cannot reach the ChatGPT sign-in's runtime",
+            )
+        key = (connection_id, model_id.strip())
+        hit = self._checks.get(key)
+        if hit is not None and hit[0] > time.monotonic():
+            return hit[1]
+        result = await check_model(self._hosts, item, credential, model_id, agent=self._agent_name)
+        for stale in [name for name, (expires, _) in self._checks.items() if expires <= time.monotonic()]:
+            self._checks.pop(stale, None)
+        ttl = _CHECK_TTL_S.get(result.status)
+        if ttl is not None:
+            self._checks[key] = (time.monotonic() + ttl, result)
+        return result
+
     async def change_model(
         self, connection_id: str, *, owner_id: str, model_id: str,
         display_name: str | None = None,
@@ -242,6 +286,8 @@ class ModelConnectionService:
         async with self._db.unit_of_work() as uow:
             deleted = await uow.model_connections.delete(connection_id, owner_id=owner_id)
             await uow.commit()
+        for name in [name for name in self._checks if name[0] == connection_id]:
+            self._checks.pop(name, None)
         if deleted and self._hosts is not None:
             await self._hosts.forget_connection(connection_id)
         if deleted and item.credential_ref:

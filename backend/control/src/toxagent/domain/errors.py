@@ -179,6 +179,26 @@ class RuntimeProtocolError(ToxAgentError):
     code, http_status = "runtime_protocol_error", 502
 
 
+class ModelNotSupported(ToxAgentError):
+    """The provider refused the model this run was given for this account.
+
+    Not a runtime fault and not retryable as is: the same model fails the same
+    way. The user picks another model (the picker checks a model before it is
+    kept), so the message names it instead of reporting a broken runtime.
+    """
+
+    code, http_status = "model_not_supported", 409
+
+
+class AiCredentialRejected(ToxAgentError):
+    """The provider refused the connection's credential or ChatGPT sign-in.
+
+    Distinct from a refused model: the fix is to reconnect, not to re-pick.
+    """
+
+    code, http_status = "ai_credential_rejected", 409
+
+
 class ToolDenied(ToxAgentError):
     """PROD-06: refused at the transport, not merely hidden from the model."""
 
@@ -281,7 +301,8 @@ PUBLIC_ERROR_CODES: Final[frozenset[str]] = frozenset(
         "attachment_unavailable", "unauthenticated", "forbidden", "conflict",
         "capability_unavailable", "structure_recognition_unavailable", "smiles_not_detected",
         "endpoint_unavailable", "predictor_not_ready", "predictor_protocol_error",
-        "runtime_unavailable", "runtime_protocol_error", "tool_denied",
+        "runtime_unavailable", "runtime_protocol_error", "model_not_supported",
+        "ai_credential_rejected", "tool_denied",
         "tool_timeout", "provider_rate_limited", "evidence_unavailable",
         "answer_validation_failed", "deadline_exceeded", "phase_budget_exhausted",
         "case_unavailable",

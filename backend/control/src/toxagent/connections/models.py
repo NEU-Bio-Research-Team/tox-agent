@@ -63,12 +63,21 @@ class ModelListError(RuntimeError):
 class ModelOption:
     id: str
     name: str
+    #: Only a ChatGPT sign-in sets this, because only there the list is a
+    #: superset of what the account can use: ``"runtime"`` is a model the
+    #: runtime itself offers to the sign-in, ``"catalogue"`` one it only knows
+    #: of (newer than the runtime's own allowance). Neither is a promise; the
+    #: picker checks a model with a real turn before the user keeps it.
+    availability: str | None = None
 
     def to_dict(self) -> dict[str, str]:
-        return {"id": self.id, "name": self.name}
+        body = {"id": self.id, "name": self.name}
+        if self.availability is not None:
+            body["availability"] = self.availability
+        return body
 
 
-def clean(items) -> list[ModelOption]:
+def clean(items, *, availability: str | None = None) -> list[ModelOption]:
     models: list[ModelOption] = []
     seen: set[str] = set()
     for model_id, name in items:
@@ -80,9 +89,19 @@ def clean(items) -> list[ModelOption]:
         ):
             seen.add(model_id)
             models.append(
-                ModelOption(model_id, name if isinstance(name, str) and name else model_id)
+                ModelOption(
+                    model_id, name if isinstance(name, str) and name else model_id, availability
+                )
             )
     return models[:MAX_MODELS]
+
+
+def is_openai_chat_model(model_id: str) -> bool:
+    """The OpenAI-shaped chat models: the filter the key-based listing uses, so
+    a ChatGPT sign-in's catalogue is read by the same rule."""
+    return bool(_OPENAI_CHAT.match(model_id)) and not any(
+        word in model_id for word in _OPENAI_EXCLUDED
+    )
 
 
 #: Listed by several providers next to their chat models, never usable for a run.

@@ -166,6 +166,12 @@ class GoalContractV1:
                 "Stop when no required question is open, or when the gap left is one only "
                 "the researcher or a working provider can close."
             )
+        if {"get_pubchem_bioassays", "get_chembl_activities"}.issubset(self.admissible_actions):
+            lines.append(
+                "For hERG assay evidence, PubChem and ChEMBL are separate lookup options. "
+                "If one times out or is unavailable, consider the other before repeating the "
+                "failed lookup; record the actual source and check for overlapping experiments."
+            )
         declared = _budget_lines(self.budget)
         if declared:
             lines.append("Budget: " + "; ".join(declared) +

@@ -96,6 +96,8 @@ _SOURCE_BY_TOOL: Mapping[str, RequiredSource] = {
     "get_explanation_slice": RequiredSource.EXPLANATION,
     "get_attribution": RequiredSource.EXPLANATION,
     "get_evidence_record": RequiredSource.EVIDENCE,
+    # This tool returns complete, citable evidence records, not search snippets.
+    "get_pubchem_bioassays": RequiredSource.EVIDENCE,
     # #43: a record whose text was read has been read.
     "read_evidence_text": RequiredSource.EVIDENCE,
     "get_report_summary": RequiredSource.REPORT,
@@ -368,7 +370,15 @@ def apply_tool_result(
         usage["denied_calls"] = usage.get("denied_calls", 0) + 1
     else:
         usage["failed_calls"] = usage.get("failed_calls", 0) + 1
-    return _next(state, usage=usage, available_refs=tuple(available))
+    updated = _next(state, usage=usage, available_refs=tuple(available))
+    provider = {
+        "get_chembl_activities": "chembl",
+        "get_pubchem_bioassays": "pubchem",
+    }.get(tool_name)
+    if provider and error_code in {"tool_timeout", "evidence_unavailable", "provider_rate_limited"}:
+        return record_access_failure(updated, provider=provider, asked_for=tool_name,
+                                     reason=error_code)
+    return updated
 
 
 def apply_answer(

@@ -370,6 +370,10 @@ class UpdateModelConnectionRequest(_Request):
     display_name: str | None = Field(default=None, max_length=160)
 
 
+class CheckModelRequest(_Request):
+    model_id: str = Field(min_length=1, max_length=128)
+
+
 class CompleteChatGPTRequest(_Request):
     model_id: str = Field(min_length=1, max_length=128)
     display_name: str | None = Field(default=None, max_length=160)

@@ -510,7 +510,8 @@ class SubmitAnswer:
             # record it returned has been read, not merely listed; a record
             # whose full text was read (#43) has been read too.
             if call["tool_name"] in (
-                "get_evidence_record", "get_chembl_activities", "read_evidence_text",
+                "get_evidence_record", "get_chembl_activities", "get_pubchem_bioassays",
+                "read_evidence_text",
             ) and call["status"] == "completed":
                 read.update(call.get("observation_ids") or ())
         return frozenset(read)

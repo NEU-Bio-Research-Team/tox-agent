@@ -1065,6 +1065,23 @@ class SupportedProvider(_Response):
 class ModelOption(_Response):
     id: str
     name: str
+    #: ChatGPT sign-ins only: ``runtime`` = the runtime offers it to this
+    #: sign-in; ``catalogue`` = only its catalogue knows it. Neither is a
+    #: promise; see ``ModelCheckResult``.
+    availability: Literal["runtime", "catalogue"] | None = None
+
+
+class ModelCheckResult(_Response):
+    """Whether a model answered a real turn on a ChatGPT sign-in.
+
+    Only ``usable`` lets a pick stand. ``unsupported``: this account cannot use
+    the model. ``signin_rejected``: reconnect. ``busy`` / ``unavailable``: the
+    check said nothing about the model, try again.
+    """
+
+    model_id: str
+    status: Literal["usable", "unsupported", "signin_rejected", "busy", "unavailable"]
+    message: str
 
 
 class ModelOptionList(_Response):
