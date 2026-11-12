@@ -74,15 +74,35 @@ jobs:
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Is Google sign-in switched on for the project
+        id: google
+        env:
+          WEB_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY }}
+        run: |
+          # The button is shown only when the project can complete the
+          # sign-in. A provider that is off answers OPERATION_NOT_ALLOWED, and
+          # a button that can only fail is worse on a live site than no button.
+          # Turn it on in the Firebase console (Authentication, Sign-in
+          # method); the next run of this workflow then ships the button.
+          enabled=false
+          if [[ -n "${WEB_API_KEY}" ]]; then
+            body="$(curl --silent --max-time 30 -X POST \
+              -H 'content-type: application/json' \
+              -d '{"providerId":"google.com","continueUri":"https://'"${FIREBASE_PROJECT_ID}"'.web.app"}' \
+              "https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${WEB_API_KEY}" || true)"
+            if grep -q '"authUri"' <<<"${body}"; then enabled=true; fi
+          fi
+          echo "Google sign-in enabled: ${enabled}"
+          echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
+
       - name: Build
         run: npm run build
         env:
           VITE_API_BASE_URL: ${{ vars.TOXAGENT_API_ORIGIN }}
           VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY }}
-          # With the key, enables "Continue with Google" (the project's own
-          # sign-in handler). The Google provider itself is switched on in the
-          # Firebase console: Authentication, Sign-in method.
-          VITE_FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
+          # With the key, shows "Continue with Google" (the project's own
+          # sign-in handler), and only once the step above found the provider on.
+          VITE_FIREBASE_PROJECT_ID: ${{ steps.google.outputs.enabled == 'true' && env.FIREBASE_PROJECT_ID || '' }}
 
       - name: The API the build points at is up
         if: steps.target.outputs.deploy == 'true'

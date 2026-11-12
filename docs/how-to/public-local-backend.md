@@ -131,8 +131,10 @@ addresses and on preview channels, which Firebase lists as authorized domains.
 
 One step is not in the repository: switch the Google provider on in the
 Firebase console (Authentication → Sign-in method → Google → Enable, with a
-support email). Until then the button answers that Google sign-in is not
-enabled. A Google account and a password account with the same email are one
+support email). The hosting workflow asks Firebase whether the provider is on
+and ships the button only when it is, so run the workflow again after enabling
+it. A build made by hand shows the button whenever `VITE_FIREBASE_PROJECT_ID`
+is set, and the button then says so if the provider is still off. A Google account and a password account with the same email are one
 person to Firebase by default, so signing in either way reaches the same data.
 
 ## What is not covered
