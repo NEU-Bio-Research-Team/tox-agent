@@ -127,6 +127,15 @@ workflow: the address is fixed at build time.
 - Roles. A Firebase account has no `roles` claim unless one is set with the
   Admin SDK, so everyone signs in as an ordinary user and expert threshold
   overrides are refused.
-- ChatGPT Plus/Pro sign-in is off in this mode
-  (`TOXAGENT_PUBLIC_CHATGPT_OAUTH`). Users connect an API key or an
-  OpenAI-compatible server instead.
+- ChatGPT Plus/Pro sign-in is off unless the operator turns it on. Set
+  `TOXAGENT_PUBLIC_CHATGPT_OAUTH=hosted` in `.env` and run
+  `./bin/toxagent up --public` again; each user then signs in with their own
+  account (a device code entered on OpenAI's page) and their credential is
+  kept encrypted for them alone. OpenAI asks hosted services that offer this
+  to register with it first
+  ([token sharing](https://developers.openai.com/siwc/token-sharing-open-source)),
+  and whether to do so is the operator's call. Each signed-in user holds a
+  private OpenCode process of about 300 MB while they chat, capped by
+  `TOXAGENT_OWNER_HOSTS_MAX` (2 by default); a third user's run is refused
+  until one goes idle, so raise it only as far as the machine's memory allows.
+  Without the setting, users connect an API key or an OpenAI-compatible server.

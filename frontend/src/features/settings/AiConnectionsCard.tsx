@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { CheckCircle2, CircleAlert, CircleDashed, KeyRound, Loader2, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../shared/ui/card';
 import { Button } from '../../shared/ui/button';
@@ -241,6 +242,8 @@ export function AiConnectionsCard({
   const [providers, setProviders] = useState<SupportedProvider[]>([]);
   const [provider, setProvider] = useState('');
   const [method, setMethod] = useState<'api_key' | 'chatgpt'>('api_key');
+  const [searchParams] = useSearchParams();
+  const connectIntent = searchParams.get('connect');
   const [baseUrl, setBaseUrl] = useState('');
   const [credential, setCredential] = useState('');
   const [probeModel, setProbeModel] = useState('');
@@ -259,7 +262,18 @@ export function AiConnectionsCard({
     void listSupportedProviders()
       .then((result) => {
         setProviders(result.providers);
-        if (result.providers[0]) setProvider(result.providers[0].provider_id);
+        // `?connect=chatgpt` (the chat's model picker links here when nothing
+        // is connected) opens on the ChatGPT sign-in instead of the API-key
+        // form, when this deployment offers it. Otherwise the page opens as
+        // it always did, and the sign-in card says why it is unavailable.
+        const wantsChatGPT = connectIntent === 'chatgpt';
+        const openai = result.providers.find((item) => item.provider_id === 'openai' && item.chatgpt_oauth?.available);
+        if (wantsChatGPT && openai) {
+          setProvider(openai.provider_id);
+          setMethod('chatgpt');
+        } else if (result.providers[0]) {
+          setProvider(result.providers[0].provider_id);
+        }
       })
       .catch(() => setFormError('Không tải được danh sách provider được hỗ trợ.'));
   }, []);

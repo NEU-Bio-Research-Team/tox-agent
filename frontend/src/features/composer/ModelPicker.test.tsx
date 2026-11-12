@@ -81,6 +81,8 @@ describe('ModelPicker', () => {
   it('points to Settings when nothing is connected', () => {
     renderPicker(vi.fn(), []);
     fireEvent.click(screen.getByRole('button', { name: /Model AI: Kết nối AI/ }));
-    expect(screen.getByRole('link', { name: /Mở Cài đặt/ }).getAttribute('href')).toBe('/settings');
+    expect(screen.getByRole('link', { name: /Dùng API key/ }).getAttribute('href')).toBe('/settings');
+    // The ChatGPT sign-in is one click away, on its own method rather than on the key form.
+    expect(screen.getByRole('link', { name: /Đăng nhập ChatGPT Plus\/Pro/ }).getAttribute('href')).toBe('/settings?connect=chatgpt');
   });
 });
