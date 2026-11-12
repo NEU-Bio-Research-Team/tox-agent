@@ -5,10 +5,11 @@ import logoImage from '../../assets/logo-tox.png';
 import { Button } from '../../shared/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../../shared/ui/popover';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../../shared/ui/sheet';
-import { getToken, setToken } from '../../shared/api/client';
+import { getToken } from '../../shared/api/client';
 import { queryClient } from '../../shared/lib/queryClient';
 import { applyTheme, getTheme, type Theme } from '../../shared/lib/theme';
 import { identityFromToken } from '../../features/auth/identity';
+import { signOut } from '../../features/auth/firebaseAuth';
 import { APP_VERSION, BUILD_TIME_LABEL } from '../build-info';
 import { ReleaseNotesModal } from './ReleaseNotesModal';
 
@@ -61,7 +62,7 @@ export function Navbar() {
   // Signing out drops the token and everything fetched with it: a cached
   // session list belongs to the identity that loaded it.
   const handleLogout = () => {
-    setToken(null);
+    signOut();
     queryClient.clear();
     setMobileMenuOpen(false);
     setUserMenuOpen(false);
