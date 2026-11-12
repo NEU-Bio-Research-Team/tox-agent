@@ -114,8 +114,10 @@ workflow: the address is fixed at build time.
 - The machine must not sleep. On Windows with WSL, disable sleep on AC power
   and keep WSL alive (a WSL instance stops when its last process exits; the
   Docker daemon counts).
-- Back up with `./bin/toxagent backup` and copy the `toxagent-state` volume
-  with it. The database refers to files in that volume; one without the other
+- The public stack is its own Compose project (`toxagent-public`), with its
+  own volumes. Back up with `./bin/toxagent backup --public` (plain `backup`
+  dumps the development stack's database) and copy the
+  `toxagent-public_toxagent-state` volume with it. The database refers to files in that volume; one without the other
   restores dangling references.
 - Losing `TOXAGENT_SECRET_ENCRYPTION_KEY` makes every stored AI credential
   unreadable. Keep a copy of `.env` somewhere other than this disk.

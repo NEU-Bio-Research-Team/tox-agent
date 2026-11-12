@@ -270,6 +270,18 @@ public_up() {
 }
 public_down() { export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"; "${PUBLIC_COMPOSE[@]}" down; }
 public_status() { export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"; "${PUBLIC_COMPOSE[@]}" ps; }
+# The default `backup` dumps the default project's database, which is not
+# this one.
+public_backup() {
+  export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"
+  mkdir -p backups
+  local out; out="backups/toxagent-public-$(date +%Y%m%d%H%M%S).sql.gz"
+  set -o pipefail
+  "${PUBLIC_COMPOSE[@]}" exec -T postgres pg_dump -U toxagent toxagent | gzip > "$out" \
+    || { rm -f "$out"; fail "backup failed; nothing was written"; }
+  set +o pipefail
+  printf 'backup: %s\n' "$out"
+}
 public_logs() { export OPENCODE_BINARY_HOST_PATH="${OPENCODE_BINARY_HOST_PATH:-/dev/null}"; "${PUBLIC_COMPOSE[@]}" logs --tail=200 toxagent-control api-gateway; }
 
 agent_down() { "${AGENT_COMPOSE[@]}" down; "$OPENCODE_RUNTIME" stop; }
@@ -368,6 +380,6 @@ case "$command" in
   down) case "${1:-}" in --agent) agent_down ;; --user-ai) user_ai_down ;; --public) public_down ;; *) down ;; esac ;;
   status) case "${1:-}" in --agent) agent_status ;; --user-ai) user_ai_status ;; --public) public_status ;; *) status ;; esac ;;
   logs) case "${1:-}" in --agent) agent_logs ;; --user-ai) user_ai_logs ;; --public) public_logs ;; *) logs "$@" ;; esac ;;
-  smoke) smoke ;; backup) backup ;; restore) restore "$@" ;;
-  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent|--user-ai|--public],down [--agent|--user-ai|--public],status [--agent|--user-ai|--public],logs [--agent|--user-ai|--public],smoke,backup,restore,models}\n' "$0" >&2; exit 2 ;;
+  smoke) smoke ;; backup) case "${1:-}" in --public) public_backup ;; *) backup ;; esac ;; restore) restore "$@" ;;
+  *) printf 'Usage: %s {setup,setup --agent,doctor,up [--agent|--user-ai|--public],down [--agent|--user-ai|--public],status [--agent|--user-ai|--public],logs [--agent|--user-ai|--public],smoke,backup [--public],restore,models}\n' "$0" >&2; exit 2 ;;
 esac
