@@ -245,12 +245,13 @@ public_binary() {
 }
 public_up() {
   bootstrap_env
+  public_binary
+  OWNING_COMPOSE=("${PUBLIC_COMPOSE[@]}")
   doctor
   local key
   for key in TOXAGENT_OIDC_ISSUER TOXAGENT_OIDC_AUDIENCE TOXAGENT_OIDC_JWKS_URL TOXAGENT_CORS_ALLOW_ORIGINS; do
     [[ -n "$(env_value "$key")" ]] || fail "$key is not set in .env; see docs/how-to/public-local-backend.md"
   done
-  public_binary
   "${PUBLIC_COMPOSE[@]}" up --build --detach --wait --wait-timeout 600 \
     || fail "public stack did not become ready; run ./bin/toxagent logs --public"
   local port mode leaked
@@ -293,12 +294,19 @@ doctor() {
   verify_predictor_artifacts >/dev/null \
     || fail "predictor model artifacts are missing or do not match the manifest; run ./bin/toxagent setup"
   local port; port="$(env_value FRONTEND_PORT)"; port="${port:-8088}"
+  # The published port is read as a field, not matched in Compose's rendering
+  # of the publisher list: that rendering changed between Docker releases
+  # (`0.0.0.0:8088->8080/tcp`, then `{0.0.0.0 8080 8088 tcp}`), and a pattern
+  # written for one silently never matches the other.
   # A listening port is only a problem when something *else* owns it. This
   # used to fail on the stack's own frontend, so `up` was not idempotent and
   # `doctor` could not be run against a running deployment at all (I29).
   if command -v ss >/dev/null && ss -ltn "sport = :$port" | grep -q LISTEN; then
-    if ! "${COMPOSE[@]}" ps --status running --format '{{.Publishers}}' 2>/dev/null \
-        | grep -q ":$port->"; then
+    # Asked of the stack being started: the public stack is its own Compose
+    # project, and its frontend is not the default project's.
+    if ! "${OWNING_COMPOSE[@]:-${COMPOSE[@]}}" ps --status running \
+        --format '{{range .Publishers}}{{.PublishedPort}} {{end}}' 2>/dev/null \
+        | grep -qw "$port"; then
       fail "port $port is already in use by another process; change FRONTEND_PORT in .env"
     fi
   fi
