@@ -18,11 +18,23 @@ export interface FirebaseAuthConfig {
   /** The project's web API key. It identifies the project to Google and is
    * public by design; it authorises nothing by itself. */
   apiKey: string;
+  /** The Firebase project id. Needed only for "Continue with Google", which
+   * opens the project's own sign-in handler; email and password need none. */
+  projectId?: string;
+  /** Where that handler is served. Defaults to `<projectId>.firebaseapp.com`. */
+  authDomain?: string;
 }
 
 export function firebaseAuthConfig(env: ImportMetaEnv = import.meta.env): FirebaseAuthConfig | null {
   const apiKey = (env.VITE_FIREBASE_API_KEY ?? '').trim();
-  return apiKey ? { apiKey } : null;
+  if (!apiKey) return null;
+  const projectId = (env.VITE_FIREBASE_PROJECT_ID ?? '').trim();
+  const authDomain = (env.VITE_FIREBASE_AUTH_DOMAIN ?? '').trim();
+  return {
+    apiKey,
+    ...(projectId ? { projectId } : {}),
+    ...(authDomain ? { authDomain } : {}),
+  };
 }
 
 const REFRESH_TOKEN_KEY = 'toxagent.firebase.refresh_token';
@@ -101,6 +113,11 @@ async function post(url: string, body: Record<string, unknown>): Promise<Record<
     throw new FirebaseAuthError(code, MESSAGES[code] ?? 'Đăng nhập thất bại.');
   }
   return payload;
+}
+
+/** Take a session obtained elsewhere — the Google popup — as this one. */
+export function adoptSession(idToken: string, refreshToken: string, lifetimeS: number): void {
+  adopt(idToken, refreshToken, lifetimeS);
 }
 
 function adopt(idToken: unknown, refreshToken: unknown, expiresIn: unknown): void {

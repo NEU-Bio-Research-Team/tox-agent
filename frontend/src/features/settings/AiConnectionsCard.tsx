@@ -243,7 +243,9 @@ export function AiConnectionsCard({
   const [provider, setProvider] = useState('');
   const [method, setMethod] = useState<'api_key' | 'chatgpt'>('api_key');
   const [searchParams] = useSearchParams();
-  const connectIntent = searchParams.get('connect');
+  // Read once: where the person arrived from decides the first view, and a
+  // later change to the address should not reset a choice they have made.
+  const [connectIntent] = useState(() => searchParams.get('connect'));
   const [baseUrl, setBaseUrl] = useState('');
   const [credential, setCredential] = useState('');
   const [probeModel, setProbeModel] = useState('');
@@ -276,7 +278,7 @@ export function AiConnectionsCard({
         }
       })
       .catch(() => setFormError('Không tải được danh sách provider được hỗ trợ.'));
-  }, []);
+  }, [connectIntent]);
 
   const selected = useMemo(() => providers.find((item) => item.provider_id === provider) ?? null, [providers, provider]);
   const providerName = (id: string) => providers.find((item) => item.provider_id === id)?.display_name ?? id;

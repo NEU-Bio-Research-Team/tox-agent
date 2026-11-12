@@ -79,6 +79,10 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ vars.TOXAGENT_API_ORIGIN }}
           VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_WEB_API_KEY }}
+          # With the key, enables "Continue with Google" (the project's own
+          # sign-in handler). The Google provider itself is switched on in the
+          # Firebase console: Authentication, Sign-in method.
+          VITE_FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
 
       - name: The API the build points at is up
         if: steps.target.outputs.deploy == 'true'

@@ -122,6 +122,19 @@ workflow: the address is fixed at build time.
 - Losing `TOXAGENT_SECRET_ENCRYPTION_KEY` makes every stored AI credential
   unreadable. Keep a copy of `.env` somewhere other than this disk.
 
+## Signing in with Google
+
+The sign-in page offers "Tiếp tục với Google" next to email and password. It
+opens the Firebase project's own handler in a popup, so it needs no client id
+in this repository and works on the project's `web.app` and `firebaseapp.com`
+addresses and on preview channels, which Firebase lists as authorized domains.
+
+One step is not in the repository: switch the Google provider on in the
+Firebase console (Authentication → Sign-in method → Google → Enable, with a
+support email). Until then the button answers that Google sign-in is not
+enabled. A Google account and a password account with the same email are one
+person to Firebase by default, so signing in either way reaches the same data.
+
 ## What is not covered
 
 - Roles. A Firebase account has no `roles` claim unless one is set with the
