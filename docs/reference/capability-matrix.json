@@ -348,10 +348,11 @@
     },
     "scientific_primitives_v1": {
       "default": false,
-      "description": "Register two scientific primitives in decision_support (RETHINK 4.7, 4.10): compute_exposure_margin (IC50 over free Cmax from concentrations written in the session's sources, stored as a citable observation) and, with a ChEMBL provider configured, get_chembl_activities (measured activities of the analysed structure against hERG, stored as citable evidence). Both honour the researcher's data scope. Off, neither exists.",
+      "description": "Register scientific primitives in decision_support (RETHINK 4.7, 4.10): compute_exposure_margin (IC50 over free Cmax from concentrations written in the session's sources, stored as a citable observation) and, with a ChEMBL provider configured, get_chembl_activities (measured activities of the analysed structure against hERG, stored as citable evidence), and get_pubchem_bioassays (PubChem hERG assay summaries) when PubChem is configured. External lookups honour the researcher's data scope. Off, these tools do not exist.",
       "gates_tools": [
         "compute_exposure_margin",
-        "get_chembl_activities"
+        "get_chembl_activities",
+        "get_pubchem_bioassays"
       ],
       "owner": "backend-scientific",
       "remove_by": "2026-12-23"
@@ -649,6 +650,7 @@
         "get_activity_snapshot": "activity_replay_v1",
         "get_chembl_activities": "scientific_primitives_v1",
         "get_prioritisation_decision": "activity_replay_v1",
+        "get_pubchem_bioassays": "scientific_primitives_v1",
         "get_scientific_case": "scientific_case_v1",
         "get_screening_state": "activity_replay_v1",
         "plan_next_action": "decision_loop_v1",
