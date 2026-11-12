@@ -1,4 +1,5 @@
 """Run selected ToxBench agent cases concurrently; preserve every run and failure."""
+
 from __future__ import annotations
 
 import argparse
@@ -27,20 +28,35 @@ def run_one(index: int, out: Path) -> dict:
     start = now()
     with log.open('w') as stream:
         try:
-            p = subprocess.run([sys.executable, str(RUNNER)], env=env, stdout=stream,
-                               stderr=subprocess.STDOUT, timeout=1500, check=False)
+            p = subprocess.run(
+                [sys.executable, str(RUNNER)],
+                env=env,
+                stdout=stream,
+                stderr=subprocess.STDOUT,
+                timeout=1500,
+                check=False,
+            )
             exit_code = p.returncode
         except subprocess.TimeoutExpired:
             exit_code = None
-    entry = {'case_index': index, 'started_at': start, 'ended_at': now(),
-             'runner_exit_code': exit_code, 'trace': str(path), 'log': str(log)}
+    entry = {
+        'case_index': index,
+        'started_at': start,
+        'ended_at': now(),
+        'runner_exit_code': exit_code,
+        'trace': str(path),
+        'log': str(log),
+    }
     if path.exists():
         d = json.loads(path.read_text())
-        entry.update(case_id=d.get('case_id'), error=d.get('error'),
-                     analysis_status=(d.get('analysis_run') or {}).get('status'),
-                     run_status=(d.get('agent_run') or {}).get('status'),
-                     failure_code=(d.get('agent_run') or {}).get('failure_code'),
-                     answer_recorded=bool(d.get('answer')))
+        entry.update(
+            case_id=d.get('case_id'),
+            error=d.get('error'),
+            analysis_status=(d.get('analysis_run') or {}).get('status'),
+            run_status=(d.get('agent_run') or {}).get('status'),
+            failure_code=(d.get('agent_run') or {}).get('failure_code'),
+            answer_recorded=bool(d.get('answer')),
+        )
     else:
         entry['error'] = 'runner did not create trace'
     return entry
@@ -57,8 +73,10 @@ def main() -> None:
     a.out.mkdir(parents=True, exist_ok=True)
     manifest = {'started_at': now(), 'parallel': a.parallel, 'indices': a.indices, 'runs': []}
     output = a.out / ('wave_' + '_'.join(map(str, a.indices)) + '.json')
+
     def save() -> None:
         output.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
+
     save()
     with ThreadPoolExecutor(max_workers=a.parallel) as pool:
         future_map = {pool.submit(run_one, index, a.out): index for index in a.indices}
@@ -72,7 +90,10 @@ def main() -> None:
                         entry = {'case_index': index, 'error': str(e)}
                     manifest['runs'].append(entry)
                     del future_map[f]
-                    print(f"Case {index}: {entry.get('run_status')} {entry.get('failure_code') or entry.get('error') or ''}", flush=True)
+                    print(
+                        f"Case {index}: {entry.get('run_status')} {entry.get('failure_code') or entry.get('error') or ''}",
+                        flush=True,
+                    )
                     save()
             if future_map:
                 print('Pending cases:', ', '.join(map(str, future_map.values())), flush=True)
