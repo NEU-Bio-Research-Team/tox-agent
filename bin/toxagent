@@ -7,7 +7,10 @@ cd "$ROOT"
 COMPOSE=(docker compose --project-directory "$ROOT" -f "$ROOT/devops/compose/compose.yaml")
 AGENT_COMPOSE=(docker compose --project-directory "$ROOT" -f "$ROOT/devops/compose/compose.yaml" -f "$ROOT/devops/compose/local-opencode-host.yaml")
 USER_AI_COMPOSE=(docker compose --project-directory "$ROOT" -f "$ROOT/devops/compose/compose.yaml" -f "$ROOT/devops/compose/user-ai.yaml")
-PUBLIC_COMPOSE=("${USER_AI_COMPOSE[@]}" -f "$ROOT/devops/compose/public-local.yaml")
+# Its own Compose project, so its own database and state volumes: what the
+# public stack stores belongs to its users and must not share a volume with
+# whatever a development stack on this machine has been writing.
+PUBLIC_COMPOSE=("${USER_AI_COMPOSE[@]}" -f "$ROOT/devops/compose/public-local.yaml" --project-name toxagent-public)
 CHECKPOINT_DIR=".artifacts/toxocr"
 CHECKPOINT="$CHECKPOINT_DIR/swin_base_char_aux_1m.pth"
 CHECKPOINT_URL="https://huggingface.co/yujieq/MolScribe/resolve/main/swin_base_char_aux_1m.pth"
