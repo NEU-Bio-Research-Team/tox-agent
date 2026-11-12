@@ -120,6 +120,22 @@ Commits:
 - **Replies with no claim** are counted apart, never as 100%.
 - **Two graders** are kept separate, and their agreement is measured per reply.
 
+**What the arms are.** The arms are the systems being compared. They are not measurements: the
+same measure is applied to each. The suffix "2" means protocol v2. Each arm adds one thing to
+the arm above it (configs in `evals/investigation/arms/protocol-v2/`):
+
+| Arm | What it does | The question it answers |
+|---|---|---|
+| A2 template | No model. Code renders the frozen screening or analysis (estimate, interval, policy decision, stage status, toxicity output) through a fixed template. No retrieval. | The floor: the simplest product |
+| B2 fixed workflow | The model runs steps that code fixes in advance: route → read → retrieve by a fixed rule → extract → cross-check → synthesise. A rule says when to ask the researcher for missing data. | Is an agent needed at all, or is a good pipeline enough? |
+| C2 generic ReAct | The model picks its own next action (reason → call a tool → read the result → repeat), with the same tools and gates. No case management, no scientific skills. | Is a generic agent enough? |
+| D2 investigator | C2 plus the domain design: a persistent case, investigation driven by evidence gaps, scope-aware evidence relations, skills read on demand, and a stop that must state its reason. | The treatment |
+
+- **D2 vs B2** asks whether adaptive investigation beats a fixed workflow.
+- **D2 vs C2** asks whether the domain design adds anything over a generic agent.
+- B2, C2 and D2 share the model, budget, output schema, hard validator, semantic reviewer and
+  frozen inputs (`common.json`), so a difference between them comes from the design.
+
 **Preliminary results on the main run.** Grader: Claude only, not blind; the second grader is
 pending.
 
@@ -130,11 +146,25 @@ pending.
 | C2 generic ReAct | 96% (44/46) | 2/12 | 1 | 1 |
 | D2 investigator | 96% (44/46) | 2/12 | 2 | 0 |
 
+**How to read the columns.**
+- **Claim precision:** supported ÷ (supported + unsupported + contradicted). `not_checkable`
+  claims are left out.
+- **Replies with ≥ 1 false claim:** counted over the replies that make at least one checkable
+  claim. B2's denominator is 11 because one of its 12 replies made none.
+- **Written by the model / by the server:** where each false claim sits. It is either in text
+  the model wrote or in fallback text the server inserts (F3). Together they make up all the
+  false claims: B2 has 8 (6 + 2), C2 has 2 (1 + 1) and D2 has 2 (2 + 0).
+
 **Reading.**
+- **A2's 100% is true by construction.** It has no model and only re-renders what it was given,
+  so it cannot say anything the sources lack. It shows the measure works; it is not an
+  achievement.
+- **C2 and D2 tie** (44/46 each). On this measure, D2's domain design makes no difference yet.
 - **No invented values, assays or sources.** The hard validator forces every number to cite a
   stored field, so this kind of hallucination cannot pass.
 - **What remains is "denying what is there"**: "the material has no prediction / no source / no
-  measured IC50" when it does. This is mostly B2, a consequence of F4.
+  measured IC50" when it does. This is mostly B2, a consequence of F4, so B2's 79% says more
+  about F4 than about the model.
 - **Three false claims are the server's fallback text** (F3), not the model.
 
 ## 6. New measurement 2: predictor adjudication
@@ -146,6 +176,20 @@ is right?
 - It should say **insufficient** when the corpus cannot decide.
 
 Agreeing by default or contradicting at random both count as failures.
+
+**Why this is measured.** Task Success asks whether a reply did the job. This asks the narrower
+question that justifies an investigating agent on top of a predictor: does it catch the
+predictor's errors without doubting its right calls? An agent that always agrees endorses every
+error. An agent that always disagrees catches every error but also attacks every right call. A
+single score would hide both failures, which is why the metrics below are kept apart.
+
+**Example** (case `inv-pt03-herg-missed-blocker`): the predictor calls TX-303 a hERG
+non-blocker. A full-text table in the corpus (MED:93031) gives TX-303 a patch-clamp IC50 of
+0.9 µM. That is below the 10 µM rule, so TX-303 is a blocker and the call is wrong. The right
+reply challenges the call and cites that table.
+- If the table had said "> 30 µM", the right reply would be to corroborate.
+- If the corpus held no measurement of TX-303 on wild-type hERG (only a related compound or a
+  mutant), the right reply would be "insufficient".
 
 **Case set.** 12 synthetic cases, each with its own compound and sources, so there are 12
 dependency clusters.
@@ -170,6 +214,25 @@ dependency clusters.
 - the agent's final-label accuracy against the predictor's on the same cases (lift), with
   coverage;
 - the share of positions that cite the deciding source.
+
+**How to read the metrics.**
+
+| Metric | Counted over | Good | A bad value means |
+|---|---|---|---|
+| Stance accuracy | All 12 cases | High | The agent's position does not match what the evidence supports |
+| Correction rate | The 5 cases where the predictor is wrong | High | Errors pass unchallenged |
+| **Uncaught-error rate** | The same 5 cases | Low | The agent endorses a wrong call. This is worse than no agent, because the error now looks verified |
+| False-alarm rate | The 5 cases where the predictor is right | Low | The agent casts doubt on correct calls and creates work |
+| Unsupported corroboration | The 2 cases the corpus cannot decide | Low | The agent agrees with no evidence behind it |
+| Lift, with coverage | The 10 decidable cases | Above 0 | The agent's own final label is no better than the predictor's |
+| Grounded share | Every corroboration or challenge | High | The right stance, without citing the source that decides it |
+
+- **The predictor is right on 5 of the 10 decidable cases by design.** Its 50% here is how the
+  set was built, not an estimate of the real predictor, and lift is measured against it.
+- **In lift, an "undetermined" final label counts as wrong.** Coverage shows how often the agent
+  committed to a label.
+- **A withheld or missing reply counts as stance `none`** and stays in every denominator. This
+  is why F1 could dominate these results (see Status).
 
 **Status.**
 - The first run stopped at 11:07 when the shared ChatGPT/OpenAI quota ran out. It is kept as an
