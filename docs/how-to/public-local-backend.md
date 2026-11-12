@@ -122,11 +122,35 @@ workflow: the address is fixed at build time.
 - Losing `TOXAGENT_SECRET_ENCRYPTION_KEY` makes every stored AI credential
   unreadable. Keep a copy of `.env` somewhere other than this disk.
 
+## Signing in with Google
+
+The sign-in page offers "Tiếp tục với Google" next to email and password. It
+opens the Firebase project's own handler in a popup, so it needs no client id
+in this repository and works on the project's `web.app` and `firebaseapp.com`
+addresses and on preview channels, which Firebase lists as authorized domains.
+
+One step is not in the repository: switch the Google provider on in the
+Firebase console (Authentication → Sign-in method → Google → Enable, with a
+support email). The hosting workflow asks Firebase whether the provider is on
+and ships the button only when it is, so run the workflow again after enabling
+it. A build made by hand shows the button whenever `VITE_FIREBASE_PROJECT_ID`
+is set, and the button then says so if the provider is still off. A Google account and a password account with the same email are one
+person to Firebase by default, so signing in either way reaches the same data.
+
 ## What is not covered
 
 - Roles. A Firebase account has no `roles` claim unless one is set with the
   Admin SDK, so everyone signs in as an ordinary user and expert threshold
   overrides are refused.
-- ChatGPT Plus/Pro sign-in is off in this mode
-  (`TOXAGENT_PUBLIC_CHATGPT_OAUTH`). Users connect an API key or an
-  OpenAI-compatible server instead.
+- ChatGPT Plus/Pro sign-in is off unless the operator turns it on. Set
+  `TOXAGENT_PUBLIC_CHATGPT_OAUTH=hosted` in `.env` and run
+  `./bin/toxagent up --public` again; each user then signs in with their own
+  account (a device code entered on OpenAI's page) and their credential is
+  kept encrypted for them alone. OpenAI asks hosted services that offer this
+  to register with it first
+  ([token sharing](https://developers.openai.com/siwc/token-sharing-open-source)),
+  and whether to do so is the operator's call. Each signed-in user holds a
+  private OpenCode process of about 300 MB while they chat, capped by
+  `TOXAGENT_OWNER_HOSTS_MAX` (2 by default); a third user's run is refused
+  until one goes idle, so raise it only as far as the machine's memory allows.
+  Without the setting, users connect an API key or an OpenAI-compatible server.

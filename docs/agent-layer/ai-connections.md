@@ -141,6 +141,13 @@ hosted services to register first
 | `hosted` | Owner hosts are on, and the operator has opted in after registering |
 | `off` | Never |
 
+`./bin/toxagent up --public` runs as a hosted deployment, so ChatGPT sign-in
+is offered there only with `TOXAGENT_PUBLIC_CHATGPT_OAUTH=hosted` in `.env`
+(see [public-local-backend](../how-to/public-local-backend.md)). The chat's
+model picker links an empty state straight to the ChatGPT sign-in
+(`/settings?connect=chatgpt`), which opens Settings on that method when the
+deployment offers it.
+
 When it is not offered, the provider list says why. A Claude.ai Pro/Max
 sign-in is never offered: Anthropic does not allow third-party apps to use a
 consumer subscription for inference. Use an Anthropic API key instead.

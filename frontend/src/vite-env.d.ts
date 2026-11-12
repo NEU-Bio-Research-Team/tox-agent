@@ -5,6 +5,9 @@ interface ImportMetaEnv {
   /** The Firebase project's web API key. Set, sign-in is email and password
    * against that project; unset, the gate falls back (see RequireToken). */
   readonly VITE_FIREBASE_API_KEY?: string;
+  /** With the API key, enables "Continue with Google" (the project's own handler). */
+  readonly VITE_FIREBASE_PROJECT_ID?: string;
+  readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
 }
 
 interface ImportMeta {

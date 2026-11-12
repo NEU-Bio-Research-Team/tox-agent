@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { Link } from 'react-router';
-import { Check, ChevronDown, Cpu, Loader2, Search, Settings2 } from 'lucide-react';
+import { Check, ChevronDown, Cpu, Loader2, LogIn, Search, Settings2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../../shared/ui/popover';
 import { listConnectionModels, type ModelOption } from '../../shared/api/endpoints';
 import type { ModelConnection } from '../../shared/api/types';
@@ -168,9 +168,14 @@ export function ModelPicker({
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Thêm API key hoặc đăng nhập ChatGPT Plus/Pro trong Cài đặt. Sau đó mọi model của tài khoản đó sẽ hiện ở đây.
             </p>
-            <Link to="/settings" className="inline-flex items-center gap-1.5 text-xs font-medium underline" style={{ color: 'var(--purple-600)' }}>
-              <Settings2 className="h-3.5 w-3.5" />Mở Cài đặt
-            </Link>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Link to="/settings?connect=chatgpt" className="inline-flex items-center gap-1.5 text-xs font-medium underline" style={{ color: 'var(--purple-600)' }}>
+                <LogIn className="h-3.5 w-3.5" />Đăng nhập ChatGPT Plus/Pro
+              </Link>
+              <Link to="/settings" className="inline-flex items-center gap-1.5 text-xs font-medium underline" style={{ color: 'var(--purple-600)' }}>
+                <Settings2 className="h-3.5 w-3.5" />Dùng API key
+              </Link>
+            </div>
           </div>
         ) : (
           <>
