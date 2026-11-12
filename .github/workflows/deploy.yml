@@ -27,16 +27,16 @@ name: Deploy
 # previous digest has been attempted. Those need the cloud project and are
 # K12 in docs/audit/REMAINING_IMPLEMENTATION_PLAN_VI.md.
 
+# Paused (2026-11-12): this workflow no longer runs on a push.
+#
+# The backend is moving off Cloud Run. The control plane, predictor, OCR and
+# database run on the project's own machine and are reached through a tunnel,
+# so a push to `main` must not promote anything to the Cloud Run services.
+# Backend changes are still tested on every push and pull request by
+# unified-ci.yml; they are deployed by hand on that machine. The frontend has
+# its own workflow. To bring this path back, restore the `push` trigger:
+# the jobs below are unchanged, and a manual run still works.
 'on':
-  push:
-    branches:
-      - agent_test
-      - main
-    paths:
-      - backend/**
-      - frontend/**
-      - devops/**
-      - .github/workflows/deploy.yml
   workflow_dispatch:
 
 concurrency:
