@@ -129,3 +129,57 @@ def test_corrupt_artifact_is_not_registered(manifest, tmp_path):
     registry = ModelRegistry.from_manifest(path, {"p": FakeProvider})
     assert registry.describe_capabilities() == {}
     assert "checksum mismatch" in registry.unavailable()["m1"]["reason"]
+
+
+# --- several models on one endpoint -----------------------------------------
+
+def _two_herg_models(**first_extra):
+    return [
+        {"model_id": "a", "provider": "fake", "capabilities": ["herg"],
+         "artifact_dir": "a", **first_extra},
+        {"model_id": "b", "provider": "fake", "capabilities": ["herg"], "artifact_dir": "b"},
+    ]
+
+
+def test_an_unnamed_request_gets_the_declared_default(manifest):
+    """The session and agent paths send no model. With two models on an
+    endpoint they must keep getting the deployment's standard answer."""
+    registry = ModelRegistry.from_manifest(
+        manifest(_two_herg_models(default_for=["herg"])), {"fake": FakeProvider}
+    )
+    assert registry.resolve(capability="herg").model_id == "a"
+    assert registry.resolve(capability="herg", model_id="b").model_id == "b"
+
+
+def test_two_models_with_no_declared_default_stay_ambiguous(manifest):
+    registry = ModelRegistry.from_manifest(manifest(_two_herg_models()), {"fake": FakeProvider})
+    with pytest.raises(ArtifactError, match="ambiguous"):
+        registry.resolve(capability="herg")
+
+
+def test_a_default_that_did_not_load_is_not_replaced_by_another_model(manifest):
+    """Answering with `b` because the declared default failed would be a
+    silent fallback to a different model."""
+    registry = ModelRegistry.from_manifest(
+        manifest(_two_herg_models(default_for=["herg"], required=False)),
+        {"fake": lambda spec: FakeProvider(spec, fail=spec.model_id == "a")},
+    )
+    # Only `b` is registered, so it is the sole provider and is unambiguous.
+    # That is the pre-existing single-model rule, and the health report names
+    # the default as unavailable.
+    assert [h.model_id for h in registry.health() if not h.loaded] == ["a"]
+    assert registry.resolve(capability="herg").model_id == "b"
+
+
+def test_two_declared_defaults_for_one_endpoint_are_refused(manifest):
+    models = _two_herg_models(default_for=["herg"])
+    models[1]["default_for"] = ["herg"]
+    with pytest.raises(ArtifactError, match="two models are declared default"):
+        ModelRegistry.from_manifest(manifest(models), {"fake": FakeProvider})
+
+
+def test_a_default_for_an_endpoint_the_model_lacks_is_refused(manifest):
+    with pytest.raises(ArtifactError, match="does not provide"):
+        ModelRegistry.from_manifest(
+            manifest(_two_herg_models(default_for=["tox21"])), {"fake": FakeProvider}
+        )

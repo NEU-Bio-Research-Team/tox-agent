@@ -77,8 +77,11 @@ def models(request: Request):
             spec = registry.spec(health.model_id)
             required, blocked = spec.required, (spec.blocked_reason or None)
             capabilities = sorted(spec.capabilities)
+            display_name, notes = spec.display_name, " ".join(spec.notes.split())
+            default_for = sorted(spec.default_for)
         except ArtifactError:
             required, blocked, capabilities = True, None, sorted(health.capabilities)
+            display_name, notes, default_for = "", "", []
         infos.append(
             ModelInfo(
                 model_id=health.model_id,
@@ -87,6 +90,9 @@ def models(request: Request):
                 required=required,
                 detail=health.detail,
                 blocked_reason=blocked,
+                display_name=display_name,
+                notes=notes,
+                default_for=default_for,
             )
         )
     infos.sort(key=lambda m: m.model_id)

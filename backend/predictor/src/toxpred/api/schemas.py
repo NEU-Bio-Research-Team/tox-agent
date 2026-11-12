@@ -160,6 +160,10 @@ class ModelInfo(BaseModel):
     required: bool
     detail: str = ""
     blocked_reason: str | None = None
+    display_name: str = ""
+    notes: str = ""
+    #: Endpoints this model answers when a request names no model.
+    default_for: list[str] = []
 
 
 class ModelsResponse(BaseModel):

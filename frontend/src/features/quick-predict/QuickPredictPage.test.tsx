@@ -165,6 +165,44 @@ describe('QuickPredictPage', () => {
     expect(screen.getByRole('button', { name: /Choose Image/ })).toBeDisabled();
   });
 
+  it('starts on the declared default model, not the first one listed, and names each release', async () => {
+    getExpertModeEnabled.mockReturnValue(false);
+    const model = (id: string, extra: Record<string, unknown>) => ({
+      model_id: id, capabilities: ['herg', 'tox21'], loaded: true, required: false, detail: '', blocked_reason: null, ...extra,
+    });
+    // Listed by identifier, so the quick release comes first.
+    const models = [
+      model('herg-tox21-chemberta-quick-v1', { display_name: 'ChemBERTa quick', notes: 'Short training run.', default_for: [] }),
+      model('herg-tox21-chemberta-v1', { display_name: 'ChemBERTa full', notes: 'The standard release.', default_for: ['herg', 'tox21'] }),
+    ];
+    quickPredictCapabilities.mockResolvedValue({
+      ...CAPS,
+      endpoints: CAPS.endpoints.map((endpoint) => (endpoint.enabled ? { ...endpoint, models } : endpoint)),
+    });
+    quickPredict.mockResolvedValue({ ...FIXTURE, analysis_id: null, persisted: false });
+
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
+    const select = (await screen.findByLabelText('Model for hERG blockade')) as HTMLSelectElement;
+    await waitFor(() => expect(select.value).toBe('herg-tox21-chemberta-v1'));
+    expect(Array.from(select.options).map((option) => option.textContent)).toEqual([
+      'ChemBERTa quick',
+      'ChemBERTa full · default',
+    ]);
+    expect(screen.getAllByText('The standard release.').length).toBeGreaterThan(0);
+
+    fireEvent.change(select, { target: { value: 'herg-tox21-chemberta-quick-v1' } });
+    expect(screen.getAllByText('Short training run.').length).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByLabelText('SMILES'), { target: { value: 'CCO' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze' }));
+    await waitFor(() => expect(quickPredict).toHaveBeenCalledOnce());
+    expect(quickPredict.mock.calls[0][0].model_selection).toMatchObject({
+      herg: 'herg-tox21-chemberta-quick-v1',
+      tox21: 'herg-tox21-chemberta-v1',
+    });
+  });
+
   it('shows the threshold override field for an expert', async () => {
     getExpertModeEnabled.mockReturnValue(true);
     quickPredictCapabilities.mockResolvedValue(CAPS);

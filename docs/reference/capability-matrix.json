@@ -158,6 +158,7 @@
     {
       "base_model": null,
       "blocked_reason": "The exact tokenizer.pkl with the 69-token vocabulary is absent, and its identity was never recorded, so a restored file could not be told from a different tokenizer of the same size. Record the hashes below from the training run, or retrain as a complete v2 release with its own tokenizer, calibration and evaluation, before this endpoint can be served.",
+      "default_for": [],
       "display_name": "SMILESGNN ClinTox v1 (blocked)",
       "endpoints": [
         "clintox"
@@ -171,6 +172,25 @@
     {
       "base_model": "DeepChem/ChemBERTa-77M-MTR",
       "blocked_reason": null,
+      "default_for": [],
+      "display_name": "ChemBERTa hERG / Tox21 quick v1",
+      "endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "feature_schema_version": "chemberta-smiles-v1",
+      "manifest": "backend/predictor/registry/models/herg-tox21-chemberta-quick-v1.yaml",
+      "model_id": "herg-tox21-chemberta-quick-v1",
+      "required": false,
+      "status": "served"
+    },
+    {
+      "base_model": "DeepChem/ChemBERTa-77M-MTR",
+      "blocked_reason": null,
+      "default_for": [
+        "herg",
+        "tox21"
+      ],
       "display_name": "ChemBERTa hERG / Tox21 v1",
       "endpoints": [
         "herg",
@@ -180,6 +200,21 @@
       "manifest": "backend/predictor/registry/models/herg-tox21-chemberta-v1.yaml",
       "model_id": "herg-tox21-chemberta-v1",
       "required": true,
+      "status": "served"
+    },
+    {
+      "base_model": "seyonec/PubChem10M_SMILES_BPE_450k",
+      "blocked_reason": null,
+      "default_for": [],
+      "display_name": "PubChem RoBERTa hERG / Tox21 v1",
+      "endpoints": [
+        "herg",
+        "tox21"
+      ],
+      "feature_schema_version": "pubchem-bpe-smiles-v1",
+      "manifest": "backend/predictor/registry/models/herg-tox21-pubchem-v1.yaml",
+      "model_id": "herg-tox21-pubchem-v1",
+      "required": false,
       "status": "served"
     }
   ],

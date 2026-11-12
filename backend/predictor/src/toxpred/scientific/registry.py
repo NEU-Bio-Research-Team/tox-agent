@@ -107,6 +107,18 @@ class ModelRegistry:
                 f"registered: {self.describe_capabilities()}"
             )
         if len(matches) > 1:
+            # Several models serve this endpoint. The manifest may name one of
+            # them as the answer to a request that names none; that is a
+            # reviewed declaration, not a guess. If the declared default did
+            # not load, this stays an error: answering with a different model
+            # than the declared one would be the silent fallback this registry
+            # exists to prevent.
+            declared = [
+                p for p in matches
+                if capability in getattr(self._specs.get(p.model_id), "default_for", ())
+            ]
+            if len(declared) == 1:
+                return declared[0]
             raise ArtifactError(
                 f"capability {capability!r} is ambiguous across "
                 f"{[p.model_id for p in matches]}; resolution must be explicit"
@@ -116,10 +128,11 @@ class ModelRegistry:
     def resolve(self, *, capability: str, model_id: str | None = None) -> ModelProvider:
         """Resolve an endpoint to a reproducible, loaded model.
 
-        Omitting ``model_id`` retains the safe auto-selection behaviour only
-        when exactly one provider serves the endpoint.  Once a catalogue has
-        two candidates, callers must make the selection explicit rather than
-        getting whichever dictionary entry happened to be registered first.
+        Omitting ``model_id`` selects the only provider that serves the
+        endpoint, or, among several, the one the manifest declares as that
+        endpoint's default.  With several candidates and no declared default,
+        callers must make the selection explicit rather than getting whichever
+        dictionary entry happened to be registered first.
         """
         if model_id is None:
             return self.for_capability(capability)

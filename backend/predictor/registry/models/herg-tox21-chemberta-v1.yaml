@@ -6,6 +6,14 @@ models:
     capabilities: [herg, tox21]
     artifact_dir: pretrained_2head_herg_chemberta_model
     required: true
+    # The answer to a request that names no model, now that other releases
+    # serve the same two endpoints. Every stored analysis and every benchmark
+    # to date was produced by this release; keeping it the default keeps an
+    # unnamed request meaning what it has always meant.
+    default_for: [herg, tox21]
+    notes: >-
+      Default for hERG and Tox21. Held-out test from the training run: hERG AUROC 0.837,
+      Tox21 macro AUROC 0.760. The release every stored analysis and benchmark to date used.
     feature_schema_version: chemberta-smiles-v1
     base_model:
       id: DeepChem/ChemBERTa-77M-MTR

@@ -3172,12 +3172,27 @@ export interface components {
             blocked_reason: string | null;
             /** Capabilities */
             capabilities: string[];
+            /**
+             * Default For
+             * @default []
+             */
+            default_for: string[];
             /** Detail */
             detail: string;
+            /**
+             * Display Name
+             * @default
+             */
+            display_name: string;
             /** Loaded */
             loaded: boolean;
             /** Model Id */
             model_id: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
             /** Required */
             required: boolean;
         } & {

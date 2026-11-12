@@ -49,6 +49,7 @@ def _predictor_models() -> list[dict[str, Any]]:
                 "status": "blocked" if blocked else "served",
                 "blocked_reason": blocked or None,
                 "required": bool(entry.get("required")),
+                "default_for": list(entry.get("default_for") or ()),
                 "feature_schema_version": entry.get("feature_schema_version"),
                 "base_model": base.get("id"),
                 "manifest": str(path.relative_to(REPO_ROOT)),
@@ -64,6 +65,13 @@ def _endpoints(models: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             # A served model wins over a blocked one for the same endpoint.
             if current is None or (current["status"] == "blocked" and model["status"] == "served"):
                 endpoints[endpoint] = {"status": model["status"], "model_id": model["model_id"]}
+    # With several releases on one endpoint, the answer to an unnamed request
+    # is the one the manifest declares, wherever it sorts among the others.
+    for model in models:
+        if model["status"] != "served":
+            continue
+        for endpoint in model["default_for"]:
+            endpoints[endpoint] = {"status": "served", "model_id": model["model_id"]}
     return dict(sorted(endpoints.items()))
 
 

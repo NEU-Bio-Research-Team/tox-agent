@@ -1,0 +1,35 @@
+# The same architecture and base model as herg-tox21-chemberta-v1, trained for
+# 3 + 2 epochs instead of 30 + 15. It exists to compare against the full
+# release, not to replace it: on the training run's own held-out split it
+# scores lower on both endpoints (hERG AUROC 0.795 against 0.837; Tox21 macro
+# AUROC 0.704 against 0.760). Never the default.
+schema_version: 1
+models:
+  - model_id: herg-tox21-chemberta-quick-v1
+    display_name: ChemBERTa hERG / Tox21 quick v1
+    provider: herg_tox21_chemberta
+    capabilities: [herg, tox21]
+    artifact_dir: pretrained_2head_herg_chemberta_quick
+    required: false
+    notes: >-
+      Short training run (3 + 2 epochs) of the ChemBERTa dual-head model. Held-out test from the
+      training run: hERG AUROC 0.795, Tox21 macro AUROC 0.704. Offered for comparison only.
+    feature_schema_version: chemberta-smiles-v1
+    base_model:
+      id: DeepChem/ChemBERTa-77M-MTR
+      revision: 66b895cab8adebea0cb59a8effa66b2020f204ca
+      weights_source: checkpoint
+      config_source: vendored
+    files:
+      - {path: best_model.pt, sha256: f81d851f73651f7799b4c79162846c42ba34d5f4a58fda162cf3d1b88b210675, bytes: 14050530}
+      - {path: config.yaml, sha256: 55bbc417c212bdd50930401f7589c483c35c013a9cfbb95e675702efdd904309, bytes: 1755}
+      - {path: herg_threshold.json, sha256: 02f076d90e914937e69bd163a31a3ccc1ff4bf02f4e75adae7b2fbece6f8b00d, bytes: 205}
+      - {path: tox21_task_thresholds.json, sha256: 5f6b78e33d4a7897b34b413149165e590b1b8328e5800f37b6c960fb9ed26d9f, bytes: 4025}
+      - {path: tokenizer/added_tokens.json, sha256: 0c3ff4efa3a74a617a72582c8756d6ccc84e3f8793253c7202f7b1f708081fe8, bytes: 32}
+      - {path: tokenizer/merges.txt, sha256: 215a6aba00d27bcd42b8ad1dccc4b4d23f40decc150bdbf0d5ce6bb2410708df, bytes: 14}
+      - {path: tokenizer/special_tokens_map.json, sha256: de1fff4a8d761b007a5f945da34ba52c65ebeff199060deda174fa7212a58306, bytes: 965}
+      - {path: tokenizer/tokenizer.json, sha256: ba6a21b7958b8aebf1f3ac341a883c430ae9906cba797b4f186ac79dcd00d785, bytes: 14028}
+      - {path: tokenizer/tokenizer_config.json, sha256: 546a1c6da0c2a47e67d8ef88d7181bb05d617228ebccb955fb6e269dbd1e4d44, bytes: 1608}
+      - {path: tokenizer/vocab.json, sha256: 0c9afbd534ab59fa51718c998027da0e7932293c9a51de03317d4c83d3fe48f6, bytes: 6963}
+      - {path: base_model/REVISION, sha256: d5e518cf8fdc2f63e70020268752ec952d7546305133b4bd24d7094c0705d123, bytes: 41}
+      - {path: base_model/config.json, sha256: 31b5a11cfab81146cb66677b0e27f92ad3e29715d5f9fcf41fc142de57296349, bytes: 17700}

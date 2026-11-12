@@ -1,0 +1,40 @@
+# The dual-head architecture on a different backbone: a RoBERTa pretrained on
+# 10M PubChem SMILES with a BPE tokenizer. Same training recipe as
+# herg-tox21-chemberta-v1 (30 + 15 epochs). On the training run's own held-out
+# split it is level on hERG (AUROC 0.841 against 0.837) and lower on Tox21
+# (macro AUROC 0.731 against 0.760). Those numbers come from the training
+# run's metrics file, not from this repository's benchmark, which has not been
+# run on this release. Optional and never the default.
+#
+# The checkpoint carries every backbone weight; base_model/config.json is the
+# architecture only, vendored from the pinned revision so the service starts
+# without reaching Hugging Face.
+schema_version: 1
+models:
+  - model_id: herg-tox21-pubchem-v1
+    display_name: PubChem RoBERTa hERG / Tox21 v1
+    provider: herg_tox21_chemberta
+    capabilities: [herg, tox21]
+    artifact_dir: pretrained_2head_herg_pubchem_model
+    required: false
+    notes: >-
+      PubChem-pretrained RoBERTa backbone, dual-head. Held-out test from the training run:
+      hERG AUROC 0.841, Tox21 macro AUROC 0.731. Not yet run through this repository's benchmark.
+    feature_schema_version: pubchem-bpe-smiles-v1
+    base_model:
+      id: seyonec/PubChem10M_SMILES_BPE_450k
+      revision: c18fccd09b3326bf2d4633412c256d7db872156d
+      weights_source: checkpoint
+      config_source: vendored
+    files:
+      - {path: best_model.pt, sha256: 211faa7c6c16c49174e8da27efe15e4ca39adb41b9755d583602fb178a008b82, bytes: 334668651}
+      - {path: config.yaml, sha256: a2cfc2004f4d0921a6758a449db86444e3f96d72c237d83e097247b704b42ef4, bytes: 1762}
+      - {path: herg_threshold.json, sha256: 8a59087a397dde1a1f0fc0629ec47c4c5b78e109a02337492f3dc773a3fb0424, bytes: 430}
+      - {path: tox21_task_thresholds.json, sha256: 6ece57664f58c55bcef608f9de90716ab71ee052284ff9541828041c12f540c9, bytes: 4029}
+      - {path: tokenizer/merges.txt, sha256: 711b94fe4512ea656c3e849b9cbad47033bcc9521e0042bad5bf807d7d990020, bytes: 101307}
+      - {path: tokenizer/special_tokens_map.json, sha256: 8293ae960b0a0852d4d3813118030a1149a3ed9fe37bc2e1e7b3c2e62eb2d4b7, bytes: 957}
+      - {path: tokenizer/tokenizer.json, sha256: 60cfbce09ca997ce560d5942dbf5c64ef39a3033dc89eb36efa248106c3845af, bytes: 606543}
+      - {path: tokenizer/tokenizer_config.json, sha256: e19a147671d634f6917129a2e96f52304c0ac2a37e7c6e3241111cbffa68a9e3, bytes: 1270}
+      - {path: tokenizer/vocab.json, sha256: 9f82021617fc361ccdcb7e7a695d3940b38d342ef39af666f5b6817eb56c5df3, bytes: 148693}
+      - {path: base_model/REVISION, sha256: 8105db05918fb6ac9b210ae4d79e76852f71a509a1bc45674cfa108551247919, bytes: 41}
+      - {path: base_model/config.json, sha256: bbce3b7bd4a5ff3c246eaf85cd8ed3cb12828a56b4e65153f5f9f20b3277854e, bytes: 515}

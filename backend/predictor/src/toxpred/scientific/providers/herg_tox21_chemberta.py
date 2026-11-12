@@ -1,4 +1,10 @@
-"""ChemBERTa dual-head provider: hERG blockade + 12 Tox21 assay activities.
+"""Dual-head transformer provider: hERG blockade + 12 Tox21 assay activities.
+
+Written for the ChemBERTa release and named for it. The architecture is a
+SMILES transformer backbone with two heads, and the same code loads any
+release trained that way whose backbone ``transformers`` can build from a
+vendored config; which release an instance serves is the manifest's
+``model_id``, not a constant here.
 
 Ported from ``backend/pretrained_mol_model.py`` and the dual-head branch of
 ``backend/inference.py``, with three deliberate changes:
@@ -33,6 +39,10 @@ class HergTox21ChembertaProvider:
     capabilities = CAPABILITIES
 
     def __init__(self, spec: ArtifactSpec, device: str = "cpu", batch_size: int = 32) -> None:
+        # The release this instance serves. Every result, health row and
+        # attribution carries it, so two releases behind this one class are
+        # never reported under one name.
+        self.model_id = spec.model_id
         self._spec = spec
         self._device = device
         self._batch_size = int(batch_size)
