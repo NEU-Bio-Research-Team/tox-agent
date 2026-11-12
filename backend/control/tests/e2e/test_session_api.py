@@ -480,3 +480,21 @@ async def test_cors_is_off_by_default_and_on_when_configured(db):
             "/health/live", headers={"origin": "https://evil.test"}
         )
         assert "access-control-allow-origin" not in blocked_origin.headers
+
+        # A hosted frontend is another origin, so the browser asks before
+        # sending anything but a simple request. Sessions are renamed with
+        # PATCH and model connections removed with DELETE.
+        for method, path in (
+            ("PATCH", "/v1/sessions/ses_x"),
+            ("DELETE", "/v1/model-connections/con_x"),
+        ):
+            preflight = await client.options(
+                path,
+                headers={
+                    "origin": "https://app.example.test",
+                    "access-control-request-method": method,
+                    "access-control-request-headers": "authorization,content-type",
+                },
+            )
+            assert preflight.status_code == 200, method
+            assert method in preflight.headers["access-control-allow-methods"]

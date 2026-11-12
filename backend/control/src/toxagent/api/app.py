@@ -547,7 +547,12 @@ def create_app(
             CORSMiddleware,
             allow_origins=list(settings.security.cors_allow_origins),
             allow_credentials=False,
-            allow_methods=["GET", "POST", "OPTIONS"],
+            # Every method a route here answers. A browser on another
+            # origin preflights PATCH and DELETE, and a method missing from
+            # this list fails there: renaming a session or removing a model
+            # connection would work same-origin and break from a hosted
+            # frontend.
+            allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
             allow_headers=["authorization", "content-type", "last-event-id"],
             expose_headers=["last-event-id"],
         )
