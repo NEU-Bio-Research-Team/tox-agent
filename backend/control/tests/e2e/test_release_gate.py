@@ -295,3 +295,8 @@ async def test_without_the_gate_the_reviewer_only_observes(db, monkeypatch):
     assert "repair_prompt" not in state
     assert [c["text"] for c in answer["claims"]] == [SUPPORTED, OVERREACH]
     assert not [e for e in result["events"] if e["type"] == "answer.candidate"]
+    # No release record, so the result route says the answer was not gated,
+    # rather than "unknown": the review did not decide this answer's release.
+    legacy = result["run_result"]["legacy_release"]
+    assert legacy["outcome"] == "ungated"
+    assert legacy["semantically_passed"] is False

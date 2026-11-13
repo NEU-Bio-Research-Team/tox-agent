@@ -179,6 +179,21 @@ async def get_run_result(
                 "note": "this run was released under the legacy policy, which records "
                         "no run result; the release gate's own record is in legacy_release",
             }
+        if getattr(run.status, "value", run.status) == "completed":
+            # Completed with neither a run result nor a release record: no review
+            # gated the answer (the release gate was off, or the run predates it).
+            # That is a fact about the run, not an unknown.
+            ended = run.ended_at or run.created_at
+            return {
+                "run_id": run_id, "recorded": False, "release_policy": "legacy",
+                "legacy_release": {
+                    "outcome": "ungated", "semantically_passed": False,
+                    "review_rounds": 0, "repaired": False, "unresolved_claim_count": 0,
+                    "ungated_reason": "no release record: the answer was not gated by a review",
+                    "released_at": ended.isoformat(),
+                },
+                "note": "no release gate recorded a review for this run",
+            }
         return {"run_id": run_id, "recorded": False, "release_policy": "legacy",
                 "note": "this run has no recorded result; whether its answer was "
                         "reviewed is not known"}

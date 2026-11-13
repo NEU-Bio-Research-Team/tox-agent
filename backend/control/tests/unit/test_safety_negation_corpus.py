@@ -23,6 +23,9 @@ ACCEPTABLE = [
     "Đây không phải là bằng chứng về độc tính lâm sàng.",
     "Mô hình không đưa ra kết luận an toàn cho người.",
     "Sàng lọc không cung cấp điểm độc tính tổng thể.",
+    # Live 2026-11-13: refused although it denies the verdict; the run fell back.
+    "Điều đó không biến tín hiệu Tox21 thành kết luận về độ an toàn hoặc hiệu quả lâm sàng.",
+    "Việc chất này được dùng trong y tế không có nghĩa là an toàn cho người.",
     # English negations.
     "This is not a clinical toxicity finding.",
     "Screening does not provide an overall toxicity score.",
@@ -38,6 +41,7 @@ ACCEPTABLE = [
 
 PROHIBITED = [
     ("The compound is safe for humans.", "safety_verdict_out_of_scope"),
+    ("Chất này đã được dùng trong y tế nên an toàn cho người.", "safety_verdict_out_of_scope"),
     ("Hợp chất này an toàn cho người.", "safety_verdict_out_of_scope"),
     ("This molecule is considered safe.", "safety_verdict_out_of_scope"),
     ("The overall toxicity risk is low.", "aggregate_verdict_present"),

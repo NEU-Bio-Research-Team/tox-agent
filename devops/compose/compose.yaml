@@ -86,6 +86,14 @@ services:
       # default bounded; evidence-heavy deployments may explicitly raise this
       # to 24 after measuring latency/cost.
       TOXAGENT_MAX_TOOL_CALLS: ${TOXAGENT_MAX_TOOL_CALLS:-12}
+      # Wall clock for a whole run and for one model turn, in seconds. Empty keeps
+      # the code defaults (300 / 180), which a decision-support run with a review
+      # and a repair routinely exceeds on a ChatGPT-backed model.
+      TOXAGENT_RUN_DEADLINE_S: ${TOXAGENT_RUN_DEADLINE_S:-}
+      TOXAGENT_TURN_DEADLINE_S: ${TOXAGENT_TURN_DEADLINE_S:-}
+      # Answer candidates per run, including every correction turn. 2 (the default)
+      # leaves one correction: a model that miscopies one id is out of answer.
+      TOXAGENT_MAX_ANSWER_CANDIDATES: ${TOXAGENT_MAX_ANSWER_CANDIDATES:-2}
       # A report build is a much larger job than a chat answer; see
       # PolicySettings.max_tool_calls_per_report_build for the arithmetic.
       TOXAGENT_MAX_TOOL_CALLS_REPORT: ${TOXAGENT_MAX_TOOL_CALLS_REPORT:-80}

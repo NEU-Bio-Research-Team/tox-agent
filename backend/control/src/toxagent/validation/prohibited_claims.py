@@ -148,7 +148,11 @@ _DECLINES_TO_ASSERT = re.compile(
     r"verdict|claim|assessment|statement|confirmation|proof|diagnosis)\b"
     r"|\bnot\s+(?:as\s+)?evidence\s+(?:that|of|for)\b"
     r"|\bkhông\s+(?:tự\s+(?:nó\s+|chúng\s+)?)?(đưa\s+ra|kết\s+luận|khẳng\s+định|tuyên\s+bố|nói|chứng\s+minh|"
-    r"xác\s+nhận|suy\s+ra|thay\s+thế|đảm\s+bảo|cho\s+biết)\b"
+    r"xác\s+nhận|suy\s+ra|thay\s+thế|đảm\s+bảo|cho\s+biết|"
+    # Live, 2026-11-13: "Điều đó không biến tín hiệu Tox21 thành kết luận về độ
+    # an toàn" was refused as the safety verdict it denies, and cost the run its
+    # answer (the fallback was served).
+    r"biến|chuyển|đồng\s+nghĩa|có\s+nghĩa|hàm\s+ý|ngụ\s+ý)\b"
     r"|\b(không|chưa)\s+(đủ\s+để|thể)\s+(kết\s+luận|suy\s+ra|khẳng\s+định|xác\s+nhận|"
     r"chứng\s+minh|đánh\s+giá)\b"
     # "không phải nguy cơ lâm sàng hay kết luận an toàn": a few words may come
