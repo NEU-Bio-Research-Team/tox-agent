@@ -498,14 +498,35 @@ class ScreeningSummary(_Response):
     attached_at: str
 
 
+class LegacyRelease(_Response):
+    """How a ``legacy``-policy run's answer was released: the gate's own
+    record, read from ``answer_releases``. It says what the review did, not
+    what the policy decided -- under ``legacy`` an unresolved review is still
+    released, so ``outcome`` is the only truthful label."""
+
+    outcome: Literal[
+        "reviewed", "repaired_and_reviewed", "released_with_unresolved_review",
+        "ungated", "fallback",
+    ]
+    semantically_passed: bool
+    #: Reviewer rounds that ran to completion, and whether a repair turn ran.
+    review_rounds: int
+    repaired: bool
+    unresolved_claim_count: int
+    ungated_reason: str | None = None
+    released_at: str
+
+
 class RunResult(_Response):
     """What a decision-support run ended with under a declared release policy
-    (#47). ``recorded`` false for a run before one was declared: then nothing
-    is known about whether its answer was reviewed."""
+    (#47). ``recorded`` false for a run before one was declared. Its review is
+    then unknown unless ``legacy_release`` is present: a ``legacy`` run still
+    went through the release gate, which keeps its own record."""
 
     run_id: str
     recorded: bool
     release_policy: str
+    legacy_release: LegacyRelease | None = None
     schema_version: str | None = None
     disposition: Literal["publish", "partial_facts", "withhold"] | None = None
     review_status: str | None = None

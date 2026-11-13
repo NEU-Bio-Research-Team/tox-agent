@@ -2783,6 +2783,32 @@ export interface components {
              */
             mime_type: "image/png" | "image/jpeg" | "image/webp";
         };
+        /**
+         * LegacyRelease
+         * @description How a ``legacy``-policy run's answer was released: the gate's own
+         *     record, read from ``answer_releases``. It says what the review did, not
+         *     what the policy decided -- under ``legacy`` an unresolved review is still
+         *     released, so ``outcome`` is the only truthful label.
+         */
+        LegacyRelease: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "reviewed" | "repaired_and_reviewed" | "released_with_unresolved_review" | "ungated" | "fallback";
+            /** Released At */
+            released_at: string;
+            /** Repaired */
+            repaired: boolean;
+            /** Review Rounds */
+            review_rounds: number;
+            /** Semantically Passed */
+            semantically_passed: boolean;
+            /** Ungated Reason */
+            ungated_reason?: string | null;
+            /** Unresolved Claim Count */
+            unresolved_claim_count: number;
+        };
         /** Limitation */
         Limitation: {
             /**
@@ -3901,8 +3927,9 @@ export interface components {
         /**
          * RunResult
          * @description What a decision-support run ended with under a declared release policy
-         *     (#47). ``recorded`` false for a run before one was declared: then nothing
-         *     is known about whether its answer was reviewed.
+         *     (#47). ``recorded`` false for a run before one was declared. Its review is
+         *     then unknown unless ``legacy_release`` is present: a ``legacy`` run still
+         *     went through the release gate, which keeps its own record.
          */
         RunResult: {
             /** Candidate Answer Id */
@@ -3919,6 +3946,7 @@ export interface components {
             execution_outcome?: string | null;
             /** Knowledge Outcome */
             knowledge_outcome?: string | null;
+            legacy_release?: components["schemas"]["LegacyRelease"] | null;
             /** Note */
             note?: string | null;
             /** Public Answer Id */

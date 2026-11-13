@@ -120,8 +120,11 @@ async def _run(db, state, script) -> dict:
         drafts = (await client.get(
             f"/v1/sessions/{session_id}/runs/{run['run_id']}/answer-drafts", headers=AUTH,
         )).json()["drafts"]
+        run_result = (await client.get(
+            f"/v1/sessions/{session_id}/runs/{run['run_id']}/result", headers=AUTH,
+        )).json()
     return {"run": run, "events": events, "answer_ids": answer_ids, "served": served,
-            "drafts": drafts}
+            "drafts": drafts, "run_result": run_result}
 
 
 def _released(result) -> dict:
@@ -172,6 +175,17 @@ async def test_an_unsupported_claim_is_repaired_once_and_reviewed_again(db, gate
     assert [c["text"] for c in answer["claims"]] == [SUPPORTED]
     assert len(release["reviews"]) == 2
 
+    # Under the legacy policy no run result is recorded, but the result route
+    # still reports the review the gate ran rather than "unknown".
+    run_result = result["run_result"]
+    assert run_result["recorded"] is False
+    assert run_result["release_policy"] == "legacy"
+    assert run_result["legacy_release"]["outcome"] == "repaired_and_reviewed"
+    assert run_result["legacy_release"]["semantically_passed"] is True
+    assert run_result["legacy_release"]["review_rounds"] == 2
+    assert run_result["legacy_release"]["repaired"] is True
+    assert run_result["legacy_release"]["unresolved_claim_count"] == 0
+
     # The repair turn was told what to fix, by local_ref.
     assert '"local_ref": "overreach"' in state["repair_prompt"]
     # The replaced candidate is not served; only the released answer is.
@@ -180,11 +194,22 @@ async def test_an_unsupported_claim_is_repaired_once_and_reviewed_again(db, gate
     assert [d["outcome"] for d in result["drafts"]] == ["candidate", "candidate"]
 
 
+async def test_a_partially_supported_claim_is_released_without_a_repair(db, gate_on):
+    state: dict = {}
+    result = await _run(db, state, _script(
+        state, rounds=[{"lit": "supported", "overreach": "partially_supported"}], repair=None,
+    ))
+    release = _released(result)["release"]
+    assert release["outcome"] == "reviewed"
+    assert "repair_prompt" not in state
+    assert release["reviews"][0]["counts"] == {"supported": 1, "partially_supported": 1}
+
+
 async def test_a_narrowing_repair_is_a_rewording_not_a_deletion(db, gate_on):
     state: dict = {}
     result = await _run(db, state, _script(
         state,
-        rounds=[{"lit": "supported", "overreach": "partially_supported"},
+        rounds=[{"lit": "supported", "overreach": "not_supported"},
                 {"lit": "supported", "overreach": "supported"}],
         repair={"lit": SUPPORTED, "overreach": NARROWED},
     ))
@@ -208,6 +233,10 @@ async def test_a_claim_still_unsupported_after_the_repair_is_released_and_named(
     assert release["semantically_passed"] is False
     (unresolved,) = release["unresolved_claim_ids"]
     assert next(c for c in answer["claims"] if c["claim_id"] == unresolved)["text"] == OVERREACH
+    legacy = result["run_result"]["legacy_release"]
+    assert legacy["outcome"] == "released_with_unresolved_review"
+    assert legacy["semantically_passed"] is False
+    assert legacy["unresolved_claim_count"] == 1
 
 
 async def test_a_repair_that_submits_nothing_releases_the_candidate_unresolved(db, gate_on):
@@ -239,6 +268,10 @@ async def test_a_reviewer_that_submits_nothing_leaves_the_answer_ungated(db, gat
     release = _released(result)["release"]
     assert release["outcome"] == "ungated"
     assert "did not complete" in release["ungated_reason"]
+    legacy = result["run_result"]["legacy_release"]
+    assert legacy["outcome"] == "ungated"
+    assert legacy["review_rounds"] == 0
+    assert "did not complete" in legacy["ungated_reason"]
 
 
 async def test_outside_a_repair_a_second_answer_is_still_refused(db, gate_on):

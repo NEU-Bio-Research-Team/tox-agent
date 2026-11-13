@@ -96,7 +96,7 @@ Any other target, or any other method, is `not_measured`.
 Token counts are the deterministic estimate of `harness/prompt_budget.py`, never a
 provider count.
 
-**decision_support** — static: every component is composed into every decision_support turn; about 1967 tokens before any session context.
+**decision_support** — static: every component is composed into every decision_support turn; about 2028 tokens before any session context.
 
 | Component | Estimated tokens |
 |---|---|
@@ -104,7 +104,7 @@ provider count.
 | `scientific_invariants` | 228 |
 | `answer_format` | 616 |
 | `required_limitations_guide` | 182 |
-| `decision_support_policy` | 701 |
+| `decision_support_policy` | 762 |
 
 **report_build** — static: compose_report_profile() concatenates AGENTS.md, every shared reference, every declared SKILL.md and every skill reference into the prompt of every report run; the runtime's own skill tool is denied, so no skill is chosen or loaded on demand. About 11306 tokens per report run.
 

@@ -158,7 +158,27 @@ async def get_run_result(
         if run is None or run.session_id != session_id:
             raise NotFound("no such run", run_id=run_id)
         result = await uow.run_results.get(run_id)
+        release = await uow.answer_releases.get_for_run(run_id) if result is None else None
     if result is None:
+        if release is not None:
+            # A ``legacy`` run records no run result, but the release gate still
+            # reviewed it and wrote what it did. Say that, rather than "unknown".
+            return {
+                "run_id": run_id, "recorded": False, "release_policy": "legacy",
+                "legacy_release": {
+                    "outcome": release.outcome.value,
+                    "semantically_passed": release.semantically_passed,
+                    "review_rounds": sum(
+                        1 for r in release.reviews if r.get("status") == "completed"
+                    ),
+                    "repaired": release.repair is not None,
+                    "unresolved_claim_count": len(release.unresolved_claim_ids),
+                    "ungated_reason": release.ungated_reason,
+                    "released_at": release.released_at.isoformat(),
+                },
+                "note": "this run was released under the legacy policy, which records "
+                        "no run result; the release gate's own record is in legacy_release",
+            }
         return {"run_id": run_id, "recorded": False, "release_policy": "legacy",
                 "note": "this run has no recorded result; whether its answer was "
                         "reviewed is not known"}

@@ -32,8 +32,12 @@ from typing import Any, Mapping, Sequence
 
 from ...domain.errors import Violation
 
-#: Verdicts that stop an answer being released as written.
-BLOCKING_VERDICTS: frozenset[str] = frozenset({"not_supported", "partially_supported"})
+#: Verdicts that stop an answer being released as written. ``partially_supported``
+#: no longer does (latency: it bought a full repair turn plus a second review,
+#: ~60 s, for a claim whose scope was only too wide). The verdict is still
+#: recorded in the release's reviews, so a reader can see which claims were
+#: only partly supported; it simply no longer triggers a repair.
+BLOCKING_VERDICTS: frozenset[str] = frozenset({"not_supported"})
 
 #: What the model is asked to do about each blocking verdict. An unsupported
 #: claim has three honest exits and this names them, so "say it more

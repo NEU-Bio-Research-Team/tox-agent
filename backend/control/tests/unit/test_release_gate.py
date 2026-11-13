@@ -64,12 +64,15 @@ def test_an_unsupported_claim_blocks_release_and_names_its_exits():
     assert "different endpoint" in violation.message
 
 
-def test_a_partially_supported_claim_blocks_and_asks_for_narrowing():
+def test_a_partially_supported_claim_is_recorded_and_no_longer_triggers_a_repair():
+    """Latency trade-off: a repair turn plus a second review cost about a minute
+    for a claim whose scope was only too wide. The verdict stays on the record."""
     decision = release_decision(
         [_review("c1", "partially_supported")], reviewed_claim_ids=["c1"]
     )
-    assert not decision.release
-    assert "narrow the claim" in decision.violations[0].message
+    assert decision.release
+    assert decision.blocking_claim_ids == ()
+    assert decision.counts == {"partially_supported": 1}
 
 
 def test_cannot_judge_is_recorded_and_does_not_block():
@@ -113,8 +116,8 @@ def test_an_answer_with_no_reviewable_claim_is_released_and_says_so():
     assert decision.ungated_reason == "the answer makes no reviewable claim"
 
 
-def test_only_the_two_blocking_verdicts_block():
-    assert BLOCKING_VERDICTS == {"not_supported", "partially_supported"}
+def test_only_an_unsupported_verdict_blocks():
+    assert BLOCKING_VERDICTS == {"not_supported"}
 
 
 # ── what the repair cost ──────────────────────────────────────────────────

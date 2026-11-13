@@ -76,6 +76,68 @@ describe('ReleaseBanner', () => {
     expect(screen.getByText(/chưa rõ nó đã được kiểm tra hay chưa/)).toBeInTheDocument();
   });
 
+  describe('a legacy run that the release gate reviewed', () => {
+    function legacy(overrides: Partial<NonNullable<RunResult['legacy_release']>> = {}): RunResult {
+      return {
+        run_id: 'run_0',
+        recorded: false,
+        release_policy: 'legacy',
+        legacy_release: {
+          outcome: 'repaired_and_reviewed',
+          semantically_passed: true,
+          review_rounds: 2,
+          repaired: true,
+          unresolved_claim_count: 0,
+          ungated_reason: null,
+          released_at: '2026-11-13T03:31:10+00:00',
+          ...overrides,
+        },
+      } as RunResult;
+    }
+
+    it('reports the review that ran instead of saying it is unknown', () => {
+      render(<ReleaseBanner result={legacy()} />);
+      expect(screen.getByText('Đã chỉnh lại một lần rồi mới khớp nguồn')).toBeInTheDocument();
+      expect(screen.queryByText('Chưa có thông tin kiểm chứng')).not.toBeInTheDocument();
+      const steps = screen.getByRole('list', { name: 'Các bước kiểm tra' });
+      expect(steps).toHaveTextContent('Chỉnh lại (xong)');
+      expect(steps).toHaveTextContent('Đối chiếu nguồn (xong)');
+    });
+
+    it('does not claim a review that passed when the first pass already matched the sources', () => {
+      render(<ReleaseBanner result={legacy({ outcome: 'reviewed', repaired: false, review_rounds: 1 })} />);
+      expect(screen.getByText('Các ý đã được đối chiếu với nguồn')).toBeInTheDocument();
+      expect(screen.getByText(/chưa có nghĩa kết luận chắc chắn đúng về khoa học/)).toBeInTheDocument();
+    });
+
+    it('never presents an answer released over an unresolved review as passed', () => {
+      render(
+        <ReleaseBanner
+          result={legacy({ outcome: 'released_with_unresolved_review', semantically_passed: false, unresolved_claim_count: 2 })}
+        />,
+      );
+      expect(screen.getByText('Đã công bố, nhưng còn ý chưa được nguồn hỗ trợ')).toBeInTheDocument();
+      expect(screen.getByText(/2 ý vẫn chưa được nguồn hỗ trợ/)).toBeInTheDocument();
+      expect(screen.getByRole('list', { name: 'Các bước kiểm tra' })).toHaveTextContent('Đối chiếu nguồn (chưa đạt)');
+      expect(screen.queryByText(/khớp nguồn/)).not.toBeInTheDocument();
+    });
+
+    it('says an ungated answer was not checked', () => {
+      render(
+        <ReleaseBanner
+          result={legacy({ outcome: 'ungated', semantically_passed: false, repaired: false, review_rounds: 0, ungated_reason: 'review did not complete' })}
+        />,
+      );
+      expect(screen.getByText('Chưa đối chiếu được câu trả lời này')).toBeInTheDocument();
+      expect(screen.getByRole('list', { name: 'Các bước kiểm tra' })).toHaveTextContent('Đối chiếu nguồn (bỏ qua)');
+    });
+
+    it('describes a server-built fallback as only the facts the system looked up', () => {
+      render(<ReleaseBanner result={legacy({ outcome: 'fallback', semantically_passed: false, repaired: false, review_rounds: 0 })} />);
+      expect(screen.getByText('Chỉ nêu các dữ kiện hệ thống đã tra')).toBeInTheDocument();
+    });
+  });
+
   it('renders nothing when the run has no result', () => {
     const { container } = render(<ReleaseBanner result={null} />);
     expect(container).toBeEmptyDOMElement();

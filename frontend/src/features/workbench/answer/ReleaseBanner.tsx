@@ -77,8 +77,67 @@ interface ReleaseView {
   steps: Step[];
 }
 
+type LegacyRelease = NonNullable<RunResult['legacy_release']>;
+
+/**
+ * A run under the `legacy` release policy records no run result, but the
+ * release gate still reviewed it and wrote what happened. Say that, in the
+ * gate's own terms: under `legacy` a review that still blocked a claim is
+ * released anyway, so "published" is never read as "passed".
+ */
+function legacyReleaseView(release: LegacyRelease): ReleaseView {
+  const written: Step = { label: 'Viết nháp', state: 'done' };
+  const published: Step = { label: 'Công bố', state: 'done' };
+  switch (release.outcome) {
+    case 'reviewed':
+      return {
+        title: 'Các ý đã được đối chiếu với nguồn',
+        detail: 'Từng ý trong câu trả lời đã được người đối chiếu độc lập xem và khớp nguồn. Khớp nguồn chưa có nghĩa kết luận chắc chắn đúng về khoa học.',
+        tone: 'success',
+        Icon: CircleCheck,
+        steps: [written, { label: 'Đối chiếu nguồn', state: 'done' }, published],
+      };
+    case 'repaired_and_reviewed':
+      return {
+        title: 'Đã chỉnh lại một lần rồi mới khớp nguồn',
+        detail:
+          'Lần đối chiếu đầu có ý chưa được nguồn hỗ trợ đầy đủ nên câu trả lời được chỉnh lại một lần; bản chỉnh lại đã khớp nguồn. Khớp nguồn chưa có nghĩa kết luận chắc chắn đúng về khoa học.',
+        tone: 'info',
+        Icon: Wrench,
+        steps: [written, { label: 'Chỉnh lại', state: 'done' }, { label: 'Đối chiếu nguồn', state: 'done' }, published],
+      };
+    case 'released_with_unresolved_review': {
+      const open = release.unresolved_claim_count;
+      return {
+        title: 'Đã công bố, nhưng còn ý chưa được nguồn hỗ trợ',
+        detail: `${open > 0 ? `${open} ý` : 'Một số ý'} vẫn chưa được nguồn hỗ trợ sau lần chỉnh lại. Câu trả lời vẫn được hiển thị, nên hãy đọc những ý đó thận trọng.`,
+        tone: 'warning',
+        Icon: CircleAlert,
+        steps: [written, { label: 'Đối chiếu nguồn', state: 'issue' }, published],
+      };
+    }
+    case 'fallback':
+      return {
+        title: 'Chỉ nêu các dữ kiện hệ thống đã tra',
+        detail: 'Mô hình không đưa ra được bản trả lời hợp lệ, nên câu trả lời chỉ gồm các dữ kiện hệ thống tự tra được; không có ý nào cần đối chiếu.',
+        tone: 'neutral',
+        Icon: CircleHelp,
+        steps: [],
+      };
+    default:
+      return {
+        title: 'Chưa đối chiếu được câu trả lời này',
+        detail: 'Bước đối chiếu với nguồn không chạy được hoặc không có ý nào để đối chiếu, nên câu trả lời được hiển thị mà chưa qua đối chiếu.',
+        tone: 'neutral',
+        Icon: CircleHelp,
+        steps: [written, { label: 'Đối chiếu nguồn', state: 'skipped' }, published],
+      };
+  }
+}
+
 export function releaseView(result: RunResult): ReleaseView {
   if (!result.recorded) {
+    if (result.legacy_release) return legacyReleaseView(result.legacy_release);
     return {
       title: 'Chưa có thông tin kiểm chứng',
       detail: 'Câu trả lời này được tạo trước khi hệ thống ghi nhận việc kiểm tra, nên chưa rõ nó đã được kiểm tra hay chưa.',

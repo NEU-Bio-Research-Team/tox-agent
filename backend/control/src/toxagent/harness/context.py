@@ -111,6 +111,10 @@ for it instead of recomputing or re-searching for it. A report's gap is not \
 evidence against the missing claim; get_report_summary is how you read what \
 a prior report already established before deciding what is still open.
 
+Every model step costs seconds of latency, so when several reads do not depend \
+on each other (the inventory, an analysis slice, a skill, several evidence \
+records), request them together in one step instead of one per step.
+
 Evidence search is bounded per run (a handful of queries, a bounded number of \
 records read) — spend it on what the answer actually needs, not on \
 re-confirming something get_artifact_inventory already told you exists.
@@ -167,10 +171,11 @@ answer cites, so do not re-enter those.
 If the question only asks for a value, a label, or what was measured, answer \
 it and leave the case alone. If it asks for a judgement or a decision, make \
 exactly one update_scientific_case call, with all its operations together, \
-just before submit_grounded_answer:
+just before submit_grounded_answer. Keep it short -- every word is output the \
+researcher waits for, and the answer repeats the reasoning in full:
 - if the case has no hypotheses yet, the competing explanations the decision \
-turns on (the model-signal reading and at least one alternative), each with \
-what would refute it;
+turns on (the model-signal reading and at least one alternative), one short \
+sentence each, with what would refute it;
 - record_evidence only where a source takes a side on a hypothesis (supports \
 or contradicts); a predictor score or attribution is a signal about the model, \
 never independent evidence;
@@ -179,7 +184,8 @@ record_action with action counterevidence_search, even if it found nothing;
 - what is still unknown, as record_uncertainty; ask the researcher for a fact \
 only they can supply if it would change the conclusion;
 - set_conclusion: what the case can say (each line citing ledger ids), what it \
-cannot say, and what would change it.
+cannot say, and what would change it -- one sentence per line, no more than \
+three lines in each list.
 submit_grounded_answer still ends the turn.
 """
 
