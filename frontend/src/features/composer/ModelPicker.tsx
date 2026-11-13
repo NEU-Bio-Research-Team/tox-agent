@@ -239,10 +239,10 @@ export function ModelPicker({
           onPointerEnter={() => setWarm(true)}
           onFocus={() => setWarm(true)}
           className="group flex h-8 max-w-[240px] items-center gap-1.5 rounded-full border px-2.5 text-xs transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-50"
-          style={{ borderColor: 'var(--line)', color: 'var(--text-muted)' }}
+          style={{ borderColor: 'var(--line)', color: 'var(--ink-secondary)' }}
         >
           {current ? <ProviderBadge providerId={current.provider_id} size={16} /> : <Cpu className="h-3.5 w-3.5" />}
-          <span className="truncate font-medium" style={{ color: 'var(--text)' }}>{label}</span>
+          <span className="truncate font-medium text-ink">{label}</span>
           <ChevronDown className="h-3 w-3 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
         </button>
       </PopoverTrigger>
@@ -250,7 +250,7 @@ export function ModelPicker({
         {connections.length === 0 ? (
           <div className="space-y-3 p-4 text-sm">
             <p className="font-medium">Chưa có AI nào được kết nối</p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs text-ink-secondary">
               Thêm API key hoặc đăng nhập ChatGPT Plus/Pro trong Cài đặt. Sau đó mọi model của tài khoản đó sẽ hiện ở đây.
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -264,8 +264,8 @@ export function ModelPicker({
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: 'var(--line)' }}>
-              <Search className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--text-faint)' }} />
+            <div className="flex items-center gap-2 border-b px-3 py-2">
+              <Search className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
               <input
                 autoFocus
                 aria-label="Tìm model"
@@ -273,15 +273,15 @@ export function ModelPicker({
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder="Tìm model…"
-                className="h-7 w-full bg-transparent text-sm outline-none placeholder:text-[var(--text-faint)]"
+                className="h-7 w-full bg-transparent text-sm outline-none placeholder:text-ink-tertiary"
               />
             </div>
             <div ref={listRef} role="listbox" aria-label="Các model khả dụng" className="max-h-[320px] overflow-y-auto overscroll-contain py-1">
               {filtered.map((group) => (
                 <div key={group.connection.connection_id} className="py-1">
                   <div
-                    className="sticky top-0 z-10 flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide backdrop-blur"
-                    style={{ color: 'var(--text-faint)', background: 'var(--surface)' }}
+                    className="sticky top-0 z-10 flex items-center gap-2 px-3 py-1.5 text-2xs font-semibold uppercase tracking-wide backdrop-blur"
+                    style={{ color: 'var(--ink-tertiary)', background: 'var(--surface)' }}
                   >
                     <ProviderBadge providerId={group.connection.provider_id} size={14} />
                     <span className="truncate">{providerNames[group.connection.provider_id] ?? group.connection.provider_id}</span>
@@ -308,16 +308,16 @@ export function ModelPicker({
                         style={{ background: index === active ? 'var(--surface-hover)' : undefined }}
                       >
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate font-mono text-[13px]">{model.id}</span>
+                          <span className="block truncate font-mono text-13">{model.id}</span>
                           {model.name && model.name !== model.id && (
-                            <span className="block truncate text-[11px]" style={{ color: 'var(--text-faint)' }}>{model.name}</span>
+                            <span className="block truncate text-2xs text-ink-tertiary">{model.name}</span>
                           )}
                           {refused && (
                             <span
                               role="alert"
                               title={refused.message || undefined}
-                              className="mt-0.5 flex items-start gap-1 text-[11px]"
-                              style={{ color: 'var(--accent-red)' }}
+                              className="mt-0.5 flex items-start gap-1 text-2xs"
+                              style={{ color: 'var(--danger)' }}
                             >
                               <AlertTriangle className="mt-px h-3 w-3 shrink-0" />
                               <span>{verdictText(refused)}</span>
@@ -325,13 +325,13 @@ export function ModelPicker({
                           )}
                         </span>
                         {verdict?.state === 'checking' ? (
-                          <span className="flex shrink-0 items-center gap-1 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+                          <span className="flex shrink-0 items-center gap-1 text-2xs text-ink-tertiary">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />Đang kiểm tra…
                           </span>
                         ) : selected ? (
                           <Check className="h-4 w-4 shrink-0" style={{ color: 'var(--purple-600)' }} />
                         ) : !refused && group.connection.auth_mode === CHATGPT && model.availability === 'catalogue' ? (
-                          <span className="shrink-0 text-[11px]" style={{ color: 'var(--text-faint)' }}>chưa kiểm tra</span>
+                          <span className="shrink-0 text-2xs text-ink-tertiary">chưa kiểm tra</span>
                         ) : null}
                       </button>
                     );
@@ -347,7 +347,7 @@ export function ModelPicker({
                           value={typed[group.connection.connection_id] ?? ''}
                           onChange={(event) => setTyped((all) => ({ ...all, [group.connection.connection_id]: event.target.value }))}
                           placeholder="Model khác: nhập mã, ví dụ gpt-6.1-terra"
-                          className="h-7 min-w-0 flex-1 rounded-md border bg-transparent px-2 font-mono text-xs outline-none placeholder:font-sans placeholder:text-[var(--text-faint)]"
+                          className="h-7 min-w-0 flex-1 rounded-md border bg-transparent px-2 font-mono text-xs outline-none placeholder:font-sans placeholder:text-ink-tertiary"
                           style={{ borderColor: 'var(--line)' }}
                         />
                         <button
@@ -366,23 +366,23 @@ export function ModelPicker({
                           typedError[group.connection.connection_id] ||
                           (verdict?.state === 'done' && verdict.result.status !== 'usable' ? verdictText(verdict.result) : '');
                         return message ? (
-                          <p role="alert" className="mt-1 text-[11px]" style={{ color: 'var(--accent-red)' }}>{message}</p>
+                          <p role="alert" className="mt-1 text-2xs text-danger">{message}</p>
                         ) : null;
                       })()}
                     </div>
                   )}
                   {group.failed && !needle && (
-                    <p className="px-3 pb-1 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+                    <p className="px-3 pb-1 text-2xs text-ink-tertiary">
                       Provider không trả về danh sách model; chỉ có model đã kiểm tra.
                     </p>
                   )}
                 </div>
               ))}
               {rows.length === 0 && !filtered.some((group) => group.loading) && (
-                <p className="px-3 py-6 text-center text-xs" style={{ color: 'var(--text-faint)' }}>Không có model nào khớp “{query}”.</p>
+                <p className="px-3 py-6 text-center text-xs text-ink-tertiary">Không có model nào khớp “{query}”.</p>
               )}
             </div>
-            <div className="flex items-center justify-between border-t px-3 py-2 text-[11px]" style={{ borderColor: 'var(--line)', color: 'var(--text-faint)' }}>
+            <div className="flex items-center justify-between border-t px-3 py-2 text-2xs text-ink-tertiary">
               <span>↑↓ để chọn · Enter để dùng</span>
               <Link to="/settings" className="inline-flex items-center gap-1 hover:underline">
                 <Settings2 className="h-3 w-3" />Quản lý kết nối

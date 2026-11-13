@@ -18,12 +18,15 @@ export function WorkspaceHeader({
   status,
   actions,
   onRename,
+  breadcrumb = false,
 }: {
   title: string;
   sessionId?: string;
   status?: ConnectionStatus;
   actions?: ReactNode;
   onRename?: (title: string) => Promise<void>;
+  /** A page inside the frame supplies its own `<h1>`; this bar then only names where you are. */
+  breadcrumb?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [nextTitle, setNextTitle] = useState(title);
@@ -45,7 +48,7 @@ export function WorkspaceHeader({
         {sessionId ? <Popover onOpenChange={(open) => { if (open) setNextTitle(title); if (!open) setEditing(false); }}>
           <PopoverTrigger asChild>
             <button type="button" className="flex max-w-full items-center gap-1 rounded-md text-left focus-visible:outline-none">
-              <h1 className="truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>{title}</h1>
+              <h1 className="truncate text-sm font-semibold text-ink">{title}</h1>
               <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
             </button>
           </PopoverTrigger>
@@ -59,13 +62,15 @@ export function WorkspaceHeader({
               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /> Đổi tên session</Button>
             )}
             <div className="flex items-center justify-between gap-2 rounded-lg bg-muted p-2">
-              <code className="truncate text-[11px] text-muted-foreground">{sessionId}</code>
+              <code className="truncate text-2xs text-muted-foreground">{sessionId}</code>
               <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Sao chép ID session" onClick={() => { void navigator.clipboard?.writeText(sessionId); setCopied(true); window.setTimeout(() => setCopied(false), 1500); }}>
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               </Button>
             </div>
           </PopoverContent>
-        </Popover> : <h1 className="truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>{title}</h1>}
+        </Popover> : breadcrumb
+          ? <p className="truncate text-sm font-semibold text-ink">{title}</p>
+          : <h1 className="truncate text-sm font-semibold text-ink">{title}</h1>}
       </div>
       {status && <ConnectionIndicator status={status} />}
       {actions}

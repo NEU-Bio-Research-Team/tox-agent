@@ -84,20 +84,20 @@ export function RequireToken({ children }: { children: ReactNode }) {
     return (
       <div
         className="flex min-h-screen items-center justify-center px-6"
-        style={{ backgroundColor: 'var(--bg)' }}
+        style={{ backgroundColor: 'var(--canvas-subtle)' }}
       >
         <div
           className="w-full max-w-sm rounded-2xl border p-8"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line)' }}
         >
-          <h1 className="mb-1 text-lg font-semibold" style={{ color: 'var(--text)' }}>
+          <h1 className="mb-1 text-lg font-semibold text-ink">
             Kết nối ToxAgent
           </h1>
-          <p className="mb-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+          <p className="mb-6 text-sm text-ink-secondary">
             Đăng nhập bằng tài khoản tổ chức của bạn.
           </p>
           {error && (
-            <p className="mb-4 text-sm" style={{ color: 'var(--accent-red)' }}>
+            <p className="mb-4 text-sm text-danger">
               {error}
             </p>
           )}
@@ -129,17 +129,17 @@ export function RequireToken({ children }: { children: ReactNode }) {
   return (
     <div
       className="flex min-h-screen items-center justify-center px-6"
-      style={{ backgroundColor: 'var(--bg)' }}
+      style={{ backgroundColor: 'var(--canvas-subtle)' }}
     >
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-2xl border p-8"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line)' }}
       >
-        <h1 className="mb-1 text-lg font-semibold" style={{ color: 'var(--text)' }}>
+        <h1 className="mb-1 text-lg font-semibold text-ink">
           Kết nối ToxAgent
         </h1>
-        <p className="mb-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+        <p className="mb-6 text-sm text-ink-secondary">
           Dán access token được cấp cho phiên internal alpha.
         </p>
         <div className="space-y-2">
@@ -157,7 +157,7 @@ export function RequireToken({ children }: { children: ReactNode }) {
           />
         </div>
         {error && (
-          <p className="mt-2 text-sm" style={{ color: 'var(--accent-red)' }}>
+          <p className="mt-2 text-sm text-danger">
             {error}
           </p>
         )}

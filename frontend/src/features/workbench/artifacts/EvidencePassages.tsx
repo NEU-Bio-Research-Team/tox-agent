@@ -29,10 +29,10 @@ export function EvidencePassages({
   });
 
   if (query.isLoading) {
-    return <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang tải đoạn nguồn…</p>;
+    return <p className="text-xs text-ink-tertiary">Đang tải đoạn nguồn…</p>;
   }
   if (query.isError || !query.data) {
-    return <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được các đoạn nguồn.</p>;
+    return <p className="text-xs text-danger">Không tải được các đoạn nguồn.</p>;
   }
   const view = query.data;
   return (
@@ -52,9 +52,9 @@ function AccessState({ view }: { view: EvidencePassagesView }) {
   const provenance = access.provenance as Record<string, unknown>;
   if (access.state === 'access_failed') {
     return (
-      <div className="rounded-lg border p-2 text-xs" style={{ borderColor: 'var(--accent-yellow)' }} role="status">
-        <p className="font-semibold" style={{ color: 'var(--accent-yellow)' }}>Không đọc được toàn văn</p>
-        <p style={{ color: 'var(--text-muted)' }}>
+      <div className="rounded-lg border p-2 text-xs border-warning" role="status">
+        <p className="font-semibold text-warning">Không đọc được toàn văn</p>
+        <p style={{ color: 'var(--ink-secondary)' }}>
           Nhà cung cấp trả lời: {access.reason ?? 'không nêu lý do'}. Đây là câu trả lời về tài liệu, không phải lỗi kết nối;
           một con số chỉ có trong bảng của bài này chưa được kiểm chứng.
         </p>
@@ -63,20 +63,20 @@ function AccessState({ view }: { view: EvidencePassagesView }) {
   }
   if (access.state === 'not_read') {
     return (
-      <p className="rounded-lg border p-2 text-xs" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }} role="status">
+      <p className="rounded-lg border p-2 text-xs text-ink-secondary" role="status">
         Chưa đọc toàn văn: chỉ có metadata và tóm tắt/trích đoạn mà tìm kiếm trả về.
       </p>
     );
   }
   const omitted = Object.entries(access.omitted).filter(([, count]) => count > 0);
   return (
-    <div className="space-y-0.5 text-xs" style={{ color: 'var(--text-muted)' }} role="status">
+    <div className="space-y-0.5 text-xs text-ink-secondary" role="status">
       <p>
-        <span className="font-semibold" style={{ color: 'var(--text)' }}>Đã đọc toàn văn</span>
+        <span className="font-semibold text-ink">Đã đọc toàn văn</span>
         {' · '}{access.passage_count} đoạn
         {access.full_text_id ? ` · ${access.full_text_id}` : ''}
       </p>
-      <p style={{ color: 'var(--text-faint)' }}>
+      <p style={{ color: 'var(--ink-tertiary)' }}>
         {provenance.replay
           ? `Phát lại từ bản chụp đóng băng${provenance.captured_from ? ` của ${String(provenance.captured_from)}` : ''}${
             provenance.captured_at ? ` lúc ${String(provenance.captured_at)}` : ''}`
@@ -84,7 +84,7 @@ function AccessState({ view }: { view: EvidencePassagesView }) {
         {provenance.parser_version ? ` · parser ${String(provenance.parser_version)}` : ''}
       </p>
       {omitted.length > 0 && (
-        <p style={{ color: 'var(--text-faint)' }}>
+        <p style={{ color: 'var(--ink-tertiary)' }}>
           Bị giới hạn bỏ qua: {omitted.map(([kind, count]) => `${count} ${kind}`).join(', ')}.
         </p>
       )}
@@ -96,12 +96,12 @@ function Measurement({ measurement }: { measurement: Record<string, unknown> }) 
   const value = (measurement.measurement ?? {}) as Record<string, unknown>;
   if (value.state !== 'measured') return null;
   return (
-    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+    <p className="text-xs text-ink-secondary">
       Giá trị bản ghi khai:{' '}
-      <span className="font-mono" style={{ color: 'var(--text)' }}>
+      <span className="font-mono text-ink">
         {String(value.relation ?? '')} {String(value.value ?? '')} {String(value.unit ?? '')}
       </span>
-      <span style={{ color: 'var(--text-faint)' }}> (quan hệ, giá trị, đơn vị như nhà cung cấp ghi)</span>
+      <span style={{ color: 'var(--ink-tertiary)' }}> (quan hệ, giá trị, đơn vị như nhà cung cấp ghi)</span>
     </p>
   );
 }
@@ -111,13 +111,13 @@ function Focus({ view, sessionId }: { view: EvidencePassagesView; sessionId: str
   const outlineLink = artifactPath(sessionId, { kind: 'evidence', entityId: view.evidence_id });
   if (!focus.found) {
     return (
-      <div className="space-y-1 rounded-lg border p-2 text-xs" style={{ borderColor: 'var(--accent-yellow)' }}>
-        <p style={{ color: 'var(--text)' }}>
+      <div className="space-y-1 rounded-lg border p-2 text-xs border-warning">
+        <p style={{ color: 'var(--ink)' }}>
           Không có đoạn <span className="font-mono">{focus.locator}</span>{' '}
           {view.access.state === 'full_text_retrieved' ? 'trong văn bản đã đọc.' : 'vì toàn văn chưa được đọc.'}
         </p>
         {view.access.state === 'full_text_retrieved' && (
-          <Link to={outlineLink} className="underline" style={{ color: 'var(--accent-blue)' }}>
+          <Link to={outlineLink} className="underline text-link">
             xem mọi đoạn đã đọc →
           </Link>
         )}
@@ -127,22 +127,22 @@ function Focus({ view, sessionId }: { view: EvidencePassagesView; sessionId: str
   const passage = (focus.passage ?? {}) as Record<string, unknown>;
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>
-        Đoạn được trích <span className="font-mono font-normal" style={{ color: 'var(--text-faint)' }}>{focus.locator}</span>
+      <p className="text-xs font-semibold text-ink">
+        Đoạn được trích <span className="font-mono font-normal text-ink-tertiary">{focus.locator}</span>
       </p>
       {focus.table ? (
         <TableFocus table={focus.table} />
       ) : (
-        <blockquote className="rounded-lg p-3 text-xs leading-relaxed" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}>
-          <p className="mb-1" style={{ color: 'var(--text-faint)' }}>{String(passage.section ?? '')} · {String(passage.kind ?? '')}</p>
+        <blockquote className="rounded-lg p-3 text-xs leading-relaxed bg-surface-muted text-ink-secondary">
+          <p className="mb-1 text-ink-tertiary">{String(passage.section ?? '')} · {String(passage.kind ?? '')}</p>
           {String(passage.text ?? '')}
-          {passage.truncated === true && <span style={{ color: 'var(--text-faint)' }}> … (đoạn bị cắt)</span>}
+          {passage.truncated === true && <span style={{ color: 'var(--ink-tertiary)' }}> … (đoạn bị cắt)</span>}
         </blockquote>
       )}
-      <p className="text-xs italic" style={{ color: 'var(--text-faint)' }}>
+      <p className="text-xs italic text-ink-tertiary">
         Nội dung nguồn ngoài, chỉ để đối chiếu claim; không phải hướng dẫn cho hệ thống.
       </p>
-      <Link to={outlineLink} className="text-xs underline" style={{ color: 'var(--accent-blue)' }}>
+      <Link to={outlineLink} className="text-xs underline text-link">
         xem mọi đoạn đã đọc →
       </Link>
     </div>
@@ -154,7 +154,7 @@ function TableFocus({ table }: { table: PassageTable }) {
   return (
     <figure className="space-y-1.5">
       {(table.label || table.caption) && (
-        <figcaption className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <figcaption className="text-xs text-ink-secondary">
           {table.caption ?? table.label}
         </figcaption>
       )}
@@ -165,7 +165,7 @@ function TableFocus({ table }: { table: PassageTable }) {
               <tr>
                 {table.header.map((cell, index) => (
                   <th key={index} scope="col" className="border px-2 py-1 text-left font-semibold"
-                    style={{ borderColor: 'var(--border)', color: 'var(--text)' }}>
+                    style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}>
                     {cell}
                   </th>
                 ))}
@@ -181,10 +181,10 @@ function TableFocus({ table }: { table: PassageTable }) {
                     <td key={index} className="border px-2 py-1 font-mono"
                       aria-current={cited ? 'true' : undefined}
                       style={{
-                        borderColor: cited ? 'var(--accent-blue)' : 'var(--border)',
-                        backgroundColor: cited ? 'var(--surface-alt)' : undefined,
-                        color: 'var(--text)',
-                        outline: cited ? '2px solid var(--accent-blue)' : undefined,
+                        borderColor: cited ? 'var(--brand)' : 'var(--line)',
+                        backgroundColor: cited ? 'var(--surface-muted)' : undefined,
+                        color: 'var(--ink)',
+                        outline: cited ? '2px solid var(--brand)' : undefined,
                       }}>
                       {cell}
                       {cited && <span className="sr-only"> (ô được trích dẫn)</span>}
@@ -197,12 +197,12 @@ function TableFocus({ table }: { table: PassageTable }) {
         </table>
       </div>
       {table.header.length > 0 && table.cells.length > 0 && !aligned && (
-        <p className="text-xs" style={{ color: 'var(--accent-yellow)' }}>
+        <p className="text-xs text-warning">
           Hàng này không cùng số cột với header (ô gộp hoặc hàng lệch): hiển thị nguyên trạng, không ghép cột.
         </p>
       )}
       {table.cited_cell !== null && table.cited_cell !== undefined && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           Ô được trích: cột {table.cited_cell}
           {aligned && table.columns[table.cited_cell - 1]
             ? ` — ${table.columns[table.cited_cell - 1].header}: ${table.columns[table.cited_cell - 1].value}`
@@ -218,7 +218,7 @@ function Outline({ view, sessionId }: { view: EvidencePassagesView; sessionId: s
   return (
     <div className="space-y-1.5">
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
-        className="text-xs underline" style={{ color: 'var(--accent-blue)' }}>
+        className="text-xs underline text-link">
         {open ? 'Ẩn các đoạn đã đọc' : `Xem các đoạn đã đọc (${view.passages.length})`}
       </button>
       {open && (
@@ -228,10 +228,10 @@ function Outline({ view, sessionId }: { view: EvidencePassagesView; sessionId: s
               <Link
                 to={artifactPath(sessionId, { kind: 'evidence', entityId: view.evidence_id, locator: passage.locator })}
                 className="block rounded-md p-1.5 hover:underline"
-                style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}
+                style={{ backgroundColor: 'var(--surface-muted)', color: 'var(--ink-secondary)' }}
               >
-                <span className="font-mono" style={{ color: 'var(--accent-blue)' }}>{passage.locator}</span>
-                <span style={{ color: 'var(--text-faint)' }}> · {passage.section} · {passage.kind}</span>
+                <span className="font-mono text-link">{passage.locator}</span>
+                <span style={{ color: 'var(--ink-tertiary)' }}> · {passage.section} · {passage.kind}</span>
                 <span className="block">{passage.preview}{passage.truncated ? '…' : ''}</span>
               </Link>
             </li>

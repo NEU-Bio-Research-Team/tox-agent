@@ -44,7 +44,7 @@ export function SubjectPanel({
       {screeningId && detail.data && (
         <div
           className="rounded-md border px-3 py-2"
-          style={{ borderColor: 'var(--border-subtle)', backgroundColor: 'var(--surface)' }}
+          style={{ borderColor: 'var(--line)', backgroundColor: 'var(--surface)' }}
         >
           <ScreeningCard screening={detail.data} />
         </div>

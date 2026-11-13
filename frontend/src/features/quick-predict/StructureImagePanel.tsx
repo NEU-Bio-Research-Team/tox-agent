@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { AlertCircle, CheckCircle2, ImagePlus, Loader2, UploadCloud } from 'lucide-react';
 import { Button } from '../../shared/ui/button';
+import { Callout } from '../../shared/ui/callout';
 import { Input } from '../../shared/ui/input';
+import { cn } from '../../shared/ui/utils';
 import { recognizeStructure } from '../../shared/api/endpoints';
 import { ApiError, type RecognizedStructure } from '../../shared/api/types';
 import { errorMessageVi } from '../../shared/lib/labels';
@@ -66,11 +68,11 @@ export function StructureImagePanel({
     setRecognized(null);
     if (!candidate) return;
     if (!isAcceptedMimeType(candidate.type)) {
-      setError('Only PNG, JPEG or WebP images are supported.');
+      setError('Chỉ hỗ trợ ảnh PNG, JPEG hoặc WebP.');
       return;
     }
     if (candidate.size > MAX_IMAGE_BYTES) {
-      setError(`The image exceeds the ${(MAX_IMAGE_BYTES / 1_000_000).toFixed(0)}MB limit.`);
+      setError(`Ảnh vượt giới hạn ${(MAX_IMAGE_BYTES / 1_000_000).toFixed(0)}MB.`);
       return;
     }
     setFile(candidate as File & { type: AcceptedMimeType });
@@ -92,7 +94,7 @@ export function StructureImagePanel({
       setRecognized(result);
       onSmilesChange(result.canonical_smiles);
     } catch (err) {
-      setError(err instanceof ApiError ? errorMessageVi(err.code, err.message) : 'The image could not be recognised.');
+      setError(err instanceof ApiError ? errorMessageVi(err.code, err.message) : 'Không nhận diện được ảnh.');
     } finally {
       setExtracting(false);
     }
@@ -101,13 +103,7 @@ export function StructureImagePanel({
   return (
     <div className="space-y-3">
       {!available && (
-        <div
-          className="rounded-xl border p-4 text-sm"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', backgroundColor: 'var(--surface-alt)' }}
-        >
-          Structure recognition from images is not enabled on this deployment. Type a SMILES or draw the molecule
-          instead.
-        </div>
+        <Callout tone="neutral">Triển khai này chưa bật nhận diện cấu trúc từ ảnh. Hãy nhập SMILES hoặc vẽ phân tử.</Callout>
       )}
 
       <div
@@ -117,19 +113,18 @@ export function StructureImagePanel({
         }}
         onDragLeave={() => setDragActive(false)}
         onDrop={onDrop}
-        className="rounded-xl border-2 border-dashed p-6 transition-colors"
-        style={{
-          borderColor: dragActive ? 'var(--accent-blue)' : 'var(--border)',
-          backgroundColor: dragActive ? 'rgba(59,130,246,0.08)' : 'var(--surface-alt)',
-          opacity: available ? 1 : 0.6,
-        }}
+        className={cn(
+          'rounded-xl border-2 border-dashed p-6 transition-colors',
+          dragActive ? 'border-brand bg-brand-soft' : 'border-line-strong bg-canvas-subtle',
+          !available && 'opacity-60',
+        )}
       >
         <input
           ref={inputRef}
           type="file"
           accept="image/png,image/jpeg,image/webp"
           className="hidden"
-          aria-label="Structure image"
+          aria-label="Ảnh cấu trúc"
           disabled={locked}
           onChange={(event) => {
             choose(event.target.files?.[0]);
@@ -137,23 +132,19 @@ export function StructureImagePanel({
           }}
         />
         <div className="flex flex-col items-center gap-2 text-center">
-          <UploadCloud className="h-8 w-8" style={{ color: 'var(--accent-blue)' }} />
-          <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>
-            Drag and drop a molecule image here
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            Allowed: PNG/JPG/JPEG/WebP, max 5MB
-          </p>
+          <UploadCloud className="size-8 text-link" />
+          <p className="text-sm font-medium text-ink">Kéo thả ảnh phân tử vào đây</p>
+          <p className="text-xs text-ink-secondary">PNG, JPG hoặc WebP, tối đa 5MB</p>
           <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={locked}>
-            <ImagePlus className="mr-2 h-4 w-4" />
-            Choose Image
+            <ImagePlus />
+            Chọn ảnh
           </Button>
         </div>
       </div>
 
       {previewUrl && (
-        <div className="overflow-hidden rounded-xl border" style={{ borderColor: 'var(--border)' }}>
-          <img src={previewUrl} alt="Molecule upload preview" className="max-h-[280px] w-full bg-white object-contain" />
+        <div className="overflow-hidden rounded-xl border border-line">
+          <img src={previewUrl} alt="Ảnh phân tử đã tải lên" className="max-h-[280px] w-full bg-depiction object-contain" />
         </div>
       )}
 
@@ -161,51 +152,42 @@ export function StructureImagePanel({
         <Button type="button" onClick={() => void extract()} disabled={!file || locked}>
           {extracting ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Extracting...
+              <Loader2 className="animate-spin" />
+              Đang nhận diện…
             </>
           ) : (
             <>
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              Extract SMILES from Image
+              <CheckCircle2 />
+              Trích SMILES từ ảnh
             </>
           )}
         </Button>
         {file && (
-          <p className="min-w-0 truncate text-xs" style={{ color: 'var(--text-muted)' }}>
-            {file.name}
-          </p>
+          <p className="min-w-0 truncate text-xs text-ink-secondary">{file.name}</p>
         )}
       </div>
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-lg border px-4 py-3 text-sm"
-          style={{ borderColor: 'rgba(239,68,68,0.35)', color: 'var(--accent-red)', backgroundColor: 'rgba(239,68,68,0.08)' }}
-        >
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
+        <Callout tone="danger" role="alert" icon={<AlertCircle />}>{error}</Callout>
       )}
 
       {recognized && (
-        <div className="space-y-2 rounded-lg border px-4 py-3 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--text)' }}>
+        <div className="space-y-2 rounded-lg border border-line px-4 py-3 text-sm text-ink">
           <div className="flex items-center gap-2 font-medium">
-            <CheckCircle2 className="h-4 w-4" style={{ color: 'var(--accent-green)' }} />
-            Extraction Success
+            <CheckCircle2 className="size-4 text-success" />
+            Đã trích SMILES
           </div>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-xs text-ink-secondary">
             {recognized.confidence != null
-              ? `Confidence: ${(recognized.confidence * 100).toFixed(1)}%.`
-              : 'The recogniser reported no confidence.'}{' '}
-            Check the structure and correct the SMILES if needed.
+              ? `Độ tin cậy: ${(recognized.confidence * 100).toFixed(1)}%.`
+              : 'Bộ nhận diện không báo độ tin cậy.'}{' '}
+            Kiểm tra cấu trúc và sửa SMILES nếu cần. Nhận diện chỉ là một phỏng đoán.
           </p>
           <Input
             className="font-mono text-xs"
             value={smiles}
             onChange={(event) => onSmilesChange(event.target.value)}
-            aria-label="Recognized SMILES (editable)"
+            aria-label="SMILES nhận diện được (có thể sửa)"
             disabled={disabled}
             spellCheck={false}
           />

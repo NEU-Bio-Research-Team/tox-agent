@@ -33,14 +33,14 @@ export function DossierBlock({ sessionId, runId }: { sessionId: string; runId: s
 
   return (
     <section aria-label="Hồ sơ quyết định" className="mt-3 space-y-2 rounded-lg border p-3 text-xs"
-      style={{ borderColor: 'var(--border)', color: 'var(--text)' }}>
-      <p className="font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>Hồ sơ quyết định</p>
+      style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}>
+      <p className="font-semibold uppercase tracking-wide text-ink-tertiary">Hồ sơ quyết định</p>
       {d.hypotheses.length > 0 && (
         <ul className="space-y-1">
           {d.hypotheses.map((h) => (
             <li key={h.id}>
               <span className="font-medium">{h.id}</span> {h.statement}{' '}
-              <span style={{ color: 'var(--text-muted)' }}>
+              <span style={{ color: 'var(--ink-secondary)' }}>
                 ({STATUS_LABEL[h.status] ?? h.status}; ủng hộ {h.evidence_for.length}, phản bác {h.evidence_against.length})
               </span>
             </li>
@@ -52,7 +52,7 @@ export function DossierBlock({ sessionId, runId }: { sessionId: string; runId: s
           <p className="font-medium">Có thể nói</p>
           <ul className="list-disc pl-4">
             {d.conclusion.can_say.map((line, index) => (
-              <li key={index}>{line.text} <span style={{ color: 'var(--text-faint)' }}>({line.sources.length} nguồn)</span></li>
+              <li key={index}>{line.text} <span style={{ color: 'var(--ink-tertiary)' }}>({line.sources.length} nguồn)</span></li>
             ))}
           </ul>
         </div>
@@ -69,7 +69,7 @@ export function DossierBlock({ sessionId, runId }: { sessionId: string; runId: s
           <ul className="list-disc pl-4">{d.conclusion.what_would_change.map((line, index) => <li key={index}>{line}</li>)}</ul>
         </div>
       )}
-      <p style={{ color: 'var(--text-faint)' }}>
+      <p style={{ color: 'var(--ink-tertiary)' }}>
         {d.open_uncertainties.length} điều chưa biết{blocking ? ` (${blocking} chặn kết luận)` : ''}
         {' · '}có bằng chứng độc lập trực tiếp: {d.coverage.with_independent_direct_evidence}/{d.coverage.hypotheses}
         {!d.data_scope.external_search ? ' · chỉ dữ liệu nội bộ' : ''}

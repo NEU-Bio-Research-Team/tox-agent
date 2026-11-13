@@ -60,7 +60,7 @@ describe('EvidenceArtifact', () => {
     renderArtifact();
 
     expect(await screen.findByText('A source about hERG')).toBeInTheDocument();
-    expect(screen.getByText(/Nội dung nguồn ngoài/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nội dung của nguồn bên ngoài/i)).toBeInTheDocument();
     const sourceLink = screen.getByRole('link', { name: /Mở nguồn đã chuẩn hoá/i });
     expect(sourceLink).toHaveAttribute('href', 'https://europepmc.org/articles/PMC1');
     expect(sourceLink).toHaveAttribute('rel', expect.stringContaining('nofollow'));

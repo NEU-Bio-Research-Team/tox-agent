@@ -8,7 +8,7 @@ export function HeroSection() {
   const isInView = useInView(ref, { once: false, amount: 0.3 });
 
   return (
-    <section id="hero" ref={ref} className="relative min-h-screen bg-gradient-to-br from-[#1E0368] via-[#2D0A5E] to-[#1E0368] overflow-hidden flex items-center justify-center pt-20">
+    <section id="hero" ref={ref} className="relative min-h-screen bg-gradient-to-br from-brand-deep via-brand-deep-2 to-brand-deep overflow-hidden flex items-center justify-center pt-20">
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -20,7 +20,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="font-['Climate_Crisis'] text-7xl md:text-9xl text-white mb-8 leading-none"
+              className="font-sans font-extrabold tracking-tight text-7xl md:text-9xl text-white mb-8 leading-none"
             >
               TOX AGENT.
             </motion.h1>
@@ -31,10 +31,10 @@ export function HeroSection() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="mb-8"
             >
-              <p className="font-['Cal_Sans'] text-8xl md:text-9xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent mb-2">
+              <p className="font-sans font-bold text-8xl md:text-9xl font-bold bg-gradient-to-r from-white to-brand-glow bg-clip-text text-transparent mb-2">
                 100+
               </p>
-              <p className="font-['Cal_Sans'] text-2xl text-white/90">
+              <p className="font-sans font-bold text-2xl text-white/90">
                 users in first released version.
               </p>
             </motion.div>
@@ -43,7 +43,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="font-['Cal_Sans'] text-xl md:text-2xl text-white/90 mb-10 max-w-2xl"
+              className="font-sans font-bold text-xl md:text-2xl text-white/90 mb-10 max-w-2xl"
             >
               From SMILES to structured insight - let AI reason through toxicity so you can focus on discovery.
             </motion.p>
@@ -55,7 +55,7 @@ export function HeroSection() {
               whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(255,255,255,0.3)" }}
               whileTap={{ scale: 0.95 }}
               onClick={() => window.location.assign('/sessions')}
-              className="group bg-transparent border-4 border-white rounded-full px-10 py-4 font-['Cal_Sans'] text-xl md:text-2xl text-white flex items-center gap-4 transition-all"
+              className="group bg-transparent border-4 border-white rounded-full px-10 py-4 font-sans font-bold text-xl md:text-2xl text-white flex items-center gap-4 transition-all"
             >
               <span>GET STARTED</span>
               <motion.img
@@ -84,7 +84,7 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 1 }}
-          className="absolute bottom-10 right-10 font-['Orbitron'] text-2xl md:text-4xl text-white/50 font-bold"
+          className="absolute bottom-10 right-10 font-sans font-bold text-2xl md:text-4xl text-white/50 font-bold"
         >
           PREDICT. INTERPRET. INNOVATE.
         </motion.p>

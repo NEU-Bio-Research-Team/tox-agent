@@ -4,9 +4,9 @@ import type { ReportExplanation } from '../../../../shared/api/types';
  * fetched: the legend has to describe the colours the *stored* figure was drawn
  * with, and the figure carries its palette version in its provenance so a
  * mismatch is auditable. */
-const POSITIVE = '#D73027';
-const NEGATIVE = '#1A9850';
-const NEUTRAL = '#BDBDBD';
+const POSITIVE = 'var(--attr-positive)';
+const NEGATIVE = 'var(--attr-negative)';
+const NEUTRAL = 'var(--attr-neutral)';
 
 /** Signed contribution as text, always with its sign. Colour is one channel and
  * a substantial minority of readers cannot use this particular pair. */
@@ -41,7 +41,7 @@ export function ExplanationLegend({ explanation }: { explanation: ReportExplanat
 
   return (
     <div className="space-y-3">
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-secondary">
         {[
           { color: POSITIVE, label: `+ tăng ${target}` },
           { color: NEGATIVE, label: `− giảm ${target}` },
@@ -51,7 +51,7 @@ export function ExplanationLegend({ explanation }: { explanation: ReportExplanat
             <span
               aria-hidden
               className="inline-block h-3 w-3 rounded-sm border"
-              style={{ backgroundColor: entry.color, borderColor: 'var(--border-subtle)' }}
+              style={{ backgroundColor: entry.color, borderColor: 'var(--line)' }}
             />
             {entry.label}
           </li>
@@ -61,7 +61,7 @@ export function ExplanationLegend({ explanation }: { explanation: ReportExplanat
       {(positive.length > 0 || negative.length > 0) && (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[380px] border-collapse text-xs">
-            <caption className="pb-1 text-left" style={{ color: 'var(--text-muted)' }}>
+            <caption className="pb-1 text-left text-ink-secondary">
               Đóng góp mạnh nhất theo từng chiều. Đây là hành vi của model, không
               phải cơ chế hoá học.
             </caption>
@@ -101,7 +101,7 @@ export function ExplanationLegend({ explanation }: { explanation: ReportExplanat
         </div>
       )}
 
-      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-xs text-ink-secondary">
         {unmapped === null || unmapped === undefined
           ? 'Explainer không báo phần đóng góp không gán được vào cấu trúc.'
           : `Phần đóng góp không gán được vào cấu trúc: ${(unmapped * 100).toFixed(1)}%.`}

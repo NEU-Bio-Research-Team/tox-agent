@@ -15,10 +15,9 @@ export function RunResultBanner({ sessionId, runId }: { sessionId: string; runId
       {result.data?.recorded && result.data.disposition !== 'publish' && (
         <Link
           to={`/s/${sessionId}/runs/${runId}?tab=release`}
-          className="text-xs underline"
-          style={{ color: 'var(--accent-blue)' }}
+          className="text-xs font-medium text-link underline"
         >
-          xem các giai đoạn và lý do trong audit →
+          Xem vì sao →
         </Link>
       )}
     </div>
@@ -55,15 +54,15 @@ export function AnswerBlock({
 
   if (query.isLoading) {
     return (
-      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-        Đang tải đáp án…
+      <p className="text-sm text-ink-secondary">
+        Đang tải câu trả lời…
       </p>
     );
   }
   if (query.isError || !query.data) {
     return (
-      <p className="text-sm" style={{ color: 'var(--accent-red)' }}>
-        Không tải được đáp án {answerId}.
+      <p className="text-sm text-danger">
+        Không tải được câu trả lời này.
       </p>
     );
   }

@@ -55,7 +55,7 @@ describe('SubjectSelector', () => {
       'analysis:ana_1', 'screening:scr_1', 'screening:scr_2',
     ]);
     expect(options[1].label).toBe('EGFR');
-    expect(options[1].detail).toContain('IC50|wild_type');
+    expect(options[1].detail).toContain('IC50 · bản gốc');
     expect(options[1].detail).toContain('độc tính chưa chạy');
     expect(options[2].detail).toContain('độc tính đã chạy');
     // One ligand on two targets is two subjects, never one.
@@ -89,7 +89,7 @@ describe('SubjectSelector', () => {
   it('says a queued run keeps the subject it was sent with', async () => {
     listScreenings.mockResolvedValue({ screenings: [screening()], mode: 'replay' });
     renderSelector({ runPending: true, selected: 'screening:scr_1' });
-    expect(await screen.findByText(/Run đang chạy vẫn trả lời về chủ thể đã chọn lúc gửi/))
+    expect(await screen.findByText(/Câu hỏi đang xử lý vẫn trả lời về chủ thể đã chọn lúc gửi/))
       .toBeInTheDocument();
   });
 

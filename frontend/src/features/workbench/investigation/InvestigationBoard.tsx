@@ -6,6 +6,7 @@ import {
 } from '../../../shared/api/endpoints';
 import type { CaseEvidenceEntry, HypothesisStatus, ScientificCase, ScientificCaseEvent } from '../../../shared/api/types';
 import { CaseChanges } from './CaseChanges';
+import { NativeSelect } from '../../../shared/ui/native-select';
 
 /**
  * The investigation board (ADR 0012, RETHINK §4.4 step 4): the session's
@@ -30,11 +31,11 @@ const STATUS_LABEL: Record<HypothesisStatus, string> = {
 };
 
 const STATUS_COLOR: Record<HypothesisStatus, string> = {
-  open: 'var(--text-muted)',
-  supported: 'var(--accent-blue)',
-  weakened: 'var(--accent-yellow)',
-  refuted: 'var(--accent-red)',
-  unresolvable: 'var(--text-faint)',
+  open: 'var(--ink-secondary)',
+  supported: 'var(--brand)',
+  weakened: 'var(--warning)',
+  refuted: 'var(--danger)',
+  unresolvable: 'var(--ink-tertiary)',
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -93,7 +94,7 @@ function eventSummary(event: ScientificCaseEvent): string {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
-      <h3 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>{title}</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">{title}</h3>
       {children}
     </section>
   );
@@ -102,14 +103,14 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function EvidenceLine({ entry }: { entry: CaseEvidenceEntry }) {
   const scope = Object.entries(entry.scope).map(([k, v]) => `${k}: ${v}`).join(' · ');
   return (
-    <li className="rounded-md p-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text)' }}>
+    <li className="rounded-md p-2 text-xs bg-surface-muted text-ink">
       <p>{entry.claim}</p>
-      <p className="mt-1" style={{ color: 'var(--text-faint)' }}>
+      <p className="mt-1 text-ink-tertiary">
         {entry.id} · {SOURCE_LABEL[entry.source_class] ?? entry.source_class} · {entry.directness}
         {scope ? ` · ${scope}` : ''}
       </p>
       {MODEL_SIGNALS.has(entry.source_class) && (
-        <p className="mt-1" style={{ color: 'var(--accent-yellow)' }}>
+        <p className="mt-1 text-warning">
           Tín hiệu về mô hình, không phải bằng chứng độc lập.
         </p>
       )}
@@ -124,11 +125,11 @@ function CaseSubject({ data }: { data: ScientificCase }) {
   const identity = (subject.identity ?? {}) as Record<string, unknown>;
   const target = (identity.target ?? null) as Record<string, unknown> | null;
   if (!identity.canonical_smiles && !target) {
-    return <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Subject: {data.subject_key}</p>;
+    return <p className="text-xs text-ink-tertiary">Subject: {data.subject_key}</p>;
   }
   return (
-    <p className="text-xs" style={{ color: 'var(--text-muted)' }} aria-label="Subject của hồ sơ">
-      Subject: <span className="font-mono" style={{ color: 'var(--text)' }}>{String(identity.canonical_smiles ?? '')}</span>
+    <p className="text-xs text-ink-secondary" aria-label="Subject của hồ sơ">
+      Subject: <span className="font-mono text-ink">{String(identity.canonical_smiles ?? '')}</span>
       {target && ` · target ${String(target.target_id ?? 'không rõ')}${target.variant ? ` (${String(target.variant)})` : ''}`}
       {identity.assay_context ? ` · ${String(identity.assay_context)}` : ''}
     </p>
@@ -146,22 +147,22 @@ function CaseHistory({ sessionId, data }: { sessionId: string; data: ScientificC
   return (
     <Section title="Lịch sử hồ sơ">
       <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
-        className="text-xs underline" style={{ color: 'var(--accent-blue)' }}>
+        className="text-xs underline text-link">
         {open ? 'Ẩn lịch sử' : `Xem lịch sử (${data.revision} thay đổi)`}
       </button>
-      {open && events.isLoading && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang tải lịch sử…</p>}
-      {open && events.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được lịch sử.</p>}
+      {open && events.isLoading && <p className="text-xs text-ink-tertiary">Đang tải lịch sử…</p>}
+      {open && events.isError && <p className="text-xs text-danger">Không tải được lịch sử.</p>}
       {open && rows.length > 0 && (
-        <ol className="space-y-1 text-xs" aria-label="Lịch sử hồ sơ" style={{ color: 'var(--text)' }}>
+        <ol className="space-y-1 text-xs text-ink" aria-label="Lịch sử hồ sơ">
           {rows.map((event) => (
-            <li key={event.revision} className="rounded-md p-2" style={{ backgroundColor: 'var(--surface-alt)' }}>
+            <li key={event.revision} className="rounded-md p-2 bg-surface-muted">
               <p>
                 <span className="font-medium">#{event.revision} {OP_LABEL[event.op] ?? event.op}</span>
                 {' · '}{ACTOR_LABEL[event.actor] ?? event.actor}
                 {event.run_id ? ` · ${event.run_id.slice(0, 12)}…` : ''}
               </p>
-              {eventSummary(event) && <p style={{ color: 'var(--text-muted)' }}>{eventSummary(event)}</p>}
-              <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>{new Date(event.at).toLocaleString('vi-VN')}</p>
+              {eventSummary(event) && <p style={{ color: 'var(--ink-secondary)' }}>{eventSummary(event)}</p>}
+              <p className="text-2xs text-ink-tertiary">{new Date(event.at).toLocaleString('vi-VN')}</p>
             </li>
           ))}
         </ol>
@@ -186,8 +187,8 @@ function CaseScope({ sessionId, data }: { sessionId: string; data: ScientificCas
   });
   return (
     <Section title="Người yêu cầu và phạm vi dữ liệu">
-      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Người yêu cầu: {data.requester || 'không ghi nhận'}</p>
-      <p className="text-xs" style={{ color: 'var(--text)' }}>
+      <p className="text-xs text-ink-secondary">Người yêu cầu: {data.requester || 'không ghi nhận'}</p>
+      <p className="text-xs text-ink">
         {scope.external_search
           ? 'Được phép tìm tài liệu bên ngoài cho hợp chất này.'
           : `Chỉ dùng dữ liệu nội bộ: ${scope.reason}. Tác tử không được gửi hợp chất tới nguồn tài liệu bên ngoài.`}
@@ -196,21 +197,21 @@ function CaseScope({ sessionId, data }: { sessionId: string; data: ScientificCas
         <form className="flex gap-2" aria-label="Giới hạn phạm vi dữ liệu"
           onSubmit={(event) => { event.preventDefault(); if (reason.trim()) update.mutate(false); }}>
           <input className="min-w-0 flex-1 rounded-md border px-2 py-1 text-xs"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            style={{ borderColor: 'var(--line)', backgroundColor: 'var(--surface)' }}
             placeholder="Lý do (vd. cấu trúc chưa công bố)" aria-label="Lý do giới hạn"
             value={reason} onChange={(event) => setReason(event.target.value)} />
           <button type="submit" disabled={!reason.trim() || update.isPending}
-            className="shrink-0 rounded-md border px-2 py-1 text-xs disabled:opacity-50" style={{ borderColor: 'var(--border)' }}>
+            className="shrink-0 rounded-md border px-2 py-1 text-xs disabled:opacity-50">
             Chỉ dùng dữ liệu nội bộ
           </button>
         </form>
       ) : (
         <button type="button" disabled={update.isPending} onClick={() => update.mutate(true)}
-          className="rounded-md border px-2 py-1 text-xs disabled:opacity-50" style={{ borderColor: 'var(--border)' }}>
+          className="rounded-md border px-2 py-1 text-xs disabled:opacity-50">
           Cho phép tìm tài liệu bên ngoài
         </button>
       ))}
-      {update.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không đổi được phạm vi dữ liệu.</p>}
+      {update.isError && <p className="text-xs text-danger">Không đổi được phạm vi dữ liệu.</p>}
     </Section>
   );
 }
@@ -240,8 +241,8 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
   return (
     <div className="space-y-4">
       <Section title="Câu hỏi quyết định">
-        <p className="text-sm" style={{ color: 'var(--text)' }}>{data.question || 'Chưa ghi câu hỏi.'}</p>
-        {data.decision_context && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{data.decision_context}</p>}
+        <p className="text-sm text-ink">{data.question || 'Chưa ghi câu hỏi.'}</p>
+        {data.decision_context && <p className="text-xs text-ink-secondary">{data.decision_context}</p>}
         <CaseSubject data={data} />
       </Section>
 
@@ -250,31 +251,31 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
       <CaseScope sessionId={sessionId} data={data} />
 
       <Section title="Độ phủ bằng chứng">
-        <ul className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--text-muted)' }} aria-label="Độ phủ bằng chứng">
+        <ul className="grid grid-cols-2 gap-2 text-xs text-ink-secondary" aria-label="Độ phủ bằng chứng">
           <li>Có nguồn: {cov.with_any_source}/{cov.hypotheses}</li>
           <li>Có bằng chứng độc lập trực tiếp: {cov.with_independent_direct_evidence}/{cov.hypotheses}</li>
           <li>Đã xét phản chứng: {cov.with_counterevidence_considered}/{cov.hypotheses}</li>
           <li>Bất định còn mở: {cov.open_uncertainties} (chặn: {cov.blocking_uncertainties})</li>
         </ul>
-        <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>Các chỉ số tách riêng, không gộp thành một điểm.</p>
+        <p className="text-2xs text-ink-tertiary">Các chỉ số tách riêng, không gộp thành một điểm.</p>
       </Section>
 
       <Section title="Giả thuyết cạnh tranh">
-        {data.hypotheses.length === 0 && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Chưa có giả thuyết.</p>}
+        {data.hypotheses.length === 0 && <p className="text-xs text-ink-tertiary">Chưa có giả thuyết.</p>}
         {data.hypotheses.map((h) => {
           const forIt = data.evidence.filter((e) => e.hypothesis_ids.includes(h.id) && e.stance === 'supports');
           const against = data.evidence.filter((e) => e.hypothesis_ids.includes(h.id) && e.stance === 'contradicts');
           return (
-            <article key={h.id} className="space-y-2 rounded-lg border p-3" style={{ borderColor: 'var(--border)' }}>
+            <article key={h.id} className="space-y-2 rounded-lg border p-3">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{h.id}. {h.statement}</p>
+                <p className="text-sm font-medium text-ink">{h.id}. {h.statement}</p>
                 <span className="shrink-0 text-xs font-medium" style={{ color: STATUS_COLOR[h.status] }}>{STATUS_LABEL[h.status]}</span>
               </div>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Bị bác bỏ nếu: {h.refutation_condition}</p>
-              {h.status_reason && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Lý do trạng thái: {h.status_reason}</p>}
-              <p className="text-xs font-medium" style={{ color: 'var(--text)' }}>Ủng hộ ({forIt.length})</p>
+              <p className="text-xs text-ink-secondary">Bị bác bỏ nếu: {h.refutation_condition}</p>
+              {h.status_reason && <p className="text-xs text-ink-secondary">Lý do trạng thái: {h.status_reason}</p>}
+              <p className="text-xs font-medium text-ink">Ủng hộ ({forIt.length})</p>
               <ul className="space-y-1">{forIt.map((e) => <EvidenceLine key={e.id} entry={e} />)}</ul>
-              <p className="text-xs font-medium" style={{ color: 'var(--text)' }}>Phản bác ({against.length})</p>
+              <p className="text-xs font-medium text-ink">Phản bác ({against.length})</p>
               <ul className="space-y-1">{against.map((e) => <EvidenceLine key={e.id} entry={e} />)}</ul>
             </article>
           );
@@ -283,9 +284,9 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
 
       <Section title="Điều chưa biết">
         {openUncertainties.length === 0
-          ? <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Không có bất định nào đang mở được ghi nhận.</p>
+          ? <p className="text-xs text-ink-tertiary">Không có bất định nào đang mở được ghi nhận.</p>
           : (
-            <ul className="space-y-1 text-xs" style={{ color: 'var(--text)' }}>
+            <ul className="space-y-1 text-xs text-ink">
               {openUncertainties.map((u) => (
                 <li key={u.id}>{u.id} · {u.kind} · {SEVERITY_LABEL[u.severity] ?? u.severity}: {u.description}</li>
               ))}
@@ -295,35 +296,35 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
 
       <Section title="Kết luận có điều kiện">
         {data.conclusion.can_say.length > 0 && (
-          <div className="text-xs" style={{ color: 'var(--text)' }}>
+          <div className="text-xs text-ink">
             <p className="font-medium">Có thể nói</p>
             <ul className="list-disc pl-4">
-              {data.conclusion.can_say.map((line, index) => <li key={index}>{line.text} <span style={{ color: 'var(--text-faint)' }}>({line.evidence_ids.join(', ')})</span></li>)}
+              {data.conclusion.can_say.map((line, index) => <li key={index}>{line.text} <span style={{ color: 'var(--ink-tertiary)' }}>({line.evidence_ids.join(', ')})</span></li>)}
             </ul>
           </div>
         )}
         {data.conclusion.cannot_say.length > 0 && (
-          <div className="text-xs" style={{ color: 'var(--text)' }}>
+          <div className="text-xs text-ink">
             <p className="font-medium">Chưa thể nói</p>
             <ul className="list-disc pl-4">{data.conclusion.cannot_say.map((line, index) => <li key={index}>{line}</li>)}</ul>
           </div>
         )}
-        <div className="text-xs" style={{ color: 'var(--text)' }}>
+        <div className="text-xs text-ink">
           <p className="font-medium">Điều gì sẽ thay đổi nhận định</p>
           {data.conclusion.what_would_change.length === 0
-            ? <p style={{ color: 'var(--text-faint)' }}>Chưa được nêu.</p>
+            ? <p style={{ color: 'var(--ink-tertiary)' }}>Chưa được nêu.</p>
             : <ul className="list-disc pl-4">{data.conclusion.what_would_change.map((line, index) => <li key={index}>{line}</li>)}</ul>}
         </div>
       </Section>
 
       <Section title="Phép thử đề xuất">
         {data.next_tests.length === 0
-          ? <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Chưa có phép thử nào được đề xuất.</p>
+          ? <p className="text-xs text-ink-tertiary">Chưa có phép thử nào được đề xuất.</p>
           : data.next_tests.map((t) => (
-            <div key={t.id} className="rounded-md p-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text)' }}>
+            <div key={t.id} className="rounded-md p-2 text-xs bg-surface-muted text-ink">
               <p className="font-medium">{t.test}</p>
-              <p style={{ color: 'var(--text-muted)' }}>{t.rationale}</p>
-              <p style={{ color: 'var(--text-faint)' }}>Phân biệt: {t.discriminates.join(', ')}</p>
+              <p style={{ color: 'var(--ink-secondary)' }}>{t.rationale}</p>
+              <p style={{ color: 'var(--ink-tertiary)' }}>Phân biệt: {t.discriminates.join(', ')}</p>
               {t.expected_readouts.length > 0 && <ul className="list-disc pl-4">{t.expected_readouts.map((r, index) => <li key={index}>{r}</li>)}</ul>}
             </div>
           ))}
@@ -331,31 +332,31 @@ function CaseBody({ sessionId, data }: { sessionId: string; data: ScientificCase
 
       <Section title="Bối cảnh từ nhà nghiên cứu">
         {data.context.length > 0 && (
-          <ul className="space-y-1 text-xs" style={{ color: 'var(--text)' }}>
+          <ul className="space-y-1 text-xs text-ink">
             {data.context.map((c) => <li key={c.id}>{c.id} · {c.key}: {c.value}{c.note ? ` — ${c.note}` : ''}</li>)}
           </ul>
         )}
         {data.status === 'open' && (
           <form onSubmit={submit} className="space-y-2" aria-label="Thêm bối cảnh">
-            <input className="w-full rounded-md border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            <input className="w-full rounded-md border px-2 py-1 text-xs bg-surface"
               placeholder="Loại dữ liệu (vd. patch_clamp_ic50)" aria-label="Loại dữ liệu" value={key} onChange={(e) => setKey(e.target.value)} />
-            <input className="w-full rounded-md border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            <input className="w-full rounded-md border px-2 py-1 text-xs bg-surface"
               placeholder="Giá trị (vd. 30 µM, in-house, HEK293)" aria-label="Giá trị" value={value} onChange={(e) => setValue(e.target.value)} />
-            <input className="w-full rounded-md border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            <input className="w-full rounded-md border px-2 py-1 text-xs bg-surface"
               placeholder="Ghi chú (không bắt buộc)" aria-label="Ghi chú" value={note} onChange={(e) => setNote(e.target.value)} />
             <button type="submit" disabled={!key.trim() || !value.trim() || addContext.isPending}
-              className="rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50" style={{ backgroundColor: 'var(--accent-blue)', color: 'white' }}>
+              className="rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50" style={{ backgroundColor: 'var(--brand)', color: 'white' }}>
               Thêm vào hồ sơ
             </button>
-            {addContext.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không thêm được bối cảnh.</p>}
-            <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>Lượt hỏi tiếp theo sẽ thấy bối cảnh này trong hồ sơ.</p>
+            {addContext.isError && <p className="text-xs text-danger">Không thêm được bối cảnh.</p>}
+            <p className="text-2xs text-ink-tertiary">Lượt hỏi tiếp theo sẽ thấy bối cảnh này trong hồ sơ.</p>
           </form>
         )}
       </Section>
 
       <CaseHistory sessionId={sessionId} data={data} />
 
-      <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>
+      <p className="text-2xs text-ink-tertiary">
         Hồ sơ {data.case_id} · phiên bản {data.revision} · {data.runs.length} lượt điều tra
       </p>
     </div>
@@ -373,11 +374,11 @@ export function InvestigationBoard({ sessionId }: { sessionId: string }) {
     enabled: caseId !== null,
   });
 
-  if (list.isLoading) return <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang tải hồ sơ điều tra…</p>;
-  if (list.isError) return <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được hồ sơ điều tra.</p>;
+  if (list.isLoading) return <p className="text-xs text-ink-tertiary">Đang tải hồ sơ điều tra…</p>;
+  if (list.isError) return <p className="text-xs text-danger">Không tải được hồ sơ điều tra.</p>;
   if (cases.length === 0) {
     return (
-      <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+      <p className="text-xs text-ink-tertiary">
         Phiên này chưa có hồ sơ điều tra. Hồ sơ được tạo khi một lượt hỗ trợ quyết định chạy trên bản triển khai bật hồ sơ điều tra.
       </p>
     );
@@ -385,14 +386,13 @@ export function InvestigationBoard({ sessionId }: { sessionId: string }) {
   return (
     <div className="space-y-3">
       {cases.length > 1 && (
-        <select aria-label="Chọn hồ sơ" className="w-full rounded-md border px-2 py-1 text-xs"
-          style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+        <NativeSelect aria-label="Chọn hồ sơ" className="h-8 text-xs"
           value={caseId ?? ''} onChange={(event) => setSelected(event.target.value)}>
           {cases.map((c) => <option key={c.case_id} value={c.case_id}>{c.question.slice(0, 80) || c.case_id} ({c.status})</option>)}
-        </select>
+        </NativeSelect>
       )}
-      {detail.isLoading && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang tải…</p>}
-      {detail.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được hồ sơ.</p>}
+      {detail.isLoading && <p className="text-xs text-ink-tertiary">Đang tải…</p>}
+      {detail.isError && <p className="text-xs text-danger">Không tải được hồ sơ.</p>}
       {detail.data && <CaseBody sessionId={sessionId} data={detail.data} />}
     </div>
   );

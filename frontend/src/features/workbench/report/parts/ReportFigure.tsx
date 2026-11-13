@@ -57,7 +57,7 @@ export function ReportFigure({
       {failed ? (
         <div
           className="flex items-start gap-2 rounded-md border border-dashed p-3 text-sm"
-          style={{ color: 'var(--text-muted)' }}
+          style={{ color: 'var(--ink-secondary)' }}
           role="img"
           aria-label={figure.alt_text}
         >
@@ -71,16 +71,16 @@ export function ReportFigure({
           src={url}
           alt={figure.alt_text}
           className="max-w-full rounded-md border"
-          style={{ borderColor: 'var(--border-subtle)' }}
+          style={{ borderColor: 'var(--line)' }}
         />
       ) : (
         <div
           className="h-48 w-full animate-pulse rounded-md border"
-          style={{ borderColor: 'var(--border-subtle)' }}
+          style={{ borderColor: 'var(--line)' }}
           aria-label="Đang tải hình"
         />
       )}
-      <figcaption className="text-xs" style={{ color: 'var(--text-muted)' }}>
+      <figcaption className="text-xs text-ink-secondary">
         {figure.caption}
       </figcaption>
     </figure>

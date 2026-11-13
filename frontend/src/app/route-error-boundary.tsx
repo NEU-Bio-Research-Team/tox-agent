@@ -1,7 +1,6 @@
 import { isRouteErrorResponse, useRouteError } from 'react-router';
-import { Navbar } from './shell/Navbar';
-import { Footer } from './shell/Footer';
 import { Button } from '../shared/ui/button';
+import { Logo } from '../shared/ui/logo';
 
 function describeError(error: unknown): { title: string; detail: string; status?: string } {
   if (isRouteErrorResponse(error)) {
@@ -21,21 +20,13 @@ export function RouteErrorBoundary() {
   const description = describeError(useRouteError());
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
-      <Navbar />
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <section className="rounded-xl p-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <h1 className="mb-2 text-2xl font-bold" style={{ color: 'var(--text)' }}>
-            {description.title}
-          </h1>
-          {description.status && (
-            <p className="mb-3 text-sm font-semibold" style={{ color: 'var(--accent-red)' }}>
-              {description.status}
-            </p>
-          )}
-          <p className="mb-6 text-sm" style={{ color: 'var(--text-muted)' }}>
-            {description.detail}
-          </p>
+    <div className="flex min-h-screen items-center justify-center bg-canvas-subtle px-6 py-12">
+      <main className="w-full max-w-md space-y-6">
+        <Logo withWordmark />
+        <section className="space-y-4 rounded-xl border border-line bg-card p-6">
+          <h1 className="text-2xl font-bold text-ink">{description.title}</h1>
+          {description.status ? <p className="text-sm font-semibold text-danger">{description.status}</p> : null}
+          <p className="text-sm text-ink-secondary">{description.detail}</p>
           <div className="flex flex-wrap gap-3">
             <Button type="button" onClick={() => window.location.reload()}>
               Tải lại trang
@@ -46,7 +37,6 @@ export function RouteErrorBoundary() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

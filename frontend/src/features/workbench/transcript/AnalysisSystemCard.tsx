@@ -26,9 +26,9 @@ export function AnalysisSystemCard({
 
   if (run.status === 'failed') {
     return (
-      <div id={`run-anchor-${run.run_id}`} className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)' }} role="status" aria-live="polite" aria-atomic="true">
-        <XCircle className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--accent-red)' }} />
-        <span style={{ color: 'var(--text-muted)' }}>
+      <div id={`run-anchor-${run.run_id}`} className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs bg-surface-muted" role="status" aria-live="polite" aria-atomic="true">
+        <XCircle className="h-3.5 w-3.5 shrink-0 text-danger" />
+        <span style={{ color: 'var(--ink-secondary)' }}>
           {isStructureRecognition ? 'Nhận diện/phân tích cấu trúc thất bại' : 'Phân tích thất bại'} — {run.failure_code ? (ERROR_CODE_LABEL_VI[run.failure_code] ?? run.failure_code) : 'lỗi không xác định'}
         </span>
       </div>
@@ -37,16 +37,16 @@ export function AnalysisSystemCard({
 
   if (run.status === 'cancelled') {
     return (
-      <div id={`run-anchor-${run.run_id}`} className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)' }} role="status" aria-live="polite" aria-atomic="true">
-        <XCircle className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--text-faint)' }} />
-        <span style={{ color: 'var(--text-muted)' }}>{isStructureRecognition ? 'Nhận diện cấu trúc đã bị huỷ' : 'Phân tích đã bị huỷ'}</span>
+      <div id={`run-anchor-${run.run_id}`} className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs bg-surface-muted" role="status" aria-live="polite" aria-atomic="true">
+        <XCircle className="h-3.5 w-3.5 shrink-0 text-ink-tertiary" />
+        <span style={{ color: 'var(--ink-secondary)' }}>{isStructureRecognition ? 'Nhận diện cấu trúc đã bị huỷ' : 'Phân tích đã bị huỷ'}</span>
       </div>
     );
   }
 
   if (run.status === 'completed') {
     const label = (
-      <span style={{ color: 'var(--text-muted)' }}>
+      <span style={{ color: 'var(--ink-secondary)' }}>
         {isStructureRecognition ? 'Đã nhận diện và tạo phân tích' : 'Đã tạo phân tích'}{durationMs !== null ? ` · ${durationMs} ms` : ''} — xem ở cột bên phải
       </span>
     );
@@ -55,28 +55,28 @@ export function AnalysisSystemCard({
         id={`run-anchor-${run.run_id}`}
         to={`/s/${sessionId}/analyses/${analysisId}`}
         className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs hover:opacity-80"
-        style={{ backgroundColor: 'var(--surface-alt)' }}
+        style={{ backgroundColor: 'var(--surface-muted)' }}
       >
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--accent-green)' }} />
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
         {label}
       </Link>
     ) : (
-      <div id={`run-anchor-${run.run_id}`} className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)' }} role="status" aria-live="polite" aria-atomic="true">
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--accent-green)' }} />
+      <div id={`run-anchor-${run.run_id}`} className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs bg-surface-muted" role="status" aria-live="polite" aria-atomic="true">
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
         {label}
       </div>
     );
   }
 
   return (
-    <div className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)' }} role="status" aria-live="polite" aria-atomic="true">
-      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" style={{ color: 'var(--accent-blue)' }} />
-      <span style={{ color: 'var(--text-muted)' }}>
+    <div className="my-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs bg-surface-muted" role="status" aria-live="polite" aria-atomic="true">
+      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-link" />
+      <span style={{ color: 'var(--ink-secondary)' }}>
         {isStructureRecognition
           ? run.status === 'queued'
             ? 'Đang nhận diện cấu trúc từ ảnh…'
             : 'Đang phân tích SMILES đã nhận diện…'
-          : 'Đang gọi predictor…'}
+          : 'Đang chạy mô hình dự đoán…'}
       </span>
     </div>
   );

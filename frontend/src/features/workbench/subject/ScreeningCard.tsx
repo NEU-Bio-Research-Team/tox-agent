@@ -32,17 +32,17 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
   const toxicity = dict(stages.toxicity);
 
   return (
-    <section className="space-y-3 text-sm" aria-label="Thẻ screening" style={{ color: 'var(--text)' }}>
+    <section className="space-y-3 text-sm text-ink" aria-label="Thẻ screening">
       <header className="space-y-1">
         <h3 className="text-sm font-semibold">
           {text(target.target_id) ?? 'Không rõ target'}
           {text(target.variant) ? ` (${text(target.variant)})` : ''} ·{' '}
           {text(subject.assay_context) ?? 'không rõ bối cảnh assay'}
         </h3>
-        <p className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="font-mono text-xs text-ink-secondary">
           {text(subject.canonical_smiles)}
         </p>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           {screening.mode === 'replay'
             ? 'Đọc lại từ bản ghi đã đóng băng (không chạy mô hình).'
             : 'Đang phục vụ trực tiếp.'}
@@ -50,7 +50,7 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
       </header>
 
       <div className="space-y-1">
-        <h4 className="text-xs font-semibold uppercase" style={{ color: 'var(--text-muted)' }}>
+        <h4 className="text-xs font-semibold uppercase text-ink-secondary">
           Ước lượng hoạt tính
         </h4>
         {estimate == null ? (
@@ -69,7 +69,7 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
                 ? ` · khoảng ${Math.round((number(value.interval_level) ?? 0) * 100)}%: ${interval[0]}–${interval[1]}`
                 : ''}
             </p>
-            <p style={{ color: 'var(--text-muted)' }}>
+            <p style={{ color: 'var(--ink-secondary)' }}>
               Mô hình {text(model.model_id) ?? 'không rõ'}{' '}
               {screening.model_admitted
                 ? '(đã được admit)'
@@ -78,7 +78,7 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
               Applicability: ligand {text(applicability.ligand) ?? 'không rõ'}, target{' '}
               {text(applicability.target) ?? 'không rõ'}, chung {text(applicability.joint) ?? 'không rõ'}.
             </p>
-            <p style={{ color: 'var(--text-muted)' }}>
+            <p style={{ color: 'var(--ink-secondary)' }}>
               pIC50 là tiềm lực in-vitro trên target và bối cảnh này, không phải hiệu lực điều trị. Khoảng dự đoán
               là độ phủ trung bình trên phần dư thẩm định, không phải bảo đảm cho riêng chất này.
             </p>
@@ -87,7 +87,7 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
       </div>
 
       <div className="space-y-1">
-        <h4 className="text-xs font-semibold uppercase" style={{ color: 'var(--text-muted)' }}>
+        <h4 className="text-xs font-semibold uppercase text-ink-secondary">
           Quyết định ưu tiên (policy)
         </h4>
         {decision == null ? (
@@ -99,7 +99,7 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
               {' · '}
               {strings(decision.reason_codes).join(', ') || 'không có mã lý do'}
             </p>
-            <p style={{ color: 'var(--text-muted)' }}>
+            <p style={{ color: 'var(--ink-secondary)' }}>
               Ngưỡng pIC50 {number(policy.threshold_pic50) ?? 'không rõ'} (
               {text(policy.threshold_source) ?? 'không rõ nguồn'}). Đây là đầu ra của một quy tắc cố định,
               không phải một phép đo và không phải kết luận của người điều tra.
@@ -109,7 +109,7 @@ export function ScreeningCard({ screening }: { screening: ScreeningDetail }) {
       </div>
 
       <div className="space-y-1">
-        <h4 className="text-xs font-semibold uppercase" style={{ color: 'var(--text-muted)' }}>
+        <h4 className="text-xs font-semibold uppercase text-ink-secondary">
           Trạng thái các stage
         </h4>
         <ul className="space-y-1">

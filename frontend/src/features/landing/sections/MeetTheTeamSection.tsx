@@ -45,7 +45,7 @@ export function MeetTheTeamSection() {
   ];
 
   return (
-    <section id="team" ref={ref} className="relative min-h-screen bg-gradient-to-br from-[#1E0368] via-[#2D0A5E] to-[#1E0368] overflow-hidden flex items-center justify-center py-32">
+    <section id="team" ref={ref} className="relative min-h-screen bg-gradient-to-br from-brand-deep via-brand-deep-2 to-brand-deep overflow-hidden flex items-center justify-center py-32">
       <div className="relative z-10 w-full max-w-[1800px] mx-auto px-8 md:px-12 lg:px-16">
         <motion.div
           initial={{ opacity: 0, y: -50 }}
@@ -53,8 +53,8 @@ export function MeetTheTeamSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-20"
         >
-          <h2 className="font-['Climate_Crisis'] text-6xl md:text-8xl text-white mb-4">MEET THE</h2>
-          <p className="font-['Cal_Sans'] text-4xl md:text-6xl text-white">BIO RESEARCH TEAM.</p>
+          <h2 className="font-sans font-extrabold tracking-tight text-6xl md:text-8xl text-white mb-4">MEET THE</h2>
+          <p className="font-sans font-bold text-4xl md:text-6xl text-white">BIO RESEARCH TEAM.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-16">
@@ -72,10 +72,10 @@ export function MeetTheTeamSection() {
                   <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
                 </div>
 
-                <h3 className="font-['Cal_Sans'] text-lg text-white text-center mb-2">{member.name}</h3>
+                <h3 className="font-sans font-bold text-lg text-white text-center mb-2">{member.name}</h3>
                 <div className="text-center text-white/80 space-y-1 mb-3">
-                  <p className="font-['Cal_Sans'] text-sm">{member.role}</p>
-                  <p className="font-['Cal_Sans'] text-xs">{member.subRole}</p>
+                  <p className="font-sans font-bold text-sm">{member.role}</p>
+                  <p className="font-sans font-bold text-xs">{member.subRole}</p>
                 </div>
 
                 <div className="flex justify-center gap-3">
@@ -107,7 +107,7 @@ export function MeetTheTeamSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="font-['Cal_Sans'] text-lg text-white/80"
+            className="font-sans font-bold text-lg text-white/80"
           >
             /college of technology, national economics university
           </motion.p>
@@ -115,7 +115,7 @@ export function MeetTheTeamSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.7 }}
-            className="font-['Cal_Sans'] text-lg text-white/80"
+            className="font-sans font-bold text-lg text-white/80"
           >
             /faculty of data science &amp; artificial intelligence
           </motion.p>
@@ -131,7 +131,7 @@ export function MeetTheTeamSection() {
             whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,255,255,0.3)" }}
             whileTap={{ scale: 0.95 }}
             onClick={() => window.location.assign('/about')}
-            className="bg-transparent border-4 border-white rounded-full px-10 py-3 font-['Cal_Sans'] text-xl text-white flex items-center gap-4"
+            className="bg-transparent border-4 border-white rounded-full px-10 py-3 font-sans font-bold text-xl text-white flex items-center gap-4"
           >
             ABOUT US
             <motion.img

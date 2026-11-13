@@ -37,7 +37,7 @@ export function CitationMarker({
     return (
       <span
         className="font-semibold"
-        style={{ color: 'var(--accent-red)' }}
+        style={{ color: 'var(--danger)' }}
         title={`Nguồn ${evidenceId} không giải được trong báo cáo này`}
       >
         [?]
@@ -48,7 +48,7 @@ export function CitationMarker({
     <a
       href={`#report-${reportId}-reference-${reference.evidence_id}`}
       className="font-semibold no-underline hover:underline"
-      style={{ color: 'var(--accent-blue)' }}
+      style={{ color: 'var(--link)' }}
       title={reference.title}
     >
       [{reference.number}
@@ -71,7 +71,7 @@ export function SectionSources({
 }) {
   if (evidenceIds.length === 0) return null;
   return (
-    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+    <p className="text-xs text-ink-secondary">
       Nguồn của mục này:{' '}
       {evidenceIds.map((evidenceId, index) => (
         <span key={evidenceId}>
@@ -97,7 +97,7 @@ export function ReportReferences({
 }) {
   if (references.length === 0) {
     return (
-      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-sm text-ink-secondary">
         Báo cáo này không trích dẫn nguồn ngoài hệ thống.
       </p>
     );
@@ -116,7 +116,7 @@ export function ReportReferences({
               <span className="font-semibold tabular-nums">[{reference.number}]</span>
               <div className="min-w-0 space-y-1">
                 <p className="font-medium">{reference.title}</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-xs text-ink-secondary">
                   {[
                     reference.authors.join(', ') || null,
                     reference.published_at?.slice(0, 4) || null,
@@ -142,14 +142,14 @@ export function ReportReferences({
                       // is data the report quotes, not a link it endorses.
                       rel="noopener noreferrer nofollow"
                       className="inline-flex items-center gap-1 underline"
-                      style={{ color: 'var(--accent-blue)' }}
+                      style={{ color: 'var(--link)' }}
                     >
                       <ExternalLink size={12} aria-hidden /> Mở nguồn
                     </a>
                   ) : (
                     <span
                       className="inline-flex items-center gap-1"
-                      style={{ color: 'var(--text-muted)' }}
+                      style={{ color: 'var(--ink-secondary)' }}
                       // The URL is recorded but was refused as a link. Saying so
                       // beats a link a reader clicks that goes nowhere safe.
                       title={reference.canonical_url ?? 'không có URL'}
@@ -160,7 +160,7 @@ export function ReportReferences({
                   <button
                     type="button"
                     className="inline-flex items-center gap-1 underline"
-                    style={{ color: 'var(--text-muted)' }}
+                    style={{ color: 'var(--ink-secondary)' }}
                     onClick={() => {
                       void navigator.clipboard
                         ?.writeText(citationText(reference))
@@ -172,7 +172,7 @@ export function ReportReferences({
                   </button>
                 </div>
                 {reference.unresolved_reason && (
-                  <p className="text-xs" style={{ color: 'var(--accent-red)' }}>
+                  <p className="text-xs text-danger">
                     Chưa giải được: {reference.unresolved_reason}
                   </p>
                 )}

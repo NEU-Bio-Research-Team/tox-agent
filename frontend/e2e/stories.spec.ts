@@ -67,7 +67,7 @@ test('US1: one ligand on two targets is two subjects, the card states the screen
   expect(api.posts[0].body.subject_ref).toEqual({ kind: 'activity_screening', screening_id: SCREENING_EGFR });
 
   // Switching while the run waits changes the next question, not the run.
-  await expect(page.getByText(/Run đang chạy vẫn trả lời về chủ thể đã chọn lúc gửi/)).toBeVisible();
+  await expect(page.getByText(/Câu hỏi đang xử lý vẫn trả lời về chủ thể đã chọn lúc gửi/)).toBeVisible();
   await abl1.click();
   await expect(abl1).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText(/Hoạt tính:\s*thất bại/)).toBeVisible();
@@ -98,14 +98,14 @@ const us2Routes: Routes = {
 test('US2: a claim opens on the table row it quotes, the deep link survives a reload, and a refused text says why', async ({ page }) => {
   const api = await open(page, us2Routes);
 
-  await expect(page.getByRole('status', { name: 'Trạng thái phát hành' })).toContainText('Đã kiểm tra hỗ trợ của nguồn');
+  await expect(page.getByRole('status', { name: 'Trạng thái phát hành' })).toContainText('Số liệu đã được đối chiếu với nguồn');
   // It says the claims were checked against their sources -- and, in words, that this is not scientific correctness.
-  await expect(page.getByRole('status', { name: 'Trạng thái phát hành' })).toContainText('không có nghĩa kết luận đúng về khoa học');
+  await expect(page.getByRole('status', { name: 'Trạng thái phát hành' })).toContainText('chưa có nghĩa kết luận chắc chắn đúng về khoa học');
   await page.getByRole('link', { name: 'Nguồn và kiểm chứng →' }).click();
   await expect(page).toHaveURL(new RegExp(`/answers/${ANSWER_1}$`));
-  await expect(page.getByText('Review vòng 1 (lần đầu)')).toBeVisible();
+  await expect(page.getByText('Đối chiếu nguồn lần 1 (lần đầu)')).toBeVisible();
 
-  await page.getByRole('link', { name: `đoạn ${TABLE_CELL} →` }).click();
+  await page.getByRole('link', { name: 'Xem đoạn trích · Bảng 1, hàng 3, ô 2' }).click();
   await expect(page).toHaveURL(/locator=table-wrap%3A1%2Frow%3A3%2Fcell%3A2/);
   const table = page.getByRole('table', { name: 'Table 1' });
   await expect(table.getByRole('columnheader', { name: 'EGFR IC50 (nM)' })).toBeVisible();
@@ -156,27 +156,29 @@ test('US3: a repaired answer, a withheld result and a legacy answer each say wha
 
   const banners = page.getByRole('status', { name: 'Trạng thái phát hành' });
   await expect(banners).toHaveCount(3);
-  await expect(banners.nth(0)).toContainText('Đã sửa một lượt rồi qua kiểm tra hỗ trợ');
+  await expect(banners.nth(0)).toContainText('Đã chỉnh lại một lần rồi mới khớp nguồn');
   await expect(banners.nth(1)).toContainText('Chỉ công bố dữ kiện xác nhận được');
-  await expect(banners.nth(1)).toContainText('Cần tiếp: a free Cmax at the intended dose');
+  await expect(banners.nth(1)).toContainText('Cần thêm: a free Cmax at the intended dose');
   await expect(banners.nth(2)).toContainText('Chưa có thông tin kiểm chứng');
   // The candidate the review blocked is never in the transcript.
   await expect(page.getByText(OVERREACH)).toHaveCount(0);
 
-  await page.getByRole('link', { name: 'xem các giai đoạn và lý do trong audit →' }).click();
+  await page.getByRole('link', { name: 'Xem vì sao →' }).click();
   await expect(page).toHaveURL(new RegExp(`/runs/${RUN_3}\\?tab=release$`));
   await expect(page.getByRole('tab', { name: 'Phát hành' })).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByText('Người đọc không nhận được gì, và vì sao')).toBeVisible();
-  await expect(page.getByText('Cần thêm đầu vào: a free Cmax at the intended dose')).toBeVisible();
-  await expect(page.getByText('bản đang phát hành')).toHaveCount(0);
+  await expect(page.getByText('Bạn không nhận được gì, và vì sao')).toBeVisible();
+  // The same need is stated in the chat banner and in the journey; either proves it is shown.
+  await expect(page.getByText('Cần thêm: a free Cmax at the intended dose').first()).toBeVisible();
+  await expect(page.getByText('đang là câu trả lời bạn thấy')).toHaveCount(0);
 
   await page.goto(`/s/${SESSION_ID}/answers/${ANSWER_2}`);
-  const lineage = page.getByRole('list', { name: 'Lineage của claim' });
-  await expect(lineage).toContainText('overreach · bị xóa · vòng 1: không được hỗ trợ');
-  await expect(page.getByText(/Bản sửa chỉ xóa claim/)).toBeVisible();
+  const lineage = page.getByRole('list', { name: 'Hành trình từng ý' });
+  await expect(lineage).toContainText('Đã bỏ');
+  await expect(lineage).toContainText('lần 1: chưa có nguồn hỗ trợ');
+  await expect(page.getByText(/Bản sửa chỉ bỏ bớt ý/)).toBeVisible();
   const stages = page.getByRole('list', { name: 'Bản nháp theo thứ tự' }).getByRole('listitem');
-  await stages.first().getByRole('button', { name: 'Xem văn bản của giai đoạn này' }).click();
-  await expect(stages.first()).toContainText('Bản nháp, chỉ để audit — không phải câu trả lời đã phát hành.');
+  await stages.first().getByRole('button', { name: 'Xem nội dung bản này' }).click();
+  await expect(stages.first()).toContainText('Bản nháp, chỉ để tham khảo — không phải câu trả lời đã công bố.');
   await expect(stages.first()).toContainText(OVERREACH);
 
   // Reload keeps every release state; the candidate still never reaches the chat.

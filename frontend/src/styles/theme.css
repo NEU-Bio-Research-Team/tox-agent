@@ -1,65 +1,127 @@
 @custom-variant dark (&:is(.dark *));
 
+/* Design tokens (docs/plans/frontend-design-unification-2026-11-13.md, section 5).
+ *
+ * Three layers: primitives (raw values), semantic tokens (what a thing means),
+ * and the shadcn names at the bottom of each block, which components consume.
+ * New code uses the semantic names (`text-ink-secondary`, `bg-brand-soft`,
+ * `border-line`, `bg-warning-soft`). */
 :root {
   --font-size: 16px;
   --font-sans: "Inter Variable", Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --canvas: #ffffff; --canvas-subtle: #fbfaff; --surface: rgba(255, 255, 255, .88); --surface-solid: #ffffff;
-  --surface-muted: #f7f6fb; --surface-hover: #f3f0fb; --ink: #17151c; --ink-secondary: #5f5a68; --ink-tertiary: #918a9c;
-  --line: #e9e5ee; --line-strong: #dcd5e5; --purple-50: #f7f3ff; --purple-100: #eee5ff; --purple-300: #c8a8ff;
-  --purple-500: #8b5cf6; --purple-600: #7743e8; --purple-700: #6332c5; --purple-glow: rgba(139, 92, 246, .22);
-  --success: #16865c; --warning: #b36a00; --danger: #d23b4d; --info: #3976d8;
-  --radius-control: 12px; --radius-card: 18px; --radius-floating: 24px;
-  --shadow-float: 0 12px 40px rgba(45, 28, 72, .10); --shadow-purple: 0 10px 30px rgba(119, 67, 232, .22);
 
-  /* Compatibility aliases are removed only once all consumers migrate. */
-  --bg: var(--canvas-subtle); --surface-alt: var(--surface-muted); --border: var(--line); --text: var(--ink);
-  --text-muted: var(--ink-secondary); --text-faint: var(--ink-tertiary); --accent-green: var(--success);
-  --accent-red: var(--danger); --accent-yellow: var(--warning); --accent-blue: var(--purple-600); --accent-blue-muted: var(--purple-100);
+  /* Neutrals */
+  --canvas: #ffffff; --canvas-subtle: #fbfaff; --surface: rgba(255, 255, 255, .88); --surface-solid: #ffffff;
+  --surface-muted: #f7f6fb; --surface-hover: #f3f0fb;
+  --ink: #17151c; --ink-secondary: #5f5a68; --ink-tertiary: #6b6577;
+  --line: #e9e5ee; --line-strong: #dcd5e5;
+
+  /* Brand (purple). The numbered scale has dark values below. */
+  --purple-50: #f7f3ff; --purple-100: #eee5ff; --purple-300: #c8a8ff; --purple-500: #8b5cf6; --purple-600: #7743e8; --purple-700: #6332c5;
+  --purple-glow: rgba(139, 92, 246, .22);
+  --brand: var(--purple-600); --brand-foreground: #ffffff;
+  --brand-soft: var(--purple-50); --brand-soft-strong: var(--purple-100); --brand-border: var(--purple-300); --brand-ink: var(--purple-700);
+  --link: var(--purple-700);
+  /* The landing page's dark gradient. */
+  --brand-deep: #1e0368; --brand-deep-2: #2d0a5e; --brand-night: #0d0021; --brand-glow: #c8a8ff;
+
+  /* Status. Each has a base (text or fill), a soft background, a border and an
+   * ink for text placed on the soft background. Per ADR-0002 these colour one
+   * measurement or one message, never a page or a card as a whole. */
+  --success: #16865c; --success-soft: #e6f4ee; --success-border: #bfe3d0; --success-ink: #0f5c3f;
+  --warning: #9a5a00; --warning-soft: #fff4e0; --warning-border: #f3d9a8; --warning-ink: #8a5200;
+  --danger: #c0283a; --danger-soft: #fdecef; --danger-border: #f5c2ca; --danger-ink: #9f2335;
+  --info: #2f66c2; --info-soft: #e8f0fd; --info-border: #c3d6f6; --info-ink: #1f4fa3;
+
+  /* Named exceptions */
+  --depiction-bg: #ffffff; /* molecule drawings are black on transparent */
+  --attr-positive: #d73027; --attr-negative: #1a9850; --attr-neutral: #bdbdbd; /* explanation scale */
+
+  --radius-control: 12px; --radius-card: 18px; --radius-floating: 24px;
+  --shadow-float: 0 12px 40px rgba(45, 28, 72, .10); --shadow-brand: 0 10px 30px rgba(119, 67, 232, .22);
+
+  --border: var(--line); /* shadcn's name for the default border colour */
+
+  /* shadcn names */
   --background: var(--canvas); --foreground: var(--ink); --card: var(--surface-solid); --card-foreground: var(--ink);
-  --popover: var(--surface-solid); --popover-foreground: var(--ink); --primary: var(--purple-600); --primary-foreground: #fff;
+  --popover: var(--surface-solid); --popover-foreground: var(--ink); --primary: var(--brand); --primary-foreground: var(--brand-foreground);
   --secondary: var(--surface-muted); --secondary-foreground: var(--ink); --muted: var(--surface-muted); --muted-foreground: var(--ink-secondary);
-  --accent: var(--surface-hover); --accent-foreground: var(--ink); --destructive: var(--danger); --destructive-foreground: #fff;
-  --input: transparent; --input-background: var(--surface-muted); --switch-background: #cbced4; --font-weight-medium: 500; --font-weight-normal: 400;
+  --accent: var(--surface-hover); --accent-foreground: var(--ink); --destructive: var(--danger); --destructive-foreground: #ffffff;
+  --input: transparent; --input-background: var(--surface-muted); --switch-background: #cfc8da; --font-weight-medium: 500; --font-weight-normal: 400;
   --ring: var(--purple-500); --chart-1: var(--purple-600); --chart-2: var(--success); --chart-3: var(--info); --chart-4: var(--warning); --chart-5: var(--danger);
-  --radius: var(--radius-control); --sidebar: #f8f7fa; --sidebar-foreground: var(--ink); --sidebar-primary: var(--purple-600); --sidebar-primary-foreground: #fff;
-  --sidebar-accent: var(--surface-hover); --sidebar-accent-foreground: var(--ink); --sidebar-border: var(--line); --sidebar-ring: var(--purple-500);
+  --radius: var(--radius-control); --sidebar: #f8f7fa; --sidebar-foreground: var(--ink); --sidebar-primary: var(--brand); --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--brand-soft-strong); --sidebar-accent-foreground: var(--brand-ink); --sidebar-border: var(--line); --sidebar-ring: var(--purple-500);
 }
 
 .dark {
   --canvas: #121016; --canvas-subtle: #17131d; --surface: rgba(29, 24, 35, .92); --surface-solid: #1d1823;
-  --surface-muted: #282130; --surface-hover: #332a3d; --ink: #f2edf6; --ink-secondary: #c1b8ca; --ink-tertiary: #938a9c;
-  --line: #352d3f; --line-strong: #493d55; --sidebar: #17131d;
-  --bg: var(--canvas-subtle); --surface-alt: var(--surface-muted); --border: var(--line); --text: var(--ink);
-  --text-muted: var(--ink-secondary); --text-faint: var(--ink-tertiary);
-  --background: var(--canvas); --foreground: var(--ink); --card: var(--surface-solid); --card-foreground: var(--ink);
-  --popover: var(--surface-solid); --popover-foreground: var(--ink); --secondary: var(--surface-muted); --secondary-foreground: var(--ink);
-  --muted: var(--surface-muted); --muted-foreground: var(--ink-secondary); --accent: var(--surface-hover); --accent-foreground: var(--ink);
-  --input-background: var(--surface-muted); --switch-background: var(--line);
+  --surface-muted: #282130; --surface-hover: #332a3d;
+  --ink: #f2edf6; --ink-secondary: #c1b8ca; --ink-tertiary: #a39aad;
+  --line: #352d3f; --line-strong: #493d55;
+
+  --purple-50: #241a38; --purple-100: #2f2150; --purple-300: #5b4796; --purple-700: #c7b2ff;
+  --brand-border: #5b4796;
+  --link: #b79cff;
+
+  --success: #58cf9b; --success-soft: #0f2b21; --success-border: #1f4d3b; --success-ink: #7fe0b6;
+  --warning: #f0b35a; --warning-soft: #33260f; --warning-border: #5a4216; --warning-ink: #f5c77f;
+  --danger: #ff8fa0; --danger-soft: #3a1a20; --danger-border: #6b2a35; --danger-ink: #ffb0bd;
+  --info: #8db6f5; --info-soft: #14233d; --info-border: #2a4678; --info-ink: #a9c8f8;
+
+  --switch-background: #493d55; --destructive: #d23b4d;
+  --sidebar: #17131d;
 }
 
 @theme inline {
   --font-sans: var(--font-sans); --font-mono: var(--font-mono);
+
+  /* semantic colours -> utilities such as text-ink-secondary, bg-brand-soft, border-line */
+  --color-canvas: var(--canvas); --color-canvas-subtle: var(--canvas-subtle);
+  --color-surface: var(--surface); --color-surface-solid: var(--surface-solid); --color-surface-muted: var(--surface-muted); --color-surface-hover: var(--surface-hover);
+  --color-ink: var(--ink); --color-ink-secondary: var(--ink-secondary); --color-ink-tertiary: var(--ink-tertiary);
+  --color-line: var(--line); --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand); --color-brand-foreground: var(--brand-foreground); --color-brand-soft: var(--brand-soft); --color-brand-soft-strong: var(--brand-soft-strong);
+  --color-brand-border: var(--brand-border); --color-brand-ink: var(--brand-ink); --color-link: var(--link);
+  --color-brand-glow: var(--brand-glow); --color-brand-deep: var(--brand-deep); --color-brand-deep-2: var(--brand-deep-2); --color-brand-night: var(--brand-night);
+  --color-success: var(--success); --color-success-soft: var(--success-soft); --color-success-border: var(--success-border); --color-success-ink: var(--success-ink);
+  --color-warning: var(--warning); --color-warning-soft: var(--warning-soft); --color-warning-border: var(--warning-border); --color-warning-ink: var(--warning-ink);
+  --color-danger: var(--danger); --color-danger-soft: var(--danger-soft); --color-danger-border: var(--danger-border); --color-danger-ink: var(--danger-ink);
+  --color-info: var(--info); --color-info-soft: var(--info-soft); --color-info-border: var(--info-border); --color-info-ink: var(--info-ink);
+  --color-depiction: var(--depiction-bg);
+
+  /* shadcn names */
   --color-background: var(--background); --color-foreground: var(--foreground); --color-card: var(--card); --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover); --color-popover-foreground: var(--popover-foreground); --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary); --color-secondary-foreground: var(--secondary-foreground); --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground); --color-destructive: var(--destructive); --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border); --color-input: var(--input); --color-input-background: var(--input-background); --color-switch-background: var(--switch-background); --color-ring: var(--ring);
   --color-chart-1: var(--chart-1); --color-chart-2: var(--chart-2); --color-chart-3: var(--chart-3); --color-chart-4: var(--chart-4); --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px); --radius-md: calc(var(--radius) - 2px); --radius-lg: var(--radius); --radius-xl: calc(var(--radius) + 6px);
+  --radius-sm: calc(var(--radius) - 4px); --radius-md: calc(var(--radius) - 2px); --radius-lg: var(--radius); --radius-xl: var(--radius-card); --radius-2xl: var(--radius-floating);
   --color-sidebar: var(--sidebar); --color-sidebar-foreground: var(--sidebar-foreground); --color-sidebar-primary: var(--sidebar-primary); --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent); --color-sidebar-accent-foreground: var(--sidebar-accent-foreground); --color-sidebar-border: var(--sidebar-border); --color-sidebar-ring: var(--sidebar-ring);
+  --shadow-float: var(--shadow-float);
+
+  /* Type scale. The steps between Tailwind's own: 11 (labels), 13 (secondary
+   * lines), 15 (reading text). Arbitrary pixel sizes are not used. */
+  --text-2xs: 0.6875rem; --text-2xs--line-height: 1.45;
+  --text-13: 0.8125rem; --text-13--line-height: 1.5;
+  --text-15: 0.9375rem; --text-15--line-height: 1.6;
 }
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { font-size: var(--font-size); }
+  html { font-size: var(--font-size); -webkit-font-smoothing: antialiased; }
   body { @apply bg-background text-foreground; font-family: var(--font-sans); }
   button, input, textarea, select { font: inherit; }
-  ::selection { background: var(--purple-100); color: var(--ink); }
+  ::selection { background: var(--brand-soft-strong); color: var(--ink); }
   :focus-visible { outline: 3px solid color-mix(in srgb, var(--purple-500) 35%, transparent); outline-offset: 2px; }
   @supports (backdrop-filter: blur(1px)) { .ta-glass { backdrop-filter: blur(14px); } }
 }
+
+/* The logo is dark navy; on a dark surface it becomes a white silhouette until a
+ * dual-tone asset exists. */
+.dark .logo-mark { filter: brightness(0) invert(1); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
@@ -69,7 +131,7 @@
    agent works (RunTrace). Static for anyone who asked for less motion. */
 @keyframes trace-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .trace-shimmer {
-  background: linear-gradient(90deg, var(--text-muted) 0%, var(--text-muted) 40%, var(--purple-500) 50%, var(--text-muted) 60%, var(--text-muted) 100%);
+  background: linear-gradient(90deg, var(--ink-secondary) 0%, var(--ink-secondary) 40%, var(--purple-500) 50%, var(--ink-secondary) 60%, var(--ink-secondary) 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -81,5 +143,5 @@
   mask-image: linear-gradient(to bottom, transparent 0, #000 28px);
 }
 @media (prefers-reduced-motion: reduce) {
-  .trace-shimmer { animation: none; background: none; color: var(--text-muted); }
+  .trace-shimmer { animation: none; background: none; color: var(--ink-secondary); }
 }

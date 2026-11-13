@@ -1,13 +1,30 @@
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { Activity } from 'lucide-react';
 import { getObservation } from '../../../shared/api/endpoints';
+import { LIMITATION_LABEL_VI } from '../../../shared/lib/labels';
+import { Callout } from '../../../shared/ui/callout';
 import { scrollToRun } from '../lib/scrollToRun';
 import { ArtifactUnavailable } from './ArtifactUnavailable';
 
+/** The value at a dotted path (`sections.herg.probability_blocker`), if it is a
+ * plain number, string or boolean. Anything else is not a value to point at. */
+function valueAt(root: unknown, path: string | undefined): string | null {
+  if (!path) return null;
+  let node: unknown = root;
+  for (const key of path.replace(/\[(\d+)\]/g, '.$1').split('.').filter(Boolean)) {
+    if (node === null || typeof node !== 'object') return null;
+    node = (node as Record<string, unknown>)[key];
+  }
+  return typeof node === 'number' || typeof node === 'string' || typeof node === 'boolean' ? String(node) : null;
+}
+
 /**
- * Intermediate tool output / claim source, as a panel viewer instead of the
- * former `ObservationDialog` modal — plan section 8.2.1: artifacts are
- * viewed in the right panel, not stacked dialogs on top of chat.
+ * "Kết quả gốc của mô hình": the output the answer was written from, as a panel
+ * viewer instead of the former `ObservationDialog` modal — plan section 8.2.1:
+ * artifacts are viewed in the right panel, not stacked dialogs on top of chat.
+ * The value the answer quotes is pulled out and shown first; the full data, the
+ * ids and the checksum are behind two closed disclosures.
  */
 export function ObservationArtifact({
   sessionId,
@@ -24,90 +41,80 @@ export function ObservationArtifact({
   });
 
   if (query.isLoading) {
-    return <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải…</p>;
+    return <p className="text-sm text-ink-secondary">Đang tải…</p>;
   }
   if (query.isError || !query.data) {
-    return <ArtifactUnavailable artifact="observation" error={query.error} />;
+    return <ArtifactUnavailable artifact="kết quả gốc" error={query.error} />;
   }
 
   const observation = query.data;
+  const quoted = valueAt(observation.model_projection, fieldPath);
 
   return (
     <div className="space-y-4 text-sm">
-      <div>
-        <p className="font-mono text-sm" style={{ color: 'var(--text)' }}>
-          {observation.observation_id}
+      <header className="space-y-1.5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-ink">
+          <Activity className="size-4 text-brand-ink" aria-hidden="true" />
+          Kết quả gốc của mô hình
+        </h2>
+        <p className="text-13 leading-snug text-ink-secondary">
+          Đây là kết quả mà câu trả lời được viết từ đó. ToxAgent chỉ giữ lại phần cần thiết, không phải toàn bộ đầu ra của mô hình.
         </p>
-        <p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>
-          Đầu ra trung gian đã được ToxAgent chọn lọc cho model — không phải raw dump từ predictor.
-        </p>
-      </div>
-
-      {fieldPath && (
-        <div className="rounded-lg border p-3 text-xs" style={{ borderColor: 'var(--accent-blue)', backgroundColor: 'var(--accent-blue-muted)' }}>
-          <p className="font-semibold" style={{ color: 'var(--text)' }}>Field path được claim trỏ tới</p>
-          <code className="mt-1 block break-all font-mono" style={{ color: 'var(--accent-blue)' }}>{fieldPath}</code>
-          <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
-            Đây là path chính xác validator đối chiếu trên canonical observation. Model projection bên dưới là bản đã giới hạn; raw payload chỉ hiện với auditor.
-          </p>
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style={{ color: 'var(--text-faint)' }}>
-        <span>kind: {observation.kind}</span>
-        <span>producer: {observation.producer}</span>
-        <span>schema: {observation.schema_version}</span>
-        <Link to={`/s/${sessionId}/runs/${observation.run_id}`} className="font-mono underline" style={{ color: 'var(--accent-blue)' }}>
-          run {observation.run_id} →
-        </Link>
-        <button
-          type="button"
-          onClick={() => scrollToRun(observation.run_id)}
-          className="font-medium underline"
-          style={{ color: 'var(--accent-blue)' }}
-        >
-          về lượt chat tạo kết quả
+        <button type="button" onClick={() => scrollToRun(observation.run_id)} className="text-xs font-medium text-link underline">
+          Về tin nhắn tạo ra kết quả này
         </button>
-      </div>
+      </header>
 
-      <div>
-        <p className="mb-1.5 text-xs font-medium" style={{ color: 'var(--text)' }}>
-          model_projection
-        </p>
-        <pre
-          className="overflow-x-auto rounded-md p-3 text-xs"
-          style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}
-        >
-          {JSON.stringify(observation.model_projection, null, 2)}
-        </pre>
-      </div>
-
-      {observation.canonical_payload && (
-        <div>
-          <p className="mb-1.5 text-xs font-medium" style={{ color: 'var(--text)' }}>
-            canonical_payload <span style={{ color: 'var(--text-faint)' }}>(quyền auditor)</span>
-          </p>
-          <pre
-            className="overflow-x-auto rounded-md p-3 text-xs"
-            style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}
-          >
-            {JSON.stringify(observation.canonical_payload, null, 2)}
-          </pre>
+      {fieldPath ? (
+        <div className="rounded-xl border border-brand-border bg-brand-soft p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-tertiary">Con số được câu trả lời trích</p>
+          {quoted !== null ? (
+            <p className="mt-1 font-mono text-3xl font-bold tracking-tight text-ink tabular-nums">{quoted}</p>
+          ) : (
+            <p className="mt-1 text-13 text-ink-secondary">Xem trong dữ liệu đầy đủ bên dưới.</p>
+          )}
+          <p className="mt-2 text-xs text-ink-secondary">Hệ thống đã đối chiếu con số này với đúng vị trí đó trong kết quả gốc.</p>
         </div>
-      )}
+      ) : null}
 
       {observation.required_limitations.length > 0 && (
-        <div>
-          <p className="mb-1 text-xs font-medium" style={{ color: 'var(--text)' }}>
-            required_limitations
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{observation.required_limitations.join(', ')}</p>
-        </div>
+        <Callout tone="warning" title="Lưu ý khi đọc kết quả này" className="text-13">
+          <ul className="space-y-1 text-ink-secondary">
+            {observation.required_limitations.map((code) => (
+              <li key={code}>• {(LIMITATION_LABEL_VI as Record<string, string>)[code] ?? code}</li>
+            ))}
+          </ul>
+        </Callout>
       )}
 
-      <p className="border-t pt-2 font-mono text-xs" style={{ borderColor: 'var(--border)', color: 'var(--text-faint)' }}>
-        sha256 {observation.content_sha256.slice(0, 16)}…
-      </p>
+      <details className="rounded-lg border border-line bg-canvas-subtle px-3 py-2 text-xs">
+        <summary className="cursor-pointer font-medium text-ink-secondary">Xem dữ liệu đầy đủ</summary>
+        <pre className="mt-2 overflow-x-auto rounded-md bg-surface-muted p-3 text-ink-secondary">
+          {JSON.stringify(observation.model_projection, null, 2)}
+        </pre>
+        {observation.canonical_payload && (
+          <>
+            <p className="mt-3 font-medium text-ink">Dữ liệu gốc đầy đủ (dành cho người kiểm toán)</p>
+            <pre className="mt-1 overflow-x-auto rounded-md bg-surface-muted p-3 text-ink-secondary">
+              {JSON.stringify(observation.canonical_payload, null, 2)}
+            </pre>
+          </>
+        )}
+      </details>
+
+      <details className="rounded-lg border border-line bg-canvas-subtle px-3 py-2 text-xs">
+        <summary className="cursor-pointer font-medium text-ink-secondary">Chi tiết kỹ thuật</summary>
+        <dl className="mt-2 space-y-1.5 font-mono text-ink-secondary">
+          <div><dt className="text-ink-tertiary">mã</dt><dd className="break-all">{observation.observation_id}</dd></div>
+          {fieldPath ? <div><dt className="text-ink-tertiary">vị trí trích</dt><dd className="break-all">{fieldPath}</dd></div> : null}
+          <div><dt className="text-ink-tertiary">loại · nguồn tạo · lược đồ</dt><dd>{observation.kind} · {observation.producer} · {observation.schema_version}</dd></div>
+          <div>
+            <dt className="text-ink-tertiary">lượt chạy</dt>
+            <dd className="break-all"><Link to={`/s/${sessionId}/runs/${observation.run_id}`} className="underline">{observation.run_id}</Link></dd>
+          </div>
+          <div><dt className="text-ink-tertiary">sha256</dt><dd>{observation.content_sha256.slice(0, 16)}…</dd></div>
+        </dl>
+      </details>
     </div>
   );
 }

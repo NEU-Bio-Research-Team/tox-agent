@@ -47,17 +47,17 @@ export function AnswerSources({
     <section
       className="space-y-1.5 border-t pt-3"
       aria-labelledby="answer-sources-heading"
-      style={{ borderColor: 'var(--border)' }}
+      style={{ borderColor: 'var(--line)' }}
     >
       <h3
         id="answer-sources-heading"
         className="text-xs font-semibold"
-        style={{ color: 'var(--text)' }}
+        style={{ color: 'var(--ink)' }}
       >
         Nguồn được trích dẫn ({citedIds.length})
       </h3>
       {query.isLoading && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           Đang tải nguồn…
         </p>
       )}
@@ -65,12 +65,12 @@ export function AnswerSources({
         {citedIds.map((evidenceId, index) => {
           const record = byId.get(evidenceId);
           return (
-            <li key={evidenceId} className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              <span style={{ color: 'var(--text-faint)' }}>[{index + 1}]</span>{' '}
+            <li key={evidenceId} className="text-xs text-ink-secondary">
+              <span style={{ color: 'var(--ink-tertiary)' }}>[{index + 1}]</span>{' '}
               <Link
                 to={`/s/${sessionId}/evidence/${evidenceId}`}
                 className="font-medium underline"
-                style={{ color: 'var(--accent-blue)' }}
+                style={{ color: 'var(--link)' }}
               >
                 {/* The record's own title, never a title composed here. When
                     it cannot be loaded the id is shown: a citation that
@@ -84,7 +84,7 @@ export function AnswerSources({
                 </span>
               )}
               {!record && !query.isLoading && (
-                <span className="ml-1 italic" style={{ color: 'var(--text-faint)' }}>
+                <span className="ml-1 italic text-ink-tertiary">
                   (không đọc được bản ghi)
                 </span>
               )}

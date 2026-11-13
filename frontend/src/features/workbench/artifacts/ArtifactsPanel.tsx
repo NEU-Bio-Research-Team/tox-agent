@@ -52,21 +52,21 @@ export function ArtifactsPanel({
   const evidence = evidenceQuery.data ?? [];
 
   return (
-    <div className="flex h-full flex-col" style={{ backgroundColor: 'var(--surface)' }}>
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b px-3" style={{ borderColor: 'var(--border)' }}>
-        <p className="flex-1 truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>
+    <div className="flex h-full flex-col bg-surface">
+      <div className="flex h-14 shrink-0 items-center gap-2 border-b px-3">
+        <p className="flex-1 truncate text-sm font-semibold text-ink">
           Kết quả
         </p>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} aria-label="Đóng artifacts">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} aria-label="Đóng bảng kết quả">
           <X className="h-4 w-4" />
         </Button>
       </div>
 
       {options.length > 0 && (
-        <div className="border-b px-3 py-2" style={{ borderColor: 'var(--border)' }}>
+        <div className="border-b px-3 py-2">
           <Select
             value={currentValue || undefined}
-            aria-label="Chọn artifact để xem"
+            aria-label="Chọn kết quả để xem"
             onValueChange={(value) => {
               const separatorIndex = value.indexOf(':');
               const kind = value.slice(0, separatorIndex) as ArtifactKind;
@@ -94,10 +94,10 @@ export function ArtifactsPanel({
         ) : (
           <div
             className="flex min-h-[200px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-center"
-            style={{ borderColor: 'var(--border)' }}
+            style={{ borderColor: 'var(--line)' }}
           >
-            <PackageOpen className="h-6 w-6" style={{ color: 'var(--text-faint)' }} />
-            <p className="text-sm" style={{ color: 'var(--text-faint)' }}>
+            <PackageOpen className="h-6 w-6 text-ink-tertiary" />
+            <p className="text-sm text-ink-tertiary">
               Chưa có kết quả nào để xem. Phân tích một phân tử hoặc nhận đáp án để kết quả xuất hiện ở đây.
             </p>
           </div>
@@ -105,11 +105,11 @@ export function ArtifactsPanel({
 
         {(evidence.length > 0 || evidenceQuery.isError) && (
           <section aria-labelledby="artifacts-sources-heading" className="space-y-2">
-            <h2 id="artifacts-sources-heading" className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+            <h2 id="artifacts-sources-heading" className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
               Nguồn
             </h2>
             {evidenceQuery.isError && (
-              <p className="text-xs" style={{ color: 'var(--accent-red)' }}>
+              <p className="text-xs text-danger">
                 Không tải được danh sách nguồn.
               </p>
             )}
@@ -121,13 +121,13 @@ export function ArtifactsPanel({
                   type="button"
                   aria-current={selected ? 'true' : undefined}
                   className="w-full rounded-lg border p-2 text-left"
-                  style={{ borderColor: selected ? 'var(--accent-blue)' : 'var(--border)' }}
+                  style={{ borderColor: selected ? 'var(--brand)' : 'var(--line)' }}
                   onClick={() => navigate(artifactPath(sessionId, { kind: 'evidence', entityId: record.evidence_id }))}
                 >
-                  <p className="line-clamp-2 text-xs font-medium" style={{ color: 'var(--text)' }}>
+                  <p className="line-clamp-2 text-xs font-medium text-ink">
                     <sup>{index + 1}</sup> {record.title}
                   </p>
-                  <p className="mt-1 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+                  <p className="mt-1 text-2xs text-ink-tertiary">
                     {record.source_type} · {record.published_at ?? 'n.d.'}
                   </p>
                 </button>
@@ -137,8 +137,8 @@ export function ArtifactsPanel({
         )}
 
         {caseCount > 0 && (
-          <details className="rounded-lg border p-3" style={{ borderColor: 'var(--border)' }}>
-            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+          <details className="rounded-lg border p-3">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-ink-secondary">
               Điều tra khoa học ({caseCount})
             </summary>
             <div className="mt-3">

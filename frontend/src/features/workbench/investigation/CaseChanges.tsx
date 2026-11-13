@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getCaseRunChanges, type CaseRunChanges, type CaseSectionChanges } from '../../../shared/api/endpoints';
 import type { ScientificCase } from '../../../shared/api/types';
+import { NativeSelect } from '../../../shared/ui/native-select';
 
 /**
  * "Lượt này đã đổi gì, giữ gì" (AG-UI, US4). Hai nửa quan trọng như nhau: một
@@ -39,21 +40,20 @@ export function CaseChanges({ sessionId, data }: { sessionId: string; data: Scie
   return (
     <section className="space-y-2" aria-label="Lượt này đã đổi gì, giữ gì">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
           Lượt này đã đổi gì, giữ gì
         </h3>
         {runs.length > 1 && (
-          <select aria-label="Chọn lượt" className="rounded-md border px-1.5 py-0.5 text-xs"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+          <NativeSelect aria-label="Chọn lượt" className="h-7 w-auto text-xs"
             value={selected} onChange={(event) => setRunId(event.target.value)}>
             {runs.map((run, index) => (
               <option key={run.run_id} value={run.run_id}>Lượt {index + 1}</option>
             ))}
-          </select>
+          </NativeSelect>
         )}
       </div>
-      {query.isLoading && <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Đang so sánh…</p>}
-      {query.isError && <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được thay đổi của lượt này.</p>}
+      {query.isLoading && <p className="text-xs text-ink-tertiary">Đang so sánh…</p>}
+      {query.isError && <p className="text-xs text-danger">Không tải được thay đổi của lượt này.</p>}
       {query.data && <ChangesBody changes={query.data} />}
     </section>
   );
@@ -66,23 +66,23 @@ export function ChangesBody({ changes }: { changes: CaseRunChanges }) {
   return (
     <div className="space-y-2 text-xs">
       {first && (
-        <p style={{ color: 'var(--text-muted)' }}>Lượt đầu tiên của hồ sơ: mọi mục đều mới, chưa có gì để so.</p>
+        <p style={{ color: 'var(--ink-secondary)' }}>Lượt đầu tiên của hồ sơ: mọi mục đều mới, chưa có gì để so.</p>
       )}
-      <div className="rounded-md p-2" style={{ backgroundColor: 'var(--surface-alt)' }}>
-        <p className="mb-1 font-semibold" style={{ color: 'var(--text)' }}>Đã đổi ({changed.length})</p>
+      <div className="rounded-md p-2 bg-surface-muted">
+        <p className="mb-1 font-semibold text-ink">Đã đổi ({changed.length})</p>
         {changed.length === 0
-          ? <p style={{ color: 'var(--text-faint)' }}>Lượt này không thay đổi mục nào của hồ sơ.</p>
-          : <ul className="list-disc space-y-0.5 pl-4" aria-label="Đã đổi" style={{ color: 'var(--text)' }}>
+          ? <p style={{ color: 'var(--ink-tertiary)' }}>Lượt này không thay đổi mục nào của hồ sơ.</p>
+          : <ul className="list-disc space-y-0.5 pl-4 text-ink" aria-label="Đã đổi">
             {changed.map((line, index) => <li key={index}>{line}</li>)}
           </ul>}
       </div>
-      <div className="rounded-md border p-2" style={{ borderColor: 'var(--border)' }}>
-        <p className="mb-1 font-semibold" style={{ color: 'var(--text)' }}>Giữ nguyên</p>
-        <ul className="list-disc space-y-0.5 pl-4" aria-label="Giữ nguyên" style={{ color: 'var(--text-muted)' }}>
+      <div className="rounded-md border p-2">
+        <p className="mb-1 font-semibold text-ink">Giữ nguyên</p>
+        <ul className="list-disc space-y-0.5 pl-4 text-ink-secondary" aria-label="Giữ nguyên">
           {kept.map((line, index) => <li key={index}>{line}</li>)}
         </ul>
       </div>
-      <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>
+      <p className="text-2xs text-ink-tertiary">
         Revision {changes.from_revision} → {changes.to_revision}
         {Object.keys(changes.updates_by_actor).length > 0 && ' · '}
         {Object.entries(changes.updates_by_actor).map(([actor, n]) => `${n} của ${ACTOR_LABEL[actor] ?? actor}`).join(', ')}

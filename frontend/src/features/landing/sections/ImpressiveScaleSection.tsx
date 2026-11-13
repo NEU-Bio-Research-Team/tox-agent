@@ -13,7 +13,7 @@ export function ImpressiveScaleSection() {
   ];
 
   return (
-    <section id="impressive-scale" ref={ref} className="relative min-h-screen bg-gradient-to-br from-[#1E0368] via-[#2D0A5E] to-[#1E0368] overflow-hidden flex items-center justify-center py-20">
+    <section id="impressive-scale" ref={ref} className="relative min-h-screen bg-gradient-to-br from-brand-deep via-brand-deep-2 to-brand-deep overflow-hidden flex items-center justify-center py-20">
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: -50 }}
@@ -21,8 +21,8 @@ export function ImpressiveScaleSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="font-['Climate_Crisis'] text-6xl md:text-8xl text-white mb-4">IMPRESSIVE</h2>
-          <p className="font-['Cal_Sans'] text-4xl md:text-6xl text-white">SCALE</p>
+          <h2 className="font-sans font-extrabold tracking-tight text-6xl md:text-8xl text-white mb-4">IMPRESSIVE</h2>
+          <p className="font-sans font-bold text-4xl md:text-6xl text-white">SCALE</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
@@ -35,11 +35,11 @@ export function ImpressiveScaleSection() {
               whileHover={{ scale: 1.05 }}
               className="text-center"
             >
-              <p className="font-['Cal_Sans'] text-xl md:text-2xl text-white/80 mb-3">{stat.label}</p>
-              <p className="font-['Cal_Sans'] text-6xl md:text-8xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent mb-3">
+              <p className="font-sans font-bold text-xl md:text-2xl text-white/80 mb-3">{stat.label}</p>
+              <p className="font-sans font-bold text-6xl md:text-8xl font-bold bg-gradient-to-r from-white to-brand-glow bg-clip-text text-transparent mb-3">
                 {stat.value}
               </p>
-              <p className="font-['Cal_Sans'] text-2xl md:text-4xl text-white">{stat.sublabel}</p>
+              <p className="font-sans font-bold text-2xl md:text-4xl text-white">{stat.sublabel}</p>
             </motion.div>
           ))}
         </div>

@@ -6,6 +6,7 @@ import { ApiError } from '../../shared/api/types';
 import { LIMITATION_LABEL_VI, errorMessageVi } from '../../shared/lib/labels';
 import { Button } from '../../shared/ui/button';
 import { AtomHighlightDepiction } from './AtomHighlightDepiction';
+import { NativeSelect } from '../../shared/ui/native-select';
 
 type LoadState =
   | { phase: 'idle' }
@@ -60,43 +61,39 @@ export function ExplainPanel({
   const label = needsTask ? `Giải thích (XAI) · tox21` : `Giải thích (XAI) · ${endpoint}`;
 
   return (
-    <section
-      className="rounded-xl border"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-    >
+    <section className="-mt-1 rounded-xl border border-line bg-canvas-subtle">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-2 p-4 text-left"
+        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left"
       >
-        <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--text)' }}>
-          <Sparkles className="h-3.5 w-3.5" style={{ color: 'var(--accent-blue)' }} />
+        <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <Sparkles className="h-3.5 w-3.5 text-link" />
           {label}
         </span>
         <ChevronDown
           className="h-4 w-4 transition-transform"
-          style={{ color: 'var(--text-faint)', transform: open ? 'rotate(180deg)' : undefined }}
+          style={{ color: 'var(--ink-tertiary)', transform: open ? 'rotate(180deg)' : undefined }}
         />
       </button>
 
       {open && (
-        <div className="space-y-3 border-t p-4" style={{ borderColor: 'var(--border)' }}>
+        <div className="space-y-3 border-t p-4">
           <div className="flex flex-wrap items-center gap-2">
             {needsTask && (
-              <select
+              <NativeSelect
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
                 aria-label="Chọn assay Tox21"
-                className="rounded-md border px-2 py-1 text-xs"
-                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)', color: 'var(--text)' }}
+                className="h-8 w-auto text-xs"
               >
                 {(tox21Tasks ?? []).map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             )}
             <Button size="sm" onClick={run} disabled={state.phase === 'loading' || (needsTask && !task)}>
               {state.phase === 'loading' ? 'Đang giải thích…' : 'Giải thích'}
@@ -104,7 +101,7 @@ export function ExplainPanel({
           </div>
 
           {state.phase === 'error' && (
-            <p className="text-xs" style={{ color: 'var(--accent-red)' }}>
+            <p className="text-xs text-danger">
               {state.message}
             </p>
           )}
@@ -113,7 +110,7 @@ export function ExplainPanel({
             <ExplainResult data={state.data} />
           )}
 
-          <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          <p className="text-xs text-ink-tertiary">
             Độ lớn attribution gradient×embedding — không phải cơ chế, không phải quan hệ nhân quả.
           </p>
         </div>
@@ -125,7 +122,7 @@ export function ExplainPanel({
 function ExplainResult({ data }: { data: AtomAttribution }) {
   if (data.status === 'failed') {
     return (
-      <p className="text-xs" style={{ color: 'var(--accent-red)' }}>
+      <p className="text-xs text-danger">
         Predictor báo attribution failed; không có highlight nào được hiển thị.
       </p>
     );
@@ -137,7 +134,7 @@ function ExplainResult({ data }: { data: AtomAttribution }) {
   return (
     <div className="space-y-3">
       {data.status === 'partial' && (
-        <p className="text-xs" style={{ color: 'var(--accent-yellow)' }}>
+        <p className="text-xs text-warning">
           Kết quả best-effort — attribution vượt ngân sách thời gian; không coi đây là danh sách đóng góp hoàn chỉnh.
         </p>
       )}
@@ -151,22 +148,22 @@ function ExplainResult({ data }: { data: AtomAttribution }) {
       />
 
       {unmappedPct != null && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           {unmappedPct}% trọng số nằm ở liên kết/tô-pô, không gán được cho nguyên tử.
         </p>
       )}
 
       {data.bonds?.some((bond) => bond.source === 'adjacent_atom_derived') && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           Màu của liên kết không có token trực tiếp được suy ra từ hai nguyên tử kề; đây là hỗ trợ đọc hình, không phải attribution trực tiếp.
         </p>
       )}
 
       <details className="text-xs">
-        <summary className="cursor-pointer" style={{ color: 'var(--text-faint)' }}>
+        <summary className="cursor-pointer text-ink-tertiary">
           Xem attribution theo token ({data.tokens.length})
         </summary>
-        <ul className="mt-1 space-y-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>
+        <ul className="mt-1 space-y-0.5 font-mono text-ink-secondary">
           {data.tokens.map((token, index) => (
             <li key={`${token.token}:${index}`} className="flex justify-between gap-3">
               <span className="break-all">{token.token}</span>
@@ -178,7 +175,7 @@ function ExplainResult({ data }: { data: AtomAttribution }) {
 
       <p
         className="rounded-md px-2 py-1.5 text-xs"
-        style={{ backgroundColor: 'var(--surface-alt)', color: 'var(--text-muted)' }}
+        style={{ backgroundColor: 'var(--surface-muted)', color: 'var(--ink-secondary)' }}
       >
         {LIMITATION_LABEL_VI.attribution_not_causality}
       </p>

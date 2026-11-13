@@ -43,12 +43,12 @@ export function StructureEditorDialog({
 
         <div
           className="h-[420px] w-full overflow-hidden rounded-lg border"
-          style={{ borderColor: 'var(--border)', backgroundColor: '#ffffff' }}
+          style={{ borderColor: 'var(--line)', backgroundColor: 'var(--depiction-bg)' }}
         >
           <CanvasMoleculeEditor width="100%" height="100%" onChange={handleChange} />
         </div>
 
-        <p className="truncate font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="truncate font-mono text-xs text-ink-secondary">
           {pendingSmiles || 'Chưa có cấu trúc nào được vẽ.'}
         </p>
 

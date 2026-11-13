@@ -9,20 +9,20 @@ export function ArtifactUnavailable({ artifact, error }: { artifact: string; err
   const expired = error instanceof ApiError && (error.code === 'artifact_expired' || error.status === 410);
   if (expired) {
     return (
-      <div className="rounded-xl border border-dashed p-4 text-sm" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)' }}>
-        <div className="flex items-center gap-2" style={{ color: 'var(--text)' }}>
-          <ArchiveX className="h-4 w-4" style={{ color: 'var(--text-faint)' }} />
-          <p className="font-medium">Artifact đã hết hạn</p>
+      <div className="rounded-xl border border-dashed p-4 text-sm bg-surface-muted">
+        <div className="flex items-center gap-2 text-ink">
+          <ArchiveX className="h-4 w-4 text-ink-tertiary" />
+          <p className="font-medium">Nội dung này đã hết hạn lưu</p>
         </div>
-        <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-          {artifact} này đã bị loại khỏi dữ liệu truy cập theo chính sách lưu giữ. Link provenance được giữ lại, nhưng nội dung không thể khôi phục từ giao diện.
+        <p className="mt-2 text-xs text-ink-secondary">
+          {artifact} này đã bị xoá theo chính sách lưu giữ dữ liệu. Liên kết vẫn còn nhưng nội dung không thể khôi phục từ giao diện.
         </p>
       </div>
     );
   }
   return (
-    <p className="text-sm" style={{ color: 'var(--accent-red)' }}>
-      Không tải được {artifact} này — có thể không tồn tại hoặc bạn không có quyền xem.
+    <p className="text-sm text-danger">
+      Không tải được {artifact} này — có thể nó không còn hoặc bạn không có quyền xem.
     </p>
   );
 }

@@ -13,9 +13,9 @@ export function SystemEventCard({ message }: { message: Message }) {
   const detail = errorPart.content.message as string | undefined;
 
   return (
-    <div className="my-2 flex items-start gap-2 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'var(--surface-alt)' }}>
-      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: 'var(--accent-red)' }} />
-      <span style={{ color: 'var(--text-muted)' }}>
+    <div className="my-2 flex items-start gap-2 rounded-lg px-3 py-2 text-xs bg-surface-muted">
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger" />
+      <span style={{ color: 'var(--ink-secondary)' }}>
         {code ? (ERROR_CODE_LABEL_VI[code] ?? code) : 'Sự kiện hệ thống'}
         {detail ? ` — ${detail}` : ''}
       </span>

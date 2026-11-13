@@ -1,23 +1,22 @@
 import { type ReactNode, useState } from 'react';
 import { SidebarInset, SidebarProvider } from '../../shared/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
+import { CommandPalette } from './CommandPalette';
 import { getStoredSidebarCollapsed, setLayoutPreferences } from '../../shared/lib/preferences';
 import { useBreakpoint } from '../../shared/hooks/useBreakpoint';
 
 /**
- * The full-viewport three-region shell (plan section 8.2): sidebar left
- * (this component owns its collapse-to-rail/Sheet behavior via the shadcn
- * `Sidebar` primitive), everything else — chat, artifacts — is `children`
- * inside `SidebarInset`. `100dvh` per section 8.2's sizing table, not
- * `max-w-6xl`: this shell is meant to fill the viewport, unlike the public
- * landing/about pages which keep Navbar/Footer and a centered max width.
+ * The full-viewport workspace frame (plan section 6.3): the rail on the left and
+ * everything else — a page, or the chat and artifacts — inside `SidebarInset`.
+ * `100dvh`, not a max width: this frame fills the viewport. Every signed-in page
+ * (Phân tích nhanh, Sessions, Cài đặt, the session workbench) renders inside it,
+ * so there is one navigation and one palette across them.
  */
 export function WorkspaceLayout({ children }: { children: ReactNode }) {
   const breakpoint = useBreakpoint();
-  // Section 8.2.2: tablet (768–1279px) starts collapsed to the icon rail so
-  // the chat/artifacts columns keep their room; desktop starts expanded.
-  // A stored preference means the user already made a choice, which then
-  // wins over that default regardless of viewport.
+  // Tablet (768-1279px) starts collapsed to the icon rail so the chat and
+  // artifacts columns keep their room; desktop starts expanded. A stored
+  // preference means the user already chose, which then wins.
   const [open, setOpen] = useState(() => {
     const stored = getStoredSidebarCollapsed();
     if (stored !== null) return !stored;
@@ -36,6 +35,7 @@ export function WorkspaceLayout({ children }: { children: ReactNode }) {
     >
       <AppSidebar />
       <SidebarInset className="min-w-0 overflow-hidden">{children}</SidebarInset>
+      <CommandPalette />
     </SidebarProvider>
   );
 }

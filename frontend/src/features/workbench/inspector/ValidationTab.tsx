@@ -21,10 +21,10 @@ export function ValidationTab({ sessionId, runId }: { sessionId: string; runId: 
   });
 
   if (query.isLoading) {
-    return <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Đang tải…</p>;
+    return <p className="text-xs text-ink-secondary">Đang tải…</p>;
   }
   if (query.isError || !query.data) {
-    return <p className="text-xs" style={{ color: 'var(--accent-red)' }}>Không tải được lịch sử kiểm định.</p>;
+    return <p className="text-xs text-danger">Không tải được lịch sử kiểm định.</p>;
   }
 
   const candidates = new Map<number, CandidateRow>();
@@ -54,7 +54,7 @@ export function ValidationTab({ sessionId, runId }: { sessionId: string; runId: 
 
   if (rows.length === 0) {
     return (
-      <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+      <p className="text-xs text-ink-tertiary">
         Không có lượt sửa nào — model qua validator ngay lần đầu, hoặc run này không phải report_qa/evidence_research.
       </p>
     );
@@ -64,19 +64,19 @@ export function ValidationTab({ sessionId, runId }: { sessionId: string; runId: 
     <div className="space-y-4">
       {rows.map((row) => (
         <div key={row.generation}>
-          <p className="mb-2 text-xs font-semibold" style={{ color: 'var(--text)' }}>
+          <p className="mb-2 text-xs font-semibold text-ink">
             Candidate {row.generation} —{' '}
             {row.accepted ? (
-              <span style={{ color: row.isFallback ? 'var(--accent-yellow)' : 'var(--accent-green)' }}>
+              <span style={{ color: row.isFallback ? 'var(--warning)' : 'var(--success)' }}>
                 {row.isFallback ? 'được nhận (dự phòng)' : 'được nhận'}
               </span>
             ) : (
-              <span style={{ color: 'var(--accent-red)' }}>bị bác ({row.violations.length} vi phạm)</span>
+              <span style={{ color: 'var(--danger)' }}>bị bác ({row.violations.length} vi phạm)</span>
             )}
           </p>
           {row.violations.length > 0 && (
-            <details className="rounded-lg border p-2.5" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-alt)' }}>
-              <summary className="cursor-pointer text-xs font-medium" style={{ color: 'var(--accent-blue)' }}>
+            <details className="rounded-lg border p-2.5 bg-surface-muted">
+              <summary className="cursor-pointer text-xs font-medium text-link">
                 Chi tiết {row.violations.length} vi phạm
               </summary>
               <div className="mt-2">

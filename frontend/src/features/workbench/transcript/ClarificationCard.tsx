@@ -36,8 +36,8 @@ export function ClarificationCard({
             : content.message || content.question;
 
   return (
-    <div className="my-2 max-w-lg rounded-xl border p-3" style={{ backgroundColor: 'var(--accent-blue-muted)', borderColor: 'var(--border)' }}>
-      <p className="text-sm" style={{ color: 'var(--text)' }}>
+    <div className="my-2 max-w-lg rounded-xl border p-3 bg-brand-soft-strong">
+      <p className="text-sm text-ink">
         {text}
       </p>
       {content.options && content.options.length > 0 && (

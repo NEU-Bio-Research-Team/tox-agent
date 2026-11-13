@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { FlaskConical, Info, Loader2, Plus, Search, Settings } from 'lucide-react';
-import logoImage from '../../assets/logo-tox.png';
+import { useMemo } from 'react';
+import { Link, useLocation } from 'react-router';
+import { BookOpen, ChevronRight, FlaskConical, Loader2, MessageSquare, Plus, Search, Settings } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -13,193 +12,139 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   SidebarTrigger,
 } from '../../shared/ui/sidebar';
-import { Input } from '../../shared/ui/input';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSession } from '../../shared/api/endpoints';
+import { Logo } from '../../shared/ui/logo';
 import { useSessionsList } from '../../features/sessions/useSessionsList';
-import { groupByRecency } from '../../features/sessions/dateGroups';
+import { useCreateSession } from '../../features/sessions/useCreateSession';
 import { SessionSidebarRow } from './SessionRow';
-import { RUN_STATUS_LABEL_VI } from '../../shared/lib/labels';
+import { AccountMenu } from './AccountMenu';
+import { ThemeToggle } from './ThemeToggle';
+import { openCommandPalette } from './CommandPalette';
 
+const RECENT_LIMIT = 5;
+
+const NAV = [
+  { to: '/analyze', label: 'Phân tích nhanh', icon: FlaskConical, match: ['/analyze', '/predict'] },
+  { to: '/sessions', label: 'Sessions', icon: MessageSquare, match: ['/sessions'] },
+  { to: '/docs', label: 'Tài liệu', icon: BookOpen, match: ['/docs'] },
+] as const;
+
+/**
+ * The workspace rail (plan section 6.3): the mark and search, "Session mới", the
+ * three destinations, the sessions in flight and the latest few, then Cài đặt and
+ * the account. Full history lives on the Sessions page, so the rail no longer
+ * repeats it in date groups.
+ */
 export function AppSidebar() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const { rows, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useSessionsList();
+  const { pathname } = useLocation();
+  const { rows, isLoading, isError } = useSessionsList();
+  const create = useCreateSession();
 
-  const createMutation = useMutation({
-    mutationFn: () => createSession({ preferred_language: 'vi' }),
-    onSuccess: (session) => {
-      void queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      navigate(`/s/${session.session_id}`);
-    },
-  });
+  const recents = useMemo(() => {
+    const running = rows.filter((row) => row.active_run !== null);
+    const rest = rows.filter((row) => row.active_run === null);
+    return [...running, ...rest].slice(0, RECENT_LIMIT);
+  }, [rows]);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return rows;
-    const needle = search.toLowerCase();
-    return rows.filter((row) =>
-      `${row.title ?? ''} ${row.last_message_preview ?? ''} ${row.session_id}`.toLowerCase().includes(needle),
-    );
-  }, [rows, search]);
-
-  const runningSessions = useMemo(() => rows.filter((row) => row.active_run !== null), [rows]);
-  const groups = useMemo(() => groupByRecency(filtered, (row) => row.updated_at), [filtered]);
+  const isActive = (match: ReadonlyArray<string>) => match.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center justify-between px-1 py-1">
-          <Link to="/" className="flex min-w-0 items-center gap-2 group-data-[collapsible=icon]:hidden">
-            <img src={logoImage} alt="ToxAgent" className="h-6 w-6 shrink-0" />
-            <span className="truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>
-              ToxAgent
-            </span>
+      <SidebarHeader className="gap-3">
+        <div className="flex items-center gap-1 px-1 pt-1">
+          <Link to="/" aria-label="ToxAgent" className="flex min-w-0 flex-1 items-center pl-1 group-data-[collapsible=icon]:hidden">
+            <Logo withWordmark />
           </Link>
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            aria-label="Tìm trang hoặc session (Ctrl+K)"
+            title="Tìm (Ctrl+K)"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-secondary outline-none transition-colors hover:bg-sidebar-accent hover:text-ink focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:hidden"
+          >
+            <Search className="size-4" />
+          </button>
           <SidebarTrigger />
         </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Session mới"
+              onClick={() => create.mutate()}
+              disabled={create.isPending}
+              className="h-10 justify-center rounded-lg bg-brand font-semibold text-brand-foreground hover:bg-brand/90 hover:text-brand-foreground active:bg-brand/90 active:text-brand-foreground group-data-[collapsible=icon]:justify-center"
+            >
+              {create.isPending ? <Loader2 className="animate-spin" /> : <Plus />}
+              <span>{create.isPending ? 'Đang tạo…' : 'Session mới'}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
+            <nav aria-label="Điều hướng chính">
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="Session mới"
-                  onClick={() => createMutation.mutate()}
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <Plus />
-                  )}
-                  <span>{createMutation.isPending ? 'Đang tạo…' : 'Session mới'}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {NAV.map((item) => (
+                <SidebarMenuItem key={item.to}>
+                  <SidebarMenuButton asChild tooltip={item.label} isActive={isActive(item.match)} className="h-9 text-sm">
+                    <Link to={item.to} aria-current={isActive(item.match) ? 'page' : undefined}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
+            </nav>
           </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <div className="relative px-1">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
-              style={{ color: 'var(--text-faint)' }}
-            />
-            <Input
-              placeholder="Tìm session…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="h-8 pl-8 text-xs"
-              aria-label="Tìm session trong danh sách đã tải"
-            />
-          </div>
+          <SidebarGroupLabel>Gần đây</SidebarGroupLabel>
+          <SidebarGroupContent>
+            {isLoading ? <p className="px-2 py-1.5 text-xs text-ink-secondary">Đang tải…</p> : null}
+            {isError ? <p className="px-2 py-1.5 text-xs text-danger">Không tải được danh sách session.</p> : null}
+            {!isLoading && !isError && recents.length === 0 ? (
+              <p className="px-2 py-1.5 text-xs text-ink-tertiary">Chưa có session nào.</p>
+            ) : null}
+            <SidebarMenu>
+              {recents.map((row) => (
+                <SessionSidebarRow key={row.session_id} row={row} />
+              ))}
+              {rows.length > 0 ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild className="h-8 text-13 font-medium text-link">
+                    <Link to="/sessions">
+                      <span className="size-[7px] shrink-0" aria-hidden="true" />
+                      <span>Xem tất cả</span>
+                      <ChevronRight className="ml-auto size-3.5" />
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ) : null}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
-
-        {runningSessions.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Tác vụ đang chạy</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {runningSessions.map((row) => (
-                  <SidebarMenuItem key={row.session_id}>
-                    <SidebarMenuButton asChild tooltip={`${row.title ?? row.session_id} — ${RUN_STATUS_LABEL_VI[row.active_run!.status]}`}>
-                      <Link to={`/s/${row.session_id}`}>
-                        <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full" style={{ backgroundColor: 'var(--purple-500)' }} />
-                        <span className="truncate">{row.title ?? 'Phiên mới'}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        <SidebarSeparator />
-
-        {isLoading && (
-          <p className="px-3 py-2 text-xs group-data-[collapsible=icon]:hidden" style={{ color: 'var(--text-muted)' }}>
-            Đang tải…
-          </p>
-        )}
-        {isError && (
-          <p className="px-3 py-2 text-xs group-data-[collapsible=icon]:hidden" style={{ color: 'var(--accent-red)' }}>
-            Không tải được danh sách session.
-          </p>
-        )}
-        {!isLoading && filtered.length === 0 && (
-          <p className="px-3 py-2 text-xs group-data-[collapsible=icon]:hidden" style={{ color: 'var(--text-faint)' }}>
-            {search.trim() ? 'Không có kết quả tìm kiếm trong danh sách đã tải.' : 'Chưa có session nào.'}
-          </p>
-        )}
-
-        {groups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.rows.map((row) => (
-                  <SessionSidebarRow key={row.session_id} row={row} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
-
-        {hasNextPage && !search.trim() && (
-          <button
-            type="button"
-            onClick={() => void fetchNextPage()}
-            disabled={isFetchingNextPage}
-            className="mx-2 mb-2 rounded-md px-2 py-1.5 text-left text-xs group-data-[collapsible=icon]:hidden"
-            style={{ color: 'var(--accent-blue)' }}
-          >
-            {isFetchingNextPage ? 'Đang tải thêm…' : 'Tải thêm'}
-          </button>
-        )}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="gap-1 border-t border-sidebar-border pt-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Phân tích nhanh">
-              <Link to="/predict">
-                <FlaskConical />
-                <span>Phân tích nhanh</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Tất cả sessions">
-              <Link to="/sessions">
-                <Search />
-                <span>Tất cả sessions</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Cài đặt">
-              <Link to="/settings">
+            <SidebarMenuButton asChild tooltip="Cài đặt" isActive={pathname === '/settings'} className="h-9 text-sm">
+              <Link to="/settings" aria-current={pathname === '/settings' ? 'page' : undefined}>
                 <Settings />
                 <span>Cài đặt</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Giới thiệu">
-              <Link to="/about">
-                <Info />
-                <span>Giới thiệu</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
+        <div className="flex items-center gap-1">
+          <AccountMenu />
+          <ThemeToggle className="size-8 text-ink-secondary group-data-[collapsible=icon]:hidden" />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

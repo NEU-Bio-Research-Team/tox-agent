@@ -61,12 +61,12 @@ export function WorkbenchPage() {
   return (
     <WorkspaceLayout>
       {bootstrap.isLoading && (
-        <div className="flex h-full items-center justify-center text-sm" style={{ color: 'var(--text-muted)' }}>
+        <div className="flex h-full items-center justify-center text-sm text-ink-secondary">
           Đang tải session…
         </div>
       )}
       {bootstrap.isError && (
-        <div className="flex h-full items-center justify-center text-sm" style={{ color: 'var(--accent-red)' }}>
+        <div className="flex h-full items-center justify-center text-sm text-danger">
           {bootstrap.error instanceof ApiError
             ? errorMessageVi(bootstrap.error.code, bootstrap.error.message)
             : 'Không tải được session.'}
@@ -254,7 +254,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
       {hasUnseenArtifact && (
         <span
           className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full"
-          style={{ backgroundColor: 'var(--accent-blue)' }}
+          style={{ backgroundColor: 'var(--brand)' }}
           aria-label="Có kết quả mới"
         />
       )}
@@ -279,12 +279,12 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
       <div ref={transcriptRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-4 md:px-6">
         <div className="mx-auto max-w-[760px]">
           {messagesQuery.isLoading && (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-sm text-ink-secondary">
               Đang tải hội thoại…
             </p>
           )}
           {messagesQuery.isError && (
-            <p className="text-sm" style={{ color: 'var(--accent-red)' }}>
+            <p className="text-sm text-danger">
               Không tải được lịch sử hội thoại.
             </p>
           )}
@@ -328,7 +328,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
           className="border-t px-4 pb-3 pt-3 md:px-6"
           style={{
             backgroundColor: 'var(--canvas)',
-            borderColor: 'var(--border-subtle)',
+            borderColor: 'var(--line)',
             // Mobile browsers reserve space below the viewport for the home
             // indicator; without this the send button sits under it.
             paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
@@ -390,7 +390,7 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
   const artifactsContent = panelVisible ? (
     <Suspense
       fallback={
-        <div className="flex h-full items-center justify-center text-sm" style={{ color: 'var(--text-muted)' }}>
+        <div className="flex h-full items-center justify-center text-sm text-ink-secondary">
           Đang tải artifacts…
         </div>
       }
@@ -447,8 +447,8 @@ function WorkbenchView({ sessionId, initial }: { sessionId: string; initial: Ses
           }
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Artifacts</SheetTitle>
-            <SheetDescription>Kết quả predictor, tiến trình run và kiểm chứng đáp án.</SheetDescription>
+            <SheetTitle>Bảng kết quả</SheetTitle>
+            <SheetDescription>Kết quả phân tích, nguồn tham khảo và cách câu trả lời được kiểm tra.</SheetDescription>
           </SheetHeader>
           {artifactsContent}
         </SheetContent>

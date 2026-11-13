@@ -57,16 +57,16 @@ export function FirebaseSignIn({ config }: { config: FirebaseAuthConfig }) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6" style={{ backgroundColor: 'var(--bg)' }}>
+    <div className="flex min-h-screen items-center justify-center px-6 bg-canvas-subtle">
       <form
         onSubmit={(event) => void submit(event)}
         className="w-full max-w-sm rounded-2xl border p-8"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line)' }}
       >
-        <h1 className="mb-1 text-lg font-semibold" style={{ color: 'var(--text)' }}>
+        <h1 className="mb-1 text-lg font-semibold text-ink">
           {mode === 'sign-in' ? 'Đăng nhập ToxAgent' : 'Tạo tài khoản ToxAgent'}
         </h1>
-        <p className="mb-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+        <p className="mb-6 text-sm text-ink-secondary">
           {mode === 'sign-in' ? 'Dùng tài khoản ToxAgent bạn đã có.' : 'Mật khẩu cần ít nhất 6 ký tự.'}
         </p>
         {canUseGoogle && (
@@ -75,10 +75,10 @@ export function FirebaseSignIn({ config }: { config: FirebaseAuthConfig }) {
               <GoogleMark />
               Tiếp tục với Google
             </Button>
-            <div className="my-5 flex items-center gap-3 text-xs" style={{ color: 'var(--text-faint)' }}>
-              <span className="h-px flex-1" style={{ backgroundColor: 'var(--border)' }} />
+            <div className="my-5 flex items-center gap-3 text-xs text-ink-tertiary">
+              <span className="h-px flex-1" style={{ backgroundColor: 'var(--line)' }} />
               hoặc
-              <span className="h-px flex-1" style={{ backgroundColor: 'var(--border)' }} />
+              <span className="h-px flex-1" style={{ backgroundColor: 'var(--line)' }} />
             </div>
           </>
         )}
@@ -112,7 +112,7 @@ export function FirebaseSignIn({ config }: { config: FirebaseAuthConfig }) {
           </div>
         </div>
         {error && (
-          <p role="alert" className="mt-3 text-sm" style={{ color: 'var(--accent-red)' }}>
+          <p role="alert" className="mt-3 text-sm text-danger">
             {error}
           </p>
         )}
@@ -122,7 +122,7 @@ export function FirebaseSignIn({ config }: { config: FirebaseAuthConfig }) {
         <button
           type="button"
           className="mt-4 w-full text-center text-sm underline-offset-4 hover:underline"
-          style={{ color: 'var(--text-muted)' }}
+          style={{ color: 'var(--ink-secondary)' }}
           onClick={() => {
             setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
             setError(null);

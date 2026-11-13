@@ -30,7 +30,7 @@ export function LandingPage() {
   return (
     <div className="w-full bg-white overflow-x-hidden">
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1E0368] via-purple-600 to-[#1E0368] z-50 origin-left"
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-deep via-brand to-brand-deep z-50 origin-left"
         style={{ scaleX: scrollYProgress }}
       />
 
@@ -73,13 +73,13 @@ function Navigation({ activeSection, scrollToSection }: { activeSection: string;
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-        isScrolled ? 'bg-[#1E0368]/95 backdrop-blur-lg shadow-lg' : 'bg-transparent'
+        isScrolled ? 'bg-brand-deep/95 backdrop-blur-lg shadow-lg' : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <motion.div
           whileHover={{ scale: 1.05 }}
-          className="font-['Climate_Crisis'] text-3xl text-white cursor-pointer"
+          className="font-sans font-extrabold tracking-tight text-3xl text-white cursor-pointer"
           onClick={() => scrollToSection('hero')}
         >
           TOX AGENT
@@ -92,7 +92,7 @@ function Navigation({ activeSection, scrollToSection }: { activeSection: string;
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => scrollToSection(item.id)}
-              className={`font-['Cal_Sans'] text-lg transition-colors ${
+              className={`font-sans font-bold text-lg transition-colors ${
                 activeSection === item.id ? 'text-white' : 'text-white/70 hover:text-white'
               }`}
             >
@@ -105,7 +105,7 @@ function Navigation({ activeSection, scrollToSection }: { activeSection: string;
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => window.location.assign('/predict')}
-          className="border-2 border-white rounded-full px-5 py-2 font-['Cal_Sans'] text-sm text-white transition-colors hover:bg-white hover:text-[#1E0368]"
+          className="border-2 border-white rounded-full px-5 py-2 font-sans font-bold text-sm text-white transition-colors hover:bg-white hover:text-brand-deep"
         >
           QUICK PREDICT
         </motion.button>

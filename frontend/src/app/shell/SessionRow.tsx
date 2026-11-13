@@ -1,76 +1,36 @@
 import { NavLink } from 'react-router';
 import type { SessionListRow } from '../../shared/api/types';
 import { RUN_STATUS_LABEL_VI } from '../../shared/lib/labels';
-import { relativeTimeVi } from '../../features/sessions/dateGroups';
 import { SidebarMenuButton, SidebarMenuItem } from '../../shared/ui/sidebar';
 
-function statusDotColor(row: SessionListRow): string {
-  if (row.active_run) return 'var(--accent-blue)';
-  if (row.status === 'active') return 'var(--accent-green)';
-  return 'var(--text-faint)';
-}
-
-/** Compact row used in the sidebar's recent-sessions groups (plan 8.1: one
- * real `<a>`/`NavLink` per row, for keyboard nav and open-in-new-tab). */
+/** Compact row used in the rail's "Gần đây" group: one real link per row, so it
+ * works from the keyboard and opens in a new tab. A running session carries a
+ * pulsing dot; the others carry none, so the dot always means "working". */
 export function SessionSidebarRow({ row }: { row: SessionListRow }) {
+  const running = row.active_run !== null;
+  const title = row.title ?? 'Session mới';
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={row.title ?? 'Phiên mới'}>
+      <SidebarMenuButton
+        asChild
+        tooltip={running ? `${title} — ${RUN_STATUS_LABEL_VI[row.active_run!.status]}` : title}
+        className="h-8 text-13 text-ink-secondary data-[active=true]:text-sidebar-accent-foreground"
+      >
         <NavLink to={`/s/${row.session_id}`}>
           {({ isActive }) => (
             <>
-              <span
-                className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: statusDotColor(row) }}
-              />
+              {running ? (
+                <span className="size-[7px] shrink-0 animate-pulse rounded-full bg-brand" aria-hidden="true" />
+              ) : (
+                <span className="size-[7px] shrink-0" aria-hidden="true" />
+              )}
               <span className="truncate" style={{ fontWeight: isActive ? 600 : 400 }}>
-                {row.title ?? 'Phiên mới'}
+                {title}
               </span>
             </>
           )}
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
-  );
-}
-
-/** Fuller row used on `/sessions` (plan 8.1: title, status badge, preview,
- * relative time — the "expanded history view" that shares the same query
- * cache as the sidebar's list instead of owning a second one). */
-export function SessionCardRow({ row, onOpen }: { row: SessionListRow; onOpen: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="w-full rounded-xl border p-4 text-left transition-shadow hover:shadow-md"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: statusDotColor(row) }} />
-            <p className="truncate text-sm font-medium" style={{ color: 'var(--text)' }}>
-              {row.title ?? 'Phiên mới'}
-            </p>
-          </div>
-          {row.last_message_preview && (
-            <p className="mt-1 truncate text-sm" style={{ color: 'var(--text-muted)' }}>
-              {row.last_message_preview}
-            </p>
-          )}
-          <p className="mt-1.5 text-xs" style={{ color: 'var(--text-faint)' }}>
-            {row.run_count} run · cập nhật {relativeTimeVi(row.updated_at)}
-          </p>
-        </div>
-        {row.active_run && (
-          <span
-            className="shrink-0 rounded-full px-2 py-1 text-xs font-medium"
-            style={{ backgroundColor: 'var(--accent-blue-muted)', color: 'var(--accent-blue)' }}
-          >
-            {RUN_STATUS_LABEL_VI[row.active_run.status]}
-          </span>
-        )}
-      </div>
-    </button>
   );
 }

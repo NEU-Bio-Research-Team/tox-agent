@@ -9,7 +9,7 @@ export function HowToUseSection() {
 
   return (
     <section id="how-to-use" ref={ref} className="relative min-h-screen bg-white overflow-hidden flex items-center justify-center py-20">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1E0368] via-[#2D0A5E] to-[#1E0368] opacity-95" />
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-deep via-brand-deep-2 to-brand-deep opacity-95" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
@@ -17,7 +17,7 @@ export function HowToUseSection() {
             initial={{ opacity: 0, y: -30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
-            className="font-['Climate_Crisis'] text-6xl md:text-8xl text-white mb-4"
+            className="font-sans font-extrabold tracking-tight text-6xl md:text-8xl text-white mb-4"
           >
             HOW TO USE
           </motion.h2>
@@ -25,7 +25,7 @@ export function HowToUseSection() {
             initial={{ opacity: 0, y: -20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-['Cal_Sans'] text-5xl md:text-7xl text-white"
+            className="font-sans font-bold text-5xl md:text-7xl text-white"
           >
             TOX AGENT.
           </motion.p>
@@ -48,16 +48,16 @@ export function HowToUseSection() {
             className="backdrop-blur-md bg-white/10 border-4 border-white rounded-3xl p-8 md:p-12 min-h-[500px] flex flex-col justify-between"
           >
             <div>
-              <p className="font-['Cal_Sans'] text-7xl md:text-8xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent mb-4">
+              <p className="font-sans font-bold text-7xl md:text-8xl font-bold bg-gradient-to-r from-white to-brand-glow bg-clip-text text-transparent mb-4">
                 &lt;0.5s
               </p>
-              <p className="font-['Cal_Sans'] text-4xl md:text-5xl text-white mb-8">
+              <p className="font-sans font-bold text-4xl md:text-5xl text-white mb-8">
                 per molecule
               </p>
             </div>
 
             <div>
-              <p className="font-['Cal_Sans'] text-xl md:text-2xl text-white mb-8">
+              <p className="font-sans font-bold text-xl md:text-2xl text-white mb-8">
                 Revolutionizing Molecular Toxicity Prediction with AI.
               </p>
 
@@ -65,7 +65,7 @@ export function HowToUseSection() {
                 whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,255,255,0.3)" }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.assign('/predict')}
-                className="bg-transparent border-4 border-white rounded-full px-8 py-3 font-['Cal_Sans'] text-xl md:text-2xl text-white flex items-center gap-4"
+                className="bg-transparent border-4 border-white rounded-full px-8 py-3 font-sans font-bold text-xl md:text-2xl text-white flex items-center gap-4"
               >
                 LEARN MORE
                 <motion.img

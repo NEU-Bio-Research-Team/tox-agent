@@ -67,7 +67,7 @@ export function AtomHighlightDepiction({
       </div>
 
       {!aligned ? (
-        <p className="text-xs" style={{ color: 'var(--accent-yellow)' }}>
+        <p className="text-xs text-warning">
           Không căn được attribution theo nguyên tử cho phiên bản thứ tự nguyên tử
           này ({atomOrderVersion ?? 'không rõ'}); chỉ hiển thị cấu trúc và danh sách token.
         </p>
@@ -78,28 +78,28 @@ export function AtomHighlightDepiction({
             <li key={atom.atom_index} className="flex items-center gap-2 text-xs">
               <span
                 className="w-14 shrink-0 font-mono"
-                style={{ color: 'var(--text-muted)' }}
+                style={{ color: 'var(--ink-secondary)' }}
               >
                 {atom.symbol}
-                <span style={{ color: 'var(--text-faint)' }}>#{atom.atom_index}</span>
+                <span style={{ color: 'var(--ink-tertiary)' }}>#{atom.atom_index}</span>
               </span>
-              <span className="relative h-3 flex-1 overflow-hidden rounded" style={{ backgroundColor: 'var(--surface-alt)' }}>
+              <span className="relative h-3 flex-1 overflow-hidden rounded bg-surface-muted">
                 <span
                   className="absolute inset-y-0 left-0 rounded"
                   style={{
                     width: `${Math.max(2, (atom.relative_importance / (max || 1)) * 100)}%`,
-                    backgroundColor: 'var(--accent-blue)',
+                    backgroundColor: 'var(--brand)',
                     opacity: rampAlpha(atom.relative_importance, max),
                   }}
                 />
               </span>
-              <span className="w-12 shrink-0 text-right font-mono" style={{ color: 'var(--text-faint)' }}>
+              <span className="w-12 shrink-0 text-right font-mono text-ink-tertiary">
                 {(atom.relative_importance * 100).toFixed(1)}%
               </span>
             </li>
             ))}
           </ul>
-          {bonds.length > 0 && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          {bonds.length > 0 && <p className="text-xs text-ink-secondary">
             Liên kết: {bonds.filter((bond) => bond.source === 'explicit_token').length} gán trực tiếp từ token; các liên kết còn lại dùng màu hiển thị suy ra từ atom kề.
           </p>}
         </>

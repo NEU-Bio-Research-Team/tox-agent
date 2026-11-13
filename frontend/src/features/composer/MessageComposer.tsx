@@ -23,7 +23,7 @@ const StructureEditorDialog = lazy(async () => {
 function StructureEditorLoadingDialog() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="status" aria-live="polite">
-      <div className="rounded-xl border p-4 text-sm shadow-lg" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+      <div className="rounded-xl border p-4 text-sm shadow-lg bg-surface">
         Đang tải trình vẽ cấu trúc…
       </div>
     </div>
@@ -241,15 +241,15 @@ export function MessageComposer({
         onSelect();
       }}
     >
-      <Icon className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+      <Icon className="h-4 w-4 text-ink-secondary" />
       {label}
     </button>
   );
 
-  const chipStyle = { backgroundColor: 'var(--accent-blue-muted)', color: 'var(--accent-blue)', width: 'fit-content' } as const;
+  const chipStyle = { backgroundColor: 'var(--brand-soft-strong)', color: 'var(--link)', width: 'fit-content' } as const;
 
   return (
-    <div className="ta-glass rounded-[var(--radius-floating)] border p-3 shadow-[var(--shadow-float)] transition-shadow focus-within:shadow-[0_0_0_3px_var(--purple-glow),var(--shadow-float)]" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--line-strong)' }}>
+    <div className="ta-glass rounded-[var(--radius-floating)] border p-3 shadow-[var(--shadow-float)] transition-shadow focus-within:shadow-[0_0_0_3px_var(--purple-glow),var(--shadow-float)] bg-surface border-line-strong">
       {analysisContext && (
         <div className="mb-2 flex items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-xs font-medium" style={chipStyle}>
           <span>Đang hỏi về {analysisContext.label}</span>
@@ -268,10 +268,10 @@ export function MessageComposer({
       {stagedImage && (
         <div
           className="mb-2 flex items-center gap-2 self-start rounded-lg border p-1.5"
-          style={{ borderColor: 'var(--border)', width: 'fit-content' }}
+          style={{ borderColor: 'var(--line)', width: 'fit-content' }}
         >
           <img src={stagedImage.previewUrl} alt="" className="h-10 w-10 rounded object-cover" />
-          <span className="max-w-[160px] truncate text-xs" style={{ color: 'var(--text-muted)' }}>
+          <span className="max-w-[160px] truncate text-xs text-ink-secondary">
             {stagedImage.fileName}
           </span>
           <button
@@ -280,7 +280,7 @@ export function MessageComposer({
             aria-label="Bỏ ảnh đã chọn"
             className="rounded-full p-0.5 hover:opacity-70"
           >
-            <X className="h-3.5 w-3.5" style={{ color: 'var(--text-faint)' }} />
+            <X className="h-3.5 w-3.5 text-ink-tertiary" />
           </button>
         </div>
       )}
@@ -339,7 +339,7 @@ export function MessageComposer({
           )}
           {ambiguousMolecule && (
             <>
-              <p role="status" className="text-[11px] leading-snug" style={{ color: 'var(--text-muted)' }}>
+              <p role="status" className="text-2xs leading-snug text-ink-secondary">
                 Câu này có {suggestion.candidates.length} chuỗi giống SMILES. Chọn chuỗi cần phân tích:
               </p>
               {suggestion.candidates.map((candidate) => (
@@ -361,7 +361,7 @@ export function MessageComposer({
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
+      <div className="flex items-center gap-1.5 border-t pt-2">
         <Popover open={attachMenuOpen} onOpenChange={setAttachMenuOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Thêm SMILES, ảnh hoặc bản vẽ">

@@ -1,4 +1,6 @@
+import { CircleCheck, TriangleAlert } from 'lucide-react';
 import type { Applicability } from '../../shared/api/types';
+import { StatusPill } from '../../shared/ui/status-pill';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../../shared/ui/tooltip';
 
 /** SCI-07: applicability is a fixed rule (element_rules_v1), never a learned
@@ -7,21 +9,16 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../../
 export function ApplicabilityChip({ applicability }: { applicability: Applicability }) {
   const ok = applicability.status === 'ok';
   return (
-    <div className="rounded-xl border p-4" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <h3 className="mb-2 text-sm font-semibold" style={{ color: 'var(--text)' }}>
-        Applicability
-      </h3>
+    <div className="space-y-1.5">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium"
-              style={{
-                borderColor: 'var(--border)',
-                color: ok ? 'var(--text)' : 'var(--accent-yellow)',
-              }}
-            >
-              {applicability.status} · {applicability.method}
+            <span className="inline-flex">
+              <StatusPill tone={ok ? 'success' : 'warning'} className="text-xs font-medium">
+                {ok ? <CircleCheck className="size-3.5" /> : <TriangleAlert className="size-3.5" />}
+                Applicability {applicability.status}
+                <span className="font-mono text-2xs">· {applicability.method}</span>
+              </StatusPill>
             </span>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs text-xs">
@@ -29,9 +26,7 @@ export function ApplicabilityChip({ applicability }: { applicability: Applicabil
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <p className="mt-2 text-xs" style={{ color: 'var(--text-faint)' }}>
-        Đánh giá bằng luật cố định, KHÔNG phải out-of-distribution học được.
-      </p>
+      <p className="text-xs text-ink-tertiary">Đánh giá bằng luật cố định, KHÔNG phải out-of-distribution học được.</p>
     </div>
   );
 }

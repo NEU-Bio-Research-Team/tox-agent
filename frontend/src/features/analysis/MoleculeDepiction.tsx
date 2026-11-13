@@ -32,7 +32,7 @@ export function MoleculeDepiction({ smiles, size = 220 }: { smiles: string; size
     return (
       <div
         className="flex items-center justify-center rounded-lg text-xs"
-        style={{ width: size, height: size, backgroundColor: 'var(--surface-alt)', color: 'var(--text-faint)' }}
+        style={{ width: size, height: size, backgroundColor: 'var(--surface-muted)', color: 'var(--ink-tertiary)' }}
       >
         Không vẽ được cấu trúc
       </div>
@@ -45,7 +45,7 @@ export function MoleculeDepiction({ smiles, size = 220 }: { smiles: string; size
       width={size}
       height={size}
       className="rounded-lg"
-      style={{ backgroundColor: '#ffffff' }}
+      style={{ backgroundColor: 'var(--depiction-bg)' }}
     />
   );
 }

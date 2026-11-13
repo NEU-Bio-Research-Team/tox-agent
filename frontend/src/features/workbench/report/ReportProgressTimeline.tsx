@@ -18,10 +18,10 @@ function StageIcon({ status }: { status: ReportStageStatus }) {
   if (status === 'running') {
     return <Loader2 aria-hidden className={`${common} animate-spin motion-reduce:animate-none`} style={{ color: 'var(--purple-600)' }} />;
   }
-  if (status === 'completed') return <Check aria-hidden className={common} style={{ color: 'var(--accent-green)' }} />;
-  if (status === 'failed') return <X aria-hidden className={common} style={{ color: 'var(--accent-red)' }} />;
-  if (status === 'skipped') return <Minus aria-hidden className={common} style={{ color: 'var(--text-faint)' }} />;
-  return <span aria-hidden className={`${common} inline-block rounded-full border`} style={{ borderColor: 'var(--text-faint)' }} />;
+  if (status === 'completed') return <Check aria-hidden className={common} style={{ color: 'var(--success)' }} />;
+  if (status === 'failed') return <X aria-hidden className={common} style={{ color: 'var(--danger)' }} />;
+  if (status === 'skipped') return <Minus aria-hidden className={common} style={{ color: 'var(--ink-tertiary)' }} />;
+  return <span aria-hidden className={`${common} inline-block rounded-full border`} style={{ borderColor: 'var(--ink-tertiary)' }} />;
 }
 
 /** A report build's stages as the server recorded them (WS09).
@@ -33,7 +33,7 @@ function StageIcon({ status }: { status: ReportStageStatus }) {
 export function ReportProgressTimeline({ progress }: { progress: ReportProgress }) {
   if (progress.stages.length === 0) {
     return (
-      <p className="my-2 text-sm" role="status" aria-live="polite" style={{ color: 'var(--text-muted)' }}>
+      <p className="my-2 text-sm text-ink-secondary" role="status" aria-live="polite">
         {reportStageLabel(progress.currentStage)}…
       </p>
     );
@@ -41,7 +41,7 @@ export function ReportProgressTimeline({ progress }: { progress: ReportProgress 
   const current = progress.outcome ? null : progress.currentStage;
   return (
     <div className="my-2 space-y-1.5" data-testid="report-progress">
-      <p className="text-sm" role="status" aria-live="polite" style={{ color: 'var(--text-muted)' }}>
+      <p className="text-sm text-ink-secondary" role="status" aria-live="polite">
         {current
           ? `${reportStageLabel(current)} (${progress.completed}/${progress.total})`
           : progress.outcome === 'failed'
@@ -63,7 +63,7 @@ export function ReportProgressTimeline({ progress }: { progress: ReportProgress 
             key={stage.stage}
             className="flex min-w-0 items-center gap-2"
             aria-current={stage.stage === current ? 'step' : undefined}
-            style={{ color: stage.status === 'pending' || stage.status === 'skipped' ? 'var(--text-faint)' : 'var(--text-muted)' }}
+            style={{ color: stage.status === 'pending' || stage.status === 'skipped' ? 'var(--ink-tertiary)' : 'var(--ink-secondary)' }}
           >
             <StageIcon status={stage.status} />
             <span className="truncate">{reportStageLabel(stage.stage)}</span>{' '}

@@ -107,7 +107,7 @@ export function Transcript({
 
   if (messages.length === 0 && pendingSends.length === 0) {
     return (
-      <div className="flex h-full min-h-[240px] items-center justify-center text-sm" style={{ color: 'var(--text-faint)' }}>
+      <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-ink-tertiary">
         Chưa có tin nhắn nào. Nhập SMILES hoặc đặt câu hỏi để bắt đầu.
       </div>
     );

@@ -39,27 +39,29 @@ describe('StageLineage', () => {
     render(<LineageBody lineage={BASE} />);
     const stages = within(screen.getByRole('list', { name: 'Bản nháp theo thứ tự' })).getAllByRole('listitem');
     expect(stages).toHaveLength(3);
-    expect(stages[0]).toHaveTextContent('Bản nháp đầu · bị validator từ chối');
-    expect(stages[0]).toHaveTextContent('Lỗi cấu trúc: claim_citation_missing');
-    expect(stages[1]).toHaveTextContent('không phải câu trả lời');
-    expect(stages[2]).toHaveTextContent('bản đang phát hành');
+    expect(stages[0]).toHaveTextContent('Bản nháp đầu tiên · định dạng chưa hợp lệ');
+    // Internal violation codes are for the developer view, not the reader.
+    expect(stages[0]).not.toHaveTextContent('claim_citation_missing');
+    expect(stages[1]).toHaveTextContent('chỉ để tham khảo');
+    expect(stages[2]).toHaveTextContent('đang là câu trả lời bạn thấy');
   });
 
   it('labels a candidate draft as audit material when its text is opened', () => {
     render(<LineageBody lineage={BASE} />);
     const stages = within(screen.getByRole('list', { name: 'Bản nháp theo thứ tự' })).getAllByRole('listitem');
-    fireEvent.click(within(stages[1]).getByRole('button', { name: 'Xem văn bản của giai đoạn này' }));
-    expect(within(stages[1]).getByText(/Bản nháp, chỉ để audit/)).toBeInTheDocument();
+    fireEvent.click(within(stages[1]).getByRole('button', { name: 'Xem nội dung bản này' }));
+    expect(within(stages[1]).getByText(/Bản nháp, chỉ để tham khảo/)).toBeInTheDocument();
     expect(within(stages[1]).getByText('This exact compound blocks hERG.')).toBeInTheDocument();
   });
 
   it('reads verdicts against their claims and shows what the repair removed', () => {
     render(<LineageBody lineage={BASE} />);
-    expect(screen.getByText(/Review vòng 1 \(lần đầu\)/)).toHaveTextContent('1 được nguồn hỗ trợ, 1 không được hỗ trợ');
-    const claims = within(screen.getByRole('list', { name: 'Lineage của claim' })).getAllByRole('listitem');
-    expect(claims[1]).toHaveTextContent('overreach · bị xóa · vòng 1: không được hỗ trợ');
-    expect(screen.getByText(/Bản sửa chỉ xóa claim/)).toBeInTheDocument();
-    expect(screen.getByText(/Bản sửa làm mất limitation: evidence_scope_limited/)).toBeInTheDocument();
+    expect(screen.getByText(/Đối chiếu nguồn lần 1 \(lần đầu\)/)).toHaveTextContent('1 khớp nguồn, 1 chưa có nguồn hỗ trợ');
+    const claims = within(screen.getByRole('list', { name: 'Hành trình từng ý' })).getAllByRole('listitem');
+    expect(claims[1]).toHaveTextContent('Đã bỏ');
+    expect(claims[1]).toHaveTextContent('lần 1: chưa có nguồn hỗ trợ');
+    expect(screen.getByText(/Bản sửa chỉ bỏ bớt ý/)).toBeInTheDocument();
+    expect(screen.getByText(/Bản sửa làm mất lưu ý: .*phạm vi giới hạn/)).toBeInTheDocument();
   });
 
   it('says what a withheld run did not give the reader', () => {
@@ -69,13 +71,13 @@ describe('StageLineage', () => {
       missing: { needed_inputs: ['an exposure (free Cmax)'], unresolved_claim_ids: [], lost_limitation_codes: [],
         confirmed_fact_count: 1, reason: 'the run ended before an answer could be published', failure_code: 'cancelled' },
     }} />);
-    expect(screen.queryByText('bản đang phát hành')).toBeNull();
-    expect(screen.getByText(/Cần thêm đầu vào: an exposure \(free Cmax\)/)).toBeInTheDocument();
-    expect(screen.getByText(/Run dừng vì: cancelled/)).toBeInTheDocument();
+    expect(screen.queryByText('đang là câu trả lời bạn thấy')).toBeNull();
+    expect(screen.getByText(/Cần thêm: an exposure \(free Cmax\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Dừng vì/)).toBeInTheDocument();
   });
 
   it('never reports a run before any release policy as reviewed', () => {
     render(<LineageBody lineage={{ ...BASE, recorded: false, release_policy: 'legacy', stages: [], reviews: [], claims: [] }} />);
-    expect(screen.getByText(/không biết câu trả lời đã qua review hay chưa/)).toBeInTheDocument();
+    expect(screen.getByText(/chưa rõ nó đã được đối chiếu với nguồn hay chưa/)).toBeInTheDocument();
   });
 });

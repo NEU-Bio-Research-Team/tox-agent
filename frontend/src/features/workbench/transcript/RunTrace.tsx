@@ -98,7 +98,7 @@ function useNow(active: boolean): number {
 }
 
 function Dot({ icon: IconComponent, tone = 'muted', spinning = false }: { icon: Icon; tone?: 'muted' | 'purple' | 'green' | 'red' | 'amber'; spinning?: boolean }) {
-  const color = { muted: 'var(--text-faint)', purple: 'var(--purple-600)', green: 'var(--accent-green)', red: 'var(--accent-red)', amber: 'var(--accent-yellow)' }[tone];
+  const color = { muted: 'var(--ink-tertiary)', purple: 'var(--purple-600)', green: 'var(--success)', red: 'var(--danger)', amber: 'var(--warning)' }[tone];
   return (
     <span className="relative z-10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border" style={{ background: 'var(--surface-solid)', borderColor: 'var(--line)', color }}>
       {spinning ? <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" /> : <IconComponent className="h-3 w-3" />}
@@ -108,7 +108,7 @@ function Dot({ icon: IconComponent, tone = 'muted', spinning = false }: { icon: 
 
 function Chip({ children, mono = false, title }: { children: React.ReactNode; mono?: boolean; title?: string }) {
   return (
-    <span title={title} className={`inline-flex max-w-full items-center truncate rounded-md px-1.5 py-0.5 text-[11px] ${mono ? 'font-mono' : ''}`} style={{ background: 'var(--surface-muted)', color: 'var(--text-muted)' }}>
+    <span title={title} className={`inline-flex max-w-full items-center truncate rounded-md px-1.5 py-0.5 text-2xs ${mono ? 'font-mono' : ''}`} style={{ background: 'var(--surface-muted)', color: 'var(--ink-secondary)' }}>
       {children}
     </span>
   );
@@ -126,24 +126,24 @@ function ReasoningRow({ entry, live, now }: { entry: Extract<TraceEntry, { kind:
 
   return (
     <div className="min-w-0 flex-1">
-      <button type="button" onClick={() => setOpen((v) => !v)} disabled={streaming} className="flex w-full items-center gap-1.5 text-left text-[13px]" aria-expanded={streaming || open}>
-        <span className={streaming ? 'trace-shimmer font-medium' : 'font-medium'} style={streaming ? undefined : { color: 'var(--text-muted)' }}>
+      <button type="button" onClick={() => setOpen((v) => !v)} disabled={streaming} className="flex w-full items-center gap-1.5 text-left text-13" aria-expanded={streaming || open}>
+        <span className={streaming ? 'trace-shimmer font-medium' : 'font-medium'} style={streaming ? undefined : { color: 'var(--ink-secondary)' }}>
           {streaming ? 'Đang suy nghĩ' : `Đã suy nghĩ ${seconds(took)}`}
         </span>
-        {!streaming && <ChevronRight className={`h-3 w-3 transition-transform ${open ? 'rotate-90' : ''}`} style={{ color: 'var(--text-faint)' }} />}
-        <span className="ml-auto text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-faint)' }} title="Suy nghĩ của model chưa qua kiểm chứng; câu trả lời cuối mới được kiểm chứng.">chưa kiểm chứng</span>
+        {!streaming && <ChevronRight className={`h-3 w-3 transition-transform ${open ? 'rotate-90' : ''}`} style={{ color: 'var(--ink-tertiary)' }} />}
+        <span className="ml-auto text-2xs uppercase tracking-wide text-ink-tertiary" title="Suy nghĩ của model chưa qua kiểm chứng; câu trả lời cuối mới được kiểm chứng.">chưa kiểm chứng</span>
       </button>
       {streaming ? (
-        <div ref={box} className="trace-fade-top mt-1 max-h-28 overflow-hidden whitespace-pre-wrap text-[12.5px] italic leading-relaxed" style={{ color: 'var(--text-faint)' }}>
+        <div ref={box} className="trace-fade-top mt-1 max-h-28 overflow-hidden whitespace-pre-wrap text-xs italic leading-relaxed text-ink-tertiary">
           {entry.text}
         </div>
       ) : open ? (
-        <div className="mt-1 max-h-80 overflow-y-auto whitespace-pre-wrap border-l-2 pl-3 text-[12.5px] italic leading-relaxed animate-in fade-in duration-200" style={{ color: 'var(--text-muted)', borderColor: 'var(--line)' }}>
-          {entry.truncated && <span className="not-italic" style={{ color: 'var(--text-faint)' }}>… (phần đầu đã lược) </span>}
+        <div className="mt-1 max-h-80 overflow-y-auto whitespace-pre-wrap border-l-2 pl-3 text-xs italic leading-relaxed animate-in fade-in duration-200 text-ink-secondary">
+          {entry.truncated && <span className="not-italic text-ink-tertiary">… (phần đầu đã lược) </span>}
           {entry.text}
         </div>
       ) : (
-        firstLine && <p className="mt-0.5 truncate text-[12px] italic" style={{ color: 'var(--text-faint)' }}>{firstLine}</p>
+        firstLine && <p className="mt-0.5 truncate text-xs italic text-ink-tertiary">{firstLine}</p>
       )}
     </div>
   );
@@ -155,8 +155,8 @@ function EntryRow({ entry, live, now }: { entry: TraceEntry; live: boolean; now:
       return (
         <>
           <Dot icon={Cpu} />
-          <div className="min-w-0 flex-1 text-[13px]">
-            <p style={{ color: 'var(--text-muted)' }}>
+          <div className="min-w-0 flex-1 text-13">
+            <p style={{ color: 'var(--ink-secondary)' }}>
               Bắt đầu lượt {entry.phase ? (PHASES[entry.phase] ?? entry.phase) : 'agent'}
             </p>
             <div className="mt-1 flex flex-wrap gap-1">
@@ -171,8 +171,8 @@ function EntryRow({ entry, live, now }: { entry: TraceEntry; live: boolean; now:
       return (
         <>
           <Dot icon={BookOpen} tone="purple" />
-          <div className="min-w-0 flex-1 text-[13px]">
-            <p style={{ color: 'var(--text-muted)' }}>
+          <div className="min-w-0 flex-1 text-13">
+            <p style={{ color: 'var(--ink-secondary)' }}>
               Nạp {entry.skills.length} skill {entry.mode === 'static' ? 'vào prompt' : '(mục lục — đọc khi cần)'}
             </p>
             <div className="mt-1 flex flex-wrap gap-1">
@@ -197,14 +197,14 @@ function EntryRow({ entry, live, now }: { entry: TraceEntry; live: boolean; now:
       return (
         <>
           <Dot icon={toolIcon(entry.toolName)} tone={entry.state === 'failed' ? 'red' : running ? 'purple' : 'muted'} spinning={running} />
-          <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
-            <span className={`shrink-0 font-mono text-[12.5px] ${running ? 'trace-shimmer' : ''}`} style={running ? undefined : { color: 'var(--text)' }}>{entry.toolName}</span>
-            {summary && <span className="min-w-0 truncate font-mono text-[11.5px]" style={{ color: 'var(--text-faint)' }} title={entry.args ?? undefined}>{summary}</span>}
-            <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] tabular-nums" style={{ color: 'var(--text-faint)' }}>
-              {entry.state === 'failed' && <span style={{ color: 'var(--accent-red)' }}>{entry.errorCode ?? 'lỗi'}</span>}
+          <div className="flex min-w-0 flex-1 items-center gap-2 text-13">
+            <span className={`shrink-0 font-mono text-xs ${running ? 'trace-shimmer' : ''}`} style={running ? undefined : { color: 'var(--ink)' }}>{entry.toolName}</span>
+            {summary && <span className="min-w-0 truncate font-mono text-2xs text-ink-tertiary" title={entry.args ?? undefined}>{summary}</span>}
+            <span className="ml-auto flex shrink-0 items-center gap-1 text-2xs tabular-nums text-ink-tertiary">
+              {entry.state === 'failed' && <span style={{ color: 'var(--danger)' }}>{entry.errorCode ?? 'lỗi'}</span>}
               {took !== null && seconds(took)}
-              {entry.state === 'completed' && <Check className="h-3 w-3" style={{ color: 'var(--accent-green)' }} />}
-              {entry.state === 'failed' && <X className="h-3 w-3" style={{ color: 'var(--accent-red)' }} />}
+              {entry.state === 'completed' && <Check className="h-3 w-3 text-success" />}
+              {entry.state === 'failed' && <X className="h-3 w-3 text-danger" />}
             </span>
           </div>
         </>
@@ -214,7 +214,7 @@ function EntryRow({ entry, live, now }: { entry: TraceEntry; live: boolean; now:
       return (
         <>
           <Dot icon={ShieldAlert} tone="amber" />
-          <p className="flex-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          <p className="flex-1 text-13 text-ink-secondary">
             Trình kiểm chứng từ chối câu trả lời ({entry.violations} vi phạm){live ? ' — model đang sửa' : ''}
           </p>
         </>
@@ -223,7 +223,7 @@ function EntryRow({ entry, live, now }: { entry: TraceEntry; live: boolean; now:
       return (
         <>
           <Dot icon={ShieldCheck} tone="green" />
-          <p className="flex-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>Kiểm chứng câu trả lời với bằng chứng</p>
+          <p className="flex-1 text-13 text-ink-secondary">Kiểm chứng câu trả lời với bằng chứng</p>
         </>
       );
   }
@@ -292,7 +292,7 @@ export function RunTrace({
         : `Đã xử lý trong ${seconds(elapsed)}`;
 
   const details = getDeveloperModeEnabled()
-    ? <Link className="text-[11px] underline" style={{ color: 'var(--text-faint)' }} to={`/s/${sessionId}/runs/${run.run_id}`}>Run details</Link>
+    ? <Link className="text-2xs underline text-ink-tertiary" to={`/s/${sessionId}/runs/${run.run_id}`}>Run details</Link>
     : null;
 
   return (
@@ -307,19 +307,19 @@ export function RunTrace({
         {live ? (
           <Loader2 className="h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none" style={{ color: 'var(--purple-600)' }} />
         ) : failed ? (
-          <X className="h-4 w-4 shrink-0" style={{ color: 'var(--accent-red)' }} />
+          <X className="h-4 w-4 shrink-0 text-danger" />
         ) : (
-          <Check className="h-4 w-4 shrink-0" style={{ color: cancelled ? 'var(--text-faint)' : 'var(--accent-green)' }} />
+          <Check className="h-4 w-4 shrink-0" style={{ color: cancelled ? 'var(--ink-tertiary)' : 'var(--success)' }} />
         )}
-        <span className={live ? 'trace-shimmer font-medium' : 'font-medium'} style={live ? undefined : { color: failed ? 'var(--accent-red)' : 'var(--text-muted)' }}>
+        <span className={live ? 'trace-shimmer font-medium' : 'font-medium'} style={live ? undefined : { color: failed ? 'var(--danger)' : 'var(--ink-secondary)' }}>
           {headline}{live ? '…' : ''}
         </span>
         {!live && entries.length > 0 && (
-          <span className="truncate text-xs" style={{ color: 'var(--text-faint)' }}>
+          <span className="truncate text-xs text-ink-tertiary">
             {[stats.tools ? `${stats.tools} tool` : null, stats.thoughts ? `${stats.thoughts} lần suy nghĩ` : null].filter(Boolean).join(' · ')}
           </span>
         )}
-        <span className="ml-auto flex shrink-0 items-center gap-2 text-xs tabular-nums" style={{ color: 'var(--text-faint)' }}>
+        <span className="ml-auto flex shrink-0 items-center gap-2 text-xs tabular-nums text-ink-tertiary">
           {stats.model && <span className="hidden max-w-[160px] truncate font-mono sm:inline">{stats.model}</span>}
           {live && seconds(elapsed)}
           {entries.length > 0 && <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`} />}
@@ -328,7 +328,7 @@ export function RunTrace({
 
       <div className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${expanded && entries.length ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
         <div className="overflow-hidden">
-          <ol className="relative ml-[9px] mt-1 space-y-2.5 border-l pb-1 pl-4" style={{ borderColor: 'var(--line)' }}>
+          <ol className="relative ml-[9px] mt-1 space-y-2.5 border-l pb-1 pl-4">
             {entries.map((entry) => (
               <li key={`${entry.kind}:${entry.id}`} className="-ml-[27px] flex items-start gap-2.5 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
                 <EntryRow entry={entry} live={live} now={now} />
@@ -337,7 +337,7 @@ export function RunTrace({
           </ol>
           {(failed || details) && (
             <div className="ml-6 mt-1 flex items-center gap-2 text-xs">
-              {failed && <span style={{ color: 'var(--accent-red)' }}>{run.failure_code ? `Lỗi: ${run.failure_code}. ` : ''}Hãy thử lại.</span>}
+              {failed && <span style={{ color: 'var(--danger)' }}>{run.failure_code ? `Lỗi: ${run.failure_code}. ` : ''}Hãy thử lại.</span>}
               {details}
             </div>
           )}

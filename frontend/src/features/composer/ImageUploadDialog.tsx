@@ -78,13 +78,13 @@ export function ImageUploadDialog({
           type="button"
           onClick={() => inputRef.current?.click()}
           className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-8 text-center transition-colors"
-          style={{ borderColor: 'var(--border)' }}
+          style={{ borderColor: 'var(--line)' }}
         >
-          <ImageUp className="h-8 w-8" style={{ color: 'var(--text-faint)' }} />
-          <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+          <ImageUp className="h-8 w-8 text-ink-tertiary" />
+          <span className="text-sm font-medium text-ink">
             Chọn ảnh cấu trúc
           </span>
-          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>
+          <span className="text-xs text-ink-tertiary">
             PNG, JPEG hoặc WEBP — tối đa 5MB
           </span>
         </button>
@@ -97,7 +97,7 @@ export function ImageUploadDialog({
         />
 
         {error && (
-          <p className="text-xs" style={{ color: 'var(--accent-red)' }}>
+          <p className="text-xs text-danger">
             {error}
           </p>
         )}

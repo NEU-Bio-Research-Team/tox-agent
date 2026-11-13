@@ -8,6 +8,8 @@ import { linkifyClaims, numberEvidenceMarkers, CLAIM_LINK_SCHEME } from '../lib/
 import { ClaimChip } from './ClaimChip';
 import { AnswerSources } from './AnswerSources';
 import { LimitationBlock } from './LimitationBlock';
+import { Bot } from 'lucide-react';
+import { Callout } from '../../../shared/ui/callout';
 import { FallbackBadge } from './FallbackBadge';
 
 /** PROD-08: `answer_markdown` is model output — untrusted data, never an
@@ -35,7 +37,7 @@ function buildComponents(sessionId: string, answer: GroundedAnswer): Components 
       // ordinary external link, never same-tab navigation inside the app.
       if (href && /^https?:\/\//i.test(href)) {
         return (
-          <a href={href} target="_blank" rel="noopener noreferrer nofollow" style={{ color: 'var(--accent-blue)' }}>
+          <a href={href} target="_blank" rel="noopener noreferrer nofollow" style={{ color: 'var(--link)' }}>
             {children}
           </a>
         );
@@ -57,12 +59,12 @@ export function AnswerRenderer({ answer, sessionId }: { answer: GroundedAnswer; 
   return (
     <div className="space-y-4">
       {answer.is_fallback && (
-        <div className="flex items-center gap-2">
-          <FallbackBadge />
-        </div>
+        <Callout tone="warning" icon={<Bot />} title="Bản tóm tắt tự động" className="text-13">
+          Mô hình chưa viết được câu trả lời đạt yêu cầu, nên hệ thống dựng bản này từ những số liệu đã được xác nhận.
+        </Callout>
       )}
 
-      <div className="prose-sm max-w-none text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
+      <div className="prose-sm max-w-none text-sm leading-relaxed text-ink">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           allowedElements={ALLOWED_TAGS}
@@ -84,9 +86,9 @@ export function AnswerRenderer({ answer, sessionId }: { answer: GroundedAnswer; 
       <LimitationBlock limitations={answer.limitations} />
 
       {answer.recommended_next_steps.length > 0 && (
-        <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--accent-blue-muted)' }}>
-          <p className="mb-1.5 text-xs font-semibold" style={{ color: 'var(--text)' }}>
-            Bước tiếp theo đề xuất
+        <div className="rounded-lg p-3 bg-brand-soft-strong">
+          <p className="mb-1.5 text-xs font-semibold text-ink">
+            Gợi ý bước tiếp theo
           </p>
           <ul className="space-y-1">
             {answer.recommended_next_steps.map((step, index) => {
@@ -94,16 +96,16 @@ export function AnswerRenderer({ answer, sessionId }: { answer: GroundedAnswer; 
                 .map((id) => answer.claims.findIndex((c) => c.claim_id === id))
                 .filter((idx) => idx >= 0);
               return (
-                <li key={index} className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                <li key={index} className="text-xs text-ink-secondary">
                   • {step.text}
                   {indices.length > 0 ? (
-                    <span style={{ color: 'var(--accent-blue)' }}>
+                    <span style={{ color: 'var(--link)' }}>
                       {' '}
                       ({indices.map((idx) => `#${idx + 1}`).join(', ')})
                     </span>
                   ) : (
-                    <span className="ml-1 italic" style={{ color: 'var(--text-faint)' }}>
-                      (không neo claim)
+                    <span className="ml-1 italic text-ink-tertiary">
+                      (chưa gắn với ý nào)
                     </span>
                   )}
                 </li>
@@ -113,27 +115,23 @@ export function AnswerRenderer({ answer, sessionId }: { answer: GroundedAnswer; 
         </div>
       )}
 
-      <div className="space-y-1.5 border-t pt-3 text-xs" style={{ borderColor: 'var(--border)' }}>
+      <div className="space-y-1.5 border-t pt-3 text-xs">
         {/* candidate_generation/content_sha256/full IDs belong in the audit
             artifact (AnswerAuditViewer), not this footer — plan section 8.4:
             "không chiếm phần chân mọi message". */}
-        <div className="flex flex-wrap items-center gap-2" style={{ color: 'var(--text-faint)' }}>
+        <div className="flex flex-wrap items-center gap-2 text-ink-tertiary">
           <span>
-            {answer.claims.length} claim · {answer.limitations.length} giới hạn
+            {answer.claims.length} ý được đối chiếu · {answer.limitations.length} lưu ý
           </span>
-          <Link to={`/s/${sessionId}/answers/${answer.answer_id}`} className="font-medium underline" style={{ color: 'var(--accent-blue)' }}>
+          <Link to={`/s/${sessionId}/answers/${answer.answer_id}`} className="font-medium underline text-link">
             Nguồn và kiểm chứng →
           </Link>
         </div>
         {answer.is_fallback && (
           <div className="flex flex-wrap items-center gap-2">
             <FallbackBadge />
-            <Link
-              to={`/s/${sessionId}/runs/${answer.run_id}?tab=validation`}
-              className="font-medium underline"
-              style={{ color: 'var(--accent-blue)' }}
-            >
-              kiểm chứng đáp án →
+            <Link to={`/s/${sessionId}/answers/${answer.answer_id}`} className="font-medium underline text-link">
+              Xem vì sao →
             </Link>
           </div>
         )}

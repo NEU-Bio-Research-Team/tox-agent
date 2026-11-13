@@ -42,7 +42,7 @@ export function ReportBlock({ sessionId, reportId }: { sessionId: string; report
 
   if (query.isLoading) return <p className="text-sm text-muted-foreground">Đang tải báo cáo…</p>;
   if (query.isError || !query.data) {
-    return <p className="text-sm text-red-600">Không tải được báo cáo {reportId}.</p>;
+    return <p className="text-sm text-danger">Không tải được báo cáo {reportId}.</p>;
   }
   return <ReportBody sessionId={sessionId} reportId={reportId} report={query.data} />;
 }
@@ -125,7 +125,7 @@ function ReportBody({
         </div>
 
         {report.status === 'completed_with_gaps' && (
-          <div className="space-y-1 rounded-md bg-amber-50 p-2 text-sm text-amber-900">
+          <div className="space-y-1 rounded-md bg-warning-soft p-2 text-sm text-warning-ink">
             <p className="flex items-center gap-2">
               <FileWarning size={16} /> Báo cáo hoàn tất với {report.gaps.length} khoảng
               trống dữ liệu được ghi rõ.
@@ -323,7 +323,7 @@ function SectionView({
           and a gap that appears in only one of them would otherwise be a piece
           of missing data that is itself missing. */}
       {sectionGaps(report, section).map((gap) => (
-        <p key={gap.gap_id} className="rounded-md bg-amber-50 p-2 text-sm text-amber-900">
+        <p key={gap.gap_id} className="rounded-md bg-warning-soft p-2 text-sm text-warning-ink">
           <strong>{gap.reason}:</strong> {gap.detail}
         </p>
       ))}
@@ -346,7 +346,7 @@ function sectionGaps(report: ReportArtifact, section: ReportSection) {
 
 function MissingRef({ kind, id }: { kind: string; id: string }) {
   return (
-    <p className="rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+    <p className="rounded-md bg-warning-soft p-2 text-xs text-warning-ink">
       Mục này tham chiếu {kind} <code>{id}</code> nhưng báo cáo không chứa nó.
     </p>
   );
@@ -404,7 +404,7 @@ function ExplanationView({
       {explanation.status === 'failed' ? (
         // The reason code, not "explanation failed". Five different causes lead
         // to five different actions (XAI-01).
-        <p className="rounded-md bg-amber-50 p-2 text-sm text-amber-900">
+        <p className="rounded-md bg-warning-soft p-2 text-sm text-warning-ink">
           Không tạo được explanation cho {target}
           {explanation.failure_reason ? `: ${explanation.failure_reason}` : '.'}
         </p>
@@ -417,7 +417,7 @@ function ExplanationView({
               figure={explanation.figure}
             />
           ) : (
-            <p className="rounded-md bg-amber-50 p-2 text-sm text-amber-900">
+            <p className="rounded-md bg-warning-soft p-2 text-sm text-warning-ink">
               Có số liệu attribution nhưng không có hình
               {explanation.failure_reason ? `: ${explanation.failure_reason}` : '.'}
             </p>
@@ -426,7 +426,7 @@ function ExplanationView({
         </>
       )}
       {explanation.status === 'partial' && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           Explanation này là một phần, không phải kết quả hoàn chỉnh.
         </p>
       )}
@@ -462,7 +462,7 @@ function EvidenceSynthesisView({
             </span>{' '}
             {item.proposition}
           </p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-xs text-ink-secondary">
             {[
               item.endpoint ? `endpoint: ${item.endpoint}` : null,
               item.assay ? `assay: ${item.assay}` : null,
@@ -478,7 +478,7 @@ function EvidenceSynthesisView({
             evidenceIds={item.evidence_ids}
           />
           {(item.quality_notes ?? []).length > 0 && (
-            <ul className="ml-4 list-disc text-xs" style={{ color: 'var(--text-muted)' }}>
+            <ul className="ml-4 list-disc text-xs text-ink-secondary">
               {item.quality_notes.map((note) => (
                 <li key={note}>{note}</li>
               ))}
@@ -519,7 +519,7 @@ function RecommendationsView({ report }: { report: ReportArtifact }) {
             </span>{' '}
             {item.text}
           </p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-xs text-ink-secondary">
             Cơ sở: {item.rationale}
             {item.conditions ? ` · Điều kiện: ${item.conditions}` : ''}
           </p>
@@ -552,7 +552,7 @@ function ClaimsView({
   if (resolved.length === 0) return null;
   return (
     <details className="text-xs">
-      <summary className="cursor-pointer" style={{ color: 'var(--text-muted)' }}>
+      <summary className="cursor-pointer text-ink-secondary">
         Truy nguồn {resolved.length} phát biểu
       </summary>
       <ul className="mt-1 space-y-1">
@@ -561,7 +561,7 @@ function ClaimsView({
             <span className="font-medium">{claim.rendered_value ?? claim.kind}</span> —{' '}
             {claim.text}
             {claim.field_path && (
-              <span style={{ color: 'var(--text-muted)' }}>
+              <span style={{ color: 'var(--ink-secondary)' }}>
                 {' '}
                 (<code>{claim.field_path}</code>
                 {claim.observation_id ? ` @ ${claim.observation_id.slice(0, 12)}…` : ''})
@@ -596,10 +596,10 @@ function ProvenanceView({ report }: { report: ReportArtifact }) {
         ))}
       </dl>
       <details>
-        <summary className="cursor-pointer text-xs" style={{ color: 'var(--text-muted)' }}>
+        <summary className="cursor-pointer text-xs text-ink-secondary">
           Provenance đầy đủ
         </summary>
-        <pre className="mt-1 overflow-x-auto rounded-md border p-2 text-[11px]">
+        <pre className="mt-1 overflow-x-auto rounded-md border p-2 text-2xs">
           {JSON.stringify(provenance, null, 2)}
         </pre>
       </details>

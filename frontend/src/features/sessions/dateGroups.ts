@@ -7,15 +7,17 @@ function startOfDay(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }
 
-/** Sidebar grouping per plan section 8.1: "Hôm nay / Hôm qua / Trước đó" by
+/** Sidebar grouping per plan section 8.1: "Hôm nay / Hôm qua / Tuần này / Trước đó" by
  * `updated_at`. Rows are assumed already sorted newest-first by the caller. */
 export function groupByRecency<T>(rows: T[], getIso: (row: T) => string): Array<DateGroup<T>> {
   const today = startOfDay(new Date());
   const yesterday = today - 86_400_000;
+  const weekStart = today - 6 * 86_400_000;
 
-  const buckets: Record<'today' | 'yesterday' | 'earlier', T[]> = {
+  const buckets: Record<'today' | 'yesterday' | 'week' | 'earlier', T[]> = {
     today: [],
     yesterday: [],
+    week: [],
     earlier: [],
   };
 
@@ -23,12 +25,14 @@ export function groupByRecency<T>(rows: T[], getIso: (row: T) => string): Array<
     const day = startOfDay(new Date(getIso(row)));
     if (day === today) buckets.today.push(row);
     else if (day === yesterday) buckets.yesterday.push(row);
+    else if (day >= weekStart) buckets.week.push(row);
     else buckets.earlier.push(row);
   }
 
   const groups: Array<DateGroup<T>> = [];
   if (buckets.today.length > 0) groups.push({ label: 'Hôm nay', rows: buckets.today });
   if (buckets.yesterday.length > 0) groups.push({ label: 'Hôm qua', rows: buckets.yesterday });
+  if (buckets.week.length > 0) groups.push({ label: 'Tuần này', rows: buckets.week });
   if (buckets.earlier.length > 0) groups.push({ label: 'Trước đó', rows: buckets.earlier });
   return groups;
 }

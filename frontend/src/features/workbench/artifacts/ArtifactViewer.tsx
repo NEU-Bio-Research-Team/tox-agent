@@ -24,11 +24,11 @@ function AnalysisArtifact({
   });
 
   if (query.isLoading) {
-    return <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải…</p>;
+    return <p className="text-sm text-ink-secondary">Đang tải…</p>;
   }
   if (query.isError || !query.data) {
     return (
-      <p className="text-sm" style={{ color: 'var(--accent-red)' }}>
+      <p className="text-sm text-danger">
         {query.error instanceof ApiError
           ? errorMessageVi(query.error.code, query.error.message)
           : 'Không tải được phân tích này.'}

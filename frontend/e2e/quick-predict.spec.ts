@@ -69,10 +69,10 @@ const EXPLANATION = {
   limitations: ['attribution_not_causality'],
 };
 
-type Calls = { paths: string[] };
+type Calls = { paths: string[]; posts: Array<{ path: string; body: Record<string, unknown> }> };
 
 async function installApi(page: Page): Promise<Calls> {
-  const calls: Calls = { paths: [] };
+  const calls: Calls = { paths: [], posts: [] };
   await page.addInitScript(() => localStorage.setItem('toxagent.bearer_token', 'e2e-token'));
   await page.route('**/v1/**', async (route) => {
     const request = route.request();
@@ -81,6 +81,16 @@ async function installApi(page: Page): Promise<Calls> {
     const respond = (body: unknown, status = 200) =>
       route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
+    if (request.method() === 'POST') calls.posts.push({ path: url.pathname, body: (request.postDataJSON() ?? {}) as Record<string, unknown> });
+    if (url.pathname === '/v1/sessions' && request.method() === 'GET') return respond({ sessions: [], next_offset: null });
+    if (url.pathname === '/v1/sessions' && request.method() === 'POST') {
+      return respond({ session_id: 'ses_new', status: 'active', preferred_language: 'vi', title: null, version: 1,
+        created_at: '2026-09-06T00:00:00Z', updated_at: '2026-09-06T00:00:00Z' }, 201);
+    }
+    if (url.pathname === '/v1/sessions/ses_new/messages' && request.method() === 'POST') {
+      return respond({ message_id: 'msg_1', run_id: 'run_1', run_status: 'queued', selected_intent: 'analysis', lane: 'deterministic',
+        events_url: '/v1/sessions/ses_new/events' }, 202);
+    }
     if (url.pathname === '/v1/predict/capabilities') return respond(CAPABILITIES);
     if (url.pathname === '/v1/predict:batch' && request.method() === 'POST') {
       return respond({
@@ -103,28 +113,40 @@ test('predicts a typed SMILES with no session request', async ({ page }) => {
   const calls = await installApi(page);
   await page.goto('/analyze');
 
-  await page.getByLabel('SMILES', { exact: true }).fill('CCO');
-  await page.getByRole('button', { name: 'Analyze' }).click();
+  await page.getByLabel('Chuỗi SMILES').fill('CCO');
+  await page.getByRole('button', { name: 'Phân tích', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'hERG' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tox21' })).toBeVisible();
-  expect(calls.paths.some((p) => p.includes('/v1/sessions'))).toBe(false);
+  expect(calls.paths.some((p) => p.includes('/v1/sessions/'))).toBe(false);
+  expect(calls.posts.some((post) => post.path === '/v1/sessions')).toBe(false);
+});
+
+test('states the limitations the server requires beside the measurements', async ({ page }) => {
+  await installApi(page);
+  await page.goto('/analyze');
+
+  await page.getByLabel('Chuỗi SMILES').fill('CCO');
+  await page.getByRole('button', { name: 'Phân tích', exact: true }).click();
+
+  await expect(page.getByText(/chưa được hiệu chỉnh/)).toBeVisible();
+  await expect(page.getByText(/Đánh giá bằng luật cố định/)).toBeVisible();
 });
 
 test('recognises an uploaded image into an editable SMILES then predicts', async ({ page }) => {
   await installApi(page);
   await page.goto('/predict');
 
-  await page.getByRole('tab', { name: 'Upload Image' }).click();
-  await page.getByLabel('Structure image').setInputFiles({
+  await page.getByRole('tab', { name: 'Ảnh' }).click();
+  await page.getByLabel('Ảnh cấu trúc').setInputFiles({
     name: 'structure.png',
     mimeType: 'image/png',
     buffer: ONE_PIXEL_PNG,
   });
-  await page.getByRole('button', { name: 'Extract SMILES from Image' }).click();
+  await page.getByRole('button', { name: 'Trích SMILES từ ảnh' }).click();
 
-  await expect(page.getByLabel('Recognized SMILES (editable)')).toHaveValue('CCO');
-  await page.getByRole('button', { name: 'Analyze' }).click();
+  await expect(page.getByLabel('SMILES nhận diện được (có thể sửa)')).toHaveValue('CCO');
+  await page.getByRole('button', { name: 'Phân tích', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'hERG' })).toBeVisible();
 });
 
@@ -132,9 +154,9 @@ test('runs a multi-SMILES batch with a per-item error', async ({ page }) => {
   await installApi(page);
   await page.goto('/predict');
 
-  await page.getByRole('button', { name: 'Batch', exact: true }).click();
-  await page.getByLabel('SMILES list').fill('CCO\nnope\nCCN');
-  await page.getByRole('button', { name: 'Analyze' }).click();
+  await page.getByRole('button', { name: 'Danh sách', exact: true }).click();
+  await page.getByLabel('Danh sách SMILES').fill('CCO\nnope\nCCN');
+  await page.getByRole('button', { name: 'Phân tích', exact: true }).click();
 
   await expect(page.getByText(/1 phân tử lỗi/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'hERG' })).toHaveCount(2);
@@ -144,8 +166,8 @@ test('opens the XAI section and renders atom attribution', async ({ page }) => {
   await installApi(page);
   await page.goto('/predict');
 
-  await page.getByLabel('SMILES', { exact: true }).fill('CCO');
-  await page.getByRole('button', { name: 'Analyze' }).click();
+  await page.getByLabel('Chuỗi SMILES').fill('CCO');
+  await page.getByRole('button', { name: 'Phân tích', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'hERG' })).toBeVisible();
 
   await page.getByRole('button', { name: /Giải thích \(XAI\) · herg/ }).click();
@@ -155,30 +177,63 @@ test('opens the XAI section and renders atom attribution', async ({ page }) => {
   await expect(page.getByText(/không phải quan hệ nhân quả/)).toBeVisible();
 });
 
+test('keeps a result by opening a session with the same molecule', async ({ page }) => {
+  const calls = await installApi(page);
+  await page.goto('/analyze');
+
+  await page.getByLabel('Chuỗi SMILES').fill('CCO');
+  await page.getByRole('button', { name: 'Phân tích', exact: true }).click();
+  await expect(page.getByText('Kết quả này chưa được lưu')).toBeVisible();
+
+  await page.getByRole('button', { name: /Lưu vào session mới/ }).click();
+  await expect(page).toHaveURL(/\/s\/ses_new$/);
+  const message = calls.posts.find((post) => post.path === '/v1/sessions/ses_new/messages');
+  expect(message?.body.molecule).toEqual({ smiles: 'CCO' });
+  expect(message?.body.analysis_options).toMatchObject({ endpoints: ['herg', 'tox21'] });
+});
+
 test('serves the analysis page at the address existing links use', async ({ page }) => {
   await installApi(page);
   await page.goto('/predict');
-  await expect(page.getByRole('heading', { name: 'Drug Toxicity Analysis' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Phân tích nhanh' })).toBeVisible();
 });
 
-test('reaches every navigation destination and toggles the theme', async ({ page }) => {
+test('reaches every destination from the rail, opens the palette and toggles the theme', async ({ page }) => {
   await installApi(page);
   await page.goto('/analyze');
-  const bar = page.getByRole('navigation').first();
 
-  await bar.getByRole('button', { name: /Switch to dark mode/ }).click();
+  await page.getByRole('button', { name: /Chuyển sang giao diện tối/ }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
-  await bar.getByRole('button', { name: /Switch to light mode/ }).click();
+  await page.getByRole('button', { name: /Chuyển sang giao diện sáng/ }).click();
   await expect(page.locator('html')).not.toHaveClass(/dark/);
 
-  await bar.getByRole('button', { name: /Beta/ }).click();
-  await expect(page.getByRole('dialog', { name: 'Release Notes' })).toBeVisible();
-  await page.getByRole('button', { name: 'Continue' }).click();
+  const rail = page.getByRole('navigation', { name: 'Điều hướng chính' });
+  await rail.getByRole('link', { name: 'Sessions' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sessions' })).toBeVisible();
 
-  await bar.getByRole('link', { name: 'Documents' }).click();
-  await expect(page.getByRole('heading', { name: 'User Guide' })).toBeVisible();
-  await page.getByRole('navigation').first().getByRole('link', { name: 'About' }).click();
-  await expect(page).toHaveURL(/\/about$/);
-  await page.getByRole('navigation').first().getByRole('link', { name: /ToxAgent Logo/ }).click();
+  // Ctrl+K reaches any page by typing part of its name, without diacritics.
+  await page.keyboard.press('Control+k');
+  await page.getByRole('combobox', { name: 'Tìm trang hoặc session' }).fill('cai dat');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Cài đặt' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Xem ghi chú' }).click();
+  await expect(page.getByRole('dialog', { name: 'Ghi chú phát hành' })).toBeVisible();
+  await page.getByRole('button', { name: 'Đóng', exact: true }).click();
+
+  await rail.getByRole('link', { name: 'Tài liệu' }).click();
+  await expect(page).toHaveURL(/\/docs\/intro$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Giới thiệu' })).toBeVisible();
+  await page.getByRole('link', { name: /Mở ứng dụng/ }).click();
   await expect(page).toHaveURL(/\/analyze$/);
+});
+
+test('sends the old About and Documents addresses to the docs', async ({ page }) => {
+  await installApi(page);
+  await page.goto('/about');
+  await expect(page).toHaveURL(/\/docs\/principles$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Bốn ràng buộc của ToxAgent' })).toBeVisible();
+  await page.goto('/documents');
+  await expect(page).toHaveURL(/\/docs\/intro$/);
 });

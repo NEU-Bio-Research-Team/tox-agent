@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { listScreenings, type ScreeningSummary, type SubjectRef } from '../../../shared/api/endpoints';
 import { ApiError } from '../../../shared/api/types';
+import { cn } from '../../../shared/ui/utils';
 
 export interface SubjectOption {
   /** `analysis:<id>` hoặc `screening:<id>` — khóa ổn định để so sánh lựa chọn. */
@@ -57,11 +58,10 @@ export function SubjectSelector({
               type="button"
               aria-pressed={isSelected}
               onClick={() => onSelect(option)}
-              className="rounded-full border px-2.5 py-1 text-left text-xs"
-              style={{
-                borderColor: isSelected ? 'var(--accent-blue)' : 'var(--border)',
-                color: isSelected ? 'var(--accent-blue)' : 'var(--text-muted)',
-              }}
+              className={cn(
+                'rounded-full border px-2.5 py-1 text-left text-xs transition-colors',
+                isSelected ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line text-ink-secondary hover:bg-surface-muted',
+              )}
             >
               <span className="font-semibold">{option.label}</span>
               <span className="ml-1">{option.detail}</span>
@@ -70,13 +70,13 @@ export function SubjectSelector({
         })}
       </div>
       {options.length > 1 && !selected && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-ink-secondary">
           Session này có nhiều chủ thể. Hãy chọn một trước khi hỏi — hệ thống không tự chọn hộ.
         </p>
       )}
       {runPending && (
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          Run đang chạy vẫn trả lời về chủ thể đã chọn lúc gửi; đổi lựa chọn chỉ áp dụng cho câu hỏi sau.
+        <p className="text-xs text-ink-secondary">
+          Câu hỏi đang xử lý vẫn trả lời về chủ thể đã chọn lúc gửi; đổi lựa chọn chỉ áp dụng cho câu hỏi sau.
         </p>
       )}
     </div>
@@ -104,10 +104,20 @@ export function subjectOptions(
       key: `screening:${screening.screening_id}`,
       ref: { kind: 'activity_screening', screening_id: screening.screening_id },
       label: `${targetId}${variant}`,
-      detail: `${screening.assay_context ?? 'không rõ bối cảnh'} · ${
+      detail: `${describeAssayContext(screening.assay_context)} · ${
         screening.toxicity_run ? 'độc tính đã chạy' : 'độc tính chưa chạy'
       }`,
     });
   }
   return options;
+}
+
+/** `IC50|wild_type` said the way a reader would: "IC50 · bản gốc". An unknown
+ * variant is shown as written; nothing is guessed. */
+export function describeAssayContext(context: string | null | undefined): string {
+  if (!context) return 'chưa rõ bối cảnh';
+  return context
+    .split('|')
+    .map((part) => (part === 'wild_type' ? 'bản gốc' : part))
+    .join(' · ');
 }

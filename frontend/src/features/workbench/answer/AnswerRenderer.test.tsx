@@ -101,10 +101,10 @@ describe('AnswerRenderer', () => {
 
   it('shows the fallback badge only when the answer actually is a fallback', () => {
     renderAnswer(baseAnswer({ answer_markdown: 'ok', is_fallback: false }));
-    expect(screen.queryByText('ĐÁP ÁN DỰ PHÒNG')).toBeNull();
+    expect(screen.queryByText('Bản tóm tắt tự động')).toBeNull();
     cleanup();
 
     renderAnswer(baseAnswer({ answer_markdown: 'ok', is_fallback: true }));
-    expect(screen.getAllByText('ĐÁP ÁN DỰ PHÒNG').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Bản tóm tắt tự động').length).toBeGreaterThan(0);
   });
 });

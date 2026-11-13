@@ -15,8 +15,8 @@ export const SOURCE_CLASS_LABEL: Record<ReportSourceClass, string> = {
 export function SourceClassBadge({ sourceClass }: { sourceClass: ReportSourceClass }) {
   return (
     <span
-      className="rounded-full border px-2 py-0.5 text-[11px]"
-      style={{ color: 'var(--text-muted)', borderColor: 'var(--border-subtle)' }}
+      className="rounded-full border px-2 py-0.5 text-2xs"
+      style={{ color: 'var(--ink-secondary)', borderColor: 'var(--line)' }}
     >
       {SOURCE_CLASS_LABEL[sourceClass] ?? sourceClass}
     </span>
@@ -45,7 +45,7 @@ export function ReportTable({ table }: { table: ReportTableData }) {
                 <th
                   key={column}
                   className="border-b py-1.5 pr-3 font-medium"
-                  style={{ borderColor: 'var(--border-subtle)' }}
+                  style={{ borderColor: 'var(--line)' }}
                 >
                   {column}
                 </th>
@@ -59,7 +59,7 @@ export function ReportTable({ table }: { table: ReportTableData }) {
                   <td
                     key={cellIndex}
                     className="border-b py-1.5 pr-3 tabular-nums"
-                    style={{ borderColor: 'var(--border-subtle)' }}
+                    style={{ borderColor: 'var(--line)' }}
                   >
                     {cell}
                   </td>

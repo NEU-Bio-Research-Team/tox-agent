@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, redirect } from 'react-router';
 import { RequireToken } from './features/auth/RequireToken';
 import { RouteErrorBoundary } from './app/route-error-boundary';
 
@@ -50,14 +50,23 @@ export const router = createBrowserRouter([
       return { Component: mod.LandingPage };
     },
   },
+  // Documentation is public and has its own frame. `/about` and `/documents`
+  // were two pages of reading; they are now articles of the docs.
   {
-    path: '/about',
+    path: '/docs',
+    errorElement: <RouteErrorBoundary />,
+    loader: () => redirect('/docs/intro'),
+  },
+  {
+    path: '/docs/:slug',
     errorElement: <RouteErrorBoundary />,
     lazy: async () => {
-      const mod = await import('./features/landing/AboutPage');
-      return { Component: mod.AboutPage };
+      const mod = await import('./features/docs/DocsPage');
+      return { Component: mod.DocsPage };
     },
   },
+  { path: '/about', loader: () => redirect('/docs/principles') },
+  { path: '/documents', loader: () => redirect('/docs/intro') },
   {
     path: '/sessions',
     errorElement: <RouteErrorBoundary />,
@@ -81,14 +90,6 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     lazy: loadAnalysisRoute,
   })),
-  {
-    path: '/documents',
-    errorElement: <RouteErrorBoundary />,
-    lazy: async () => {
-      const mod = await import('./features/documents/DocumentsPage');
-      return { Component: mod.DocumentsPage };
-    },
-  },
   ...['', '/runs/:runId', '/analyses/:analysisId', '/answers/:answerId', '/observations/:observationId', '/evidence/:evidenceId'].map(
     (suffix) => ({
       path: `/s/:sessionId${suffix}`,

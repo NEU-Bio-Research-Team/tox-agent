@@ -62,7 +62,7 @@ describe('AiConnectionsCard', () => {
     api.createModelConnection.mockResolvedValue(connection({ status: 'untested' }));
     api.testModelConnection.mockResolvedValue(connection());
     renderCard();
-    await screen.findByRole('option', { name: 'OpenAI' });
+    await screen.findByRole('button', { name: /^OpenAI/ });
     // Models are picked in the chat, not here.
     expect(screen.queryByLabelText('AI model')).toBeNull();
     expect(screen.queryByLabelText('Model ID để kiểm tra')).toBeNull();
@@ -82,7 +82,7 @@ describe('AiConnectionsCard', () => {
   it('asks for a model id only when the provider lists none', async () => {
     api.listModelsForKey.mockResolvedValue({ models: [] });
     renderCard();
-    await screen.findByRole('option', { name: 'OpenAI' });
+    await screen.findByRole('button', { name: /^OpenAI/ });
     fireEvent.change(screen.getByLabelText('AI API key'), { target: { value: 'sk-user' } });
     fireEvent.click(screen.getByRole('button', { name: 'Kết nối' }));
     expect(await screen.findByLabelText('Model ID để kiểm tra')).toBeTruthy();
@@ -100,7 +100,7 @@ describe('AiConnectionsCard', () => {
   it('offers ChatGPT sign-in only for a provider that has it', async () => {
     renderCard();
     await screen.findByRole('button', { name: 'ChatGPT Plus/Pro' });
-    fireEvent.change(screen.getByLabelText('AI provider'), { target: { value: 'anthropic' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Claude \(Anthropic\)/ }));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'ChatGPT Plus/Pro' })).toBeNull());
   });
 
@@ -127,7 +127,7 @@ describe('AiConnectionsCard', () => {
     api.listSupportedProviders.mockResolvedValue({ providers: [ANTHROPIC, OPENAI] });
     renderCard('/settings?connect=chatgpt');
     expect(await screen.findByRole('button', { name: 'Kết nối ChatGPT Plus/Pro' })).toBeTruthy();
-    expect((screen.getByLabelText('AI provider') as HTMLSelectElement).value).toBe('openai');
+    expect(screen.getByRole('button', { name: /^OpenAI/, pressed: true })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'ChatGPT Plus/Pro', pressed: true })).toBeTruthy();
   });
 
@@ -136,8 +136,8 @@ describe('AiConnectionsCard', () => {
       providers: [{ ...OPENAI, chatgpt_oauth: { available: false, reason: 'turned off', documentation_url: null } }, ANTHROPIC],
     });
     renderCard('/settings?connect=chatgpt');
-    await screen.findByRole('option', { name: 'OpenAI' });
-    expect((screen.getByLabelText('AI provider') as HTMLSelectElement).value).toBe('openai');
+    await screen.findByRole('button', { name: /^OpenAI/ });
+    expect(screen.getByRole('button', { name: /^OpenAI/, pressed: true })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Kết nối ChatGPT Plus/Pro' })).toBeNull();
     expect(screen.getByLabelText('AI API key')).toBeTruthy();
   });
@@ -158,7 +158,7 @@ describe('AiConnectionsCard', () => {
     const { ApiError } = await import('../../shared/api/types');
     api.listModelsForKey.mockRejectedValue(new ApiError(400, { error: { code: 'invalid_request', message: 'the provider rejected this credential', retryable: false, details: {} } }));
     renderCard();
-    await screen.findByRole('option', { name: 'OpenAI' });
+    await screen.findByRole('button', { name: /^OpenAI/ });
     fireEvent.change(screen.getByLabelText('AI API key'), { target: { value: 'sk-bad' } });
     fireEvent.click(screen.getByRole('button', { name: 'Kết nối' }));
     expect(await screen.findByText('the provider rejected this credential')).toBeTruthy();

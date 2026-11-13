@@ -11,7 +11,7 @@ describe('ArtifactUnavailable', () => {
       error: { code: 'artifact_expired', message: 'expired', retryable: false, details: {} },
     });
     render(<ArtifactUnavailable artifact="evidence" error={expired} />);
-    expect(screen.getByText('Artifact đã hết hạn')).toBeInTheDocument();
+    expect(screen.getByText('Nội dung này đã hết hạn lưu')).toBeInTheDocument();
   });
 
   it('does not infer expiry from a generic not-found response', () => {
@@ -19,7 +19,7 @@ describe('ArtifactUnavailable', () => {
       error: { code: 'not_found', message: 'not found', retryable: false, details: {} },
     });
     render(<ArtifactUnavailable artifact="evidence" error={missing} />);
-    expect(screen.queryByText('Artifact đã hết hạn')).toBeNull();
-    expect(screen.getByText(/có thể không tồn tại hoặc bạn không có quyền xem/i)).toBeInTheDocument();
+    expect(screen.queryByText('Nội dung này đã hết hạn lưu')).toBeNull();
+    expect(screen.getByText(/có thể nó không còn hoặc bạn không có quyền xem/i)).toBeInTheDocument();
   });
 });

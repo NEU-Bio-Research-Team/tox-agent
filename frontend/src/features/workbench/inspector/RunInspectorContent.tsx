@@ -56,17 +56,17 @@ export function RunInspectorContent({ sessionId, runId }: { sessionId: string; r
   return (
     <div className="space-y-4">
       <div>
-        <p className="font-mono text-sm" style={{ color: 'var(--text)' }}>
+        <p className="break-all font-mono text-sm text-ink">
           {runId}
         </p>
-        <p className="text-xs" style={{ color: 'var(--text-faint)' }} role="status" aria-live="polite" aria-atomic="true">
+        <p className="text-xs text-ink-tertiary" role="status" aria-live="polite" aria-atomic="true">
           {run ? `${RUN_STATUS_LABEL_VI[run.status]} · ${run.lane} · ${run.intent}` : 'Đang tải…'}
         </p>
         <button
           type="button"
           onClick={() => scrollToRun(runId)}
           className="mt-1 text-xs font-medium underline"
-          style={{ color: 'var(--accent-blue)' }}
+          style={{ color: 'var(--link)' }}
         >
           về lượt chat tạo kết quả
         </button>
@@ -78,13 +78,13 @@ export function RunInspectorContent({ sessionId, runId }: { sessionId: string; r
         </Button>
       )}
       {cancelRequested && run && run.status !== 'cancelled' && (
-        <p className="rounded-lg border p-2 text-xs" style={{ borderColor: 'var(--accent-yellow)', color: 'var(--text-muted)' }}>
+        <p className="rounded-lg border p-2 text-xs border-warning text-ink-secondary">
           Đã gửi yêu cầu huỷ; trạng thái sẽ đổi thành “đã huỷ” sau khi control plane xác nhận. Chưa coi run là đã huỷ.
         </p>
       )}
 
-      {query.isLoading && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Đang tải…</p>}
-      {query.isError && <p className="text-sm" style={{ color: 'var(--accent-red)' }}>Không tải được run này.</p>}
+      {query.isLoading && <p className="text-sm text-ink-secondary">Đang tải…</p>}
+      {query.isError && <p className="text-sm text-danger">Không tải được run này.</p>}
 
       {run && (
         <Tabs
@@ -95,19 +95,16 @@ export function RunInspectorContent({ sessionId, runId }: { sessionId: string; r
             setSearchParams(next, { replace: true });
           }}
         >
-          {/* The artifacts panel is often narrower than the four tab labels
-              combined (it used to live in a >=576px Sheet before this
-              viewer moved inline) — scroll horizontally instead of clipping
-              "JSON thô" off the edge. */}
-          <div className="overflow-x-auto">
-            <TabsList>
-              <TabsTrigger value="timeline">Dòng thời gian</TabsTrigger>
-              <TabsTrigger value="release">Phát hành</TabsTrigger>
-              <TabsTrigger value="runtime">Runtime</TabsTrigger>
-              <TabsTrigger value="validation">Kiểm định</TabsTrigger>
-              <TabsTrigger value="raw">JSON thô</TabsTrigger>
-            </TabsList>
-          </div>
+          {/* The artifacts panel is often narrower than the five tab labels
+              combined, so the list wraps onto a second row instead of
+              clipping "JSON thô" off the edge. */}
+          <TabsList className="h-auto flex-wrap justify-start">
+            <TabsTrigger value="timeline" className="h-8">Dòng thời gian</TabsTrigger>
+            <TabsTrigger value="release" className="h-8">Phát hành</TabsTrigger>
+            <TabsTrigger value="runtime" className="h-8">Runtime</TabsTrigger>
+            <TabsTrigger value="validation" className="h-8">Kiểm định</TabsTrigger>
+            <TabsTrigger value="raw" className="h-8">JSON thô</TabsTrigger>
+          </TabsList>
           <TabsContent value="timeline" className="pt-4">
             <RunTimelineTab run={run} />
           </TabsContent>

@@ -12,7 +12,7 @@ export function CollaboratorsSection() {
           initial={{ opacity: 0, y: -50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="font-['Climate_Crisis'] text-5xl md:text-7xl text-[#1E0368] mb-12"
+          className="font-sans font-extrabold tracking-tight text-5xl md:text-7xl text-brand-deep mb-12"
         >
           OUR COLLABORATORS
         </motion.h2>
@@ -27,7 +27,7 @@ export function CollaboratorsSection() {
             <motion.div
               key={i}
               whileHover={{ scale: 1.1, rotate: 5 }}
-              className="w-40 h-40 md:w-48 md:h-48 bg-gradient-to-br from-[#1E0368] to-purple-600 rounded-full shadow-xl cursor-pointer"
+              className="w-40 h-40 md:w-48 md:h-48 bg-gradient-to-br from-brand-deep to-brand rounded-full shadow-xl cursor-pointer"
             />
           ))}
         </motion.div>

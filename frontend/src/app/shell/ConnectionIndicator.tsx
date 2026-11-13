@@ -8,10 +8,10 @@ const LABEL: Record<ConnectionStatus, string> = {
 };
 
 const COLOR: Record<ConnectionStatus, string> = {
-  connecting: 'var(--text-faint)',
-  live: 'var(--accent-green)',
-  reconnecting: 'var(--accent-yellow)',
-  offline: 'var(--accent-red)',
+  connecting: 'var(--ink-tertiary)',
+  live: 'var(--success)',
+  reconnecting: 'var(--warning)',
+  offline: 'var(--danger)',
 };
 
 export function ConnectionIndicator({ status }: { status: ConnectionStatus }) {

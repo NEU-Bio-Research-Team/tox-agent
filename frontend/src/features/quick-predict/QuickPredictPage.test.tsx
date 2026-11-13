@@ -29,7 +29,7 @@ vi.mock('../../shared/api/endpoints', () => ({
 const { getEndpointSelection, getExpertModeEnabled, setEndpointSelection } = vi.hoisted(() => ({ getEndpointSelection: vi.fn(), getExpertModeEnabled: vi.fn(), setEndpointSelection: vi.fn() }));
 vi.mock('../../shared/lib/preferences', () => ({ getEndpointSelection, getExpertModeEnabled, setEndpointSelection }));
 
-import { QuickPredictPage } from './QuickPredictPage';
+import { QuickPredictContent } from './QuickPredictPage';
 
 const FIXTURE: AnalysisProjection = {
   analysis_id: 'ana_x',
@@ -70,7 +70,7 @@ const CAPS = {
 function renderPage() {
   return render(
     <MemoryRouter>
-      <QuickPredictPage />
+      <QuickPredictContent />
     </MemoryRouter>,
   );
 }
@@ -86,12 +86,12 @@ describe('QuickPredictPage', () => {
     quickPredict.mockResolvedValue({ ...FIXTURE, analysis_id: null, persisted: false });
 
     renderPage();
-    fireEvent.change(screen.getByLabelText('SMILES'), { target: { value: 'CCO' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Analyze' }));
+    fireEvent.change(screen.getByLabelText('Chuỗi SMILES'), { target: { value: 'CCO' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Phân tích' }));
 
     await waitFor(() => expect(quickPredict).toHaveBeenCalledOnce());
     expect(quickPredict.mock.calls[0][0]).toMatchObject({ smiles: 'CCO', endpoints: ['herg', 'tox21'] });
-    expect(await screen.findByText('hERG')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'hERG' })).toBeInTheDocument();
   });
 
   it('disables an unavailable endpoint from the capability inventory', async () => {
@@ -100,9 +100,9 @@ describe('QuickPredictPage', () => {
 
     renderPage();
     await waitFor(() => expect(quickPredictCapabilities).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
-    const clintox = screen.getByRole('button', { name: /clinical toxicity/i });
+    const clintox = screen.getByRole('checkbox', { name: /ClinTox/ });
     await waitFor(() => expect(clintox).toBeDisabled());
+    expect(clintox).not.toBeChecked();
   });
 
   it('hides the threshold override field for a non-expert', async () => {
@@ -110,8 +110,8 @@ describe('QuickPredictPage', () => {
     quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
-    expect(screen.queryByLabelText(/threshold override/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Tuỳ chọn nâng cao/ }));
+    expect(screen.queryByLabelText(/ghi đè ngưỡng/i)).not.toBeInTheDocument();
   });
 
   it('runs a batch and renders one panel per result plus the error list', async () => {
@@ -127,18 +127,18 @@ describe('QuickPredictPage', () => {
     });
 
     renderPage();
-    const batchToggle = screen.getByRole('button', { name: 'Batch' });
+    const batchToggle = screen.getByRole('button', { name: 'Danh sách' });
     fireEvent.click(batchToggle);
     await waitFor(() => expect(batchToggle).toHaveAttribute('aria-pressed', 'true'));
-    fireEvent.change(await screen.findByLabelText('SMILES list'), {
+    fireEvent.change(await screen.findByLabelText('Danh sách SMILES'), {
       target: { value: 'CCO\nnope\nCCN' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Analyze' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Phân tích' }));
 
     await waitFor(() => expect(quickPredictBatch).toHaveBeenCalledOnce());
     expect(quickPredictBatch.mock.calls[0][0].smiles).toEqual(['CCO', 'nope', 'CCN']);
     expect(await screen.findByText(/1 phân tử lỗi/)).toBeInTheDocument();
-    expect(screen.getAllByText('hERG')).toHaveLength(2);
+    expect(screen.getAllByRole('heading', { name: 'hERG' })).toHaveLength(2);
   });
 
   it('keeps Analyze disabled until there is something to send', async () => {
@@ -146,10 +146,10 @@ describe('QuickPredictPage', () => {
     quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
-    const analyze = screen.getByRole('button', { name: 'Analyze' });
+    const analyze = screen.getByRole('button', { name: 'Phân tích' });
     expect(analyze).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: /Aspirin/ }));
-    expect(screen.getByLabelText('SMILES')).toHaveValue('CC(=O)Oc1ccccc1C(=O)O');
+    expect(screen.getByLabelText('Chuỗi SMILES')).toHaveValue('CC(=O)Oc1ccccc1C(=O)O');
     expect(analyze).toBeEnabled();
   });
 
@@ -158,11 +158,11 @@ describe('QuickPredictPage', () => {
     quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
-    const tab = screen.getByRole('tab', { name: 'Upload Image' });
+    const tab = screen.getByRole('tab', { name: 'Ảnh' });
     fireEvent.mouseDown(tab);
     fireEvent.click(tab);
-    expect(await screen.findByText(/not enabled on this deployment/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Choose Image/ })).toBeDisabled();
+    expect(await screen.findByText(/chưa bật nhận diện cấu trúc từ ảnh/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Chọn ảnh/ })).toBeDisabled();
   });
 
   it('starts on the declared default model, not the first one listed, and names each release', async () => {
@@ -182,20 +182,20 @@ describe('QuickPredictPage', () => {
     quickPredict.mockResolvedValue({ ...FIXTURE, analysis_id: null, persisted: false });
 
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
-    const select = (await screen.findByLabelText('Model for hERG blockade')) as HTMLSelectElement;
+    fireEvent.click(screen.getByRole('button', { name: /Tuỳ chọn nâng cao/ }));
+    const select = (await screen.findByLabelText('Mô hình cho hERG')) as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe('herg-tox21-chemberta-v1'));
     expect(Array.from(select.options).map((option) => option.textContent)).toEqual([
       'ChemBERTa quick',
-      'ChemBERTa full · default',
+      'ChemBERTa full · mặc định',
     ]);
     expect(screen.getAllByText('The standard release.').length).toBeGreaterThan(0);
 
     fireEvent.change(select, { target: { value: 'herg-tox21-chemberta-quick-v1' } });
     expect(screen.getAllByText('Short training run.').length).toBeGreaterThan(0);
 
-    fireEvent.change(screen.getByLabelText('SMILES'), { target: { value: 'CCO' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Analyze' }));
+    fireEvent.change(screen.getByLabelText('Chuỗi SMILES'), { target: { value: 'CCO' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Phân tích' }));
     await waitFor(() => expect(quickPredict).toHaveBeenCalledOnce());
     expect(quickPredict.mock.calls[0][0].model_selection).toMatchObject({
       herg: 'herg-tox21-chemberta-quick-v1',
@@ -208,7 +208,7 @@ describe('QuickPredictPage', () => {
     quickPredictCapabilities.mockResolvedValue(CAPS);
 
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced options' }));
-    expect(screen.getByLabelText(/threshold override/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Tuỳ chọn nâng cao/ }));
+    expect(screen.getByLabelText(/ghi đè ngưỡng/i)).toBeInTheDocument();
   });
 });

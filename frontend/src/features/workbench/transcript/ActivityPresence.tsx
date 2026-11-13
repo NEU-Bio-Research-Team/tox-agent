@@ -39,16 +39,16 @@ function ActivityHistory({ activities }: { activities: ActivityLive[] }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-auto px-1.5 py-0 text-xs" style={{ color: 'var(--text-faint)' }}>
+        <Button variant="ghost" size="sm" className="h-auto px-1.5 py-0 text-xs text-ink-tertiary">
           {activities.length} hoạt động
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 space-y-2">
         <p className="text-sm font-medium">Tiến trình đã thực hiện</p>
-        <ul className="space-y-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+        <ul className="space-y-1.5 text-xs text-ink-secondary">
           {[...grouped.values()].map((item) => (
             <li key={item.label} className="flex items-start gap-2">
-              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: item.failed ? 'var(--accent-red)' : 'var(--accent-green)' }} />
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: item.failed ? 'var(--danger)' : 'var(--success)' }} />
               <span>{item.label}{item.count > 1 ? ` × ${item.count}` : ''}</span>
             </li>
           ))}
@@ -70,15 +70,15 @@ export function ActivityPresence({ activities, tools, status, sessionId, runId }
   const completed = [...activities].reverse().find((item) => item.status === 'completed');
   const label = active ? LABELS[active.label_key] ?? LABELS['activity.processing'] : tools.length ? fallback(tools) : null;
   const details = getDeveloperModeEnabled() && sessionId && runId ? <Link className="ml-2 text-xs underline" to={`/s/${sessionId}/runs/${runId}`}>Run details</Link> : null;
-  if (status === 'failed') return <p className="my-2 text-sm" style={{ color: 'var(--accent-red)' }}>Không thể tiếp tục phản hồi. Hãy thử lại.{details}</p>;
-  if (status === 'cancelled') return <p className="my-2 text-sm" style={{ color: 'var(--text-muted)' }}>Đã dừng theo yêu cầu.</p>;
+  if (status === 'failed') return <p className="my-2 text-sm text-danger">Không thể tiếp tục phản hồi. Hãy thử lại.{details}</p>;
+  if (status === 'cancelled') return <p className="my-2 text-sm text-ink-secondary">Đã dừng theo yêu cầu.</p>;
   if (label && (status === 'queued' || status === 'running' || status === 'validating')) {
-    return <div className="my-2 flex items-center gap-2 text-sm motion-reduce:transition-none" role="status" aria-live="polite" style={{ color: 'var(--text-muted)' }}>
+    return <div className="my-2 flex items-center gap-2 text-sm motion-reduce:transition-none text-ink-secondary" role="status" aria-live="polite">
       <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--purple-600)' }} />
       <span>{label}</span><ActivityHistory activities={activities} />{details}
     </div>;
   }
-  if (completed && status === 'completed') return <div className="my-2 flex items-center gap-2 text-xs" style={{ color: 'var(--text-faint)' }}><Check className="h-3.5 w-3.5" />Đã hoàn tất<ActivityHistory activities={activities} /></div>;
-  if (status === 'queued') return <div className="my-2 flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}><RotateCcw className="h-4 w-4 animate-spin motion-reduce:animate-none" />Đang phân tích yêu cầu…</div>;
+  if (completed && status === 'completed') return <div className="my-2 flex items-center gap-2 text-xs" style={{ color: 'var(--ink-tertiary)' }}><Check className="h-3.5 w-3.5" />Đã hoàn tất<ActivityHistory activities={activities} /></div>;
+  if (status === 'queued') return <div className="my-2 flex items-center gap-2 text-sm" style={{ color: 'var(--ink-secondary)' }}><RotateCcw className="h-4 w-4 animate-spin motion-reduce:animate-none" />Đang phân tích yêu cầu…</div>;
   return null;
 }

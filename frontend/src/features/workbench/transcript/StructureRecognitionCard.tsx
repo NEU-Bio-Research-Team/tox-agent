@@ -15,31 +15,31 @@ export function StructureRecognitionCard({
   return (
     <div
       className="my-2 max-w-lg rounded-xl border p-3"
-      style={{ backgroundColor: 'var(--surface-alt)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'var(--surface-muted)', borderColor: 'var(--line)' }}
     >
       <div className="flex items-center gap-2">
-        <ScanLine className="h-4 w-4 shrink-0" style={{ color: 'var(--accent-blue)' }} />
-        <h3 className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+        <ScanLine className="h-4 w-4 shrink-0 text-link" />
+        <h3 className="text-sm font-medium text-ink">
           Đã nhận diện cấu trúc từ ảnh
         </h3>
       </div>
-      <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+      <p className="mt-2 text-xs text-ink-secondary">
         SMILES nhận diện
       </p>
-      <code className="mt-1 block break-all rounded bg-black/10 px-2 py-1 font-mono text-xs" style={{ color: 'var(--text)' }}>
+      <code className="mt-1 block break-all rounded bg-black/10 px-2 py-1 font-mono text-xs text-ink">
         {content.smiles}
       </code>
       {content.canonical_smiles !== content.smiles && (
-        <p className="mt-1 break-all font-mono text-xs" style={{ color: 'var(--text-faint)' }}>
+        <p className="mt-1 break-all font-mono text-xs text-ink-tertiary">
           Canonical: {content.canonical_smiles}
         </p>
       )}
-      <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+      <p className="mt-2 text-xs text-ink-secondary">
         {confidence === null
           ? 'Dịch vụ OCR không cung cấp độ tin cậy cho lần nhận diện này.'
           : `Độ tin cậy nhận diện: ${confidence}%`}
       </p>
-      <p className="mt-1 text-xs" style={{ color: 'var(--text-faint)' }}>
+      <p className="mt-1 text-xs text-ink-tertiary">
         Độ tin cậy này chỉ phản ánh nhận diện ảnh, không phải độ tin cậy dự đoán độc tính hay đánh giá an toàn.
       </p>
       <Button size="sm" variant="outline" className="mt-3" onClick={() => onUseSmiles(content.smiles)}>
