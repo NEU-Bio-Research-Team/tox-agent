@@ -37,7 +37,7 @@ production needs a shared limiter and must account for other PubChem clients.
   measurements, targets, and structure search. A different MCP wrapper over
   this same API does not remove its upstream availability dependency.
 
-The new PubChem tool complements `get_chembl_activities`; it does not silently
-rename PubChem records as ChEMBL or replace failed lookups with invented data.
-The existing MCP tool registry exposes it to decision-support runs when the
-scientific-primitives flag and PubChem provider are enabled.
+ChEMBL is no longer queried or exposed as a live tool. Its historical evidence
+records remain readable, and PubChem may contain records contributed by other
+databases. The MCP tool registry exposes PubChem BioAssay to decision-support
+runs when the scientific-primitives flag and PubChem provider are enabled.

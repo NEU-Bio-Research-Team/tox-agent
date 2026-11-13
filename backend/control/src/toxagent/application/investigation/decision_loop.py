@@ -40,7 +40,7 @@ LEDGER_VERSION = "decision-loop-v1"
 TERMINAL_ACTIONS = frozenset({"answer", "ask_user", "stop"})
 #: Actions that look for new material, and so are subject to repeat refusal.
 SEARCH_ACTIONS = frozenset({
-    "search_toxicology_evidence", "get_chembl_activities", "get_pubchem_bioassays", "get_evidence_record",
+    "search_toxicology_evidence", "get_pubchem_bioassays", "get_evidence_record",
     "read_evidence_text", "delegate_evidence_workers",
 })
 
@@ -64,7 +64,6 @@ class Explanation(str, Enum):
 #: ranking so a reader sees what the order rested on.
 CARRIES_DATA_ESTIMATE: Mapping[str, float] = {
     "observation": 1.0,        # already held: it is the data
-    "chembl": 0.7,             # assay records with values
     "full_text": 0.6,          # tables and methods of a record found
     "europepmc": 0.4,          # abstracts first; values often in the body
     "pubchem": 0.3,

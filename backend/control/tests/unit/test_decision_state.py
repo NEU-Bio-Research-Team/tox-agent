@@ -78,9 +78,9 @@ def test_tool_results_count_usage_and_availability():
 
 
 def test_assay_sources_record_read_evidence_and_provider_failures():
-    state = ds.apply_tool_result(_state(), tool_name="get_chembl_activities", status="error",
+    state = ds.apply_tool_result(_state(), tool_name="get_pubchem_bioassays", status="error",
                                  error_code="tool_timeout")
-    assert state.access_failures[0]["provider"] == "chembl"
+    assert state.access_failures[0]["provider"] == "pubchem"
     state = ds.apply_tool_result(state, tool_name="get_pubchem_bioassays", status="completed",
                                  observation_ids=["evd_1"])
     assert state.available_refs == ("evidence:evd_1",)

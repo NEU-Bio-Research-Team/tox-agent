@@ -49,7 +49,6 @@ def build_registry(
     compound_provider: CompoundProvider | None = None,
     object_store=None,
     skill_catalog=None,
-    chembl_provider=None,
     pubchem_assay_provider=None,
     extra: list | None = None,
 ) -> ToolRegistry:
@@ -110,9 +109,8 @@ def build_registry(
         lambda profile: [tool.name for tool in registry.visible_for(profile)],
     ):
         add(definition)
-    # Gated by scientific_primitives_v1 (W9-13); the ChEMBL tool also needs a
-    # configured provider, like the evidence tools.
-    for definition in primitive_tools.build(database, chembl_provider):
+    # Gated by scientific_primitives_v1 (W9-13).
+    for definition in primitive_tools.build(database):
         add(definition)
     if pubchem_assay_provider is not None:
         for definition in pubchem_assay_tools.build(database, pubchem_assay_provider):

@@ -42,9 +42,8 @@ can separate the explanations you already have.
 ## Signs to change direction
 
 - **One record against many is not a conflict.** When a set of measurements
-  agrees and one sits far from the rest (`get_chembl_activities` lists it
-  under `far_from_median`), weigh the set by its median and range, name the
-  outlier, and check its units, relation and assay before letting it move the
+  agrees and one sits far from the rest, consider the range and the outlier,
+  and check its units, relation and assay before letting it move the
   conclusion. Do not call the data inconsistent, and do not propose a test to
   settle a disagreement that one outlier created. Lower IC50 is more potent:
   56 nM blocks more strongly than 204 nM.

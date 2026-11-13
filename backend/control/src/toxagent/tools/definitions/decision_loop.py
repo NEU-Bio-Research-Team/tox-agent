@@ -47,7 +47,7 @@ class CandidateInput(_Input):
         description="Gaps or competing explanations whose answer this action's result could "
                     f"change. Gaps: {', '.join(_GAPS)}. Explanations: {', '.join(_EXPLANATIONS)}.",
     )
-    source: Literal["observation", "chembl", "full_text", "europepmc", "pubchem", "unknown"] = "unknown"
+    source: Literal["observation", "full_text", "europepmc", "pubchem", "unknown"] = "unknown"
     reuses: str = Field(default="", max_length=80,
                         description="An observation or evidence id already held that this reuses.")
     cost: int = Field(default=1, ge=0, le=20, description="Tool calls it would spend.")

@@ -188,10 +188,8 @@ FLAGS: tuple[RolloutFlag, ...] = (
         "scientific_primitives_v1",
         "Register scientific primitives in decision_support (RETHINK 4.7, "
         "4.10): compute_exposure_margin (IC50 over free Cmax from concentrations "
-        "written in the session's sources, stored as a citable observation) and, "
-        "with a ChEMBL provider configured, get_chembl_activities (measured "
-        "activities of the analysed structure against hERG, stored as citable "
-        "evidence), and get_pubchem_bioassays (PubChem hERG assay summaries) "
+        "written in the session's sources, stored as a citable observation), "
+        "and get_pubchem_bioassays (PubChem hERG assay summaries) "
         "when PubChem is configured. External lookups honour the researcher's "
         "data scope. Off, these tools do not exist.",
         owner="backend-scientific",

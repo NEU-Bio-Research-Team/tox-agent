@@ -47,16 +47,16 @@ def test_an_unreachable_source_ranks_below_a_reachable_one():
     assert ranked[1]["criteria"]["accessible"] is False
 
 
-def test_a_chembl_timeout_makes_pubchem_the_reachable_assay_option():
+def test_a_pubchem_timeout_makes_literature_the_reachable_option():
     state = ds.initial(session_id="ses_1", run_id="run_1", goal="hERG",
                        subject_refs=(), budget_snapshot={})
-    state = ds.apply_tool_result(state, tool_name="get_chembl_activities", status="error",
+    state = ds.apply_tool_result(state, tool_name="get_pubchem_bioassays", status="error",
                                  error_code="tool_timeout")
     ranked = loop.rank([
-        c(action="get_chembl_activities", source="chembl", target="hERG"),
         c(action="get_pubchem_bioassays", source="pubchem", target="hERG"),
+        c(action="search_toxicology_evidence", source="europepmc", target="hERG"),
     ], ledger=loop.seed_ledger(CONTRACT), access_failures=state.access_failures)
-    assert ranked[0]["action"] == "get_pubchem_bioassays"
+    assert ranked[0]["action"] == "search_toxicology_evidence"
     assert ranked[1]["criteria"]["accessible"] is False
 
 

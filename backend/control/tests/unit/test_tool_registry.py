@@ -174,4 +174,4 @@ def test_the_read_route_profile_is_the_full_profile_minus_search_writes_and_skil
     assert "submit_grounded_answer" in read
     assert not read & {"search_toxicology_evidence", "update_scientific_case",
                        "read_scientific_skill", "read_skill_reference", "record_decision_plan",
-                       "compute_exposure_margin", "get_chembl_activities"}
+                       "compute_exposure_margin", "get_pubchem_bioassays"}

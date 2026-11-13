@@ -53,7 +53,7 @@ TARGETS: Mapping[str, CatalogTarget] = {
             vocabulary=("herg", "kcnh2", "kv11.1", "ikr", "rapid delayed rectifier",
                         "potassium channel", "qt prolongation", "patch clamp"),
             chembl_target_id="CHEMBL240", toxicity_endpoint="herg",
-            # research/providers/chembl.py: checked live on 2026-09-26.
+            # Historical identifier, checked live on 2026-09-26.
             live_mapping_verified=True,
         ),
         CatalogTarget(

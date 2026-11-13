@@ -54,7 +54,7 @@ Any other target, or any other method, is `not_measured`.
 | `analysis` | `create_analysis_snapshot`, `get_analysis_slice`, `submit_grounded_answer` | — |
 | `audit_readonly` | `get_analysis_slice`, `get_evidence_record`, `get_explanation_slice` | — |
 | `claim_review` | — | `submit_claim_review` (claim_reviewer_v1) |
-| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `compute_exposure_margin` (scientific_primitives_v1), `get_activity_snapshot` (activity_replay_v1), `get_chembl_activities` (scientific_primitives_v1), `get_prioritisation_decision` (activity_replay_v1), `get_pubchem_bioassays` (scientific_primitives_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `plan_next_action` (decision_loop_v1), `propose_skill_draft` (skill_drafts_v1), `read_evidence_text` (evidence_full_text_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `run_scientific_procedure` (scientific_procedures_v1), `update_scientific_case` (scientific_case_v1) |
+| `decision_support` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `search_toxicology_evidence`, `submit_grounded_answer` | `compute_exposure_margin` (scientific_primitives_v1), `get_activity_snapshot` (activity_replay_v1), `get_prioritisation_decision` (activity_replay_v1), `get_pubchem_bioassays` (scientific_primitives_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `plan_next_action` (decision_loop_v1), `propose_skill_draft` (skill_drafts_v1), `read_evidence_text` (evidence_full_text_v1), `read_scientific_skill` (scientific_skills_v1), `read_skill_reference` (scientific_skills_v1), `record_decision_plan` (decision_state_plan_tool), `run_scientific_procedure` (scientific_procedures_v1), `update_scientific_case` (scientific_case_v1) |
 | `decision_support_read` | `get_analysis_bundle`, `get_analysis_slice`, `get_artifact_inventory`, `get_attribution`, `get_evidence_record`, `get_explanation_slice`, `get_report_summary`, `submit_grounded_answer` | `get_activity_snapshot` (activity_replay_v1), `get_prioritisation_decision` (activity_replay_v1), `get_scientific_case` (scientific_case_v1), `get_screening_state` (activity_replay_v1), `read_evidence_text` (evidence_full_text_v1) |
 | `evidence_research` | `get_analysis_slice`, `get_evidence_record`, `search_toxicology_evidence`, `submit_grounded_answer` | `plan_next_action` (decision_loop_v1), `read_evidence_text` (evidence_full_text_v1), `run_scientific_procedure` (scientific_procedures_v1) |
 | `report_build` | `check_report_draft`, `check_saved_report_draft`, `get_analysis_bundle`, `get_analysis_slice`, `get_evidence_record`, `get_explanation_package`, `get_or_create_explanation`, `get_report_context`, `patch_saved_report_draft`, `resolve_compound_record`, `save_report_draft`, `search_toxicology_evidence`, `submit_report_draft`, `submit_saved_report_draft` | — |
@@ -82,7 +82,7 @@ Any other target, or any other method, is `not_measured`.
 | `router_v2` | no | backend-platform | 2026-12-12 | — |
 | `runtime_profile_selector_v2` | yes | backend-runtime | 2026-12-12 | — |
 | `scientific_case_v1` | no | backend-scientific | 2026-12-23 | `get_scientific_case`, `update_scientific_case` |
-| `scientific_primitives_v1` | no | backend-scientific | 2026-12-23 | `compute_exposure_margin`, `get_chembl_activities`, `get_pubchem_bioassays` |
+| `scientific_primitives_v1` | no | backend-scientific | 2026-12-23 | `compute_exposure_margin`, `get_pubchem_bioassays` |
 | `scientific_procedures_v1` | no | backend-agent | 2026-12-12 | `run_scientific_procedure` |
 | `scientific_skills_v1` | no | backend-scientific | 2026-12-23 | `read_scientific_skill`, `read_skill_reference` |
 | `skill_drafts_v1` | no | backend-scientific | 2026-12-23 | `propose_skill_draft` |
@@ -120,11 +120,11 @@ provider count.
 
 off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.
 
-Dynamic index ≈ 1012 tokens; static composition of every active skill ≈ 14671 tokens.
+Dynamic index ≈ 1012 tokens; static composition of every active skill ≈ 14649 tokens.
 
 | Skill | Version | Status | Risk | Requires | Tokens (body / with references) |
 |---|---|---|---|---|---|
-| `assess-conflicting-evidence` | 1.2.0 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 1066 / 1878 |
+| `assess-conflicting-evidence` | 1.2.1 | active | medium | `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 1044 / 1856 |
 | `critique-case` | 1.1.0 | active | medium | `get_scientific_case`, `update_scientific_case` | 769 / 782 |
 | `estimate-exposure-margin` | 1.0.0 | active | medium | `compute_exposure_margin`, `get_evidence_record`, `get_scientific_case`, `update_scientific_case` | 785 / 801 |
 | `interpret-model-attribution` | 1.1.0 | active | high | `get_attribution`, `get_scientific_case`, `update_scientific_case` | 780 / 1300 |

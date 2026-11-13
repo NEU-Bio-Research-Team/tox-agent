@@ -506,9 +506,8 @@ class SubmitAnswer:
         calls = await uow.tool_calls.list_for_run(run_id)
         read: set[str] = set()
         for call in calls:
-            # get_chembl_activities (W9-13) returns each record whole, so a
-            # record it returned has been read, not merely listed; a record
-            # whose full text was read (#43) has been read too.
+            # Whole assay records count as read. Include the retired ChEMBL
+            # tool name so runs created before its removal remain readable.
             if call["tool_name"] in (
                 "get_evidence_record", "get_chembl_activities", "get_pubchem_bioassays",
                 "read_evidence_text",

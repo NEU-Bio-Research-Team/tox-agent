@@ -348,10 +348,9 @@
     },
     "scientific_primitives_v1": {
       "default": false,
-      "description": "Register scientific primitives in decision_support (RETHINK 4.7, 4.10): compute_exposure_margin (IC50 over free Cmax from concentrations written in the session's sources, stored as a citable observation) and, with a ChEMBL provider configured, get_chembl_activities (measured activities of the analysed structure against hERG, stored as citable evidence), and get_pubchem_bioassays (PubChem hERG assay summaries) when PubChem is configured. External lookups honour the researcher's data scope. Off, these tools do not exist.",
+      "description": "Register scientific primitives in decision_support (RETHINK 4.7, 4.10): compute_exposure_margin (IC50 over free Cmax from concentrations written in the session's sources, stored as a citable observation), and get_pubchem_bioassays (PubChem hERG assay summaries) when PubChem is configured. External lookups honour the researcher's data scope. Off, these tools do not exist.",
       "gates_tools": [
         "compute_exposure_margin",
-        "get_chembl_activities",
         "get_pubchem_bioassays"
       ],
       "owner": "backend-scientific",
@@ -426,15 +425,15 @@
   ],
   "schema_version": "capability-matrix-v1",
   "scientific_skills": {
-    "catalog_sha256": "6a91776a8d2055c157d9eb0b37544a3cbfbefc1ef4dbac17c37d436ab46918cf",
+    "catalog_sha256": "cd6c5f8026e81c212a7548664741648219cf9bf6f4e9d8d57b91793cd128b716",
     "estimated_tokens_dynamic_index": 1012,
-    "estimated_tokens_static_all": 14671,
+    "estimated_tokens_static_all": 14649,
     "loading": "off by default; dynamic with flag scientific_skills_v1 (an index of names and descriptions in the decision_support prompt, bodies and references read on demand through read_scientific_skill/read_skill_reference, every read recorded with its hash); static with TOXAGENT_SCIENTIFIC_SKILLS_STATIC=1 (all offered skills composed into the prompt, for the ablation only). A skill is offered only when every tool it requires is visible to the run.",
     "skills": [
       {
-        "content_sha256": "b1a81392155223eafffbe668aaa3f2cb1711d1a168f1e40b5e45048830b36922",
-        "estimated_tokens_body": 1066,
-        "estimated_tokens_with_references": 1878,
+        "content_sha256": "ece6aa07974dfd46d44e905a2d94434e9a5b66ffcc171ffdd5840d035d81f075",
+        "estimated_tokens_body": 1044,
+        "estimated_tokens_with_references": 1856,
         "references": [
           "scope-comparison-checklist.md"
         ],
@@ -446,7 +445,7 @@
         "risk_tier": "medium",
         "skill_id": "assess-conflicting-evidence",
         "status": "active",
-        "version": "1.2.0"
+        "version": "1.2.1"
       },
       {
         "content_sha256": "cb3cbb94b7c4c120f7d2ae310257f79d75b36bf427b0f0d0c20cd832a1c6bdf7",
@@ -648,7 +647,6 @@
       "flag_gated": {
         "compute_exposure_margin": "scientific_primitives_v1",
         "get_activity_snapshot": "activity_replay_v1",
-        "get_chembl_activities": "scientific_primitives_v1",
         "get_prioritisation_decision": "activity_replay_v1",
         "get_pubchem_bioassays": "scientific_primitives_v1",
         "get_scientific_case": "scientific_case_v1",

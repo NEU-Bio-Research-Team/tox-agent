@@ -17,7 +17,7 @@ from ...research.policy import decide_acceptance
 from ...research.relevance import RELEVANCE_POLICY_VERSION
 from .. import trust
 from ..registry import ToolContext, ToolDefinition, ToolOutput
-from .primitives import _chembl_subject
+from .primitives import _assay_subject
 
 TOOL_NAME = "get_pubchem_bioassays"
 
@@ -32,7 +32,7 @@ class PubChemAssayInput(BaseModel):
 def build(database, provider) -> list[ToolDefinition]:
     async def assays(context: ToolContext, payload: PubChemAssayInput) -> ToolOutput:
         binding = binding_of(context)
-        analysis_id, smiles = await _chembl_subject(database, context, payload, binding)
+        analysis_id, smiles = await _assay_subject(database, context, payload, binding)
         async with database.unit_of_work() as uow:
             snapshot = (await uow.analyses.get(analysis_id, session_id=context.session_id)
                         if analysis_id else None)
@@ -91,8 +91,8 @@ def build(database, provider) -> list[ToolDefinition]:
         name=TOOL_NAME, title="Find PubChem hERG bioassays",
         description=("Look up PubChem BioAssay summaries for the bound structure and human hERG "
                      "(GeneID 3757 or UniProt Q12809). Returns citable assay records including "
-                     "activity outcome, assay description and source links. Useful when ChEMBL "
-                     "is unavailable. Results can include screening endpoints and repeated studies; "
+                     "activity outcome, assay description and source links. Results can include screening "
+                     "endpoints and repeated studies; "
                      "inspect the assay before comparing or making quantitative claims."),
         input_model=PubChemAssayInput, handler=assays, profiles=frozenset({"decision_support"}),
         soft_timeout_s=15.0, hard_timeout_s=45.0, max_retries=0, cost_class="moderate",

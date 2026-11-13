@@ -153,7 +153,6 @@ def create_app(
     ocr_client: OcrClient | None = None,
     object_store: ObjectStore | None = None,
     create_schema: bool = False,
-    chembl_provider=None,
     pubchem_assay_provider=None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
@@ -295,11 +294,6 @@ def create_app(
         from ..application.investigation.skill_catalog import load_catalog
 
         skill_catalog = load_catalog(settings.profiles_dir)
-        chembl = chembl_provider
-        if chembl is None and is_enabled("scientific_primitives_v1"):
-            from ..research.providers.chembl import build_chembl_provider
-
-            chembl = build_chembl_provider(settings.chembl)
         pubchem_assays = pubchem_assay_provider
         if (pubchem_assays is None and settings.compound.provider == "pubchem"
                 and is_enabled("scientific_primitives_v1")):
@@ -310,7 +304,7 @@ def create_app(
             db, client, analysis, settings.policy,
             research_provider=research_provider, research_settings=settings.research,
             compound_provider=compound_provider, object_store=objects,
-            skill_catalog=skill_catalog, chembl_provider=chembl,
+            skill_catalog=skill_catalog,
             pubchem_assay_provider=pubchem_assays,
         )
         runner = ToolRunner(

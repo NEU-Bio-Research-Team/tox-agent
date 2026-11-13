@@ -227,14 +227,11 @@ def describe_effective_product(
             "predictor_host": _host(settings.predictor.base_url),
             "research_provider": settings.research.provider or None,
             "research_host": _host(settings.research.base_url),
-            # The live activity lookup the primitives bring with them
-            # (app.py builds it only under scientific_primitives_v1). Reported
-            # because it has no frozen form: an arm on frozen inputs that has
-            # it reaches a live provider, which happened on 2026-10-29 (arm E,
-            # T5 -- ChEMBL recognised the "synthetic" structure as sotalol).
+            # This is a live provider even for a deployment whose literature
+            # comes from a frozen snapshot; benchmark preflight must see it.
             "activity_lookup": (
-                settings.chembl.provider or None
-                if flags["scientific_primitives_v1"]["enabled"] else None
+                "pubchem_bioassay" if flags["scientific_primitives_v1"]["enabled"]
+                and settings.compound.provider == "pubchem" else None
             ),
             "research_max_results": settings.research.max_results,
             # A benchmark on frozen evidence says so, and says which snapshot.

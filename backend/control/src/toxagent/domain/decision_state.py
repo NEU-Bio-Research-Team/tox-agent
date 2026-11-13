@@ -372,7 +372,6 @@ def apply_tool_result(
         usage["failed_calls"] = usage.get("failed_calls", 0) + 1
     updated = _next(state, usage=usage, available_refs=tuple(available))
     provider = {
-        "get_chembl_activities": "chembl",
         "get_pubchem_bioassays": "pubchem",
     }.get(tool_name)
     if provider and error_code in {"tool_timeout", "evidence_unavailable", "provider_rate_limited"}:
